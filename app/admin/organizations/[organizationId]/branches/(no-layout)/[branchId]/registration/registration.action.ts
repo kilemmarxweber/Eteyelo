@@ -21,6 +21,7 @@ import { buildClassCode, buildClassName, validateClassInput } from "@/lib/class-
 import { ensureUniqueIdentifier, generateSlug } from "@/lib/generated-identifiers";
 import { registrationSchema } from "@/src/interfaces/registration";
 import { creneauSchema } from "@/src/interfaces/creneau";
+import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
 import { createOrganizationMemberAction } from "../../../../members/actions";
 import {
   ensurePrimaryAcademicStructure,
@@ -773,6 +774,7 @@ export const createCreneauForRegistrationAction = action
       durationCourse,
       recreationDuration,
       recreationHour,
+      workingDays,
     } = input;
     const [heuresDebut, minutesDebut] = startTime.split(":").map(Number);
     const [heuresFin, minutesFin] = endTime.split(":").map(Number);
@@ -793,6 +795,7 @@ export const createCreneauForRegistrationAction = action
         recreationDuration,
         branchId,
         recreationHour: new Date(Date.UTC(2000, 1, 1, recreHeure, recreMinutes)),
+        workingDays: normalizeCreneauWorkingDays(workingDays),
       },
       select: { id: true, nameCreneau: true },
     });

@@ -1,4 +1,5 @@
 import type { Prisma } from "@/prisma/generated/prisma/client";
+import { DEFAULT_CRENEAU_WORKING_DAYS } from "@/lib/creneau-working-days";
 
 type CreneauDb = Pick<Prisma.TransactionClient, "creneau">;
 
@@ -41,6 +42,7 @@ export async function ensureDefaultCreneaux(db: CreneauDb, branchId: string) {
           branchId,
           durationCourse: 45,
           recreationDuration: 15,
+          workingDays: [...DEFAULT_CRENEAU_WORKING_DAYS],
           isArchived: false,
         },
       });

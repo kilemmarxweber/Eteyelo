@@ -9,6 +9,19 @@ export const SCHEDULE_WORK_DAYS: Day[] = [
   "Samedi",
 ];
 
+export function resolveScheduleWorkDays(
+  days: Day[] | string[] | null | undefined,
+): Day[] {
+  if (!Array.isArray(days) || days.length === 0) {
+    return [...SCHEDULE_WORK_DAYS];
+  }
+  const allowed = new Set(SCHEDULE_WORK_DAYS);
+  const unique = [
+    ...new Set(days.filter((day): day is Day => allowed.has(day as Day))),
+  ];
+  if (!unique.length) return [...SCHEDULE_WORK_DAYS];
+  return SCHEDULE_WORK_DAYS.filter((day) => unique.includes(day));
+}
 export function parseHmToMinutes(value: string): number {
   const [hours, minutes] = value.split(":").map(Number);
   if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return 0;
@@ -193,7 +206,9 @@ export function placeTeachingsGreedy(params: {
   occupiedClassSlots: Set<SlotKey>;
   /** Intervalles déjà occupés par enseignant (multi-branches / multi-cycles). */
   occupiedTeacherIntervals: Map<string, TeacherBusyInterval[]>;
+  workDays?: Day[];
 }): PlacementResult {
+  const workDays = resolveScheduleWorkDays(params.workDays);
   const byPriority = [...params.candidates].sort((a, b) => {
     if (a.titulaire !== b.titulaire) return a.titulaire ? -1 : 1;
     if (b.weeklyMinutes !== a.weeklyMinutes) {
@@ -233,7 +248,7 @@ export function placeTeachingsGreedy(params: {
 
     while (remaining > 0) {
       let placedThisRound = 0;
-      const days = shuffledCopy(SCHEDULE_WORK_DAYS);
+      const days = shuffledCopy(workDays);
       for (const day of days) {
         if (remaining <= 0) break;
         const hours = shuffledCopy(params.courseSlots);
@@ -308,6 +323,7 @@ export function placeTeachingsWithRetries(
     durationCourseMinutes: number;
     occupiedClassSlots: Set<SlotKey>;
     occupiedTeacherIntervals: Map<string, TeacherBusyInterval[]>;
+    workDays?: Day[];
   },
   options?: { maxAttempts?: number },
 ): PlacementAttemptResult {

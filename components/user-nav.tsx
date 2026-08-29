@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/custom/button";
@@ -28,10 +29,17 @@ export function UserNav() {
   const tNav = useTranslations("nav");
   const router = useRouter();
   const { data: session } = authClient.useSession();
+  const [mounted, setMounted] = useState(false);
   const user = session?.user as SessionUserDisplay | undefined;
   const displayName = resolveUserDisplayName(user);
   const roleLabel = getPrimaryRoleLabel(session);
-  const initials = getUserInitials(displayName);
+  // Session client peut différer du SSR → initiales stables jusqu'au mount.
+  const showSessionLabel = mounted && Boolean(session);
+  const initials = showSessionLabel ? getUserInitials(displayName) : "U";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <DropdownMenu>
@@ -43,6 +51,7 @@ export function UserNav() {
             "hover:border-border hover:bg-muted/60",
             "data-[state=open]:border-border data-[state=open]:bg-muted/60",
           )}
+          suppressHydrationWarning
         >
           <Avatar className="size-8 ring-2 ring-background">
             <AvatarImage
@@ -53,7 +62,7 @@ export function UserNav() {
               {initials}
             </AvatarFallback>
           </Avatar>
-          {session ? (
+          {showSessionLabel ? (
             <span className="hidden min-w-0 flex-col items-start text-left sm:flex">
               <span className="max-w-[9.5rem] truncate text-sm font-semibold leading-tight text-foreground">
                 {displayName}
@@ -80,7 +89,7 @@ export function UserNav() {
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1 space-y-0.5">
-              {session ? (
+              {showSessionLabel ? (
                 <>
                   <p className="truncate text-sm font-semibold text-foreground">
                     {displayName}

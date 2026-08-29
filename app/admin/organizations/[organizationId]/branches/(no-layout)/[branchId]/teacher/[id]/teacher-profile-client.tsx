@@ -39,6 +39,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, normalizeImageSrc } from "@/lib/utils";
 import { DocumentReadViewer } from "@/components/documents/document-read-viewer";
+import { FicheScoresDialog } from "@/components/fiche-scores-dialog";
+import {
+  formatFicheInterventionLabel,
+  numberFichesByType,
+} from "@/lib/grade-modification-shared";
 import { StaffBadgeSection } from "../../components/staff-badge-section";
 import StudentAttendanceTable from "../../attendance/component/StudentAttendanceTable";
 import TeacherScheduleTable, {
@@ -55,18 +60,32 @@ import type {
   TeacherProfileNote,
 } from "./teacher-profile-types";
 
-const FICHE_TYPE_LABEL: Record<string, string> = {
-  ficheCote: "Fiche de cote",
-  Devoir: "Devoir",
-  Evaluation: "Évaluation",
-  evaluations: "Évaluation",
-  TP: "TP",
-  TFC: "TFC",
-  Memoire: "Mémoire",
-};
+/** Numérote Devoir/Éval par cours (lesson), pas globalement. */
+function numberNotesByCourse(notes: TeacherProfileNote[]) {
+  const byLesson = new Map<string, TeacherProfileNote[]>();
+  for (const note of notes) {
+    const key = note.lessonId || `${note.courseName}::${note.classId}`;
+    const list = byLesson.get(key) ?? [];
+    list.push(note);
+    byLesson.set(key, list);
+  }
 
-function ficheTypeLabel(type: string) {
-  return FICHE_TYPE_LABEL[type] ?? type;
+  const numbered = new Map<string, number>();
+  for (const [, list] of byLesson) {
+    for (const row of numberFichesByType(
+      list.map((note) => ({
+        ...note,
+        dateCreated: note.createdAt,
+      })),
+    )) {
+      numbered.set(row.id, row.sequence);
+    }
+  }
+
+  return notes.map((note) => ({
+    ...note,
+    sequence: numbered.get(note.id) ?? 1,
+  }));
 }
 
 function statusMeta(status: TeacherAttendanceStatus) {
@@ -188,24 +207,36 @@ export function TeacherProfileClient({
   profile,
   teaching,
   hours,
+  workingDays,
 }: {
   profile: TeacherProfileData;
   teaching: TeacherScheduleUI[];
   hours: string[];
+  workingDays?: string[];
 }) {
+  const router = useRouter();
   const [tab, setTab] = React.useState("dossier");
   const [classId, setClassId] = React.useState(
     profile.classes[0]?.id ?? "all",
   );
+  const [viewFiche, setViewFiche] = React.useState<{
+    id: string;
+    sequence: number;
+    subjectName: string;
+    typeFiche: string;
+  } | null>(null);
 
   const initials =
     `${profile.nom?.[0] ?? ""}${profile.prenom?.[0] ?? ""}`.toUpperCase() ||
     "EN";
 
-  const notesForClass: TeacherProfileNote[] =
-    classId === "all"
-      ? profile.notes
-      : profile.notes.filter((note) => note.classId === classId);
+  const numberedNotes = React.useMemo(() => {
+    const notes =
+      classId === "all"
+        ? profile.notes
+        : profile.notes.filter((note) => note.classId === classId);
+    return numberNotesByCourse(notes);
+  }, [profile.notes, classId]);
 
   const notesByClassHref =
     classId === "all"
@@ -662,32 +693,57 @@ export function TeacherProfileClient({
                       : ""}
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    {notesForClass.length} fiche
-                    {notesForClass.length > 1 ? "s" : ""}
+                    {numberedNotes.length} fiche
+                    {numberedNotes.length > 1 ? "s" : ""}
+                    {" · "}
+                    cliquez pour voir les cotes
+                    {numberedNotes.some((n) => !n.status)
+                      ? " (modification possible si ouverte, après validation direction)"
+                      : ""}
                   </p>
                 </div>
                 <div className="divide-y">
-                  {notesForClass.length ? (
-                    notesForClass.map((note) => (
-                      <Link
-                        key={note.id}
-                        href={`${profile.baseHref}/fiches/${note.id}`}
-                        className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 transition-colors hover:bg-muted/40"
-                      >
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium">
-                            {note.courseName} · {note.className}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {ficheTypeLabel(note.typeFiche)} · {note.periodName}
-                            {note.yearName ? ` · ${note.yearName}` : ""}
-                          </p>
-                        </div>
-                        <Badge variant={note.status ? "success" : "warning"}>
-                          {note.status ? "Validée" : "Ouverte"}
-                        </Badge>
-                      </Link>
-                    ))
+                  {numberedNotes.length ? (
+                    numberedNotes.map((note) => {
+                      const label = formatFicheInterventionLabel({
+                        typeFiche: note.typeFiche,
+                        sequence: note.sequence,
+                        subjectName: note.courseName,
+                      });
+                      return (
+                        <button
+                          key={note.id}
+                          type="button"
+                          onClick={() =>
+                            setViewFiche({
+                              id: note.id,
+                              sequence: note.sequence,
+                              subjectName: note.courseName,
+                              typeFiche: note.typeFiche,
+                            })
+                          }
+                          className="flex w-full flex-wrap items-center justify-between gap-2 px-4 py-3 text-left transition-colors hover:bg-muted/40"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium">{label}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDate(note.createdAt)}
+                              {" · "}
+                              {note.className}
+                              {" · "}
+                              {note.periodName}
+                              {note.yearName ? ` · ${note.yearName}` : ""}
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <Badge variant={note.status ? "success" : "warning"}>
+                              {note.status ? "Validée" : "Ouverte"}
+                            </Badge>
+                            <Eye className="size-4 text-muted-foreground" />
+                          </div>
+                        </button>
+                      );
+                    })
                   ) : (
                     <p className="px-4 py-8 text-center text-sm text-muted-foreground">
                       Aucune note ajoutée pour cette classe.
@@ -706,6 +762,7 @@ export function TeacherProfileClient({
                 <TeacherScheduleTable
                   teaching={teaching}
                   hoursFromProps={hours}
+                  workingDays={workingDays}
                 />
               </Card>
             </TabsContent>
@@ -746,6 +803,18 @@ export function TeacherProfileClient({
           {profile.badge ? <StaffBadgeSection badge={profile.badge} /> : null}
         </aside>
       </div>
+
+      <FicheScoresDialog
+        open={Boolean(viewFiche)}
+        onOpenChange={(next) => {
+          if (!next) setViewFiche(null);
+        }}
+        ficheId={viewFiche?.id ?? null}
+        sequence={viewFiche?.sequence ?? 1}
+        subjectName={viewFiche?.subjectName ?? ""}
+        typeFiche={viewFiche?.typeFiche ?? "Devoir"}
+        onSubmitted={() => router.refresh()}
+      />
     </div>
   );
 }

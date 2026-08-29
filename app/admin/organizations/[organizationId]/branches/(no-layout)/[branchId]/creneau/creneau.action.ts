@@ -7,6 +7,8 @@ import { ICreneau, creneauSchema } from "@/src/interfaces/creneau";
 import { z } from "zod";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { buildIsArchivedUpdate } from "@/lib/archive";
+import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
+import type { Day } from "@/prisma/generated/prisma/client";
 
 function revalidateCreneauPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/creneau`);
@@ -27,6 +29,7 @@ export const createCreneauAction = action
         durationCourse,
         recreationDuration,
         recreationHour,
+        workingDays,
       } = input;
       const [heuresDebut, minutesDebut] = startTime.split(":").map(Number);
       const [heuresFin, minutesFin] = endTime.split(":").map(Number);
@@ -53,6 +56,7 @@ export const createCreneauAction = action
           recreationHour: new Date(
             Date.UTC(2000, 1, 1, RecreHeure, RecreMinutes),
           ),
+          workingDays: normalizeCreneauWorkingDays(workingDays) as Day[],
         },
       });
       revalidateCreneauPages(organizationId, branchId);
@@ -75,6 +79,7 @@ export const updateCreneauAction = action
       durationCourse,
       recreationDuration,
       recreationHour,
+      workingDays,
     } = input;
     const existing = await prisma.creneau.findFirst({
       where: { id, branchId },
@@ -107,6 +112,7 @@ export const updateCreneauAction = action
         recreationHour: new Date(
           Date.UTC(2000, 1, 1, RecreHeure, RecreMinutes),
         ),
+        workingDays: normalizeCreneauWorkingDays(workingDays) as Day[],
       },
     });
     revalidateCreneauPages(organizationId, branchId);
@@ -200,6 +206,7 @@ export const getCreneauByClasseAction = action
           ? creneau.recreationHour.toISOString().split("T")[1].slice(0, 5)
           : "",
         durationCourse: creneau.durationCourse || 0,
+        workingDays: normalizeCreneauWorkingDays(creneau.workingDays),
         createdAt: creneau.createdAt || new Date(),
         updatedAt: creneau.updatedAt || new Date(),
       }));
@@ -250,6 +257,7 @@ export const getCreneauxAction = action
           ? creneau.recreationHour.toISOString().split("T")[1].slice(0, 5)
           : "",
         durationCourse: creneau.durationCourse || 0,
+        workingDays: normalizeCreneauWorkingDays(creneau.workingDays),
         classesCount: creneau.classe.length,
         classes: creneau.classe
           ? creneau.classe.map((classe) => ({

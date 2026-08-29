@@ -42,13 +42,22 @@ export default function Sidebar({
     undefined,
   );
   const [branchLoaded, setBranchLoaded] = useState(false);
+  /** Évite un mismatch d’hydratation : useSession() peut différer SSR vs 1er paint client,
+   * ce qui change le nombre de Collapsible/DropdownMenu (useId) avant UserNav. */
+  const [menuReady, setMenuReady] = useState(false);
   const { data: session } = authClient.useSession();
   const tNav = useTranslations("nav");
+
+  useEffect(() => {
+    setMenuReady(true);
+  }, []);
+
+  const sessionForLinks = menuReady ? session : null;
   const rawLinks = buildStaticSideLinks(
-    session,
+    sessionForLinks,
     pathname,
-    branchType,
-    branchCycles ?? branchType,
+    menuReady ? branchType : undefined,
+    menuReady ? (branchCycles ?? branchType) : undefined,
   );
   const links = useMemo(() => {
     const translate = (items: SideLink[]): SideLink[] =>

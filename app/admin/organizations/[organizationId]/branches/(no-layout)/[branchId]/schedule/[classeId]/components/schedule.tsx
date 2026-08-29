@@ -54,6 +54,10 @@ import {
   findScheduleConflicts,
   type ScheduleReportContext,
 } from "./export-schedule-pdf";
+import {
+  DEFAULT_CRENEAU_WORKING_DAYS,
+  normalizeCreneauWorkingDays,
+} from "@/lib/creneau-working-days";
 
 export const Day = {
   Lundi: "Lundi",
@@ -89,7 +93,7 @@ interface ScheduleUpFormProps extends HTMLAttributes<HTMLDivElement> {
   mode: "create" | "update";
 }
 
-const JOURS = Day;
+const ALL_JOURS = Day;
 
 function timeToMinutes(value: string) {
   const [hours, minutes] = value.split(":").map(Number);
@@ -130,6 +134,9 @@ export default function Schedule({
   const [heuresDebut, setHeuresDebut] = useState<string[]>([]);
   const [recreationHour, setRecreationHour] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [workingDays, setWorkingDays] = useState<string[]>([
+    ...DEFAULT_CRENEAU_WORKING_DAYS,
+  ]);
   const [hasCreneau, setHasCreneau] = useState(true);
   const [reportContext, setReportContext] =
     useState<ScheduleReportContext | null>(null);
@@ -151,6 +158,18 @@ export default function Schedule({
   const displayHeuresDebut = useMemo(
     () => buildDisplayTimeSlots(heuresDebut, recreationHour),
     [heuresDebut, recreationHour],
+  );
+
+  const JOURS = useMemo(() => {
+    const days = normalizeCreneauWorkingDays(workingDays);
+    return Object.fromEntries(
+      days.map((day) => [day, day]),
+    ) as Partial<typeof ALL_JOURS> & Record<string, string>;
+  }, [workingDays]);
+
+  const joursList = useMemo(
+    () => normalizeCreneauWorkingDays(workingDays) as DayType[],
+    [workingDays],
   );
 
   const loadHoraires = useCallback(async () => {
@@ -214,11 +233,15 @@ export default function Schedule({
           setHeuresDebut(generatedTimes);
           setRecreationHour(creneaux[0].recreationHour);
           setEndTime(creneaux[0].endTime);
+          setWorkingDays(
+            normalizeCreneauWorkingDays(creneaux[0].workingDays),
+          );
         } else {
           setHasCreneau(false);
           setHeuresDebut([]);
           setRecreationHour("");
           setEndTime("");
+          setWorkingDays([...DEFAULT_CRENEAU_WORKING_DAYS]);
         }
 
         const [context, reportErr] = reportResult;
@@ -358,7 +381,7 @@ export default function Schedule({
     try {
       await exportSchedulePdf({
         context: reportContext,
-        days: Object.values(JOURS),
+        days: joursList,
         timeSlots: displayHeuresDebut,
         recreationHour,
         endTime,
@@ -498,7 +521,7 @@ export default function Schedule({
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[150px]">Heures</TableHead>
-                    {Object.values(JOURS).map((jour) => (
+                    {joursList.map((jour) => (
                       <TableHead key={jour}>{jour}</TableHead>
                     ))}
                   </TableRow>
@@ -508,7 +531,7 @@ export default function Schedule({
                     heure === recreationHour ? (
                       <TableRow key={heure}>
                         <TableCell
-                          colSpan={Object.values(JOURS).length + 1}
+                          colSpan={joursList.length + 1}
                           className="bg-muted/40 text-center"
                         >
                           <span className="text-sm font-medium tracking-wide text-muted-foreground">
@@ -527,7 +550,7 @@ export default function Schedule({
                             endTime,
                           )}
                         </TableCell>
-                        {Object.values(JOURS).map((jour) => {
+                        {joursList.map((jour) => {
                           const cellSchedules = horaires.filter(
                             (h) => h.jour === jour && h.heureDebut === heure,
                           );

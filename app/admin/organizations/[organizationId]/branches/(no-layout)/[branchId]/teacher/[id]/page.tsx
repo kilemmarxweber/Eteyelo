@@ -29,6 +29,7 @@ import {
   syncTeacherDossierExperienceYears,
 } from "@/lib/teacher-assignment-years";
 import { formatAgeLabel, formatBirthDate } from "@/lib/person-age";
+import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
 import type {
   TeacherAttendanceStatus,
   TeacherProfileClass,
@@ -177,6 +178,7 @@ const SingleTeacherPage = async ({
       take: 80,
       select: {
         id: true,
+        lessonId: true,
         classSectionId: true,
         classeName: true,
         coursName: true,
@@ -417,6 +419,7 @@ const SingleTeacherPage = async ({
       : null,
     notes: fiches.map((fiche) => ({
       id: fiche.id,
+      lessonId: fiche.lessonId,
       classId: fiche.classSectionId,
       className: fiche.classeName,
       courseName: fiche.coursName,
@@ -489,6 +492,13 @@ const SingleTeacherPage = async ({
         profile={profile}
         teaching={teacher.teaching as TeacherScheduleUI[]}
         hours={heuresDebut}
+        workingDays={
+          creneau
+            ? normalizeCreneauWorkingDays(
+                (creneau as { workingDays?: string[] }).workingDays,
+              )
+            : undefined
+        }
       />
     </BranchPageShell>
   );

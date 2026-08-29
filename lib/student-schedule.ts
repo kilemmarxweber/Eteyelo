@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { StudentScheduleData, StudentScheduleEntry } from "@/lib/student-schedule-types";
 import { genererCreneaux } from "@/src/hooks/getCourseHours";
+import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
 
 function formatScheduleHour(hour: Date | null | undefined) {
   if (!hour) return "";
@@ -83,6 +84,7 @@ export async function buildStudentScheduleData(
           durationCourse: true,
           recreationHour: true,
           recreationDuration: true,
+          workingDays: true,
         },
       },
     },
@@ -137,6 +139,7 @@ export async function buildStudentScheduleData(
   let timeSlots: string[] = [];
   let recreationHour = "";
   let endTime = "";
+  const workingDays = normalizeCreneauWorkingDays(classe.creneau?.workingDays);
 
   if (classe.creneau) {
     const creneau = classe.creneau;
@@ -162,6 +165,7 @@ export async function buildStudentScheduleData(
     timeSlots: buildDisplayTimeSlots(timeSlots, recreationHour),
     recreationHour,
     endTime,
+    workingDays,
     entries,
   };
 }

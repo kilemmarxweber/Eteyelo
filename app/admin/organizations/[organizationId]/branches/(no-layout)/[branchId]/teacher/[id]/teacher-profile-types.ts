@@ -20,6 +20,7 @@ export type TeacherProfileClass = {
 
 export type TeacherProfileNote = {
   id: string;
+  lessonId: string;
   classId: string;
   className: string;
   courseName: string;

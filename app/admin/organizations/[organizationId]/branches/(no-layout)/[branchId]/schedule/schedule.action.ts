@@ -26,10 +26,12 @@ import {
   generateCourseStartSlots,
   sessionsNeededFromWeeklyHours,
   placeTeachingsWithRetries,
+  resolveScheduleWorkDays,
   slotKey,
   formatMinutesToHm,
   type TeacherBusyInterval,
 } from "@/lib/schedule-auto-generate";
+import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
 import {
   assertTeacherFreeAt,
   getTeacherUserId,
@@ -760,6 +762,9 @@ export const getScheduleCreneauByClasseAction = action
           ? creneau.recreationHour.toISOString().split("T")[1].slice(0, 5)
           : "",
         durationCourse: creneau.durationCourse || 0,
+        workingDays: normalizeCreneauWorkingDays(
+          (creneau as { workingDays?: string[] }).workingDays,
+        ),
         createdAt: creneau.createdAt || new Date(),
         updatedAt: creneau.updatedAt || new Date(),
       },
@@ -1165,6 +1170,7 @@ export const regenerateScheduleForClasseAction = action
           durationCourseMinutes: durationCourse,
           occupiedClassSlots,
           occupiedTeacherIntervals,
+          workDays: resolveScheduleWorkDays(classe.creneau.workingDays),
         },
         { maxAttempts: 48 },
       );

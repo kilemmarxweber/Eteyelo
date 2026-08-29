@@ -23,9 +23,16 @@ import {
   type CreneauFormValues,
 } from "@/src/interfaces/creneau";
 import { previewPeriodsAroundRecreation } from "@/src/hooks/getCourseHours";
+import {
+  CRENEAU_WEEKDAY_OPTIONS,
+  DEFAULT_CRENEAU_WORKING_DAYS,
+  normalizeCreneauWorkingDays,
+} from "@/lib/creneau-working-days";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const emptyCreneauValues = (): CreneauFormValues => ({
   ...defaultCreneauValues,
+  workingDays: [...DEFAULT_CRENEAU_WORKING_DAYS],
 });
 
 const normalizeCreneauValues = (
@@ -47,6 +54,7 @@ const normalizeCreneauValues = (
     Number.isFinite(initialData.recreationDuration)
       ? initialData.recreationDuration
       : defaultCreneauValues.recreationDuration,
+  workingDays: normalizeCreneauWorkingDays(initialData?.workingDays),
 });
 
 const controlledTime = (value: unknown) =>
@@ -472,6 +480,63 @@ export function CreneauUpForm({
               />
             </div>
           </div>
+
+          <FormField
+            control={form.control}
+            name="workingDays"
+            render={({ field }) => (
+              <FormItem className={cn(isDialog ? "space-y-2" : "space-y-3")}>
+                <div>
+                  <FormLabel className={labelClass ?? "text-sm font-medium"}>
+                    Jours ouvrables
+                  </FormLabel>
+                  {!isDialog ? (
+                    <FormDescription>
+                      Jours où cette vacation a cours (décochez le samedi si
+                      besoin).
+                    </FormDescription>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground">
+                      Ex. sans samedi si pas de cours ce jour-là.
+                    </p>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {CRENEAU_WEEKDAY_OPTIONS.map((day) => {
+                    const checked = (field.value ?? []).includes(day.value);
+                    return (
+                      <label
+                        key={day.value}
+                        className={cn(
+                          "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
+                          checked
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:bg-muted/40",
+                        )}
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(state) => {
+                            const current = field.value ?? [];
+                            const next =
+                              state === true
+                                ? normalizeCreneauWorkingDays([
+                                    ...current,
+                                    day.value,
+                                  ])
+                                : current.filter((d) => d !== day.value);
+                            field.onChange(next);
+                          }}
+                        />
+                        <span>{day.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {periodPreview ? (
             <div

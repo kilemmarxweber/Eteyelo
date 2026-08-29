@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  CRENEAU_WEEKDAY_OPTIONS,
+  DEFAULT_CRENEAU_WORKING_DAYS,
+} from "@/lib/creneau-working-days";
 
 export interface ICreneau {
   id: string;
@@ -8,6 +12,7 @@ export interface ICreneau {
   durationCourse: number;
   recreationHour: string;
   recreationDuration: number;
+  workingDays?: string[];
   isArchived?: boolean;
   classesCount?: number;
   createdAt: Date;
@@ -16,6 +21,13 @@ export interface ICreneau {
 
 export const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
 
+const weekdayEnum = z.enum(
+  CRENEAU_WEEKDAY_OPTIONS.map((d) => d.value) as [
+    (typeof CRENEAU_WEEKDAY_OPTIONS)[number]["value"],
+    ...(typeof CRENEAU_WEEKDAY_OPTIONS)[number]["value"][],
+  ],
+);
+
 export const defaultCreneauValues = {
   nameCreneau: "",
   startTime: "",
@@ -23,6 +35,7 @@ export const defaultCreneauValues = {
   durationCourse: 45,
   recreationHour: "",
   recreationDuration: 15,
+  workingDays: [...DEFAULT_CRENEAU_WORKING_DAYS],
 } as const;
 
 const creneauFieldsSchema = z.object({
@@ -47,6 +60,9 @@ const creneauFieldsSchema = z.object({
     })
     .int()
     .positive("La durée doit être un nombre positif"),
+  workingDays: z
+    .array(weekdayEnum)
+    .min(1, "Sélectionnez au moins un jour ouvrable."),
 });
 
 export const creneauSchema = creneauFieldsSchema

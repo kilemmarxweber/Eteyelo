@@ -50,5 +50,16 @@ export function formatFicheInterventionLabel(params: {
 }) {
   const type =
     params.typeFiche === "ficheCote" ? "Fiche de cote" : params.typeFiche;
-  return `${type} ${params.sequence} ${params.subjectName}`.trim();
+  const subject = params.subjectName.trim();
+  const prettySubject =
+    subject &&
+    subject === subject.toUpperCase() &&
+    /[A-ZÀ-ÿ]/.test(subject)
+      ? subject
+          .toLocaleLowerCase("fr-FR")
+          .replace(/(^|[\s\-'])(\S)/g, (_, sep: string, ch: string) =>
+            `${sep}${ch.toLocaleUpperCase("fr-FR")}`,
+          )
+      : subject;
+  return `${type} ${params.sequence} ${prettySubject}`.trim();
 }

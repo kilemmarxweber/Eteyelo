@@ -132,6 +132,11 @@ import {
   defaultCreneauValues,
   type CreneauFormValues,
 } from "@/src/interfaces/creneau";
+import {
+  CRENEAU_WEEKDAY_OPTIONS,
+  normalizeCreneauWorkingDays,
+} from "@/lib/creneau-working-days";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type RegistrationStepKey = "student" | "parent" | "class" | "confirm";
 
@@ -1563,6 +1568,9 @@ export function RegistrationForm({
     ) {
       return toast.error("Complétez toutes les informations de la vacation.");
     }
+    if (!(creneauForm.workingDays?.length > 0)) {
+      return toast.error("Sélectionnez au moins un jour ouvrable.");
+    }
     setCreatingCreneau(true);
     const [creneau, error] =
       await createCreneauForRegistrationAction(creneauForm);
@@ -1726,6 +1734,48 @@ export function RegistrationForm({
                   }
                 />
               </Field>
+            </div>
+            <div className="space-y-2">
+              <Label>Jours ouvrables</Label>
+              <p className="text-xs text-muted-foreground">
+                Décochez le samedi s&apos;il n&apos;y a pas de cours ce jour-là.
+              </p>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {CRENEAU_WEEKDAY_OPTIONS.map((day) => {
+                  const checked = (creneauForm.workingDays ?? []).includes(
+                    day.value,
+                  );
+                  return (
+                    <label
+                      key={day.value}
+                      className={cn(
+                        "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
+                        checked
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:bg-muted/40",
+                      )}
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(state) => {
+                          setCreneauForm((current) => {
+                            const currentDays = current.workingDays ?? [];
+                            const next =
+                              state === true
+                                ? normalizeCreneauWorkingDays([
+                                    ...currentDays,
+                                    day.value,
+                                  ])
+                                : currentDays.filter((d) => d !== day.value);
+                            return { ...current, workingDays: next };
+                          });
+                        }}
+                      />
+                      <span>{day.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
             <Button disabled={creatingCreneau} onClick={createCreneau}>
               {creatingCreneau ? tReg("actions.creating") : "Créer la vacation"}

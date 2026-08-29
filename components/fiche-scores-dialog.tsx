@@ -2,10 +2,19 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { Camera, Check, Upload, X } from "lucide-react";
+import {
+  Camera,
+  Check,
+  ClipboardList,
+  Lock,
+  Pencil,
+  Upload,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { CameraCaptureDialog } from "@/components/camera-capture-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +36,7 @@ import {
   submitGradeModificationAction,
   getGradeModificationAction,
 } from "@/lib/actions/grade-modification.actions";
+import { cn } from "@/lib/utils";
 
 type NoteRow = {
   studentId?: string;
@@ -45,9 +55,25 @@ function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("fr-FR", {
-    dateStyle: "medium",
-    timeStyle: "short",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(date);
+}
+
+function displaySubjectName(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return trimmed;
+  if (trimmed === trimmed.toUpperCase() && /[A-ZÀ-ÿ]/.test(trimmed)) {
+    return trimmed
+      .toLocaleLowerCase("fr-FR")
+      .replace(/(^|[\s\-'])(\S)/g, (_, sep: string, ch: string) =>
+        `${sep}${ch.toLocaleUpperCase("fr-FR")}`,
+      );
+  }
+  return trimmed;
 }
 
 function personLabel(note: NoteRow) {
@@ -59,6 +85,13 @@ function personLabel(note: NoteRow) {
     note.studentId ||
     "Élève"
   );
+}
+
+function personInitials(note: NoteRow) {
+  const parts = [note.nom, note.studentSurname, note.studentusername]
+    .filter(Boolean)
+    .map((part) => String(part).trim()[0]?.toUpperCase() ?? "");
+  return (parts[0] ?? "") + (parts[1] ?? "") || "?";
 }
 
 export function FicheScoresDialog({
@@ -94,7 +127,7 @@ export function FicheScoresDialog({
   const title = formatFicheInterventionLabel({
     typeFiche,
     sequence,
-    subjectName,
+    subjectName: displaySubjectName(subjectName),
   });
 
   useEffect(() => {
@@ -189,166 +222,303 @@ export function FicheScoresDialog({
   }
 
   const canEdit = isOpen && !pendingRequestId;
+  const statusBadge = pendingRequestId
+    ? {
+        label: "En attente de validation",
+        className:
+          "border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300",
+      }
+    : isOpen
+      ? {
+          label: "Encore ouvert",
+          className:
+            "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+        }
+      : {
+          label: "Validé · lecture seule",
+          className:
+            "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+        };
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[90vh] max-w-[calc(100vw-2rem)] overflow-y-auto sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>
-              {dateCreated ? `Saisi le ${formatDate(dateCreated)}` : "Cotes élèves"}
-              {pendingRequestId
-                ? " · modification en attente de validation"
-                : isOpen
-                  ? " · encore ouvert"
-                  : " · validé (lecture seule)"}
-            </DialogDescription>
+        <DialogContent
+          size="xl"
+          className={cn(
+            "!flex h-[min(100dvh-0.75rem,48rem)] !w-[calc(100vw-0.75rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl p-0",
+            "sm:h-[min(92dvh,48rem)] sm:!w-[min(100vw-2rem,56rem)]",
+          )}
+        >
+          <DialogHeader className="shrink-0 space-y-2.5 border-b bg-gradient-to-b from-primary/[0.07] to-transparent px-4 pb-3 pt-4 text-left sm:space-y-3 sm:px-6 sm:pb-4 sm:pt-5">
+            <div className="flex items-start gap-2.5 pr-7 sm:gap-3 sm:pr-8">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm sm:size-11">
+                <ClipboardList className="size-4 sm:size-5" />
+              </span>
+              <div className="min-w-0 flex-1 space-y-1 sm:space-y-1.5">
+                <DialogTitle className="text-balance text-base font-semibold leading-snug tracking-tight sm:text-lg">
+                  {title}
+                </DialogTitle>
+                <DialogDescription className="text-xs leading-relaxed sm:text-sm">
+                  {dateCreated
+                    ? `Saisi le ${formatDate(dateCreated)}`
+                    : "Cotes des élèves"}
+                </DialogDescription>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "mt-0.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
+                    statusBadge.className,
+                  )}
+                >
+                  {statusBadge.label}
+                </Badge>
+              </div>
+            </div>
           </DialogHeader>
 
-          {loading ? (
-            <p className="text-sm text-muted-foreground">Chargement…</p>
-          ) : (
-            <div className="space-y-4">
-              <div className="max-h-[40vh] overflow-auto rounded-xl border">
-                <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-muted/80 text-left text-xs text-muted-foreground">
-                    <tr>
-                      <th className="px-3 py-2 font-medium">Élève</th>
-                      <th className="px-3 py-2 font-medium">Note</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {notes.map((note, index) => (
-                      <tr key={note.studentId ?? index} className="border-t">
-                        <td className="px-3 py-2">{personLabel(note)}</td>
-                        <td className="px-3 py-2">
-                          {editing && canEdit ? (
-                            <Input
-                              type="number"
-                              className="h-8 w-24"
-                              value={note.score ?? ""}
-                              onChange={(e) => {
-                                const value =
-                                  e.target.value === ""
-                                    ? null
-                                    : Number(e.target.value);
-                                setNotes((prev) =>
-                                  prev.map((row, i) =>
-                                    i === index
-                                      ? { ...row, score: value }
-                                      : row,
-                                  ),
-                                );
-                              }}
-                            />
-                          ) : (
-                            <span className="tabular-nums">
-                              {note.score ?? "—"}
-                              {note.maxScore != null ? ` / ${note.maxScore}` : ""}
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3 sm:px-6 sm:py-4">
+            {loading ? (
+              <div className="space-y-2 py-4 sm:py-6">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-12 animate-pulse rounded-xl bg-muted/60"
+                  />
+                ))}
               </div>
+            ) : (
+              <div className="space-y-3 sm:space-y-4">
+                {!canEdit && !pendingRequestId ? (
+                  <p className="flex items-start gap-2 rounded-xl border border-sky-500/20 bg-sky-500/[0.06] px-3 py-2.5 text-xs text-sky-800 dark:text-sky-200">
+                    <Lock className="mt-0.5 size-3.5 shrink-0" />
+                    Fiche validée — consultation uniquement.
+                  </p>
+                ) : null}
+                {pendingRequestId ? (
+                  <p className="rounded-xl border border-amber-500/25 bg-amber-500/[0.08] px-3 py-2.5 text-xs text-amber-900 dark:text-amber-200">
+                    Une demande de modification est déjà en attente de validation
+                    direction.
+                  </p>
+                ) : null}
 
-              {askJustification ? (
-                <div className="space-y-3 rounded-xl border bg-muted/20 p-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="grade-justification">
-                      Justification écrite *
-                    </Label>
-                    <Textarea
-                      id="grade-justification"
-                      value={justification}
-                      onChange={(e) => setJustification(e.target.value)}
-                      placeholder="Expliquez pourquoi vous modifiez ces notes…"
-                      rows={3}
-                    />
+                <div className="overflow-hidden rounded-xl border border-border/80 bg-card shadow-sm sm:rounded-2xl">
+                  <div className="flex items-center justify-between border-b bg-muted/30 px-3 py-2 sm:px-3.5 sm:py-2.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground sm:text-xs">
+                      Élèves
+                    </p>
+                    <p className="text-[11px] tabular-nums text-muted-foreground sm:text-xs">
+                      {notes.length} cote{notes.length > 1 ? "s" : ""}
+                    </p>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Photo / capture *</Label>
-                    <div className="flex flex-wrap gap-2">
-                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm">
-                        <Upload className="size-4" />
-                        Importer
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) void handleEvidenceFile(file);
-                          }}
-                        />
-                      </label>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCameraOpen(true)}
-                      >
-                        <Camera className="size-4" />
-                        Capturer
-                      </Button>
-                    </div>
-                    {evidencePreview ? (
-                      <div className="relative h-28 w-40 overflow-hidden rounded-lg border">
-                        <Image
-                          src={evidencePreview}
-                          alt="Preuve"
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      </div>
-                    ) : null}
-                  </div>
+                  <ul className="divide-y">
+                    {notes.length === 0 ? (
+                      <li className="px-4 py-8 text-center text-sm text-muted-foreground">
+                        Aucune cote enregistrée.
+                      </li>
+                    ) : (
+                      notes.map((note, index) => (
+                        <li
+                          key={note.studentId ?? index}
+                          className="flex items-center gap-2.5 px-3 py-2.5 sm:gap-3 sm:px-3.5"
+                        >
+                          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-semibold text-muted-foreground sm:size-9 sm:text-xs">
+                            {personInitials(note)}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium leading-snug">
+                              {personLabel(note)}
+                            </p>
+                            {note.appreciation || note.comment ? (
+                              <p className="truncate text-[11px] text-muted-foreground">
+                                {String(note.appreciation || note.comment)}
+                              </p>
+                            ) : null}
+                          </div>
+                          <div className="shrink-0">
+                            {editing && canEdit ? (
+                              <div className="flex items-center gap-1">
+                                <Input
+                                  type="number"
+                                  inputMode="decimal"
+                                  className="h-8 w-16 rounded-lg text-center text-sm font-semibold tabular-nums sm:h-9 sm:w-[4.5rem]"
+                                  value={note.score ?? ""}
+                                  onChange={(e) => {
+                                    const value =
+                                      e.target.value === ""
+                                        ? null
+                                        : Number(e.target.value);
+                                    setNotes((prev) =>
+                                      prev.map((row, i) =>
+                                        i === index
+                                          ? { ...row, score: value }
+                                          : row,
+                                      ),
+                                    );
+                                  }}
+                                />
+                                {note.maxScore != null ? (
+                                  <span className="text-xs text-muted-foreground">
+                                    / {note.maxScore}
+                                  </span>
+                                ) : null}
+                              </div>
+                            ) : (
+                              <span className="inline-flex min-w-[2.75rem] justify-end rounded-lg bg-muted/60 px-2 py-1 text-sm font-semibold tabular-nums sm:min-w-[3.25rem] sm:px-2.5 sm:py-1.5">
+                                {note.score ?? "—"}
+                                {note.maxScore != null ? (
+                                  <span className="font-normal text-muted-foreground">
+                                    /{note.maxScore}
+                                  </span>
+                                ) : null}
+                              </span>
+                            )}
+                          </div>
+                        </li>
+                      ))
+                    )}
+                  </ul>
                 </div>
-              ) : null}
-            </div>
-          )}
 
-          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
-            {!askJustification && canEdit && !editing ? (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setEditing(true)}
-                disabled={loading || busy}
-              >
-                Modifier les cotes
-              </Button>
-            ) : null}
-            {editing && !askJustification ? (
-              <Button
-                type="button"
-                onClick={() => setAskJustification(true)}
-                disabled={busy}
-              >
-                Continuer (justification)
-              </Button>
-            ) : null}
-            {askJustification ? (
-              <Button
-                type="button"
-                onClick={() => void submitModification()}
-                disabled={busy}
-              >
-                {busy ? "Envoi…" : "Envoyer pour validation"}
-              </Button>
-            ) : null}
+                {askJustification ? (
+                  <div className="space-y-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.05] p-3 sm:rounded-2xl sm:p-4">
+                    <div>
+                      <p className="text-sm font-semibold">
+                        Justification obligatoire
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Le directeur, le préfet ou le directeur des études
+                        validera avant application.
+                      </p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="grade-justification">
+                        Motif écrit *
+                      </Label>
+                      <Textarea
+                        id="grade-justification"
+                        value={justification}
+                        onChange={(e) => setJustification(e.target.value)}
+                        placeholder="Expliquez pourquoi vous modifiez ces notes…"
+                        rows={3}
+                        className="resize-none bg-background text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Photo ou capture *</Label>
+                      <div className="flex flex-wrap gap-2">
+                        <label className="inline-flex h-9 flex-1 cursor-pointer items-center justify-center gap-2 rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted/50 sm:flex-none">
+                          <Upload className="size-4" />
+                          Importer
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) void handleEvidenceFile(file);
+                            }}
+                          />
+                        </label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-9 flex-1 sm:flex-none"
+                          onClick={() => setCameraOpen(true)}
+                        >
+                          <Camera className="size-4" />
+                          Capturer
+                        </Button>
+                      </div>
+                      {evidencePreview ? (
+                        <div className="relative mx-auto h-36 w-full max-w-xs overflow-hidden rounded-xl border bg-muted/30 sm:mx-0 sm:h-32 sm:max-w-[14rem]">
+                          <Image
+                            src={evidencePreview}
+                            alt="Preuve"
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+                      ) : (
+                        <p className="text-[11px] text-muted-foreground">
+                          Aucune image jointe pour le moment.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="shrink-0 !flex-col gap-2 border-t bg-muted/20 px-4 py-3 sm:!flex-row sm:items-center sm:justify-between sm:space-x-0 sm:px-6 sm:py-3.5">
             <Button
               type="button"
               variant="ghost"
+              className="h-10 w-full sm:order-first sm:h-9 sm:w-auto"
               onClick={() => onOpenChange(false)}
               disabled={busy}
             >
               Fermer
             </Button>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              {!askJustification && canEdit && !editing ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 w-full gap-2 sm:h-9 sm:w-auto"
+                  onClick={() => setEditing(true)}
+                  disabled={loading || busy}
+                >
+                  <Pencil className="size-4" />
+                  Modifier les cotes
+                </Button>
+              ) : null}
+              {editing && !askJustification ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-10 w-full sm:h-9 sm:w-auto"
+                    onClick={() => setEditing(false)}
+                    disabled={busy}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    type="button"
+                    className="h-10 w-full sm:h-9 sm:w-auto"
+                    onClick={() => setAskJustification(true)}
+                    disabled={busy}
+                  >
+                    Continuer
+                  </Button>
+                </>
+              ) : null}
+              {askJustification ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-10 w-full sm:h-9 sm:w-auto"
+                    onClick={() => setAskJustification(false)}
+                    disabled={busy}
+                  >
+                    Retour
+                  </Button>
+                  <Button
+                    type="button"
+                    className="h-10 w-full sm:h-9 sm:w-auto"
+                    onClick={() => void submitModification()}
+                    disabled={busy}
+                  >
+                    {busy ? "Envoi…" : "Envoyer pour validation"}
+                  </Button>
+                </>
+              ) : null}
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -446,79 +616,111 @@ export function GradeModificationReviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-[calc(100vw-2rem)] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Valider la modification de notes</DialogTitle>
-          <DialogDescription>
-            {row?.contextLabel ?? "Demande enseignant"}
+      <DialogContent
+        size="xl"
+        className={cn(
+          "!flex h-[min(100dvh-0.75rem,48rem)] !w-[calc(100vw-0.75rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl p-0",
+          "sm:h-[min(92dvh,48rem)] sm:!w-[min(100vw-2rem,56rem)]",
+        )}
+      >
+        <DialogHeader className="shrink-0 space-y-2 border-b bg-gradient-to-b from-primary/[0.07] to-transparent px-4 pb-3 pt-4 text-left sm:px-6 sm:pb-4 sm:pt-5">
+          <DialogTitle className="pr-7 text-base font-semibold tracking-tight sm:pr-8 sm:text-lg">
+            Valider la modification de notes
+          </DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">
+            {row?.contextLabel
+              ? displaySubjectName(row.contextLabel)
+              : "Demande enseignant"}
           </DialogDescription>
         </DialogHeader>
 
-        {loading || !row ? (
-          <p className="text-sm text-muted-foreground">Chargement…</p>
-        ) : (
-          <div className="space-y-3 text-sm">
-            <p>
-              <span className="text-muted-foreground">Demandeur :</span>{" "}
-              {row.requesterName}
-            </p>
-            <p>
-              <span className="text-muted-foreground">Justification :</span>{" "}
-              {row.justification}
-            </p>
-            {row.evidenceUrl ? (
-              <div className="relative h-40 w-full max-w-sm overflow-hidden rounded-lg border">
-                <Image
-                  src={row.evidenceUrl}
-                  alt="Preuve"
-                  fill
-                  className="object-contain"
-                  unoptimized
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3 sm:px-6 sm:py-4">
+          {loading || !row ? (
+            <div className="space-y-2 py-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-12 animate-pulse rounded-xl bg-muted/60"
                 />
-              </div>
-            ) : null}
-            <div className="max-h-48 overflow-auto rounded-lg border">
-              <table className="w-full text-xs">
-                <thead className="bg-muted/60 text-left">
-                  <tr>
-                    <th className="px-2 py-1.5">Élève</th>
-                    <th className="px-2 py-1.5">Avant</th>
-                    <th className="px-2 py-1.5">Après</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {proposed.map((note, index) => {
-                    const prev = previous.find(
-                      (p) => p.studentId && p.studentId === note.studentId,
-                    ) ?? previous[index];
-                    return (
-                      <tr key={note.studentId ?? index} className="border-t">
-                        <td className="px-2 py-1.5">{personLabel(note)}</td>
-                        <td className="px-2 py-1.5 tabular-nums">
-                          {prev?.score ?? "—"}
-                        </td>
-                        <td className="px-2 py-1.5 tabular-nums font-medium">
-                          {note.score ?? "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              ))}
             </div>
-            <Textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Commentaire (optionnel)"
-              rows={2}
-            />
-          </div>
-        )}
+          ) : (
+            <div className="space-y-3 text-sm sm:space-y-4">
+              <div className="grid gap-2 rounded-xl border bg-muted/20 p-3 sm:rounded-2xl sm:p-3.5">
+                <p>
+                  <span className="text-muted-foreground">Demandeur :</span>{" "}
+                  <span className="font-medium">{row.requesterName}</span>
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Justification :</span>{" "}
+                  {row.justification}
+                </p>
+              </div>
+              {row.evidenceUrl ? (
+                <div className="relative h-40 w-full overflow-hidden rounded-xl border bg-muted/20 sm:h-44 sm:rounded-2xl">
+                  <Image
+                    src={row.evidenceUrl}
+                    alt="Preuve"
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
+                </div>
+              ) : null}
+              <div className="overflow-x-auto overflow-y-hidden rounded-xl border sm:rounded-2xl">
+                <table className="w-full min-w-[18rem] text-xs">
+                  <thead className="bg-muted/50 text-left text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-2.5 font-medium">Élève</th>
+                      <th className="px-3 py-2.5 font-medium">Avant</th>
+                      <th className="px-3 py-2.5 font-medium">Après</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {proposed.map((note, index) => {
+                      const prev =
+                        previous.find(
+                          (p) =>
+                            p.studentId && p.studentId === note.studentId,
+                        ) ?? previous[index];
+                      const changed =
+                        (prev?.score ?? null) !== (note.score ?? null);
+                      return (
+                        <tr key={note.studentId ?? index} className="border-t">
+                          <td className="px-3 py-2.5">{personLabel(note)}</td>
+                          <td className="px-3 py-2.5 tabular-nums text-muted-foreground">
+                            {prev?.score ?? "—"}
+                          </td>
+                          <td
+                            className={cn(
+                              "px-3 py-2.5 tabular-nums font-semibold",
+                              changed && "text-primary",
+                            )}
+                          >
+                            {note.score ?? "—"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <Textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Commentaire (optionnel)"
+                rows={2}
+                className="resize-none"
+              />
+            </div>
+          )}
+        </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="shrink-0 !flex-col gap-2 border-t bg-muted/20 px-4 py-3 sm:!flex-row sm:justify-end sm:space-x-0 sm:px-6 sm:py-3.5">
           <Button
             type="button"
             variant="destructive"
+            className="h-10 w-full sm:h-9 sm:w-auto"
             disabled={busy || loading || row?.status !== "PENDING_REVIEW"}
             onClick={() => void review("REJECTED")}
           >
@@ -527,6 +729,7 @@ export function GradeModificationReviewDialog({
           </Button>
           <Button
             type="button"
+            className="h-10 w-full sm:h-9 sm:w-auto"
             disabled={busy || loading || row?.status !== "PENDING_REVIEW"}
             onClick={() => void review("ACCEPTED")}
           >

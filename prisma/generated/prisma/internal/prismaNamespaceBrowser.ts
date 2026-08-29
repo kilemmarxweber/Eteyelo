@@ -387,6 +387,7 @@ export const CreneauScalarFieldEnum = {
   durationCourse: 'durationCourse',
   recreationHour: 'recreationHour',
   recreationDuration: 'recreationDuration',
+  workingDays: 'workingDays',
   isArchived: 'isArchived',
   archivedAt: 'archivedAt',
   archivedById: 'archivedById',

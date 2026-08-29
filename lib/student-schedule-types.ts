@@ -7,6 +7,8 @@ export const STUDENT_SCHEDULE_DAYS = [
   "Samedi",
 ] as const;
 
+export type StudentScheduleDay = (typeof STUDENT_SCHEDULE_DAYS)[number];
+
 export type StudentScheduleEntry = {
   id: string;
   day: string;
@@ -21,5 +23,7 @@ export type StudentScheduleData = {
   timeSlots: string[];
   recreationHour: string;
   endTime: string;
+  /** Jours ouvrables de la vacation (sinon Lun–Sam). */
+  workingDays: string[];
   entries: StudentScheduleEntry[];
 };

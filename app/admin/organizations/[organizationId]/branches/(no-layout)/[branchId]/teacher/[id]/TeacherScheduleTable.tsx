@@ -27,12 +27,14 @@ export type TeacherScheduleUI = {
 type Props = {
   teaching?: TeacherScheduleUI[];
   hoursFromProps?: string[];
+  /** Jours ouvrables de la vacation (défaut Lun–Sam). */
+  workingDays?: string[];
 };
 
 /* =========================
    DAYS
 ========================= */
-const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+const DEFAULT_DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
 /* =========================
    FORMAT HOUR
@@ -61,7 +63,10 @@ function getEndHour(start: string, duration = 60) {
 export default function TeacherScheduleTable({
   teaching = [],
   hoursFromProps = [],
+  workingDays,
 }: Props) {
+  const DAYS =
+    workingDays && workingDays.length > 0 ? workingDays : DEFAULT_DAYS;
   /* =========================
      FLATTEN SCHEDULE
   ========================= */
@@ -131,7 +136,7 @@ export default function TeacherScheduleTable({
         <TableBody>
           {hours.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center text-gray-500">
+              <TableCell colSpan={DAYS.length + 1} className="text-center text-gray-500">
                 Aucun emploi du temps
               </TableCell>
             </TableRow>

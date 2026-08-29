@@ -17,6 +17,7 @@ import React from "react";
 import { ICreneau } from "@/src/interfaces/creneau";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
+import { formatCreneauWorkingDaysLabel } from "@/lib/creneau-working-days";
 
 export const columns: ColumnDef<ICreneau>[] = [
   {
@@ -78,6 +79,17 @@ export const columns: ColumnDef<ICreneau>[] = [
     cell: ({ row }) => {
       return <span>{row.original.durationCourse} min</span>;
     },
+  },
+  {
+    id: "workingDays",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Jours" />
+    ),
+    cell: ({ row }) => (
+      <span className="text-xs text-muted-foreground">
+        {formatCreneauWorkingDaysLabel(row.original.workingDays)}
+      </span>
+    ),
   },
   {
     accessorKey: "recreationHour",

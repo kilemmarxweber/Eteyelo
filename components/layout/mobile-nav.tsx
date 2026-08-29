@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
@@ -47,6 +47,15 @@ import {
   type SessionUserDisplay,
 } from "@/lib/user-display";
 import { toast } from "sonner";
+
+/** SSR + 1er paint client identiques (useSession peut différer). */
+function useHasMounted() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
 
 interface NavItem {
   href: string;
@@ -445,6 +454,7 @@ function EcodimMobileNav() {
 
 export function MobileNav() {
   const pathname = usePathname();
+  const mounted = useHasMounted();
   const { data: session, isPending } = authClient.useSession();
   const appRole = session?.user?.role;
   const organizationId =
@@ -452,7 +462,7 @@ export function MobileNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card md:hidden safe-area-bottom">
-      {isPending ? (
+      {!mounted || isPending ? (
         <div className="min-h-[60px] flex-1" aria-hidden />
       ) : isPlatformOwnerRole(appRole) ? (
         <PlatformOwnerMobileNav />

@@ -6175,6 +6175,7 @@ export const CreneauScalarFieldEnum = {
   durationCourse: 'durationCourse',
   recreationHour: 'recreationHour',
   recreationDuration: 'recreationDuration',
+  workingDays: 'workingDays',
   isArchived: 'isArchived',
   archivedAt: 'archivedAt',
   archivedById: 'archivedById',
@@ -7421,16 +7422,16 @@ export type ListEnumHoraireTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$
 
 
 /**
- * Reference to a field of type 'Day'
+ * Reference to a field of type 'Day[]'
  */
-export type EnumDayFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Day'>
+export type ListEnumDayFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Day[]'>
     
 
 
 /**
- * Reference to a field of type 'Day[]'
+ * Reference to a field of type 'Day'
  */
-export type ListEnumDayFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Day[]'>
+export type EnumDayFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Day'>
     
 
 

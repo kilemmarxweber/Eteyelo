@@ -15,6 +15,7 @@ import {
   STUDENT_SCHEDULE_DAYS,
   type StudentScheduleData,
 } from "@/lib/student-schedule-types";
+import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
 
 type StudentScheduleSectionProps = {
   schedule: StudentScheduleData | null;
@@ -31,6 +32,10 @@ export function StudentScheduleSection({ schedule }: StudentScheduleSectionProps
 
   const { classLabel, classCode, timeSlots, recreationHour, endTime, entries } =
     schedule;
+  const days =
+    schedule.workingDays?.length > 0
+      ? normalizeCreneauWorkingDays(schedule.workingDays)
+      : [...STUDENT_SCHEDULE_DAYS];
 
   return (
     <Card className="rounded-xl border bg-card p-4 shadow-sm">
@@ -50,7 +55,7 @@ export function StudentScheduleSection({ schedule }: StudentScheduleSectionProps
           <TableHeader>
             <TableRow>
               <TableHead className="w-[150px]">Heures</TableHead>
-              {STUDENT_SCHEDULE_DAYS.map((day) => (
+              {days.map((day) => (
                 <TableHead key={day}>{day}</TableHead>
               ))}
             </TableRow>
@@ -59,7 +64,7 @@ export function StudentScheduleSection({ schedule }: StudentScheduleSectionProps
             {timeSlots.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={STUDENT_SCHEDULE_DAYS.length + 1}
+                  colSpan={days.length + 1}
                   className="py-8 text-center text-sm text-muted-foreground"
                 >
                   Aucun horaire disponible pour cette classe.
@@ -70,7 +75,7 @@ export function StudentScheduleSection({ schedule }: StudentScheduleSectionProps
                 hour === recreationHour ? (
                   <TableRow key={`recreation-${hour}`}>
                     <TableCell
-                      colSpan={STUDENT_SCHEDULE_DAYS.length + 1}
+                      colSpan={days.length + 1}
                       className="text-center"
                     >
                       <span className="text-base tracking-widest text-muted-foreground">
@@ -84,7 +89,7 @@ export function StudentScheduleSection({ schedule }: StudentScheduleSectionProps
                     <TableCell className="font-medium">
                       {`${hour} - ${timeSlots[index + 1] || endTime}`}
                     </TableCell>
-                    {STUDENT_SCHEDULE_DAYS.map((day) => {
+                    {days.map((day) => {
                       const cellEntries = entries.filter(
                         (entry) => entry.day === day && entry.hourStart === hour,
                       );
@@ -122,7 +127,7 @@ export function StudentScheduleSection({ schedule }: StudentScheduleSectionProps
             {endTime && timeSlots.length > 0 ? (
               <TableRow className="bg-muted/40">
                 <TableCell
-                  colSpan={STUDENT_SCHEDULE_DAYS.length + 1}
+                  colSpan={days.length + 1}
                   className="py-3 text-center text-sm font-semibold"
                 >
                   FIN DES COURS · {endTime}
