@@ -327,16 +327,30 @@ const SingleTeacherPage = async ({
       : 0;
   const punctualityRate =
     present + late > 0 ? Math.round((present / (present + late)) * 100) : 0;
-  const engagementScore = Math.min(
+
+  // Cours donnés (affectations actives) — cible ~4 cours pour 100 %.
+  const coursesRate = Math.min(100, Math.round(courses.length * 25));
+  // Interventions effectuées : fiches de notes + devoirs en ligne.
+  const interventionsCount = fiches.length + assignmentCount;
+  const interventionsRate = Math.min(
     100,
-    fiches.length * 6 + assignmentCount * 8 + courses.length * 4,
+    Math.round(fiches.length * 8 + assignmentCount * 10),
   );
+
   const score =
     attendanceTotal > 0
       ? Math.round(
-          presenceRate * 0.45 + punctualityRate * 0.2 + engagementScore * 0.35,
+          presenceRate * 0.3 +
+            punctualityRate * 0.15 +
+            coursesRate * 0.25 +
+            interventionsRate * 0.3,
         )
-      : Math.round(Math.max(engagementScore, courses.length ? 55 : 0));
+      : Math.round(
+          Math.max(
+            coursesRate * 0.4 + interventionsRate * 0.6,
+            courses.length || interventionsCount ? 50 : 0,
+          ),
+        );
 
   const now = Date.now();
   const fullName =

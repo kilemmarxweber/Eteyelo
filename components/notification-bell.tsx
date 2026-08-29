@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { useParams, usePathname } from "next/navigation";
@@ -52,7 +52,7 @@ import {
   AbsenceCaseDialog,
   type AbsenceCaseDialogData,
 } from "@/components/absence-case-dialog";
-import { GradeModificationReviewDialog } from "@/components/fiche-scores-dialog";
+import { GradeModificationReviewDialog, GradeModificationDecisionDialog } from "@/components/fiche-scores-dialog";
 
 type RegistrationRow = {
   id: string;
@@ -299,7 +299,9 @@ function AbsenceNotificationRow({
       : item.type === "JUSTIFICATION_SUBMITTED" ||
           item.type === "GRADE_MODIFICATION_SUBMITTED"
         ? "Examiner"
-        : "Voir";
+        : item.type === "GRADE_MODIFICATION_DECISION"
+          ? "OK"
+          : "Voir";
 
   return (
     <div className="group flex items-start gap-3 border-b border-border/50 px-4 py-3 last:border-0 transition-colors hover:bg-accent/50">
@@ -356,14 +358,19 @@ export function NotificationBell() {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const hasLoadedRef = useRef(false);
   const [absenceDialog, setAbsenceDialog] = useState<{
     mode: "justify" | "review" | "view";
     caseRow: AbsenceCaseDialogData;
   } | null>(null);
   const [gradeDialogRequestId, setGradeDialogRequestId] = useState<
+    string | null
+  >(null);
+  const [gradeDecisionRequestId, setGradeDecisionRequestId] = useState<
     string | null
   >(null);
 
@@ -390,10 +397,13 @@ export function NotificationBell() {
   const loadRequests = useCallback(async () => {
     if (!params.branchId) {
       setItems([]);
+      hasLoadedRef.current = false;
       return;
     }
-    setLoading(true);
+    const isInitial = !hasLoadedRef.current;
     setError(null);
+    if (isInitial) setLoading(true);
+    else setRefreshing(true);
     try {
       const [absenceResult, legacyResult] = await Promise.all([
         getAbsenceInboxAction(),
@@ -442,13 +452,20 @@ export function NotificationBell() {
         },
       );
       setItems(merged.slice(0, 40));
+      hasLoadedRef.current = true;
       await loadCount();
     } catch {
-      setError("Erreur inattendue.");
+      if (isInitial) setError("Erreur inattendue.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [params.branchId, loadCount]);
+
+  useEffect(() => {
+    hasLoadedRef.current = false;
+    setItems([]);
+  }, [params.branchId]);
 
   useEffect(() => {
     void loadCount();
@@ -662,21 +679,26 @@ export function NotificationBell() {
               size="sm"
               className="h-7 w-7 rounded-full p-0 text-muted-foreground hover:text-foreground"
               onClick={() => void loadRequests()}
-              disabled={loading}
+              disabled={loading || refreshing}
               title="Actualiser"
             >
-              <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
+              <RefreshCw
+                className={cn(
+                  "size-3.5",
+                  (loading || refreshing) && "animate-spin",
+                )}
+              />
             </Button>
           </div>
 
           <div className="max-h-[400px] overflow-y-auto">
-            {loading ? (
+            {loading && items.length === 0 ? (
               <div className="divide-y divide-border/50">
                 <SkeletonRow />
                 <SkeletonRow />
                 <SkeletonRow />
               </div>
-            ) : error ? (
+            ) : error && items.length === 0 ? (
               <div className="flex flex-col items-center gap-3 px-4 py-8 text-center">
                 <AlertCircle className="size-8 text-destructive/60" />
                 <p className="text-sm text-muted-foreground">{error}</p>
@@ -717,12 +739,21 @@ export function NotificationBell() {
                           }).then(() => void loadRequests());
                           return;
                         }
-                        if (
-                          row.type === "GRADE_MODIFICATION_SUBMITTED" ||
-                          row.type === "GRADE_MODIFICATION_DECISION"
-                        ) {
+                        if (row.type === "GRADE_MODIFICATION_SUBMITTED") {
                           if (row.gradeModificationRequestId) {
                             setGradeDialogRequestId(
+                              row.gradeModificationRequestId,
+                            );
+                          }
+                          void markAbsenceNotificationReadAction({
+                            notificationId: row.id,
+                          }).then(() => void loadRequests());
+                          setOpen(false);
+                          return;
+                        }
+                        if (row.type === "GRADE_MODIFICATION_DECISION") {
+                          if (row.gradeModificationRequestId) {
+                            setGradeDecisionRequestId(
                               row.gradeModificationRequestId,
                             );
                           }
@@ -777,6 +808,17 @@ export function NotificationBell() {
         }}
         requestId={gradeDialogRequestId}
         onDone={() => void loadRequests()}
+      />
+      <GradeModificationDecisionDialog
+        open={Boolean(gradeDecisionRequestId)}
+        onOpenChange={(next) => {
+          if (!next) setGradeDecisionRequestId(null);
+        }}
+        requestId={gradeDecisionRequestId}
+        onDone={() => {
+          setGradeDecisionRequestId(null);
+          router.refresh();
+        }}
       />
     </>
   );

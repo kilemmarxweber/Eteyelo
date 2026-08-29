@@ -1008,7 +1008,7 @@ export async function listUnreadAppNotifications(params: {
   branchId: string;
   userId: string;
 }) {
-  return prisma.appNotification.findMany({
+  const rows = await prisma.appNotification.findMany({
     where: {
       branchId: params.branchId,
       userId: params.userId,
@@ -1025,25 +1025,41 @@ export async function listUnreadAppNotifications(params: {
           contextLabel: true,
           justification: true,
           evidenceUrl: true,
+          reviewComment: true,
+          requestedById: true,
         },
       },
     },
     orderBy: { createdAt: "desc" },
-    take: 30,
+    take: 40,
   });
+
+  // L'enseignant ne voit pas sa propre « demande envoyée », seulement la décision.
+  return rows.filter((row) => {
+    if (row.type !== "GRADE_MODIFICATION_SUBMITTED") return true;
+    return row.gradeModificationRequest?.requestedById !== params.userId;
+  }).slice(0, 30);
 }
 
 export async function countUnreadAppNotifications(params: {
   branchId: string;
   userId: string;
 }) {
-  return prisma.appNotification.count({
+  const rows = await prisma.appNotification.findMany({
     where: {
       branchId: params.branchId,
       userId: params.userId,
       readAt: null,
     },
+    select: {
+      type: true,
+      gradeModificationRequest: { select: { requestedById: true } },
+    },
   });
+  return rows.filter((row) => {
+    if (row.type !== "GRADE_MODIFICATION_SUBMITTED") return true;
+    return row.gradeModificationRequest?.requestedById !== params.userId;
+  }).length;
 }
 
 export async function markAppNotificationRead(params: {

@@ -6,6 +6,7 @@ import {
   Camera,
   Check,
   ClipboardList,
+  FilePenLine,
   Lock,
   Pencil,
   Upload,
@@ -212,7 +213,7 @@ export function FicheScoresDialog({
         return;
       }
       toast.success(
-        "Demande envoyée. Le directeur / préfet / directeur des études doit valider.",
+        "Demande envoyée. Vous serez notifié lorsque la direction aura répondu.",
       );
       onOpenChange(false);
       onSubmitted?.();
@@ -464,19 +465,30 @@ export function FicheScoresDialog({
               Fermer
             </Button>
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-              {!askJustification && canEdit && !editing ? (
+              {!askJustification && !editing ? (
                 <Button
                   type="button"
                   variant="outline"
                   className="h-10 w-full gap-2 sm:h-9 sm:w-auto"
                   onClick={() => setEditing(true)}
-                  disabled={loading || busy}
+                  disabled={loading || busy || !canEdit}
+                  title={
+                    !isOpen
+                      ? "Fiche validée — modification impossible"
+                      : pendingRequestId
+                        ? "Une demande est déjà en attente"
+                        : "Modifier les cotes"
+                  }
                 >
-                  <Pencil className="size-4" />
+                  {!isOpen ? (
+                    <Lock className="size-4" />
+                  ) : (
+                    <Pencil className="size-4" />
+                  )}
                   Modifier les cotes
                 </Button>
               ) : null}
-              {editing && !askJustification ? (
+              {editing && canEdit && !askJustification ? (
                 <>
                   <Button
                     type="button"
@@ -497,7 +509,7 @@ export function FicheScoresDialog({
                   </Button>
                 </>
               ) : null}
-              {askJustification ? (
+              {askJustification && canEdit ? (
                 <>
                   <Button
                     type="button"
@@ -512,7 +524,7 @@ export function FicheScoresDialog({
                     type="button"
                     className="h-10 w-full sm:h-9 sm:w-auto"
                     onClick={() => void submitModification()}
-                    disabled={busy}
+                    disabled={busy || !isOpen}
                   >
                     {busy ? "Envoi…" : "Envoyer pour validation"}
                   </Button>
@@ -533,6 +545,147 @@ export function FicheScoresDialog({
         title="Capture pour justification"
       />
     </>
+  );
+}
+
+export function GradeModificationDecisionDialog({
+  open,
+  onOpenChange,
+  requestId,
+  onDone,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  requestId: string | null;
+  onDone?: () => void;
+}) {
+  const [row, setRow] = useState<GradeModificationView | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open || !requestId) return;
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      const [data, err] = await getGradeModificationAction({ requestId });
+      if (cancelled) return;
+      if (err || !data) {
+        toast.error(err?.message || "Notification introuvable.");
+        onOpenChange(false);
+        return;
+      }
+      setRow(data);
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, requestId, onOpenChange]);
+
+  const accepted = row?.status === "ACCEPTED";
+  const rejected = row?.status === "REJECTED";
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        size="xl"
+        className={cn(
+          "!flex h-auto max-h-[min(100dvh-0.75rem,36rem)] !w-[calc(100vw-0.75rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl p-0",
+          "sm:max-h-[min(92dvh,40rem)] sm:!w-[min(100vw-2rem,56rem)]",
+        )}
+      >
+        <DialogHeader className="shrink-0 space-y-2.5 border-b bg-gradient-to-b from-primary/[0.07] to-transparent px-4 pb-3 pt-4 text-left sm:space-y-3 sm:px-6 sm:pb-4 sm:pt-5">
+          <div className="flex items-start gap-2.5 pr-7 sm:gap-3 sm:pr-8">
+            <span
+              className={cn(
+                "flex size-9 shrink-0 items-center justify-center rounded-xl text-white shadow-sm sm:size-11",
+                accepted && "bg-emerald-600",
+                rejected && "bg-rose-600",
+                !accepted && !rejected && "bg-primary",
+              )}
+            >
+              {accepted ? (
+                <Check className="size-4 sm:size-5" />
+              ) : rejected ? (
+                <X className="size-4 sm:size-5" />
+              ) : (
+                <FilePenLine className="size-4 sm:size-5" />
+              )}
+            </span>
+            <div className="min-w-0 flex-1 space-y-1 sm:space-y-1.5">
+              <DialogTitle className="text-balance text-base font-semibold leading-snug tracking-tight sm:text-lg">
+                {loading
+                  ? "Réponse direction"
+                  : accepted
+                    ? "Modification acceptée"
+                    : rejected
+                      ? "Modification refusée"
+                      : "Réponse direction"}
+              </DialogTitle>
+              <DialogDescription className="text-xs leading-relaxed sm:text-sm">
+                {row?.contextLabel
+                  ? displaySubjectName(row.contextLabel)
+                  : "Résultat de votre demande de modification de notes."}
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+          {loading || !row ? (
+            <div className="space-y-2 py-2">
+              <div className="h-16 animate-pulse rounded-xl bg-muted/60" />
+              <div className="h-10 animate-pulse rounded-xl bg-muted/60" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p
+                className={cn(
+                  "rounded-2xl border px-4 py-4 text-sm font-medium leading-relaxed sm:text-base",
+                  accepted &&
+                    "border-emerald-500/25 bg-emerald-500/[0.08] text-emerald-800 dark:text-emerald-200",
+                  rejected &&
+                    "border-rose-500/25 bg-rose-500/[0.08] text-rose-800 dark:text-rose-200",
+                  !accepted &&
+                    !rejected &&
+                    "border-border bg-muted/30 text-muted-foreground",
+                )}
+              >
+                {accepted
+                  ? "La direction a accepté votre demande. Les notes ont été mises à jour."
+                  : rejected
+                    ? "La direction a refusé votre demande. Aucun changement n’a été appliqué."
+                    : "Votre demande est encore en cours de traitement."}
+              </p>
+              {row.reviewComment ? (
+                <div className="rounded-2xl border bg-muted/20 px-4 py-3 text-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Commentaire
+                  </p>
+                  <p className="mt-1.5 leading-relaxed text-foreground">
+                    {row.reviewComment}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
+
+        <DialogFooter className="shrink-0 !flex-col gap-2 border-t bg-muted/20 px-4 py-3 sm:!flex-row sm:justify-end sm:space-x-0 sm:px-6 sm:py-3.5">
+          <Button
+            type="button"
+            className="h-10 w-full sm:h-9 sm:min-w-[8rem] sm:w-auto"
+            disabled={loading}
+            onClick={() => {
+              onOpenChange(false);
+              onDone?.();
+            }}
+          >
+            OK
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

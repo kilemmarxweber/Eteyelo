@@ -129,16 +129,7 @@ export async function submitGradeModificationRequest(params: {
   const requesterName = formatPersonName(created.requestedBy);
   const href = `/admin/organizations/${fiche.branch.organizationId}/branches/${params.branchId}/notes`;
 
-  await createAppNotification({
-    branchId: params.branchId,
-    userId: params.userId,
-    type: "GRADE_MODIFICATION_SUBMITTED",
-    title: "Demande de modification envoyée",
-    body: `${contextLabel} — en attente de validation.`,
-    href,
-    gradeModificationRequestId: created.id,
-  });
-
+  // L'enseignant ne reçoit pas de notif à l'envoi — seulement le retour (accepté/refusé).
   const reviewers = await getBranchAbsenceReviewers({
     branchId: params.branchId,
     organizationId: fiche.branch.organizationId,

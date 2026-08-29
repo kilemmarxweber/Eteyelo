@@ -107,6 +107,10 @@ export type TeacherProfileStats = {
   assignmentsCount: number;
   courseCount: number;
   classCount: number;
+  /** Score 0–100 basé sur cours affectés. */
+  coursesRate: number;
+  /** Score 0–100 basé sur interventions (fiches / devoirs). */
+  interventionsRate: number;
   score: number;
 };
 
@@ -132,6 +136,7 @@ export type TeacherProfileData = {
   schoolYearLabel: string | null;
   baseHref: string;
   listHref: string;
+  dashboardHref: string;
   notesHref: string;
   notesListHref: string;
   devoirsHref: string;
