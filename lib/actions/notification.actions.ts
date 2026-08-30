@@ -3,13 +3,11 @@
 import { z } from "zod";
 import { action } from "@/lib/zsa";
 import { prisma } from "@/lib/prisma";
-import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
-  canSeeCandidatureNotifications,
-  canSeeInscriptionNotifications,
-} from "@/lib/auth/session-roles";
+  getNotificationBadgeCounts,
+  requireNotificationContext,
+} from "@/lib/notifications/badge-counts";
 import { Prisma } from "@/prisma/generated/prisma/client";
-import { countUnreadAppNotifications, countUnreadMessageNotifications } from "@/lib/attendance-absence";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 export type NotificationRequestRow = {
@@ -38,31 +36,6 @@ export type NotificationJobApplicationRow = {
   desiredSubjects: string | null;
   createdAt: Date;
 };
-
-// ─── helper ───────────────────────────────────────────────────────────────────
-async function requireNotificationContext() {
-  const context = await requireBranchContext();
-  const branchMember = await prisma.branchMember.findFirst({
-    where: {
-      branchId: context.branchId,
-      member: { userId: context.userId, organizationId: context.organizationId },
-    },
-    select: { role: true },
-  });
-  const memberRole = branchMember?.role;
-  return {
-    ...context,
-    memberRole,
-    canSeeInscriptions: canSeeInscriptionNotifications(
-      context.session,
-      memberRole,
-    ),
-    canSeeCandidatures: canSeeCandidatureNotifications(
-      context.session,
-      memberRole,
-    ),
-  };
-}
 
 // ─── action : demandes inscription + candidatures (max 20) ───────────────────
 export const getNotificationRequestsAction = action.handler(async () => {
@@ -120,41 +93,7 @@ export const getNotificationRequestsAction = action.handler(async () => {
 
 // ─── action : count rapide pour le badge ──────────────────────────────────────
 export const getNotificationCountAction = action.handler(async () => {
-  const {
-    branchId,
-    organizationId,
-    userId,
-    canSeeInscriptions,
-    canSeeCandidatures,
-  } = await requireNotificationContext();
-
-  const [registrationCount, jobCount, absenceCount, messagingCount] =
-    await Promise.all([
-    canSeeInscriptions
-      ? prisma.$queryRaw<Array<{ count: bigint }>>(Prisma.sql`
-          SELECT COUNT(*) AS count
-          FROM "RegistrationRequest"
-          WHERE "branchId" = ${branchId} AND "organizationId" = ${organizationId}
-            AND "status" = 'PENDING'::"RegistrationRequestStatus"
-        `)
-      : Promise.resolve([{ count: BigInt(0) }]),
-    canSeeCandidatures
-      ? prisma.jobApplication.count({
-          where: {
-            branchId,
-            organizationId,
-            status: { in: ["PENDING", "REVIEWED"] },
-          },
-        })
-      : Promise.resolve(0),
-    countUnreadAppNotifications({ branchId, userId, organizationId }),
-    countUnreadMessageNotifications({ userId, organizationId }),
-  ]);
-
-  return {
-    count: Number(registrationCount[0]?.count ?? 0) + jobCount + absenceCount,
-    messagingCount,
-  };
+  return getNotificationBadgeCounts();
 });
 
 // ─── action : confirmer une demande ───────────────────────────────────────────

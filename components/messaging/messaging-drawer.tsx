@@ -11,7 +11,6 @@ import {
   canCreateGroup,
   canUseMessaging,
 } from "@/lib/messaging/messaging-policy";
-import { getMessagingUnreadCountAction } from "@/lib/actions/messaging.actions";
 import {
   MESSAGING_DRAWER_OPEN_EVENT,
   type MessagingDrawerOpenDetail,
@@ -72,7 +71,12 @@ export function MessagingDrawer() {
       return;
     }
     try {
-      const [data] = await getMessagingUnreadCountAction({ organizationId });
+      const response = await fetch(
+        `/api/organizations/${organizationId}/messaging/unread-count`,
+        { cache: "no-store" },
+      );
+      if (!response.ok) return;
+      const data = (await response.json()) as { count?: number };
       if (typeof data?.count === "number") setUnread(data.count);
     } catch {
       // Conserver le dernier compteur connu.

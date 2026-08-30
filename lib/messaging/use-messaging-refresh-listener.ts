@@ -10,7 +10,8 @@ import {
 /**
  * Recharge la messagerie uniquement à l'écoute :
  * nouvel événement local, autre onglet, retour sur l'onglet, reconnexion.
- * Aucun intervalle de polling.
+ * Pas de polling, et pas d'écoute `window.focus` (ça relançait une
+ * Server Action à chaque clic dans la fenêtre et rechargeait la page).
  */
 export function useMessagingRefreshListener(
   onRefresh: () => void,
@@ -37,7 +38,6 @@ export function useMessagingRefreshListener(
     };
 
     window.addEventListener(MESSAGING_REFRESH_EVENT, run);
-    window.addEventListener("focus", run);
     window.addEventListener("online", run);
     document.addEventListener("visibilitychange", onVisible);
 
@@ -52,7 +52,6 @@ export function useMessagingRefreshListener(
     return () => {
       if (debounceTimer != null) window.clearTimeout(debounceTimer);
       window.removeEventListener(MESSAGING_REFRESH_EVENT, run);
-      window.removeEventListener("focus", run);
       window.removeEventListener("online", run);
       document.removeEventListener("visibilitychange", onVisible);
       channel?.close();

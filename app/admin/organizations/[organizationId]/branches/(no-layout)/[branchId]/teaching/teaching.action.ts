@@ -19,6 +19,7 @@ import {
   syncTeacherForParentComponentGroup,
 } from "@/lib/cours-components";
 import { syncTeacherDossierExperienceYears } from "@/lib/teacher-assignment-years";
+import { assertTeacherFreeAt } from "@/lib/teacher-availability";
 import { cycleLabel, resolveCycle, type Cycle } from "@/lib/cycle";
 import {
   buildBranchMemberDirectoryWhere,
@@ -580,7 +581,7 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
         id: input.classeId,
         ...classeWhereForViewerCycles(branchId, organizationId, accessibleCycles),
       },
-      select: { id: true },
+      select: { id: true, creneau: { select: { durationCourse: true } } },
     }),
     prisma.teacher.findFirst({ where: { id: input.teacherId, branchMember: { branchId, branch: { organizationId } } }, select: { id: true } }),
     prisma.cours.findMany({ where: { id: { in: input.coursIds }, branchId, branch: { organizationId }, ...activeCoursStatusFilter }, select: { id: true } }),
@@ -597,24 +598,22 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
       weeklyHours: true,
       consecutiveSlots: true,
       preferredDays: true,
-      Schedule: { where: { isArchived: false }, select: { day: true, hour: true } },
+      Schedule: { where: { isArchived: false }, select: { id: true, day: true, hour: true } },
     },
   });
-  const targetSchedules = await prisma.schedule.findMany({
-    where: { isArchived: false, teaching: { teacherId: input.teacherId, schoolYearId: schoolYear.id } },
-    select: { day: true, hour: true, teaching: { select: { classe: { select: { nameClasse: true } }, cours: { select: { nameCours: true } } } } },
-  });
+  const durationMinutes = classe.creneau?.durationCourse ?? 45;
   for (const item of existing) {
     if (item.teacherId === input.teacherId) continue;
-    const conflict = item.Schedule.find((slot) =>
-      targetSchedules.some(
-        (target) =>
-          target.day === slot.day &&
-          scheduleHourToMinutes(target.hour) ===
-            scheduleHourToMinutes(slot.hour),
-      ),
-    );
-    if (conflict) throw new Error(`Conflit d'horaire détecté le ${conflict.day}. L'enseignant est déjà occupé à cette heure.`);
+    for (const slot of item.Schedule) {
+      await assertTeacherFreeAt({
+        teacherId: input.teacherId,
+        organizationId,
+        day: slot.day,
+        startMin: scheduleHourToMinutes(slot.hour),
+        durationMinutes,
+        excludeScheduleId: slot.id,
+      });
+    }
   }
 
   const existingMap = new Map(existing.map(item => [item.coursId, item]));

@@ -18,7 +18,7 @@ export type TeacherBusySlot = {
   courseName: string;
 };
 
-function intervalsOverlap(
+export function teacherBusyIntervalsOverlap(
   aStart: number,
   aEnd: number,
   bStart: number,
@@ -41,29 +41,43 @@ export async function getTeacherUserId(
   return teacher?.branchMember?.member?.userId ?? null;
 }
 
-/** Tous les profils Teacher du même User dans l'organisation. */
+/**
+ * Tous les profils Teacher du même User dans l'organisation
+ * (une fiche Teacher par branche). Les horaires restants comptent
+ * même si le membre est archivé ou inactif dans une branche.
+ */
 export async function listSiblingTeacherIds(params: {
-  userId: string;
+  userId?: string | null;
   organizationId: string;
+  extraTeacherIds?: string[];
 }): Promise<string[]> {
-  const rows = await prisma.teacher.findMany({
-    where: {
-      branchMember: {
-        member: {
-          userId: params.userId,
-          organizationId: params.organizationId,
-          isArchived: false,
+  const ids = new Set(
+    (params.extraTeacherIds ?? []).filter((id) => id.length > 0),
+  );
+  if (params.userId) {
+    const rows = await prisma.teacher.findMany({
+      where: {
+        branchMember: {
+          member: {
+            userId: params.userId,
+            organizationId: params.organizationId,
+          },
+          branch: { organizationId: params.organizationId },
         },
       },
-    },
-    select: { id: true },
-  });
-  return rows.map((row) => row.id);
+      select: { id: true },
+    });
+    for (const row of rows) ids.add(row.id);
+  }
+  return [...ids];
 }
 
 export async function listTeacherBusySlots(params: {
-  userId: string;
   organizationId: string;
+  /** Identité User — relie les fiches Teacher des autres branches. */
+  userId?: string | null;
+  /** Toujours inclus, même sans User lié. */
+  teacherId?: string | null;
   /** Si fourni, limite aux années courantes des branches. */
   currentYearOnly?: boolean;
   /** Exclure les séances d'une classe (ex. celle en cours de régénération). */
@@ -74,6 +88,7 @@ export async function listTeacherBusySlots(params: {
   const teacherIds = await listSiblingTeacherIds({
     userId: params.userId,
     organizationId: params.organizationId,
+    extraTeacherIds: params.teacherId ? [params.teacherId] : [],
   });
   if (teacherIds.length === 0) return [];
 
@@ -84,19 +99,34 @@ export async function listTeacherBusySlots(params: {
         ? { id: { notIn: params.excludeScheduleIds } }
         : {}),
       teaching: {
-        teacherId: { in: teacherIds },
-        OR: [{ statusTeaching: true }, { statusTeaching: null }],
-        ...(params.excludeClasseId
-          ? { classeId: { not: params.excludeClasseId } }
-          : {}),
-        ...(params.currentYearOnly !== false
-          ? {
-              schoolYear: {
-                isCurrentYear: true,
-                isArchived: false,
+        AND: [
+          { teacherId: { in: teacherIds } },
+          { OR: [{ statusTeaching: true }, { statusTeaching: null }] },
+          {
+            OR: [
+              { branch: { organizationId: params.organizationId } },
+              { classe: { branch: { organizationId: params.organizationId } } },
+              {
+                schoolYear: {
+                  branch: { organizationId: params.organizationId },
+                },
               },
-            }
-          : {}),
+            ],
+          },
+          ...(params.excludeClasseId
+            ? [{ classeId: { not: params.excludeClasseId } }]
+            : []),
+          ...(params.currentYearOnly !== false
+            ? [
+                {
+                  schoolYear: {
+                    isCurrentYear: true,
+                    isArchived: false,
+                  },
+                },
+              ]
+            : []),
+        ],
       },
     },
     select: {
@@ -161,8 +191,8 @@ export async function listTeacherBusySlots(params: {
 }
 
 /**
- * Refuse si le même User a déjà une séance qui chevauche
- * (toutes branches / cycles de l'organisation).
+ * Refuse si la même personne a déjà une séance qui chevauche
+ * (toutes les branches / cycles de l'organisation).
  */
 export async function assertTeacherFreeAt(params: {
   teacherId: string;
@@ -173,12 +203,11 @@ export async function assertTeacherFreeAt(params: {
   excludeScheduleId?: string;
 }): Promise<void> {
   const userId = await getTeacherUserId(params.teacherId);
-  if (!userId) return;
-
   const duration = params.durationMinutes ?? TEACHER_COURSE_DURATION_MINUTES;
   const endMin = params.startMin + duration;
   const busy = await listTeacherBusySlots({
     userId,
+    teacherId: params.teacherId,
     organizationId: params.organizationId,
     excludeScheduleIds: params.excludeScheduleId
       ? [params.excludeScheduleId]
@@ -187,7 +216,12 @@ export async function assertTeacherFreeAt(params: {
 
   const conflict = busy.find((slot) => {
     if (slot.day !== params.day) return false;
-    return intervalsOverlap(params.startMin, endMin, slot.startMin, slot.endMin);
+    return teacherBusyIntervalsOverlap(
+      params.startMin,
+      endMin,
+      slot.startMin,
+      slot.endMin,
+    );
   });
 
   if (!conflict) return;

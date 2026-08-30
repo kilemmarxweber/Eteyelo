@@ -1132,15 +1132,11 @@ export const regenerateScheduleForClasseAction = action
       const teacherId = teaching.teacherId!;
       if (occupiedTeacherIntervals.has(teacherId)) continue;
       const userId = await getTeacherUserId(teacherId);
-      if (!userId) {
-        occupiedTeacherIntervals.set(teacherId, []);
-        continue;
-      }
-      // Toutes les séances du même User : autres classes / cycles / branches.
-      // On exclut la classe en cours (ses AUTO viennent d'être effacés ; les MANUAL
-      // de cette classe sont réinjectés juste après pour la durée exacte).
+      // User + toutes les fiches Teacher des autres branches de l'organisation.
+      // Même sans User lié, on charge au moins les séances de ce profil.
       const busy = await listTeacherBusySlots({
         userId,
+        teacherId,
         organizationId: ctx.organizationId,
         excludeClasseId: input.classeId,
       });

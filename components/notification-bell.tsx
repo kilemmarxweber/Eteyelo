@@ -39,7 +39,6 @@ import {
 import { NOTIFICATIONS_REFRESH_EVENT, openMessagingDrawer, refreshMessagingBell } from "@/lib/notification-events";
 import {
   confirmNotificationRequestAction,
-  getNotificationCountAction,
   getNotificationRequestsAction,
   rejectNotificationRequestAction,
 } from "@/lib/actions/notification.actions";
@@ -408,7 +407,14 @@ export function NotificationBell() {
       return;
     }
     try {
-      const [data] = await getNotificationCountAction();
+      const response = await fetch("/api/notifications/count", {
+        cache: "no-store",
+      });
+      if (!response.ok) return;
+      const data = (await response.json()) as {
+        count?: number;
+        messagingCount?: number;
+      };
       if (typeof data?.count === "number") {
         setPendingCount(data.count);
       }

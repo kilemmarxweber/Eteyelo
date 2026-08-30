@@ -1,6 +1,7 @@
 import type { Day } from "../prisma/generated/prisma/client";
 import {
   maxSessionsPerSpreadDay,
+  parseHmToMinutes,
   placeTeachingsGreedy,
   type PlacementCandidate,
 } from "../lib/schedule-auto-generate";
@@ -148,6 +149,44 @@ for (let i = 0; i < 24; i += 1) {
     byDay.size === 2,
     `composantes essai ${i}: répartir sur les 2 jours attachés`,
   );
+}
+
+for (let i = 0; i < 24; i += 1) {
+  const result = placeTeachingsGreedy({
+    candidates: [baseCandidate],
+    courseSlots,
+    durationCourseMinutes: duration,
+    occupiedClassSlots: new Set(),
+    occupiedTeacherIntervals: new Map([
+      [
+        "teacher-1",
+        [
+          {
+            day: "Lundi" as Day,
+            startMin: parseHmToMinutes("07:30"),
+            endMin: parseHmToMinutes("09:00"),
+            label: "Maths · 3e · Branche B",
+          },
+        ],
+      ],
+    ]),
+    workDays: ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"],
+  });
+
+  assert(
+    result.failures.length === 0,
+    `autre branche essai ${i}: placement incomplet`,
+  );
+  for (const row of result.placed) {
+    const start = parseHmToMinutes(row.hourHm);
+    const end = start + duration;
+    const overlapsOtherBranch =
+      row.day === "Lundi" && start < parseHmToMinutes("09:00") && 7 * 60 + 30 < end;
+    assert(
+      !overlapsOtherBranch,
+      `autre branche essai ${i}: chevauche 07:30–09:00 déjà pris dans une autre branche (${row.day} ${row.hourHm})`,
+    );
+  }
 }
 
 console.log("OK schedule auto-generate spread");
