@@ -1,10 +1,10 @@
 import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
 
-export default async function CoursLayout({
+export default async function OptionLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await assertBranchAreaAccess("courses");
+  await assertBranchAreaAccess("options");
   return children;
 }

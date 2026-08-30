@@ -277,6 +277,7 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
           telephone: form.telephone,
           desiredSubjects: form.desiredSubjects,
           desiredLevels: levelsLabel || form.desiredLevels,
+          desiredCycle: branchTypeFilter || undefined,
           yearsOfExperience: form.yearsOfExperience
             ? Number(form.yearsOfExperience)
             : undefined,

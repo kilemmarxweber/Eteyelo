@@ -174,16 +174,23 @@ export function CandidaturesView({
     return applications.filter((item) => item.status === statusFilter);
   }, [applications, statusFilter]);
 
-  const loadApplications = useCallback(async () => {
-    setLoading(true);
+  const loadApplications = useCallback(async (opts?: { soft?: boolean }) => {
+    if (!opts?.soft) setLoading(true);
+    const scrollY =
+      typeof window !== "undefined" ? window.scrollY : 0;
     const [data, error] = await getJobApplicationsAction();
     if (error) {
       toast.error(error.message);
-      setLoading(false);
+      if (!opts?.soft) setLoading(false);
       return;
     }
     setApplications((data ?? []) as JobApplicationListItem[]);
-    setLoading(false);
+    if (!opts?.soft) setLoading(false);
+    if (opts?.soft && typeof window !== "undefined") {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollY, behavior: "instant" as ScrollBehavior });
+      });
+    }
   }, []);
 
   const openDetail = useCallback(async (applicationId: string) => {
@@ -251,7 +258,7 @@ export function CandidaturesView({
         } else {
           toast.success(successMessage);
         }
-        await loadApplications();
+        await loadApplications({ soft: true });
         if (detail?.id === applicationId) {
           const [updated] = await getJobApplicationDetailAction({
             applicationId,

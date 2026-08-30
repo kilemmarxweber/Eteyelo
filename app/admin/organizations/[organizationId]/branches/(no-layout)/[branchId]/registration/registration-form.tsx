@@ -22,6 +22,8 @@ import {
   IconArrowLeft,
   IconArrowRight,
   IconAlertTriangle,
+  IconBabyCarriage,
+  IconBackpack,
   IconCamera,
   IconCheck,
   IconPhotoPlus,
@@ -65,6 +67,7 @@ import {
   getRegistrationOptionsAction,
   getRegistrationRequestForPrefillAction,
   suggestNextClassAction,
+  updateRegistrationClassCapacityAction,
 } from "./registration.action";
 import { generateSlug } from "@/lib/generated-identifiers";
 import { cn } from "@/lib/utils";
@@ -79,10 +82,6 @@ import {
   allowsOptionForBranch,
 } from "@/lib/class-structure";
 import { cycleLabel, isCycle, getBranchCycles, type Cycle } from "@/lib/cycle";
-import {
-  maternelleOptionDisplayName,
-  isMaternelleClassLevel,
-} from "@/lib/maternelle-academic-structure";
 import {
   CTEB_SECTION_CODE,
   findCtebOption,
@@ -139,6 +138,72 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 
 type RegistrationStepKey = "student" | "parent" | "class" | "confirm";
+
+/** Accents alignés sur les cartes récap (sky / amber / emerald / teal). */
+const stepTone: Record<
+  RegistrationStepKey,
+  {
+    currentCard: string;
+    idleCard: string;
+    currentIcon: string;
+    formHeader: string;
+    badge: string;
+    fields: string;
+  }
+> = {
+  student: {
+    currentCard:
+      "scale-[1.02] border-sky-400 bg-sky-100/90 shadow-sm ring-1 ring-sky-300/60 dark:border-sky-500 dark:bg-sky-950/50 dark:ring-sky-700/50",
+    idleCard:
+      "border-sky-200/70 bg-sky-50/40 opacity-90 dark:border-sky-900/50 dark:bg-sky-950/20",
+    currentIcon: "bg-sky-600 text-white",
+    formHeader:
+      "border-sky-100/80 bg-gradient-to-r from-sky-50/60 via-transparent to-transparent dark:border-sky-900/30 dark:from-sky-950/20",
+    badge:
+      "border-sky-200 bg-sky-100 text-sky-900 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100",
+    fields:
+      "[&_input:not([type=file]):not([type=hidden])]:border-sky-300 [&_input:not([type=file]):not([type=hidden])]:hover:border-sky-400 [&_input:not([type=file]):not([type=hidden])]:focus-visible:border-sky-500 [&_input:not([type=file]):not([type=hidden])]:focus-visible:ring-sky-300/40 dark:[&_input:not([type=file]):not([type=hidden])]:border-sky-700 dark:[&_input:not([type=file]):not([type=hidden])]:hover:border-sky-500 dark:[&_input:not([type=file]):not([type=hidden])]:focus-visible:border-sky-400 [&_textarea]:border-sky-300 [&_textarea]:hover:border-sky-400 [&_textarea]:focus-visible:border-sky-500 [&_textarea]:focus-visible:ring-sky-300/40 dark:[&_textarea]:border-sky-700 dark:[&_textarea]:hover:border-sky-500 dark:[&_textarea]:focus-visible:border-sky-400 [&_[role=combobox]]:border-sky-300 [&_[role=combobox]]:hover:border-sky-400 [&_[role=combobox]]:focus:border-sky-500 [&_[role=combobox]]:focus:ring-sky-300/40 dark:[&_[role=combobox]]:border-sky-700 dark:[&_[role=combobox]]:hover:border-sky-500 dark:[&_[role=combobox]]:focus:border-sky-400",
+  },
+  parent: {
+    currentCard:
+      "scale-[1.02] border-amber-400 bg-amber-100/90 shadow-sm ring-1 ring-amber-300/60 dark:border-amber-500 dark:bg-amber-950/50 dark:ring-amber-700/50",
+    idleCard:
+      "border-amber-200/70 bg-amber-50/40 opacity-90 dark:border-amber-900/50 dark:bg-amber-950/20",
+    currentIcon: "bg-amber-600 text-white",
+    formHeader:
+      "border-amber-100/80 bg-gradient-to-r from-amber-50/60 via-transparent to-transparent dark:border-amber-900/30 dark:from-amber-950/20",
+    badge:
+      "border-amber-200 bg-amber-100 text-amber-950 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100",
+    fields:
+      "[&_input:not([type=file]):not([type=hidden])]:border-amber-300 [&_input:not([type=file]):not([type=hidden])]:hover:border-amber-400 [&_input:not([type=file]):not([type=hidden])]:focus-visible:border-amber-500 [&_input:not([type=file]):not([type=hidden])]:focus-visible:ring-amber-300/40 dark:[&_input:not([type=file]):not([type=hidden])]:border-amber-700 dark:[&_input:not([type=file]):not([type=hidden])]:hover:border-amber-500 dark:[&_input:not([type=file]):not([type=hidden])]:focus-visible:border-amber-400 [&_textarea]:border-amber-300 [&_textarea]:hover:border-amber-400 [&_textarea]:focus-visible:border-amber-500 [&_textarea]:focus-visible:ring-amber-300/40 dark:[&_textarea]:border-amber-700 dark:[&_textarea]:hover:border-amber-500 dark:[&_textarea]:focus-visible:border-amber-400 [&_[role=combobox]]:border-amber-300 [&_[role=combobox]]:hover:border-amber-400 [&_[role=combobox]]:focus:border-amber-500 [&_[role=combobox]]:focus:ring-amber-300/40 dark:[&_[role=combobox]]:border-amber-700 dark:[&_[role=combobox]]:hover:border-amber-500 dark:[&_[role=combobox]]:focus:border-amber-400",
+  },
+  class: {
+    currentCard:
+      "scale-[1.02] border-emerald-400 bg-emerald-100/90 shadow-sm ring-1 ring-emerald-300/60 dark:border-emerald-500 dark:bg-emerald-950/50 dark:ring-emerald-700/50",
+    idleCard:
+      "border-emerald-200/70 bg-emerald-50/40 opacity-90 dark:border-emerald-900/50 dark:bg-emerald-950/20",
+    currentIcon: "bg-emerald-600 text-white",
+    formHeader:
+      "border-emerald-100/80 bg-gradient-to-r from-emerald-50/60 via-transparent to-transparent dark:border-emerald-900/30 dark:from-emerald-950/20",
+    badge:
+      "border-emerald-200 bg-emerald-100 text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100",
+    fields:
+      "[&_input:not([type=file]):not([type=hidden])]:border-emerald-300 [&_input:not([type=file]):not([type=hidden])]:hover:border-emerald-400 [&_input:not([type=file]):not([type=hidden])]:focus-visible:border-emerald-500 [&_input:not([type=file]):not([type=hidden])]:focus-visible:ring-emerald-300/40 dark:[&_input:not([type=file]):not([type=hidden])]:border-emerald-700 dark:[&_input:not([type=file]):not([type=hidden])]:hover:border-emerald-500 dark:[&_input:not([type=file]):not([type=hidden])]:focus-visible:border-emerald-400 [&_textarea]:border-emerald-300 [&_textarea]:hover:border-emerald-400 [&_textarea]:focus-visible:border-emerald-500 [&_textarea]:focus-visible:ring-emerald-300/40 dark:[&_textarea]:border-emerald-700 dark:[&_textarea]:hover:border-emerald-500 dark:[&_textarea]:focus-visible:border-emerald-400 [&_[role=combobox]]:border-emerald-300 [&_[role=combobox]]:hover:border-emerald-400 [&_[role=combobox]]:focus:border-emerald-500 [&_[role=combobox]]:focus:ring-emerald-300/40 dark:[&_[role=combobox]]:border-emerald-700 dark:[&_[role=combobox]]:hover:border-emerald-500 dark:[&_[role=combobox]]:focus:border-emerald-400",
+  },
+  confirm: {
+    currentCard:
+      "scale-[1.02] border-teal-400 bg-teal-100/90 shadow-sm ring-1 ring-teal-300/60 dark:border-teal-500 dark:bg-teal-950/50 dark:ring-teal-700/50",
+    idleCard:
+      "border-teal-200/70 bg-teal-50/40 opacity-90 dark:border-teal-900/50 dark:bg-teal-950/20",
+    currentIcon: "bg-teal-600 text-white",
+    formHeader:
+      "border-teal-100/80 bg-gradient-to-r from-teal-50/60 via-transparent to-transparent dark:border-teal-900/30 dark:from-teal-950/20",
+    badge:
+      "border-teal-200 bg-teal-100 text-teal-950 dark:border-teal-800 dark:bg-teal-950 dark:text-teal-100",
+    fields:
+      "[&_input:not([type=file]):not([type=hidden])]:border-teal-300 [&_input:not([type=file]):not([type=hidden])]:hover:border-teal-400 [&_input:not([type=file]):not([type=hidden])]:focus-visible:border-teal-500 [&_input:not([type=file]):not([type=hidden])]:focus-visible:ring-teal-300/40 dark:[&_input:not([type=file]):not([type=hidden])]:border-teal-700 dark:[&_input:not([type=file]):not([type=hidden])]:hover:border-teal-500 dark:[&_input:not([type=file]):not([type=hidden])]:focus-visible:border-teal-400 [&_textarea]:border-teal-300 [&_textarea]:hover:border-teal-400 [&_textarea]:focus-visible:border-teal-500 [&_textarea]:focus-visible:ring-teal-300/40 dark:[&_textarea]:border-teal-700 dark:[&_textarea]:hover:border-teal-500 dark:[&_textarea]:focus-visible:border-teal-400 [&_[role=combobox]]:border-teal-300 [&_[role=combobox]]:hover:border-teal-400 [&_[role=combobox]]:focus:border-teal-500 [&_[role=combobox]]:focus:ring-teal-300/40 dark:[&_[role=combobox]]:border-teal-700 dark:[&_[role=combobox]]:hover:border-teal-500 dark:[&_[role=combobox]]:focus:border-teal-400",
+  },
+};
 
 type Person = {
   username: string;
@@ -681,6 +746,7 @@ export function RegistrationForm({
     [registrationStepKeys, peopleLabels.student, classLabel, tReg],
   );
   const currentStepKey = registrationStepKeys[step] ?? "student";
+  const currentTone = stepTone[currentStepKey];
   const lastStepIndex = registrationStepKeys.length - 1;
   const studentStepIndex = registrationStepKeys.indexOf("student");
   const parentStepIndex = registrationStepKeys.indexOf("parent");
@@ -1582,6 +1648,28 @@ export function RegistrationForm({
     await loadRegistrationOptions();
   }
 
+  async function saveClassCapacity(classeId: string, capacityValue: string) {
+    const capacity = Number(capacityValue);
+    if (!Number.isFinite(capacity) || capacity <= 0) {
+      return toast.error(
+        `Indiquez une capacité valide pour l'${classLabelLower}.`,
+      );
+    }
+    const [, error] = await updateRegistrationClassCapacityAction({
+      classeId,
+      capacity,
+      schoolYearId: schoolYearId || undefined,
+    });
+    if (error) return toast.error(error.message);
+    toast.success(tReg("capacitySaved"));
+    setOptions((current: any) => ({
+      ...current,
+      classes: (current.classes ?? []).map((classe: any) =>
+        classe.id === classeId ? { ...classe, capacity } : classe,
+      ),
+    }));
+  }
+
   async function createNextParallel() {
     if (!level || !schoolYearId)
       return toast.error(
@@ -2256,28 +2344,32 @@ export function RegistrationForm({
         </CardHeader>
         <CardContent className="space-y-2.5 p-4 pt-3">
           <Progress value={((step + 1) / registrationSteps.length) * 100} className="h-2" />
-          {registrationSteps.map(({ label, icon: Icon }, index) => {
+          {registrationStepKeys.map((stepKey, index) => {
+            const { label, icon: Icon } = registrationSteps[index];
             const isCurrent = index === step;
             const isDone = index < step;
+            const tone = stepTone[stepKey];
             return (
               <div
-                key={label}
-                className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all duration-300 ease-out ${
+                key={stepKey}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all duration-300 ease-out",
                   isCurrent
-                    ? "scale-[1.02] border-sky-400 bg-sky-100/90 shadow-sm ring-1 ring-sky-300/60 dark:border-sky-500 dark:bg-sky-950/50 dark:ring-sky-700/50"
+                    ? tone.currentCard
                     : isDone
                       ? "border-emerald-300/80 bg-emerald-50/80 dark:border-emerald-800 dark:bg-emerald-950/30"
-                      : "border-transparent bg-muted/40 opacity-80"
-                }`}
+                      : tone.idleCard,
+                )}
               >
                 <div
-                  className={`rounded-full p-2 transition-colors duration-300 ${
+                  className={cn(
+                    "rounded-full p-2 transition-colors duration-300",
                     isCurrent
-                      ? "bg-sky-600 text-white"
+                      ? tone.currentIcon
                       : isDone
                         ? "bg-emerald-600 text-white"
-                        : "bg-muted text-muted-foreground"
-                  }`}
+                        : "bg-muted text-muted-foreground",
+                  )}
                 >
                   <Icon size={18} />
                 </div>
@@ -2300,12 +2392,15 @@ export function RegistrationForm({
       <Card
         padding="none"
         className={cn(
-          "flex flex-col overflow-hidden border-border/80 shadow-sm",
-          currentStepKey === "confirm" &&
-            "max-h-[calc(100dvh-12.5rem)] md:max-h-[calc(100dvh-8.5rem)]",
+          "flex max-h-[calc(100dvh-12.5rem)] flex-col overflow-hidden border-border/80 shadow-sm md:max-h-[calc(100dvh-8.5rem)]",
         )}
       >
-        <CardHeader className="shrink-0 gap-0 space-y-0 border-b border-sky-100/80 bg-gradient-to-r from-sky-50/60 via-transparent to-transparent !px-3 !py-1.5 !pb-1.5 dark:border-sky-900/30 dark:from-sky-950/20">
+        <CardHeader
+          className={cn(
+            "shrink-0 gap-0 space-y-0 border-b !px-3 !py-1.5 !pb-1.5",
+            currentTone.formHeader,
+          )}
+        >
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0">
               <CardTitle className="text-sm font-semibold leading-none">
@@ -2319,7 +2414,10 @@ export function RegistrationForm({
             </div>
             <Badge
               variant="secondary"
-              className="h-5 shrink-0 border-sky-200 bg-sky-100 px-1.5 text-[10px] text-sky-900 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100"
+              className={cn(
+                "h-5 shrink-0 px-1.5 text-[10px]",
+                currentTone.badge,
+              )}
             >
               {step + 1}/{registrationSteps.length}
             </Badge>
@@ -2328,10 +2426,8 @@ export function RegistrationForm({
         <CardContent
           key={currentStepKey}
           className={cn(
-            "animate-fade-in flex-1 space-y-2.5 p-3 sm:p-4",
-            currentStepKey === "confirm"
-              ? "min-h-0 overflow-y-auto pb-3 sm:pb-4"
-              : "pb-16 sm:pb-16",
+            "animate-fade-in min-h-0 flex-1 space-y-2.5 overflow-y-auto p-3 sm:p-4",
+            currentTone.fields,
           )}
         >
           {currentStepKey === "student" && (
@@ -2603,34 +2699,48 @@ export function RegistrationForm({
                 <p className="text-muted-foreground">{tReg("loadingClasses", { classLabelPlural })}</p>
               ) : (
                 <>
+                  {isMultiCycle ? (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-emerald-900/80 dark:text-emerald-100/80">
+                        {tReg("fields.cycleRequired")}
+                      </Label>
+                      <div
+                        className={cn(
+                          "grid gap-2",
+                          branchCycles.length === 2
+                            ? "sm:grid-cols-2"
+                            : "sm:grid-cols-3",
+                        )}
+                      >
+                        {branchCycles.map((cycle, index) => (
+                          <CycleChoiceCard
+                            key={cycle}
+                            cycle={cycle}
+                            selected={academicCycle === cycle}
+                            index={index}
+                            hint={
+                              cycle === "MATERNELLE"
+                                ? tReg("fields.cycleHintMaternelle")
+                                : cycle === "PRIMAIRE"
+                                  ? tReg("fields.cycleHintPrimaire")
+                                  : cycle === "SECONDAIRE"
+                                    ? tReg("fields.cycleHintSecondaire")
+                                    : tReg("fields.cycleHintOther")
+                            }
+                            onSelect={() => {
+                              setAcademicCycle(cycle);
+                              setLevel("");
+                              setSectionId("");
+                              setOptionId("");
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                   <div
-                    className={`grid gap-2.5 ${isMultiCycle || allowsOption ? "lg:grid-cols-2 xl:grid-cols-4" : "lg:grid-cols-4"}`}
+                    className={`grid gap-2.5 ${allowsOption ? "lg:grid-cols-2 xl:grid-cols-3" : "lg:grid-cols-3"}`}
                   >
-                    {isMultiCycle ? (
-                      <Field label={tReg("fields.cycleRequired")}>
-                        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-3">
-                          {branchCycles.map((cycle) => {
-                            const selected = academicCycle === cycle;
-                            return (
-                              <Button
-                                key={cycle}
-                                type="button"
-                                variant={selected ? "default" : "outline"}
-                                className="h-auto justify-center px-2 py-2 text-sm"
-                                onClick={() => {
-                                  setAcademicCycle(cycle);
-                                  setLevel("");
-                                  setSectionId("");
-                                  setOptionId("");
-                                }}
-                              >
-                                {cycleLabel(cycle)}
-                              </Button>
-                            );
-                          })}
-                        </div>
-                      </Field>
-                    ) : null}
                     <Field label={tReg("fields.schoolYearRequired", { yearLabel: schoolYearLabel })}>
                       <Select
                         value={schoolYearId || undefined}
@@ -2850,45 +2960,6 @@ export function RegistrationForm({
                           </Select>
                         </Field>
                       )
-                    ) : structureType === "PRIMAIRE" ||
-                      structureType === "MATERNELLE" ? (
-                      <>
-                        <Field label={tReg("fields.section")} keepLabel>
-                          <Input
-                            disabled
-                            className="bg-muted text-foreground opacity-100"
-                            value={
-                              structureType === "MATERNELLE"
-                                ? (options.maternelleStructure?.section
-                                    ?.nameSection ?? cycleLabel("MATERNELLE"))
-                                : (options.primaryStructure?.section
-                                    ?.nameSection ?? tReg("primary"))
-                            }
-                          />
-                        </Field>
-                        <Field label={tReg("fields.ponderationLevel")} keepLabel>
-                          <Input
-                            disabled
-                            className="bg-muted text-foreground opacity-100"
-                            value={
-                              structureType === "MATERNELLE"
-                                ? isMaternelleClassLevel(level)
-                                  ? maternelleOptionDisplayName(level)
-                                  : tReg("accordingToLevel")
-                                : options.primaryStructure?.optionsByLevel?.[
-                                      level
-                                    ]?.nameOption
-                                  ? tReg("yearSuffix", {
-                                      name: options.primaryStructure
-                                        .optionsByLevel[level].nameOption,
-                                    })
-                                  : level
-                                    ? tReg("yearSuffix", { name: level })
-                                    : tReg("accordingToLevel")
-                            }
-                          />
-                        </Field>
-                      </>
                     ) : null}
                   </div>
                   <Alert>
@@ -2922,65 +2993,14 @@ export function RegistrationForm({
                         {classStats.length > 0 ? (
                           <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
                             {classStats.map((classe: any) => (
-                              <div
+                              <ParallelCapacityCard
                                 key={classe.id}
-                                className={`rounded-md border p-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm ${
-                                  classe.available
-                                    ? "border-emerald-300/80 bg-emerald-50/70 dark:border-emerald-800 dark:bg-emerald-950/25"
-                                    : classe.hasCapacity
-                                      ? "border-rose-300/80 bg-rose-50/70 dark:border-rose-900 dark:bg-rose-950/25"
-                                      : "border-amber-300/80 bg-amber-50/70 dark:border-amber-900 dark:bg-amber-950/25"
-                                }`}
-                              >
-                                <div className="flex items-center justify-between gap-2">
-                                  <div>
-                                    <b>{classe.nameClasse}</b>
-                                    {classe.parallel ? (
-                                      <p className="text-xs text-muted-foreground">
-                                        {tReg("parallel", { letter: classe.parallel })}
-                                      </p>
-                                    ) : null}
-                                  </div>
-                                  <Badge
-                                    variant={
-                                      classe.available
-                                        ? "secondary"
-                                        : classe.hasCapacity
-                                          ? "destructive"
-                                          : "outline"
-                                    }
-                                    className={
-                                      classe.available
-                                        ? "border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100"
-                                        : undefined
-                                    }
-                                  >
-                                    {classe.available
-                                      ? tReg("available")
-                                      : classe.hasCapacity
-                                        ? tReg("full")
-                                        : tReg("capacityMissing")}
-                                  </Badge>
-                                </div>
-                                <p className="mt-1 text-xs text-muted-foreground">
-                                  {classe.hasCapacity
-                                    ? tReg("places", { occupied: classe.occupied, capacity: classe.capacity })
-                                    : tReg("enrollmentsNoCapacity", { count: classe.occupied })}
-                                </p>
-                                {classe.hasCapacity ? (
-                                  <Progress
-                                    className={`mt-1.5 h-1.5 ${
-                                      classe.available
-                                        ? "[&>div]:bg-emerald-500"
-                                        : "[&>div]:bg-rose-500"
-                                    }`}
-                                    value={Math.min(
-                                      100,
-                                      (classe.occupied / classe.capacity) * 100,
-                                    )}
-                                  />
-                                ) : null}
-                              </div>
+                                classe={classe}
+                                tReg={tReg}
+                                onSaveCapacity={(value) =>
+                                  saveClassCapacity(classe.id, value)
+                                }
+                              />
                             ))}
                           </div>
                         ) : null}
@@ -3201,7 +3221,7 @@ export function RegistrationForm({
             </div>
           )}
         </CardContent>
-        <div className="sticky bottom-0 z-20 mt-auto flex shrink-0 items-center justify-between gap-2 border-t bg-card/95 px-3 py-2.5 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] backdrop-blur supports-[backdrop-filter]:bg-card/80">
+        <div className="z-20 mt-auto flex shrink-0 items-center justify-between gap-2 border-t bg-card px-3 py-2.5 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)]">
           <Button
             variant="outline"
             disabled={step === 0 || loading}
@@ -3316,6 +3336,286 @@ function Field({
     </div>
   );
 }
+function ParallelCapacityCard({
+  classe,
+  tReg,
+  onSaveCapacity,
+}: {
+  classe: {
+    id: string;
+    nameClasse: string;
+    parallel?: string | null;
+    occupied: number;
+    capacity: number | null;
+    hasCapacity: boolean;
+    available: boolean;
+  };
+  tReg: (key: string, values?: Record<string, string | number>) => string;
+  onSaveCapacity: (value: string) => Promise<void>;
+}) {
+  const [draft, setDraft] = useState(
+    classe.hasCapacity && classe.capacity != null
+      ? String(classe.capacity)
+      : "",
+  );
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setDraft(
+      classe.hasCapacity && classe.capacity != null
+        ? String(classe.capacity)
+        : "",
+    );
+  }, [classe.id, classe.capacity, classe.hasCapacity]);
+
+  const dirty =
+    draft.trim() !==
+    (classe.hasCapacity && classe.capacity != null
+      ? String(classe.capacity)
+      : "");
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await onSaveCapacity(draft.trim());
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div
+      className={cn(
+        "rounded-md border p-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm",
+        classe.available
+          ? "border-emerald-300/80 bg-emerald-50/70 dark:border-emerald-800 dark:bg-emerald-950/25"
+          : classe.hasCapacity
+            ? "border-rose-300/80 bg-rose-50/70 dark:border-rose-900 dark:bg-rose-950/25"
+            : "border-amber-300/80 bg-amber-50/70 dark:border-amber-900 dark:bg-amber-950/25",
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <b className="truncate">{classe.nameClasse}</b>
+          {classe.parallel ? (
+            <p className="text-xs text-muted-foreground">
+              {tReg("parallel", { letter: classe.parallel })}
+            </p>
+          ) : null}
+        </div>
+        <Badge
+          variant={
+            classe.available
+              ? "secondary"
+              : classe.hasCapacity
+                ? "destructive"
+                : "outline"
+          }
+          className={
+            classe.available
+              ? "border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100"
+              : undefined
+          }
+        >
+          {classe.available
+            ? tReg("available")
+            : classe.hasCapacity
+              ? tReg("full")
+              : tReg("capacityMissing")}
+        </Badge>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {classe.hasCapacity && classe.capacity != null
+          ? tReg("places", {
+              occupied: classe.occupied,
+              capacity: classe.capacity,
+            })
+          : tReg("enrollmentsNoCapacity", { count: classe.occupied })}
+      </p>
+      {classe.hasCapacity && classe.capacity != null ? (
+        <Progress
+          className={cn(
+            "mt-1.5 h-1.5",
+            classe.available ? "[&>div]:bg-emerald-500" : "[&>div]:bg-rose-500",
+          )}
+          value={Math.min(100, (classe.occupied / classe.capacity) * 100)}
+        />
+      ) : null}
+      <div className="mt-2 flex items-center gap-1.5">
+        <Label
+          htmlFor={`capacity-${classe.id}`}
+          className="shrink-0 text-[10px] text-muted-foreground"
+        >
+          {tReg("capacityQuickEdit")}
+        </Label>
+        <Input
+          id={`capacity-${classe.id}`}
+          type="number"
+          min={Math.max(1, classe.occupied)}
+          inputSize="sm"
+          className="h-7 w-16 px-2 text-xs"
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && dirty && !saving) {
+              event.preventDefault();
+              void handleSave();
+            }
+          }}
+        />
+        <Button
+          type="button"
+          size="sm"
+          variant={dirty ? "default" : "outline"}
+          className="h-7 px-2 text-[11px]"
+          disabled={!dirty || saving || !draft.trim()}
+          onClick={() => void handleSave()}
+        >
+          {saving ? "…" : tReg("capacitySave")}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function CycleChoiceCard({
+  cycle,
+  selected,
+  index,
+  hint,
+  onSelect,
+}: {
+  cycle: Cycle;
+  selected: boolean;
+  index: number;
+  hint: string;
+  onSelect: () => void;
+}) {
+  const delayClass =
+    index === 0
+      ? "animate-delay-75"
+      : index === 1
+        ? "animate-delay-150"
+        : index === 2
+          ? "animate-delay-225"
+          : "animate-delay-300";
+
+  const visual = (() => {
+    switch (cycle) {
+      case "MATERNELLE":
+        return {
+          Icon: IconBabyCarriage,
+          shell: selected
+            ? "border-rose-400 bg-gradient-to-br from-rose-100 via-rose-50 to-card shadow-md shadow-rose-200/50 ring-2 ring-rose-300/70 dark:border-rose-500 dark:from-rose-950/60 dark:via-rose-950/30 dark:shadow-rose-950/40 dark:ring-rose-700/50"
+            : "border-rose-200/80 bg-gradient-to-br from-rose-50/90 to-card hover:border-rose-300 hover:shadow-sm dark:border-rose-900/50 dark:from-rose-950/30",
+          iconWrap: selected
+            ? "bg-rose-500 text-white shadow-sm shadow-rose-300/60 dark:bg-rose-600"
+            : "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-200",
+          title: "text-rose-950 dark:text-rose-50",
+          check: "text-rose-600 dark:text-rose-300",
+        };
+      case "PRIMAIRE":
+        return {
+          Icon: IconBackpack,
+          shell: selected
+            ? "border-sky-400 bg-gradient-to-br from-sky-100 via-sky-50 to-card shadow-md shadow-sky-200/50 ring-2 ring-sky-300/70 dark:border-sky-500 dark:from-sky-950/60 dark:via-sky-950/30 dark:shadow-sky-950/40 dark:ring-sky-700/50"
+            : "border-sky-200/80 bg-gradient-to-br from-sky-50/90 to-card hover:border-sky-300 hover:shadow-sm dark:border-sky-900/50 dark:from-sky-950/30",
+          iconWrap: selected
+            ? "bg-sky-600 text-white shadow-sm shadow-sky-300/60 dark:bg-sky-500"
+            : "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-200",
+          title: "text-sky-950 dark:text-sky-50",
+          check: "text-sky-600 dark:text-sky-300",
+        };
+      case "SECONDAIRE":
+        return {
+          Icon: IconSchool,
+          shell: selected
+            ? "border-emerald-400 bg-gradient-to-br from-emerald-100 via-emerald-50 to-card shadow-md shadow-emerald-200/50 ring-2 ring-emerald-300/70 dark:border-emerald-500 dark:from-emerald-950/60 dark:via-emerald-950/30 dark:shadow-emerald-950/40 dark:ring-emerald-700/50"
+            : "border-emerald-200/80 bg-gradient-to-br from-emerald-50/90 to-card hover:border-emerald-300 hover:shadow-sm dark:border-emerald-900/50 dark:from-emerald-950/30",
+          iconWrap: selected
+            ? "bg-emerald-600 text-white shadow-sm shadow-emerald-300/60 dark:bg-emerald-500"
+            : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-200",
+          title: "text-emerald-950 dark:text-emerald-50",
+          check: "text-emerald-600 dark:text-emerald-300",
+        };
+      default:
+        return {
+          Icon: IconSchool,
+          shell: selected
+            ? "border-teal-400 bg-gradient-to-br from-teal-100 via-teal-50 to-card shadow-md shadow-teal-200/50 ring-2 ring-teal-300/70 dark:border-teal-500 dark:from-teal-950/60 dark:via-teal-950/30 dark:shadow-teal-950/40 dark:ring-teal-700/50"
+            : "border-teal-200/80 bg-gradient-to-br from-teal-50/90 to-card hover:border-teal-300 hover:shadow-sm dark:border-teal-900/50 dark:from-teal-950/30",
+          iconWrap: selected
+            ? "bg-teal-600 text-white shadow-sm shadow-teal-300/60 dark:bg-teal-500"
+            : "bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-200",
+          title: "text-teal-950 dark:text-teal-50",
+          check: "text-teal-600 dark:text-teal-300",
+        };
+    }
+  })();
+
+  const { Icon } = visual;
+
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onSelect}
+      className={cn(
+        "animate-cycle-card-in group relative flex w-full items-center gap-2 overflow-hidden rounded-lg border px-2.5 py-1.5 text-left transition-all duration-300 ease-out",
+        "hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
+        delayClass,
+        visual.shell,
+        selected && "animate-cycle-selected",
+      )}
+    >
+      <span
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute -right-5 -top-5 size-14 rounded-full opacity-25 transition-transform duration-500",
+          selected ? "scale-125" : "scale-100 group-hover:scale-110",
+          cycle === "MATERNELLE" && "bg-rose-300/40 dark:bg-rose-700/30",
+          cycle === "PRIMAIRE" && "bg-sky-300/40 dark:bg-sky-700/30",
+          cycle === "SECONDAIRE" && "bg-emerald-300/40 dark:bg-emerald-700/30",
+          cycle !== "MATERNELLE" &&
+            cycle !== "PRIMAIRE" &&
+            cycle !== "SECONDAIRE" &&
+            "bg-teal-300/40 dark:bg-teal-700/30",
+        )}
+      />
+      <span
+        className={cn(
+          "relative flex size-7 shrink-0 items-center justify-center rounded-full transition-colors duration-300",
+          visual.iconWrap,
+          selected && "animate-cycle-icon",
+        )}
+      >
+        <Icon size={15} stroke={1.75} />
+      </span>
+      <span className="relative min-w-0 flex-1 leading-tight">
+        <span
+          className={cn(
+            "block truncate text-xs font-semibold",
+            visual.title,
+          )}
+        >
+          {cycleLabel(cycle)}
+        </span>
+        <span className="block truncate text-[10px] text-muted-foreground">
+          {hint}
+        </span>
+      </span>
+      {selected ? (
+        <IconCheck
+          className={cn(
+            "relative size-3.5 shrink-0 animate-fade-in",
+            visual.check,
+          )}
+        />
+      ) : null}
+    </button>
+  );
+}
+
 function ModeChoice({
   id,
   value,

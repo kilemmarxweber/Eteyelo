@@ -5,6 +5,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -12,20 +13,37 @@ import {
 } from "recharts";
 import type { AttendanceHourStat } from "../attendance-report-types";
 
+const HOUR_COLORS = [
+  "#93c5fd",
+  "#60a5fa",
+  "#3b82f6",
+  "#2563eb",
+  "#1d4ed8",
+  "#0ea5e9",
+  "#06b6d4",
+  "#14b8a6",
+  "#10b981",
+  "#34d399",
+  "#f59e0b",
+  "#f97316",
+  "#ef4444",
+];
+
 export function AttendanceHourChart({ data }: { data: AttendanceHourStat[] }) {
   const chartData = data.map((item) => ({
     ...item,
     label: `${item.hour}h`,
   }));
+  const maxCount = Math.max(...chartData.map((item) => item.count), 1);
 
   return (
     <section className="min-w-0 space-y-3">
       <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <IconClock size={16} className="text-primary" />
+        <IconClock size={16} className="text-emerald-600" />
         Répartition des arrivées par heure
       </div>
 
-      <div className="border-y border-border/70 py-4">
+      <div className="rounded-xl border border-emerald-500/15 bg-gradient-to-b from-emerald-500/5 to-transparent px-2 py-4 sm:px-3">
         {chartData.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
             Aucune donnée pour cette période.
@@ -58,7 +76,7 @@ export function AttendanceHourChart({ data }: { data: AttendanceHourStat[] }) {
                   width={28}
                 />
                 <Tooltip
-                  cursor={{ fill: "hsl(var(--muted))", opacity: 0.4 }}
+                  cursor={{ fill: "hsl(var(--muted))", opacity: 0.35 }}
                   contentStyle={{
                     borderRadius: 12,
                     border: "1px solid hsl(var(--border))",
@@ -68,13 +86,20 @@ export function AttendanceHourChart({ data }: { data: AttendanceHourStat[] }) {
                   formatter={(value) => [Number(value ?? 0), "Arrivées"]}
                   labelFormatter={(label) => `Heure ${label}`}
                 />
-                <Bar
-                  dataKey="count"
-                  name="Arrivées"
-                  fill="hsl(221 83% 53%)"
-                  radius={[6, 6, 0, 0]}
-                  maxBarSize={28}
-                />
+                <Bar dataKey="count" name="Arrivées" radius={[6, 6, 0, 0]} maxBarSize={28}>
+                  {chartData.map((item, index) => {
+                    const intensity = item.count / maxCount;
+                    const color =
+                      intensity > 0.75
+                        ? "#059669"
+                        : intensity > 0.4
+                          ? "#10b981"
+                          : intensity > 0
+                            ? HOUR_COLORS[index % HOUR_COLORS.length]
+                            : "#cbd5e1";
+                    return <Cell key={item.hour} fill={color} />;
+                  })}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>

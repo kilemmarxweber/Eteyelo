@@ -1,11 +1,11 @@
 import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
 
-/** Année scolaire : school_ops (propriétaire inclus) plutôt que school_admin seul. */
+/** Année scolaire : privilege dédié `schoolYear:read`. */
 export default async function SchoolYearLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await assertBranchAreaAccess("school_ops_settings");
+  await assertBranchAreaAccess("school_year");
   return children;
 }

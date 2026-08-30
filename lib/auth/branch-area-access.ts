@@ -43,16 +43,27 @@ export function canAccessBranchArea(
     case "finance":
       return canAccessFinanceArea(session);
     case "fee_catalog":
+    case "fee_types":
+    case "exchange_rates":
       return canAccessFinanceOversight(session);
     case "notes":
       return canAccessNotesReadArea(session);
     case "schedule":
       return canAccessScheduleReadArea(session);
     case "teaching":
+    case "courses":
+    case "ponderations":
+    case "vacation":
       return canAccessTeachingArea(session);
     case "pedagogy":
     case "school_admin":
+    case "sections":
+    case "options":
+    case "classe":
+    case "finalistes":
       return canAccessPedagogyArea(session);
+    case "attendance":
+      return canAccessTeachingArea(session) || canAccessPedagogyArea(session);
     case "registration":
       return canAccessRegistrationArea(session);
     case "students":
@@ -70,11 +81,19 @@ export function canAccessBranchArea(
     case "branch_org_settings":
       return canAccessBranchOrgSettings(session);
     case "school_ops_settings":
+    case "public_communication":
+    case "school_calendar":
+    case "school_year":
+    case "periods":
+    case "structure_copy":
       return canAccessSchoolOpsSettings(session);
     case "support_settings":
       return canAccessSupportSettings(session);
     case "fiches":
+    case "fiche_centrale":
       return canAccessTitulaireFichesArea(session);
+    case "roles_privileges":
+      return canAccessBranchOrgSettings(session);
     default: {
       const _exhaustive: never = area;
       return _exhaustive;

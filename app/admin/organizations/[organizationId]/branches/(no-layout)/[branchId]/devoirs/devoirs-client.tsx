@@ -350,7 +350,7 @@ export function DevoirsClient({
         toast.error(err?.message ?? "Création impossible.");
         return;
       }
-      toast.success("Brouillon créé (dates vendredi → dimanche).");
+      toast.success("Devoir créé (dates vendredi → dimanche).");
       router.push(`${base}/${res.id}`);
     });
   };

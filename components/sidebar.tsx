@@ -13,6 +13,7 @@ import Nav from "./nav";
 import { cn, getBranchImage, normalizeImageSrc } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { buildStaticSideLinks } from "@/lib/sidebar-menu";
+import { SIDEBAR_HREF_BRANCH_AREA } from "@/lib/auth/branch-area-permissions";
 import { getBranchCycles, type Cycle } from "@/lib/cycle";
 import { getBranchNameAction } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/branche.action";
 import { getSidebarPermissionFlagsAction } from "@/lib/auth/sidebar-permission-flags.action";
@@ -43,8 +44,13 @@ export default function Sidebar({
     undefined,
   );
   const [branchLoaded, setBranchLoaded] = useState(false);
-  /** false = masquer Inscription tant que non confirmé (inscription:read). */
-  const [inscriptionRead, setInscriptionRead] = useState(false);
+  /** false tant que la matrice DAC n'a pas répondu (évite un flash faux). */
+  const [dacReady, setDacReady] = useState(false);
+  // Masquer les menus DAC jusqu'à la réponse serveur : ils ne doivent jamais
+  // apparaître brièvement avant l'application du privilège « Voir ».
+  const [hideHrefs, setHideHrefs] = useState<string[]>(
+    Object.keys(SIDEBAR_HREF_BRANCH_AREA),
+  );
   /** Évite un mismatch d’hydratation : useSession() peut différer SSR vs 1er paint client,
    * ce qui change le nombre de Collapsible/DropdownMenu (useId) avant UserNav. */
   const [menuReady, setMenuReady] = useState(false);
@@ -57,16 +63,23 @@ export default function Sidebar({
 
   useEffect(() => {
     if (!menuReady || !session?.user?.id) {
-      setInscriptionRead(false);
+      setDacReady(false);
+      setHideHrefs(Object.keys(SIDEBAR_HREF_BRANCH_AREA));
       return;
     }
     let ignore = false;
     void getSidebarPermissionFlagsAction()
       .then((flags) => {
-        if (!ignore) setInscriptionRead(flags.inscriptionRead);
+        if (ignore) return;
+        setHideHrefs(flags.hideHrefs);
+        setDacReady(true);
       })
       .catch(() => {
-        if (!ignore) setInscriptionRead(false);
+        if (ignore) return;
+        // En cas d'échec de résolution, ne pas afficher par erreur un menu
+        // protégé par un privilège non vérifié.
+        setHideHrefs(Object.keys(SIDEBAR_HREF_BRANCH_AREA));
+        setDacReady(true);
       });
     return () => {
       ignore = true;
@@ -80,7 +93,8 @@ export default function Sidebar({
     menuReady ? branchType : undefined,
     menuReady ? (branchCycles ?? branchType) : undefined,
     {
-      hideHrefs: inscriptionRead ? [] : ["/admin/registration"],
+      hideHrefs,
+      dacReady,
     },
   );
   const links = useMemo(() => {

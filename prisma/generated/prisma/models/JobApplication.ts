@@ -52,6 +52,7 @@ export type JobApplicationMinAggregateOutputType = {
   photoUrl: string | null
   desiredSubjects: string | null
   desiredLevels: string | null
+  desiredCycle: $Enums.Cycle | null
   yearsOfExperience: number | null
   desiredOrgRole: string | null
   experienceSummary: string | null
@@ -93,6 +94,7 @@ export type JobApplicationMaxAggregateOutputType = {
   photoUrl: string | null
   desiredSubjects: string | null
   desiredLevels: string | null
+  desiredCycle: $Enums.Cycle | null
   yearsOfExperience: number | null
   desiredOrgRole: string | null
   experienceSummary: string | null
@@ -134,6 +136,7 @@ export type JobApplicationCountAggregateOutputType = {
   photoUrl: number
   desiredSubjects: number
   desiredLevels: number
+  desiredCycle: number
   yearsOfExperience: number
   desiredOrgRole: number
   experienceSummary: number
@@ -185,6 +188,7 @@ export type JobApplicationMinAggregateInputType = {
   photoUrl?: true
   desiredSubjects?: true
   desiredLevels?: true
+  desiredCycle?: true
   yearsOfExperience?: true
   desiredOrgRole?: true
   experienceSummary?: true
@@ -226,6 +230,7 @@ export type JobApplicationMaxAggregateInputType = {
   photoUrl?: true
   desiredSubjects?: true
   desiredLevels?: true
+  desiredCycle?: true
   yearsOfExperience?: true
   desiredOrgRole?: true
   experienceSummary?: true
@@ -267,6 +272,7 @@ export type JobApplicationCountAggregateInputType = {
   photoUrl?: true
   desiredSubjects?: true
   desiredLevels?: true
+  desiredCycle?: true
   yearsOfExperience?: true
   desiredOrgRole?: true
   experienceSummary?: true
@@ -395,6 +401,7 @@ export type JobApplicationGroupByOutputType = {
   photoUrl: string | null
   desiredSubjects: string | null
   desiredLevels: string | null
+  desiredCycle: $Enums.Cycle | null
   yearsOfExperience: number | null
   desiredOrgRole: string | null
   experienceSummary: string | null
@@ -459,6 +466,7 @@ export type JobApplicationWhereInput = {
   photoUrl?: Prisma.StringNullableFilter<"JobApplication"> | string | null
   desiredSubjects?: Prisma.StringNullableFilter<"JobApplication"> | string | null
   desiredLevels?: Prisma.StringNullableFilter<"JobApplication"> | string | null
+  desiredCycle?: Prisma.EnumCycleNullableFilter<"JobApplication"> | $Enums.Cycle | null
   yearsOfExperience?: Prisma.IntNullableFilter<"JobApplication"> | number | null
   desiredOrgRole?: Prisma.StringNullableFilter<"JobApplication"> | string | null
   experienceSummary?: Prisma.StringNullableFilter<"JobApplication"> | string | null
@@ -501,6 +509,7 @@ export type JobApplicationOrderByWithRelationInput = {
   photoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   desiredSubjects?: Prisma.SortOrderInput | Prisma.SortOrder
   desiredLevels?: Prisma.SortOrderInput | Prisma.SortOrder
+  desiredCycle?: Prisma.SortOrderInput | Prisma.SortOrder
   yearsOfExperience?: Prisma.SortOrderInput | Prisma.SortOrder
   desiredOrgRole?: Prisma.SortOrderInput | Prisma.SortOrder
   experienceSummary?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -546,6 +555,7 @@ export type JobApplicationWhereUniqueInput = Prisma.AtLeast<{
   photoUrl?: Prisma.StringNullableFilter<"JobApplication"> | string | null
   desiredSubjects?: Prisma.StringNullableFilter<"JobApplication"> | string | null
   desiredLevels?: Prisma.StringNullableFilter<"JobApplication"> | string | null
+  desiredCycle?: Prisma.EnumCycleNullableFilter<"JobApplication"> | $Enums.Cycle | null
   yearsOfExperience?: Prisma.IntNullableFilter<"JobApplication"> | number | null
   desiredOrgRole?: Prisma.StringNullableFilter<"JobApplication"> | string | null
   experienceSummary?: Prisma.StringNullableFilter<"JobApplication"> | string | null
@@ -588,6 +598,7 @@ export type JobApplicationOrderByWithAggregationInput = {
   photoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   desiredSubjects?: Prisma.SortOrderInput | Prisma.SortOrder
   desiredLevels?: Prisma.SortOrderInput | Prisma.SortOrder
+  desiredCycle?: Prisma.SortOrderInput | Prisma.SortOrder
   yearsOfExperience?: Prisma.SortOrderInput | Prisma.SortOrder
   desiredOrgRole?: Prisma.SortOrderInput | Prisma.SortOrder
   experienceSummary?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -637,6 +648,7 @@ export type JobApplicationScalarWhereWithAggregatesInput = {
   photoUrl?: Prisma.StringNullableWithAggregatesFilter<"JobApplication"> | string | null
   desiredSubjects?: Prisma.StringNullableWithAggregatesFilter<"JobApplication"> | string | null
   desiredLevels?: Prisma.StringNullableWithAggregatesFilter<"JobApplication"> | string | null
+  desiredCycle?: Prisma.EnumCycleNullableWithAggregatesFilter<"JobApplication"> | $Enums.Cycle | null
   yearsOfExperience?: Prisma.IntNullableWithAggregatesFilter<"JobApplication"> | number | null
   desiredOrgRole?: Prisma.StringNullableWithAggregatesFilter<"JobApplication"> | string | null
   experienceSummary?: Prisma.StringNullableWithAggregatesFilter<"JobApplication"> | string | null
@@ -677,6 +689,7 @@ export type JobApplicationCreateInput = {
   photoUrl?: string | null
   desiredSubjects?: string | null
   desiredLevels?: string | null
+  desiredCycle?: $Enums.Cycle | null
   yearsOfExperience?: number | null
   desiredOrgRole?: string | null
   experienceSummary?: string | null
@@ -719,6 +732,7 @@ export type JobApplicationUncheckedCreateInput = {
   photoUrl?: string | null
   desiredSubjects?: string | null
   desiredLevels?: string | null
+  desiredCycle?: $Enums.Cycle | null
   yearsOfExperience?: number | null
   desiredOrgRole?: string | null
   experienceSummary?: string | null
@@ -759,6 +773,7 @@ export type JobApplicationUpdateInput = {
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   desiredSubjects?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   desiredLevels?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  desiredCycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   yearsOfExperience?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   desiredOrgRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   experienceSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -801,6 +816,7 @@ export type JobApplicationUncheckedUpdateInput = {
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   desiredSubjects?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   desiredLevels?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  desiredCycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   yearsOfExperience?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   desiredOrgRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   experienceSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -842,6 +858,7 @@ export type JobApplicationCreateManyInput = {
   photoUrl?: string | null
   desiredSubjects?: string | null
   desiredLevels?: string | null
+  desiredCycle?: $Enums.Cycle | null
   yearsOfExperience?: number | null
   desiredOrgRole?: string | null
   experienceSummary?: string | null
@@ -882,6 +899,7 @@ export type JobApplicationUpdateManyMutationInput = {
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   desiredSubjects?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   desiredLevels?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  desiredCycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   yearsOfExperience?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   desiredOrgRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   experienceSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -923,6 +941,7 @@ export type JobApplicationUncheckedUpdateManyInput = {
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   desiredSubjects?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   desiredLevels?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  desiredCycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   yearsOfExperience?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   desiredOrgRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   experienceSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -974,6 +993,7 @@ export type JobApplicationCountOrderByAggregateInput = {
   photoUrl?: Prisma.SortOrder
   desiredSubjects?: Prisma.SortOrder
   desiredLevels?: Prisma.SortOrder
+  desiredCycle?: Prisma.SortOrder
   yearsOfExperience?: Prisma.SortOrder
   desiredOrgRole?: Prisma.SortOrder
   experienceSummary?: Prisma.SortOrder
@@ -1019,6 +1039,7 @@ export type JobApplicationMaxOrderByAggregateInput = {
   photoUrl?: Prisma.SortOrder
   desiredSubjects?: Prisma.SortOrder
   desiredLevels?: Prisma.SortOrder
+  desiredCycle?: Prisma.SortOrder
   yearsOfExperience?: Prisma.SortOrder
   desiredOrgRole?: Prisma.SortOrder
   experienceSummary?: Prisma.SortOrder
@@ -1060,6 +1081,7 @@ export type JobApplicationMinOrderByAggregateInput = {
   photoUrl?: Prisma.SortOrder
   desiredSubjects?: Prisma.SortOrder
   desiredLevels?: Prisma.SortOrder
+  desiredCycle?: Prisma.SortOrder
   yearsOfExperience?: Prisma.SortOrder
   desiredOrgRole?: Prisma.SortOrder
   experienceSummary?: Prisma.SortOrder
@@ -1154,6 +1176,7 @@ export type JobApplicationCreateWithoutBranchInput = {
   photoUrl?: string | null
   desiredSubjects?: string | null
   desiredLevels?: string | null
+  desiredCycle?: $Enums.Cycle | null
   yearsOfExperience?: number | null
   desiredOrgRole?: string | null
   experienceSummary?: string | null
@@ -1194,6 +1217,7 @@ export type JobApplicationUncheckedCreateWithoutBranchInput = {
   photoUrl?: string | null
   desiredSubjects?: string | null
   desiredLevels?: string | null
+  desiredCycle?: $Enums.Cycle | null
   yearsOfExperience?: number | null
   desiredOrgRole?: string | null
   experienceSummary?: string | null
@@ -1264,6 +1288,7 @@ export type JobApplicationScalarWhereInput = {
   photoUrl?: Prisma.StringNullableFilter<"JobApplication"> | string | null
   desiredSubjects?: Prisma.StringNullableFilter<"JobApplication"> | string | null
   desiredLevels?: Prisma.StringNullableFilter<"JobApplication"> | string | null
+  desiredCycle?: Prisma.EnumCycleNullableFilter<"JobApplication"> | $Enums.Cycle | null
   yearsOfExperience?: Prisma.IntNullableFilter<"JobApplication"> | number | null
   desiredOrgRole?: Prisma.StringNullableFilter<"JobApplication"> | string | null
   experienceSummary?: Prisma.StringNullableFilter<"JobApplication"> | string | null
@@ -1304,6 +1329,7 @@ export type JobApplicationCreateManyBranchInput = {
   photoUrl?: string | null
   desiredSubjects?: string | null
   desiredLevels?: string | null
+  desiredCycle?: $Enums.Cycle | null
   yearsOfExperience?: number | null
   desiredOrgRole?: string | null
   experienceSummary?: string | null
@@ -1344,6 +1370,7 @@ export type JobApplicationUpdateWithoutBranchInput = {
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   desiredSubjects?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   desiredLevels?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  desiredCycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   yearsOfExperience?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   desiredOrgRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   experienceSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1384,6 +1411,7 @@ export type JobApplicationUncheckedUpdateWithoutBranchInput = {
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   desiredSubjects?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   desiredLevels?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  desiredCycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   yearsOfExperience?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   desiredOrgRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   experienceSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1424,6 +1452,7 @@ export type JobApplicationUncheckedUpdateManyWithoutBranchInput = {
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   desiredSubjects?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   desiredLevels?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  desiredCycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   yearsOfExperience?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   desiredOrgRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   experienceSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1467,6 +1496,7 @@ export type JobApplicationSelect<ExtArgs extends runtime.Types.Extensions.Intern
   photoUrl?: boolean
   desiredSubjects?: boolean
   desiredLevels?: boolean
+  desiredCycle?: boolean
   yearsOfExperience?: boolean
   desiredOrgRole?: boolean
   experienceSummary?: boolean
@@ -1509,6 +1539,7 @@ export type JobApplicationSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   photoUrl?: boolean
   desiredSubjects?: boolean
   desiredLevels?: boolean
+  desiredCycle?: boolean
   yearsOfExperience?: boolean
   desiredOrgRole?: boolean
   experienceSummary?: boolean
@@ -1551,6 +1582,7 @@ export type JobApplicationSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   photoUrl?: boolean
   desiredSubjects?: boolean
   desiredLevels?: boolean
+  desiredCycle?: boolean
   yearsOfExperience?: boolean
   desiredOrgRole?: boolean
   experienceSummary?: boolean
@@ -1593,6 +1625,7 @@ export type JobApplicationSelectScalar = {
   photoUrl?: boolean
   desiredSubjects?: boolean
   desiredLevels?: boolean
+  desiredCycle?: boolean
   yearsOfExperience?: boolean
   desiredOrgRole?: boolean
   experienceSummary?: boolean
@@ -1616,7 +1649,7 @@ export type JobApplicationSelectScalar = {
   updatedAt?: boolean
 }
 
-export type JobApplicationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "reference" | "branchId" | "organizationId" | "applicationType" | "status" | "nom" | "postnom" | "prenom" | "sexe" | "dateOfBirth" | "telephone" | "email" | "address" | "photoUrl" | "desiredSubjects" | "desiredLevels" | "yearsOfExperience" | "desiredOrgRole" | "experienceSummary" | "educationSummary" | "skills" | "availability" | "motivation" | "cvUrl" | "coverLetterUrl" | "consentAccepted" | "reviewedById" | "reviewedAt" | "acceptedById" | "acceptedAt" | "rejectedReason" | "hiredById" | "hiredAt" | "teacherId" | "personnelId" | "createdAt" | "updatedAt", ExtArgs["result"]["jobApplication"]>
+export type JobApplicationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "reference" | "branchId" | "organizationId" | "applicationType" | "status" | "nom" | "postnom" | "prenom" | "sexe" | "dateOfBirth" | "telephone" | "email" | "address" | "photoUrl" | "desiredSubjects" | "desiredLevels" | "desiredCycle" | "yearsOfExperience" | "desiredOrgRole" | "experienceSummary" | "educationSummary" | "skills" | "availability" | "motivation" | "cvUrl" | "coverLetterUrl" | "consentAccepted" | "reviewedById" | "reviewedAt" | "acceptedById" | "acceptedAt" | "rejectedReason" | "hiredById" | "hiredAt" | "teacherId" | "personnelId" | "createdAt" | "updatedAt", ExtArgs["result"]["jobApplication"]>
 export type JobApplicationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
@@ -1650,6 +1683,10 @@ export type $JobApplicationPayload<ExtArgs extends runtime.Types.Extensions.Inte
     photoUrl: string | null
     desiredSubjects: string | null
     desiredLevels: string | null
+    /**
+     * Cycle scolaire demandé (MATERNELLE / PRIMAIRE / SECONDAIRE) — ACL multi-cycle.
+     */
+    desiredCycle: $Enums.Cycle | null
     yearsOfExperience: number | null
     desiredOrgRole: string | null
     experienceSummary: string | null
@@ -2112,6 +2149,7 @@ export interface JobApplicationFieldRefs {
   readonly photoUrl: Prisma.FieldRef<"JobApplication", 'String'>
   readonly desiredSubjects: Prisma.FieldRef<"JobApplication", 'String'>
   readonly desiredLevels: Prisma.FieldRef<"JobApplication", 'String'>
+  readonly desiredCycle: Prisma.FieldRef<"JobApplication", 'Cycle'>
   readonly yearsOfExperience: Prisma.FieldRef<"JobApplication", 'Int'>
   readonly desiredOrgRole: Prisma.FieldRef<"JobApplication", 'String'>
   readonly experienceSummary: Prisma.FieldRef<"JobApplication", 'String'>

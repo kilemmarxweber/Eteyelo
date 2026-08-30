@@ -30,6 +30,9 @@ export const jobApplicationInputSchema = z
     photoUrl: z.string().trim().optional(),
     desiredSubjects: z.string().trim().optional(),
     desiredLevels: z.string().trim().optional(),
+    desiredCycle: z
+      .enum(["MATERNELLE", "PRIMAIRE", "SECONDAIRE"])
+      .optional(),
     yearsOfExperience: z.coerce.number().int().min(0).optional(),
     desiredOrgRole: z.string().trim().optional(),
     experienceSummary: z.string().trim().optional(),
@@ -96,6 +99,7 @@ export type JobApplicationListItem = {
   telephone: string;
   desiredSubjects: string | null;
   desiredLevels: string | null;
+  desiredCycle?: string | null;
   desiredOrgRole: string | null;
   yearsOfExperience: number | null;
   cvUrl: string;

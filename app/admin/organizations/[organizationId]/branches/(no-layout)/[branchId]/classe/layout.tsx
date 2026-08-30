@@ -5,6 +5,6 @@ export default async function ClasseLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await assertBranchAreaAccess("school_admin");
+  await assertBranchAreaAccess("classe");
   return children;
 }

@@ -1135,6 +1135,59 @@ export const createNextParallelForRegistrationAction = action
     return classe;
   });
 
+export const updateRegistrationClassCapacityAction = action
+  .input(
+    z.object({
+      classeId: z.string().min(1),
+      capacity: z.number().int().positive(),
+      schoolYearId: z.string().min(1).optional(),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireRegistrationContext();
+    const existing = await prisma.classe.findFirst({
+      where: {
+        id: input.classeId,
+        branchId,
+        OR: [{ statusClasse: true }, { statusClasse: null }],
+      },
+      select: {
+        id: true,
+        nameClasse: true,
+        capacity: true,
+        classEnrollment: {
+          where: input.schoolYearId
+            ? { schoolYearId: input.schoolYearId }
+            : undefined,
+          select: { id: true },
+        },
+      },
+    });
+    if (!existing) {
+      throw new Error("Classe introuvable dans cette branche.");
+    }
+    const occupied = existing.classEnrollment.length;
+    if (input.capacity < occupied) {
+      throw new Error(
+        `Capacité trop basse : ${occupied} inscription(s) déjà présentes.`,
+      );
+    }
+    const updated = await prisma.classe.update({
+      where: { id: existing.id },
+      data: { capacity: input.capacity },
+      select: {
+        id: true,
+        nameClasse: true,
+        capacity: true,
+        parallel: true,
+      },
+    });
+    const base = `/admin/organizations/${organizationId}/branches/${branchId}`;
+    revalidatePath(`${base}/registration`);
+    revalidatePath(`${base}/classe`);
+    return updated;
+  });
+
 export const findStudentHistoryAction = action
   .input(z.object({ query: z.string().trim().min(2) }))
   .handler(async ({ input }) => {

@@ -6900,6 +6900,7 @@ export const JobApplicationScalarFieldEnum = {
   photoUrl: 'photoUrl',
   desiredSubjects: 'desiredSubjects',
   desiredLevels: 'desiredLevels',
+  desiredCycle: 'desiredCycle',
   yearsOfExperience: 'yearsOfExperience',
   desiredOrgRole: 'desiredOrgRole',
   experienceSummary: 'experienceSummary',

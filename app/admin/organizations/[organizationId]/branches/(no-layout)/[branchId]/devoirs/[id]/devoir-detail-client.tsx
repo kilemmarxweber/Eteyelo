@@ -472,6 +472,13 @@ export function DevoirDetailClient({
           assignmentId={assignment.id}
           initialQuestions={questionsFromServer(assignment.questions)}
           onSaved={() => router.refresh()}
+          headerHint="Modifiez les questions, puis Enregistrer pour garder le travail ou Publier (en haut) pour le rendre visible aux élèves."
+          footerHint="Enregistrer conserve le devoir. Publier le rend visible aux élèves."
+          extraFooterActions={
+            <Button size="sm" disabled={pending} onClick={publish}>
+              Publier
+            </Button>
+          }
         />
       ) : (
         <section className="space-y-2.5">

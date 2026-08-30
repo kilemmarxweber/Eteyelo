@@ -2,6 +2,7 @@ import { getOrganizationAccessRoleLabel } from "@/lib/auth/role-labels";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
 import { shouldHideSidebarHref } from "@/lib/branch-route-guard";
+import { SIDEBAR_HREF_BRANCH_AREA } from "@/lib/auth/branch-area-permissions";
 import {
   getClassDisplayLabel,
   isUniversiteBranch,
@@ -447,8 +448,22 @@ function mapMenuItem(
   branchBasePath?: string,
   typebranch?: unknown,
   cycles?: unknown,
+  hideHrefs?: Set<string>,
+  /** true = hideHrefs vient de la matrice DAC (OrganizationRole). */
+  dacReady?: boolean,
 ): SideLink | null {
-  if (!canSeeMenu(item, roles)) return null;
+  const dacGated = Object.prototype.hasOwnProperty.call(
+    SIDEBAR_HREF_BRANCH_AREA,
+    item.href,
+  );
+
+  if (dacGated && dacReady && hideHrefs) {
+    // Privilège catalogue (Voir) = source de vérité pour ces menus.
+    if (hideHrefs.has(item.href)) return null;
+  } else {
+    if (!canSeeMenu(item, roles)) return null;
+    if (hideHrefs?.has(item.href)) return null;
+  }
 
   if (shouldHideSidebarHref(item.href, cycles ?? typebranch)) {
     return null;
@@ -456,7 +471,15 @@ function mapMenuItem(
 
   const sub = item.sub
     ?.map((child) =>
-      mapMenuItem(child, roles, branchBasePath, typebranch, cycles),
+      mapMenuItem(
+        child,
+        roles,
+        branchBasePath,
+        typebranch,
+        cycles,
+        hideHrefs,
+        dacReady,
+      ),
     )
     .filter(Boolean) as SideLink[] | undefined;
 
@@ -527,6 +550,8 @@ export function buildStaticSideLinks(
   options?: {
     /** Masquer ces hrefs logiques `/admin/...` (ex. registration sans inscription:read). */
     hideHrefs?: string[];
+    /** true quand hideHrefs est issu de la matrice OrganizationRole. */
+    dacReady?: boolean;
   },
 ): SideLink[] {
   const context = resolveNavigationContext(pathname);
@@ -538,16 +563,26 @@ export function buildStaticSideLinks(
   const resolvedTypebranch = typebranch ?? session?.branch?.typebranch;
   const resolvedCycles = cycles ?? resolvedTypebranch;
   const hide = new Set(options?.hideHrefs ?? []);
+  const dacReady = Boolean(options?.dacReady);
 
   return staticSidebarMenu
     .map((item) => {
-      if (hide.has(item.href)) return null;
+      // Top-level DAC (ex. Inscription) : laissé à mapMenuItem + hideHrefs.
+      const dacTop = Object.prototype.hasOwnProperty.call(
+        SIDEBAR_HREF_BRANCH_AREA,
+        item.href,
+      );
+      if (hide.has(item.href) && !(dacReady && dacTop)) {
+        return null;
+      }
       return mapMenuItem(
         item,
         roles,
         branchBasePath,
         resolvedTypebranch,
         resolvedCycles,
+        hide,
+        dacReady,
       );
     })
     .filter(Boolean) as SideLink[];

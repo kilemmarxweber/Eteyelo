@@ -14,7 +14,6 @@ import {
   type RoleStatements,
 } from "@/lib/auth/org-role-permission-shared";
 import {
-  ORG_ROLE,
   hasPlatformSupportPrivileges,
 } from "@/lib/permissions";
 
@@ -58,9 +57,8 @@ export function canAccessBranchAreaFromPermissions(
   if (appRole && hasPlatformSupportPrivileges(appRole)) {
     return true;
   }
-  if (roles.has(ORG_ROLE.OWNER) || roles.has("proprietaire")) {
-    return true;
-  }
+  // Le propriétaire d'organisation suit aussi la matrice OrganizationRole
+  // (sinon décocher « Voir » n'a aucun effet en test / tuning).
 
   const required = BRANCH_AREA_PERMISSION[area];
   if (!required) return false;

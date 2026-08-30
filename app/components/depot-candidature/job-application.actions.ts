@@ -23,6 +23,12 @@ import {
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { syncTeacherDossierExperienceYears } from "@/lib/teacher-assignment-years";
+import { normalizeCycle } from "@/lib/cycle";
+import {
+  primaryOrgRoleFromSession,
+  resolveAccessibleCycles,
+} from "@/lib/auth/cycle-scope";
+import type { Cycle as PrismaCycle } from "@/prisma/generated/prisma/client";
 
 function parseDesiredClassTarget(desiredLevels: string | null | undefined) {
   if (!desiredLevels?.trim()) return null;
@@ -311,6 +317,9 @@ export async function submitJobApplication(raw: unknown) {
       photoUrl: data.photoUrl || null,
       desiredSubjects: data.desiredSubjects || null,
       desiredLevels: data.desiredLevels || null,
+      desiredCycle: data.desiredCycle
+        ? (normalizeCycle(data.desiredCycle) as PrismaCycle)
+        : null,
       yearsOfExperience: data.yearsOfExperience ?? null,
       desiredOrgRole: data.desiredOrgRole || null,
       experienceSummary: data.experienceSummary || null,
@@ -401,7 +410,28 @@ async function getAvailableUsername(base: string): Promise<string> {
 }
 
 export const getJobApplicationsAction = action.handler(async () => {
-  const { branchId, organizationId } = await requireJobApplicationContext();
+  const { branchId, organizationId, userId, session } =
+    await requireJobApplicationContext();
+
+  const [orgMember, branchMember] = await Promise.all([
+    prisma.member.findFirst({
+      where: { userId, organizationId },
+      select: { role: true },
+    }),
+    prisma.branchMember.findFirst({
+      where: {
+        branchId,
+        member: { userId, organizationId },
+      },
+      select: { id: true },
+    }),
+  ]);
+
+  const accessibleCycles = await resolveAccessibleCycles({
+    branchId,
+    branchMemberId: branchMember?.id ?? null,
+    orgRole: primaryOrgRoleFromSession(session, orgMember?.role),
+  });
 
   return prisma.jobApplication.findMany({
     where: {
@@ -410,6 +440,18 @@ export const getJobApplicationsAction = action.handler(async () => {
       status: {
         in: ["PENDING", "REVIEWED", "ACCEPTED", "REJECTED", "HIRED"],
       },
+      ...(accessibleCycles.length > 0
+        ? {
+            OR: [
+              { desiredCycle: null },
+              {
+                desiredCycle: {
+                  in: accessibleCycles as PrismaCycle[],
+                },
+              },
+            ],
+          }
+        : { id: "__none__" }),
     },
     orderBy: { createdAt: "desc" },
     take: 100,
@@ -425,6 +467,7 @@ export const getJobApplicationsAction = action.handler(async () => {
       telephone: true,
       desiredSubjects: true,
       desiredLevels: true,
+      desiredCycle: true,
       desiredOrgRole: true,
       yearsOfExperience: true,
       cvUrl: true,
@@ -707,7 +750,7 @@ export const hireJobApplicationAction = action
       consumeAdminCreatedUserPlainPassword(emailLower);
 
       const base = `/admin/organizations/${organizationId}/branches/${branchId}`;
-      revalidatePath(`${base}/candidatures`);
+      // Pas de revalidate sur candidatures : le client recharge en soft sans scroll jump.
       revalidatePath(`${base}/teacher`);
       revalidatePath(`${base}/personnel`);
       revalidatePath(`${base}/teaching`);

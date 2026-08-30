@@ -12,8 +12,8 @@ export function NotesToolbar({
   studentPlural = "élèves",
 }: NotesToolbarProps) {
   return (
-    <div className="flex items-center justify-between">
-      <div className="text-sm text-muted-foreground">
+    <div className="mb-1 flex items-center justify-between py-0">
+      <div className="text-xs text-muted-foreground">
         {table.getFilteredRowModel().rows.length} {studentPlural}
       </div>
     </div>

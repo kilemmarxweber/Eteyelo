@@ -126,9 +126,11 @@ export const accessControlStatements = {
   schedule: ["create", "read", "update", "delete"],
   /** Annuaire élèves (CRUD / lecture scoped). */
   student: ["create", "read", "update", "delete"],
-  /** Paiement, frais, caisse — `encaisser` = opération caisse (P8). */
+  /** Paiement / caisse — `encaisser` = opération caisse. */
   finance: ["create", "read", "update", "delete", "encaisser"],
-  /** Affectations enseignement. */
+  /** Catalogue frais (affectation frais ↔ classe). */
+  fees: ["create", "read", "update", "delete"],
+  /** Affectations enseignant ↔ cours. */
   teaching: ["create", "read", "update", "delete", "assign"],
   attendance: ["create", "read", "update", "delete"],
   notes: ["create", "read", "update", "delete"],
@@ -136,7 +138,26 @@ export const accessControlStatements = {
   devoirs: ["create", "read", "update", "delete"],
   library: ["create", "read", "update", "delete"],
   fiches: ["create", "read", "update", "delete"],
+  ficheCentrale: ["create", "read", "update", "delete"],
+  finalistes: ["create", "read", "update", "delete"],
   documents: ["create", "read", "update", "delete"],
+  /** Catalogue cours. */
+  courses: ["create", "read", "update", "delete"],
+  /** Pondérations cours × option / niveau. */
+  ponderations: ["create", "read", "update", "delete"],
+  /** Vacations / créneaux horaires. */
+  vacation: ["create", "read", "update", "delete"],
+  sections: ["create", "read", "update", "delete"],
+  options: ["create", "read", "update", "delete"],
+  classe: ["create", "read", "update", "delete"],
+  /** Paramètres fins (sous-menus Settings). */
+  feeTypes: ["create", "read", "update", "delete"],
+  exchangeRates: ["create", "read", "update", "delete"],
+  publicCommunication: ["create", "read", "update", "delete"],
+  schoolCalendar: ["create", "read", "update", "delete"],
+  schoolYear: ["create", "read", "update", "delete"],
+  periods: ["create", "read", "update", "delete"],
+  structureCopy: ["create", "read", "update", "delete"],
   settings: ["create", "read", "update", "delete"],
   candidatures: ["create", "read", "update", "delete"],
   platformSupport: ["create", "read", "update", "delete"],
@@ -171,7 +192,23 @@ const SCHOOL_MODULE_RESOURCES = [
   "devoirs",
   "library",
   "fiches",
+  "ficheCentrale",
+  "finalistes",
   "documents",
+  "courses",
+  "ponderations",
+  "vacation",
+  "sections",
+  "options",
+  "classe",
+  "fees",
+  "feeTypes",
+  "exchangeRates",
+  "publicCommunication",
+  "schoolCalendar",
+  "schoolYear",
+  "periods",
+  "structureCopy",
   "settings",
   "candidatures",
 ] as const;
@@ -358,7 +395,7 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     ...withActions(CRU_ACTIONS),
     ...withSchoolModuleActions(CRU_ACTIONS, {
       includeTeachingAssign: true,
-      omit: ["notes"],
+      omit: ["notes", "fees", "feeTypes", "exchangeRates"],
     }),
     organizationSupport: ["create", "read", "update"],
     platformEscalation: ["read"],
@@ -401,6 +438,8 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     devoirs: ["create", "read", "update"],
     library: ["create", "read", "update"],
     fiches: ["create", "read", "update"],
+    ficheCentrale: ["create", "read", "update"],
+    schedule: ["read"],
   },
   [ORG_ROLE.SUPERVISEUR]: {
     ...withActions(CRUD_ACTIONS),
@@ -421,6 +460,9 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     inscription: ["create", "read", "share", "update"],
     student: ["read"],
     finance: ["create", "read", "update", "encaisser"],
+    fees: ["read"],
+    feeTypes: ["read"],
+    exchangeRates: ["read"],
   },
   [ORG_ROLE.STUDENT]: {
     ...organizationPluginMemberAc.statements,
@@ -429,12 +471,14 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     results: ["read"],
     devoirs: ["create", "read"],
     library: ["read"],
+    schedule: ["read"],
   },
   [ORG_ROLE.PARENT]: {
     ...organizationPluginMemberAc.statements,
     ...withActions(READ_ACTIONS),
     student: ["read"],
     results: ["read"],
+    schedule: ["read"],
   },
   [ORG_ROLE.SUPPORT]: {
     ...organizationPluginMemberAc.statements,

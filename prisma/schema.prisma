@@ -1637,6 +1637,8 @@ model JobApplication {
 
   desiredSubjects   String?
   desiredLevels     String?
+  /// Cycle scolaire demandé (MATERNELLE / PRIMAIRE / SECONDAIRE) — ACL multi-cycle.
+  desiredCycle      Cycle?
   yearsOfExperience Int?
   desiredOrgRole    String?
 
@@ -1667,6 +1669,7 @@ model JobApplication {
 
   @@index([branchId, status, createdAt])
   @@index([organizationId, branchId])
+  @@index([branchId, desiredCycle])
   @@index([email])
   @@index([applicationType])
 }

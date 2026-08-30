@@ -46,8 +46,9 @@ function toggleAction(
   const set = new Set(next[resource] ?? []);
   if (checked) set.add(action);
   else set.delete(action);
-  if (set.size === 0) delete next[resource];
-  else next[resource] = [...set];
+  // Tableau vide = refus explicite (ne pas supprimer la clé : sinon le seed
+  // réinjecte Voir au chargement).
+  next[resource] = [...set];
   return next;
 }
 

@@ -33,8 +33,17 @@ export function getStatementsForRole(
   slug: string,
   roleStatements?: Map<string, RoleStatements> | null,
 ): RoleStatements | null {
-  if (roleStatements?.has(slug)) {
-    return roleStatements.get(slug) ?? null;
+  const seed = seedStatementsForRole(slug);
+  const fromDb = roleStatements?.get(slug);
+  if (!fromDb && !seed) return null;
+  if (!fromDb) return seed;
+  if (!seed) return fromDb;
+
+  // DB gagne sur chaque clé présente (y compris [] = refus explicite).
+  // Le seed complète uniquement les ressources absentes du JSON.
+  const merged: RoleStatements = { ...seed };
+  for (const [key, value] of Object.entries(fromDb)) {
+    merged[key] = value;
   }
-  return seedStatementsForRole(slug);
+  return merged;
 }

@@ -5,6 +5,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -21,6 +22,15 @@ const SHORT_DAY: Record<string, string> = {
   Samedi: "Sam",
 };
 
+const DAY_COLORS = [
+  "#2563eb",
+  "#0891b2",
+  "#059669",
+  "#d97706",
+  "#db2777",
+  "#7c3aed",
+];
+
 export function AttendanceWeekdayChart({
   data,
 }: {
@@ -34,11 +44,11 @@ export function AttendanceWeekdayChart({
   return (
     <section className="h-full min-w-0 space-y-3">
       <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <IconChartBar size={16} className="shrink-0 text-primary" />
+        <IconChartBar size={16} className="shrink-0 text-blue-600" />
         Présences par jour de semaine
       </div>
 
-      <div className="border-y border-border/70 py-4">
+      <div className="rounded-xl border border-blue-500/15 bg-gradient-to-b from-blue-500/5 to-transparent px-2 py-4 sm:px-3">
         {chartData.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
             Aucune donnée pour cette période.
@@ -71,7 +81,7 @@ export function AttendanceWeekdayChart({
                   tickFormatter={(value) => `${value}%`}
                 />
                 <Tooltip
-                  cursor={{ fill: "hsl(var(--muted))", opacity: 0.4 }}
+                  cursor={{ fill: "hsl(var(--muted))", opacity: 0.35 }}
                   contentStyle={{
                     borderRadius: 12,
                     border: "1px solid hsl(var(--border))",
@@ -92,13 +102,14 @@ export function AttendanceWeekdayChart({
                     return row?.day ?? "";
                   }}
                 />
-                <Bar
-                  dataKey="percent"
-                  name="Présence"
-                  fill="hsl(221 83% 53%)"
-                  radius={[6, 6, 0, 0]}
-                  maxBarSize={40}
-                />
+                <Bar dataKey="percent" name="Présence" radius={[6, 6, 0, 0]} maxBarSize={40}>
+                  {chartData.map((item, index) => (
+                    <Cell
+                      key={item.day}
+                      fill={DAY_COLORS[index % DAY_COLORS.length]}
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>

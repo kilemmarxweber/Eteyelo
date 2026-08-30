@@ -687,12 +687,13 @@ export default function FicheSaisieClient({
               Notes
             </Badge>
           }
+          contentClassName="space-y-3"
     >
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <ContextCard icon={<Users className="size-5" />} label={notesLabels.teacher} value={selectedTeacher?.name ?? "Non sélectionné"} active={Boolean(selectedTeacherId)} />
-          <ContextCard icon={<BookOpen className="size-5" />} label={notesLabels.courseContextLabel} value={selectedTeacher?.lessons.find(item => item.id === selectedLessonId) ? `${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.subjectName} · ${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.codeclasse}` : "Non sélectionné"} active={Boolean(selectedLessonId)} />
-          <ContextCard icon={<CalendarDays className="size-5" />} label={notesLabels.sessionLabel} value={period?.label ?? "Non sélectionnée"} active={Boolean(selectedPeriodId)} />
-          <ContextCard icon={<ClipboardCheck className="size-5" />} label="Progression" value={`${filled}/${students.length} notes saisies`} active={students.length > 0 && filled === students.length} />
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          <ContextCard icon={<Users className="size-4" />} label={notesLabels.teacher} value={selectedTeacher?.name ?? "Non sélectionné"} active={Boolean(selectedTeacherId)} />
+          <ContextCard icon={<BookOpen className="size-4" />} label={notesLabels.courseContextLabel} value={selectedTeacher?.lessons.find(item => item.id === selectedLessonId) ? `${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.subjectName} · ${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.codeclasse}` : "Non sélectionné"} active={Boolean(selectedLessonId)} />
+          <ContextCard icon={<CalendarDays className="size-4" />} label={notesLabels.sessionLabel} value={period?.label ?? "Non sélectionnée"} active={Boolean(selectedPeriodId)} />
+          <ContextCard icon={<ClipboardCheck className="size-4" />} label="Progression" value={`${filled}/${students.length} notes saisies`} active={students.length > 0 && filled === students.length} />
         </div>
         <Card
           variant="elevated"
@@ -700,18 +701,18 @@ export default function FicheSaisieClient({
           className="animate-fade-in overflow-hidden rounded-2xl border shadow-sm"
         >
           {/* ===== FILTRES + ACTIONS ===== */}
-          <div className="flex flex-col gap-4 border-b bg-muted/20 p-4 lg:flex-row lg:items-end lg:justify-between lg:p-5">
+          <div className="flex flex-col gap-2.5 border-b bg-muted/20 p-3 lg:flex-row lg:items-end lg:justify-between lg:p-3.5">
             <div
               className={cn(
-                "grid w-full min-w-0 flex-1 gap-3",
+                "grid w-full min-w-0 flex-1 gap-2",
                 isAdmin
                   ? "sm:grid-cols-2 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]"
                   : "sm:grid-cols-2 xl:grid-cols-3",
               )}
             >
               {isAdmin && (
-                <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-2 xl:col-span-1">
-                  <span className="text-xs font-medium text-muted-foreground">
+                <div className="flex min-w-0 flex-col gap-1 sm:col-span-2 xl:col-span-1">
+                  <span className="text-[11px] font-medium text-muted-foreground">
                     {notesLabels.teacher}
                   </span>
                   <TeacherCombobox
@@ -807,37 +808,37 @@ export default function FicheSaisieClient({
           </div>
 
           {/* ===== CONTENU ===== */}
-          <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-12 lg:p-5">
+          <div className="grid grid-cols-1 gap-3 p-3 lg:grid-cols-12 lg:p-3.5">
             {/* ===== MATIÈRES (liste responsive type Settings domaines) ===== */}
             <Card className="col-span-1 overflow-hidden lg:col-span-4 xl:col-span-3">
-              <CardHeader className="space-y-3 border-b bg-muted/20 py-4">
+              <CardHeader className="space-y-2 border-b bg-muted/20 !px-3 !py-2.5">
                 <div>
-                  <CardTitle className="text-base">{notesLabels.coursesListTitle}</CardTitle>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <CardTitle className="text-sm">{notesLabels.coursesListTitle}</CardTitle>
+                  <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
                     {selectedTeacher
                       ? `${visibleLessons.length} cours affecté(s)`
                       : `Choisissez un ${notesLabels.teacherLower} avec des cours affectés`}
                   </p>
                 </div>
                 <div className="relative">
-                  <IconSearch className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <IconSearch className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-sky-600 dark:text-sky-400" />
                   <Input
                     value={lessonSearch}
                     onChange={(e) => setLessonSearch(e.target.value)}
                     placeholder="Rechercher un cours…"
-                    className="pl-8"
+                    className="h-8 border-sky-300 bg-sky-50/40 pl-8 text-xs hover:border-sky-400 focus-visible:border-sky-500 focus-visible:ring-sky-300/40 dark:border-sky-700 dark:bg-sky-950/30 dark:hover:border-sky-500 dark:focus-visible:border-sky-400 dark:focus-visible:ring-sky-700/40"
                     disabled={!selectedTeacher}
                   />
                 </div>
               </CardHeader>
 
-              <CardContent className="max-h-[520px] overflow-auto p-2">
+              <CardContent className="max-h-[min(560px,calc(100dvh-18rem))] overflow-auto p-1.5">
                 {!selectedTeacher ? (
-                  <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                  <p className="rounded-lg border border-dashed px-3 py-4 text-center text-xs text-muted-foreground">
                     Sélectionnez un {notesLabels.teacherLower} pour afficher ses cours affectés.
                   </p>
                 ) : visibleLessons.length === 0 ? (
-                  <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                  <p className="rounded-lg border border-dashed px-3 py-4 text-center text-xs text-muted-foreground">
                     Aucun cours affecté disponible pour ce {notesLabels.teacherLower}.
                   </p>
                 ) : (
@@ -871,15 +872,15 @@ export default function FicheSaisieClient({
                             type="button"
                             onClick={() => setSelectedLessonId(lesson.id)}
                             className={cn(
-                              "flex w-full flex-col gap-1 px-3 py-3 text-left transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between",
+                              "flex w-full flex-col gap-0.5 px-2.5 py-2 text-left transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between",
                               selected && "bg-primary/5 ring-1 ring-inset ring-primary/30",
                             )}
                           >
                             <div className="min-w-0">
-                              <p className="truncate text-sm font-medium">
+                              <p className="truncate text-sm font-medium leading-tight">
                                 {lesson.subjectName}
                               </p>
-                              <p className="truncate text-xs text-muted-foreground">
+                              <p className="truncate text-[11px] text-muted-foreground">
                                 {lesson.codeclasse}
                                 {lesson.className
                                   ? ` · ${lesson.className}`
@@ -888,13 +889,13 @@ export default function FicheSaisieClient({
                             </div>
                             <div className="flex w-fit shrink-0 items-center gap-1.5">
                               {existingOfType > 0 && typeFiche !== "ficheCote" ? (
-                                <Badge variant="outline" className="font-normal">
+                                <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-normal">
                                   {existingOfType}
                                 </Badge>
                               ) : null}
                               <Badge
                                 variant={selected ? "default" : "secondary"}
-                                className="w-fit shrink-0"
+                                className="h-5 w-fit shrink-0 px-1.5 text-[10px]"
                               >
                                 {selected ? "Sélectionné" : "Choisir"}
                               </Badge>
@@ -909,12 +910,20 @@ export default function FicheSaisieClient({
             </Card>
 
             {/* ===== TABLE ÉLÈVES ===== */}
-            <Card className="col-span-1 min-w-0 overflow-hidden lg:col-span-8 xl:col-span-9">
-              <CardHeader className="flex flex-col gap-3 border-b bg-muted/20 py-4 sm:flex-row sm:items-center sm:justify-between">
-                <div><CardTitle className="text-base capitalize">{notesLabels.studentPlural}</CardTitle><p className="mt-1 text-xs text-muted-foreground">{students.length ? `${filled} note(s) sur ${students.length}` : `Sélectionnez un cours pour charger les ${notesLabels.studentPlural}`}</p></div>
+            <Card className="col-span-1 flex min-h-0 min-w-0 flex-col overflow-hidden lg:col-span-8 xl:col-span-9">
+              <CardHeader className="flex shrink-0 flex-row items-center justify-between gap-2 border-b bg-muted/20 !space-y-0 !px-3 !py-1.5">
+                <div className="min-w-0">
+                  <CardTitle className="text-sm capitalize leading-none">
+                    {notesLabels.studentPlural}
+                  </CardTitle>
+                  <p className="mt-0.5 truncate text-[11px] leading-none text-muted-foreground">
+                    {students.length
+                      ? `${filled} note(s) sur ${students.length}`
+                      : `Sélectionnez un cours pour charger les ${notesLabels.studentPlural}`}
+                  </p>
+                </div>
 
-                {/* Progress bar */}
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted sm:w-44">
+                <div className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-muted sm:w-32">
                   <div
                     className={`h-full ${
                       percentage === 100 ? "bg-green-500" : "bg-blue-500"
@@ -924,7 +933,7 @@ export default function FicheSaisieClient({
                 </div>
               </CardHeader>
 
-              <CardContent className="max-h-[620px] overflow-auto p-2 sm:p-4">
+              <CardContent className="min-h-0 flex-1 overflow-auto p-1.5 sm:p-2 max-h-[min(720px,calc(100dvh-14rem))]">
                 <div className="min-w-[680px]">
                   <ResponsiveDataTable<StudentRow, unknown>
                     data={students}
@@ -952,9 +961,12 @@ export default function FicheSaisieClient({
 
 function ContextCard({ icon, label, value, active }: { icon: React.ReactNode; label: string; value: string; active: boolean }) {
   return (
-    <Card className={`flex items-center gap-3 p-4 transition ${active ? "border-primary/30 bg-primary/5" : "bg-muted/10"}`}>
-      <div className={`rounded-xl p-2.5 ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{icon}</div>
-      <div className="min-w-0"><p className="text-xs font-medium text-muted-foreground">{label}</p><p className="mt-1 truncate text-sm font-semibold" title={value}>{value}</p></div>
+    <Card className={`flex items-center gap-2.5 px-3 py-2 transition ${active ? "border-primary/30 bg-primary/5" : "bg-muted/10"}`}>
+      <div className={`rounded-lg p-1.5 ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{icon}</div>
+      <div className="min-w-0">
+        <p className="text-[11px] font-medium leading-none text-muted-foreground">{label}</p>
+        <p className="mt-0.5 truncate text-sm font-semibold leading-tight" title={value}>{value}</p>
+      </div>
     </Card>
   );
 }

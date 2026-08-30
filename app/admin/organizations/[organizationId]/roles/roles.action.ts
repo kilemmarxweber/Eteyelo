@@ -67,7 +67,8 @@ function sanitizePermission(
     const next = [...new Set(actions.map(String))].filter((a) =>
       allowSet.has(a),
     );
-    if (next.length > 0) out[resource] = next;
+    // Conserver [] pour un refus explicite de toutes les actions.
+    out[resource] = next;
   }
   return out;
 }

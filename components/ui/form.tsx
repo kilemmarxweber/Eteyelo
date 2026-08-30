@@ -76,7 +76,13 @@ const FormItem = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
-  const id = React.useId()
+  const fieldContext = React.useContext(FormFieldContext)
+  const reactId = React.useId()
+  // ID stable (nom de champ) pour éviter les mismatches d'hydratation quand
+  // la sidebar / settings changent le nombre de useId() avant ce formulaire.
+  const id = fieldContext?.name
+    ? `field-${String(fieldContext.name)}`
+    : reactId
 
   return (
     <FormItemContext.Provider value={{ id }}>

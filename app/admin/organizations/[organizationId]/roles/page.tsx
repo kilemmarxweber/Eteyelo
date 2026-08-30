@@ -18,11 +18,10 @@ export default function OrganizationRolesPage() {
       <div>
         <h1 className="text-xl font-semibold">Rôles & privilèges</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Contrôle d&apos;accès dynamique (Better Auth). Après Enregistrer,
-          les permissions OrganizationRole s&apos;appliquent aux zones protégées
-          (finance, notes, RH…). Rechargez la session / la page de l&apos;utilisateur
-          concerné pour voir l&apos;effet. Les menus sidebar restent encore en partie
-          basés sur le nom du rôle.
+          Matrice catalogue (Créer / Voir / Modifier / Supprimer).{" "}
+          <strong>Voir</strong> affiche ou masque le menu / sous-menu. Après
+          Enregistrer, rechargez la page. Les cases décochées sont enregistrées
+          comme refus (plus de réinjection automatique du seed).
         </p>
       </div>
 

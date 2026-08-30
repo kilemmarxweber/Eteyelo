@@ -10,7 +10,7 @@ export default async function AttendanceLayout({
 }) {
   const { organizationId, branchId } = await params;
 
-  await assertBranchAreaAccess("teaching", undefined, {
+  await assertBranchAreaAccess("attendance", undefined, {
     organizationId,
     branchId,
   });

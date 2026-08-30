@@ -6,6 +6,6 @@ export default async function TeachingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await assertBranchAreaAccess("pedagogy");
+  await assertBranchAreaAccess("teaching");
   return <TeachingSectionLayout>{children}</TeachingSectionLayout>;
 }

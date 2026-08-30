@@ -30,6 +30,7 @@ import {
   hasSessionRole,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
+import { getSidebarPermissionFlagsAction } from "@/lib/auth/sidebar-permission-flags.action";
 import { ORG_ROLE } from "@/lib/permissions";
 import { getBranchTypeAction } from "../classe/classe.action";
 import SidebarNav from "./components/sidebar-nav";
@@ -43,6 +44,9 @@ export default function Settings({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
   const [hasMounted, setHasMounted] = useState(false);
   const [branchType, setBranchType] = useState<string | null>(null);
+  const [settingsReads, setSettingsReads] = useState<Record<string, boolean>>(
+    {},
+  );
   const sessionReady = hasMounted && !isPending;
 
   useEffect(() => {
@@ -63,6 +67,29 @@ export default function Settings({ children }: { children: React.ReactNode }) {
       ignore = true;
     };
   }, [pathname]);
+
+  useEffect(() => {
+    if (!sessionReady || !session?.user?.id) {
+      setSettingsReads({});
+      return;
+    }
+    let ignore = false;
+    void getSidebarPermissionFlagsAction()
+      .then((flags) => {
+        if (!ignore) setSettingsReads(flags.settingsReads);
+      })
+      .catch(() => {
+        if (!ignore) setSettingsReads({});
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [
+    sessionReady,
+    session?.user?.id,
+    session?.organization?.id,
+    session?.session?.activeOrganizationId,
+  ]);
 
   const canSeeOrgSettings = sessionReady && canAccessBranchOrgSettings(session);
   const canSeeOwnerSettings =
@@ -111,6 +138,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
       icon: ReactElement;
       href: string;
       access: SettingsNavAccess;
+      dacKey?: string;
       primaryOnly?: boolean;
     }> = [
       {
@@ -136,54 +164,63 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         icon: <IconShieldLock size={18} />,
         href: `${settingsBasePath}/roles`,
         access: "owner",
+        dacKey: "roles",
       },
       {
         title: t("feeTypes"),
         icon: <IconReportMoney size={18} />,
         href: `${settingsBasePath}/typeFrais`,
         access: "org",
+        dacKey: "typeFrais",
       },
       {
         title: t("exchangeRates"),
         icon: <IconCurrencyDollar size={18} />,
         href: `${settingsBasePath}/exchange-rates`,
         access: "org",
+        dacKey: "exchange-rates",
       },
       {
         title: t("publicCommunication"),
         icon: <IconClipboardList size={18} />,
         href: `${settingsBasePath}/inscription-publique`,
         access: "school_ops",
+        dacKey: "inscription-publique",
       },
       {
         title: t("schoolCalendar"),
         icon: <IconCalendarCog size={18} />,
         href: `${settingsBasePath}/calendar`,
         access: "school_ops",
+        dacKey: "calendar",
       },
       {
         title: t("schoolYear"),
         icon: <IconSchool size={18} />,
         href: `${settingsBasePath}/annee-scolaire`,
         access: "school_ops",
+        dacKey: "annee-scolaire",
       },
       {
         title: t("periods"),
         icon: <IconCalendarEvent size={18} />,
         href: `${settingsBasePath}/periodes`,
         access: "school_ops",
+        dacKey: "periodes",
       },
       {
         title: t("attendance"),
         icon: <IconUserCheck size={18} />,
         href: `${settingsBasePath}/attendance`,
         access: "org",
+        dacKey: "attendance",
       },
       {
         title: t("structureMerge"),
         icon: <IconGitMerge size={18} />,
         href: `${settingsBasePath}/structure-merge`,
         access: "school_ops",
+        dacKey: "structure-merge",
       },
       {
         title: t("primaryDomains"),
@@ -197,6 +234,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         icon: <IconHeadphones size={18} />,
         href: `${settingsBasePath}/support`,
         access: "support",
+        dacKey: "support",
       },
     ];
 
@@ -218,12 +256,15 @@ export default function Settings({ children }: { children: React.ReactNode }) {
     };
 
     return items
-      .filter(
-        (item) =>
-          canAccess(item.access) &&
-          (!item.primaryOnly || showPrimaryDomains),
-      )
-      .map(({ access: _, primaryOnly: __, ...item }) => item);
+      .filter((item) => {
+        if (!canAccess(item.access)) return false;
+        if (item.primaryOnly && !showPrimaryDomains) return false;
+        if (item.dacKey && Object.keys(settingsReads).length > 0) {
+          return settingsReads[item.dacKey] === true;
+        }
+        return true;
+      })
+      .map(({ access: _, primaryOnly: __, dacKey: ___, ...item }) => item);
   }, [
     t,
     settingsBasePath,
@@ -233,6 +274,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
     canSeeSupport,
     showPrimaryDomains,
     isCursusSelfUser,
+    settingsReads,
   ]);
 
   return (
