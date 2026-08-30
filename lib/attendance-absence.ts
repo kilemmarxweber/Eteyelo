@@ -829,7 +829,7 @@ export async function reviewAbsenceJustification(params: {
     where: { id: params.caseId, branchId: params.branchId },
     include: {
       user: { select: userContactSelect },
-      branch: { select: { name: true } },
+      branch: { select: { name: true, organizationId: true } },
     },
   });
 
@@ -851,7 +851,7 @@ export async function reviewAbsenceJustification(params: {
     },
     include: {
       user: { select: userContactSelect },
-      branch: { select: { name: true } },
+      branch: { select: { name: true, organizationId: true } },
     },
   });
 
