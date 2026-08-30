@@ -50,6 +50,7 @@ import {
   studentExtraToDb,
 } from "@/lib/registration-extra-info";
 import { deactivatePersonInBranch, ensureActiveBranchMember } from "@/lib/branch-member-status";
+import { purgeStudentPermanently } from "@/lib/purge-branch-person";
 import { isExamCodesClass } from "@/lib/exam-export-meta";
 
 export async function getCurrentBranch() {
@@ -1067,11 +1068,11 @@ export const updateStudentPhotoAction = action
     }
   });
 
-/** Désactive dans la branche — historique conservé, membre org intact. */
+/** Suppression définitive (propriétaire) : cascade des données liées. */
 export const deleteStudentPermanentlyAction = action
   .input(deleteStudentSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canManageStudents } =
+    const { branchId, organizationId, canManageStudents, canPurgePermanently } =
       await getCurrentBranch();
     if (!canManageStudents) {
       return {
@@ -1081,6 +1082,18 @@ export const deleteStudentPermanentlyAction = action
     }
 
     try {
+      if (canPurgePermanently) {
+        const result = await purgeStudentPermanently({
+          studentId: input.id,
+          branchId,
+          force: true,
+        });
+        if (result.ok) {
+          revalidateStudentPages(organizationId, branchId);
+        }
+        return result;
+      }
+
       const student = await prisma.student.findFirst({
         where: {
           id: input.id,
@@ -1109,7 +1122,7 @@ export const deleteStudentPermanentlyAction = action
     } catch (error: unknown) {
       return {
         ok: false as const,
-        message: errMessage(error) || "Erreur lors de la désactivation",
+        message: errMessage(error) || "Erreur lors de la suppression",
       };
     }
   });

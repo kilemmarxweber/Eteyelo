@@ -184,15 +184,23 @@ test("absence de logo dynamique n’empêche pas la création du contexte", () =
   assert.equal(context.educationSystem, "CONGOLAIS");
 });
 
-test("système d'enseignement Angolaise : layout term-period", () => {
-  const context = buildBulletinBranchContext({
+test("système d'enseignement Angolaise : primaire term-period, secondaire cadre", () => {
+  const primary = buildBulletinBranchContext({
     name: "Escola",
     typebranch: "PRIMAIRE",
     educationSystem: "ANGOLAIS",
     organization: { name: "Org" },
   });
-  assert.equal(context.educationSystem, "ANGOLAIS");
+  const secondary = buildBulletinBranchContext({
+    name: "Complexo Escolar",
+    typebranch: "SECONDAIRE",
+    educationSystem: "ANGOLAIS",
+    organization: { name: "Org" },
+  });
+  assert.equal(primary.educationSystem, "ANGOLAIS");
   assert.equal(resolveBulletinLayoutKind("PRIMAIRE", "ANGOLAIS"), "term-period");
+  assert.equal(secondary.educationSystem, "ANGOLAIS");
+  assert.equal(resolveBulletinLayoutKind("SECONDAIRE", "ANGOLAIS"), "secondary");
 });
 
 console.log("\n14 tests du contexte et de l’en-tête du bulletin réussis.");

@@ -29,6 +29,7 @@ export default async function NewOrganizationMemberPage({ params }: PageProps) {
         <h1 className="text-2xl font-semibold tracking-tight">Nouveau membre</h1>
         <p className="mt-1.5 max-w-7xl text-pretty text-sm leading-relaxed text-muted-foreground">
           Compte (nom, postnom, prénom, photo), rôle et établissements autorisés.
+          Le propriétaire n’a pas d’affectation : il accède à tous les établissements.
           Un mot de passe temporaire est envoyé par email.
         </p>
       </div>

@@ -13,8 +13,7 @@ import {
   canListAllOrganizations,
   canManageOrganizationAsAppAdmin,
 } from "../lib/auth/organization-access";
-import { isOrganizationOwnerMember } from "../lib/auth/role-labels";
-import { isOrganizationManagerMember } from "../lib/auth/role-labels";
+import { isOrganizationOwnerMember, isOrganizationManagerMember, memberHasImplicitAllBranchAccess } from "../lib/auth/role-labels";
 import { buildOrganizationsApiPayload } from "../lib/auth/post-login-routing";
 import {
   APP_ROLE,
@@ -247,6 +246,14 @@ test("canManageOrganizationAsAppAdmin cible le role admin", () => {
 test("isOrganizationOwnerMember detecte owner membre", () => {
   assert.equal(isOrganizationOwnerMember(ORG_ROLE.OWNER), true);
   assert.equal(isOrganizationOwnerMember(ORG_ROLE.GESTIONNAIRE), false);
+});
+
+test("proprietaire org a acces implicite a toutes les branches", () => {
+  assert.equal(memberHasImplicitAllBranchAccess(ORG_ROLE.OWNER), true);
+  assert.equal(memberHasImplicitAllBranchAccess("owner,gestionnaire"), true);
+  assert.equal(memberHasImplicitAllBranchAccess(ORG_ROLE.GESTIONNAIRE), false);
+  assert.equal(memberHasImplicitAllBranchAccess(ORG_ROLE.PREFET), false);
+  assert.equal(memberHasImplicitAllBranchAccess(null), false);
 });
 
 test("isOrganizationManagerMember accepte owner gestionnaire et roles CRU", () => {

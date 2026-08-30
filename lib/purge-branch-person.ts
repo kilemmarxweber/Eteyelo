@@ -10,9 +10,16 @@ async function deleteEnrollmentFinancials(tx: Tx, enrollmentIds: string[]) {
 
   const payments = await tx.familyPayment.findMany({
     where: { classEnrollmentId: { in: enrollmentIds } },
-    select: { id: true },
+    select: { id: true, batchId: true },
   });
   const paymentIds = payments.map((payment) => payment.id);
+  const batchIds = [
+    ...new Set(
+      payments
+        .map((payment) => payment.batchId)
+        .filter((id): id is number => id != null),
+    ),
+  ];
 
   if (paymentIds.length > 0) {
     await tx.paymentAllocation.deleteMany({
@@ -26,6 +33,12 @@ async function deleteEnrollmentFinancials(tx: Tx, enrollmentIds: string[]) {
     });
     await tx.familyPayment.deleteMany({
       where: { id: { in: paymentIds } },
+    });
+  }
+
+  if (batchIds.length > 0) {
+    await tx.paymentBatch.deleteMany({
+      where: { id: { in: batchIds }, payments: { none: {} } },
     });
   }
 
@@ -85,6 +98,30 @@ async function deleteTeachingTree(tx: Tx, teachingIds: string[]) {
   await tx.teaching.deleteMany({
     where: { id: { in: teachingIds } },
   });
+}
+
+async function finishProfileRemoval(tx: Tx, branchMemberId: string) {
+  const remaining = await tx.branchMember.findUnique({
+    where: { id: branchMemberId },
+    select: {
+      _count: {
+        select: {
+          student: true,
+          teacher: true,
+          personel: true,
+          parent: true,
+        },
+      },
+    },
+  });
+  if (!remaining) return;
+  const leftover =
+    remaining._count.student +
+    remaining._count.teacher +
+    remaining._count.personel +
+    remaining._count.parent;
+  if (leftover > 0) return;
+  await removeBranchMemberKeepOrg(tx, branchMemberId);
 }
 
 /**
@@ -149,6 +186,8 @@ export async function deleteBranchMemberAndOrphanUser(
 export async function purgeStudentPermanently(params: {
   studentId: string;
   branchId: string;
+  /** Propriétaire : cascade même si l'élève est affiché via un lien d'import. */
+  force?: boolean;
 }) {
   const student = await prisma.student.findUnique({
     where: { id: params.studentId },
@@ -174,7 +213,7 @@ export async function purgeStudentPermanently(params: {
     select: { id: true },
   });
 
-  if (linkedInBranch) {
+  if (linkedInBranch && !params.force) {
     return {
       ok: false as const,
       message:
@@ -182,7 +221,7 @@ export async function purgeStudentPermanently(params: {
     };
   }
 
-  if (student.branchMember.branchId !== params.branchId) {
+  if (student.branchMember.branchId !== params.branchId && !params.force) {
     return {
       ok: false as const,
       message: "Élève introuvable dans cette branche",
@@ -212,13 +251,13 @@ export async function purgeStudentPermanently(params: {
 
     const branchMemberId = student.branchMemberId;
     await tx.student.delete({ where: { id: student.id } });
-    await removeBranchMemberKeepOrg(tx, branchMemberId);
+    await finishProfileRemoval(tx, branchMemberId);
   });
 
   return {
     ok: true as const,
     message:
-      "Élève retiré de cette branche. Il reste membre de l'organisation.",
+      "Élève supprimé définitivement, avec les inscriptions, paiements, présences et notes liés.",
   };
 }
 
@@ -266,13 +305,13 @@ export async function purgeTeacherPermanently(params: {
 
     const branchMemberId = teacher.branchMemberId!;
     await tx.teacher.delete({ where: { id: teacher.id } });
-    await removeBranchMemberKeepOrg(tx, branchMemberId);
+    await finishProfileRemoval(tx, branchMemberId);
   });
 
   return {
     ok: true as const,
     message:
-      "Enseignant retiré de cette branche. Il reste membre de l'organisation.",
+      "Enseignant supprimé définitivement, avec les cours, pointages, fiches et affectations liés.",
   };
 }
 
@@ -310,13 +349,13 @@ export async function purgePersonnelPermanently(params: {
 
     const branchMemberId = personnel.branchMemberId;
     await tx.personnel.delete({ where: { id: personnel.id } });
-    await removeBranchMemberKeepOrg(tx, branchMemberId);
+    await finishProfileRemoval(tx, branchMemberId);
   });
 
   return {
     ok: true as const,
     message:
-      "Personnel retiré de cette branche. Il reste membre de l'organisation.",
+      "Personnel supprimé définitivement, avec les présences et pointages liés.",
   };
 }
 
@@ -343,12 +382,20 @@ export async function purgeParentPermanently(params: {
     return { ok: false as const, message: "Parent introuvable" };
   }
 
-  if (parent._count.students > 0) {
-    const count = parent._count.students;
-    return {
-      ok: false as const,
-      message: `Impossible de supprimer ce parent : ${count} élève${count > 1 ? "s" : ""} y ${count > 1 ? "sont encore liés" : "est encore lié"}. Supprimez d'abord ${count > 1 ? "ces élèves" : "cet élève"}.`,
-    };
+  const children = await prisma.student.findMany({
+    where: { parentId: parent.id },
+    select: {
+      id: true,
+      branchMember: { select: { branchId: true } },
+    },
+  });
+  for (const child of children) {
+    const childResult = await purgeStudentPermanently({
+      studentId: child.id,
+      branchId: child.branchMember.branchId,
+      force: true,
+    });
+    if (!childResult.ok) return childResult;
   }
 
   await prisma.$transaction(async (tx) => {
@@ -378,12 +425,72 @@ export async function purgeParentPermanently(params: {
 
     const branchMemberId = parent.branchMemberId;
     await tx.parent.delete({ where: { id: parent.id } });
-    await removeBranchMemberKeepOrg(tx, branchMemberId);
+    await finishProfileRemoval(tx, branchMemberId);
   });
 
   return {
     ok: true as const,
     message:
-      "Parent retiré de cette branche. Il reste membre de l'organisation.",
+      "Tuteur supprimé définitivement, avec les enfants liés et toutes les données (paiements, inscriptions…).",
   };
+}
+
+/** Purge tous les profils liés aux BranchMember d'un membre d'organisation. */
+export async function purgeOrganizationMemberProfiles(params: {
+  memberId: string;
+  organizationId: string;
+}) {
+  const branchMembers = await prisma.branchMember.findMany({
+    where: {
+      memberId: params.memberId,
+      branch: { organizationId: params.organizationId },
+    },
+    select: {
+      branchId: true,
+      student: { select: { id: true } },
+      teacher: { select: { id: true } },
+      personel: { select: { id: true } },
+      parent: { select: { id: true } },
+    },
+  });
+
+  for (const row of branchMembers) {
+    for (const student of row.student) {
+      const result = await purgeStudentPermanently({
+        studentId: student.id,
+        branchId: row.branchId,
+        force: true,
+      });
+      if (!result.ok) return result;
+    }
+  }
+  for (const row of branchMembers) {
+    for (const parent of row.parent) {
+      const result = await purgeParentPermanently({
+        parentId: parent.id,
+        branchId: row.branchId,
+      });
+      if (!result.ok) return result;
+    }
+  }
+  for (const row of branchMembers) {
+    for (const teacher of row.teacher) {
+      const result = await purgeTeacherPermanently({
+        teacherId: teacher.id,
+        branchId: row.branchId,
+      });
+      if (!result.ok) return result;
+    }
+  }
+  for (const row of branchMembers) {
+    for (const personnel of row.personel) {
+      const result = await purgePersonnelPermanently({
+        personnelId: personnel.id,
+        branchId: row.branchId,
+      });
+      if (!result.ok) return result;
+    }
+  }
+
+  return { ok: true as const };
 }

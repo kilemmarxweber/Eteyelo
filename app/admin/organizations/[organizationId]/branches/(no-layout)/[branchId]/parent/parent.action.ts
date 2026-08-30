@@ -18,6 +18,7 @@ import {
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 import { deactivatePersonInBranch, ensureActiveBranchMember } from "@/lib/branch-member-status";
+import { purgeParentPermanently } from "@/lib/purge-branch-person";
 import {
   buildBranchMemberDirectoryWhere,
   isCycleGlobalRole,
@@ -62,6 +63,7 @@ export async function getCurrentBranch() {
 
 function revalidateParentPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/parent`);
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/student`);
 }
 
 function errMessage(err: unknown): string {
@@ -263,13 +265,25 @@ export const archiveParentAction = action
     };
   });
 
-/** Retire (désactive) de la branche — historique conservé, membre org intact. */
+/** Suppression définitive (propriétaire) : cascade élèves et données liées. */
 export const deleteParentPermanentlyAction = action
   .input(deleteParentSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await getCurrentBranch();
+    const { branchId, organizationId, canPurgePermanently } =
+      await getCurrentBranch();
 
     try {
+      if (canPurgePermanently) {
+        const result = await purgeParentPermanently({
+          parentId: input.id,
+          branchId,
+        });
+        if (result.ok) {
+          revalidateParentPages(organizationId, branchId);
+        }
+        return result;
+      }
+
       const parent = await prisma.parent.findFirst({
         where: {
           id: input.id,
@@ -300,7 +314,7 @@ export const deleteParentPermanentlyAction = action
     } catch (error: unknown) {
       return {
         ok: false as const,
-        message: errMessage(error) || "Erreur lors de la désactivation du parent",
+        message: errMessage(error) || "Erreur lors de la suppression du parent",
       };
     }
   });

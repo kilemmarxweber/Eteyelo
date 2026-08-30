@@ -20,6 +20,13 @@ export function resolveBulletinLayoutKind(
   educationSystem?: unknown,
 ): BulletinLayoutKind {
   if (usesTermPeriodCalendar(branchType, educationSystem)) {
+    // 7ª–8ª (núcleo / tronc commun) et 9ª–12ª : même bulletin cadre secondaire.
+    if (
+      normalizeBranchType(branchType) === "SECONDAIRE" &&
+      normalizeEducationSystem(educationSystem) === "ANGOLAIS"
+    ) {
+      return "secondary";
+    }
     return "term-period";
   }
 

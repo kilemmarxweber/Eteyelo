@@ -21,6 +21,7 @@ import {
   sessionCanViewAllDirectoryUsers,
 } from "@/lib/auth/cycle-scope";
 import { requireBranchContext, requireHrWriteBranchContext } from "@/lib/auth/require-branch-context";
+import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
@@ -30,6 +31,7 @@ import {
   deactivatePersonnelProfile,
   ensureTeacherOnPersonnelBranchMember,
 } from "@/lib/dual-staff-profile";
+import { purgePersonnelPermanently } from "@/lib/purge-branch-person";
 import { revalidatePath } from "next/cache";
 
 function errMessage(err: unknown): string {
@@ -236,16 +238,31 @@ export const archivePersonalAction = action
 /** @deprecated Utiliser archivePersonalAction */
 export const deletePersonalAction = archivePersonalAction;
 
-/** Désactive dans la branche — historique conservé, membre org intact. */
+/** Suppression définitive (propriétaire) : cascade des données liées. */
 export const deletePersonnelPermanentlyAction = action
   .input(z.object({ ids: z.array(z.string()).min(1) }))
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireHrWriteBranchContext();
+    const { branchId, organizationId, session } =
+      await requireHrWriteBranchContext();
+    const canPurge = isOrganizationOwnerSession(session);
 
     const results: Array<{ id: string; ok: boolean; message: string }> = [];
 
     for (const personnelId of input.ids) {
       try {
+        if (canPurge) {
+          const result = await purgePersonnelPermanently({
+            personnelId,
+            branchId,
+          });
+          results.push({
+            id: personnelId,
+            ok: result.ok,
+            message: result.message,
+          });
+          continue;
+        }
+
         const personnel = await prisma.personnel.findFirst({
           where: {
             id: personnelId,
@@ -294,17 +311,24 @@ export const deletePersonnelPermanentlyAction = action
     if (failed.length === input.ids.length) {
       return {
         ok: false as const,
-        message: failed[0]?.message ?? "Désactivation impossible",
+        message:
+          failed[0]?.message ??
+          (canPurge ? "Suppression impossible" : "Désactivation impossible"),
         results,
       };
     }
 
+    const done = input.ids.length - failed.length;
     return {
       ok: true as const,
       message:
         failed.length === 0
-          ? "Personnel désactivé dans cette branche. Il reste membre de l'organisation ; l'historique est conservé."
-          : `${input.ids.length - failed.length} désactivé(s), ${failed.length} en échec.`,
+          ? canPurge
+            ? "Personnel supprimé définitivement, avec toutes les données liées."
+            : "Personnel désactivé dans cette branche. Il reste membre de l'organisation ; l'historique est conservé."
+          : canPurge
+            ? `${done} supprimé(s), ${failed.length} en échec.`
+            : `${done} désactivé(s), ${failed.length} en échec.`,
       results,
     };
   });

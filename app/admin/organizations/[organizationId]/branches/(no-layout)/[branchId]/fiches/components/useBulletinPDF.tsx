@@ -778,8 +778,16 @@ export default function BulletinPDF({
       const selectedPeriod = [...validPeriods]
         .sort(
           (a, b) =>
-            getAcademicPeriodOrder(a.periodName) -
-            getAcademicPeriodOrder(b.periodName),
+            getAcademicPeriodOrder(
+              a.periodName,
+              academicCycle,
+              branchContext.educationSystem,
+            ) -
+            getAcademicPeriodOrder(
+              b.periodName,
+              academicCycle,
+              branchContext.educationSystem,
+            ),
         )
         .at(-1)?.periodName as PeriodLabel;
 
@@ -789,6 +797,7 @@ export default function BulletinPDF({
       const activePeriodKeys = getActivePeriodKeys(
         selectedPeriod,
         academicCycle,
+        branchContext.educationSystem,
       );
 
       if (activePeriodKeys.length === 0) {
@@ -1496,7 +1505,11 @@ export default function BulletinPDF({
 
           if (!isPrimaryLayout) {
             const sem1Keys = ["p1", "p2", "exam1"];
-            if (selectedPeriod === "3tr Period" || selectedPeriod === "3e Periode") {
+            if (
+              selectedPeriod === "3tr Period" ||
+              selectedPeriod === "3e Periode" ||
+              selectedPeriod === "3.ª Período"
+            ) {
               filteredPeriodKeys = [...sem1Keys, "p3"];
             } else if (selectedPeriod === "4th Period" || selectedPeriod === "4e Periode") {
               filteredPeriodKeys = [...sem1Keys, "p3", "p4"];

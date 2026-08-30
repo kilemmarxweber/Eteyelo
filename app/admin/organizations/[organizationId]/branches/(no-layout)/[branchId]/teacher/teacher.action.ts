@@ -39,6 +39,7 @@ import {
   teacherSchema,
 } from "@/src/interfaces/Teacher";
 import { ensureActiveBranchMember } from "@/lib/branch-member-status";
+import { purgeTeacherPermanently } from "@/lib/purge-branch-person";
 import {
   deactivateTeacherProfile,
   ensurePersonnelOnTeacherBranchMember,
@@ -426,11 +427,11 @@ export const archiveTeacherAction = action
     }
   });
 
-/** Désactive dans la branche — historique conservé, membre org intact. */
+/** Suppression définitive (propriétaire) : cascade des données liées. */
 export const deleteTeacherPermanentlyAction = action
   .input(deleteTeacherSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canManageTeachers } =
+    const { branchId, organizationId, canManageTeachers, canPurgePermanently } =
       await getCurrentBranch();
 
     if (!canManageTeachers) {
@@ -441,6 +442,22 @@ export const deleteTeacherPermanentlyAction = action
     }
 
     try {
+      if (canPurgePermanently) {
+        const result = await purgeTeacherPermanently({
+          teacherId: input.id,
+          branchId,
+        });
+        if (result.ok) {
+          revalidatePath(
+            `/admin/organizations/${organizationId}/branches/${branchId}/teacher`,
+          );
+          revalidatePath(
+            `/admin/organizations/${organizationId}/branches/${branchId}/personnel`,
+          );
+        }
+        return result;
+      }
+
       const teacher = await prisma.teacher.findFirst({
         where: {
           id: input.id,
@@ -476,7 +493,7 @@ export const deleteTeacherPermanentlyAction = action
       return {
         ok: false as const,
         message:
-          errMessage(error) || "Erreur lors de la désactivation de l'enseignant",
+          errMessage(error) || "Erreur lors de la suppression de l'enseignant",
       };
     }
   });

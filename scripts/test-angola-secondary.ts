@@ -44,6 +44,8 @@ import {
   formatAngolaDeclarationIssueLine,
 } from "../lib/angola-study-declaration-render";
 import { branchDocumentName } from "../lib/branch-document-name";
+import { resolveBulletinLayoutKind } from "../lib/bulletin-context";
+import { getActivePeriodKeys } from "../lib/academic-structure";
 import {
   angolaDirectorTitle,
   angolaDeclarationSchoolLabel,
@@ -173,6 +175,23 @@ test("Declaração de estudo : 7ª (Sétima Classe) jusqu'à 13ª", () => {
   assert.equal(
     shouldUseAngolaStudyDeclaration("CONGOLAIS", "7ª", "7è A"),
     false,
+  );
+});
+
+test("Bulletin 7ª–8ª et 9ª–12ª : même cadre secondaire (tronc commun)", () => {
+  assert.equal(resolveBulletinLayoutKind("SECONDAIRE", "ANGOLAIS"), "secondary");
+  assert.equal(resolveBulletinLayoutKind("PRIMAIRE", "ANGOLAIS"), "term-period");
+  assert.deepEqual(
+    getActivePeriodKeys("1.ª Período", "SECONDAIRE", "ANGOLAIS"),
+    ["p1"],
+  );
+  assert.deepEqual(
+    getActivePeriodKeys("2.ª Período", "SECONDAIRE", "ANGOLAIS"),
+    ["p1", "p2"],
+  );
+  assert.deepEqual(
+    getActivePeriodKeys("3.ª Período", "SECONDAIRE", "ANGOLAIS"),
+    ["p1", "p2", "p3"],
   );
 });
 

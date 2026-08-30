@@ -154,7 +154,7 @@ export function DeleteParentDialog({
                 aria-hidden="true"
               />
             )}
-            {permanent ? tCommon("deactivate") : tCommon("archive")}
+            {permanent ? t("deactivateInBranch") : tCommon("archive")}
           </Button>
         </DialogFooter>
       </DialogContent>

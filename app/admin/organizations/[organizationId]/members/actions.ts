@@ -35,7 +35,10 @@ import { buildIsArchivedUpdate } from "@/lib/archive";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { orgRoleToBranchRole } from "@/lib/auth/org-role-to-branch-role";
 import { ensureBranchMemberRoleProfiles } from "@/lib/auth/ensure-branch-member-profile";
+import { memberHasImplicitAllBranchAccess } from "@/lib/auth/role-labels";
 import { ORG_ROLE } from "@/lib/permissions";
+import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
+import { purgeOrganizationMemberProfiles } from "@/lib/purge-branch-person";
 import type { BranchRole } from "@/prisma/generated/prisma/enums";
 import {
   assignBranchMemberCycles,
@@ -324,7 +327,9 @@ export async function createOrganizationMemberAction(
     ...(requestedBranchIds ?? []),
     branchId,
   ]);
-  const formRequestedAssignment = requestedBranchIds !== undefined;
+  const implicitAllBranches = memberHasImplicitAllBranchAccess(orgRole);
+  const formRequestedAssignment =
+    !implicitAllBranches && requestedBranchIds !== undefined;
   let assignedBranchIds: string[] = [];
   if (formRequestedAssignment) {
     const branches = await resolveValidBranchIds(organizationId, requestedIds);
@@ -491,9 +496,17 @@ export async function updateOrganizationMemberAction(
     return { ok: false, message: guard.message };
   }
 
-  const branches = await resolveValidBranchIds(organizationId, branchIds);
-  if (!branches.ok) {
-    return branches;
+  const implicitAllBranches = memberHasImplicitAllBranchAccess(orgRole);
+  let syncedBranchIds: string[] = [];
+  if (!implicitAllBranches) {
+    const branches = await resolveValidBranchIds(
+      organizationId,
+      branchIds ?? [],
+    );
+    if (!branches.ok) {
+      return branches;
+    }
+    syncedBranchIds = branches.ids;
   }
 
   const h = await headers();
@@ -507,16 +520,18 @@ export async function updateOrganizationMemberAction(
       },
       h,
     );
-    const synced = await syncMemberBranches({
-      memberId,
-      organizationId,
-      branchIds: branches.ids,
-      branchRole: orgRoleToBranchRole(orgRole),
-      orgRole,
-      branchCycles,
-    });
-    if (!synced.ok) {
-      return synced;
+    if (!implicitAllBranches) {
+      const synced = await syncMemberBranches({
+        memberId,
+        organizationId,
+        branchIds: syncedBranchIds,
+        branchRole: orgRoleToBranchRole(orgRole),
+        orgRole,
+        branchCycles,
+      });
+      if (!synced.ok) {
+        return synced;
+      }
     }
 
     const memberRow = await prisma.member.findFirst({
@@ -742,12 +757,24 @@ export async function deleteOrganizationMemberPermanentlyAction(
     const blocked = member.branchMember.filter((row) =>
       branchMemberHasLinkedProfile(row._count),
     );
-    if (blocked.length > 0) {
+    const canCascade = isOrganizationOwnerSession(guard.context.session);
+
+    if (blocked.length > 0 && !canCascade) {
       const names = blocked.map((row) => row.branch.name).join(", ");
       return {
         ok: false,
         message: `Impossible de supprimer définitivement ce membre : un profil (élève, enseignant, parent ou personnel) existe encore dans : ${names}. Supprimez d’abord ces profils.`,
       };
+    }
+
+    if (canCascade) {
+      const purged = await purgeOrganizationMemberProfiles({
+        memberId: member.id,
+        organizationId,
+      });
+      if (!purged.ok) {
+        return { ok: false, message: purged.message };
+      }
     }
 
     await prisma.$transaction(async (tx) => {
@@ -761,6 +788,17 @@ export async function deleteOrganizationMemberPermanentlyAction(
           activeBranchId: null,
         },
       });
+      const leftoverBranchMembers = await tx.branchMember.findMany({
+        where: { memberId: member.id },
+        select: { id: true },
+      });
+      const leftoverIds = leftoverBranchMembers.map((row) => row.id);
+      if (leftoverIds.length > 0) {
+        await tx.schedule.updateMany({
+          where: { createdBy: { in: leftoverIds } },
+          data: { createdBy: null },
+        });
+      }
       await tx.branchMember.deleteMany({
         where: { memberId: member.id },
       });

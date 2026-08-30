@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { isCycleGlobalRole } from "@/lib/auth/cycle-global-roles";
+import { memberHasImplicitAllBranchAccess } from "@/lib/auth/role-labels";
 import { formatPersonFullName } from "@/lib/person-full-name";
 import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
 import { Badge } from "@/components/ui/badge";
@@ -98,7 +99,8 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
-  const showCycles = !isCycleGlobalRole(role);
+  const implicitAllBranches = memberHasImplicitAllBranchAccess(role);
+  const showCycles = !implicitAllBranches && !isCycleGlobalRole(role);
 
   const load = useCallback(async () => {
     try {
@@ -199,7 +201,7 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
       setDobError("Veuillez saisir la date de naissance.");
       return;
     }
-    if (branchIds.length === 0) {
+    if (!implicitAllBranches && branchIds.length === 0) {
       setBranchError("Sélectionnez au moins une branche.");
       return;
     }
@@ -234,8 +236,8 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
         organizationId,
         memberId,
         orgRole: role,
-        branchIds,
-        branchCycles,
+        branchIds: implicitAllBranches ? [] : branchIds,
+        branchCycles: implicitAllBranches ? {} : branchCycles,
         email: nextEmail,
         nom: nom.trim(),
         postnom: postnom.trim(),
@@ -317,9 +319,11 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
                   <MemberFormSummaryRow
                     label="Établissements"
                     value={
-                      branchIds.length === 0
-                        ? "Aucun"
-                        : `${branchIds.length} sélectionné${branchIds.length > 1 ? "s" : ""}`
+                      implicitAllBranches
+                        ? "Tous (propriétaire)"
+                        : branchIds.length === 0
+                          ? "Aucun"
+                          : `${branchIds.length} sélectionné${branchIds.length > 1 ? "s" : ""}`
                     }
                   />
                 </CardContent>
@@ -327,7 +331,7 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
               <div className="flex flex-col gap-2">
                 <Button
                   type="submit"
-                  disabled={busy || branches.length === 0}
+                  disabled={busy || (!implicitAllBranches && branches.length === 0)}
                   className="h-11 w-full"
                 >
                   {pending ? "Mise à jour…" : "Mettre à jour"}
@@ -472,7 +476,11 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
           <MemberFormSection
             icon={Shield}
             title="Accès"
-            description="Le rôle détermine les droits dans l’organisation."
+            description={
+              implicitAllBranches
+                ? "Le propriétaire accède à tous les établissements et à tous les menus, sans affectation de branche."
+                : "Le rôle détermine les droits dans l’organisation."
+            }
           >
             <div className="flex flex-col gap-2">
               <Label htmlFor="edit-role">Rôle dans l’organisation</Label>
@@ -492,33 +500,35 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
             </div>
           </MemberFormSection>
 
-          <MemberFormSection
-            icon={Building2}
-            title="Affectation"
-            description={
-              showCycles
-                ? "Cochez les établissements, puis le(s) cycle(s) pour chaque établissement multi-cycle."
-                : "Cochez les établissements auxquels ce membre peut accéder."
-            }
-          >
-            <MemberBranchPicker
-              branches={branches}
-              value={branchIds}
-              onChange={(ids) => {
-                setBranchIds(ids);
-                if (ids.length > 0) setBranchError(undefined);
-              }}
-              branchCycles={branchCycles}
-              onBranchCyclesChange={(next) => {
-                setBranchCycles(next);
-                if (cyclesError) setCyclesError(undefined);
-              }}
-              showCycles={showCycles}
-              disabled={busy}
-              error={branchError}
-              cyclesError={cyclesError}
-            />
-          </MemberFormSection>
+          {implicitAllBranches ? null : (
+            <MemberFormSection
+              icon={Building2}
+              title="Affectation"
+              description={
+                showCycles
+                  ? "Cochez les établissements, puis le(s) cycle(s) pour chaque établissement multi-cycle."
+                  : "Cochez les établissements auxquels ce membre peut accéder."
+              }
+            >
+              <MemberBranchPicker
+                branches={branches}
+                value={branchIds}
+                onChange={(ids) => {
+                  setBranchIds(ids);
+                  if (ids.length > 0) setBranchError(undefined);
+                }}
+                branchCycles={branchCycles}
+                onBranchCyclesChange={(next) => {
+                  setBranchCycles(next);
+                  if (cyclesError) setCyclesError(undefined);
+                }}
+                showCycles={showCycles}
+                disabled={busy}
+                error={branchError}
+                cyclesError={cyclesError}
+              />
+            </MemberFormSection>
+          )}
         </MemberFormLayout>
       </form>
 

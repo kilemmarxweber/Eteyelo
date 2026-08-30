@@ -54,13 +54,15 @@ import {
   isAcademicGroupComplete,
   type AcademicGroupConfig,
 } from "@/lib/academic-structure";
-import { usesTermPeriodCalendar } from "@/lib/education-system";
+import { resolveCycle } from "@/lib/cycle";
 import {
   getSchoolYearDisplayLabel,
   getSchoolYearDisplayLabelLower,
 } from "@/lib/university-lmd";
-import type { BulletinBranchContext } from "@/lib/bulletin-context";
-import { resolveCycle } from "@/lib/cycle";
+import {
+  resolveBulletinLayoutKind,
+  type BulletinBranchContext,
+} from "@/lib/bulletin-context";
 import {
   calculateBulletinPercentage,
   resolveBulletinMaxScore,
@@ -202,10 +204,10 @@ export default function ClassFicheClient({
   const getAggregatedPeriods = useCallback(
     (selectedPeriod: string): string[] => {
       if (
-        usesTermPeriodCalendar(
+        resolveBulletinLayoutKind(
           academicCycle,
           branchContext.educationSystem,
-        )
+        ) === "term-period"
       ) {
         return [selectedPeriod];
       }
@@ -245,13 +247,25 @@ export default function ClassFicheClient({
     const uniquePeriods = Array.from(new Set(fiches.map((f) => f.periodName)));
 
     return uniquePeriods
-      .sort((a, b) => getAcademicPeriodOrder(a) - getAcademicPeriodOrder(b))
+      .sort(
+        (a, b) =>
+          getAcademicPeriodOrder(
+            a,
+            academicCycle,
+            branchContext.educationSystem,
+          ) -
+          getAcademicPeriodOrder(
+            b,
+            academicCycle,
+            branchContext.educationSystem,
+          ),
+      )
       .map((p) => ({
         id: p,
         value: p,
         label: p,
       }));
-  }, [fiches]);
+  }, [fiches, academicCycle, branchContext.educationSystem]);
   // Fusionne toutes les notes des périodes actives pour un élève
   const getNotesForPeriods = useCallback(
     (studentPeriods: RecapPeriod[], selectedPeriod: string) => {

@@ -32,8 +32,9 @@ export default async function EditOrganizationMemberPage({ params }: PageProps) 
           Modifier le membre
         </h1>
         <p className="mt-1.5 max-w-7xl text-pretty text-sm leading-relaxed text-muted-foreground">
-          Email, identité (nom, postnom, prénom, photo), rôle, établissements
-          autorisés, réinitialisation du mot de passe ou retrait du membre.
+          Email, identité (nom, postnom, prénom, photo), rôle, accès, réinitialisation
+          du mot de passe ou retrait du membre. Le propriétaire n’a pas d’affectation
+          de branche : il accède à tous les établissements.
         </p>
       </div>
 

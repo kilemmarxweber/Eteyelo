@@ -59,6 +59,16 @@ export function isOrganizationOwnerMember(
   return normalizeMemberRole(memberRole) === ORG_ROLE.OWNER;
 }
 
+/**
+ * Propriétaire d’organisation : accès implicite à toutes les branches,
+ * sans affectation (ni sélecteur de branche à la création / modification).
+ */
+export function memberHasImplicitAllBranchAccess(
+  memberRole: string | null | undefined,
+): boolean {
+  return isOrganizationOwnerMember(memberRole);
+}
+
 const ORG_MANAGER_MEMBER_ROLES = new Set<string>([
   ORG_ROLE.OWNER,
   ORG_ROLE.GESTIONNAIRE,

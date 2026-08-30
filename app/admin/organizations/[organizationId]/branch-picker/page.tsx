@@ -3,6 +3,7 @@ import { School } from "lucide-react";
 import { BackLink } from "@/components/ui/back-link";
 import { getOrganizationMembership } from "@/lib/auth/org-membership";
 import { getOrganizationAuthContext } from "@/lib/auth/require-organization-permission";
+import { memberHasImplicitAllBranchAccess } from "@/lib/auth/role-labels";
 import { getUserBranchMembershipsForLogin } from "@/lib/auth/user-branch-access";
 import { APP_ROLE } from "@/lib/permissions";
 import { BranchPickerClient } from "./branch-picker-client";
@@ -25,6 +26,10 @@ export default async function BranchPickerPage({ params }: BranchPickerPageProps
   );
   if (!membership) {
     redirect("/admin/organization-picker");
+  }
+
+  if (memberHasImplicitAllBranchAccess(membership.role)) {
+    redirect(`/admin/organizations/${organizationId}`);
   }
 
   const branches = await getUserBranchMembershipsForLogin(

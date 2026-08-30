@@ -40,6 +40,7 @@ import {
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { formatPersonFullName } from "@/lib/person-full-name";
 import { ORG_ROLE } from "@/lib/permissions";
+import { memberHasImplicitAllBranchAccess } from "@/lib/auth/role-labels";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -141,11 +142,16 @@ export function OrganizationMembersView({
       const fullName = formatPersonFullName(member.user);
       const role = primaryRole(member.role);
       const branchNames = member.branches.map((b) => b.name.toLowerCase());
+      const matchesAllBranchesLabel =
+        memberHasImplicitAllBranchAccess(role) &&
+        q.length >= 3 &&
+        "tous les établissements".includes(q);
       return (
         fullName.toLowerCase().includes(q) ||
         member.user.email?.toLowerCase().includes(q) ||
         orgRoleLabel(role).toLowerCase().includes(q) ||
-        branchNames.some((name) => name.includes(q))
+        branchNames.some((name) => name.includes(q)) ||
+        matchesAllBranchesLabel
       );
     });
   }, [members, search]);
@@ -316,7 +322,7 @@ export function OrganizationMembersView({
                 <DialogTitle>Supprimer définitivement le membre ?</DialogTitle>
                 <DialogDescription>
                   {deletingMember
-                    ? `Cette action est irréversible : ${formatPersonFullName(deletingMember.user) || deletingMember.user.email} sera retiré de l’organisation. S’il n’a plus d’autre organisation, son compte sera aussi effacé.`
+                    ? `Cette action est irréversible : ${formatPersonFullName(deletingMember.user) || deletingMember.user.email} sera retiré de l’organisation, avec tous les profils liés (élève, enseignant, parent, personnel) et leurs données (inscriptions, paiements, présences, affectations…). S’il n’a plus d’autre organisation, son compte sera aussi effacé.`
                     : "Cette action est irréversible."}
                 </DialogDescription>
               </DialogHeader>
@@ -396,7 +402,12 @@ export function OrganizationMembersView({
                       {member.user.email}
                     </p>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                      {member.branches.length === 0 ? (
+                      {memberHasImplicitAllBranchAccess(role) ? (
+                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                          <Building2 className="size-3.5" />
+                          Tous les établissements
+                        </span>
+                      ) : member.branches.length === 0 ? (
                         <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                           <Building2 className="size-3.5" />
                           Aucun établissement

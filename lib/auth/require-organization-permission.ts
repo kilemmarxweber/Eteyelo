@@ -8,6 +8,7 @@ import { BRANCH_LOGIN_ORG_ROLES } from "@/lib/auth/user-branch-access";
 import {
   canArchiveOrganizationAsMember,
   isOrganizationManagerMember,
+  memberHasImplicitAllBranchAccess,
 } from "@/lib/auth/role-labels";
 import {
   APP_ROLE,
@@ -294,6 +295,10 @@ export const guardOrganizationBranchAccess = cache(
     context.membership?.organizationId === organizationId
       ? context.membership
       : await getMembershipForOrganization(context.userId, organizationId);
+
+  if (membership && memberHasImplicitAllBranchAccess(membership.role)) {
+    return { ok: true, context };
+  }
 
   const assignedBranches = membership
     ? await prisma.branchMember.findMany({

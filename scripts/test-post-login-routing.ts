@@ -185,6 +185,15 @@ test("proprietaire org reste sur l accueil organisation", () => {
     }),
     `/admin/organizations/${ORG_ID}`,
   );
+  assert.equal(
+    resolveMembershipPostLoginPath({
+      organizationId: ORG_ID,
+      membershipRole: ORG_ROLE.OWNER,
+      branchId: BRANCH_ID,
+      branchCount: 2,
+    }),
+    `/admin/organizations/${ORG_ID}`,
+  );
 });
 
 console.log("\nTous les tests routage post-login sont passes.");
