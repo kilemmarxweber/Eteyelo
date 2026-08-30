@@ -17,6 +17,7 @@ export async function sendResetPasswordEmail(input: {
   temporaryPassword: string;
   loginUrl?: string;
   branchName?: string | null;
+  organizationId?: string | null;
 }): Promise<{ emailSent: boolean; whatsappSent: boolean }> {
   const { to, name, temporaryPassword } = input;
   const loginUrl = input.loginUrl ?? getSignInUrl();
@@ -81,6 +82,7 @@ export async function sendResetPasswordEmail(input: {
       email: to,
       loginUrl,
       branchName: input.branchName,
+      organizationId: input.organizationId,
     });
     whatsappSent = Boolean(wa?.success);
   }

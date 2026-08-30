@@ -13,6 +13,7 @@ export async function sendVerificationEmail(input: {
   url: string;
   name?: string;
   subject?: string;
+  organizationId?: string | null;
 }): Promise<void> {
   const greeting = input.name?.trim() ? `Bonjour ${input.name.trim()}` : "Bonjour";
   const subject = input.subject ?? `${APP_NAME} — Confirmez votre adresse email`;
@@ -48,6 +49,7 @@ export async function sendVerificationEmail(input: {
       to: input.to,
       whatsappTo: input.phone,
       whatsappName: input.name,
+      organizationId: input.organizationId,
       subject,
       text,
       html,

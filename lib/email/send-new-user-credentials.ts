@@ -25,6 +25,7 @@ export async function sendNewUserCredentialsEmail(input: {
   branchPhone?: string;
   branchAddress?: string;
   loginUrl?: string;
+  organizationId?: string | null;
 }): Promise<{ emailSent: boolean; whatsappSent: boolean }> {
   const { to, name, temporaryPassword } = input;
   const role = input.role?.trim() || "Utilisateur";
@@ -134,6 +135,7 @@ export async function sendNewUserCredentialsEmail(input: {
       organizationName,
       branchName,
       loginUrl,
+      organizationId: input.organizationId,
     });
     whatsappSent = Boolean(wa?.success);
   }

@@ -972,17 +972,24 @@ const updateTeacherPhotoSchema = z.object({
 export const updateTeacherPhotoAction = action
   .input(updateTeacherPhotoSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canManageTeachers } =
+    const {
+      branchId,
+      organizationId,
+      userId: sessionUserId,
+      canManageTeachers,
+      isTeacher,
+    } =
       await getCurrentBranch();
-
-    if (!canManageTeachers) {
-      return { ok: false as const, message: "Action non autorisee" };
-    }
 
     const teacher = await prisma.teacher.findFirst({
       where: {
         id: input.teacherId,
-        branchMember: { branchId },
+        branchMember: {
+          branchId,
+          ...(canManageTeachers
+            ? {}
+            : { member: { userId: sessionUserId } }),
+        },
       },
       select: {
         branchMember: {
@@ -998,6 +1005,9 @@ export const updateTeacherPhotoAction = action
     const userId = teacher?.branchMember?.member?.userId;
     if (!userId) {
       throw new Error("Enseignant introuvable dans cette branche");
+    }
+    if (!canManageTeachers && !isTeacher) {
+      return { ok: false as const, message: "Action non autorisee" };
     }
 
     const hadPhoto = Boolean(

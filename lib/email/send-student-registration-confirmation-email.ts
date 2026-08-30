@@ -17,6 +17,7 @@ export async function sendStudentRegistrationConfirmationEmail(input: {
   reference: string;
   branchName: string;
   requestedLevel?: string | null;
+  organizationId?: string | null;
 }): Promise<void> {
   const level = input.requestedLevel?.trim() || "Non précisé";
   const subject = `${APP_NAME} — Inscription reçue (${input.reference})`;
@@ -70,6 +71,7 @@ export async function sendStudentRegistrationConfirmationEmail(input: {
       to: input.to,
       whatsappTo: input.phone,
       whatsappName: input.recipientName,
+      organizationId: input.organizationId,
       subject,
       text,
       html,

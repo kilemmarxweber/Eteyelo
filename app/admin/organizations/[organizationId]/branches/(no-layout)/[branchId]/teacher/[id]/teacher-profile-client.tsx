@@ -50,6 +50,8 @@ import TeacherScheduleTable, {
 } from "./TeacherScheduleTable";
 import { TeacherApplicationCompleteForm } from "./teacher-application-form";
 import { TeacherPhotoAvatar } from "./teacher-photo-avatar";
+import { TeacherProfileDocuments } from "./teacher-profile-documents";
+import { TeacherSelfProfileForm } from "./teacher-self-profile-form";
 import { replaceTeacherApplicationDocumentAction } from "./teacher-application.action";
 import { uploadDocument } from "@/lib/upload-file";
 import { toast } from "sonner";
@@ -261,7 +263,7 @@ export function TeacherProfileClient({
               className="mt-0.5 size-9 shrink-0 border-primary/25 bg-background/70 text-primary hover:bg-primary/10 hover:text-primary"
             >
               <Link
-                href={profile.dashboardHref}
+                href={profile.dashboardHref || profile.baseHref}
                 aria-label="Retour au tableau de bord"
               >
                 <ArrowLeft className="size-4" />
@@ -443,7 +445,8 @@ export function TeacherProfileClient({
               <div className="grid gap-4 lg:grid-cols-2">
                 <Card className="overflow-hidden rounded-xl border-sky-200/80 bg-gradient-to-b from-sky-500/[0.07] via-card to-card p-0 shadow-sm dark:border-sky-900/40">
                   <div className="border-b border-sky-500/10 bg-sky-500/[0.06] px-4 py-3">
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2.5">
+                      <div className="flex items-center gap-2.5">
                       <div className="flex size-9 items-center justify-center rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400">
                         <UserRound className="size-4" />
                       </div>
@@ -453,6 +456,31 @@ export function TeacherProfileClient({
                           Coordonnées du {profile.teacherLabelLower}
                         </p>
                       </div>
+                      </div>
+                      {profile.canEditIdentity ? (
+                        <TeacherSelfProfileForm
+                          teacherId={profile.teacherId}
+                          documents={profile.profileDocuments}
+                          initialValues={{
+                            nom: profile.nom,
+                            postnom: profile.postnom,
+                            prenom: profile.prenom,
+                            sexe: profile.sexe.toLowerCase().startsWith("f")
+                              ? "F"
+                              : "M",
+                            dateOfBirth: profile.dateOfBirth
+                              ? profile.dateOfBirth.slice(0, 10)
+                              : "",
+                            telephone:
+                              profile.telephone === "—"
+                                ? ""
+                                : profile.telephone,
+                            email: profile.email === "—" ? "" : profile.email,
+                            address:
+                              profile.address === "—" ? "" : profile.address,
+                          }}
+                        />
+                      ) : null}
                     </div>
                   </div>
                   <div className="space-y-2.5 p-4">
@@ -530,6 +558,16 @@ export function TeacherProfileClient({
                   assignmentYearLabels={profile.assignmentYearLabels}
                 />
               )}
+              <TeacherProfileDocuments
+                teacherId={profile.teacherId}
+                documents={profile.profileDocuments}
+                canManage={false}
+                hint={
+                  profile.canEditIdentity
+                    ? "Ajoutez ou retirez ces PDF depuis « Modifier mon identité »."
+                    : undefined
+                }
+              />
             </TabsContent>
 
             <TabsContent value="presences" className="space-y-4">

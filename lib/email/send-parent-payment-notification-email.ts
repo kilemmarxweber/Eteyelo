@@ -43,6 +43,7 @@ export async function sendParentPaymentNotificationEmail(input: {
   amountLabel: string;
   studentNames: string;
   feeNames?: string;
+  organizationId?: string | null;
 }): Promise<void> {
   const email = input.to?.trim() ?? "";
   const phone = input.phone?.trim() ?? "";
@@ -89,6 +90,7 @@ export async function sendParentPaymentNotificationEmail(input: {
     to: email,
     whatsappTo: phone || null,
     whatsappName: input.parentName,
+    organizationId: input.organizationId,
     subject,
     text,
     html,

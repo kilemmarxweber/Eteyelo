@@ -125,6 +125,7 @@ export const SETTINGS_HREF_BRANCH_AREA: Record<string, BranchArea> = {
   roles: "roles_privileges",
   typeFrais: "fee_types",
   "exchange-rates": "exchange_rates",
+  whatsapp: "branch_org_settings",
   "inscription-publique": "public_communication",
   calendar: "school_calendar",
   "annee-scolaire": "school_year",

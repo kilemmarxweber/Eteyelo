@@ -148,6 +148,7 @@ async function notifyAbsenceOpened(params: {
     contextLabel: params.caseRow.contextLabel,
     occurredOn: params.caseRow.occurredOn,
     subjectLabel: subjectLabel(params.caseRow.subjectType),
+    organizationId: params.caseRow.organizationId,
   });
 }
 
@@ -183,6 +184,7 @@ async function notifyJustificationToReviewers(params: {
         occurredOn: params.caseRow.occurredOn,
         subjectLabel: subjectLabel(params.caseRow.subjectType),
         justification: params.caseRow.justification,
+        organizationId: params.organizationId,
       });
     }),
   );
@@ -803,6 +805,7 @@ export async function submitAbsenceJustification(params: {
     occurredOn: updated.occurredOn,
     subjectLabel: subjectLabel(updated.subjectType),
     justification: text,
+    organizationId: updated.branch.organizationId,
   });
 
   await notifyJustificationToReviewers({
@@ -910,6 +913,7 @@ export async function reviewAbsenceJustification(params: {
     subjectLabel: subjectLabel(updated.subjectType),
     justification: updated.justification,
     reviewComment: comment,
+    organizationId: updated.branch.organizationId,
   });
 
   if (accepted) {
@@ -931,6 +935,7 @@ export async function reviewAbsenceJustification(params: {
       contextLabel: updated.contextLabel,
       occurredOn: updated.occurredOn,
       subjectLabel: subjectLabel(updated.subjectType),
+      organizationId: updated.branch.organizationId,
     });
   }
 

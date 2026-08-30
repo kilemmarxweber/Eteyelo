@@ -165,6 +165,7 @@ const authOptions = {
               branchName: pending.branchName,
               branchPhone: pending.branchPhone,
               branchAddress: pending.branchAddress,
+              organizationId: pending.organizationId,
             });
           } catch (err) {
             // eslint-disable-next-line no-console

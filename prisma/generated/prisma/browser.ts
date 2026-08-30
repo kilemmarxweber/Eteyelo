@@ -113,6 +113,11 @@ export type ClassEnrollment = Prisma.ClassEnrollmentModel
  */
 export type Teacher = Prisma.TeacherModel
 /**
+ * Model TeacherProfileDocument
+ * Pièces complémentaires du dossier enseignant (hors CV et lettre de motivation).
+ */
+export type TeacherProfileDocument = Prisma.TeacherProfileDocumentModel
+/**
  * Model Teaching
  * 
  */

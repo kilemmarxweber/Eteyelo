@@ -359,6 +359,7 @@ export async function registerStudentsOnline(
         reference: references.join(", "),
         branchName: branch.name,
         requestedLevel: levelsSummary,
+        organizationId: branch.organizationId,
       });
     } catch (error) {
       console.error("STUDENT_REGISTRATION_CONFIRMATION_EMAIL_ERROR:", error);

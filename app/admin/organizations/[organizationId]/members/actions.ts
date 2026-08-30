@@ -370,6 +370,7 @@ export async function createOrganizationMemberAction(
     branchPhone: branch?.tel?.trim() || undefined,
     branchAddress: branchAddress || undefined,
     phone: telephone,
+    organizationId,
   });
 
   let userId: string | null = null;
@@ -1243,6 +1244,7 @@ export async function resetUserPasswordAction(
       name: user.name,
       temporaryPassword: plainPassword,
       branchName,
+      organizationId,
     });
 
     consumeAdminCreatedUserPlainPassword(email);

@@ -17,6 +17,7 @@ import {
   IconSchool,
   IconGitMerge,
   IconShieldLock,
+  IconBrandWhatsapp,
 } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
@@ -179,6 +180,13 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         href: `${settingsBasePath}/exchange-rates`,
         access: "org",
         dacKey: "exchange-rates",
+      },
+      {
+        title: t("whatsapp"),
+        icon: <IconBrandWhatsapp size={18} />,
+        href: `${settingsBasePath}/whatsapp`,
+        access: "org",
+        dacKey: "whatsapp",
       },
       {
         title: t("publicCommunication"),

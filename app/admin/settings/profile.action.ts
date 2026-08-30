@@ -169,10 +169,16 @@ export async function updateCurrentProfileAction(
 
     if (updatedUser.email) {
       try {
+        const membership = await prisma.member.findFirst({
+          where: { userId, isArchived: false },
+          orderBy: { createdAt: "desc" },
+          select: { organizationId: true },
+        });
         await sendProfileUpdatedEmail({
           to: updatedUser.email,
           phone: updatedUser.telephone,
           name: updatedUser.name,
+          organizationId: membership?.organizationId,
         });
       } catch (error) {
         console.error("[updateCurrentProfileAction] email profil:", error);

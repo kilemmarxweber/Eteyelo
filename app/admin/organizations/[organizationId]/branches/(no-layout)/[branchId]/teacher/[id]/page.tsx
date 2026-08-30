@@ -142,6 +142,7 @@ const SingleTeacherPage = async ({
     assignmentCount,
     meetings,
     jobApplication,
+    profileDocuments,
     assignmentSnapshot,
   ] = await Promise.all([
     firstClasseId
@@ -273,6 +274,11 @@ const SingleTeacherPage = async ({
         coverLetterUrl: true,
       },
     }),
+    prisma.teacherProfileDocument.findMany({
+      where: { teacherId: teacher.id, branchId },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, title: true, url: true, createdAt: true },
+    }),
     getTeacherAssignmentSnapshot({
       teacherId: teacher.id,
       branchId,
@@ -372,8 +378,10 @@ const SingleTeacherPage = async ({
     sexe: sexeLabel(user?.sexe),
     dateOfBirthLabel: formatBirthDate(user?.dateOfBirth),
     ageLabel: formatAgeLabel(user?.dateOfBirth),
+    dateOfBirth: user?.dateOfBirth?.toISOString() ?? null,
     image: user?.image ?? null,
-    canManagePhoto: canManage,
+    canManagePhoto: canManage || isSelf,
+    canEditIdentity: canManage || isSelf,
     statusActive: user?.statusUser !== false,
     statusLabel: user?.statusUser === false ? "Inactif" : "Actif",
     isTitulaire: teacher.teaching.some((item) => item.titulaire),
@@ -390,6 +398,10 @@ const SingleTeacherPage = async ({
     assignmentYearCount: assignmentYears.count,
     assignmentYearLabels: assignmentYears.yearLabels,
     canEditApplicationDocuments: isOrganizationOwnerSession(session),
+    profileDocuments: profileDocuments.map((document) => ({
+      ...document,
+      createdAt: document.createdAt.toISOString(),
+    })),
     courses,
     classes,
     application: jobApplication
@@ -500,6 +512,8 @@ const SingleTeacherPage = async ({
     <BranchPageShell
       title={`Dossier ${peopleLabels.teacherLower}`}
       description={`Présences, réunions, notes, devoirs et performance du ${peopleLabels.teacherLower}.`}
+      backHref={baseHref}
+      backLabel="Retour au tableau de bord"
       badge={
         <Badge variant="outline-primary" icon={<IconUser size={14} />}>
           {peopleLabels.teacher}

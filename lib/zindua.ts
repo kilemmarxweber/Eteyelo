@@ -1,4 +1,5 @@
 import { Zindua, type ZinduaSendResult } from "@zindua/sdk";
+import { getWhatsAppRuntimeConfig } from "@/lib/whatsapp-settings";
 
 /** Destinataire WhatsApp de test (dev). Ne pas utiliser pour les notifs parents/élèves. */
 export const DEFAULT_WHATSAPP_TO = "+243971651881";
@@ -27,11 +28,13 @@ function truncateWhatsAppCode(value: string): string {
   return `${cleaned.slice(0, WHATSAPP_CODE_MAX - 1)}…`;
 }
 
-function getApiKey(): string | null {
-  return process.env.ZINDUA_API_KEY?.trim() || null;
+function getApiKey(override?: string | null): string | null {
+  return override?.trim() || process.env.ZINDUA_API_KEY?.trim() || null;
 }
 
-function getSiteUrl(): string | undefined {
+function getSiteUrl(override?: string | null): string | undefined {
+  const fromOverride = override?.replace(/\/$/, "").trim();
+  if (fromOverride) return fromOverride;
   return (
     process.env.ZINDUA_SITE_URL?.replace(/\/$/, "") ||
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
@@ -44,21 +47,19 @@ export function isZinduaConfigured(): boolean {
   return Boolean(getApiKey());
 }
 
-let client: Zindua | null = null;
-
-/** Client Zindua (serveur uniquement). */
-export function getZindua(): Zindua {
-  const apiKey = getApiKey();
+/** Client Zindua (serveur uniquement). Recréé si l'URL site / la clé change. */
+export function getZindua(options?: {
+  siteUrl?: string | null;
+  apiKey?: string | null;
+}): Zindua {
+  const apiKey = getApiKey(options?.apiKey);
   if (!apiKey) {
-    throw new Error("ZINDUA_API_KEY manquante dans l'environnement.");
+    throw new Error("Clé API Zindua manquante (Paramètres WhatsApp ou ZINDUA_API_KEY).");
   }
-  if (!client) {
-    client = new Zindua({
-      apiKey,
-      siteUrl: getSiteUrl(),
-    });
-  }
-  return client;
+  return new Zindua({
+    apiKey,
+    siteUrl: getSiteUrl(options?.siteUrl),
+  });
 }
 
 /**
@@ -121,15 +122,29 @@ type SendWhatsAppOptions = {
   };
   /** Langue optionnelle (`fr`, `en`, …). */
   lang?: string;
+  /** Organisation (toggle + template + URL). */
+  organizationId?: string | null;
 };
 
 /**
  * Envoie un message WhatsApp via Zindua (template).
+ * Retourne null si l'envoi est désactivé (fournisseur / paramètres org).
  */
 export async function sendWhatsApp(
   options: SendWhatsAppOptions,
-): Promise<ZinduaSendResult> {
-  const template = options.template ?? ZINDUA_MAIL_MIRROR_TEMPLATE;
+): Promise<ZinduaSendResult | null> {
+  const config = await getWhatsAppRuntimeConfig(options.organizationId);
+  if (!config.enabled) {
+    if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
+      console.info(
+        `[sendWhatsApp] skip (WhatsApp désactivé) to=${options.to ?? ""}`,
+      );
+    }
+    return null;
+  }
+
+  const template = options.template ?? config.template ?? ZINDUA_MAIL_MIRROR_TEMPLATE;
   const to = toE164Phone(options.to ?? DEFAULT_WHATSAPP_TO);
   const raw = options.variables ?? {};
   const variables: Record<string, string> = {};
@@ -137,7 +152,10 @@ export async function sendWhatsApp(
     if (value != null && value !== "") variables[key] = value;
   }
 
-  return getZindua().send({
+  return getZindua({
+    siteUrl: config.siteUrl,
+    apiKey: config.apiKey,
+  }).send({
     to,
     channel: "whatsapp",
     template,
@@ -153,6 +171,7 @@ type MirrorEmailOptions = {
   /** Prénom/nom pour {{name}} du template. */
   name?: string | null;
   lang?: string;
+  organizationId?: string | null;
 };
 
 /**
@@ -162,11 +181,12 @@ type MirrorEmailOptions = {
 export async function mirrorEmailToWhatsApp(
   options: MirrorEmailOptions,
 ): Promise<ZinduaSendResult | null> {
-  if (!isZinduaConfigured()) {
+  const config = await getWhatsAppRuntimeConfig(options.organizationId);
+  if (!config.enabled) {
     if (process.env.NODE_ENV === "development") {
       // eslint-disable-next-line no-console
       console.info(
-        `[mirrorEmailToWhatsApp] Zindua off — skip to=${options.to} subject=${options.subject}`,
+        `[mirrorEmailToWhatsApp] WhatsApp off — skip to=${options.to} subject=${options.subject}`,
       );
     }
     return null;
@@ -189,12 +209,14 @@ export async function mirrorEmailToWhatsApp(
   try {
     const result = await sendWhatsApp({
       to,
-      template: ZINDUA_MAIL_MIRROR_TEMPLATE,
+      template: config.template,
+      organizationId: options.organizationId,
       lang: options.lang ?? "fr",
       variables: {
         code,
       },
     });
+    if (!result) return null;
     // eslint-disable-next-line no-console
     console.info(
       `[mirrorEmailToWhatsApp] ok to=${to} logId=${result.logId} status=${result.status}`,
@@ -218,6 +240,7 @@ type ResetPasswordWhatsAppOptions = {
   loginUrl?: string;
   /** Nom d'établissement affiché en tête du message (ex. CS MARGUERITE). */
   branchName?: string | null;
+  organizationId?: string | null;
 };
 
 function resolveWhatsAppLoginUrl(loginUrl?: string | null): string {
@@ -251,6 +274,7 @@ export async function sendNewUserCredentialsWhatsApp(options: {
   organizationName?: string;
   branchName?: string | null;
   loginUrl?: string;
+  organizationId?: string | null;
 }): Promise<ZinduaSendResult | null> {
   const to = resolveWhatsAppTo(options.to);
   if (!to) {
@@ -260,7 +284,6 @@ export async function sendNewUserCredentialsWhatsApp(options: {
     );
     return null;
   }
-  if (!isZinduaConfigured()) return null;
 
   const loginUrl = resolveWhatsAppLoginUrl(options.loginUrl);
   const displayName = options.name.trim() || "Parent";
@@ -281,12 +304,13 @@ export async function sendNewUserCredentialsWhatsApp(options: {
   try {
     const result = await sendWhatsApp({
       to,
-      template: ZINDUA_MAIL_MIRROR_TEMPLATE,
+      organizationId: options.organizationId,
       lang: "fr",
       variables: {
         code: message,
       },
     });
+    if (!result) return null;
     // eslint-disable-next-line no-console
     console.info(
       `[sendNewUserCredentialsWhatsApp] ok to=${to} logId=${result.logId} status=${result.status}`,
@@ -316,8 +340,6 @@ export async function sendResetPasswordWhatsApp(
     );
     return null;
   }
-  if (!isZinduaConfigured()) return null;
-
   const loginUrl = resolveWhatsAppLoginUrl(options.loginUrl);
   const displayName = options.name.trim() || "Parent";
   const branchLabel = options.branchName?.trim() || null;
@@ -336,12 +358,13 @@ export async function sendResetPasswordWhatsApp(
   try {
     const result = await sendWhatsApp({
       to,
-      template: ZINDUA_MAIL_MIRROR_TEMPLATE,
+      organizationId: options.organizationId,
       lang: "fr",
       variables: {
         code: message,
       },
     });
+    if (!result) return null;
     // eslint-disable-next-line no-console
     console.info(
       `[sendResetPasswordWhatsApp] ok to=${to} logId=${result.logId} status=${result.status}`,

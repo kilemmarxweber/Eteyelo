@@ -48,6 +48,11 @@ export async function POST(req: Request) {
       const email = parentUser?.email;
       if (!email) continue;
 
+      const organizationId =
+        student.parent?.branchMember?.member?.organizationId ??
+        student.branchMember?.member?.organizationId ??
+        null;
+
       // ===============================
       // 🔥 REMPLACER PAR TES VRAIES NOTES
       // ===============================
@@ -156,6 +161,7 @@ export async function POST(req: Request) {
       await sendMail({
         to: email,
         whatsappTo: parentUser?.telephone,
+        organizationId,
         subject: `Résultats de ${studentUser?.name ?? ""}`,
         text: `Bulletin scolaire de ${studentUser?.name ?? ""} — moyenne ${percent}%`,
         html,

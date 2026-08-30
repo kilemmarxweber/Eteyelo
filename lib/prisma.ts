@@ -14,7 +14,7 @@ const adapter = new PrismaPg({
  * Bump when Prisma schema fields change so the cached client is rebuilt in dev.
  * Also used to bust Turbopack module cache after `prisma generate`.
  */
-const PRISMA_CLIENT_VERSION = "job-application-desiredCycle-1";
+const PRISMA_CLIENT_VERSION = "organization-whatsapp-settings-1";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
@@ -106,12 +106,17 @@ function getPrismaClient() {
     typeof (
       existing as { branchPrimaryDomain?: { findMany?: unknown } }
     )?.branchPrimaryDomain?.findMany === "function";
+  const hasTeacherProfileDocumentDelegate =
+    typeof (
+      existing as { teacherProfileDocument?: { findMany?: unknown } }
+    )?.teacherProfileDocument?.findMany === "function";
 
   if (
     existing &&
     globalForPrisma.prismaClientVersion === PRISMA_CLIENT_VERSION &&
     hasLibraryBookDelegate &&
     hasBranchPrimaryDomainDelegate &&
+    hasTeacherProfileDocumentDelegate &&
     modelHasField(existing, "User", "theme") &&
     modelHasField(existing, "PlatformSupportEscalation", "branch") &&
     modelHasField(existing, "PlatformSupportEscalation", "channel") &&
@@ -133,7 +138,9 @@ function getPrismaClient() {
     modelHasField(existing, "Personnel", "deactivatedAt") &&
     modelHasField(existing, "Teacher", "isActive") &&
     modelHasField(existing, "Teacher", "deactivatedAt") &&
-    modelHasField(existing, "JobApplication", "desiredCycle")
+    modelHasField(existing, "JobApplication", "desiredCycle") &&
+    modelHasField(existing, "Organization", "whatsappEnabled") &&
+    modelHasField(existing, "Organization", "whatsappApiKey")
   ) {
     return existing;
   }

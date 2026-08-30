@@ -80,6 +80,13 @@ export type TeacherProfileApplication = {
   parcours: TeacherParcoursYear[];
 };
 
+export type TeacherProfileDocument = {
+  id: string;
+  title: string;
+  url: string;
+  createdAt: string;
+};
+
 export type TeacherParcoursYear = {
   yearId: string;
   yearLabel: string;
@@ -130,8 +137,10 @@ export type TeacherProfileData = {
   sexe: string;
   dateOfBirthLabel: string;
   ageLabel: string;
+  dateOfBirth: string | null;
   image: string | null;
   canManagePhoto: boolean;
+  canEditIdentity: boolean;
   statusActive: boolean;
   statusLabel: string;
   isTitulaire: boolean;
@@ -149,6 +158,7 @@ export type TeacherProfileData = {
   assignmentYearLabels: string[];
   /** Propriétaire : peut remplacer CV / lettre. */
   canEditApplicationDocuments: boolean;
+  profileDocuments: TeacherProfileDocument[];
   courses: TeacherProfileCourse[];
   classes: TeacherProfileClass[];
   application: TeacherProfileApplication | null;

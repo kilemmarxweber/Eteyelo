@@ -511,9 +511,27 @@ model Teacher {
   teacherAttendance TeacherAttendance[]
   attendanceSession AttendanceSession[]
   onlineAssignments OnlineAssignment[]
+  profileDocuments TeacherProfileDocument[]
 
   @@unique([branchMemberId])
   @@index([isActive])
+}
+
+/// Pièces complémentaires du dossier enseignant (hors CV et lettre de motivation).
+model TeacherProfileDocument {
+  id        String   @id @default(cuid())
+  teacherId String
+  branchId  String
+  title     String
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  branch  Branch  @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId, createdAt])
+  @@index([branchId, createdAt])
 }
 
 model Teaching {
@@ -1331,6 +1349,14 @@ model Organization {
   showReceiptConversion Boolean @default(true)
   /// Notifier le parent (e-mail + WhatsApp + compte) à l'encaissement / modification / suppression.
   notifyParentOnPayment Boolean @default(true)
+  /// Envoi WhatsApp (Zindua). Désactiver si le fournisseur n'est pas actif pour éviter les jobs en erreur.
+  whatsappEnabled Boolean @default(true)
+  /// Clé API Zindua. Vide = env ZINDUA_API_KEY.
+  whatsappApiKey String?
+  /// Slug du template Zindua (variables: appName, name, code). Vide = env ZINDUA_WHATSAPP_MAIL_TEMPLATE.
+  whatsappTemplate String?
+  /// URL liée à la clé Zindua (si la clé est bound à un site). Vide = env ZINDUA_SITE_URL.
+  whatsappSiteUrl String?
 
   @@unique([name])
   @@unique([slug])
@@ -1471,6 +1497,7 @@ model Branch {
   registrationRequests RegistrationRequest[]
   registrationInfos    BranchRegistrationInfo[]
   jobApplications      JobApplication[]
+  teacherProfileDocuments TeacherProfileDocument[]
   targetStudentLinks   StudentBranchLink[] @relation("TargetBranchLinks")
   sourceStudentLinks   StudentBranchLink[] @relation("SourceBranchLinks")
   issuedDocuments      IssuedDocument[]

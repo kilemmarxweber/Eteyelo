@@ -114,15 +114,23 @@ export function ResponsiveDialogContent({
   const { isMobile } = React.useContext(ResponsiveDialogContext);
 
   if (isMobile) {
+    const lockInnerScroll = className?.includes("overflow-hidden");
     return (
       <DrawerContent
         className={cn(
-          "max-h-[94dvh]",
+          "max-h-[94dvh] min-h-0",
           size === "full" && "h-[96dvh] max-h-[96dvh]",
           className,
         )}
       >
-        <div className="min-h-0 overflow-y-auto overscroll-contain">
+        <div
+          className={cn(
+            "flex min-h-0 flex-1 flex-col",
+            lockInnerScroll
+              ? "overflow-hidden"
+              : "overflow-y-auto overscroll-contain",
+          )}
+        >
           {children}
         </div>
       </DrawerContent>

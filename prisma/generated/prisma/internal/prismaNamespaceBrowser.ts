@@ -70,6 +70,7 @@ export const ModelName = {
   SchoolYear: 'SchoolYear',
   ClassEnrollment: 'ClassEnrollment',
   Teacher: 'Teacher',
+  TeacherProfileDocument: 'TeacherProfileDocument',
   Teaching: 'Teaching',
   Cours: 'Cours',
   CoursOptionPonderation: 'CoursOptionPonderation',
@@ -473,6 +474,19 @@ export const TeacherScalarFieldEnum = {
 } as const
 
 export type TeacherScalarFieldEnum = (typeof TeacherScalarFieldEnum)[keyof typeof TeacherScalarFieldEnum]
+
+
+export const TeacherProfileDocumentScalarFieldEnum = {
+  id: 'id',
+  teacherId: 'teacherId',
+  branchId: 'branchId',
+  title: 'title',
+  url: 'url',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TeacherProfileDocumentScalarFieldEnum = (typeof TeacherProfileDocumentScalarFieldEnum)[keyof typeof TeacherProfileDocumentScalarFieldEnum]
 
 
 export const TeachingScalarFieldEnum = {
@@ -937,7 +951,11 @@ export const OrganizationScalarFieldEnum = {
   archivedAt: 'archivedAt',
   archivedById: 'archivedById',
   showReceiptConversion: 'showReceiptConversion',
-  notifyParentOnPayment: 'notifyParentOnPayment'
+  notifyParentOnPayment: 'notifyParentOnPayment',
+  whatsappEnabled: 'whatsappEnabled',
+  whatsappApiKey: 'whatsappApiKey',
+  whatsappTemplate: 'whatsappTemplate',
+  whatsappSiteUrl: 'whatsappSiteUrl'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]

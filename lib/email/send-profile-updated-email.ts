@@ -12,6 +12,7 @@ export async function sendProfileUpdatedEmail(input: {
   to: string;
   phone?: string | null;
   name: string;
+  organizationId?: string | null;
 }) {
   const subject = `${APP_NAME} — Votre profil a été modifié`;
   const introText = `Bonjour ${input.name}, les informations de votre profil ${APP_NAME} viennent d’être mises à jour. Si cette modification ne vient pas de vous, contactez rapidement l’administration.`;
@@ -46,6 +47,7 @@ export async function sendProfileUpdatedEmail(input: {
     to: input.to,
     whatsappTo: input.phone,
     whatsappName: input.name,
+    organizationId: input.organizationId,
     subject,
     text,
     html,

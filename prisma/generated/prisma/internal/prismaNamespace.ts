@@ -416,6 +416,7 @@ export const ModelName = {
   SchoolYear: 'SchoolYear',
   ClassEnrollment: 'ClassEnrollment',
   Teacher: 'Teacher',
+  TeacherProfileDocument: 'TeacherProfileDocument',
   Teaching: 'Teaching',
   Cours: 'Cours',
   CoursOptionPonderation: 'CoursOptionPonderation',
@@ -485,7 +486,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1892,6 +1893,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.TeacherCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.TeacherCountAggregateOutputType> | number
+        }
+      }
+    }
+    TeacherProfileDocument: {
+      payload: Prisma.$TeacherProfileDocumentPayload<ExtArgs>
+      fields: Prisma.TeacherProfileDocumentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TeacherProfileDocumentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherProfileDocumentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TeacherProfileDocumentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherProfileDocumentPayload>
+        }
+        findFirst: {
+          args: Prisma.TeacherProfileDocumentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherProfileDocumentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TeacherProfileDocumentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherProfileDocumentPayload>
+        }
+        findMany: {
+          args: Prisma.TeacherProfileDocumentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherProfileDocumentPayload>[]
+        }
+        create: {
+          args: Prisma.TeacherProfileDocumentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherProfileDocumentPayload>
+        }
+        createMany: {
+          args: Prisma.TeacherProfileDocumentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TeacherProfileDocumentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherProfileDocumentPayload>[]
+        }
+        delete: {
+          args: Prisma.TeacherProfileDocumentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherProfileDocumentPayload>
+        }
+        update: {
+          args: Prisma.TeacherProfileDocumentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherProfileDocumentPayload>
+        }
+        deleteMany: {
+          args: Prisma.TeacherProfileDocumentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TeacherProfileDocumentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TeacherProfileDocumentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherProfileDocumentPayload>[]
+        }
+        upsert: {
+          args: Prisma.TeacherProfileDocumentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherProfileDocumentPayload>
+        }
+        aggregate: {
+          args: Prisma.TeacherProfileDocumentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTeacherProfileDocument>
+        }
+        groupBy: {
+          args: Prisma.TeacherProfileDocumentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeacherProfileDocumentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TeacherProfileDocumentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeacherProfileDocumentCountAggregateOutputType> | number
         }
       }
     }
@@ -6263,6 +6338,19 @@ export const TeacherScalarFieldEnum = {
 export type TeacherScalarFieldEnum = (typeof TeacherScalarFieldEnum)[keyof typeof TeacherScalarFieldEnum]
 
 
+export const TeacherProfileDocumentScalarFieldEnum = {
+  id: 'id',
+  teacherId: 'teacherId',
+  branchId: 'branchId',
+  title: 'title',
+  url: 'url',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TeacherProfileDocumentScalarFieldEnum = (typeof TeacherProfileDocumentScalarFieldEnum)[keyof typeof TeacherProfileDocumentScalarFieldEnum]
+
+
 export const TeachingScalarFieldEnum = {
   id: 'id',
   teacherId: 'teacherId',
@@ -6725,7 +6813,11 @@ export const OrganizationScalarFieldEnum = {
   archivedAt: 'archivedAt',
   archivedById: 'archivedById',
   showReceiptConversion: 'showReceiptConversion',
-  notifyParentOnPayment: 'notifyParentOnPayment'
+  notifyParentOnPayment: 'notifyParentOnPayment',
+  whatsappEnabled: 'whatsappEnabled',
+  whatsappApiKey: 'whatsappApiKey',
+  whatsappTemplate: 'whatsappTemplate',
+  whatsappSiteUrl: 'whatsappSiteUrl'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -8048,6 +8140,7 @@ export type GlobalOmitConfig = {
   schoolYear?: Prisma.SchoolYearOmit
   classEnrollment?: Prisma.ClassEnrollmentOmit
   teacher?: Prisma.TeacherOmit
+  teacherProfileDocument?: Prisma.TeacherProfileDocumentOmit
   teaching?: Prisma.TeachingOmit
   cours?: Prisma.CoursOmit
   coursOptionPonderation?: Prisma.CoursOptionPonderationOmit

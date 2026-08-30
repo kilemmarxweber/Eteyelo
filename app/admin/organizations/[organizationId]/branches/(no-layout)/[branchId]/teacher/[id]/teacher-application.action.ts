@@ -34,6 +34,32 @@ const replaceTeacherDocumentSchema = z.object({
   url: z.string().trim().min(1, "Fichier requis"),
 });
 
+const updateTeacherIdentitySchema = z.object({
+  teacherId: z.string().min(1),
+  nom: z.string().trim().min(1, "Nom requis").max(120),
+  postnom: z.string().trim().max(120),
+  prenom: z.string().trim().max(120),
+  sexe: z.enum(["M", "F"]),
+  dateOfBirth: z.string().trim().optional().or(z.literal("")),
+  telephone: z.string().trim().max(40),
+  email: z.union([z.literal(""), z.string().trim().email("Adresse email invalide")]),
+  address: z.string().trim().max(300),
+});
+
+const teacherProfileDocumentSchema = z.object({
+  teacherId: z.string().min(1),
+  title: z.string().trim().min(1, "Le nom du document est requis.").max(160),
+  url: z
+    .string()
+    .trim()
+    .min(1, "Fichier requis.")
+    .max(2000)
+    .refine(
+      (value) => value.split("?")[0]?.toLowerCase().endsWith(".pdf"),
+      "Seuls les fichiers PDF sont acceptés.",
+    ),
+});
+
 function createDossierReference() {
   const date = new Date();
   const stamp = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
@@ -217,4 +243,149 @@ export const replaceTeacherApplicationDocumentAction = action
     );
 
     return { ok: true as const };
+  });
+
+/** Mise à jour réservée à l'identité de l'enseignant connecté. */
+export const updateTeacherIdentityAction = action
+  .input(updateTeacherIdentitySchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, userId, session } =
+      await requireBranchContext();
+    const canManage = canManageOrganization(session);
+    const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
+
+    if (!canManage && !isTeacher) {
+      throw new Error("Vous ne pouvez pas modifier cette identité.");
+    }
+
+    const teacher = await prisma.teacher.findFirst({
+      where: {
+        id: input.teacherId,
+        branchMember: {
+          branchId,
+          member: {
+            organizationId,
+            ...(canManage ? {} : { userId }),
+          },
+        },
+      },
+      select: {
+        branchMember: { select: { member: { select: { userId: true } } } },
+      },
+    });
+
+    const linkedUserId = teacher?.branchMember?.member?.userId;
+    if (!linkedUserId) {
+      throw new Error("Enseignant introuvable dans cette branche.");
+    }
+
+    const dateOfBirth = input.dateOfBirth
+      ? new Date(input.dateOfBirth)
+      : null;
+    if (dateOfBirth && Number.isNaN(dateOfBirth.getTime())) {
+      throw new Error("Date de naissance invalide.");
+    }
+
+    await prisma.user.update({
+      where: { id: linkedUserId },
+      data: {
+        name: input.nom,
+        postnom: input.postnom,
+        prenom: input.prenom,
+        sexe: input.sexe,
+        dateOfBirth,
+        telephone: input.telephone || null,
+        email: input.email.trim().toLowerCase() || null,
+        address: input.address || null,
+      },
+    });
+
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/teacher/${input.teacherId}`,
+    );
+
+    return { ok: true as const, message: "Identité mise à jour avec succès." };
+  });
+
+/** Ajout d'une pièce complémentaire par l'enseignant lui-même ou un gestionnaire. */
+export const addTeacherProfileDocumentAction = action
+  .input(teacherProfileDocumentSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, userId, session } =
+      await requireBranchContext();
+    const canManage = canManageOrganization(session);
+    const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
+
+    const teacher = await prisma.teacher.findFirst({
+      where: {
+        id: input.teacherId,
+        branchMember: {
+          branchId,
+          member: {
+            organizationId,
+            ...(canManage ? {} : { userId }),
+          },
+        },
+      },
+      select: { id: true },
+    });
+
+    if (!teacher || (!canManage && !isTeacher)) {
+      throw new Error("Vous ne pouvez pas ajouter ce document.");
+    }
+
+    await prisma.teacherProfileDocument.create({
+      data: {
+        teacherId: teacher.id,
+        branchId,
+        title: input.title.trim(),
+        url: input.url.trim(),
+      },
+    });
+
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/teacher/${input.teacherId}`,
+    );
+
+    return { ok: true as const, message: "Document ajouté avec succès." };
+  });
+
+const deleteTeacherProfileDocumentSchema = z.object({
+  documentId: z.string().min(1),
+});
+
+export const deleteTeacherProfileDocumentAction = action
+  .input(deleteTeacherProfileDocumentSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, userId, session } =
+      await requireBranchContext();
+    const canManage = canManageOrganization(session);
+    const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
+
+    const document = await prisma.teacherProfileDocument.findFirst({
+      where: {
+        id: input.documentId,
+        branchId,
+        teacher: {
+          branchMember: {
+            member: {
+              organizationId,
+              ...(canManage ? {} : { userId }),
+            },
+          },
+        },
+      },
+      select: { id: true, teacherId: true },
+    });
+
+    if (!document || (!canManage && !isTeacher)) {
+      throw new Error("Vous ne pouvez pas supprimer ce document.");
+    }
+
+    await prisma.teacherProfileDocument.delete({ where: { id: document.id } });
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/teacher/${document.teacherId}`,
+    );
+
+    return { ok: true as const, message: "Document supprimé." };
   });

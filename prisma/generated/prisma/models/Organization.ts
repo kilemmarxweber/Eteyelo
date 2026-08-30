@@ -36,6 +36,10 @@ export type OrganizationMinAggregateOutputType = {
   archivedById: string | null
   showReceiptConversion: boolean | null
   notifyParentOnPayment: boolean | null
+  whatsappEnabled: boolean | null
+  whatsappApiKey: string | null
+  whatsappTemplate: string | null
+  whatsappSiteUrl: string | null
 }
 
 export type OrganizationMaxAggregateOutputType = {
@@ -50,6 +54,10 @@ export type OrganizationMaxAggregateOutputType = {
   archivedById: string | null
   showReceiptConversion: boolean | null
   notifyParentOnPayment: boolean | null
+  whatsappEnabled: boolean | null
+  whatsappApiKey: string | null
+  whatsappTemplate: string | null
+  whatsappSiteUrl: string | null
 }
 
 export type OrganizationCountAggregateOutputType = {
@@ -64,6 +72,10 @@ export type OrganizationCountAggregateOutputType = {
   archivedById: number
   showReceiptConversion: number
   notifyParentOnPayment: number
+  whatsappEnabled: number
+  whatsappApiKey: number
+  whatsappTemplate: number
+  whatsappSiteUrl: number
   _all: number
 }
 
@@ -80,6 +92,10 @@ export type OrganizationMinAggregateInputType = {
   archivedById?: true
   showReceiptConversion?: true
   notifyParentOnPayment?: true
+  whatsappEnabled?: true
+  whatsappApiKey?: true
+  whatsappTemplate?: true
+  whatsappSiteUrl?: true
 }
 
 export type OrganizationMaxAggregateInputType = {
@@ -94,6 +110,10 @@ export type OrganizationMaxAggregateInputType = {
   archivedById?: true
   showReceiptConversion?: true
   notifyParentOnPayment?: true
+  whatsappEnabled?: true
+  whatsappApiKey?: true
+  whatsappTemplate?: true
+  whatsappSiteUrl?: true
 }
 
 export type OrganizationCountAggregateInputType = {
@@ -108,6 +128,10 @@ export type OrganizationCountAggregateInputType = {
   archivedById?: true
   showReceiptConversion?: true
   notifyParentOnPayment?: true
+  whatsappEnabled?: true
+  whatsappApiKey?: true
+  whatsappTemplate?: true
+  whatsappSiteUrl?: true
   _all?: true
 }
 
@@ -195,6 +219,10 @@ export type OrganizationGroupByOutputType = {
   archivedById: string | null
   showReceiptConversion: boolean
   notifyParentOnPayment: boolean
+  whatsappEnabled: boolean
+  whatsappApiKey: string | null
+  whatsappTemplate: string | null
+  whatsappSiteUrl: string | null
   _count: OrganizationCountAggregateOutputType | null
   _min: OrganizationMinAggregateOutputType | null
   _max: OrganizationMaxAggregateOutputType | null
@@ -230,6 +258,10 @@ export type OrganizationWhereInput = {
   archivedById?: Prisma.StringNullableFilter<"Organization"> | string | null
   showReceiptConversion?: Prisma.BoolFilter<"Organization"> | boolean
   notifyParentOnPayment?: Prisma.BoolFilter<"Organization"> | boolean
+  whatsappEnabled?: Prisma.BoolFilter<"Organization"> | boolean
+  whatsappApiKey?: Prisma.StringNullableFilter<"Organization"> | string | null
+  whatsappTemplate?: Prisma.StringNullableFilter<"Organization"> | string | null
+  whatsappSiteUrl?: Prisma.StringNullableFilter<"Organization"> | string | null
   organizationroles?: Prisma.OrganizationRoleListRelationFilter
   members?: Prisma.MemberListRelationFilter
   branches?: Prisma.BranchListRelationFilter
@@ -251,6 +283,10 @@ export type OrganizationOrderByWithRelationInput = {
   archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
   showReceiptConversion?: Prisma.SortOrder
   notifyParentOnPayment?: Prisma.SortOrder
+  whatsappEnabled?: Prisma.SortOrder
+  whatsappApiKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatsappTemplate?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatsappSiteUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   organizationroles?: Prisma.OrganizationRoleOrderByRelationAggregateInput
   members?: Prisma.MemberOrderByRelationAggregateInput
   branches?: Prisma.BranchOrderByRelationAggregateInput
@@ -275,6 +311,10 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   archivedById?: Prisma.StringNullableFilter<"Organization"> | string | null
   showReceiptConversion?: Prisma.BoolFilter<"Organization"> | boolean
   notifyParentOnPayment?: Prisma.BoolFilter<"Organization"> | boolean
+  whatsappEnabled?: Prisma.BoolFilter<"Organization"> | boolean
+  whatsappApiKey?: Prisma.StringNullableFilter<"Organization"> | string | null
+  whatsappTemplate?: Prisma.StringNullableFilter<"Organization"> | string | null
+  whatsappSiteUrl?: Prisma.StringNullableFilter<"Organization"> | string | null
   organizationroles?: Prisma.OrganizationRoleListRelationFilter
   members?: Prisma.MemberListRelationFilter
   branches?: Prisma.BranchListRelationFilter
@@ -296,6 +336,10 @@ export type OrganizationOrderByWithAggregationInput = {
   archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
   showReceiptConversion?: Prisma.SortOrder
   notifyParentOnPayment?: Prisma.SortOrder
+  whatsappEnabled?: Prisma.SortOrder
+  whatsappApiKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatsappTemplate?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatsappSiteUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
   _max?: Prisma.OrganizationMaxOrderByAggregateInput
   _min?: Prisma.OrganizationMinOrderByAggregateInput
@@ -316,6 +360,10 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   archivedById?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
   showReceiptConversion?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   notifyParentOnPayment?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
+  whatsappEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
+  whatsappApiKey?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
+  whatsappTemplate?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
+  whatsappSiteUrl?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
 }
 
 export type OrganizationCreateInput = {
@@ -330,6 +378,10 @@ export type OrganizationCreateInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
@@ -351,6 +403,10 @@ export type OrganizationUncheckedCreateInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
@@ -372,6 +428,10 @@ export type OrganizationUpdateInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
@@ -393,6 +453,10 @@ export type OrganizationUncheckedUpdateInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -414,6 +478,10 @@ export type OrganizationCreateManyInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
 }
 
 export type OrganizationUpdateManyMutationInput = {
@@ -428,6 +496,10 @@ export type OrganizationUpdateManyMutationInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OrganizationUncheckedUpdateManyInput = {
@@ -442,6 +514,10 @@ export type OrganizationUncheckedUpdateManyInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OrganizationScalarRelationFilter = {
@@ -461,6 +537,10 @@ export type OrganizationCountOrderByAggregateInput = {
   archivedById?: Prisma.SortOrder
   showReceiptConversion?: Prisma.SortOrder
   notifyParentOnPayment?: Prisma.SortOrder
+  whatsappEnabled?: Prisma.SortOrder
+  whatsappApiKey?: Prisma.SortOrder
+  whatsappTemplate?: Prisma.SortOrder
+  whatsappSiteUrl?: Prisma.SortOrder
 }
 
 export type OrganizationMaxOrderByAggregateInput = {
@@ -475,6 +555,10 @@ export type OrganizationMaxOrderByAggregateInput = {
   archivedById?: Prisma.SortOrder
   showReceiptConversion?: Prisma.SortOrder
   notifyParentOnPayment?: Prisma.SortOrder
+  whatsappEnabled?: Prisma.SortOrder
+  whatsappApiKey?: Prisma.SortOrder
+  whatsappTemplate?: Prisma.SortOrder
+  whatsappSiteUrl?: Prisma.SortOrder
 }
 
 export type OrganizationMinOrderByAggregateInput = {
@@ -489,6 +573,10 @@ export type OrganizationMinOrderByAggregateInput = {
   archivedById?: Prisma.SortOrder
   showReceiptConversion?: Prisma.SortOrder
   notifyParentOnPayment?: Prisma.SortOrder
+  whatsappEnabled?: Prisma.SortOrder
+  whatsappApiKey?: Prisma.SortOrder
+  whatsappTemplate?: Prisma.SortOrder
+  whatsappSiteUrl?: Prisma.SortOrder
 }
 
 export type OrganizationCreateNestedOneWithoutExchangeRatesInput = {
@@ -601,6 +689,10 @@ export type OrganizationCreateWithoutExchangeRatesInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
@@ -621,6 +713,10 @@ export type OrganizationUncheckedCreateWithoutExchangeRatesInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
@@ -657,6 +753,10 @@ export type OrganizationUpdateWithoutExchangeRatesInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
@@ -677,6 +777,10 @@ export type OrganizationUncheckedUpdateWithoutExchangeRatesInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -697,6 +801,10 @@ export type OrganizationCreateWithoutOrganizationrolesInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
@@ -717,6 +825,10 @@ export type OrganizationUncheckedCreateWithoutOrganizationrolesInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -753,6 +865,10 @@ export type OrganizationUpdateWithoutOrganizationrolesInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
@@ -773,6 +889,10 @@ export type OrganizationUncheckedUpdateWithoutOrganizationrolesInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -793,6 +913,10 @@ export type OrganizationCreateWithoutMembersInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
@@ -813,6 +937,10 @@ export type OrganizationUncheckedCreateWithoutMembersInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -849,6 +977,10 @@ export type OrganizationUpdateWithoutMembersInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
@@ -869,6 +1001,10 @@ export type OrganizationUncheckedUpdateWithoutMembersInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -889,6 +1025,10 @@ export type OrganizationCreateWithoutInvitationsInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
@@ -909,6 +1049,10 @@ export type OrganizationUncheckedCreateWithoutInvitationsInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
@@ -945,6 +1089,10 @@ export type OrganizationUpdateWithoutInvitationsInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
@@ -965,6 +1113,10 @@ export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -985,6 +1137,10 @@ export type OrganizationCreateWithoutBranchesInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
@@ -1005,6 +1161,10 @@ export type OrganizationUncheckedCreateWithoutBranchesInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1041,6 +1201,10 @@ export type OrganizationUpdateWithoutBranchesInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
@@ -1061,6 +1225,10 @@ export type OrganizationUncheckedUpdateWithoutBranchesInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1081,6 +1249,10 @@ export type OrganizationCreateWithoutOrganizationSupportAgentsInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
@@ -1101,6 +1273,10 @@ export type OrganizationUncheckedCreateWithoutOrganizationSupportAgentsInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1137,6 +1313,10 @@ export type OrganizationUpdateWithoutOrganizationSupportAgentsInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
@@ -1157,6 +1337,10 @@ export type OrganizationUncheckedUpdateWithoutOrganizationSupportAgentsInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1177,6 +1361,10 @@ export type OrganizationCreateWithoutPlatformSupportEscalationsInput = {
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
@@ -1197,6 +1385,10 @@ export type OrganizationUncheckedCreateWithoutPlatformSupportEscalationsInput = 
   archivedById?: string | null
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1233,6 +1425,10 @@ export type OrganizationUpdateWithoutPlatformSupportEscalationsInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
@@ -1253,6 +1449,10 @@ export type OrganizationUncheckedUpdateWithoutPlatformSupportEscalationsInput = 
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1358,6 +1558,10 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   archivedById?: boolean
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: boolean
+  whatsappTemplate?: boolean
+  whatsappSiteUrl?: boolean
   organizationroles?: boolean | Prisma.Organization$organizationrolesArgs<ExtArgs>
   members?: boolean | Prisma.Organization$membersArgs<ExtArgs>
   branches?: boolean | Prisma.Organization$branchesArgs<ExtArgs>
@@ -1380,6 +1584,10 @@ export type OrganizationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   archivedById?: boolean
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: boolean
+  whatsappTemplate?: boolean
+  whatsappSiteUrl?: boolean
 }, ExtArgs["result"]["organization"]>
 
 export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1394,6 +1602,10 @@ export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   archivedById?: boolean
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: boolean
+  whatsappTemplate?: boolean
+  whatsappSiteUrl?: boolean
 }, ExtArgs["result"]["organization"]>
 
 export type OrganizationSelectScalar = {
@@ -1408,9 +1620,13 @@ export type OrganizationSelectScalar = {
   archivedById?: boolean
   showReceiptConversion?: boolean
   notifyParentOnPayment?: boolean
+  whatsappEnabled?: boolean
+  whatsappApiKey?: boolean
+  whatsappTemplate?: boolean
+  whatsappSiteUrl?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "logo" | "createdAt" | "metadata" | "isArchived" | "archivedAt" | "archivedById" | "showReceiptConversion" | "notifyParentOnPayment", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "logo" | "createdAt" | "metadata" | "isArchived" | "archivedAt" | "archivedById" | "showReceiptConversion" | "notifyParentOnPayment" | "whatsappEnabled" | "whatsappApiKey" | "whatsappTemplate" | "whatsappSiteUrl", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organizationroles?: boolean | Prisma.Organization$organizationrolesArgs<ExtArgs>
   members?: boolean | Prisma.Organization$membersArgs<ExtArgs>
@@ -1453,6 +1669,22 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
      * Notifier le parent (e-mail + WhatsApp + compte) à l'encaissement / modification / suppression.
      */
     notifyParentOnPayment: boolean
+    /**
+     * Envoi WhatsApp (Zindua). Désactiver si le fournisseur n'est pas actif pour éviter les jobs en erreur.
+     */
+    whatsappEnabled: boolean
+    /**
+     * Clé API Zindua. Vide = env ZINDUA_API_KEY.
+     */
+    whatsappApiKey: string | null
+    /**
+     * Slug du template Zindua (variables: appName, name, code). Vide = env ZINDUA_WHATSAPP_MAIL_TEMPLATE.
+     */
+    whatsappTemplate: string | null
+    /**
+     * URL liée à la clé Zindua (si la clé est bound à un site). Vide = env ZINDUA_SITE_URL.
+     */
+    whatsappSiteUrl: string | null
   }, ExtArgs["result"]["organization"]>
   composites: {}
 }
@@ -1894,6 +2126,10 @@ export interface OrganizationFieldRefs {
   readonly archivedById: Prisma.FieldRef<"Organization", 'String'>
   readonly showReceiptConversion: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly notifyParentOnPayment: Prisma.FieldRef<"Organization", 'Boolean'>
+  readonly whatsappEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
+  readonly whatsappApiKey: Prisma.FieldRef<"Organization", 'String'>
+  readonly whatsappTemplate: Prisma.FieldRef<"Organization", 'String'>
+  readonly whatsappSiteUrl: Prisma.FieldRef<"Organization", 'String'>
 }
     
 

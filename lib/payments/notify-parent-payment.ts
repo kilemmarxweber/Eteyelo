@@ -180,6 +180,7 @@ export async function notifyParentOfPaymentNow(input: {
         amountLabel,
         studentNames,
         feeNames,
+        organizationId: input.organizationId,
       });
 
       if (!group.parentUserId) return;

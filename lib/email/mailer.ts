@@ -16,6 +16,8 @@ export type MailPayload = {
   whatsappTo?: string | null;
   /** Nom destinataire pour {{name}} du template Zindua. */
   whatsappName?: string | null;
+  /** Organisation : respecte le toggle WhatsApp des paramètres. */
+  organizationId?: string | null;
 };
 
 let transporter: Mail | null = null;
@@ -102,22 +104,34 @@ function queueWhatsAppMirror(payload: MailPayload): void {
   const phone = payload.whatsappTo?.trim();
   if (!phone) return;
 
-  void import("@/lib/zindua")
-    .then(({ mirrorEmailToWhatsApp }) =>
-      mirrorEmailToWhatsApp({
-        to: phone,
-        subject: payload.subject,
-        body: payload.text,
-        name: payload.whatsappName,
-      }),
-    )
-    .catch((err) => {
-      // eslint-disable-next-line no-console
-      console.warn(
-        "[sendMail] WhatsApp mirror failed:",
-        err instanceof Error ? err.message : err,
-      );
+  void (async () => {
+    const { isWhatsAppSendingEnabled } = await import(
+      "@/lib/whatsapp-settings"
+    );
+    if (!(await isWhatsAppSendingEnabled(payload.organizationId))) {
+      if (process.env.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
+        console.info(
+          `[sendMail] WhatsApp désactivé — skip to=${phone} subject=${payload.subject}`,
+        );
+      }
+      return;
+    }
+    const { mirrorEmailToWhatsApp } = await import("@/lib/zindua");
+    await mirrorEmailToWhatsApp({
+      to: phone,
+      subject: payload.subject,
+      body: payload.text,
+      name: payload.whatsappName,
+      organizationId: payload.organizationId,
     });
+  })().catch((err) => {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[sendMail] WhatsApp mirror failed:",
+      err instanceof Error ? err.message : err,
+    );
+  });
 }
 
 /**
@@ -162,7 +176,12 @@ export async function sendMail(payload: MailPayload): Promise<void> {
     const { ensureRedisReady } = await import("@/src/redis/redis");
     await ensureRedisReady();
 
-    const { whatsappTo: _wa, whatsappName: _wn, ...emailJob } = payload;
+    const {
+      whatsappTo: _wa,
+      whatsappName: _wn,
+      organizationId: _oid,
+      ...emailJob
+    } = payload;
     await getEmailQueue().add("send-email", emailJob, {
       jobId: undefined,
     });
@@ -173,7 +192,12 @@ export async function sendMail(payload: MailPayload): Promise<void> {
       "[sendMail] File email indisponible, fallback envoi background:",
       error instanceof Error ? error.message : error,
     );
-    const { whatsappTo: _wa, whatsappName: _wn, ...emailOnly } = payload;
+    const {
+      whatsappTo: _wa,
+      whatsappName: _wn,
+      organizationId: _oid,
+      ...emailOnly
+    } = payload;
     void deliverMail(emailOnly).catch((err) => {
       // eslint-disable-next-line no-console
       console.error(

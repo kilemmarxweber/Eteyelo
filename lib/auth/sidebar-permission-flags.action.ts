@@ -92,6 +92,7 @@ export async function getSidebarPermissionFlagsAction(): Promise<SidebarPermissi
   settingsReads.roles = isOrganizationOwnerSession(session);
   settingsReads.typeFrais = canAccessBranchOrgSettings(session);
   settingsReads["exchange-rates"] = canAccessBranchOrgSettings(session);
+  settingsReads.whatsapp = canAccessBranchOrgSettings(session);
   settingsReads.attendance = canAccessBranchOrgSettings(session);
   settingsReads["inscription-publique"] = canAccessSchoolOpsSettings(session);
   settingsReads.calendar = canAccessSchoolOpsSettings(session);

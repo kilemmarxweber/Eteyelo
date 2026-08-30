@@ -33,6 +33,7 @@ async function sendAbsenceMail(input: {
   rows: Array<{ label: string; value: string }>;
   note?: string;
   ctaLabel?: string;
+  organizationId?: string | null;
 }): Promise<void> {
   const email = input.to?.trim();
   if (!email && !input.phone) return;
@@ -79,6 +80,7 @@ async function sendAbsenceMail(input: {
       to: email || "undisclosed@klambocore.com",
       whatsappTo: input.phone,
       whatsappName: input.recipientName,
+      organizationId: input.organizationId,
       subject: input.subject,
       text,
       html,
@@ -101,6 +103,7 @@ export async function sendAbsenceLifecycleEmail(input: {
   subjectLabel: string;
   justification?: string | null;
   reviewComment?: string | null;
+  organizationId?: string | null;
 }): Promise<void> {
   const dateLabel = formatDateLabel(input.occurredOn);
   const rows = [
@@ -176,5 +179,6 @@ export async function sendAbsenceLifecycleEmail(input: {
     rows,
     note: selected.note,
     ctaLabel: selected.cta,
+    organizationId: input.organizationId,
   });
 }
