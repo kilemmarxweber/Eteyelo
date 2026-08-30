@@ -14,12 +14,14 @@ import type { LucideIcon } from "lucide-react";
 import type { ManagedBranchType } from "@/lib/academic-structure";
 import { isExtendedBranch } from "@/lib/branch-capabilities";
 import {
-  SCHOOL_CYCLES,
   cycleLabel,
   principalTypebranchFromSchoolCycles,
   sortSchoolCycles,
   type SchoolCycle,
 } from "@/lib/cycle";
+import type { EducationSystem } from "@/lib/education-system";
+import { ANGOLA_PRIMARY_CYCLE_LABEL } from "@/lib/angola-primary-structure";
+import { ANGOLA_SECONDARY_CYCLE_LABEL } from "@/lib/angola-secondary-structure";
 import { cn } from "@/lib/utils";
 
 const SCHOOL_CARDS: Array<{
@@ -82,6 +84,29 @@ const EXTENDED_CARDS: Array<{
   },
 ];
 
+const ANGOLA_SCHOOL_CARDS: Array<{
+  value: SchoolCycle;
+  title: string;
+  description: string;
+  hint: string;
+  icon: LucideIcon;
+}> = [
+  {
+    value: "PRIMAIRE",
+    title: ANGOLA_PRIMARY_CYCLE_LABEL,
+    description: "1ª–4ª classe, uma secção e opção Geral, disciplinas do catálogo.",
+    hint: "Combinável",
+    icon: School,
+  },
+  {
+    value: "SECONDAIRE",
+    title: ANGOLA_SECONDARY_CYCLE_LABEL,
+    description: "7ª–8ª núcleo comum, 9ª–13ª Técnica / Electricidade.",
+    hint: "Combinável",
+    icon: GraduationCap,
+  },
+];
+
 type BranchTypeCardsProps = {
   typebranch: ManagedBranchType;
   schoolCycles: SchoolCycle[];
@@ -91,6 +116,7 @@ type BranchTypeCardsProps = {
   }) => void;
   disabled?: boolean;
   hideTypes?: readonly ManagedBranchType[];
+  educationSystem?: EducationSystem;
 };
 
 function SelectionCard({
@@ -168,12 +194,15 @@ export function BranchTypeCards({
   onChange,
   disabled,
   hideTypes,
+  educationSystem,
 }: BranchTypeCardsProps) {
   const hidden = new Set(hideTypes ?? []);
   const extendedCards = EXTENDED_CARDS.filter(
     (card) => !hidden.has(card.value),
   );
   const inSchoolMode = !isExtendedBranch(typebranch);
+  const isAngola = educationSystem === "ANGOLAIS";
+  const schoolCards = isAngola ? ANGOLA_SCHOOL_CARDS : SCHOOL_CARDS;
 
   function toggleSchool(cycle: SchoolCycle) {
     const current = inSchoolMode ? schoolCycles : [];
@@ -198,10 +227,12 @@ export function BranchTypeCards({
     <div className="grid gap-4">
       <div className="grid gap-2">
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          École — un, deux ou les trois cycles
+          {isAngola
+            ? "Escola — Ensino primário e/ou Ensino secundário"
+            : "École — un, deux ou les trois cycles"}
         </p>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {SCHOOL_CARDS.map((card) => (
+        <div className={cn("grid gap-3", isAngola ? "sm:grid-cols-2" : "sm:grid-cols-3")}>
+          {schoolCards.map((card) => (
             <SelectionCard
               key={card.value}
               title={card.title}
@@ -240,7 +271,13 @@ export function BranchTypeCards({
 
       {inSchoolMode && schoolCycles.length > 1 ? (
         <p className="text-xs text-muted-foreground">
-          Cycles retenus : {schoolCycles.map((cycle) => cycleLabel(cycle)).join(", ")}.
+          Cycles retenus : {schoolCycles.map((cycle) =>
+            isAngola && cycle === "PRIMAIRE"
+              ? ANGOLA_PRIMARY_CYCLE_LABEL
+              : isAngola && cycle === "SECONDAIRE"
+                ? ANGOLA_SECONDARY_CYCLE_LABEL
+                : cycleLabel(cycle),
+          ).join(", ")}.
           Une caisse et une année scolaire, des bulletins distincts.
         </p>
       ) : null}

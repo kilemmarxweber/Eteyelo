@@ -27,6 +27,7 @@ export async function ensureAngolaPrimaryStructure(
       OR: [
         { codeSection: ANGOLA_PRIMARY_SECTION_CODE },
         { nameSection: ANGOLA_PRIMARY_SECTION_NAME },
+        { nameSection: "Ensino Primário" },
         { nameSection: { equals: "PRIMAIRE", mode: "insensitive" } },
       ],
     },

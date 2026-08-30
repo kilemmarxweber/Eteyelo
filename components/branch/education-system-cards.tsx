@@ -24,7 +24,7 @@ const SYSTEM_CARDS: Array<{
     value: "ANGOLAIS",
     title: "Angolais",
     description:
-      "1ª–4ª, 7ª–8ª (núcleo) et 9ª–13ª (Técnica). Langue par défaut : PT.",
+      "1ª–6ª (Ensino primário) e 7ª–13ª (Ensino secundário). Língua por defeito: PT.",
     hint: "PT",
     icon: Globe,
   },

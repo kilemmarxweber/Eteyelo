@@ -364,7 +364,7 @@ export async function importPrimaryCatalogCoursesAction() {
   );
 
   const catalogLabel = isAngola
-    ? "Catalogue 1.º ciclo angolais (1ª–4ª)"
+    ? "Catalogue Ensino primário angolais (1ª–6ª)"
     : "Catalogue RDC";
 
   return {

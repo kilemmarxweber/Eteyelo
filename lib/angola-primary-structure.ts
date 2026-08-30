@@ -1,12 +1,15 @@
 import { normalizeEducationSystem } from "@/lib/education-system";
 
-/** Section unique du 1.º ciclo primário (1ª–4ª). */
+/** Section unique : Ensino primário / 1.º ciclo do ensino básico (1ª–6ª). */
 export const ANGOLA_PRIMARY_SECTION_CODE = "PRIMARIO";
-export const ANGOLA_PRIMARY_SECTION_NAME = "Ensino Primário";
+export const ANGOLA_PRIMARY_SECTION_NAME =
+  "Ensino primário / 1.º ciclo do ensino básico";
+export const ANGOLA_PRIMARY_CYCLE_LABEL =
+  "Ensino primário / 1.º ciclo do ensino básico";
 export const ANGOLA_PRIMARY_OPTION_CODE = "GERAL";
 export const ANGOLA_PRIMARY_OPTION_NAME = "Geral";
 
-/** Ensino Primário angolais : 1ª à 6ª classe. */
+/** Ensino primário angolais : 1ª à 6ª classe. */
 export const ANGOLA_PRIMARY_LEVELS = [
   "1ª",
   "2ª",
@@ -16,13 +19,8 @@ export const ANGOLA_PRIMARY_LEVELS = [
   "6ª",
 ] as const;
 
-/** 1.º Ciclo do Ensino Primário : 1ª–4ª. */
-export const ANGOLA_PRIMARY_FIRST_CYCLE_LEVELS = [
-  "1ª",
-  "2ª",
-  "3ª",
-  "4ª",
-] as const;
+/** 1.º ciclo do ensino básico : 1ª–6ª. */
+export const ANGOLA_PRIMARY_FIRST_CYCLE_LEVELS = ANGOLA_PRIMARY_LEVELS;
 
 export type AngolaPrimaryLevel = (typeof ANGOLA_PRIMARY_LEVELS)[number];
 export type AngolaPrimaryFirstCycleLevel =

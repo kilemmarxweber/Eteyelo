@@ -89,7 +89,7 @@ Env bibliothèque :
   pnpm seed:library            Importe les EPUB (désactive les stubs PDF)
   pnpm seed:library:reset      Écrase la base bibliothèque seed puis réimporte
   pnpm seed -- --angola-students   Élèves 7ª + 10ª (branche secondaire angolaise)
-  pnpm seed -- --angola-courses    Disciplinas PORTUGUESA (7ª–13ª) + 1.º ciclo (1ª–4ª)
+  pnpm seed -- --angola-courses    Disciplinas PORTUGUESA (7ª–13ª) + Ensino primário (1ª–6ª)
 `);
     return;
   }

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureAcademicPeriodsForBranch } from "@/lib/academic-periods";
 import { ensureAngolaSecondaryStructure } from "@/lib/angola-secondary-bootstrap";
 import { upsertAngolaSecondaryCoursesForBranch } from "@/lib/angola-secondary-catalog-sync";
+import { upsertClassCatalogForBranch } from "@/lib/class-catalog-sync";
 import { buildClassCode, buildClassName } from "@/lib/class-structure";
 
 const SEED_PASSWORD = "Student123!";
@@ -338,6 +339,7 @@ export async function seedAngolaSecondaryStudents() {
   });
 
   const angola = await ensureAngolaSecondaryStructure(prisma, branch.id);
+  await upsertClassCatalogForBranch(branch.id, { cycles: ["SECONDAIRE"] });
   const courses = await upsertAngolaSecondaryCoursesForBranch(branch.id);
   console.log(
     `  Cours PORTUGUESA: ${courses.coursesCreated} créé(s), ${courses.coursesSkipped} déjà présents`,
@@ -356,15 +358,36 @@ export async function seedAngolaSecondaryStudents() {
     creneauId: creneau.id,
     horaireType: "COMPLET",
   });
+  const classe9 = await ensureClasse({
+    branchId: branch.id,
+    level: "9ª",
+    parallel: "A",
+    optionId: angola.option.id,
+    optionName: null,
+    creneauId: creneau.id,
+    horaireType: "COMPLET",
+  });
   const classe10 = await ensureClasse({
     branchId: branch.id,
     level: "10ª",
+    parallel: "A",
+    optionId: angola.option.id,
+    optionName: null,
+    creneauId: creneau.id,
+    horaireType: "COMPLET",
+  });
+  const classe11 = await ensureClasse({
+    branchId: branch.id,
+    level: "11ª",
     parallel: "A",
     optionId: ciencias.id,
     optionName: ciencias.nameOption,
     creneauId: creneau.id,
     horaireType: "COMPLET",
   });
+  console.log(
+    `  Classes núcleo 7ª/9ª/10ª + 11ª ${ciencias.nameOption}: ${classe7.nameClasse}, ${classe9.nameClasse}, ${classe10.nameClasse}, ${classe11.nameClasse}`,
+  );
 
   const parentUser = await ensureCredentialUser({
     email: PARENT_EMAIL,

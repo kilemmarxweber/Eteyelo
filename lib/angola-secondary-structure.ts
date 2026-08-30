@@ -1,9 +1,9 @@
 import { normalizeEducationSystem } from "@/lib/education-system";
 
 /**
- * Secundário angolais — 2 ciclos.
+ * Ensino secundário angolais — 2 ciclos.
  *
- * 1.º Ciclo (7ª–8ª) : núcleo comum, comme le tronc commun congolais — pas de choix d'option.
+ * 1.º Ciclo (7ª–8ª) : núcleo comum, comme le tronc commun — pas de choix d'option.
  * 2.º Ciclo (9ª–12ª + 13ª) : section et option obligatoires (défaut Técnica / Electricidade).
  */
 
@@ -61,6 +61,7 @@ export function normalizeAngolaSecondaryLevel(
 
 export const ANGOLA_CICLO1_SECTION_CODE = "CICLO1";
 export const ANGOLA_CICLO1_SECTION_NAME = "Núcleo comum";
+export const ANGOLA_SECONDARY_CYCLE_LABEL = "Ensino secundário";
 export const ANGOLA_CICLO_OPTION_CODE = "NUCLEO";
 export const ANGOLA_CICLO_OPTION_NAME = "Núcleo comum";
 export const ANGOLA_CICLO_OPTION_CODE_LEGACY = "CICLO";
@@ -95,7 +96,8 @@ export function isAngolaNucleoComumSection(section: {
   return (
     code === ANGOLA_CICLO1_SECTION_CODE ||
     name === "nucleo comum" ||
-    name === "1.o ciclo"
+    name === "1.o ciclo" ||
+    name === "ensino secundario"
   );
 }
 
@@ -147,7 +149,7 @@ export function getAngolaSecondaryCycle(
   return null;
 }
 
-/** 9ª–12ª : tous les jours. 13ª : horaire réduit. 7ª–8ª : complet. */
+/** 7ª–12ª : tous les jours. 13ª : horaire réduit. */
 export function getAngolaHoraireType(
   level: string | null | undefined,
 ): AngolaHoraireType {

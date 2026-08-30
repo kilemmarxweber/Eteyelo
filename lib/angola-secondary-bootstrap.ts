@@ -118,7 +118,7 @@ export async function ensureAngolaSecondaryStructure(
     branchId,
     ANGOLA_CICLO1_SECTION_CODE,
     ANGOLA_CICLO1_SECTION_NAME,
-    ["1.º Ciclo"],
+    ["1.º Ciclo", "Núcleo comum"],
   );
   const tecnica = await ensureSection(
     db,

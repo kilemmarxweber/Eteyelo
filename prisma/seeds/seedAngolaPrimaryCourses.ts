@@ -3,6 +3,7 @@ import {
   upsertAngolaPrimaryCoursesForAllAngolaBranches,
   upsertAngolaPrimaryCoursesForBranch,
 } from "@/lib/angola-primary-catalog-sync";
+import { upsertClassCatalogForBranch } from "@/lib/class-catalog-sync";
 
 type SeedRow = {
   branchId: string;
@@ -27,7 +28,7 @@ function logRows(rows: SeedRow[]) {
 }
 
 export async function seedAngolaPrimaryCourses() {
-  console.log("Seed cours 1.º ciclo primário (1ª–4ª)...");
+  console.log("Seed Ensino primário (1ª–6ª)...");
   const requestedId = process.env.ANGOLA_SEED_BRANCH_ID?.trim();
 
   let results: SeedRow[] = [];
@@ -51,6 +52,7 @@ export async function seedAngolaPrimaryCourses() {
       branch?.educationSystem === "ANGOLAIS" &&
       (branch.typebranch === "PRIMAIRE" || branch.cycles.length > 0);
     if (isAngolaPrimary && branch) {
+      await upsertClassCatalogForBranch(branch.id, { cycles: ["PRIMAIRE"] });
       results = [
         {
           ...(await upsertAngolaPrimaryCoursesForBranch(branch.id)),
@@ -62,10 +64,10 @@ export async function seedAngolaPrimaryCourses() {
       console.log(
         `  ANGOLA_SEED_BRANCH_ID n'est pas une branche primaire angolaise — seed de toutes les branches PRIMAIRE ANGOLAIS.`,
       );
-      results = await upsertAngolaPrimaryCoursesForAllAngolaBranches();
+      results = await seedAllAngolaPrimary();
     }
   } else {
-    results = await upsertAngolaPrimaryCoursesForAllAngolaBranches();
+    results = await seedAllAngolaPrimary();
   }
 
   if (results.length === 0) {
@@ -77,6 +79,14 @@ export async function seedAngolaPrimaryCourses() {
 
   logRows(results);
   return results;
+}
+
+async function seedAllAngolaPrimary(): Promise<SeedRow[]> {
+  const rows = await upsertAngolaPrimaryCoursesForAllAngolaBranches();
+  for (const row of rows) {
+    await upsertClassCatalogForBranch(row.branchId, { cycles: ["PRIMAIRE"] });
+  }
+  return rows;
 }
 
 if (process.argv[1]?.includes("seedAngolaPrimaryCourses")) {

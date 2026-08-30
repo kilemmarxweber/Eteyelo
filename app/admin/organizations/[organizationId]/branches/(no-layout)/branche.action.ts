@@ -31,6 +31,7 @@ import {
   isSchoolCycle,
   principalTypebranchFromSchoolCycles,
   resolveActivatedCycles,
+  filterSchoolCyclesForEducationSystem,
 } from "@/lib/cycle";
 import { usesTermPeriodCalendar } from "@/lib/education-system";
 
@@ -89,7 +90,10 @@ export async function createBranchAction(
   });
 
   const academicYear = getAcademicYearForDate();
-  const schoolCycles = (parsed.data.schoolCycles ?? []).filter(isSchoolCycle);
+  const schoolCycles = filterSchoolCyclesForEducationSystem(
+    (parsed.data.schoolCycles ?? []).filter(isSchoolCycle),
+    parsed.data.educationSystem,
+  );
   const typebranch =
     schoolCycles.length > 0
       ? principalTypebranchFromSchoolCycles(schoolCycles)
@@ -288,7 +292,10 @@ export async function updateBranchAction(
     };
   }
 
-  const schoolCycles = (parsed.data.schoolCycles ?? []).filter(isSchoolCycle);
+  const schoolCycles = filterSchoolCyclesForEducationSystem(
+    (parsed.data.schoolCycles ?? []).filter(isSchoolCycle),
+    parsed.data.educationSystem,
+  );
   const typebranch =
     schoolCycles.length > 0
       ? principalTypebranchFromSchoolCycles(schoolCycles)

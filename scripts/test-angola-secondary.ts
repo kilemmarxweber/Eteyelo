@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import {
+  ANGOLA_ELECT_OPTION_CODE,
+  ANGOLA_ELECT_OPTION_NAME,
+  ANGOLA_FIRST_CYCLE_LEVELS,
+  ANGOLA_SECOND_CYCLE_LEVELS,
+  ANGOLA_SECONDARY_CYCLE_LABEL,
   ANGOLA_SECONDARY_LEVELS,
+  ANGOLA_TECNICA_SECTION_CODE,
+  ANGOLA_TECNICA_SECTION_NAME,
   angolaStudyDeclarationClassPhrase,
   getAngolaHoraireType,
   getAngolaSecondaryCycle,
@@ -18,9 +25,11 @@ import {
 } from "../lib/class-structure";
 import {
   angolaPrimaryLevelLabel,
+  ANGOLA_PRIMARY_CYCLE_LABEL,
   isAngolaPrimaryFirstCycleLevel,
   shouldUseAngolaPrimaryStudyDeclaration,
 } from "../lib/angola-primary-structure";
+import { filterSchoolCyclesForEducationSystem } from "../lib/cycle";
 import { matchAngolaPrimaryCourse } from "../lib/angola-primary-course-catalog";
 import {
   formatAngolaPrimaryIssueLine,
@@ -184,8 +193,8 @@ test("Primaire angolais : 1ª (Primeira Classe) … 6ª (Sexta Classe)", () => {
   assert.ok(getClassLevelsForBranch("PRIMAIRE").includes("1è"));
   assert.equal(isAngolaPrimaryFirstCycleLevel("4ª"), true);
   assert.equal(isAngolaPrimaryFirstCycleLevel("4ª A"), true);
-  assert.equal(isAngolaPrimaryFirstCycleLevel("5ª"), false);
-  assert.equal(isAngolaPrimaryFirstCycleLevel("6ª"), false);
+  assert.equal(isAngolaPrimaryFirstCycleLevel("5ª"), true);
+  assert.equal(isAngolaPrimaryFirstCycleLevel("6ª"), true);
   assert.equal(
     shouldUseAngolaPrimaryStudyDeclaration("ANGOLAIS", "PRIMAIRE", "2ª", "2ª A"),
     true,
@@ -196,11 +205,11 @@ test("Primaire angolais : 1ª (Primeira Classe) … 6ª (Sexta Classe)", () => {
   );
   assert.equal(
     shouldUseAngolaPrimaryStudyDeclaration("ANGOLAIS", "PRIMAIRE", "5ª", "5ª A"),
-    false,
+    true,
   );
   assert.equal(
     shouldUseAngolaPrimaryStudyDeclaration("ANGOLAIS", "PRIMAIRE", "6ª", "6ª A"),
-    false,
+    true,
   );
   assert.equal(
     shouldUseAngolaPrimaryStudyDeclaration("ANGOLAIS", "SECONDAIRE", "7ª", "7ª A"),
@@ -277,6 +286,34 @@ test("Catalogue PORTUGUESA + Declaração (tableau officiel)", () => {
   assert.ok(Number.isNaN(frances.score));
   assert.ok(religiao);
   assert.ok(Number.isNaN(religiao.score));
+});
+
+test("Création branche Angola : pas de maternelle, noms PT", () => {
+  assert.equal(
+    ANGOLA_PRIMARY_CYCLE_LABEL,
+    "Ensino primário / 1.º ciclo do ensino básico",
+  );
+  assert.equal(ANGOLA_SECONDARY_CYCLE_LABEL, "Ensino secundário");
+  assert.deepEqual(
+    filterSchoolCyclesForEducationSystem(
+      ["MATERNELLE", "PRIMAIRE", "SECONDAIRE"],
+      "ANGOLAIS",
+    ),
+    ["PRIMAIRE", "SECONDAIRE"],
+  );
+  assert.deepEqual(
+    filterSchoolCyclesForEducationSystem(
+      ["MATERNELLE", "PRIMAIRE"],
+      "CONGOLAIS",
+    ),
+    ["MATERNELLE", "PRIMAIRE"],
+  );
+  assert.equal(ANGOLA_FIRST_CYCLE_LEVELS.join(","), "7ª,8ª");
+  assert.equal(ANGOLA_SECOND_CYCLE_LEVELS.join(","), "9ª,10ª,11ª,12ª");
+  assert.equal(ANGOLA_TECNICA_SECTION_CODE, "TECNICA");
+  assert.equal(ANGOLA_TECNICA_SECTION_NAME, "Técnica");
+  assert.equal(ANGOLA_ELECT_OPTION_CODE, "ELECT");
+  assert.equal(ANGOLA_ELECT_OPTION_NAME, "Electricidade");
 });
 
 console.log("Angola secondary tests passed.");

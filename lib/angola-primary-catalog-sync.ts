@@ -18,7 +18,7 @@ export type UpsertAngolaPrimaryCoursesResult = {
 };
 
 /**
- * Crée les disciplinas du 1.º ciclo (1ª–4ª) et les pondère
+ * Crée les disciplinas de l'Ensino primário (1ª–6ª) et les pondère
  * sur l'option unique Geral.
  */
 export async function upsertAngolaPrimaryCoursesForBranch(

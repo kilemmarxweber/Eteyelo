@@ -1,7 +1,6 @@
 /**
- * Catalogue du 1.º Ciclo angolais (7ª–8ª) — disciplinas da Declaração de Estudo.
- * 2.º Ciclo (9ª–13ª) réutilise le même socle ; les options spécialisées
- * s'ajoutent ensuite via la pondération par option.
+ * Catalogue de l'Ensino secundário (7ª–13ª) — disciplinas da Declaração de Estudo.
+ * 1.º Ciclo (7ª–8ª) : núcleo comum. 2.º Ciclo (9ª–13ª) : options spécialisées.
  */
 
 export type AngolaSecondaryCourseEntry = {

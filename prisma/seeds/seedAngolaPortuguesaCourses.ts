@@ -3,19 +3,33 @@ import {
   upsertAngolaSecondaryCoursesForAllAngolaBranches,
   upsertAngolaSecondaryCoursesForBranch,
 } from "@/lib/angola-secondary-catalog-sync";
+import { upsertClassCatalogForBranch } from "@/lib/class-catalog-sync";
+
+async function seedSecondaryBranch(branchId: string) {
+  await upsertClassCatalogForBranch(branchId, { cycles: ["SECONDAIRE"] });
+  return upsertAngolaSecondaryCoursesForBranch(branchId);
+}
+
+async function seedAllAngolaSecondary() {
+  const rows = await upsertAngolaSecondaryCoursesForAllAngolaBranches();
+  for (const row of rows) {
+    await upsertClassCatalogForBranch(row.branchId, { cycles: ["SECONDAIRE"] });
+  }
+  return rows;
+}
 
 export async function seedAngolaPortuguesaCourses() {
-  console.log("Seed cours PORTUGUESA (7ª–13ª)...");
+  console.log("Seed Ensino secundário (7ª–13ª, 9ª–10ª núcleo comum)...");
   const requestedId = process.env.ANGOLA_SEED_BRANCH_ID?.trim();
   const results = requestedId
     ? [
         {
-          ...(await upsertAngolaSecondaryCoursesForBranch(requestedId)),
+          ...(await seedSecondaryBranch(requestedId)),
           name: requestedId,
           code: null as string | null,
         },
       ]
-    : await upsertAngolaSecondaryCoursesForAllAngolaBranches();
+    : await seedAllAngolaSecondary();
 
   if (results.length === 0) {
     console.log(

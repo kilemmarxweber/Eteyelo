@@ -2,7 +2,7 @@ import { normalizeAngolaCourseKey } from "@/lib/angola-secondary-course-catalog"
 import type { SystemPrimaryDomainCode } from "@/lib/primary-domains";
 
 /**
- * Catalogue du 1.º Ciclo do Ensino Primário angolais (1ª–4ª).
+ * Catalogue de l'Ensino primário / 1.º ciclo do ensino básico (1ª–6ª).
  * Abréviations officielles de la Declaração de Estudo.
  */
 export type AngolaPrimaryCourseEntry = {

@@ -225,27 +225,6 @@ async function upsertAngolaClassCatalog(
   let optionsCreated = 0;
   const educationSystem = "ANGOLAIS";
 
-  if (cycles.includes("MATERNELLE")) {
-    const { optionsByLevel } = await ensureMaternelleAcademicStructure(
-      Prisma,
-      branchId,
-    );
-    for (const level of MATERNELLE_CLASS_LEVELS) {
-      const option = optionsByLevel[level];
-      const result = await upsertClasseRow({
-        branchId,
-        typebranch: "MATERNELLE",
-        educationSystem,
-        level,
-        optionId: option.id,
-        optionName: null,
-        cycle: "MATERNELLE",
-      });
-      if (result === "created") created += 1;
-      else skipped += 1;
-    }
-  }
-
   if (cycles.includes("PRIMAIRE")) {
     const beforeSections = await Prisma.section.count({ where: { branchId } });
     const beforeOptions = await Prisma.option.count({ where: { branchId } });

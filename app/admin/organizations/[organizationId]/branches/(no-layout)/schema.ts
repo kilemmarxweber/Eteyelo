@@ -74,7 +74,7 @@ export const createBranchFormObjectSchema = z.object({
 });
 
 export function refineBranchSchoolCycles(
-  data: { typebranch: string; schoolCycles?: string[] },
+  data: { typebranch: string; schoolCycles?: string[]; educationSystem?: string },
   ctx: z.RefinementCtx,
 ) {
   const isExtended =
@@ -88,6 +88,17 @@ export function refineBranchSchoolCycles(
       path: ["schoolCycles"],
       message:
         "Choisissez au moins un cycle : maternelle, primaire ou secondaire.",
+    });
+  }
+  if (
+    data.educationSystem === "ANGOLAIS" &&
+    data.schoolCycles?.includes("MATERNELLE")
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["schoolCycles"],
+      message:
+        "Le système angolais n'inclut pas la maternelle. Choisissez Ensino primário ou Ensino secundário.",
     });
   }
 }

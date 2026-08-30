@@ -42,6 +42,7 @@ import { EducationSystemCards } from "@/components/branch/education-system-cards
 import {
   isSchoolCycle,
   principalTypebranchFromSchoolCycles,
+  filterSchoolCyclesForEducationSystem,
 } from "@/lib/cycle";
 import type { ManagedBranchType } from "@/lib/academic-structure";
 import { isExtendedBranch } from "@/lib/branch-capabilities";
@@ -216,6 +217,28 @@ export function CreateBranchForm({
   );
 
   useEffect(() => {
+    if (selectedEducationSystem === "ANGOLAIS") {
+      const currentCycles = (form.getValues("schoolCycles") ?? []).filter(
+        isSchoolCycle,
+      );
+      const withoutMaternelle = filterSchoolCyclesForEducationSystem(
+        currentCycles,
+        "ANGOLAIS",
+      );
+      if (withoutMaternelle.length !== currentCycles.length) {
+        form.setValue("schoolCycles", withoutMaternelle, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+        if (withoutMaternelle.length > 0) {
+          form.setValue(
+            "typebranch",
+            principalTypebranchFromSchoolCycles(withoutMaternelle),
+            { shouldValidate: true, shouldDirty: true },
+          );
+        }
+      }
+    }
     if (mode !== "create") return;
     if (selectedEducationSystem === "ANGOLAIS") {
       writeLocaleCookie("pt");
@@ -722,7 +745,11 @@ export function CreateBranchForm({
                   <TabPanelHeader
                     icon={<School className="size-4" />}
                     title={labels.typeLabel}
-                    description="Combinez maternelle, primaire et secondaire sur une seule branche, ou choisissez un autre type d'établissement."
+                    description={
+                      selectedEducationSystem === "ANGOLAIS"
+                        ? "Choisissez Ensino primário et/ou Ensino secundário. Le système angolais n'inclut pas la maternelle."
+                        : "Combinez maternelle, primaire et secondaire sur une seule branche, ou choisissez un autre type d'établissement."
+                    }
                   />
 
                   <FormField
@@ -734,6 +761,7 @@ export function CreateBranchForm({
                           <BranchTypeCards
                             typebranch={selectedTypebranch}
                             schoolCycles={selectedSchoolCycles}
+                            educationSystem={selectedEducationSystem}
                             disabled={isSubmitting}
                             hideTypes={
                               isRequestMode ? (["ATELIER"] as const) : undefined
