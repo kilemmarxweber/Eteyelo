@@ -411,3 +411,28 @@ export type OnlineAnswer = Prisma.OnlineAnswerModel
  * 
  */
 export type OnlineSubmissionFile = Prisma.OnlineSubmissionFileModel
+/**
+ * Model Conversation
+ * 
+ */
+export type Conversation = Prisma.ConversationModel
+/**
+ * Model ConversationParticipant
+ * 
+ */
+export type ConversationParticipant = Prisma.ConversationParticipantModel
+/**
+ * Model Message
+ * 
+ */
+export type Message = Prisma.MessageModel
+/**
+ * Model UserMessageArchive
+ * 
+ */
+export type UserMessageArchive = Prisma.UserMessageArchiveModel
+/**
+ * Model MessagingAuditLog
+ * 
+ */
+export type MessagingAuditLog = Prisma.MessagingAuditLogModel

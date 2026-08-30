@@ -26,6 +26,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { formatReportAmount } from "@/lib/reports/format-amount";
+import { useTranslations } from "next-intl";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import Performance from "../../components/Performance";
 import type { StudentProfileData } from "./student-profile-types";
@@ -232,6 +233,8 @@ function formatMoney(amount: number, currency: string) {
 
 export function StudentProfileClient({ profile }: { profile: StudentProfileData }) {
   const peopleLabels = useBranchPeopleLabels();
+  const t = useTranslations("users.students.profile");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const badgeSectionRef = React.useRef<StudentBadgeSectionHandle>(null);
   const [tab, setTab] = React.useState("infos");
@@ -253,8 +256,8 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
         <RegistrationExtraInfoSheet
           open={extraSheetOpen}
           onOpenChange={setExtraSheetOpen}
-          title="Autres informations"
-          description="Nationalité et langue propres à cet élève. Les infos famille / origines se gèrent sur la fiche parent."
+          title={t("extraInfoTitle")}
+          description={t("extraInfoSheetDesc", { studentLower: peopleLabels.studentLower })}
           hideFamily
           initialStudent={{
             nationalite:
@@ -284,7 +287,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
             if (!result?.ok) {
               return {
                 ok: false,
-                message: result?.message ?? "Enregistrement impossible.",
+                message: result?.message ?? t("saveFailed"),
               };
             }
             router.refresh();
@@ -315,7 +318,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
 
               <div className="min-w-0">
                 <p className="text-[11px] font-medium uppercase tracking-wide text-primary/80">
-                  Fiche {peopleLabels.studentLower}
+                  {t("sheet", { studentLower: peopleLabels.studentLower })}
                 </p>
                 <h1 className="truncate text-lg font-bold uppercase tracking-wide text-foreground md:text-xl">
                   {profile.fullName}
@@ -350,7 +353,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                 className="gap-2"
                 onClick={() => setExtraSheetOpen(true)}
               >
-                Autres informations
+                {t("extraInfo")}
               </Button>
             ) : null}
             <Button
@@ -360,7 +363,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
               onClick={() => void badgeSectionRef.current?.print()}
             >
               <Printer className="size-4" />
-              Imprimer la carte
+              {t("printCard")}
             </Button>
           </div>
         </div>
@@ -380,7 +383,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
               className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
             >
               <UserRound className="size-4" />
-              Infos
+              {t("tabInfos")}
             </TabsTrigger>
             {profile.canViewFinance ? (
               <TabsTrigger
@@ -388,7 +391,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                 className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
               >
                 <CreditCard className="size-4" />
-                Finances
+                {t("tabFinances")}
               </TabsTrigger>
             ) : null}
             <TabsTrigger
@@ -396,28 +399,28 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
               className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
             >
               <CalendarClock className="size-4" />
-              Horaires
+              {t("tabSchedule")}
             </TabsTrigger>
             <TabsTrigger
               value="announcements"
               className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
             >
               <Megaphone className="size-4" />
-              Annonces
+              {t("tabAnnouncements")}
             </TabsTrigger>
             <TabsTrigger
               value="presence"
               className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
             >
               <CalendarDays className="size-4" />
-              Presence
+              {t("tabPresence")}
             </TabsTrigger>
             <TabsTrigger
               value="documents"
               className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
             >
               <FileText className="size-4" />
-              Documents
+              {t("tabDocuments")}
             </TabsTrigger>
         </TabsList>
 
@@ -426,45 +429,45 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                   <div className="grid items-stretch gap-4 md:grid-cols-2">
                     <ProfileSectionCard
                       variant="personal"
-                      title="Informations personnelles"
-                      subtitle="Identite et etat civil"
+                      title={t("personalInfo")}
+                      subtitle={t("personalSubtitle")}
                       icon={<UserRound className="size-4" />}
                       className="h-full"
                     >
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <InfoField variant="personal" label="Nom" value={profile.nom || "-"} />
-                        <InfoField variant="personal" label="Post-nom" value={profile.postnom || "-"} />
-                        <InfoField variant="personal" label="Prenom" value={profile.prenom || "-"} />
-                        <InfoField variant="personal" label="Sexe" value={profile.sexe || "-"} />
+                        <InfoField variant="personal" label={tCommon("person.lastName")} value={profile.nom || "-"} />
+                        <InfoField variant="personal" label={t("postNom")} value={profile.postnom || "-"} />
+                        <InfoField variant="personal" label={t("prenom")} value={profile.prenom || "-"} />
+                        <InfoField variant="personal" label={tCommon("person.gender")} value={profile.sexe || "-"} />
                         <InfoField
                           variant="personal"
-                          label="Date naissance"
+                          label={t("birthDateShort")}
                           value={profile.dateOfBirthLabel}
                         />
-                        <InfoField variant="personal" label="Age" value={profile.ageLabel} />
+                        <InfoField variant="personal" label={t("age")} value={profile.ageLabel} />
                         <InfoField
                           variant="personal"
-                          label="Lieu naissance"
+                          label={t("birthPlace")}
                           value={profile.placeOfBirth}
                         />
                         <InfoField
                           variant="personal"
-                          label="Nationalite"
+                          label={t("nationality")}
                           value={profile.nationality}
                         />
                         <InfoField
                           variant="personal"
-                          label="Autre nationalite"
+                          label={t("otherNationality")}
                           value={profile.autreNationalite}
                         />
                         <InfoField
                           variant="personal"
-                          label="Territoire autre nationalite"
+                          label={t("otherNationalityTerritory")}
                           value={profile.territoireAutreNationalite}
                         />
                         <InfoField
                           variant="personal"
-                          label="Langue"
+                          label={t("language")}
                           value={profile.langue}
                         />
                       </div>
@@ -476,18 +479,18 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                             SECTION_VARIANTS.personal.accentText,
                           )}
                         >
-                          Sante
+                          {t("health")}
                         </p>
                         <div className="grid gap-3 sm:grid-cols-2">
                           <InfoField
                             variant="personal"
-                            label="Groupe sanguin"
+                            label={t("bloodGroup")}
                             value={profile.bloodGroup}
                           />
-                          <InfoField variant="personal" label="Allergies" value={profile.allergies} />
+                          <InfoField variant="personal" label={t("allergies")} value={profile.allergies} />
                           <InfoField
                             variant="personal"
-                            label="Vulnerabilite"
+                            label={t("vulnerability")}
                             value={profile.vulnerability}
                             className="sm:col-span-2"
                             highlight
@@ -498,7 +501,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
 
                     <ProfileSectionCard
                       variant="school"
-                      title="Scolarite"
+                      title={t("schooling")}
                       subtitle={profile.schoolName}
                       icon={<GraduationCap className="size-4" />}
                       className="h-full"
@@ -510,7 +513,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                             SECTION_VARIANTS.school.accentText,
                           )}
                         >
-                          Classe actuelle
+                          {t("currentClass")}
                         </p>
                         <p className="mt-1 text-base font-semibold text-foreground">
                           {profile.classLabel}
@@ -533,7 +536,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                         />
                         <InfoField
                           variant="school"
-                          label="Annee scolaire"
+                          label={t("schoolYear")}
                           value={profile.schoolYearLabel}
                         />
                         {profile.showExamCodes ? (
@@ -560,12 +563,12 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                         ) : null}
                         <InfoField
                           variant="school"
-                          label="Titulaire"
+                          label={t("titulaire")}
                           value={profile.titulaireName}
                         />
                         <InfoField
                           variant="school"
-                          label="Statut"
+                          label={t("status")}
                           value={
                             <Badge
                               variant={profile.statusActive ? "default" : "secondary"}
@@ -579,7 +582,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                         />
                         <InfoField
                           variant="school"
-                          label="Inscription"
+                          label={t("enrollment")}
                           value={profile.enrollmentDateLabel}
                           className="sm:col-span-2"
                         />
@@ -589,8 +592,8 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
 
                   <ProfileSectionCard
                     variant="guardian"
-                    title="Parent / tuteur"
-                    subtitle="Contact et origines hérités de la fiche parent"
+                    title={t("guardian")}
+                    subtitle={t("guardianSubtitle")}
                     icon={<Users className="size-4" />}
                   >
                     <div className={cn("mb-4", SECTION_VARIANTS.guardian.highlightBox)}>
@@ -600,7 +603,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                           SECTION_VARIANTS.guardian.accentText,
                         )}
                       >
-                        Nom complet
+                        {t("fullName")}
                       </p>
                       <p className="mt-1 text-base font-semibold text-foreground">
                         {profile.parentFullName}
@@ -611,79 +614,79 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                       <ContactRow
                         variant="guardian"
                         icon={<Phone className="size-4" />}
-                        label="Telephone"
+                        label={tCommon("person.phone")}
                         value={profile.parentPhone}
                       />
                       <ContactRow
                         variant="guardian"
                         icon={<Mail className="size-4" />}
-                        label="Email"
+                        label={tCommon("person.email")}
                         value={profile.parentEmail}
                       />
                       <InfoField
                         variant="guardian"
-                        label="Profession"
+                        label={t("profession")}
                         value={profile.parentProfession}
                         className="px-1 pt-1"
                       />
                       <ContactRow
                         variant="guardian"
                         icon={<MapPin className="size-4" />}
-                        label="Adresse"
+                        label={tCommon("person.address")}
                         value={profile.parentAddress}
                       />
                       <InfoField
                         variant="guardian"
-                        label="Nom de la mere"
+                        label={t("motherName")}
                         value={profile.nomMere}
                         className="px-1 pt-1"
                       />
                       <InfoField
                         variant="guardian"
-                        label="Profession de la mere"
+                        label={t("motherProfession")}
                         value={profile.professionMere}
                         className="px-1"
                       />
                       <InfoField
                         variant="guardian"
-                        label="Nom du tuteur"
+                        label={t("tutorName")}
                         value={profile.tuteurNom}
                         className="px-1"
                       />
                       <InfoField
                         variant="guardian"
-                        label="Adresse du tuteur"
+                        label={t("tutorAddress")}
                         value={profile.adresseTuteur}
                         className="px-1"
                       />
                       <InfoField
                         variant="guardian"
-                        label="Province d'origine"
+                        label={t("originProvince")}
                         value={profile.provinceOrigine}
                         className="px-1"
                       />
                       <InfoField
                         variant="guardian"
-                        label="Territoire d'origine"
+                        label={t("originTerritory")}
                         value={profile.territoireOrigine}
                         className="px-1"
                       />
                       <InfoField
                         variant="guardian"
-                        label="Secteur d'origine"
+                        label={t("originSector")}
                         value={profile.secteurOrigine}
                         className="px-1"
                       />
                       <InfoField
                         variant="guardian"
-                        label="Village d'origine"
+                        label={t("originVillage")}
                         value={profile.villageOrigine}
                         className="px-1"
                       />
                       <ContactRow
                         variant="guardian"
                         icon={<Phone className="size-4" />}
-                        label="Contact urgence"
+                        label={t("emergencyContact")}
                         value={profile.parentEmergencyContact}
                       />
                     </div>
@@ -696,7 +699,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
               <div className="grid gap-4 sm:grid-cols-3">
                 <Card className="rounded-xl border bg-card p-4 shadow-sm">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Montant du
+                    {t("amountDue")}
                   </p>
                   <p className="mt-2 text-2xl font-bold text-foreground">
                     {formatMoney(
@@ -707,7 +710,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                 </Card>
                 <Card className="rounded-xl border bg-card p-4 shadow-sm">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Total paye
+                    {t("totalPaid")}
                   </p>
                   <p className="mt-2 text-2xl font-bold text-emerald-600">
                     {formatMoney(
@@ -718,7 +721,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                 </Card>
                 <Card className="rounded-xl border bg-card p-4 shadow-sm">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Reste a payer
+                    {t("remaining")}
                   </p>
                   <p
                     className={cn(
@@ -737,7 +740,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
               </div>
 
               <Card className="rounded-xl border p-4 shadow-sm">
-                <h3 className="mb-4 text-sm font-semibold">Details des frais</h3>
+                <h3 className="mb-4 text-sm font-semibold">{t("feeDetails")}</h3>
                 {profile.fees.length ? (
                   <div className="space-y-2">
                     {profile.fees.map((fee) => (
@@ -757,11 +760,11 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                           <div className="flex items-center gap-2">
                             {fee.isPaid ? (
                               <Badge className="bg-emerald-100 text-emerald-700">
-                                Solde
+                                {t("settled")}
                               </Badge>
                             ) : (
                               <Badge variant="secondary" className="bg-amber-100 text-amber-700">
-                                En cours
+                                {t("inProgress")}
                               </Badge>
                             )}
                             {fee.isPaid ? (
@@ -774,15 +777,15 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
 
                         <div className="mt-3 grid gap-3 sm:grid-cols-3">
                           <InfoField
-                            label="Montant du"
+                            label={t("amountDue")}
                             value={formatMoney(fee.amountDue, profile.baseCurrency)}
                           />
                           <InfoField
-                            label="Paye"
+                            label={t("totalPaid")}
                             value={formatMoney(fee.amountPaid, profile.baseCurrency)}
                           />
                           <InfoField
-                            label="Reste a payer"
+                            label={t("remaining")}
                             value={
                               <span
                                 className={cn(
@@ -801,7 +804,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    Aucun frais trouve pour cette inscription.
+                    {t("noFees")}
                   </p>
                 )}
               </Card>

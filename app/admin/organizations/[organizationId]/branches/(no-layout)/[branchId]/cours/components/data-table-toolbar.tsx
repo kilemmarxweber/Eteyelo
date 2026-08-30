@@ -3,6 +3,7 @@
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { IconSearch } from "@tabler/icons-react";
 import type { Table } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/custom/button";
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
@@ -16,6 +17,8 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
+  const t = useTranslations("teaching.courses.table");
+  const tc = useTranslations("common");
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
@@ -23,7 +26,7 @@ export function DataTableToolbar<TData>({
       <div className="relative w-full lg:max-w-[300px]">
         <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground/40" />
         <Input
-          placeholder="Rechercher un cours..."
+          placeholder={t("search")}
           value={
             (table.getColumn("nameCours")?.getFilterValue() as string) ?? ""
           }
@@ -38,10 +41,10 @@ export function DataTableToolbar<TData>({
         {table.getColumn("statusCours") ? (
           <DataTableFacetedFilter
             column={table.getColumn("statusCours")}
-            title="Statut"
+            title={tc("status")}
             options={[
-              { label: "Actif", value: "active" },
-              { label: "Inactif", value: "inactive" },
+              { label: tc("active"), value: "active" },
+              { label: tc("inactive"), value: "inactive" },
             ]}
             value={
               (table.getColumn("statusCours")?.getFilterValue() as string) ??
@@ -61,7 +64,7 @@ export function DataTableToolbar<TData>({
             onClick={() => table.resetColumnFilters()}
             className="h-10 border-border text-primary hover:bg-blue-50 hover:text-blue-800"
           >
-            Réinitialiser
+            {tc("reset")}
             <Cross2Icon className="ml-2 size-4" />
           </Button>
         ) : null}

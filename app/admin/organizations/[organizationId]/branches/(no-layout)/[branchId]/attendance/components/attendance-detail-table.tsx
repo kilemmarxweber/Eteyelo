@@ -1,8 +1,10 @@
 "use client";
 
 import { IconListDetails } from "@tabler/icons-react";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { intlLocaleFromUserLocale, normalizeUserLocale } from "@/lib/user-locale";
 import type { AttendanceReportRow } from "../attendance-report-types";
 
 function statusVariant(status: AttendanceReportRow["status"]) {
@@ -19,15 +21,18 @@ function statusVariant(status: AttendanceReportRow["status"]) {
 }
 
 export function AttendanceDetailTable({ rows }: { rows: AttendanceReportRow[] }) {
+  const t = useTranslations("attendance");
+  const locale = intlLocaleFromUserLocale(normalizeUserLocale(useLocale()));
+
   return (
     <Card className="overflow-hidden border-0 shadow-sm">
       <div className="flex items-center justify-between border-b px-5 py-4">
         <div className="flex items-center gap-2">
           <IconListDetails size={18} className="text-primary" />
-          <h3 className="font-semibold">Detail des presences</h3>
+          <h3 className="font-semibold">{t("detailTable.title")}</h3>
         </div>
         <span className="text-sm text-muted-foreground">
-          {rows.length} enregistrement(s)
+          {rows.length} {t("stats.records")}
         </span>
       </div>
 
@@ -35,19 +40,34 @@ export function AttendanceDetailTable({ rows }: { rows: AttendanceReportRow[] })
         <table className="min-w-full text-sm">
           <thead className="bg-muted/30 text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
-              <th className="px-5 py-3 font-medium">Date</th>
-              <th className="px-5 py-3 font-medium">Agent</th>
-              <th className="px-5 py-3 font-medium">Poste</th>
-              <th className="px-5 py-3 font-medium">Statut</th>
-              <th className="px-5 py-3 font-medium">Heure debut</th>
-              <th className="px-5 py-3 font-medium">Heure fin</th>
+              <th className="px-5 py-3 font-medium">
+                {t("detailTable.columns.date")}
+              </th>
+              <th className="px-5 py-3 font-medium">
+                {t("detailTable.columns.agent")}
+              </th>
+              <th className="px-5 py-3 font-medium">
+                {t("detailTable.columns.role")}
+              </th>
+              <th className="px-5 py-3 font-medium">
+                {t("detailTable.columns.status")}
+              </th>
+              <th className="px-5 py-3 font-medium">
+                {t("detailTable.columns.arrival")}
+              </th>
+              <th className="px-5 py-3 font-medium">
+                {t("detailTable.columns.departure")}
+              </th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-5 py-10 text-center text-muted-foreground">
-                  Aucun enregistrement pour cette periode.
+                <td
+                  colSpan={6}
+                  className="px-5 py-10 text-center text-muted-foreground"
+                >
+                  {t("detailTable.empty")}
                 </td>
               </tr>
             ) : (
@@ -55,7 +75,7 @@ export function AttendanceDetailTable({ rows }: { rows: AttendanceReportRow[] })
                 <tr key={row.id} className="border-t">
                   <td className="px-5 py-4 align-top">
                     <p className="font-semibold">
-                      {new Date(row.date).toLocaleDateString("fr-FR")}
+                      {new Date(row.date).toLocaleDateString(locale)}
                     </p>
                     <p className="text-xs text-muted-foreground">{row.dayLabel}</p>
                   </td>
@@ -74,7 +94,9 @@ export function AttendanceDetailTable({ rows }: { rows: AttendanceReportRow[] })
                   </td>
                   <td className="px-5 py-4 align-top capitalize">{row.poste}</td>
                   <td className="px-5 py-4 align-top">
-                    <Badge variant={statusVariant(row.status)}>{row.statusLabel}</Badge>
+                    <Badge variant={statusVariant(row.status)}>
+                      {row.statusLabel}
+                    </Badge>
                   </td>
                   <td className="px-5 py-4 align-top font-mono">
                     {row.arrival ?? "--:--:--"}

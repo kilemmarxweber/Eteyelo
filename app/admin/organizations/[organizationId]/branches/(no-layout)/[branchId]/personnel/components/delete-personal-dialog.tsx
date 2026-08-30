@@ -5,6 +5,7 @@ import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import * as React from "react";
 import { IconArchive, IconReload, IconTrash } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,8 @@ export function DeletePersonalDialog({
 }: DeletePersonalDialogProps) {
   const [isPending, startTransition] = useTransition();
   const { refresh } = useRefresh();
+  const t = useTranslations("users.staff.delete");
+  const tCommon = useTranslations("common");
 
   const handleConfirm = () => {
     startTransition(async () => {
@@ -53,26 +56,24 @@ export function DeletePersonalDialog({
             ids: personals.map((p) => p.id),
           });
           if (error) {
-            toast.error(error.message ?? "Erreur lors de la suppression");
+            toast.error(error.message ?? tCommon("errorDelete"));
             return;
           }
           if (!result?.ok) {
-            toast.error(result?.message ?? "Erreur lors de la suppression");
+            toast.error(result?.message ?? tCommon("errorDelete"));
             return;
           }
           toast.success(
             personals.length === 1
-              ? "Personnel désactivé dans la branche"
-              : "Personnels désactivés dans la branche",
+              ? t("deactivatedOne")
+              : t("deactivatedMany"),
           );
         } else {
           await archivePersonalAction({
             ids: personals.map((p) => p.id),
           });
           toast.success(
-            personals.length === 1
-              ? "Personnel archivé"
-              : "Personnels archivés",
+            personals.length === 1 ? t("archivedOne") : t("archivedMany"),
           );
         }
 
@@ -81,9 +82,7 @@ export function DeletePersonalDialog({
         props.onOpenChange?.(false);
       } catch {
         toast.error(
-          permanent
-            ? "Erreur lors de la suppression du personnel"
-            : "Erreur lors de l'archivage du personnel",
+          permanent ? tCommon("errorDelete") : tCommon("errorArchive"),
         );
       }
     });
@@ -101,7 +100,9 @@ export function DeletePersonalDialog({
             ) : (
               <IconArchive className="mr-2 size-4" aria-hidden="true" />
             )}
-            {permanent ? `Supprimer (${count})` : `Archiver (${count})`}
+            {permanent
+              ? `${tCommon("delete")} (${count})`
+              : `${tCommon("archive")} (${count})`}
           </Button>
         </DialogTrigger>
       ) : null}
@@ -110,29 +111,29 @@ export function DeletePersonalDialog({
           <DialogTitle>
             {permanent
               ? count === 1
-                ? "Désactiver le personnel dans cette branche ?"
-                : `Désactiver ${count} personnels dans cette branche ?`
+                ? t("deactivateOne")
+                : t("deactivateMany", { count })
               : count === 1
-                ? "Archiver le personnel ?"
-                : `Archiver ${count} personnels ?`}
+                ? t("archiveOne")
+                : t("archiveMany", { count })}
           </DialogTitle>
           <DialogDescription>
             {permanent
               ? count === 1
-                ? "Il ne sera plus visible dans cette branche, mais restera membre de l'organisation. Pointages et absences restent pour les rapports. Ses autres branches ne sont pas affectées."
-                : "Ils ne seront plus visibles dans cette branche, mais resteront membres de l'organisation. L'historique est conservé pour les rapports."
+                ? t("permanentDescOne")
+                : t("permanentDescMany")
               : count === 1
-                ? "Le personnel sera désactivé dans cette branche seulement. L'historique reste disponible pour les rapports."
-                : "Ces personnels seront désactivés dans cette branche seulement. L'historique reste disponible pour les rapports."}
+                ? t("archiveDescOne")
+                : t("archiveDescMany")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
           <DialogClose asChild>
-            <Button variant="outline">Annuler</Button>
+            <Button variant="outline">{tCommon("cancel")}</Button>
           </DialogClose>
           <Button
             aria-label={
-              permanent ? "Désactiver dans la branche" : "Archiver la sélection"
+              permanent ? t("deactivateInBranch") : tCommon("archiveSelection")
             }
             variant={permanent ? "destructive" : "outline"}
             onClick={handleConfirm}
@@ -144,7 +145,7 @@ export function DeletePersonalDialog({
                 aria-hidden="true"
               />
             )}
-            {permanent ? "Désactiver" : "Archiver"}
+            {permanent ? tCommon("deactivate") : tCommon("archive")}
           </Button>
         </DialogFooter>
       </DialogContent>

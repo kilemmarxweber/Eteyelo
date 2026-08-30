@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { useTranslations } from "next-intl";
 import { createParentAction, updateParentAction, updateParentExtraInfoAction } from "../parent.action";
 import { getTypeFraisAction } from "../../frais/frais.action";
 
@@ -35,6 +36,7 @@ import { parentSchema } from "@/src/interfaces/Parent";
 import generateUsername from "@/src/hooks/generateUsername";
 import type { ITypeFrais } from "@/src/interfaces/Frais";
 import { RegistrationExtraInfoFields } from "@/components/registration-extra-info-fields";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
 import {
   emptyFamilyExtraInfo,
@@ -67,6 +69,9 @@ export function ParentUpForm({
   const fieldClass = isDialog ? "space-y-0.5" : undefined;
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const t = useTranslations("users.parents.form");
+  const tCommon = useTranslations("common");
+  const peopleLabels = useBranchPeopleLabels();
   const [typeFraisOptions, setTypeFraisOptions] = useState<ITypeFrais[]>([]);
   const [familyExtra, setFamilyExtra] = useState<FamilyExtraInfo>(
     () => initialData?.familyExtra ?? emptyFamilyExtraInfo(),
@@ -160,10 +165,10 @@ export function ParentUpForm({
         }
 
         if (!result?.ok) {
-          throw new Error(result?.message || "Création impossible");
+          throw new Error(result?.message || t("createFailed"));
         }
 
-        toast.success("Parent créé avec succès");
+        toast.success(t("createSuccess"));
         form.reset({
           username: "",
           name: "",
@@ -196,22 +201,21 @@ export function ParentUpForm({
           if (extraErr) throw new Error(extraErr.message);
           if (!extraResult?.ok) {
             throw new Error(
-              extraResult?.message ??
-                "Mise à jour des autres informations impossible",
+              extraResult?.message ?? t("extraUpdateFailed"),
             );
           }
         }
 
-        toast.success("Parent mis à jour avec succès");
+        toast.success(t("updateSuccess"));
         onUpdated?.();
       }
 
       onSuccess?.();
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Une erreur est survenue";
+        error instanceof Error ? error.message : tCommon("errorGeneric");
       setErrorMessage(message);
-      toast.error("Erreur lors de l'opération");
+      toast.error(t("operationError"));
     } finally {
       setIsLoading(false);
     }
@@ -232,9 +236,9 @@ export function ParentUpForm({
               name="name"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Nom</FormLabel>
+                  <FormLabel>{tCommon("person.lastName")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nom" {...field} />
+                    <Input placeholder={tCommon("person.lastName")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -246,9 +250,9 @@ export function ParentUpForm({
               name="postnom"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Postnom</FormLabel>
+                  <FormLabel>{tCommon("person.postnom")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Postnom" {...field} />
+                    <Input placeholder={tCommon("person.postnom")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -260,9 +264,9 @@ export function ParentUpForm({
               name="prenom"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Prénom</FormLabel>
+                  <FormLabel>{tCommon("person.firstName")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Prénom" {...field} />
+                    <Input placeholder={tCommon("person.firstName")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -274,7 +278,7 @@ export function ParentUpForm({
               name="telephone"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Téléphone</FormLabel>
+                  <FormLabel>{tCommon("person.phone")}</FormLabel>
                   <FormControl>
                     <PhoneInput defaultCountry="CD" {...field} />
                   </FormControl>
@@ -288,16 +292,16 @@ export function ParentUpForm({
               name="sexe"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Sexe</FormLabel>
+                  <FormLabel>{tCommon("person.gender")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sexe" />
+                        <SelectValue placeholder={tCommon("person.gender")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent position="popper">
-                      <SelectItem value="masculin">Masculin</SelectItem>
-                      <SelectItem value="feminin">Féminin</SelectItem>
+                      <SelectItem value="masculin">{tCommon("person.male")}</SelectItem>
+                      <SelectItem value="feminin">{tCommon("person.female")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -310,7 +314,7 @@ export function ParentUpForm({
               name="dateOfBirth"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Date de naissance</FormLabel>
+                  <FormLabel>{tCommon("person.birthDate")}</FormLabel>
                   <FormControl>
                     <DateOfBirthPicker
                       value={field.value}
@@ -327,9 +331,9 @@ export function ParentUpForm({
               name="email"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{tCommon("person.email")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Email" {...field} />
+                    <Input placeholder={tCommon("person.email")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -341,9 +345,9 @@ export function ParentUpForm({
               name="address"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Adresse</FormLabel>
+                  <FormLabel>{tCommon("person.address")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Adresse complète" {...field} />
+                    <Input placeholder={t("fullAddress")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -362,7 +366,7 @@ export function ParentUpForm({
                   isDialog && "sm:col-span-2",
                 )}
               >
-                Réduction
+                {t("discount")}
               </p>
 
               {/* Scope */}
@@ -371,17 +375,17 @@ export function ParentUpForm({
                 name="discount.scope"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Type de réduction</FormLabel>
+                    <FormLabel>{t("discountType")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Type de réduction" />
+                          <SelectValue placeholder={t("discountType")} />
                         </SelectTrigger>
                       </FormControl>
                     <SelectContent position="popper">
-                      <SelectItem value="PARENT">Parent</SelectItem>
-                      <SelectItem value="GROUP">Groupe</SelectItem>
-                      <SelectItem value="ORPHAN">Orphelin</SelectItem>
+                      <SelectItem value="PARENT">{t("scopeParent")}</SelectItem>
+                      <SelectItem value="GROUP">{t("scopeGroup")}</SelectItem>
+                      <SelectItem value="ORPHAN">{t("scopeOrphan")}</SelectItem>
                     </SelectContent>
                     </Select>
                   </FormItem>
@@ -394,7 +398,7 @@ export function ParentUpForm({
                 name="discount.percentage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Pourcentage (%)</FormLabel>
+                    <FormLabel>{t("percentage")}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -431,14 +435,14 @@ export function ParentUpForm({
                   name="discount.typeFraisId"
                   render={({ field }) => (
                     <FormItem className={isDialog ? "sm:col-span-2" : undefined}>
-                      <FormLabel>Type de frais concerné par la remise</FormLabel>
+                      <FormLabel>{t("feeTypeForDiscount")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         value={field.value || undefined}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Choisir le type de frais" />
+                            <SelectValue placeholder={t("chooseFeeType")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent position="popper">
@@ -450,8 +454,7 @@ export function ParentUpForm({
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">
-                        La remise ne s&apos;appliquera qu&apos;aux frais de ce
-                        type lors des paiements.
+                        {t("discountHint")}
                       </p>
                       <FormMessage />
                     </FormItem>
@@ -466,7 +469,7 @@ export function ParentUpForm({
                   name="discount.minChildren"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nombre minimum d&apos;enfants</FormLabel>
+                      <FormLabel>{t("minChildren")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -516,11 +519,9 @@ export function ParentUpForm({
                 )}
               >
                 <div>
-                  <p className="text-sm font-medium">Autres informations</p>
+                  <p className="text-sm font-medium">{t("extraInfoTitle")}</p>
                   <p className="text-xs text-muted-foreground">
-                    Infos famille / origines du parent. Tous les enfants liés
-                    héritent de ces données. Nationalité et langue restent sur
-                    chaque élève.
+                    {t("extraInfoDesc", { studentLower: peopleLabels.studentLower })}
                   </p>
                 </div>
                 <RegistrationExtraInfoFields
@@ -537,7 +538,7 @@ export function ParentUpForm({
             ) : null}
             <div className={cn(isDialog && "sm:col-span-2")}>
               <Button type="submit" className="mt-1 w-full sm:w-auto" loading={isLoading}>
-                {mode === "create" ? "Enregistrer" : "Mettre à jour"}
+                {mode === "create" ? tCommon("save") : tCommon("update")}
               </Button>
               {errorMessage ? (
                 <p className="mt-2 text-center text-sm text-red-500">

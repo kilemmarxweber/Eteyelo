@@ -163,6 +163,7 @@ export const accessControlStatements = {
   platformSupport: ["create", "read", "update", "delete"],
   organizationSupport: ["create", "read", "update", "delete"],
   platformEscalation: ["create", "read", "update", "assign", "close"],
+  messaging: ["read", "send", "group", "manage"],
 } as const;
 
 type StatementShape = {
@@ -328,6 +329,15 @@ const CRUD_ACTIONS = ["create", "read", "update", "delete"] as const;
 const CREATE_READ_ACTIONS = ["create", "read"] as const;
 const READ_ACTIONS = ["read"] as const;
 
+/** Personnel / enseignants : lire, envoyer, créer un groupe. */
+const MESSAGING_STAFF = {
+  messaging: ["read", "send", "group"] as const,
+};
+/** Propriétaire : + nettoyage / modération. */
+const MESSAGING_OWNER = {
+  messaging: ["read", "send", "group", "manage"] as const,
+};
+
 const orgAdminWithoutDelete: StatementShape = {
   ...organizationPluginAdminAc.statements,
   organization: ["update"],
@@ -347,12 +357,14 @@ export const applicationRoleStatements: Record<string, StatementShape> = {
     platformSupport: ["create", "read", "update", "delete"],
     organizationSupport: ["create", "read", "update", "delete"],
     platformEscalation: ["create", "read", "update", "assign", "close"],
+    ...MESSAGING_OWNER,
   },
   [APP_ROLE.ADMIN]: {
     ...orgAdminWithoutDelete,
     schedule: ["create", "read", "update"],
     organizationSupport: ["create", "read", "update"],
     platformEscalation: ["read"],
+    ...MESSAGING_STAFF,
   },
   [APP_ROLE.PLATFORM_SUPPORT]: {
     ...organizationPluginAdminAc.statements,
@@ -378,6 +390,7 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     organization: ["update"],
     organizationSupport: ["create", "read", "update", "delete"],
     platformEscalation: ["read"],
+    ...MESSAGING_OWNER,
   },
   [ORG_ROLE.GESTIONNAIRE]: {
     // CRU : créer / lire / modifier / archiver. Jamais de suppression physique.
@@ -386,6 +399,7 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     ...withFinanceActions(CRU_ACTIONS),
     organizationSupport: ["create", "read", "update"],
     platformEscalation: ["read"],
+    ...MESSAGING_STAFF,
   },
   /**
    * Agent de bureau (membre de bureau) : comme le gestionnaire,
@@ -399,6 +413,7 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     }),
     organizationSupport: ["create", "read", "update"],
     platformEscalation: ["read"],
+    ...MESSAGING_STAFF,
   },
   /**
    * Préfet / Directeur (chef d’établissement) : CRU métier branche + RH + pédagogie.
@@ -408,10 +423,12 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
   [ORG_ROLE.PREFET]: {
     ...withBusinessActions(CRU_ACTIONS),
     ...withSchoolModuleActions(CRU_ACTIONS, { includeTeachingAssign: true }),
+    ...MESSAGING_STAFF,
   },
   [ORG_ROLE.DIRECTEUR]: {
     ...withBusinessActions(CRU_ACTIONS),
     ...withSchoolModuleActions(CRU_ACTIONS, { includeTeachingAssign: true }),
+    ...MESSAGING_STAFF,
   },
   /**
    * Directeur des études : CRU pédagogique (teacher / schedule / inscription / notes…).
@@ -426,6 +443,7 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     }),
     personnel: ["read"],
     parent: ["read"],
+    ...MESSAGING_STAFF,
   },
   [ORG_ROLE.TEACHER]: {
     ...organizationPluginMemberAc.statements,
@@ -440,11 +458,13 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     fiches: ["create", "read", "update"],
     ficheCentrale: ["create", "read", "update"],
     schedule: ["read"],
+    ...MESSAGING_STAFF,
   },
   [ORG_ROLE.SUPERVISEUR]: {
     ...withActions(CRUD_ACTIONS),
     ...withSchoolModuleActions(CRUD_ACTIONS, { includeTeachingAssign: true }),
     ...withFinanceActions(CRUD_ACTIONS),
+    ...MESSAGING_STAFF,
   },
   /**
    * Caissier : finance + inscription élèves (member:create pour comptes
@@ -463,6 +483,7 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     fees: ["read"],
     feeTypes: ["read"],
     exchangeRates: ["read"],
+    ...MESSAGING_STAFF,
   },
   [ORG_ROLE.STUDENT]: {
     ...organizationPluginMemberAc.statements,
@@ -486,6 +507,7 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     branch: ["read"],
     organizationSupport: ["read"],
     platformEscalation: ["create", "read"],
+    ...MESSAGING_STAFF,
   },
 };
 

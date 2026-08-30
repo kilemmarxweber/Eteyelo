@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ATTENDANCE_EXIT_REASON_OPTIONS } from "@/lib/attendance-exit";
 import type { AttendanceExitReason } from "@/prisma/generated/prisma/client";
 import {
   recordNormalCheckoutAction,
@@ -30,6 +30,13 @@ import {
   recordTeacherEarlyExitAction,
 } from "../attendance-exit.action";
 import type { AttendancePersonType } from "../attendance-scan-types";
+
+const EXIT_REASONS: AttendanceExitReason[] = [
+  "MALADIE",
+  "URGENCE",
+  "AUTORISE",
+  "AUTRE",
+];
 
 type Props = {
   open: boolean;
@@ -50,6 +57,8 @@ export function AttendanceCheckoutDialog({
   sessionLabel,
   onDone,
 }: Props) {
+  const t = useTranslations("attendance");
+  const tCommon = useTranslations("common");
   const [mode, setMode] = useState<"normal" | "early">("normal");
   const [reasonCode, setReasonCode] =
     useState<AttendanceExitReason>("MALADIE");
@@ -65,9 +74,9 @@ export function AttendanceCheckoutDialog({
           attendanceId,
         });
         if (error || !data) {
-          throw new Error(error?.message || "Impossible d'enregistrer la sortie.");
+          throw new Error(error?.message || t("checkout.saveFailed"));
         }
-        const message = `Sortie normale enregistrée pour ${personName}.`;
+        const message = t("checkout.normalSuccess", { personName });
         toast.success(message);
         onOpenChange(false);
         onDone?.(message);
@@ -83,9 +92,9 @@ export function AttendanceCheckoutDialog({
             : recordPersonnelEarlyExitAction;
       const [data, error] = await action(payload);
       if (error || !data) {
-        throw new Error(error?.message || "Impossible d'enregistrer la sortie.");
+        throw new Error(error?.message || t("checkout.saveFailed"));
       }
-      const message = `Sortie anticipée enregistrée pour ${personName}.`;
+      const message = t("checkout.earlySuccess", { personName });
       toast.success(message);
       onOpenChange(false);
       setReasonNote("");
@@ -93,23 +102,21 @@ export function AttendanceCheckoutDialog({
       onDone?.(message);
     } catch (e) {
       toast.error(
-        e instanceof Error ? e.message : "Erreur lors de l'enregistrement.",
+        e instanceof Error ? e.message : t("checkout.saveError"),
       );
     } finally {
       setPending(false);
     }
   }
 
+  const description = `${personName}${sessionLabel ? ` — ${sessionLabel}` : ""}. ${t("checkout.chooseMode")}`;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Encoder la sortie</DialogTitle>
-          <DialogDescription>
-            {personName}
-            {sessionLabel ? ` — ${sessionLabel}` : ""}. Choisissez une fin
-            normale ou une sortie anticipée avec motif.
-          </DialogDescription>
+          <DialogTitle>{t("checkout.title")}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 py-2">
@@ -119,21 +126,21 @@ export function AttendanceCheckoutDialog({
               variant={mode === "normal" ? "default" : "outline"}
               onClick={() => setMode("normal")}
             >
-              Fin normale
+              {t("checkout.normalEnd")}
             </Button>
             <Button
               type="button"
               variant={mode === "early" ? "default" : "outline"}
               onClick={() => setMode("early")}
             >
-              Sortie anticipée
+              {t("checkout.earlyExit")}
             </Button>
           </div>
 
           {mode === "early" ? (
             <>
               <div className="space-y-1.5">
-                <Label>Motif</Label>
+                <Label>{t("checkout.reason")}</Label>
                 <Select
                   value={reasonCode}
                   onValueChange={(value) =>
@@ -144,28 +151,27 @@ export function AttendanceCheckoutDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {ATTENDANCE_EXIT_REASON_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                    {EXIT_REASONS.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {t(`exitReasons.${value}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Précision (optionnel)</Label>
+                <Label>{t("checkout.noteOptional")}</Label>
                 <Textarea
                   value={reasonNote}
                   onChange={(event) => setReasonNote(event.target.value)}
-                  placeholder="Ex. fièvre, urgence, autorisation parentale…"
+                  placeholder={t("checkout.notePlaceholder")}
                   rows={3}
                 />
               </div>
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
-              La sortie sera enregistrée sans motif (fin de vacation / fin de
-              cours / fin de journée).
+              {t("checkout.normalHint")}
             </p>
           )}
         </div>
@@ -177,10 +183,10 @@ export function AttendanceCheckoutDialog({
             onClick={() => onOpenChange(false)}
             disabled={pending}
           >
-            Annuler
+            {tCommon("cancel")}
           </Button>
           <Button type="button" onClick={() => void submit()} disabled={pending}>
-            {pending ? "Enregistrement…" : "Confirmer la sortie"}
+            {pending ? t("checkout.saving") : t("checkout.confirmCheckout")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -90,7 +90,7 @@ test("élève : dashboard, results, library — pas grades/schedule/sheets / fin
   assertIncludes(titles, ["dashboard", "cursus", "help"], "élève");
   assertExcludes(
     titles,
-    ["finance", "users", "classes", "registration", "teaching", "candidatures", "myPresence"],
+    ["finance", "users", "classes", "registration", "teaching", "candidatures", "myPresence", "messaging"],
     "élève",
   );
   assertIncludes(cursus, ["results", "library"], "élève cursus");
@@ -117,7 +117,7 @@ test("parent : dashboard + results — pas grades/schedule/homework/library / fi
   assertIncludes(titles, ["dashboard", "cursus", "help"], "parent");
   assertExcludes(
     titles,
-    ["finance", "users", "classes", "registration", "teaching", "myPresence"],
+    ["finance", "users", "classes", "registration", "teaching", "myPresence", "messaging"],
     "parent",
   );
   assertIncludes(cursus, ["results"], "parent cursus");
@@ -133,7 +133,7 @@ test("enseignant : pas teaching / users ; cursus grades/results/library ; dossie
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);
 
-  assertIncludes(titles, ["dashboard", "cursus", "attendance", "myPresence", "help"], "enseignant");
+  assertIncludes(titles, ["dashboard", "cursus", "myPresence", "help"], "enseignant");
   assertExcludes(
     titles,
     [
@@ -143,6 +143,7 @@ test("enseignant : pas teaching / users ; cursus grades/results/library ; dossie
       "candidatures",
       "teaching",
       "users",
+      "messaging",
     ],
     "enseignant",
   );
@@ -205,7 +206,7 @@ test("owner : large accès — sans Ma présence / pointage perso", () => {
     ],
     "owner",
   );
-  assertExcludes(titles, ["myPresence"], "owner");
+  assertExcludes(titles, ["myPresence", "messaging"], "owner");
 });
 
 test("gestionnaire garde le large (y compris Ma présence)", () => {
@@ -227,6 +228,7 @@ test("gestionnaire garde le large (y compris Ma présence)", () => {
     ],
     "gestionnaire",
   );
+  assertExcludes(titles, ["messaging"], "gestionnaire");
 });
 
 test("enseignant titulaire voit centralSheet / sheets", () => {

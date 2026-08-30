@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { IconDots } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/custom/button";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
@@ -31,18 +32,26 @@ import { ResetUsersDialog } from "../../student/components/reset-users-dialog";
 import { DeleteTeacherDialog } from "./delete-teacher-dialog";
 import { DetailsTeacherDialog } from "./details-teacher-dialog";
 import { MakeTeacherPersonnelDialog } from "./make-teacher-personnel-dialog";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 
 export type TeacherTableActions = {
   onEdit: (teacher: ITeacher) => void;
 };
 
-export const createTeacherColumns = (
+export function useTeacherColumns(
   onRefresh?: () => void,
   canManageTeachers = true,
   actions?: TeacherTableActions,
   canPurgePermanently = false,
-): ColumnDef<ITeacher>[] => [
+): ColumnDef<ITeacher>[] {
+  const t = useTranslations("users.teachers.table");
+  const tCommon = useTranslations("common");
+  const tPerson = useTranslations("common.person");
+  const peopleLabels = useBranchPeopleLabels();
+
+  return useMemo(
+    () => [
   {
     id: "select",
     header: ({ table }) => (
@@ -52,14 +61,14 @@ export const createTeacherColumns = (
           (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
+        aria-label={tCommon("selectAll")}
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
+        aria-label={tCommon("selectRow")}
       />
     ),
     enableSorting: false,
@@ -68,7 +77,7 @@ export const createTeacherColumns = (
   {
     accessorKey: "nom",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nom" />
+      <DataTableColumnHeader column={column} title={tPerson("lastName")} />
     ),
     cell: ({ row }) => {
       const fullName =
@@ -92,7 +101,7 @@ export const createTeacherColumns = (
           <div className="min-w-0">
             <p className="truncate font-medium">{fullName}</p>
             <p className="truncate text-xs text-muted-foreground">
-              {row.original.username || row.original.email || "Enseignant"}
+              {row.original.username || row.original.email || peopleLabels.teacher}
             </p>
           </div>
         </div>
@@ -114,20 +123,20 @@ export const createTeacherColumns = (
   {
     accessorKey: "assignmentStatus",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Affectation" />
+      <DataTableColumnHeader column={column} title={t("assignment")} />
     ),
     cell: ({ row }) => {
       const assigned = row.original.assignmentStatus === "assigned";
       return assigned ? (
         <Badge variant="success">
-          Affecte · {row.original.assignmentCount ?? 0}
+          {t("assigned")} · {row.original.assignmentCount ?? 0}
         </Badge>
       ) : (
         <div className="flex items-center gap-2">
-          <Badge variant="warning">Non affecte</Badge>
+          <Badge variant="warning">{t("unassigned")}</Badge>
           {canManageTeachers ? (
             <Button variant="outline" size="xs" asChild>
-              <Link href="../teaching">Affecter</Link>
+              <Link href="../teaching">{t("assignLink")}</Link>
             </Button>
           ) : null}
         </div>
@@ -140,15 +149,20 @@ export const createTeacherColumns = (
     id: "classNames",
     accessorFn: (teacher) => teacher.classNames ?? [],
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Classes" />
+      <DataTableColumnHeader column={column} title={t("classes")} />
     ),
     cell: ({ row }) => {
       const names = row.original.classNames ?? [];
       return names.length ? (
         <AssignmentListPopover
-          label={`${names.length} classe${names.length > 1 ? "s" : ""}`}
-          title="Classes assignées"
+          label={
+            names.length > 1
+              ? t("classCountPlural", { count: names.length })
+              : t("classCount", { count: names.length })
+          }
+          title={t("classesAssigned")}
           names={names}
+          itemCountLabel={t("assignmentCount", { count: names.length })}
         />
       ) : (
         <span className="text-muted-foreground">—</span>
@@ -165,15 +179,16 @@ export const createTeacherColumns = (
     id: "courseNames",
     accessorFn: (teacher) => teacher.courseNames ?? [],
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Cours" />
+      <DataTableColumnHeader column={column} title={t("courses")} />
     ),
     cell: ({ row }) => {
       const names = row.original.courseNames ?? [];
       return names.length ? (
         <AssignmentListPopover
-          label={`${names.length} cours`}
-          title="Cours assignés"
+          label={t("courseCount", { count: names.length })}
+          title={t("coursesAssigned")}
           names={names}
+          itemCountLabel={t("assignmentCount", { count: names.length })}
         />
       ) : (
         <span className="text-muted-foreground">—</span>
@@ -189,7 +204,7 @@ export const createTeacherColumns = (
   {
     accessorKey: "telephone",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Telephone" />
+      <DataTableColumnHeader column={column} title={tPerson("phone")} />
     ),
     cell: ({ row }) => (
       <Link
@@ -203,7 +218,7 @@ export const createTeacherColumns = (
   {
     accessorKey: "email",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="E-mail" />
+      <DataTableColumnHeader column={column} title={tPerson("email")} />
     ),
     cell: ({ row }) => (
       <Link
@@ -281,7 +296,7 @@ export const createTeacherColumns = (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
-                aria-label="Open menu"
+                aria-label={tCommon("openMenu")}
                 variant="ghost"
                 className="flex size-8 p-0 data-[state=open]:bg-muted"
               >
@@ -290,7 +305,7 @@ export const createTeacherColumns = (
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onSelect={() => setShowDetailsTaskDialog(true)}>
-                Details
+                {t("details")}
               </DropdownMenuItem>
               {canManageTeachers ? (
                 <>
@@ -303,18 +318,18 @@ export const createTeacherColumns = (
                       );
                     }}
                   >
-                    Modifier
+                    {t("edit")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onSelect={() => setShowResetTaskDialog(true)}
                   >
-                    Reinitialiser
+                    {t("resetPassword")}
                   </DropdownMenuItem>
                   {!isArchived && !row.original.alsoPersonnel ? (
                     <DropdownMenuItem
                       onSelect={() => setShowMakePersonnelDialog(true)}
                     >
-                      Rendre personnel
+                      {t("convertPersonnel")}
                     </DropdownMenuItem>
                   ) : null}
                   <DropdownMenuSeparator />
@@ -322,7 +337,7 @@ export const createTeacherColumns = (
                     <DropdownMenuItem
                       onSelect={() => setShowDeleteTaskDialog(true)}
                     >
-                      Archiver
+                      {tCommon("archive")}
                       <DropdownMenuShortcut>Del</DropdownMenuShortcut>
                     </DropdownMenuItem>
                   ) : null}
@@ -331,7 +346,7 @@ export const createTeacherColumns = (
                       className="text-red-600 focus:text-red-600"
                       onSelect={() => setShowPurgeTaskDialog(true)}
                     >
-                      Supprimer
+                      {tCommon("delete")}
                       <DropdownMenuShortcut>⇧Del</DropdownMenuShortcut>
                     </DropdownMenuItem>
                   ) : null}
@@ -343,16 +358,33 @@ export const createTeacherColumns = (
       );
     },
   },
-];
+],
+    [
+      t,
+      tCommon,
+      tPerson,
+      peopleLabels.teacher,
+      onRefresh,
+      canManageTeachers,
+      actions,
+      canPurgePermanently,
+    ],
+  );
+}
+
+/** @deprecated Use useTeacherColumns() hook instead */
+export const columns: ColumnDef<ITeacher>[] = [];
 
 function AssignmentListPopover({
   label,
   title,
   names,
+  itemCountLabel,
 }: {
   label: string;
   title: string;
   names: string[];
+  itemCountLabel: string;
 }) {
   return (
     <Popover>
@@ -369,7 +401,7 @@ function AssignmentListPopover({
       <PopoverContent align="start" className="w-64 p-0">
         <div className="border-b px-3 py-2">
           <p className="text-sm font-semibold">{title}</p>
-          <p className="text-xs text-muted-foreground">{names.length} élément(s)</p>
+          <p className="text-xs text-muted-foreground">{itemCountLabel}</p>
         </div>
         <div className="max-h-56 overflow-y-auto p-2">
           {names.map((name, index) => (
@@ -386,4 +418,6 @@ function AssignmentListPopover({
   );
 }
 
-export const columns = createTeacherColumns();
+}
+
+function AssignmentListPopover({

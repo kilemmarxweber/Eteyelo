@@ -1,5 +1,6 @@
 {
   "dashboard": "Painel",
+  "messaging": "Mensagens",
   "registration": "Registo",
   "attendance": "Presenças",
   "myPresence": "A minha presença",
@@ -28,7 +29,7 @@
   "programmes": "Programas",
   "modules": "Módulos",
   "faculties": "Faculdades",
-  "tracks": "Filiações",
+  "tracks": "Ramos",
   "class": "Turma",
   "group": "Grupo",
   "session": "Sessão",

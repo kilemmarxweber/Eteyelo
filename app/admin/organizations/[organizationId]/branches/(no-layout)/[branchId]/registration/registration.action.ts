@@ -763,6 +763,40 @@ export const getRegistrationOptionsAction = action.handler(async () => {
   };
 });
 
+export const getActiveFraisForDiscountPreviewAction = action
+  .input(
+    z.object({
+      classeId: z.string().min(1),
+      schoolYearId: z.string().min(1),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const { branchId } = await requireRegistrationContext();
+    const frais = await prisma.frais.findMany({
+      where: {
+        branchId,
+        classeId: input.classeId,
+        statusFrais: true,
+        OR: [
+          { schoolYearId: input.schoolYearId },
+          { schoolYearId: null },
+        ],
+      },
+      select: {
+        id: true,
+        nameFrais: true,
+        montantFrais: true,
+        typeFraisId: true,
+      },
+    });
+    return frais.map((item) => ({
+      id: item.id,
+      nameFrais: item.nameFrais,
+      montant: Number(item.montantFrais),
+      typeFraisId: item.typeFraisId,
+    }));
+  });
+
 export const createCreneauForRegistrationAction = action
   .input(creneauSchema)
   .handler(async ({ input }) => {

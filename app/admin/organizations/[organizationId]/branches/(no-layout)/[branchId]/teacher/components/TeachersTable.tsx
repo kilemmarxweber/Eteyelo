@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import type { Table } from "@tanstack/react-table";
-import { createTeacherColumns } from "./columns";
+import { useTeacherColumns } from "./columns";
 import { ResponsiveDataTable } from "@/components/custom";
 import { TableSkeleton } from "@/components/custom";
 import { EmptyTableState } from "@/components/custom";
@@ -14,6 +14,7 @@ import { DataTableToolbar } from "./data-table-toolbar";
 import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { UpdateTeacherDialog } from "./edit-teacher-dialog";
+import { useTranslations } from "next-intl";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { sortActiveStatusUserFirst } from "@/lib/archive";
 import { cycleLabel, type SchoolCycle } from "@/lib/cycle";
@@ -72,6 +73,10 @@ const TeachersList = ({
   const hasLoadedOnce = useRef(false);
   const { refreshKey: contextRefreshKey } = useRefresh();
   const peopleLabels = useBranchPeopleLabels();
+  const t = useTranslations("users.teachers");
+  const tTable = useTranslations("users.teachers.table");
+  const tPerson = useTranslations("common.person");
+  const tCommon = useTranslations("common");
   const params = useParams<{ organizationId: string; branchId: string }>();
   const router = useRouter();
 
@@ -91,15 +96,11 @@ const TeachersList = ({
     [],
   );
 
-  const columns = useMemo(
-    () =>
-      createTeacherColumns(
-        onRefresh,
-        canManageTeachers,
-        tableActions,
-        canPurgePermanently,
-      ),
-    [canManageTeachers, canPurgePermanently, onRefresh, tableActions],
+  const columns = useTeacherColumns(
+    onRefresh,
+    canManageTeachers,
+    tableActions,
+    canPurgePermanently,
   );
 
   const TeacherToolbar = useMemo(() => {
@@ -173,9 +174,7 @@ const TeachersList = ({
 
       const [rawTeachers, err] = await getTeachersAction();
       if (err) {
-        throw new Error(
-          err.message || `Erreur lors du chargement des ${peopleLabels.teacherPluralLower}`,
-        );
+        throw new Error(err.message || tTable("loadError", { teachersLower: peopleLabels.teacherPluralLower }));
       }
 
       setTeachers(rawTeachers);
@@ -191,7 +190,7 @@ const TeachersList = ({
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [peopleLabels.teacherPluralLower]);
+  }, [peopleLabels.teacherPluralLower, tTable]);
 
   useEffect(() => {
     void fetchTeachers();
@@ -234,7 +233,7 @@ const TeachersList = ({
           <Alert variant="destructive">
             <IconAlertCircle className="h-4 w-4" />
             <AlertDescription>
-              {error}. Veuillez réessayer plus tard.
+              {error}. {tTable("retryLater")}
             </AlertDescription>
           </Alert>
         </div>
@@ -248,16 +247,16 @@ const TeachersList = ({
         {dialogs}
         <div className="p-6">
           <EmptyTableState
-            title={`Aucun ${peopleLabels.teacherLower} enregistré`}
+            title={tTable("emptyTitle", { teacherLower: peopleLabels.teacherLower })}
             description={
               supportsStaffImport
-                ? `Créez ou importez un ${peopleLabels.teacherLower} depuis une autre branche pour commencer.`
-                : `Ajoutez votre premier ${peopleLabels.teacherLower} pour commencer.`
+                ? tTable("emptyImportDesc", { teacherLower: peopleLabels.teacherLower })
+                : tTable("emptyAddDesc", { teacherLower: peopleLabels.teacherLower })
             }
             icon={<IconUsers className="h-10 w-10 text-muted-foreground" />}
             actionLabel={
               supportsStaffImport && canManageTeachers
-                ? `Importer un ${peopleLabels.teacherLower}`
+                ? t("importOne", { teacher: peopleLabels.teacherLower })
                 : undefined
             }
             onAction={
@@ -284,8 +283,11 @@ const TeachersList = ({
           data={displayedTeachers}
           emptyText={
             cycleFilter === "all"
-              ? `Aucun ${peopleLabels.teacherLower} ajouté`
-              : `Aucun ${peopleLabels.teacherLower} avec un cours en ${cycleLabel(cycleFilter)}`
+              ? tTable("noResults", { teacherLower: peopleLabels.teacherLower })
+              : tTable("noResultsCycle", {
+                  teacherLower: peopleLabels.teacherLower,
+                  cycle: cycleLabel(cycleFilter),
+                })
           }
           mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}
           mobileCardSubtitle={(row) => row.username ?? ""}
@@ -293,18 +295,18 @@ const TeachersList = ({
           mobileCardBadges={(row) =>
             [
               {
-                label: row.sexe === "M" ? "Masculin" : "Féminin",
+                label: row.sexe === "M" ? tPerson("male") : tPerson("female"),
                 variant: "secondary" as const,
               },
               {
-                label: row.telephone || "Téléphone non défini",
+                label: row.telephone || tTable("phoneUndefined"),
                 variant: "outline" as const,
               },
               {
                 label:
                   row.assignmentStatus === "assigned"
-                    ? `${row.assignmentCount ?? 0} affectation(s)`
-                    : "Non affecte",
+                    ? tTable("assignmentCount", { count: row.assignmentCount ?? 0 })
+                    : tTable("unassigned"),
                 variant:
                   row.assignmentStatus === "assigned"
                     ? ("default" as const)

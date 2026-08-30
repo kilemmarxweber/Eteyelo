@@ -23,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useTranslations } from "next-intl";
 import type { CursusStudentRef } from "@/lib/auth/cursus-scope";
 import type { StudentNotesReadData } from "@/lib/student-notes-read";
 
@@ -44,6 +45,7 @@ export default function NotesReadClient({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const t = useTranslations("cursus.notes");
 
   const onSelectChild = (studentId: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -53,15 +55,15 @@ export default function NotesReadClient({
 
   return (
     <BranchPageShell
-      title="Mes notes"
+      title={t("mine")}
           description={
             role === "parent"
-              ? `Consultation des notes (${studentLabel.toLowerCase()} lié) — cours déjà notés uniquement.`
-              : "Consultation de vos notes — uniquement les cours déjà notés."
+              ? t("mineDescParent", { student: studentLabel.toLowerCase() })
+              : t("mineDescStudent")
           }
           badge={
             <Badge variant="outline-primary" icon={<IconNotes size={14} />}>
-              Lecture seule
+              {t("readOnly")}
             </Badge>
           }
     >
@@ -72,7 +74,7 @@ export default function NotesReadClient({
             </span>
             <Select value={data.studentId} onValueChange={onSelectChild}>
               <SelectTrigger>
-                <SelectValue placeholder={`Choisir un ${studentLabel.toLowerCase()}`} />
+                <SelectValue placeholder={t("chooseStudent", { student: studentLabel.toLowerCase() })} />
               </SelectTrigger>
               <SelectContent>
                 {childrenOptions.map((child) => (
@@ -90,24 +92,24 @@ export default function NotesReadClient({
           <div className="mb-4 flex flex-col gap-1">
             <p className="text-sm font-semibold">{data.studentName}</p>
             <p className="text-xs text-muted-foreground">
-              {data.classLabel ?? "Aucune classe assignée"}
+              {data.classLabel ?? t("noClass")}
             </p>
           </div>
 
           {data.entries.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              Aucune note publiée pour le moment.
+              {t("empty")}
             </p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Cours</TableHead>
-                    <TableHead>Période</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Note</TableHead>
-                    <TableHead>Commentaire</TableHead>
+                    <TableHead>{t("course")}</TableHead>
+                    <TableHead>{t("period")}</TableHead>
+                    <TableHead>{t("type")}</TableHead>
+                    <TableHead>{t("grade")}</TableHead>
+                    <TableHead>{t("comment")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -133,9 +135,9 @@ export default function NotesReadClient({
           )}
 
           <p className="mt-4 text-xs text-muted-foreground">
-            La saisie des notes est réservée aux enseignants.{" "}
+            {t("entryReserved")}{" "}
             <Link href={resultsHref} className="underline">
-              Voir les résultats
+              {t("viewResults")}
             </Link>
           </p>
         </Card>

@@ -41,6 +41,7 @@
     "test:post-login-routing": "tsx scripts/test-post-login-routing.ts",
     "test:support-etablissement": "tsx scripts/test-support-etablissement.ts",
     "test:organizations": "pnpm test:organizations-permissions && pnpm test:post-login-routing",
+    "test:messaging": "tsx scripts/test-messaging-policy.ts",
     "test": "pnpm test:organizations && pnpm test:bulletin",
     "migrate:org-roles": "tsx scripts/migrate-organization-roles.ts",
     "migrate:org-roles:dry-run": "tsx scripts/migrate-organization-roles.ts --dry-run",

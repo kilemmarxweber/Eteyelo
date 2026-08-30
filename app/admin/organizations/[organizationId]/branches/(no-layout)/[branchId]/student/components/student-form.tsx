@@ -30,6 +30,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useLocale, useTranslations } from "next-intl";
 import { createStudentAction, updateStudentAction, updateStudentExtraInfoAction } from "../student.action";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { hidesParentManagement } from "@/lib/branch-capabilities";
@@ -92,6 +93,9 @@ export function StudentUpForm({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const peopleLabels = useBranchPeopleLabels();
+  const t = useTranslations("users.students.form");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const { data: session } = useSession();
   const hidesParent = hidesParentManagement(session?.branch?.typebranch);
   const formSchema = useMemo(
@@ -100,9 +104,9 @@ export function StudentUpForm({
         ? studentFormSchemaBase
         : studentFormSchemaBase.refine((data) => Boolean(data.parentId?.trim()), {
             path: ["parentId"],
-            message: "Veuillez selectionner un parent",
+            message: t("parentRequired"),
           }),
-    [hidesParent, mode],
+    [hidesParent, mode, t],
   );
   const [Parents, setParents] = useState<IParent[]>([]);
   const [studentExtra, setStudentExtra] = useState<StudentExtraInfo>(
@@ -177,7 +181,7 @@ export function StudentUpForm({
         if (err) throw new Error(err.message);
         if (!result?.ok) throw new Error(result?.message);
 
-        toast.success(`${peopleLabels.student} créé avec succès`);
+        toast.success(t("createSuccess", { student: peopleLabels.student }));
         form.reset({
           username: "",
           name: "",
@@ -210,13 +214,12 @@ export function StudentUpForm({
           if (extraErr) throw new Error(extraErr.message);
           if (!extraResult?.ok) {
             throw new Error(
-              extraResult?.message ??
-                "Mise à jour des autres informations impossible",
+              extraResult?.message ?? t("extraUpdateFailed"),
             );
           }
         }
 
-        toast.success(`${peopleLabels.student} mis à jour avec succès`);
+        toast.success(t("updateSuccess", { student: peopleLabels.student }));
         onUpdated?.();
         onStudentUpdate?.();
       }
@@ -224,12 +227,12 @@ export function StudentUpForm({
       onSuccess?.();
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Une erreur est survenue";
+        error instanceof Error ? error.message : tCommon("errorGeneric");
       setErrorMessage(message);
       toast.error(
         mode === "create"
-          ? `Échec de la création de l'${peopleLabels.studentLower}`
-          : `Échec de la mise à jour de l'${peopleLabels.studentLower}`,
+          ? t("createFailed", { studentLower: peopleLabels.studentLower })
+          : t("updateFailed", { studentLower: peopleLabels.studentLower }),
       );
     } finally {
       setIsLoading(false);
@@ -255,7 +258,7 @@ export function StudentUpForm({
               name="name"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Nom</FormLabel>
+                  <FormLabel>{tCommon("person.lastName")}</FormLabel>
                   <FormControl>
                     <Input placeholder={peopleLabels.namePlaceholder} {...field} />
                   </FormControl>
@@ -269,7 +272,7 @@ export function StudentUpForm({
               name="postnom"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Postnom</FormLabel>
+                  <FormLabel>{tCommon("person.postnom")}</FormLabel>
                   <FormControl>
                     <Input placeholder={peopleLabels.postnomPlaceholder} {...field} />
                   </FormControl>
@@ -283,7 +286,7 @@ export function StudentUpForm({
               name="prenom"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Prénom</FormLabel>
+                  <FormLabel>{tCommon("person.firstName")}</FormLabel>
                   <FormControl>
                     <Input placeholder={peopleLabels.prenomPlaceholder} {...field} />
                   </FormControl>
@@ -297,16 +300,16 @@ export function StudentUpForm({
               name="sexe"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Sexe</FormLabel>
+                  <FormLabel>{tCommon("person.gender")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez le sexe" />
+                        <SelectValue placeholder={t("selectGender")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent position="popper">
-                      <SelectItem value="masculin">Masculin</SelectItem>
-                      <SelectItem value="feminin">Féminin</SelectItem>
+                      <SelectItem value="masculin">{tCommon("person.male")}</SelectItem>
+                      <SelectItem value="feminin">{tCommon("person.female")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -319,9 +322,9 @@ export function StudentUpForm({
               name="placeOfBirth"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Lieu de naissance (facultatif)</FormLabel>
+                  <FormLabel>{t("birthPlaceOptional")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ville ou territoire" {...field} />
+                    <Input placeholder={t("birthPlacePlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -333,7 +336,7 @@ export function StudentUpForm({
               name="dateOfBirth"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Date de naissance</FormLabel>
+                  <FormLabel>{tCommon("person.birthDate")}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -346,13 +349,13 @@ export function StudentUpForm({
                           )}
                         >
                           {field.value ? (
-                            new Date(field.value).toLocaleDateString("fr-FR", {
+                            new Date(field.value).toLocaleDateString(locale, {
                               year: "numeric",
                               month: "2-digit",
                               day: "2-digit",
                             })
                           ) : (
-                            <span>Choisir une date</span>
+                            <span>{t("chooseDate")}</span>
                           )}
                           <IconCalendar className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -383,7 +386,7 @@ export function StudentUpForm({
               name="address"
               render={({ field }) => (
                 <FormItem className={cn(fieldClass, isDialog && "sm:col-span-2")}>
-                  <FormLabel>Adresse</FormLabel>
+                  <FormLabel>{tCommon("person.address")}</FormLabel>
                   <FormControl>
                     <Input placeholder={peopleLabels.addressPlaceholder} {...field} />
                   </FormControl>
@@ -398,10 +401,10 @@ export function StudentUpForm({
                 name="username"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel>Code d'acces</FormLabel>
+                    <FormLabel>{t("accessCode")}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Votre Code d'acces"
+                        placeholder={t("accessCodePlaceholder")}
                         {...field}
                         disabled
                       />
@@ -415,7 +418,7 @@ export function StudentUpForm({
                 name="telephone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Téléphone</FormLabel>
+                    <FormLabel>{tCommon("person.phone")}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="+243812345678"
@@ -445,7 +448,7 @@ export function StudentUpForm({
                 name="email"
                 render={({ field }) => (
                   <FormItem className="w-1/2">
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{tCommon("person.email")}</FormLabel>
                     <FormControl>
                       <Input placeholder="Email" {...field} />
                     </FormControl>
@@ -458,12 +461,12 @@ export function StudentUpForm({
                 name="category"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel>Category</FormLabel>
+                    <FormLabel>{t("category")}</FormLabel>
 
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Choisir une catégorie" />
+                          <SelectValue placeholder={t("chooseCategory")} />
                         </SelectTrigger>
                       </FormControl>
 
@@ -495,7 +498,7 @@ export function StudentUpForm({
               name="parentId"
               render={({ field }) => (
                 <FormItem className={cn(fieldClass, isDialog && "sm:col-span-2")}>
-                  <FormLabel>Parent</FormLabel>
+                  <FormLabel>{t("parentLabel")}</FormLabel>
                   <FormControl>
                     <SearchableSelect
                       searchable
@@ -516,9 +519,9 @@ export function StudentUpForm({
                       }))}
                       value={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Sélectionner un parent"
-                      searchPlaceholder="Rechercher un parent…"
-                      emptyMessage="Aucun parent trouvé."
+                      placeholder={t("selectParent")}
+                      searchPlaceholder={t("searchParent")}
+                      emptyMessage={t("noParentFound")}
                     />
                   </FormControl>
                   <FormMessage />
@@ -535,11 +538,9 @@ export function StudentUpForm({
                 )}
               >
                 <div>
-                  <p className="text-sm font-medium">Autres informations</p>
+                  <p className="text-sm font-medium">{t("extraInfoTitle")}</p>
                   <p className="text-xs text-muted-foreground">
-                    Nationalité et langue propres à cet élève. Les infos famille
-                    / origines se gèrent sur la fiche parent (partagées par tous
-                    les enfants).
+                    {t("extraInfoDesc", { student: peopleLabels.studentLower })}
                   </p>
                 </div>
                 <RegistrationExtraInfoFields

@@ -14,11 +14,26 @@ import type { IStudent } from "@/src/interfaces/Student";
 export type ParentSexeFilter = "masculin" | "feminin" | "M" | "F";
 export type ParentStatusFilter = "active" | "archived";
 
+export type ParentPdfLabels = {
+  listTitle: string;
+  activePlural: string;
+  archivedPlural: string;
+  masculine: string;
+  feminine: string;
+  none: string;
+  colIndex: string;
+  colParentName: string;
+  colContact: string;
+  colChildrenDetail: string;
+  parentCount: string;
+  filterGender: string;
+  filterStatus: string;
+};
+
 export type ParentReportOptions = {
-  /** Filtre sexe UI si un seul statut actif. */
   sexe?: ParentSexeFilter | null;
-  /** Filtre archivage UI si un seul statut actif. */
   status?: ParentStatusFilter | null;
+  labels: ParentPdfLabels;
 };
 
 function safeFilePart(value: string) {
@@ -30,13 +45,16 @@ function safeFilePart(value: string) {
     .toLowerCase();
 }
 
-function sexeLabel(sexe: ParentSexeFilter): string {
-  if (sexe === "M" || sexe === "masculin") return "Masculin";
-  return "Féminin";
+function sexeLabel(sexe: ParentSexeFilter, labels: ParentPdfLabels): string {
+  if (sexe === "M" || sexe === "masculin") return labels.masculine;
+  return labels.feminine;
 }
 
-function statusLabel(status: ParentStatusFilter): string {
-  return status === "active" ? "Actifs" : "Archivés";
+function statusLabel(
+  status: ParentStatusFilter,
+  labels: ParentPdfLabels,
+): string {
+  return status === "active" ? labels.activePlural : labels.archivedPlural;
 }
 
 function formatFullName(parent: IParent): string {
@@ -59,11 +77,11 @@ function formatChildName(student: IStudent): string {
   );
 }
 
-function formatChildren(parent: IParent): string {
+function formatChildren(parent: IParent, noneLabel: string): string {
   const children = (parent.students ?? []).filter(
     (student) => student.statusUser !== false,
   );
-  if (children.length === 0) return "Aucun";
+  if (children.length === 0) return noneLabel;
 
   return children
     .map((student) => {
@@ -74,44 +92,42 @@ function formatChildren(parent: IParent): string {
     .join("\n");
 }
 
-/** Titre PDF aligné sur l'intention des filtres UI. */
-export function buildParentsReportTitle(
-  options: ParentReportOptions = {},
-): string {
+export function buildParentsReportTitle(options: ParentReportOptions): string {
+  const { labels } = options;
   const sexe = options.sexe ?? null;
   const status = options.status ?? null;
-  let title = "Liste des parents / tuteurs";
+  let title = labels.listTitle;
 
   if (status) {
-    title = `${title} — ${statusLabel(status)}`;
+    title = `${title} — ${statusLabel(status, labels)}`;
   }
 
   if (sexe) {
-    title = `${title} — ${sexeLabel(sexe)}`;
+    title = `${title} — ${sexeLabel(sexe, labels)}`;
   }
 
   return title;
 }
 
-/** Libellés des filtres actifs (pour sous-titre / métadonnées). */
 export function buildParentsReportFilterLabels(
-  options: ParentReportOptions = {},
+  options: ParentReportOptions,
 ): string[] {
-  const labels: string[] = [];
+  const { labels } = options;
+  const result: string[] = [];
   const sexe = options.sexe ?? null;
   const status = options.status ?? null;
 
   if (status) {
-    labels.push(`Statut : ${statusLabel(status)}`);
+    result.push(`${labels.filterStatus} ${statusLabel(status, labels)}`);
   }
   if (sexe) {
-    labels.push(`Sexe : ${sexeLabel(sexe)}`);
+    result.push(`${labels.filterGender} ${sexeLabel(sexe, labels)}`);
   }
 
-  return labels;
+  return result;
 }
 
-function buildReportFileName(options: ParentReportOptions = {}): string {
+function buildReportFileName(options: ParentReportOptions): string {
   const parts = ["liste-parents"];
   const sexe = options.sexe ?? null;
   const status = options.status ?? null;
@@ -124,7 +140,6 @@ function buildReportFileName(options: ParentReportOptions = {}): string {
   return parts.map(safeFilePart).join("-");
 }
 
-/** Applique le filtre d'archivage côté export (défaut : exclus les archivés). */
 export function applyParentArchiveFilter(
   parents: IParent[],
   status: ParentStatusFilter | null | undefined = null,
@@ -132,27 +147,37 @@ export function applyParentArchiveFilter(
   if (status === "archived") {
     return parents.filter((parent) => parent.statusUser === false);
   }
-  // Actifs ou aucun filtre explicite → masquer les archivés
   return parents.filter((parent) => parent.statusUser !== false);
 }
 
 export async function buildParentsReportPdf(
   parents: IParent[],
   context: SchoolReportContext,
-  options: ParentReportOptions = {},
+  options: ParentReportOptions,
 ) {
+  const { labels } = options;
   const title = buildParentsReportTitle(options);
   const filterLabels = buildParentsReportFilterLabels(options);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
-  const head = ["#", "Nom du parent", "Contacts", "Enfants (noms + classes)"];
+  const head = [
+    labels.colIndex,
+    labels.colParentName,
+    labels.colContact,
+    labels.colChildrenDetail,
+  ];
   const body = parents.map((parent, index) => [
     index + 1,
     formatFullName(parent),
     formatContact(parent),
-    formatChildren(parent),
+    formatChildren(parent, labels.none),
   ]);
+
+  const countLabel = labels.parentCount.replace(
+    "{count}",
+    String(parents.length),
+  );
 
   autoTable(doc, {
     startY: REPORT_HEADER_CONTENT_TOP_MM,
@@ -190,7 +215,7 @@ export async function buildParentsReportPdf(
       drawReportHeader(doc, context, {
         title,
         subtitle: context.branchName,
-        details: [...filterLabels, `${parents.length} parent(s)`],
+        details: [...filterLabels, countLabel],
         logoDataUrl: logo,
       });
     },
@@ -206,7 +231,7 @@ export async function buildParentsReportPdf(
 export async function exportParentsReportPdf(
   parents: IParent[],
   context: SchoolReportContext,
-  options: ParentReportOptions = {},
+  options: ParentReportOptions,
 ) {
   const date = new Date().toISOString().slice(0, 10);
   const reportName = buildReportFileName(options);

@@ -3,6 +3,7 @@
 import { Table } from "@tanstack/react-table";
 
 import { IconX } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "@/components/data-table-view-options";
@@ -11,14 +12,19 @@ import { useEffect, useState } from "react";
 import { ISection } from "@/src/interfaces/Section";
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
 import { getSectionsAction } from "../../section/section.action";
+import type { TrainingLabelKey } from "@/lib/training-labels";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
+  labelKey?: TrainingLabelKey;
 }
 
 export function DataTableToolbar<TData>({
   table,
+  labelKey = "school",
 }: DataTableToolbarProps<TData>) {
+  const tClasses = useTranslations("classes");
+  const tCommon = useTranslations("common");
   const isFiltered = table.getState().columnFilters.length > 0;
   const [sections, setSections] = useState<ISection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +38,7 @@ export function DataTableToolbar<TData>({
         }
         setSections(rawSections);
         setLoading(false);
-      } catch (error) {
+      } catch {
         setLoading(false);
       }
     };
@@ -40,13 +46,11 @@ export function DataTableToolbar<TData>({
     fetchSections();
   }, []);
 
-  // Fonction de transformation
-
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="chercher une option..."
+          placeholder={tClasses(`option.${labelKey}.search`)}
           value={
             (table.getColumn("nameOption")?.getFilterValue() as string) ?? ""
           }
@@ -58,7 +62,7 @@ export function DataTableToolbar<TData>({
         {table.getColumn("nameSection") && (
           <DataTableFacetedFilter
             column={table.getColumn("nameSection")}
-            title="Section"
+            title={tClasses(`option.${labelKey}.sectionCol`)}
             options={sections.map((section) => ({
               label: section.nameSection,
               value: section.nameSection,
@@ -81,7 +85,7 @@ export function DataTableToolbar<TData>({
             onClick={() => table.resetColumnFilters()}
             className="h-8 px-2 lg:px-3"
           >
-            Reset
+            {tCommon("reset")}
             <IconX className="ml-2 h-4 w-4" />
           </Button>
         )}

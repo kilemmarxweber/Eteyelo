@@ -63,6 +63,7 @@ const formSchema = z.object({
   parallel: z.string().trim().optional(),
   capacity: z.coerce.number().int().positive().optional().nullable(),
   optionId: z.string().optional(),
+  sectionId: z.string().optional(),
   creneauId: z.string().optional(),
   statusClasse: z.boolean().optional(),
 });
@@ -95,8 +96,11 @@ export function ClasseUpForm({
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [catalogReady, setCatalogReady] = useState(false);
   const [options, setOptions] = useState<IOption[]>([]);
-  const [selectedSectionId, setSelectedSectionId] = useState("");
+  const [selectedSectionId, setSelectedSectionId] = useState(
+    initialData?.sectionId ?? "",
+  );
   const [creneaux, setCreneaux] = useState<ICreneau[]>([]);
   const [branchType, setBranchType] = useState<ManagedBranchType>("SECONDAIRE");
   const [activatedCycles, setActivatedCycles] = useState<Cycle[]>(["SECONDAIRE"]);
@@ -111,6 +115,7 @@ export function ClasseUpForm({
           nameClasse: initialData?.nameClasse ?? "",
           creneauId: initialData?.creneauId ?? "",
           optionId: initialData?.optionId ?? "",
+          sectionId: initialData?.sectionId ?? "",
           capacity: initialData?.capacity ?? undefined,
         }
       : {
@@ -122,6 +127,7 @@ export function ClasseUpForm({
           capacity: initialData?.capacity ?? undefined,
           creneauId: initialData?.creneauId ?? "",
           optionId: initialData?.optionId ?? "",
+          sectionId: initialData?.sectionId ?? "",
         },
   });
   const nameTouchedRef = useRef(
@@ -137,7 +143,7 @@ export function ClasseUpForm({
       ] = await Promise.all([
         getBranchTypeAction(),
         getOptionsAction(),
-        getCreneauxAction({}),
+        getCreneauxAction({ includeArchived: mode === "update" }),
       ]);
 
       if (branchErr) throw branchErr;
@@ -155,8 +161,31 @@ export function ClasseUpForm({
       setEducationSystem(
         (branchResult.educationSystem as EducationSystem) ?? "CONGOLAIS",
       );
-      setOptions(rawOptions.filter((option) => option.statusOption !== false));
-      setCreneaux(rawCreneaux);
+
+      const currentOptionId = initialData?.optionId ?? "";
+      const loadedOptions = rawOptions.filter(
+        (option) =>
+          option.statusOption !== false || option.id === currentOptionId,
+      );
+      setOptions(loadedOptions);
+
+      const currentCreneauId = initialData?.creneauId ?? "";
+      const loadedCreneaux = rawCreneaux.filter(
+        (creneau) => !creneau.isArchived || creneau.id === currentCreneauId,
+      );
+      setCreneaux(loadedCreneaux);
+
+      const picked = loadedOptions.find((option) => option.id === currentOptionId);
+      const sectionFromOption = picked?.sectionId || initialData?.sectionId || "";
+      if (sectionFromOption) {
+        setSelectedSectionId(sectionFromOption);
+        form.setValue("sectionId", sectionFromOption);
+      }
+      if (mode === "update") {
+        if (currentOptionId) form.setValue("optionId", currentOptionId);
+        if (currentCreneauId) form.setValue("creneauId", currentCreneauId);
+      }
+      setCatalogReady(true);
     };
 
     fetchData().catch((error) => {
@@ -165,6 +194,7 @@ export function ClasseUpForm({
     });
   }, []);
 
+  const initialId = initialData?.id;
   useEffect(() => {
     form.reset(
       isLegacyUpdate
@@ -173,6 +203,7 @@ export function ClasseUpForm({
             nameClasse: initialData?.nameClasse ?? "",
             creneauId: initialData?.creneauId ?? "",
             optionId: initialData?.optionId ?? "",
+            sectionId: initialData?.sectionId ?? "",
             capacity: initialData?.capacity ?? undefined,
           }
         : {
@@ -184,11 +215,13 @@ export function ClasseUpForm({
             capacity: initialData?.capacity ?? undefined,
             creneauId: initialData?.creneauId ?? "",
             optionId: initialData?.optionId ?? "",
+            sectionId: initialData?.sectionId ?? "",
           },
     );
+    setSelectedSectionId(initialData?.sectionId ?? "");
     nameTouchedRef.current =
       mode === "update" && Boolean(initialData?.nameClasse);
-  }, [initialData, isLegacyUpdate, form, mode]);
+  }, [initialId, isLegacyUpdate, form, mode]);
 
   const watchedLevel = form.watch("level");
   const watchedParallel = form.watch("parallel");
@@ -209,7 +242,12 @@ export function ClasseUpForm({
   const cycleOptions = useMemo(
     () =>
       options.filter((option) => {
-        if (option.statusOption === false) return false;
+        if (
+          option.statusOption === false &&
+          option.id !== watchedOptionId
+        ) {
+          return false;
+        }
         const optionCycle = option.cycle;
         if (!optionCycle) {
           return (
@@ -218,9 +256,9 @@ export function ClasseUpForm({
             classCycle === "MATERNELLE"
           );
         }
-        return optionCycle === classCycle;
+        return optionCycle === classCycle || option.id === watchedOptionId;
       }),
-    [classCycle, options],
+    [classCycle, options, watchedOptionId],
   );
 
   const sections = useMemo(() => {
@@ -267,8 +305,13 @@ export function ClasseUpForm({
     const inSection = cycleOptions.filter(
       (option) => option.sectionId === selectedSectionId,
     );
-    return inSection.length ? inSection : cycleOptions;
-  }, [classCycle, cycleOptions, selectedSectionId]);
+    const list = inSection.length ? inSection : cycleOptions;
+    if (watchedOptionId && !list.some((option) => option.id === watchedOptionId)) {
+      const extra = options.find((option) => option.id === watchedOptionId);
+      if (extra) return [...list, extra];
+    }
+    return list;
+  }, [classCycle, cycleOptions, options, selectedSectionId, watchedOptionId]);
 
   useEffect(() => {
     if (classCycle !== "PRIMAIRE" || !watchedLevel) return;
@@ -335,6 +378,7 @@ export function ClasseUpForm({
   ]);
 
   useEffect(() => {
+    if (!catalogReady) return;
     if (classCycle !== "SECONDAIRE" || !watchedLevel) return;
     if (angolaCycle1 || (!angolaSecondary && isCtebLevel(watchedLevel))) return;
 
@@ -348,6 +392,7 @@ export function ClasseUpForm({
       form.setValue("optionId", "");
     }
   }, [
+    catalogReady,
     classCycle,
     watchedLevel,
     sectionsForLevel,
@@ -358,8 +403,11 @@ export function ClasseUpForm({
   useEffect(() => {
     if (!watchedOptionId || selectedSectionId) return;
     const opt = options.find((o) => o.id === watchedOptionId);
-    if (opt?.sectionId) setSelectedSectionId(opt.sectionId);
-  }, [watchedOptionId, options, selectedSectionId]);
+    if (opt?.sectionId) {
+      setSelectedSectionId(opt.sectionId);
+      form.setValue("sectionId", opt.sectionId);
+    }
+  }, [watchedOptionId, options, selectedSectionId, form]);
 
   const previewName = useMemo(() => {
     if (isLegacyUpdate) return null;
@@ -651,7 +699,7 @@ export function ClasseUpForm({
               <FormItem>
                 <FormLabel>Section (filiere)</FormLabel>
                 <SearchableSelect
-                  searchable="auto"
+                  searchable
                   options={sectionsForLevel.map((section) => ({
                     value: section.id,
                     label: section.name,
@@ -660,8 +708,13 @@ export function ClasseUpForm({
                   onValueChange={(value) => {
                     setSelectedSectionId(value);
                     form.setValue("optionId", "");
+                    form.setValue("sectionId", value);
                   }}
-                  placeholder="Selectionner une section"
+                  placeholder={
+                    catalogReady
+                      ? "Selectionner une section"
+                      : "Chargement…"
+                  }
                   searchPlaceholder="Rechercher une section…"
                   triggerClassName="h-9"
                 />
@@ -686,7 +739,7 @@ export function ClasseUpForm({
                     </FormLabel>
                     <FormControl>
                       <SearchableSelect
-                        searchable="auto"
+                        searchable
                         options={optionsForSection.map((option) => ({
                           value: option.id,
                           label: option.nameSection
@@ -700,12 +753,15 @@ export function ClasseUpForm({
                           const picked = options.find((option) => option.id === value);
                           if (picked?.sectionId) {
                             setSelectedSectionId(picked.sectionId);
+                            form.setValue("sectionId", picked.sectionId);
                           }
                         }}
                         placeholder={
-                          optionsForSection.length
-                            ? "Selectionner une option"
-                            : "Aucune option disponible"
+                          !catalogReady
+                            ? "Chargement…"
+                            : optionsForSection.length
+                              ? "Selectionner une option"
+                              : "Aucune option disponible"
                         }
                         searchPlaceholder="Rechercher une option…"
                         triggerClassName="h-9"
@@ -751,14 +807,18 @@ export function ClasseUpForm({
                   <FormLabel>Vacation</FormLabel>
                   <FormControl>
                     <SearchableSelect
-                      searchable="auto"
+                      searchable
                       options={creneaux.map((creneau) => ({
                         value: creneau.id,
                         label: creneau.nameCreneau,
                       }))}
                       value={field.value ?? ""}
                       onValueChange={field.onChange}
-                      placeholder="Selectionner une vacation"
+                      placeholder={
+                        catalogReady
+                          ? "Selectionner une vacation"
+                          : "Chargement…"
+                      }
                       searchPlaceholder="Rechercher une vacation…"
                       triggerClassName="h-9"
                     />

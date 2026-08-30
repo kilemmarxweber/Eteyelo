@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Table } from "@tanstack/react-table";
 import { IconFileTypePdf, IconSearch, IconX } from "@tabler/icons-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/custom/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import { getParentReportContextAction } from "../parent.action";
 import {
   applyParentArchiveFilter,
   exportParentsReportPdf,
+  type ParentPdfLabels,
   type ParentReportOptions,
   type ParentSexeFilter,
   type ParentStatusFilter,
@@ -24,16 +26,6 @@ interface DataTableToolbarProps<TData> {
   table: Table<TData>;
 }
 
-const sexeOptions = [
-  { value: "masculin", label: "Masculin" },
-  { value: "feminin", label: "Féminin" },
-];
-
-const statusOptions = [
-  { value: "active", label: "Actifs" },
-  { value: "archived", label: "Archivés" },
-];
-
 function readFilterValues(value: unknown): string[] {
   if (Array.isArray(value)) return value.map(String).filter(Boolean);
   if (typeof value === "string" && value.trim() && value !== "all") {
@@ -42,7 +34,10 @@ function readFilterValues(value: unknown): string[] {
   return [];
 }
 
-function resolveReportOptions(table: Table<unknown>): ParentReportOptions {
+function resolveReportOptions(table: Table<unknown>): Omit<
+  ParentReportOptions,
+  "labels"
+> {
   const sexeValues = readFilterValues(table.getColumn("sexe")?.getFilterValue());
   const statusValues = readFilterValues(
     table.getColumn("statusUser")?.getFilterValue(),
@@ -70,13 +65,53 @@ export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
   const [exportingPdf, setExportingPdf] = useState(false);
+  const t = useTranslations("users.parents.table");
+  const tPdf = useTranslations("users.parents.pdf");
+  const tCommon = useTranslations("common");
+  const tPerson = useTranslations("common.person");
   const isFiltered = table.getState().columnFilters.length > 0;
   const hasRows = table.getFilteredRowModel().rows.length > 0;
+
+  const sexeOptions = useMemo(
+    () => [
+      { value: "masculin", label: tPdf("masculine") },
+      { value: "feminin", label: tPdf("feminine") },
+    ],
+    [tPdf],
+  );
+
+  const statusOptions = useMemo(
+    () => [
+      { value: "active", label: tPdf("activePlural") },
+      { value: "archived", label: tPdf("archivedPlural") },
+    ],
+    [tPdf],
+  );
+
+  const pdfLabels: ParentPdfLabels = useMemo(
+    () => ({
+      listTitle: tPdf("listTitle"),
+      activePlural: tPdf("activePlural"),
+      archivedPlural: tPdf("archivedPlural"),
+      masculine: tPdf("masculine"),
+      feminine: tPdf("feminine"),
+      none: tCommon("none"),
+      colIndex: "#",
+      colParentName: tPdf("colParentName"),
+      colContact: tPdf("colContact"),
+      colChildrenDetail: tPdf("colChildrenDetail"),
+      parentCount: tPdf("parentCount", { count: "{count}" }),
+      filterGender: tPdf("filterGender"),
+      filterStatus: tPdf("filterStatus"),
+    }),
+    [tCommon, tPdf],
+  );
 
   const exportFilteredPdf = async () => {
     setExportingPdf(true);
     try {
-      const options = resolveReportOptions(table as Table<unknown>);
+      const baseOptions = resolveReportOptions(table as Table<unknown>);
+      const options: ParentReportOptions = { ...baseOptions, labels: pdfLabels };
       const filteredParents = applyParentArchiveFilter(
         table
           .getFilteredRowModel()
@@ -85,23 +120,19 @@ export function DataTableToolbar<TData>({
       );
 
       if (filteredParents.length === 0) {
-        throw new Error("Aucun parent à exporter avec les filtres actuels.");
+        throw new Error(tPdf("emptyExport"));
       }
 
       const [context, error] = await getParentReportContextAction();
       if (error || !context) {
-        throw new Error(
-          error?.message || "Impossible de charger les informations du rapport.",
-        );
+        throw new Error(error?.message || tCommon("errorGeneric"));
       }
       await exportParentsReportPdf(filteredParents, context, options);
-      toast.success("Le rapport PDF des parents a été généré.");
+      toast.success(tPdf("generated"));
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Impossible de générer le rapport PDF.",
+        error instanceof Error ? error.message : tPdf("generateFailed"),
       );
     } finally {
       setExportingPdf(false);
@@ -113,7 +144,7 @@ export function DataTableToolbar<TData>({
       <div className="relative max-w-3xl">
         <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Chercher un parent..."
+          placeholder={t("searchPlaceholder")}
           value={(table.getColumn("nom")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("nom")?.setFilterValue(event.target.value)
@@ -126,7 +157,7 @@ export function DataTableToolbar<TData>({
         {table.getColumn("sexe") ? (
           <DataTableFacetedFilter
             column={table.getColumn("sexe")}
-            title="Sexe"
+            title={tPerson("gender")}
             options={sexeOptions}
             value={
               (table.getColumn("sexe")?.getFilterValue() as string) ?? "all"
@@ -142,7 +173,7 @@ export function DataTableToolbar<TData>({
         {table.getColumn("statusUser") ? (
           <DataTableFacetedFilter
             column={table.getColumn("statusUser")}
-            title="Statut"
+            title={tCommon("status")}
             options={statusOptions}
             value={
               (table.getColumn("statusUser")?.getFilterValue() as string) ??
@@ -163,7 +194,7 @@ export function DataTableToolbar<TData>({
           loading={exportingPdf}
           disabled={!hasRows || exportingPdf}
         >
-          {exportingPdf ? "Génération..." : "Rapport PDF"}
+          {exportingPdf ? tCommon("loading") : t("exportPdf")}
         </Button>
 
         {isFiltered ? (
@@ -172,7 +203,7 @@ export function DataTableToolbar<TData>({
             size="sm"
             onClick={() => table.resetColumnFilters()}
           >
-            Réinitialiser
+            {tCommon("reset")}
             <IconX className="ml-2 size-4" />
           </Button>
         ) : null}

@@ -23,12 +23,15 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { getBranchTypeAction } from "../classe/classe.action";
 import { usesSectionOptionForBranch } from "@/lib/branch-capabilities";
-import { getTrainingLabels } from "@/lib/training-labels";
+import {
+  getTrainingLabelKey,
+  type TrainingLabelKey,
+} from "@/lib/training-labels";
 
 export default function Sections() {
   const tClasses = useTranslations("classes");
   const [open, setOpen] = useState(false);
-  const [labels, setLabels] = useState(getTrainingLabels("SECONDAIRE"));
+  const [labelKey, setLabelKey] = useState<TrainingLabelKey>("school");
   const { refreshKey, refresh } = useRefresh();
   const router = useRouter();
   const params = useParams<{
@@ -51,7 +54,7 @@ export default function Sections() {
         }
 
         if (result?.typebranch) {
-          setLabels(getTrainingLabels(result.typebranch));
+          setLabelKey(getTrainingLabelKey(result.typebranch));
         }
       })
       .catch(() => {});
@@ -68,11 +71,11 @@ export default function Sections() {
 
   return (
     <BranchPageShell
-      title={labels.sectionTitle}
-      description={labels.sectionDescription}
+      title={tClasses(`section.${labelKey}.title`)}
+      description={tClasses(`section.${labelKey}.description`)}
       badge={
         <Badge variant="outline-primary" icon={<IconClipboard size={14} />}>
-          {labels.sectionBadge}
+          {tClasses(`section.${labelKey}.badge`)}
         </Badge>
       }
       actions={
@@ -83,7 +86,7 @@ export default function Sections() {
           leftSection={<IconPlus size={16} />}
           onClick={() => setOpen(true)}
         >
-          {labels.sectionCreate}
+          {tClasses(`section.${labelKey}.create`)}
         </Button>
       }
     >
@@ -93,7 +96,7 @@ export default function Sections() {
           className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
         >
           <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
-            <SheetTitle>{labels.sectionCreate}</SheetTitle>
+            <SheetTitle>{tClasses(`section.${labelKey}.create`)}</SheetTitle>
             <SheetDescription>
               {tClasses("sectionSheetDesc")}
             </SheetDescription>
@@ -102,6 +105,7 @@ export default function Sections() {
             <SectionUpForm
               mode="create"
               layout="dialog"
+              labelKey={labelKey}
               onCreated={handleSectionAction}
             />
           </div>
@@ -109,7 +113,7 @@ export default function Sections() {
       </Sheet>
 
       <Card variant="elevated" padding="none" className="border p-1 md:p-6">
-        <SectionList refreshKey={String(refreshKey)} />
+        <SectionList refreshKey={String(refreshKey)} labelKey={labelKey} />
       </Card>
     </BranchPageShell>
   );

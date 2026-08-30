@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { getCoursColumns } from "./columns";
+import React, { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { useCoursColumns } from "./columns";
 import { ResponsiveDataTable } from "@/components/custom";
 import { TableSkeleton } from "@/components/custom";
 import { EmptyTableState } from "@/components/custom";
@@ -17,11 +18,13 @@ const CoursList = ({
   refreshKey?: number;
   isPrimary?: boolean;
 }) => {
+  const t = useTranslations("teaching.courses.table");
+  const tc = useTranslations("common");
   const [cours, setCours] = useState<ICours[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { refreshKey: contextRefreshKey } = useRefresh();
-  const columns = useMemo(() => getCoursColumns(isPrimary), [isPrimary]);
+  const columns = useCoursColumns(isPrimary);
 
   useEffect(() => {
     const fetchCours = async () => {
@@ -30,12 +33,12 @@ const CoursList = ({
         setError(null);
         const [rawCours, err] = await getCoursAction({ includeInactive: true });
         if (err) {
-          throw new Error(err.message || "Erreur lors du chargement des cours");
+          throw new Error(err.message || t("loadFailed"));
         }
         setCours(rawCours);
       } catch (error: any) {
-        console.error("Échec de récupérer des cours", error);
-        setError(error.message || "Une erreur est survenue");
+        console.error(error);
+        setError(error.message || tc("errorGeneric"));
       } finally {
         setLoading(false);
       }
@@ -58,7 +61,7 @@ const CoursList = ({
         <Alert variant="destructive">
           <IconAlertCircle className="h-4 w-4" />
           <AlertDescription>
-            {error}. Veuillez réessayer plus tard.
+            {error}. {t("loadRetry")}
           </AlertDescription>
         </Alert>
       </div>
@@ -69,8 +72,8 @@ const CoursList = ({
     return (
       <div className="p-4">
         <EmptyTableState
-          title="Aucun cours enregistré"
-          description="Créez votre premier cours pour commencer la gestion académique."
+          title={t("emptyTitle")}
+          description={t("emptyDesc")}
           icon={<IconBook className="h-10 w-10 text-muted-foreground" />}
         />
       </div>
@@ -83,7 +86,7 @@ const CoursList = ({
         ToolbarComponent={DataTableToolbar}
         columns={columns}
         data={cours}
-        emptyText="Aucun cours enregistré"
+        emptyText={t("emptyTitle")}
         mobileCardTitle={(row) => row.nameCours}
       />
     </div>

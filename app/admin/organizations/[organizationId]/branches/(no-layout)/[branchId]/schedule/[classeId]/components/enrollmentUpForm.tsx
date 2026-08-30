@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useTheme } from "next-themes";
 import {
   Select,
   SelectContent,
@@ -37,6 +36,8 @@ import { IconCalendar } from "@tabler/icons-react";
 import { Calendar } from "@/components/ui/calendar";
 import { PhoneInput } from "@/components/ui/phone-input";
 import generateUsername from "@/src/hooks/generateUsername";
+import { useLocale, useTranslations } from "next-intl";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 const phoneRegex = new RegExp(
   /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/,
@@ -82,6 +83,15 @@ export function EnrollmentUpForm({
   mode,
   ...props
 }: TeacherUpFormProps) {
+  const t = useTranslations("users.teachers.form");
+  const ts = useTranslations("users.students.form");
+  const tc = useTranslations("common");
+  const peopleLabels = useBranchPeopleLabels();
+  const locale = useLocale();
+  const teacherLabel = {
+    teacher: peopleLabels.teacher,
+    teacherLower: peopleLabels.teacherLower,
+  };
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const params = useParams();
@@ -137,7 +147,7 @@ export function EnrollmentUpForm({
         if (!res.ok) {
           throw new Error(res.message);
         }
-        toast.success("Enseignant créé avec succès");
+        toast.success(t("createSuccess", teacherLabel));
         onCreated?.();
       } else {
         if (!data.memberId) {
@@ -158,7 +168,7 @@ export function EnrollmentUpForm({
         if (!res.ok) {
           throw new Error(res.message);
         }
-        toast.success("Enseignant mis à jour avec succès");
+        toast.success(t("updateSuccess", teacherLabel));
       }
       if (mode === "update") {
         onUpdated?.();
@@ -170,15 +180,13 @@ export function EnrollmentUpForm({
       toast.error(
         error.message ||
           (mode === "create"
-            ? "Échec de la création de l'enseignant"
-            : "Échec de la mise à jour de l' enseignant"),
+            ? t("createFailed", teacherLabel)
+            : t("updateFailed", teacherLabel)),
       );
     } finally {
       setIsLoading(false);
     }
   }
-
-  const { theme, setTheme } = useTheme();
 
   return (
     <div className={cn("grid gap-6", className)} {...props}>
@@ -190,9 +198,9 @@ export function EnrollmentUpForm({
               name="nom"
               render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel>Nom</FormLabel>
+                  <FormLabel>{tc("person.lastName")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Le nom du Enseignant" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -204,9 +212,9 @@ export function EnrollmentUpForm({
               name="postnom"
               render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel>Postnom</FormLabel>
+                  <FormLabel>{tc("person.postnom")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Le postnom du Enseignant" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -218,9 +226,9 @@ export function EnrollmentUpForm({
               name="prenom"
               render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel>Prénom</FormLabel>
+                  <FormLabel>{tc("person.firstName")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="le prénom du Enseignant" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -231,7 +239,7 @@ export function EnrollmentUpForm({
               name="dateOfBirth"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Date de naissance</FormLabel>
+                  <FormLabel>{tc("person.birthDate")}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -244,13 +252,13 @@ export function EnrollmentUpForm({
                           )}
                         >
                           {field.value ? (
-                            new Date(field.value).toLocaleDateString("fr-FR", {
+                            new Date(field.value).toLocaleDateString(locale, {
                               year: "numeric",
                               month: "2-digit",
                               day: "2-digit",
                             })
                           ) : (
-                            <span>Choisir une date</span>
+                            <span>{ts("chooseDate")}</span>
                           )}
 
                           <IconCalendar className="ml-auto h-4 w-4 opacity-50" />
@@ -288,11 +296,11 @@ export function EnrollmentUpForm({
                 name="telephone"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel>Téléphone </FormLabel>
+                    <FormLabel>{tc("person.phone")}</FormLabel>
                     <FormControl>
                       <PhoneInput
                         defaultCountry="CD"
-                        placeholder="Téléphone"
+                        placeholder={tc("person.phone")}
                         {...field}
                       />
                     </FormControl>
@@ -305,22 +313,22 @@ export function EnrollmentUpForm({
                 name="sexe"
                 render={({ field }) => (
                   <FormItem className="space-y-1 w-1/2">
-                    <FormLabel>Sexe</FormLabel>
+                    <FormLabel>{tc("person.gender")}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionnez le sexe" />
+                          <SelectValue placeholder={ts("selectGender")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem key={"masculin"} value={"masculin"}>
-                          Masculin
+                          {tc("person.male")}
                         </SelectItem>
                         <SelectItem key={"feminin"} value={"feminin"}>
-                          Féminin
+                          {tc("person.female")}
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -334,9 +342,9 @@ export function EnrollmentUpForm({
               name="email"
               render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel>E-mail </FormLabel>
+                  <FormLabel>{tc("person.email")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="le Email du Enseignant" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -348,10 +356,10 @@ export function EnrollmentUpForm({
               name="username"
               render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel>Code d'acces</FormLabel>
+                  <FormLabel>username</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Le code sera généré automatiquement"
+                      placeholder={tc("codeAutoGenerated")}
                       {...field}
                       disabled
                     />
@@ -363,8 +371,8 @@ export function EnrollmentUpForm({
 
             <Button className="mt-2" loading={isLoading}>
               {mode === "create"
-                ? "Enregistrer l'enseignant"
-                : "Mettre à jour l'enseignant"}
+                ? t("saveTeacher", teacherLabel)
+                : t("updateTeacher", teacherLabel)}
             </Button>
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>

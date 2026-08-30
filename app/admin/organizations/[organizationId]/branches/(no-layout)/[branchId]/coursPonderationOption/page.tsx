@@ -4,6 +4,7 @@ import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import {
   IconAdjustments,
@@ -51,6 +52,9 @@ type CourseRow = PageData["cours"][number];
 
 export default function CoursPonderationOptionPage() {
   useBranchRouteGuard({ routeSuffix: "/coursPonderationOption" });
+  const t = useTranslations("teaching.ponderation");
+  const tc = useTranslations("common");
+  const locale = useLocale();
 
   const [data, setData] = useState<PageData | null>(null);
   const [selectedOptionId, setSelectedOptionId] = useState("");
@@ -68,7 +72,7 @@ export default function CoursPonderationOptionPage() {
       startTransition(async () => {
         const [result, error] = await getCoursPonderationOptionPageDataAction();
         if (error || !result) {
-          toast.error(error?.message ?? "Chargement impossible");
+          toast.error(error?.message ?? t("loadFailed"));
           return;
         }
         setData(result);
@@ -210,10 +214,10 @@ export default function CoursPonderationOptionPage() {
       ).length;
       const option = cycleOptions.find((item) => item.id === target.optionId);
       const label = usesLevelOptionGroup
-        ? (option?.displayName ?? "Niveau")
+        ? (option?.displayName ?? t("levelDefault"))
         : target.level
           ? getClassLevelLabel("SECONDAIRE", target.level, data.educationSystem)
-          : "Tous les niveaux";
+          : t("allLevels");
       return { ...target, configuredCount, label };
     });
     const source = [...ranked].sort(
@@ -240,13 +244,11 @@ export default function CoursPonderationOptionPage() {
       Number.isFinite(value) &&
       Math.abs(value * 2 - Math.round(value * 2)) < 1e-9;
     if (!isHalfStep || value < 0 || value > 100 || !data) {
-      toast.error(
-        "La pondération doit être un multiple de 0,5 entre 0 et 100.",
-      );
+      toast.error(t("invalidWeight"));
       return;
     }
     if (!ponderationTargets.length) {
-      toast.error("Sélectionnez au moins un niveau.");
+      toast.error(t("selectLevelRequired"));
       return;
     }
     const previousRows = ponderationTargets.map(({ optionId, level }) =>
@@ -304,7 +306,7 @@ export default function CoursPonderationOptionPage() {
             ],
           };
         });
-        toast.error(error?.message ?? "Enregistrement impossible");
+        toast.error(error?.message ?? t("saveFailed"));
         return;
       }
       setData((current) => {
@@ -319,8 +321,8 @@ export default function CoursPonderationOptionPage() {
       });
       toast.success(
         activeOptionIds.length > 1
-          ? `Pondération enregistrée pour ${activeOptionIds.length} niveaux`
-          : "Pondération enregistrée",
+          ? t("savedMulti", { count: activeOptionIds.length })
+          : t("saved"),
       );
     });
   }
@@ -333,7 +335,7 @@ export default function CoursPonderationOptionPage() {
       )
       .filter((row): row is Ponderation => row != null && !row.id.startsWith("temp-"));
     if (!previousRows.length) {
-      toast.error("Aucune pondération configurée à annuler");
+      toast.error(t("nothingToCancel"));
       return;
     }
 
@@ -365,10 +367,10 @@ export default function CoursPonderationOptionPage() {
               }
             : current,
         );
-        toast.error(error.message ?? "Annulation impossible");
+        toast.error(error.message ?? t("cancelFailed"));
         return;
       }
-      toast.success("Pondération annulée");
+      toast.success(t("cancelled"));
     });
   }
 
@@ -381,7 +383,7 @@ export default function CoursPonderationOptionPage() {
       )
       .filter((row): row is Ponderation => Boolean(row));
     if (!sourceRows.length) {
-      toast.error("Aucune pondération source à fusionner.");
+      toast.error(t("nothingToMerge"));
       return;
     }
 
@@ -446,7 +448,7 @@ export default function CoursPonderationOptionPage() {
             ],
           };
         });
-        toast.error(error?.message ?? "Fusion impossible");
+        toast.error(error?.message ?? t("mergeFailed"));
         return;
       }
       setData((current) => {
@@ -460,9 +462,10 @@ export default function CoursPonderationOptionPage() {
         };
       });
       toast.success(
-        `Pondérations de ${source.label} copiées vers ${destinations
-          .map((target) => target.label)
-          .join(", ")}`,
+        t("merged", {
+          source: source.label,
+          destinations: destinations.map((target) => target.label).join(", "),
+        }),
       );
     });
   }
@@ -485,11 +488,13 @@ export default function CoursPonderationOptionPage() {
 
   return (
     <BranchPageShell
-      title="Pondération des cours"
-          description={`Année scolaire : ${data.schoolYear?.nameYear ?? "non configurée"}`}
+      title={t("title")}
+          description={t("year", {
+            year: data.schoolYear?.nameYear ?? t("yearMissing"),
+          })}
           badge={
             <Badge variant="outline-primary" icon={<IconAdjustments size={14} />}>
-              Enseignement
+              {t("badge")}
             </Badge>
           }
           actions={
@@ -499,20 +504,23 @@ export default function CoursPonderationOptionPage() {
                 onClick={mergeFromConfigured}
                 title={
                   mergePlan
-                    ? `Copier les pondérations de ${mergePlan.source.label} vers ${mergePlan.destinations
-                        .map((target) => target.label)
-                        .join(", ")}`
-                    : "Sélectionnez un niveau déjà pondéré avec un niveau non pondéré"
+                    ? t("mergeTitle", {
+                        source: mergePlan.source.label,
+                        destinations: mergePlan.destinations
+                          .map((target) => target.label)
+                          .join(", "),
+                      })
+                    : t("mergeHint")
                 }
               >
                 <IconGitMerge className="mr-2 size-4" />
                 {mergePlan
-                  ? `Fusionner depuis ${mergePlan.source.label}`
-                  : "Fusionner"}
+                  ? t("mergeFrom", { label: mergePlan.source.label })
+                  : t("merge")}
               </Button>
               <Button variant="outline" onClick={() => setStatus("missing")}>
                 <IconSettings className="mr-2 size-4" />
-                Configurer les manquants
+                {t("configureMissing")}
               </Button>
             </div>
           }
@@ -531,7 +539,7 @@ export default function CoursPonderationOptionPage() {
           >
             {data.cycles.length > 1 ? (
               <div>
-                <label className="text-sm font-medium">Cycle</label>
+                <label className="text-sm font-medium">{t("cycle")}</label>
                 <Select
                   value={selectedCycle || undefined}
                   onValueChange={(value) => {
@@ -546,7 +554,7 @@ export default function CoursPonderationOptionPage() {
                   }}
                 >
                   <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Sélectionner un cycle" />
+                    <SelectValue placeholder={t("selectCycle")} />
                   </SelectTrigger>
                   <SelectContent>
                     {data.cycles.map((cycle) => (
@@ -560,7 +568,7 @@ export default function CoursPonderationOptionPage() {
             ) : null}
             {usesLevelOptionGroup ? (
               <div>
-                <label className="text-sm font-medium">Niveaux</label>
+                <label className="text-sm font-medium">{t("levels")}</label>
                 <div className="mt-2">
                   <MultiSelect
                     options={cycleOptions.map((option) => ({
@@ -577,20 +585,19 @@ export default function CoursPonderationOptionPage() {
                       setSelectedOptionIds(next);
                       setSelectedOptionId(next[0] ?? "");
                     }}
-                    placeholder="Sélectionner un ou plusieurs niveaux"
+                    placeholder={t("selectLevels")}
                     searchable
                     maxCount={2}
                   />
                 </div>
                 <p className="mt-1.5 text-xs text-muted-foreground">
-                  Sélectionnez plusieurs niveaux pour appliquer la même
-                  pondération en une fois.
+                  {t("multiLevelHint")}
                 </p>
               </div>
             ) : (
               <div>
                 <label className="text-sm font-medium">
-                  {isLevelWeighted ? "Niveau" : "Option active"}
+                  {isLevelWeighted ? t("level") : t("activeOption")}
                 </label>
                 <Select
                   value={activeOptionId || undefined}
@@ -604,8 +611,8 @@ export default function CoursPonderationOptionPage() {
                     <SelectValue
                       placeholder={
                         isLevelWeighted
-                          ? "Sélectionner un niveau"
-                          : "Sélectionner une option"
+                          ? t("selectLevel")
+                          : t("selectOption")
                       }
                     />
                   </SelectTrigger>
@@ -621,7 +628,7 @@ export default function CoursPonderationOptionPage() {
             )}
             {isSecondary ? (
               <div>
-                <label className="text-sm font-medium">Niveaux</label>
+                <label className="text-sm font-medium">{t("levels")}</label>
                 <div className="mt-2">
                   <MultiSelect
                     options={secondaryLevels.map((level) => ({
@@ -634,62 +641,66 @@ export default function CoursPonderationOptionPage() {
                     }))}
                     value={selectedLevels}
                     onValueChange={setSelectedLevels}
-                    placeholder="Tous les niveaux"
+                    placeholder={t("allLevels")}
                     searchable
                     maxCount={2}
                   />
                 </div>
                 <p className="mt-1.5 text-xs text-muted-foreground">
-                  Vide = pondération commune. Choisissez un ou plusieurs
-                  niveaux pour une pondération propre.
+                  {t("secondaryLevelHint")}
                 </p>
               </div>
             ) : null}
             <div className="rounded-lg border bg-muted/30 p-3 text-sm">
-              <p className="font-medium">Contexte actif</p>
+              <p className="font-medium">{t("activeContext")}</p>
               <p className="text-muted-foreground">
-                Section : {selectedOption?.section?.nameSection ?? "Toutes"}
+                {t("section")} : {selectedOption?.section?.nameSection ?? t("allSections")}
               </p>
               <p className="truncate text-muted-foreground">
-                Classes :{" "}
+                {t("classes")} :{" "}
                 {selectedOptions
                   .flatMap((option) => option.classe.map((item) => item.nameClasse))
                   .filter((name, index, names) => names.indexOf(name) === index)
-                  .join(", ") || "Aucune classe"}
+                  .join(", ") || t("noClass")}
               </p>
               {usesLevelOptionGroup ? (
                 <p className="mt-1 text-muted-foreground">
                   {activeOptionIds.length > 1
-                    ? `Niveaux ciblés : ${selectedOptions
-                        .map((option) => option.displayName)
-                        .join(", ")}.`
+                    ? t("targetedLevels", {
+                        levels: selectedOptions
+                          .map((option) => option.displayName)
+                          .join(", "),
+                      })
                     : activeCycle === "MATERNELLE"
-                      ? "Les pondérations sont définies par niveau (Crèche, 1è–3è)."
-                      : "Les pondérations sont définies par niveau (1è–6è)."}
+                      ? t("maternelleHint")
+                      : t("primaireHint")}
                 </p>
               ) : isSecondary ? (
                 <p className="mt-1 text-muted-foreground">
                   {selectedLevels.length
-                    ? `Niveaux ciblés : ${selectedLevels
-                        .map((level) =>
-                          getClassLevelLabel(
-                            "SECONDAIRE",
-                            level,
-                            data.educationSystem,
-                          ),
-                        )
-                        .join(", ")}.`
-                    : "Pondération commune à tous les niveaux de cette option."}
+                    ? t("targetedLevels", {
+                        levels: selectedLevels
+                          .map((level) =>
+                            getClassLevelLabel(
+                              "SECONDAIRE",
+                              level,
+                              data.educationSystem,
+                            ),
+                          )
+                          .join(", "),
+                      })
+                    : t("commonWeighting")}
                 </p>
               ) : null}
               {mergePlan ? (
                 <p className="mt-2 text-xs text-primary">
-                  Fusion proposée : copier {mergePlan.source.label} (
-                  {mergePlan.source.configuredCount} cours) vers{" "}
-                  {mergePlan.destinations
-                    .map((target) => target.label)
-                    .join(", ")}
-                  .
+                  {t("mergeProposal", {
+                    source: mergePlan.source.label,
+                    count: mergePlan.source.configuredCount,
+                    destinations: mergePlan.destinations
+                      .map((target) => target.label)
+                      .join(", "),
+                  })}
                 </p>
               ) : null}
             </div>
@@ -697,14 +708,14 @@ export default function CoursPonderationOptionPage() {
         </Card>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Summary title="Cours configurés" value={configured} tone="success" />
+          <Summary title={t("configured")} value={configured} tone="success" />
           <Summary
-            title="Pondérations manquantes"
+            title={t("missing")}
             value={missing}
             tone={missing ? "warning" : "success"}
           />
-          <Summary title="Moyenne" value={average.toFixed(1)} />
-          <Summary title="Total des cours" value={data.cours.length} />
+          <Summary title={t("average")} value={average.toFixed(1)} />
+          <Summary title={t("total")} value={data.cours.length} />
         </div>
 
         <Card className="overflow-hidden">
@@ -714,7 +725,7 @@ export default function CoursPonderationOptionPage() {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher un cours..."
+                placeholder={t("search")}
                 className="pl-9"
               />
             </div>
@@ -723,9 +734,9 @@ export default function CoursPonderationOptionPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="configured">Configurés</SelectItem>
-                <SelectItem value="missing">Manquants</SelectItem>
+                <SelectItem value="all">{t("allStatuses")}</SelectItem>
+                <SelectItem value="configured">{t("statusConfigured")}</SelectItem>
+                <SelectItem value="missing">{t("statusMissing")}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={sort} onValueChange={setSort}>
@@ -733,8 +744,8 @@ export default function CoursPonderationOptionPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="name">Trier par cours</SelectItem>
-                <SelectItem value="weight">Trier par poids</SelectItem>
+                <SelectItem value="name">{t("sortByCourse")}</SelectItem>
+                <SelectItem value="weight">{t("sortByWeight")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -751,19 +762,19 @@ export default function CoursPonderationOptionPage() {
               <thead className="bg-muted/40 text-left">
                 <tr>
                   <th className="whitespace-nowrap px-3 py-2.5 font-medium">
-                    Cours
+                    {t("columnCourse")}
                   </th>
                   <th className="whitespace-nowrap px-3 py-2.5 font-medium">
-                    {isLevelWeighted ? "Niveau / classes" : "Option / classes"}
+                    {isLevelWeighted ? t("columnLevelClasses") : t("columnOptionClasses")}
                   </th>
                   <th className="whitespace-nowrap px-3 py-2.5 font-medium">
-                    Pondération
+                    {t("columnWeight")}
                   </th>
                   <th className="whitespace-nowrap px-3 py-2.5 font-medium">
-                    Statut
+                    {tc("status")}
                   </th>
                   <th className="whitespace-nowrap px-3 py-2.5 font-medium">
-                    Modifié
+                    {t("columnModified")}
                   </th>
                 </tr>
               </thead>
@@ -816,7 +827,7 @@ export default function CoursPonderationOptionPage() {
           {!rows.length && (
             <div className="p-10 text-center">
               <IconAlertTriangle className="mx-auto mb-2 size-8 text-muted-foreground" />
-              <p className="font-medium">Aucun cours dans cette vue</p>
+              <p className="font-medium">{t("emptyTitle")}</p>
               <Button
                 variant="link"
                 onClick={() => {
@@ -824,7 +835,7 @@ export default function CoursPonderationOptionPage() {
                   setStatus("all");
                 }}
               >
-                Réinitialiser les filtres
+                {t("resetFilters")}
               </Button>
             </div>
           )}
@@ -875,6 +886,7 @@ function WeightEditor({
   onSave: (id: string, value: number) => void;
   onCancel: (id: string) => void;
 }) {
+  const t = useTranslations("teaching.ponderation");
   const [draft, setDraft] = useState(String(value ?? 1));
   useEffect(() => setDraft(String(value ?? 1)), [value]);
   const numeric = Number(draft);
@@ -906,7 +918,7 @@ function WeightEditor({
           variant="ghost"
           className="h-8 shrink-0 px-2 text-destructive hover:text-destructive"
           disabled={saving}
-          title="Annuler la pondération"
+          title={t("cancelWeightTitle")}
           onClick={() => onCancel(courseId)}
         >
           <IconTrash className="size-4" />
@@ -914,7 +926,7 @@ function WeightEditor({
       ) : null}
       {maxPeriode != null ? (
         <span className="shrink-0 text-xs text-muted-foreground">
-          max {maxPeriode}
+          {t("maxPerPeriod", { value: maxPeriode })}
         </span>
       ) : null}
     </div>
@@ -942,10 +954,12 @@ function PonderationRow({
   onSave: (id: string, value: number) => void;
   onCancel: (id: string) => void;
 }) {
+  const t = useTranslations("teaching.ponderation");
+  const locale = useLocale();
   const classesLabel =
     classesLabelProp ||
     option?.classe.map((item) => item.nameClasse).join(", ") ||
-    "Aucune classe";
+    t("noClass");
   const optionLabel =
     optionLabelProp || option?.displayName || option?.nameOption || "—";
 
@@ -985,12 +999,12 @@ function PonderationRow({
       </td>
       <td className="px-3 py-2 align-middle whitespace-nowrap">
         <Badge variant={configured ? "success" : "warning"}>
-          {configured ? "Configuré" : "Manquant"}
+          {configured ? t("configuredBadge") : t("missingBadge")}
         </Badge>
       </td>
       <td className="px-3 py-2 align-middle whitespace-nowrap text-muted-foreground">
         {ponderation
-          ? new Date(ponderation.updatedAt).toLocaleString("fr-FR", {
+          ? new Date(ponderation.updatedAt).toLocaleString(locale, {
               day: "2-digit",
               month: "2-digit",
               year: "numeric",
@@ -1018,6 +1032,8 @@ function PonderationCard({
   onSave: (id: string, value: number) => void;
   onCancel: (id: string) => void;
 }) {
+  const t = useTranslations("teaching.ponderation");
+  const locale = useLocale();
   return (
     <Card className={`space-y-3 p-4 ${!configured ? "border-amber-300" : ""}`}>
       <div className="flex items-center justify-between gap-2">
@@ -1026,7 +1042,7 @@ function PonderationCard({
           <p className="text-xs text-muted-foreground">{course.codeCours}</p>
         </div>
         <Badge variant={configured ? "success" : "warning"}>
-          {configured ? "Configuré" : "Manquant"}
+          {configured ? t("configuredBadge") : t("missingBadge")}
         </Badge>
       </div>
       <WeightEditor
@@ -1039,13 +1055,14 @@ function PonderationCard({
       />
       {ponderation ? (
         <p className="text-xs text-muted-foreground">
-          Modifié le{" "}
-          {new Date(ponderation.updatedAt).toLocaleString("fr-FR", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
+          {t("modifiedOn", {
+            date: new Date(ponderation.updatedAt).toLocaleString(locale, {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
           })}
         </p>
       ) : null}

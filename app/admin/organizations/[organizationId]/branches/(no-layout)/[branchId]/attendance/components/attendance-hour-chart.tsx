@@ -1,6 +1,7 @@
 "use client";
 
 import { IconClock } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 import {
   Bar,
   BarChart,
@@ -30,6 +31,8 @@ const HOUR_COLORS = [
 ];
 
 export function AttendanceHourChart({ data }: { data: AttendanceHourStat[] }) {
+  const t = useTranslations("attendance");
+  const arrivalsLabel = t("reports.columns.arrival");
   const chartData = data.map((item) => ({
     ...item,
     label: `${item.hour}h`,
@@ -40,13 +43,13 @@ export function AttendanceHourChart({ data }: { data: AttendanceHourStat[] }) {
     <section className="min-w-0 space-y-3">
       <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
         <IconClock size={16} className="text-emerald-600" />
-        Répartition des arrivées par heure
+        {t("dashboard.hourChartTitle")}
       </div>
 
       <div className="rounded-xl border border-emerald-500/15 bg-gradient-to-b from-emerald-500/5 to-transparent px-2 py-4 sm:px-3">
         {chartData.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
-            Aucune donnée pour cette période.
+            {t("pdf.noDataPeriod")}
           </p>
         ) : (
           <div className="h-52 w-full min-w-0 sm:h-56">
@@ -83,10 +86,15 @@ export function AttendanceHourChart({ data }: { data: AttendanceHourStat[] }) {
                     background: "hsl(var(--background))",
                     fontSize: 12,
                   }}
-                  formatter={(value) => [Number(value ?? 0), "Arrivées"]}
-                  labelFormatter={(label) => `Heure ${label}`}
+                  formatter={(value) => [Number(value ?? 0), arrivalsLabel]}
+                  labelFormatter={(label) => label}
                 />
-                <Bar dataKey="count" name="Arrivées" radius={[6, 6, 0, 0]} maxBarSize={28}>
+                <Bar
+                  dataKey="count"
+                  name={arrivalsLabel}
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={28}
+                >
                   {chartData.map((item, index) => {
                     const intensity = item.count / maxCount;
                     const color =

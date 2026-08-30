@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 
 import {
   Dialog,
@@ -29,6 +30,7 @@ export function UpdateCoursDialog({
   isPrimary = false,
   ...props
 }: UpdateCoursDialogProps) {
+  const t = useTranslations("teaching.courses");
   const handleUpdate = () => {
     onSuccess?.();
   };
@@ -40,11 +42,9 @@ export function UpdateCoursDialog({
         className="max-h-[min(90dvh,52rem)] gap-4 overflow-y-auto"
       >
         <DialogHeader>
-          <DialogTitle>Modifier le cours</DialogTitle>
+          <DialogTitle>{t("editTitle")}</DialogTitle>
           <DialogDescription>
-            {isPrimary
-              ? "Modifiez le nom, la description ou le domaine du bulletin."
-              : "Modifiez le nom ou la description du cours. Ajoutez des postes d'horaire si besoin."}
+            {isPrimary ? t("editDescPrimary") : t("editDescSecondary")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid w-full min-w-0 gap-4">

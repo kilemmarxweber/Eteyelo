@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Edit, Archive, MoreHorizontal, RotateCcw, Settings2, Trash2 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
@@ -22,12 +23,22 @@ import { DeleteOptionsDialog } from "./delete-Option-dialog";
 import { UpdateOptionDialog } from "./edit-Option-dialog";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 import { toast } from "sonner";
+import type { TrainingLabelKey } from "@/lib/training-labels";
 
 interface OptionsTableProps {
   refreshKey?: string;
+  labelKey?: TrainingLabelKey;
 }
 
-const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
+const OptionsTable: React.FC<OptionsTableProps> = ({
+  refreshKey,
+  labelKey = "school",
+}) => {
+  const tClasses = useTranslations("classes");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const tOption = (key: string) => tClasses(`option.${labelKey}.${key}`);
+
   const [options, setOptions] = useState<IOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,7 +59,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
         }
         setOptions(rawOptions);
       } catch (error) {
-        console.error("Échec de récupérer les options", error);
+        console.error("Failed to fetch options", error);
       } finally {
         setLoading(false);
       }
@@ -85,10 +96,10 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
       statusOption: next,
     });
     if (err) {
-      toast.error(err.message ?? "Impossible de modifier le statut");
+      toast.error(err.message ?? tCommon("errorStatus"));
       return;
     }
-    toast.success(next ? "Option activée" : "Option désactivée");
+    toast.success(next ? tOption("activated") : tOption("deactivated"));
     setLocalRefreshKey((value) => value + 1);
   };
 
@@ -107,7 +118,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
   const columns = [
     {
       key: "nameOption",
-      header: "Option",
+      header: tOption("colHeader"),
       cell: (option: IOption) => (
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
@@ -120,7 +131,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
                 {option.codeOption}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                {new Date(option.createdAt).toLocaleDateString("fr-FR")}
+                {new Date(option.createdAt).toLocaleDateString(locale)}
               </span>
             </div>
           </div>
@@ -129,11 +140,11 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
     },
     {
       key: "section",
-      header: "Section",
+      header: tOption("sectionCol"),
       cell: (option: IOption) => (
         <div className="text-sm">
           <div className="font-medium">
-            {option.nameSection || "Non assignée"}
+            {option.nameSection || tOption("notAssigned")}
           </div>
           {option.codeSection ? (
             <div className="text-xs text-muted-foreground">
@@ -145,11 +156,15 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
     },
     {
       key: "statusOption",
-      header: "Statut",
+      header: tCommon("status"),
       cell: (option: IOption) => (
         <StatusBadge
           status={option.statusOption !== false ? "active" : "inactive"}
-          label={option.statusOption !== false ? "Active" : "Inactive"}
+          label={
+            option.statusOption !== false
+              ? tCommon("activeFeminine")
+              : tCommon("inactiveFeminine")
+          }
         />
       ),
     },
@@ -161,24 +176,24 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="size-8 p-0">
               <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{tCommon("actions")}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem onClick={() => handleEdit(option)}>
               <Edit className="mr-2 h-4 w-4" />
-              Modifier
+              {tCommon("edit")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             {option.statusOption !== false ? (
               <DropdownMenuItem onClick={() => handleToggleStatus(option)}>
                 <Archive className="mr-2 h-4 w-4" />
-                Désactiver
+                {tCommon("deactivate")}
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem onClick={() => handleToggleStatus(option)}>
                 <RotateCcw className="mr-2 h-4 w-4" />
-                Activer
+                {tCommon("activate")}
               </DropdownMenuItem>
             )}
             <DropdownMenuItem
@@ -186,7 +201,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
               onClick={() => handleDelete(option)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Supprimer
+              {tCommon("delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -196,41 +211,49 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
 
   const cardConfig = {
     title: (option: IOption) => option.nameOption,
-    subtitle: (option: IOption) => `Code ${option.codeOption}`,
+    subtitle: (option: IOption) =>
+      `${tCommon("code")} ${option.codeOption}`,
     details: (option: IOption) => [
       {
-        label: "Section",
-        value: option?.nameSection || "Non assignée",
+        label: tOption("sectionCol"),
+        value: option?.nameSection || tOption("notAssigned"),
       },
       {
-        label: "Statut",
+        label: tCommon("status"),
         value: (
           <StatusBadge
             status={option.statusOption !== false ? "active" : "inactive"}
-            label={option.statusOption !== false ? "Active" : "Inactive"}
+            label={
+              option.statusOption !== false
+                ? tCommon("activeFeminine")
+                : tCommon("inactiveFeminine")
+            }
           />
         ),
       },
       {
-        label: "Créée le",
-        value: new Date(option.createdAt).toLocaleDateString("fr-FR"),
+        label: tCommon("createdOnFeminine"),
+        value: new Date(option.createdAt).toLocaleDateString(locale),
       },
     ],
     actions: (option: IOption) => [
       {
-        label: "Modifier",
+        label: tCommon("edit"),
         icon: Edit,
         onClick: () => handleEdit(option),
         variant: "outline" as const,
       },
       {
-        label: option.statusOption !== false ? "Désactiver" : "Activer",
+        label:
+          option.statusOption !== false
+            ? tCommon("deactivate")
+            : tCommon("activate"),
         icon: option.statusOption !== false ? Archive : RotateCcw,
         onClick: () => handleToggleStatus(option),
         variant: "outline" as const,
       },
       {
-        label: "Supprimer",
+        label: tCommon("delete"),
         icon: Trash2,
         onClick: () => handleDelete(option),
         variant: "outline" as const,
@@ -239,9 +262,9 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
   };
 
   const filterOptions = [
-    { value: "active", label: "Actives" },
-    { value: "inactive", label: "Inactives" },
-    { value: "all", label: "Toutes" },
+    { value: "active", label: tCommon("activeFemininePlural") },
+    { value: "inactive", label: tCommon("inactiveFemininePlural") },
+    { value: "all", label: tCommon("allFeminine") },
   ];
 
   return (
@@ -252,7 +275,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
         filterValue={statusFilter}
         onFilterChange={setStatusFilter}
         filterOptions={filterOptions}
-        searchPlaceholder="Rechercher une option…"
+        searchPlaceholder={tOption("search")}
       />
 
       <ResponsiveDataTable
@@ -260,7 +283,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
         columns={columns}
         cardConfig={cardConfig}
         loading={loading}
-        emptyMessage="Aucune option trouvée"
+        emptyMessage={tOption("empty")}
         searchTerm={searchTerm}
       />
 
@@ -270,6 +293,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
             open={showUpdateDialog}
             onOpenChange={setShowUpdateDialog}
             option={selectedOption}
+            labelKey={labelKey}
             onSuccess={handleActionSuccess}
           />
           <DeleteOptionsDialog
@@ -278,6 +302,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
             Options={[selectedOption]}
             showTrigger={false}
             permanent
+            labelKey={labelKey}
             onSuccess={handleActionSuccess}
           />
         </>

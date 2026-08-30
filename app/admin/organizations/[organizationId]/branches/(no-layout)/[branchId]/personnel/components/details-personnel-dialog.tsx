@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -34,22 +35,28 @@ export function DetailsPersonnelDialog({
   personnel,
   ...props
 }: DetailsPersonnelDialogProps) {
+  const locale = useLocale();
+  const t = useTranslations("users.staff.table");
+  const tStaff = useTranslations("users.staff");
+  const tPerson = useTranslations("common.person");
+  const tCommon = useTranslations("common");
+
   const fullName = [personnel.nom, personnel.postnom, personnel.prenom]
     .filter(Boolean)
     .join(" ");
 
   const sexeLabel =
     personnel.sexe === "M"
-      ? "Masculin"
+      ? tPerson("male")
       : personnel.sexe === "F"
-        ? "Féminin"
+        ? tPerson("female")
         : personnel.sexe;
 
   return (
     <Dialog {...props}>
       <DialogContent size="xl">
         <DialogHeader>
-          <DialogTitle>Détails du personnel</DialogTitle>
+          <DialogTitle>{t("detailsTitle")}</DialogTitle>
         </DialogHeader>
 
         <Card className="space-y-4 border-border p-4">
@@ -59,7 +66,7 @@ export function DetailsPersonnelDialog({
                 {personnel.image ? (
                   <AvatarImage
                     src={normalizeImageSrc(personnel.image)}
-                    alt={fullName || "Personnel"}
+                    alt={fullName || tStaff("badge")}
                   />
                 ) : null}
                 <AvatarFallback>
@@ -69,10 +76,10 @@ export function DetailsPersonnelDialog({
               </Avatar>
               <div className="min-w-0">
                 <h2 className="text-lg font-semibold text-foreground">
-                  {fullName || "Personnel"}
+                  {fullName || tStaff("badge")}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  {personnel.username || "Code non défini"}
+                  {personnel.username || t("codeUndefined")}
                 </p>
               </div>
             </div>
@@ -82,28 +89,32 @@ export function DetailsPersonnelDialog({
                 <Badge variant="outline">{orgRoleLabel(personnel.role)}</Badge>
               ) : null}
               <Badge variant="secondary">
-                {personnel.statusPersonnal ? "Actif" : "Inactif"}
+                {personnel.statusPersonnal
+                  ? tCommon("active")
+                  : tCommon("inactive")}
               </Badge>
             </div>
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
-            <Field label="Sexe" value={sexeLabel} />
+            <Field label={tPerson("gender")} value={sexeLabel} />
             <Field
-              label="Date d'affectation"
+              label={t("assignmentDate")}
               value={
                 personnel.dateOfBirth
-                  ? new Date(personnel.dateOfBirth).toLocaleDateString("fr-FR")
+                  ? new Date(personnel.dateOfBirth).toLocaleDateString(locale)
                   : undefined
               }
             />
-            <Field label="Téléphone" value={personnel.telephone} />
-            <Field label="Email" value={personnel.email} />
-            <Field label="Adresse" value={personnel.address} />
+            <Field label={tPerson("phone")} value={personnel.telephone} />
+            <Field label={tPerson("email")} value={personnel.email} />
+            <Field label={tPerson("address")} value={personnel.address} />
             <Field
-              label="Rôle"
+              label={t("role")}
               value={
-                personnel.role ? orgRoleLabel(personnel.role) : "Non défini"
+                personnel.role
+                  ? orgRoleLabel(personnel.role)
+                  : t("roleUndefined")
               }
             />
           </div>

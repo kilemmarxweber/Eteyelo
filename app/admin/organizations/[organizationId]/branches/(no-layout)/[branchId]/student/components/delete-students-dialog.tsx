@@ -18,6 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useTranslations } from "next-intl";
 import { IStudent } from "@/src/interfaces/Student";
 import {
   archiveStudentAction,
@@ -44,6 +45,8 @@ export function DeleteStudentsDialog({
   ...props
 }: DeleteStudentsDialogProps) {
   const peopleLabels = useBranchPeopleLabels();
+  const t = useTranslations("users.students.delete");
+  const tCommon = useTranslations("common");
   const [isPending, startTransition] = useTransition();
   const { refresh } = useRefresh();
 
@@ -58,17 +61,13 @@ export function DeleteStudentsDialog({
         if (err) {
           toast.error(
             err.message ??
-              (permanent
-                ? "Erreur lors de la suppression"
-                : "Erreur lors de l'archivage"),
+              (permanent ? tCommon("errorDelete") : tCommon("errorArchive")),
           );
           hasError = true;
         } else if (!result?.ok) {
           toast.error(
             result?.message ??
-              (permanent
-                ? "Erreur lors de la suppression"
-                : "Erreur lors de l'archivage"),
+              (permanent ? tCommon("errorDelete") : tCommon("errorArchive")),
           );
           hasError = true;
         }
@@ -77,11 +76,11 @@ export function DeleteStudentsDialog({
         toast.success(
           permanent
             ? students.length === 1
-              ? `${peopleLabels.student} désactivé dans la branche`
-              : `${peopleLabels.studentPlural} désactivés dans la branche`
+              ? t("deactivatedOne", { student: peopleLabels.student })
+              : t("deactivatedMany", { students: peopleLabels.studentPlural })
             : students.length === 1
-              ? `${peopleLabels.student} archivé`
-              : `${peopleLabels.studentPlural} archivés`,
+              ? t("archivedOne", { student: peopleLabels.student })
+              : t("archivedMany", { students: peopleLabels.studentPlural }),
         );
         refresh();
         onSuccess?.();
@@ -102,7 +101,7 @@ export function DeleteStudentsDialog({
             ) : (
               <IconArchive className="mr-2 size-4" aria-hidden="true" />
             )}
-            {permanent ? `Supprimer (${count})` : `Archiver (${count})`}
+            {permanent ? `${tCommon("delete")} (${count})` : `${tCommon("archive")} (${count})`}
           </Button>
         </DialogTrigger>
       ) : null}
@@ -111,17 +110,17 @@ export function DeleteStudentsDialog({
           <DialogTitle>
             {permanent
               ? count === 1
-                ? `Désactiver ${peopleLabels.studentLower} dans cette branche ?`
-                : `Désactiver ${count} ${peopleLabels.studentPluralLower} dans cette branche ?`
+                ? t("deactivateOne", { studentLower: peopleLabels.studentLower })
+                : t("deactivateMany", { count, studentsLower: peopleLabels.studentPluralLower })
               : count === 1
                 ? peopleLabels.archiveTitle
-                : `Archiver ${count} ${peopleLabels.studentPluralLower} ?`}
+                : t("archiveMany", { count, studentsLower: peopleLabels.studentPluralLower })}
           </DialogTitle>
           <DialogDescription>
             {permanent
               ? count === 1
-                ? "Il ne sera plus visible dans cette branche, mais restera membre de l'organisation. Présences, notes et inscriptions restent pour les rapports. Ses autres branches ne sont pas affectées."
-                : "Ils ne seront plus visibles dans cette branche, mais resteront membres de l'organisation. L'historique est conservé pour les rapports."
+                ? t("permanentDescOne")
+                : t("permanentDescMany")
               : count === 1
                 ? peopleLabels.archiveDescriptionSingular
                 : peopleLabels.archiveDescriptionPlural}
@@ -129,11 +128,11 @@ export function DeleteStudentsDialog({
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
           <DialogClose asChild>
-            <Button variant="outline">Annuler</Button>
+            <Button variant="outline">{tCommon("cancel")}</Button>
           </DialogClose>
           <Button
             aria-label={
-              permanent ? "Désactiver dans la branche" : "Archiver la sélection"
+              permanent ? t("deactivateInBranch") : tCommon("archiveSelection")
             }
             variant={permanent ? "destructive" : "outline"}
             onClick={handleConfirm}
@@ -145,7 +144,7 @@ export function DeleteStudentsDialog({
                 aria-hidden="true"
               />
             )}
-            {permanent ? "Désactiver" : "Archiver"}
+            {permanent ? tCommon("deactivate") : tCommon("archive")}
           </Button>
         </DialogFooter>
       </DialogContent>

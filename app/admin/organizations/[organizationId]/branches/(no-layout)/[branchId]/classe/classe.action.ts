@@ -298,18 +298,20 @@ export const createClasseAction = action
   });
 
 function transformClasse(classe: any): IClasse {
+  const option = classe.option;
+  const section = option?.section;
   return {
     ...classe,
-    optionId: classe.optionId || "",
-    nameOption: classe?.option?.nameOption || "",
-    codeOption: classe?.option?.codeOption || "",
+    optionId: classe.optionId || option?.id || "",
+    nameOption: option?.nameOption || "",
+    codeOption: option?.codeOption || "",
     codeClasse: classe?.codeClasse || "",
     nameClasse: classe.nameClasse || "",
     level: classe.level ?? null,
     parallel: classe.parallel ?? null,
     capacity: classe.capacity ?? null,
     statusClasse: classe.statusClasse ?? true,
-    creneauId: classe.creneauId || "",
+    creneauId: classe.creneauId || classe.creneau?.id || "",
     nameCreneau: classe.creneau?.nameCreneau || "",
     creneau: classe.creneau
       ? {
@@ -331,14 +333,14 @@ function transformClasse(classe: any): IClasse {
             : "",
         }
       : undefined,
-    option: classe.option
+    option: option
       ? {
-          ...classe.option,
-          sectionId: classe.option.sectionId || "",
-          codeSection: "",
-          nameSection: "",
-          statusSection: true,
-          statusOption: classe.option.statusOption ?? true,
+          ...option,
+          sectionId: option.sectionId || section?.id || "",
+          codeSection: section?.codeSection || option.codeSection || "",
+          nameSection: section?.nameSection || option.nameSection || "",
+          statusSection: section?.statusSection ?? true,
+          statusOption: option.statusOption ?? true,
         }
       : undefined,
     studentsCount: classe._count?.classEnrollment ?? classe.studentsCount ?? 0,
@@ -375,7 +377,7 @@ export const getClassesAction = action.handler(async (): Promise<IClasse[]> => {
         ...classeCycleWhere(accessible),
       },
       include: {
-        option: true,
+        option: { include: { section: true } },
         creneau: true,
         _count: { select: { classEnrollment: true } },
       },
@@ -397,7 +399,8 @@ export const getClassesByIdAction = action
       const { branchId } = await requireBranchContext();
       const classes = await prisma.classe.findMany({
         include: {
-          option: true,
+          option: { include: { section: true } },
+          creneau: true,
         },
         where: {
           id: input.id,

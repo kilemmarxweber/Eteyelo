@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useParams } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { toast } from "sonner";
-import { Check, X } from "lucide-react";
+import { Check, MessageSquare, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,6 +59,8 @@ export function AbsenceCaseDialog({
 }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const params = useParams<{ organizationId?: string; branchId?: string }>();
+  const router = useRouter();
 
   const title =
     mode === "justify"
@@ -180,6 +184,26 @@ export function AbsenceCaseDialog({
         ) : null}
 
         <DialogFooter>
+          {caseRow && params.organizationId ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const qs = new URLSearchParams({
+                  contextType: "ABSENCE_CASE",
+                  contextId: caseRow.id,
+                });
+                if (params.branchId) qs.set("fromBranch", params.branchId);
+                onOpenChange(false);
+                router.push(
+                  `/admin/organizations/${params.organizationId}/messagerie?${qs.toString()}`,
+                );
+              }}
+            >
+              <MessageSquare className="mr-1.5 size-3.5" />
+              Répondre
+            </Button>
+          ) : null}
           {mode === "justify" ? (
             <Button
               type="button"

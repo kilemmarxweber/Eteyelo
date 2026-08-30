@@ -1,45 +1,44 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useSession } from "@/lib/auth-client";
 import { isUniversiteBranch } from "@/lib/branch-capabilities";
-import { getPeopleLabels } from "@/lib/people-labels";
-import { UNIVERSITY_NOTES_LABELS } from "@/lib/university-lmd-labels";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 export function useNotesLabels(typebranchOverride?: unknown) {
   const { data: session } = useSession();
+  const t = useTranslations("cursus.notes");
   const typebranch = typebranchOverride ?? session?.branch?.typebranch;
   const educationSystem = (
     session?.branch as { educationSystem?: string } | null | undefined
   )?.educationSystem;
   const isUniversite = isUniversiteBranch(typebranch);
-  const peopleLabels = getPeopleLabels(typebranch);
+  const peopleLabels = useBranchPeopleLabels(typebranch);
 
   return {
     typebranch,
     educationSystem,
     isUniversite,
-    sessionLabel: isUniversite ? UNIVERSITY_NOTES_LABELS.session : "Période",
+    sessionLabel: isUniversite ? t("session") : t("period"),
     sessionPlaceholder: isUniversite
-      ? UNIVERSITY_NOTES_LABELS.sessionPlaceholder
-      : "Sélectionner une période",
+      ? t("sessionPlaceholder")
+      : t("periodPlaceholder"),
     courseContextLabel: isUniversite
-      ? UNIVERSITY_NOTES_LABELS.courseAuditoire
-      : "Cours et classe",
+      ? t("courseAndAuditorium")
+      : t("courseAndClass"),
     coursesListTitle: isUniversite
-      ? UNIVERSITY_NOTES_LABELS.coursesAndAuditoires
-      : "Cours et classes",
-    classColumnLabel: isUniversite
-      ? UNIVERSITY_NOTES_LABELS.auditoire
-      : "Classe",
-    subjectColumnLabel: isUniversite ? UNIVERSITY_NOTES_LABELS.course : "Matière",
+      ? t("coursesAndAuditoriums")
+      : t("coursesAndClasses"),
+    classColumnLabel: isUniversite ? t("auditorium") : t("class"),
+    subjectColumnLabel: isUniversite ? t("course") : t("subject"),
     studentPlural: peopleLabels.studentPluralLower,
     studentSingular: peopleLabels.studentLower,
     teacher: peopleLabels.teacher,
     teacherLower: peopleLabels.teacherLower,
-    exportClassLabel: isUniversite ? "Auditoire:" : "Classe:",
-    exportSessionLabel: isUniversite ? "Session:" : "Période:",
+    exportClassLabel: isUniversite ? t("auditoriumColon") : t("classColon"),
+    exportSessionLabel: isUniversite ? t("sessionColon") : t("periodColon"),
     undefinedClassLabel: isUniversite
-      ? UNIVERSITY_NOTES_LABELS.auditoireUndefined
-      : "Classe non définie",
+      ? t("auditoriumUndefined")
+      : t("classUndefined"),
   };
 }

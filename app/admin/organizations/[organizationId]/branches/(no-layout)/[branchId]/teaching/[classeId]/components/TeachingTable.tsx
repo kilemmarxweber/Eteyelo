@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { columns } from "./columns";
+import { useTranslations } from "next-intl";
+import { useTeachingColumns } from "./columns";
 import { ITeaching } from "@/src/interfaces/Teaching";
 import { getTeachingByClassAction, getTeachings } from "../../teaching.action";
 import { ResponsiveDataTable } from "@/components/custom";
@@ -10,6 +11,10 @@ import { DataTableToolbar } from "./data-table-toolbar";
 import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
 
 const TeachingsList = ({ params }: { params: { classeId: string } }) => {
+  const t = useTranslations("teaching.assignments");
+  const tt = useTranslations("teaching.assignments.table");
+  const tc = useTranslations("common");
+  const columns = useTeachingColumns();
   const [teachings, setTeachings] = useState<ITeaching[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,30 +30,26 @@ const TeachingsList = ({ params }: { params: { classeId: string } }) => {
             classeId: params.classeId,
           });
           if (err) {
-            throw new Error(
-              err.message || "Erreur lors du chargement des affectations",
-            );
+            throw new Error(err.message || t("loadFailed"));
           }
           setTeachings(rawTeachings);
         } else {
           const [rawTeachings, err] = await getTeachings();
           if (err) {
-            throw new Error(
-              err.message || "Erreur lors du chargement des affectations",
-            );
+            throw new Error(err.message || t("loadFailed"));
           }
           setTeachings(rawTeachings);
         }
       } catch (error: any) {
-        console.error("Échec de récupérer les affectations", error);
-        setError(error.message || "Une erreur est survenue");
+        console.error("Failed to fetch assignments", error);
+        setError(error.message || t("loadFailed"));
       } finally {
         setLoading(false);
       }
     };
 
     fetchTeachings();
-  }, [params.classeId]);
+  }, [params.classeId, t]);
 
   if (loading) {
     return (
@@ -64,7 +65,7 @@ const TeachingsList = ({ params }: { params: { classeId: string } }) => {
         <Alert variant="destructive">
           <IconAlertCircle className="h-4 w-4" />
           <AlertDescription>
-            {error}. Veuillez réessayer plus tard.
+            {error}. {tt("loadRetry")}
           </AlertDescription>
         </Alert>
       </div>
@@ -75,8 +76,8 @@ const TeachingsList = ({ params }: { params: { classeId: string } }) => {
     return (
       <div className="p-6">
         <EmptyTableState
-          title="Aucun enseignant affecté"
-          description="Aucun enseignant n'est actuellement affecté à cette classe."
+          title={t("noTeacherAssigned")}
+          description={t("noTeacherAssignedDesc")}
           icon={<IconUsers className="h-10 w-10 text-muted-foreground" />}
         />
       </div>
@@ -89,7 +90,7 @@ const TeachingsList = ({ params }: { params: { classeId: string } }) => {
         columns={columns}
         ToolbarComponent={DataTableToolbar}
         data={teachings}
-        emptyText="Pas de professeur dans cette classe"
+        emptyText={tt("emptyText")}
         mobileCardTitle={(row) =>
           `${row.nom ?? ""} ${row.postnom ?? ""} ${row.prenom ?? ""}`
         }
@@ -97,15 +98,16 @@ const TeachingsList = ({ params }: { params: { classeId: string } }) => {
         mobileCardBadges={(row) =>
           [
             {
-              label: row.sexe === "M" ? "Masculin" : "Féminin",
+              label:
+                row.sexe === "M" ? tc("person.male") : tc("person.female"),
               variant: "secondary" as const,
             },
             {
-              label: row.nameCours || "Cours non défini",
+              label: row.nameCours || t("courseUndefined"),
               variant: "outline" as const,
             },
             {
-              label: row.nameYear || "Année non définie",
+              label: row.nameYear || t("yearUndefined"),
               variant: "outline" as const,
             },
           ].filter((b) => b.label)

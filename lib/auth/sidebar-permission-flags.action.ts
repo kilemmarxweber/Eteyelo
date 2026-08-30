@@ -16,6 +16,7 @@ import {
   canAccessSupportSettings,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
+import { prisma } from "@/lib/prisma";
 
 export type SidebarPermissionFlags = {
   /** Hrefs logiques `/admin/...` à masquer (sans `resource:read`). */
@@ -81,7 +82,7 @@ export async function getSidebarPermissionFlagsAction(): Promise<SidebarPermissi
     }
 
     return {
-      hideHrefs,
+      hideHrefs: await hideMessagingIfDisabled(organizationId, hideHrefs),
       settingsReads,
       inscriptionRead: !hideHrefs.includes("/admin/registration"),
     };
@@ -93,6 +94,7 @@ export async function getSidebarPermissionFlagsAction(): Promise<SidebarPermissi
   settingsReads.typeFrais = canAccessBranchOrgSettings(session);
   settingsReads["exchange-rates"] = canAccessBranchOrgSettings(session);
   settingsReads.whatsapp = canAccessBranchOrgSettings(session);
+  settingsReads.messagerie = canAccessBranchOrgSettings(session);
   settingsReads.attendance = canAccessBranchOrgSettings(session);
   settingsReads["inscription-publique"] = canAccessSchoolOpsSettings(session);
   settingsReads.calendar = canAccessSchoolOpsSettings(session);
@@ -102,8 +104,25 @@ export async function getSidebarPermissionFlagsAction(): Promise<SidebarPermissi
   settingsReads.support = canAccessSupportSettings(session);
 
   return {
-    hideHrefs: canAccessRegistrationArea(session) ? [] : ["/admin/registration"],
+    hideHrefs: await hideMessagingIfDisabled(
+      organizationId,
+      canAccessRegistrationArea(session) ? [] : ["/admin/registration"],
+    ),
     settingsReads,
     inscriptionRead: canAccessRegistrationArea(session),
   };
+}
+
+async function hideMessagingIfDisabled(
+  organizationId: string,
+  hideHrefs: string[],
+) {
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { messagingEnabled: true },
+  });
+  if (org && !org.messagingEnabled && !hideHrefs.includes("/admin/messagerie")) {
+    return [...hideHrefs, "/admin/messagerie"];
+  }
+  return hideHrefs;
 }

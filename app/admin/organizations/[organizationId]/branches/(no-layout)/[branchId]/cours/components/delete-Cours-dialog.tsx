@@ -5,6 +5,7 @@ import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import * as React from "react";
 import { IconArchive, IconReload, IconTrash } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,8 @@ export function DeleteCoursDialog({
   permanent = false,
   ...props
 }: DeleteCoursDialogProps) {
+  const t = useTranslations("teaching.courses.deleteDialog");
+  const tc = useTranslations("common");
   const [isPending, startTransition] = useTransition();
   const { refresh } = useRefresh();
 
@@ -69,9 +72,7 @@ export function DeleteCoursDialog({
         if (err) {
           toast.error(
             err.message ??
-              (permanent
-                ? "Erreur lors de la suppression"
-                : "Erreur lors de la désactivation"),
+              (permanent ? tc("errorDelete") : t("errorDeactivate")),
           );
           hasError = true;
         }
@@ -80,11 +81,11 @@ export function DeleteCoursDialog({
         toast.success(
           permanent
             ? count === 1
-              ? "Cours supprimé"
-              : "Cours supprimés"
+              ? t("deletedOne")
+              : t("deletedMany")
             : count === 1
-              ? "Cours désactivé"
-              : "Cours désactivés",
+              ? t("deactivatedOne")
+              : t("deactivatedMany"),
         );
         refresh();
         onSuccess?.();
@@ -103,7 +104,9 @@ export function DeleteCoursDialog({
             ) : (
               <IconArchive className="mr-2 size-4" aria-hidden="true" />
             )}
-            {permanent ? `Supprimer (${count})` : `Désactiver (${count})`}
+            {permanent
+              ? t("deleteCount", { count })
+              : t("deactivateCount", { count })}
           </Button>
         </DialogTrigger>
       ) : null}
@@ -114,39 +117,39 @@ export function DeleteCoursDialog({
         <DialogHeader>
           <DialogTitle>
             {blocked
-              ? "Impossible de supprimer"
+              ? tc("cannotDelete")
               : permanent
                 ? count === 1
-                  ? "Supprimer le cours ?"
-                  : `Supprimer ${count} cours ?`
+                  ? t("titleDeleteOne")
+                  : t("titleDeleteMany", { count })
                 : count === 1
-                  ? "Désactiver le cours ?"
-                  : `Désactiver ${count} cours ?`}
+                  ? t("titleDeactivateOne")
+                  : t("titleDeactivateMany", { count })}
           </DialogTitle>
           <DialogDescription>
             {blocked
               ? count === 1
-                ? `Ce cours a encore ${blockedCount} affectation${blockedCount > 1 ? "s" : ""}. Supprimez d'abord ${blockedCount > 1 ? "ces affectations" : "cette affectation"} avant de supprimer le cours.`
-                : `Ces cours ont encore ${blockedCount} affectation${blockedCount > 1 ? "s" : ""} liée${blockedCount > 1 ? "s" : ""}. Supprimez d'abord ces affectations avant de supprimer les cours.`
+                ? t("blockedOne", { count: blockedCount })
+                : t("blockedMany", { count: blockedCount })
               : permanent
                 ? count === 1
-                  ? "Cette action est irréversible. Le cours sera effacé définitivement."
-                  : "Cette action est irréversible. Ces cours seront effacés définitivement."
+                  ? t("permanentOne")
+                  : t("permanentMany")
                 : count === 1
-                  ? "Le cours sera désactivé et masqué des listes actives mais l'historique sera conservé."
-                  : "Ces cours seront désactivés et masqués des listes actives mais l'historique sera conservé."}
+                  ? t("deactivateOne")
+                  : t("deactivateMany")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
           <DialogClose asChild>
-            <Button variant="outline">{blocked ? "Fermer" : "Annuler"}</Button>
+            <Button variant="outline">
+              {blocked ? tc("close") : tc("cancel")}
+            </Button>
           </DialogClose>
           {blocked ? null : (
             <Button
               aria-label={
-                permanent
-                  ? "Supprimer la sélection"
-                  : "Désactiver la sélection"
+                permanent ? tc("deleteSelection") : t("deactivateSelection")
               }
               variant="destructive"
               onClick={handleConfirm}
@@ -162,7 +165,7 @@ export function DeleteCoursDialog({
               ) : (
                 <IconArchive className="mr-2 size-4" aria-hidden="true" />
               )}
-              {permanent ? "Supprimer" : "Désactiver"}
+              {permanent ? tc("delete") : tc("deactivate")}
             </Button>
           )}
         </DialogFooter>

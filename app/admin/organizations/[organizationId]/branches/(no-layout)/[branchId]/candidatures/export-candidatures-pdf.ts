@@ -18,15 +18,6 @@ import {
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type { JobApplicationListItem } from "@/src/interfaces/JobApplication";
 
-export const CANDIDATURE_STATUS_LABEL: Record<string, string> = {
-  PENDING: "En attente",
-  REVIEWED: "Examination en cours",
-  ACCEPTED: "Acceptée",
-  REJECTED: "Refusée",
-  HIRED: "Embauchée",
-  CANCELLED: "Annulée",
-};
-
 export type CandidatureStatusFilter =
   | "ALL"
   | "PENDING"
@@ -37,6 +28,54 @@ export type CandidatureStatusFilter =
 
 export type CandidatureReportOptions = {
   status?: CandidatureStatusFilter | null;
+};
+
+export type CandidaturePdfLabels = {
+  statusLabels: Record<string, string>;
+  allStatuses: string;
+  listTitle: string;
+  listTitleFiltered: string;
+  statusFilter: string;
+  dossierTitle: string;
+  reference: string;
+  statusLabel: string;
+  depositedOn: string;
+  statusBanner: string;
+  candidateIdentity: string;
+  fullName: string;
+  phone: string;
+  typeTeacher: string;
+  typeStaff: string;
+  gender: string;
+  genderMale: string;
+  genderFemale: string;
+  birthDate: string;
+  address: string;
+  profileSought: string;
+  profileRole: string;
+  yearsExperience: string;
+  availability: string;
+  experience: string;
+  education: string;
+  skills: string;
+  motivation: string;
+  rejectReason: string;
+  timelineTitle: string;
+  timelineDeposit: string;
+  timelineReview: string;
+  timelineAccept: string;
+  timelineHire: string;
+  timelineReject: string;
+  applicationCount: string;
+  columns: {
+    index: string;
+    reference: string;
+    identity: string;
+    type: string;
+    profile: string;
+    status: string;
+    date: string;
+  };
 };
 
 export type CandidatureDossierInput = {
@@ -77,16 +116,22 @@ function formatFullName(item: {
   );
 }
 
-function formatType(applicationType: string): string {
-  return applicationType === "TEACHER" ? "Enseignant" : "Personnel";
+function formatType(
+  applicationType: string,
+  labels: Pick<CandidaturePdfLabels, "typeTeacher" | "typeStaff">,
+): string {
+  return applicationType === "TEACHER" ? labels.typeTeacher : labels.typeStaff;
 }
 
-function formatPoste(item: {
-  applicationType: string;
-  desiredSubjects?: string | null;
-  desiredLevels?: string | null;
-  desiredOrgRole?: string | null;
-}): string {
+function formatPoste(
+  item: {
+    applicationType: string;
+    desiredSubjects?: string | null;
+    desiredLevels?: string | null;
+    desiredOrgRole?: string | null;
+  },
+  labels: Pick<CandidaturePdfLabels, "typeTeacher" | "typeStaff">,
+): string {
   if (item.applicationType === "TEACHER") {
     const parts = [item.desiredSubjects, item.desiredLevels]
       .map((part) => part?.trim())
@@ -95,7 +140,7 @@ function formatPoste(item: {
   }
   return item.desiredOrgRole
     ? orgRoleLabel(item.desiredOrgRole)
-    : "-";
+    : formatType(item.applicationType, labels);
 }
 
 function formatDate(value: Date | string | null | undefined): string {
@@ -105,32 +150,48 @@ function formatDate(value: Date | string | null | undefined): string {
   return formatFrenchDate(date);
 }
 
-function statusFilterLabel(status: CandidatureStatusFilter): string {
-  if (status === "ALL") return "Tous les statuts";
-  return CANDIDATURE_STATUS_LABEL[status] ?? status;
+function statusFilterLabel(
+  status: CandidatureStatusFilter,
+  labels: CandidaturePdfLabels,
+): string {
+  if (status === "ALL") return labels.allStatuses;
+  return labels.statusLabels[status] ?? status;
 }
 
 export function buildCandidaturesReportTitle(
+  labels: CandidaturePdfLabels,
   options: CandidatureReportOptions = {},
 ): string {
   const status = options.status ?? "ALL";
-  if (!status || status === "ALL") return "Liste des candidatures";
-  return `Liste des candidatures — ${statusFilterLabel(status)}`;
+  if (!status || status === "ALL") return labels.listTitle;
+  return labels.listTitleFiltered.replace(
+    "{status}",
+    statusFilterLabel(status, labels),
+  );
 }
 
 export function buildCandidaturesReportFilterLabels(
+  labels: CandidaturePdfLabels,
   options: CandidatureReportOptions = {},
 ): string[] {
   const status = options.status ?? "ALL";
   if (!status || status === "ALL") return [];
-  return [`Statut : ${statusFilterLabel(status)}`];
+  return [
+    labels.statusFilter.replace(
+      "{status}",
+      statusFilterLabel(status, labels),
+    ),
+  ];
 }
 
-function buildListFileName(options: CandidatureReportOptions = {}): string {
+function buildListFileName(
+  labels: CandidaturePdfLabels,
+  options: CandidatureReportOptions = {},
+): string {
   const parts = ["candidatures"];
   const status = options.status ?? "ALL";
   if (status && status !== "ALL") {
-    parts.push(safePdfFilePart(statusFilterLabel(status)));
+    parts.push(safePdfFilePart(statusFilterLabel(status, labels)));
   }
   return parts.join("-");
 }
@@ -138,21 +199,30 @@ function buildListFileName(options: CandidatureReportOptions = {}): string {
 export async function buildCandidaturesReportPdf(
   applications: JobApplicationListItem[],
   context: SchoolReportContext,
+  labels: CandidaturePdfLabels,
   options: CandidatureReportOptions = {},
 ) {
-  const title = buildCandidaturesReportTitle(options);
-  const filterLabels = buildCandidaturesReportFilterLabels(options);
+  const title = buildCandidaturesReportTitle(labels, options);
+  const filterLabels = buildCandidaturesReportFilterLabels(labels, options);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
-  const head = ["#", "Référence", "Identité", "Type", "Poste / profil", "Statut", "Date"];
+  const head = [
+    labels.columns.index,
+    labels.columns.reference,
+    labels.columns.identity,
+    labels.columns.type,
+    labels.columns.profile,
+    labels.columns.status,
+    labels.columns.date,
+  ];
   const body = applications.map((application, index) => [
     index + 1,
     application.reference,
     formatFullName(application),
-    formatType(application.applicationType),
-    formatPoste(application),
-    CANDIDATURE_STATUS_LABEL[application.status] ?? application.status,
+    formatType(application.applicationType, labels),
+    formatPoste(application, labels),
+    labels.statusLabels[application.status] ?? application.status,
     formatDate(application.createdAt),
   ]);
 
@@ -192,7 +262,13 @@ export async function buildCandidaturesReportPdf(
       drawReportHeader(doc, context, {
         title,
         subtitle: context.branchName,
-        details: [...filterLabels, `${applications.length} candidature(s)`],
+        details: [
+          ...filterLabels,
+          labels.applicationCount.replace(
+            "{count}",
+            String(applications.length),
+          ),
+        ],
         logoDataUrl: logo,
       });
     },
@@ -208,11 +284,17 @@ export async function buildCandidaturesReportPdf(
 export async function exportCandidaturesReportPdf(
   applications: JobApplicationListItem[],
   context: SchoolReportContext,
+  labels: CandidaturePdfLabels,
   options: CandidatureReportOptions = {},
 ) {
   const date = new Date().toISOString().slice(0, 10);
-  const reportName = buildListFileName(options);
-  const doc = await buildCandidaturesReportPdf(applications, context, options);
+  const reportName = buildListFileName(labels, options);
+  const doc = await buildCandidaturesReportPdf(
+    applications,
+    context,
+    labels,
+    options,
+  );
   doc.save(`${reportName}-${date}.pdf`);
 }
 
@@ -279,6 +361,7 @@ function drawParagraph(
 export async function buildCandidatureDossierPdf(
   application: CandidatureDossierInput,
   context: SchoolReportContext,
+  labels: CandidaturePdfLabels,
 ): Promise<PdfOutput> {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
@@ -286,22 +369,24 @@ export async function buildCandidatureDossierPdf(
   const pageHeight = doc.internal.pageSize.getHeight();
   const fullName = formatFullName(application);
   const statusLabel =
-    CANDIDATURE_STATUS_LABEL[application.status] ?? application.status;
+    labels.statusLabels[application.status] ?? application.status;
 
   const contentTop = drawReportHeader(doc, context, {
-    title: "Dossier de candidature",
+    title: labels.dossierTitle,
     subtitle: context.branchName,
     details: [
-      `Référence : ${application.reference}`,
-      `Statut : ${statusLabel}`,
-      `Déposée le ${formatDate(application.createdAt)}`,
+      labels.reference.replace("{reference}", application.reference),
+      labels.statusLabel.replace("{status}", statusLabel),
+      labels.depositedOn.replace(
+        "{date}",
+        formatDate(application.createdAt),
+      ),
     ],
     logoDataUrl: logo,
   });
 
   let y = contentTop + 4;
 
-  // Status banner
   const bannerColors: Record<string, [number, number, number]> = {
     PENDING: [245, 158, 11],
     REVIEWED: [59, 130, 246],
@@ -316,18 +401,21 @@ export async function buildCandidatureDossierPdf(
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.text(`STATUT : ${statusLabel.toUpperCase()}`, pageWidth / 2, y + 7.5, {
-    align: "center",
-  });
+  doc.text(
+    labels.statusBanner.replace("{status}", statusLabel.toUpperCase()),
+    pageWidth / 2,
+    y + 7.5,
+    { align: "center" },
+  );
   y += 18;
 
-  y = drawSectionTitle(doc, "Identité du candidat", y);
+  y = drawSectionTitle(doc, labels.candidateIdentity, y);
   const colWidth = (pageWidth - 28 - 8) / 2;
-  const leftY = drawField(doc, "Nom complet", fullName, 14, y, colWidth);
+  const leftY = drawField(doc, labels.fullName, fullName, 14, y, colWidth);
   const rightY = drawField(
     doc,
-    "Type",
-    formatType(application.applicationType),
+    labels.columns.type,
+    formatType(application.applicationType, labels),
     14 + colWidth + 8,
     y,
     colWidth,
@@ -337,7 +425,7 @@ export async function buildCandidatureDossierPdf(
   const leftY2 = drawField(doc, "Email", application.email, 14, y, colWidth);
   const rightY2 = drawField(
     doc,
-    "Téléphone",
+    labels.phone,
     application.telephone,
     14 + colWidth + 8,
     y,
@@ -348,15 +436,17 @@ export async function buildCandidatureDossierPdf(
   if (application.sexe) {
     const leftY3 = drawField(
       doc,
-      "Sexe",
-      application.sexe === "feminin" ? "Féminin" : "Masculin",
+      labels.gender,
+      application.sexe === "feminin"
+        ? labels.genderFemale
+        : labels.genderMale,
       14,
       y,
       colWidth,
     );
     const rightY3 = drawField(
       doc,
-      "Date de naissance",
+      labels.birthDate,
       formatDate(application.dateOfBirth),
       14 + colWidth + 8,
       y,
@@ -366,15 +456,22 @@ export async function buildCandidatureDossierPdf(
   }
 
   if (application.address) {
-    y = drawField(doc, "Adresse", application.address, 14, y, pageWidth - 28);
+    y = drawField(doc, labels.address, application.address, 14, y, pageWidth - 28);
   }
 
-  y = drawSectionTitle(doc, "Profil recherché", y + 2);
-  y = drawField(doc, "Poste / profil", formatPoste(application), 14, y, pageWidth - 28);
+  y = drawSectionTitle(doc, labels.profileSought, y + 2);
+  y = drawField(
+    doc,
+    labels.profileRole,
+    formatPoste(application, labels),
+    14,
+    y,
+    pageWidth - 28,
+  );
   if (application.yearsOfExperience != null) {
     y = drawField(
       doc,
-      "Années d'expérience",
+      labels.yearsExperience,
       String(application.yearsOfExperience),
       14,
       y,
@@ -384,7 +481,7 @@ export async function buildCandidatureDossierPdf(
   if (application.availability) {
     y = drawField(
       doc,
-      "Disponibilité",
+      labels.availability,
       application.availability,
       14,
       y,
@@ -392,43 +489,80 @@ export async function buildCandidatureDossierPdf(
     );
   }
 
-  y = drawParagraph(doc, "Expérience", application.experienceSummary ?? "", y, pageHeight);
-  y = drawParagraph(doc, "Formation", application.educationSummary ?? "", y, pageHeight);
-  y = drawParagraph(doc, "Compétences", application.skills ?? "", y, pageHeight);
-  y = drawParagraph(doc, "Motivation", application.motivation ?? "", y, pageHeight);
+  y = drawParagraph(
+    doc,
+    labels.experience,
+    application.experienceSummary ?? "",
+    y,
+    pageHeight,
+  );
+  y = drawParagraph(
+    doc,
+    labels.education,
+    application.educationSummary ?? "",
+    y,
+    pageHeight,
+  );
+  y = drawParagraph(doc, labels.skills, application.skills ?? "", y, pageHeight);
+  y = drawParagraph(
+    doc,
+    labels.motivation,
+    application.motivation ?? "",
+    y,
+    pageHeight,
+  );
 
   if (application.status === "REJECTED" && application.rejectedReason) {
     y = drawParagraph(
       doc,
-      "Motif du refus",
+      labels.rejectReason,
       application.rejectedReason,
       y,
       pageHeight,
     );
   }
 
-  // Decision timeline
   const timeline: string[] = [
-    `Dépôt : ${formatDate(application.createdAt)}`,
+    labels.timelineDeposit.replace(
+      "{date}",
+      formatDate(application.createdAt),
+    ),
   ];
   if (application.reviewedAt) {
-    timeline.push(`Examination : ${formatDate(application.reviewedAt)}`);
+    timeline.push(
+      labels.timelineReview.replace(
+        "{date}",
+        formatDate(application.reviewedAt),
+      ),
+    );
   }
   if (application.acceptedAt) {
-    timeline.push(`Acceptation : ${formatDate(application.acceptedAt)}`);
+    timeline.push(
+      labels.timelineAccept.replace(
+        "{date}",
+        formatDate(application.acceptedAt),
+      ),
+    );
   }
   if (application.hiredAt) {
-    timeline.push(`Embauche : ${formatDate(application.hiredAt)}`);
+    timeline.push(
+      labels.timelineHire.replace("{date}", formatDate(application.hiredAt)),
+    );
   }
   if (application.status === "REJECTED") {
-    timeline.push(`Refus : ${formatDate(application.reviewedAt ?? application.createdAt)}`);
+    timeline.push(
+      labels.timelineReject.replace(
+        "{date}",
+        formatDate(application.reviewedAt ?? application.createdAt),
+      ),
+    );
   }
 
   if (y > pageHeight - 40) {
     doc.addPage();
     y = 20;
   }
-  y = drawSectionTitle(doc, "Suivi de la demande", y + 2);
+  y = drawSectionTitle(doc, labels.timelineTitle, y + 2);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(15, 23, 42);
@@ -448,8 +582,9 @@ export async function buildCandidatureDossierPdf(
 export async function downloadCandidatureDossierPdf(
   application: CandidatureDossierInput,
   context: SchoolReportContext,
+  labels: CandidaturePdfLabels,
 ) {
-  const output = await buildCandidatureDossierPdf(application, context);
+  const output = await buildCandidatureDossierPdf(application, context, labels);
   downloadPdfOutput(output);
   return output;
 }

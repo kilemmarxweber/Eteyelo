@@ -48,6 +48,7 @@ const RESOURCE_LABELS_FR: Record<string, string> = {
   platformSupport: "Support plateforme",
   organizationSupport: "Support",
   platformEscalation: "Escalade support",
+  messaging: "Messagerie",
   user: "Utilisateur",
   session: "Session",
 };
@@ -61,6 +62,9 @@ const ACTION_LABELS_FR: Record<string, string> = {
   cancel: "Annuler",
   encaisser: "Encaisser",
   assign: "Affecter",
+  send: "Envoyer",
+  group: "Groupe",
+  manage: "Gérer",
   close: "Clôturer",
   ban: "Bannir",
   impersonate: "Usurper",

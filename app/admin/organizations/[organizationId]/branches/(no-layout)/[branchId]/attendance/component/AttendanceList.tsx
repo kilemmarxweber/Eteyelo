@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { getAttendanceHistory } from "../attendance.action";
 import { columns } from "./columns";
 import { ResponsiveDataTable } from "@/components/custom";
@@ -12,6 +13,8 @@ import TeacherAttendanceForm from "./TeacherAttendanceForm";
 import { Card } from "@/components/ui/card";
 
 export default function AttendanceList() {
+  const t = useTranslations("attendance");
+  const tCommon = useTranslations("common");
   const [data, setData] = useState<AttendanceSessionRow[]>([]);
   const [open, setOpen] = useState(false);
 
@@ -28,7 +31,7 @@ export default function AttendanceList() {
         (res || []).map((item: any) => ({
           ...item,
           type: item.type?.toLowerCase(),
-          date: new Date(item.date).toISOString(), // 🔥 FIX ICI
+          date: new Date(item.date).toISOString(),
         })),
       );
     })();
@@ -43,9 +46,8 @@ export default function AttendanceList() {
     <>
       <Card className="border-0 shadow-sm">
         <div className="p-5 border-b">
-          <h2 className="font-semibold text-lg">Historique des présences</h2>
-
-          <p className="text-sm text-muted-foreground">Sessions enregistrées</p>
+          <h2 className="font-semibold text-lg">{t("history.title")}</h2>
+          <p className="text-sm text-muted-foreground">{t("history.subtitle")}</p>
         </div>
 
         <ResponsiveDataTable
@@ -54,30 +56,23 @@ export default function AttendanceList() {
           ToolbarComponent={(props) => (
             <DataTableToolbar {...props} onAdd={() => setOpen(true)} />
           )}
-          emptyText="Aucune session"
-          mobileCardTitle={(row) => row.cours ?? "Session"}
+          emptyText={t("history.empty")}
+          mobileCardTitle={(row) => row.cours ?? t("history.sessionFallback")}
           mobileCardSubtitle={(row) => row.classe ?? ""}
         />
       </Card>
-      {/* MODAL */}
       {open && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4">
           <div className="w-[95%] sm:w-[90%] md:w-[70%] lg:w-[520px] max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-xl p-4 sm:p-6">
-            {/* HEADER */}
             <div className="mb-5">
               <h2 className="text-base sm:text-lg font-semibold">
-                {type
-                  ? "Enregistrement de présence"
-                  : "Choisir le type de présence"}
+                {type ? t("history.recordTitle") : t("history.chooseType")}
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                {type
-                  ? "Remplissez les informations"
-                  : "Sélectionnez le type d’enregistrement"}
+                {type ? t("history.recordHint") : t("history.chooseTypeHint")}
               </p>
             </div>
 
-            {/* STEP 1 - SELECT TYPE */}
             {!type && (
               <div className="space-y-3">
                 <button
@@ -86,9 +81,11 @@ export default function AttendanceList() {
                 >
                   <span className="text-xl">👨‍🎓</span>
                   <div>
-                    <p className="font-medium text-sm sm:text-base">Student</p>
+                    <p className="font-medium text-sm sm:text-base">
+                      {t("history.student")}
+                    </p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                      Présence des étudiants
+                      {t("history.studentHint")}
                     </p>
                   </div>
                 </button>
@@ -99,9 +96,11 @@ export default function AttendanceList() {
                 >
                   <span className="text-xl">👨‍🏫</span>
                   <div>
-                    <p className="font-medium text-sm sm:text-base">Teacher</p>
+                    <p className="font-medium text-sm sm:text-base">
+                      {t("history.teacher")}
+                    </p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                      Présence des enseignants
+                      {t("history.teacherHint")}
                     </p>
                   </div>
                 </button>
@@ -113,17 +112,16 @@ export default function AttendanceList() {
                   <span className="text-xl">👔</span>
                   <div>
                     <p className="font-medium text-sm sm:text-base">
-                      Personnel
+                      {t("history.personnel")}
                     </p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                      Présence du personnel administratif
+                      {t("history.personnelHint")}
                     </p>
                   </div>
                 </button>
               </div>
             )}
 
-            {/* STEP 2 - FORMS */}
             {type === "teacher" && (
               <TeacherAttendanceForm onSuccess={closeModal} />
             )}
@@ -134,18 +132,17 @@ export default function AttendanceList() {
 
             {type === "student" && (
               <div className="text-sm text-muted-foreground">
-                Formulaire étudiant à implémenter
+                {t("history.studentFormTodo")}
               </div>
             )}
 
-            {/* FOOTER */}
             <div className="mt-5 flex justify-between">
               {type ? (
                 <button
                   onClick={() => setType(null)}
                   className="text-xs sm:text-sm text-muted-foreground hover:text-black"
                 >
-                  Retour
+                  {tCommon("back")}
                 </button>
               ) : (
                 <div />
@@ -155,7 +152,7 @@ export default function AttendanceList() {
                 onClick={closeModal}
                 className="text-xs sm:text-sm text-muted-foreground hover:text-black"
               >
-                Fermer
+                {tCommon("close")}
               </button>
             </div>
           </div>

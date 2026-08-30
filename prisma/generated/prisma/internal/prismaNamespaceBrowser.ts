@@ -124,7 +124,12 @@ export const ModelName = {
   OnlineQuestionOption: 'OnlineQuestionOption',
   OnlineSubmission: 'OnlineSubmission',
   OnlineAnswer: 'OnlineAnswer',
-  OnlineSubmissionFile: 'OnlineSubmissionFile'
+  OnlineSubmissionFile: 'OnlineSubmissionFile',
+  Conversation: 'Conversation',
+  ConversationParticipant: 'ConversationParticipant',
+  Message: 'Message',
+  UserMessageArchive: 'UserMessageArchive',
+  MessagingAuditLog: 'MessagingAuditLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -878,6 +883,9 @@ export type AbsenceCaseScalarFieldEnum = (typeof AbsenceCaseScalarFieldEnum)[key
 export const AppNotificationScalarFieldEnum = {
   id: 'id',
   branchId: 'branchId',
+  organizationId: 'organizationId',
+  conversationId: 'conversationId',
+  messageId: 'messageId',
   userId: 'userId',
   type: 'type',
   title: 'title',
@@ -955,7 +963,8 @@ export const OrganizationScalarFieldEnum = {
   whatsappEnabled: 'whatsappEnabled',
   whatsappApiKey: 'whatsappApiKey',
   whatsappTemplate: 'whatsappTemplate',
-  whatsappSiteUrl: 'whatsappSiteUrl'
+  whatsappSiteUrl: 'whatsappSiteUrl',
+  messagingEnabled: 'messagingEnabled'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -1458,6 +1467,74 @@ export const OnlineSubmissionFileScalarFieldEnum = {
 } as const
 
 export type OnlineSubmissionFileScalarFieldEnum = (typeof OnlineSubmissionFileScalarFieldEnum)[keyof typeof OnlineSubmissionFileScalarFieldEnum]
+
+
+export const ConversationScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  type: 'type',
+  subject: 'subject',
+  createdById: 'createdById',
+  sourceBranchId: 'sourceBranchId',
+  contextType: 'contextType',
+  contextId: 'contextId',
+  deletedAt: 'deletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ConversationScalarFieldEnum = (typeof ConversationScalarFieldEnum)[keyof typeof ConversationScalarFieldEnum]
+
+
+export const ConversationParticipantScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  userId: 'userId',
+  joinedAt: 'joinedAt',
+  lastReadAt: 'lastReadAt',
+  archivedAt: 'archivedAt',
+  mutedAt: 'mutedAt',
+  leftAt: 'leftAt'
+} as const
+
+export type ConversationParticipantScalarFieldEnum = (typeof ConversationParticipantScalarFieldEnum)[keyof typeof ConversationParticipantScalarFieldEnum]
+
+
+export const MessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  senderId: 'senderId',
+  body: 'body',
+  replyToId: 'replyToId',
+  clientMessageId: 'clientMessageId',
+  createdAt: 'createdAt',
+  editedAt: 'editedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
+
+
+export const UserMessageArchiveScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  messageId: 'messageId',
+  archivedAt: 'archivedAt'
+} as const
+
+export type UserMessageArchiveScalarFieldEnum = (typeof UserMessageArchiveScalarFieldEnum)[keyof typeof UserMessageArchiveScalarFieldEnum]
+
+
+export const MessagingAuditLogScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  actorUserId: 'actorUserId',
+  action: 'action',
+  details: 'details',
+  createdAt: 'createdAt'
+} as const
+
+export type MessagingAuditLogScalarFieldEnum = (typeof MessagingAuditLogScalarFieldEnum)[keyof typeof MessagingAuditLogScalarFieldEnum]
 
 
 export const SortOrder = {

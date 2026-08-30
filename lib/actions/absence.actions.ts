@@ -30,7 +30,7 @@ function formatPersonName(user: {
 }
 
 export const getAbsenceInboxAction = action.handler(async () => {
-  const { branchId, userId, session } = await requireBranchContext();
+  const { branchId, userId, session, organizationId } = await requireBranchContext();
   void signalEndedAbsencesForBranchDebounced(branchId).catch((error) => {
     console.error("[getAbsenceInboxAction] signal", error);
   });
@@ -39,7 +39,7 @@ export const getAbsenceInboxAction = action.handler(async () => {
   const [mine, pending, notifications] = await Promise.all([
     listMyAbsenceCases({ branchId, userId }),
     canReview ? listPendingAbsenceReviews({ branchId }) : Promise.resolve([]),
-    listUnreadAppNotifications({ branchId, userId }),
+    listUnreadAppNotifications({ branchId, userId, organizationId }),
   ]);
 
   return {
@@ -54,6 +54,8 @@ export const getAbsenceInboxAction = action.handler(async () => {
       createdAt: row.createdAt,
       absenceCaseId: row.absenceCaseId,
       gradeModificationRequestId: row.gradeModificationRequestId,
+      conversationId: row.conversationId,
+      href: row.href,
       case: row.absenceCase
         ? {
             id: row.absenceCase.id,

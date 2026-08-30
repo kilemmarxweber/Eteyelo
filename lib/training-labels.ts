@@ -1,5 +1,7 @@
 import { normalizeBranchType, type ManagedBranchType } from "@/lib/academic-structure";
 
+export type TrainingLabelKey = "school" | "centre" | "university";
+
 type TrainingLabels = {
   sectionTitle: string;
   sectionDescription: string;
@@ -53,10 +55,21 @@ const UNIVERSITY_LABELS: TrainingLabels = {
   modulesMenu: "Filieres",
 };
 
-export function getTrainingLabels(typebranch: unknown): TrainingLabels {
+export function getTrainingLabelKey(typebranch: unknown): TrainingLabelKey {
   const normalized = normalizeBranchType(typebranch) as ManagedBranchType;
 
   switch (normalized) {
+    case "CENTRE_FORMATION":
+      return "centre";
+    case "UNIVERSITE":
+      return "university";
+    default:
+      return "school";
+  }
+}
+
+export function getTrainingLabels(typebranch: unknown): TrainingLabels {
+  switch (getTrainingLabelKey(typebranch)) {
     case "CENTRE_FORMATION":
       return CENTRE_LABELS;
     case "UNIVERSITE":

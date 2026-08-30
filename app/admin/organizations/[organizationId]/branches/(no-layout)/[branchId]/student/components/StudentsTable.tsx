@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Table } from "@tanstack/react-table";
-import { createStudentColumns } from "./columns";
+import { useStudentColumns } from "./columns";
 import { ResponsiveDataTable } from "@/components/custom";
 import { TableSkeleton } from "@/components/custom";
 import { EmptyTableState } from "@/components/custom";
@@ -22,6 +22,7 @@ import { getBranchCycles } from "@/lib/cycle";
 import { examCodesExistForCycle } from "@/lib/exam-export-meta";
 import { sortActiveStatusUserFirst } from "@/lib/archive";
 import { useSession } from "@/lib/auth-client";
+import { useTranslations } from "next-intl";
 
 function EmptyStudentsEffect({
   onVisibleStudentsChange,
@@ -61,7 +62,9 @@ const StudentsList = ({
     "university" | "centre" | null
   >(null);
   const peopleLabels = useBranchPeopleLabels();
-  const [classLabel, setClassLabel] = useState("Classe");
+  const t = useTranslations("users.students.table");
+  const tCommon = useTranslations("common");
+  const [classLabel, setClassLabel] = useState<string | undefined>(undefined);
   const [importOpen, setImportOpen] = useState(false);
   const hasLoadedOnce = useRef(false);
   const { refreshKey: contextRefreshKey } = useRefresh();
@@ -112,16 +115,12 @@ const StudentsList = ({
     };
   }, [session?.branch]);
 
-  const columns = useMemo(
-    () =>
-      createStudentColumns(
-        onRefresh,
-        canManageStudents,
-        tableActions,
-        canPurgePermanently,
-        examCodesContext,
-      ),
-    [canManageStudents, canPurgePermanently, examCodesContext, onRefresh, tableActions],
+  const columns = useStudentColumns(
+    onRefresh,
+    canManageStudents,
+    tableActions,
+    canPurgePermanently,
+    examCodesContext,
   );
 
   const StudentToolbar = useMemo(() => {
@@ -134,7 +133,7 @@ const StudentsList = ({
           supportsImport={supportsImport}
           importScope={importScope}
           peopleLabels={peopleLabels}
-          classLabel={classLabel}
+          classLabel={classLabel ?? t("class")}
           typebranch={examCodesContext.typebranch}
           educationSystem={examCodesContext.educationSystem}
           onOpenImport={() => setImportOpen(true)}
@@ -161,7 +160,7 @@ const StudentsList = ({
       setStudents(sortActiveStatusUserFirst(rawStudents || []));
       hasLoadedOnce.current = true;
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Erreur serveur");
+      setError(e instanceof Error ? e.message : tCommon("errorGeneric"));
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -245,34 +244,38 @@ const StudentsList = ({
         <div className="space-y-4 p-4">
           {requiresImport ? (
             <Alert className="rounded-xl border-primary/20 bg-primary/5">
-              <AlertDescription>
-                Les eleves d&apos;atelier doivent etre importes depuis une
-                branche scolaire (primaire ou secondaire) de l&apos;organisation.
-              </AlertDescription>
+              <AlertDescription>{t("importWorkshopAlert")}</AlertDescription>
             </Alert>
           ) : supportsImport ? (
             <Alert className="rounded-xl border-primary/20 bg-primary/5">
               <AlertDescription>
-                Vous pouvez creer des {peopleLabels.studentPluralLower} directement
-                ou les importer depuis une autre branche de l&apos;organisation.
+                {t("importOrCreateAlert", {
+                  studentsLower: peopleLabels.studentPluralLower,
+                })}
               </AlertDescription>
             </Alert>
           ) : null}
           <EmptyTableState
-            title={`Aucun ${peopleLabels.studentLower}`}
+            title={t("emptyTitle", {
+              studentLower: peopleLabels.studentLower,
+            })}
             description={
               requiresImport
-                ? "Importez un eleve scolaire pour commencer"
+                ? t("emptyImportWorkshopDesc")
                 : supportsImport
-                  ? `Creez ou importez un ${peopleLabels.studentLower} pour commencer`
-                  : `Ajoutez un ${peopleLabels.studentLower} pour commencer`
+                  ? t("emptyImportDesc", {
+                      studentLower: peopleLabels.studentLower,
+                    })
+                  : t("emptyAddDesc", {
+                      studentLower: peopleLabels.studentLower,
+                    })
             }
             icon={<IconUsers />}
             actionLabel={
               (requiresImport || supportsImport) && canManageStudents
-                ? requiresImport
-                  ? "Importer un eleve"
-                  : `Importer un ${peopleLabels.studentLower}`
+                ? t("importAction", {
+                    studentLower: peopleLabels.studentLower,
+                  })
                 : undefined
             }
             onAction={
@@ -299,7 +302,9 @@ const StudentsList = ({
           columns={columns}
           ToolbarComponent={StudentToolbar}
           data={students}
-          emptyText={`Aucun ${peopleLabels.studentLower}`}
+          emptyText={t("noResults", {
+            studentLower: peopleLabels.studentLower,
+          })}
           mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}
           mobileCardSubtitle={(row) => row.username ?? ""}
           onRowClick={handleStudentRowClick}

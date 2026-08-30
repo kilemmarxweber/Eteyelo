@@ -54,6 +54,7 @@ import { getClassesByIdAction } from "../../../classe/classe.action";
 import { resolveCycle, type Cycle } from "@/lib/cycle";
 import { CRENEAU_WEEKDAY_OPTIONS } from "@/lib/creneau-working-days";
 import { MultiSelect } from "../../../paiement/components/MultiSelect";
+import { useTranslations } from "next-intl";
 
 interface EnrollmentUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: () => void;
@@ -74,6 +75,8 @@ export function EnrollmentUpForm({
   classeId,
   ...props
 }: EnrollmentUpFormProps) {
+  const t = useTranslations("teaching.assignments");
+  const tf = useTranslations("teaching.assignments.form");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [Teachers, setTeachers] = useState<ITeacher[]>([]);
@@ -166,7 +169,7 @@ export function EnrollmentUpForm({
         if (err) {
           throw new Error(err.message);
         }
-        toast.success("Affectation effectuée avec succès");
+        toast.success(t("assignmentSaved"));
         form.reset({
           schoolYearId: currentSchoolYearId,
           teacherId: "",
@@ -184,7 +187,7 @@ export function EnrollmentUpForm({
         if (err) {
           throw new Error(err.message);
         }
-        toast.success("Affectation mis à jour avec succès");
+        toast.success(t("assignmentUpdated"));
       }
 
       if (mode === "update") {
@@ -195,9 +198,7 @@ export function EnrollmentUpForm({
       console.log(error);
       setErrorMessage(error.message ?? "");
       toast.error(
-        mode === "create"
-          ? "Échec de l'affectation"
-          : "Échec de la mise à jour de l'affectation",
+        mode === "create" ? t("assignFailed") : t("assignmentUpdateFailed"),
       );
     } finally {
       setIsLoading(false);
@@ -219,7 +220,7 @@ export function EnrollmentUpForm({
               name="teacherId"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Le code de l'enseignant</FormLabel>
+                  <FormLabel>{t("teacherColumn")}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -235,16 +236,16 @@ export function EnrollmentUpForm({
                             ? teachersForCycle.find(
                                 (teacher) => teacher.id === field.value,
                               )?.username
-                            : "Entrez le code du teacher "}
+                            : tf("selectTeacher")}
                           <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="p-0">
                       <Command>
-                        <CommandInput placeholder="Search teacher..." />
+                        <CommandInput placeholder={t("searchTeacher")} />
                         <CommandList>
-                          <CommandEmpty>No teacher found.</CommandEmpty>
+                          <CommandEmpty>{t("noTeacherFound")}</CommandEmpty>
                           <CommandGroup>
                             {teachersForCycle.map((teacher) => (
                               <CommandItem
@@ -279,7 +280,7 @@ export function EnrollmentUpForm({
               name="coursId"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Le code du cours</FormLabel>
+                  <FormLabel>{t("courseColumn")}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -294,16 +295,16 @@ export function EnrollmentUpForm({
                           {field.value
                             ? Cours.find((cours) => cours.id === field.value)
                                 ?.nameCours
-                            : "Entrez le code du cours "}
+                            : tf("selectCourse")}
                           <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="p-0">
                       <Command>
-                        <CommandInput placeholder="Search cours..." />
+                        <CommandInput placeholder={t("searchCourse")} />
                         <CommandList>
-                          <CommandEmpty>No cours found.</CommandEmpty>
+                          <CommandEmpty>{tf("noCourseFound")}</CommandEmpty>
                           <CommandGroup>
                             {Cours.map((cours) => (
                               <CommandItem
@@ -338,7 +339,7 @@ export function EnrollmentUpForm({
               name="weeklyHours"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Minutes / semaine *</FormLabel>
+                  <FormLabel>{t("minutesPerWeekField")} *</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -357,9 +358,7 @@ export function EnrollmentUpForm({
                     />
                   </FormControl>
                   <p className="text-xs text-muted-foreground">
-                    Volume en minutes selon la vacation de la classe (ex. 135
-                    min ÷ 45 min = 3 séances sur 3 jours ; primaire / maternelle
-                    souvent 30 min par période).
+                    {tf("weeklyHoursHint")}
                   </p>
                   <FormMessage />
                 </FormItem>
@@ -370,7 +369,7 @@ export function EnrollmentUpForm({
               name="consecutiveSlots"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Périodes d&apos;affilée</FormLabel>
+                  <FormLabel>{t("consecutiveTitle")}</FormLabel>
                   <Select
                     value={String(field.value ?? 1)}
                     onValueChange={(value) =>
@@ -379,21 +378,18 @@ export function EnrollmentUpForm({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="1 (isolées)" />
+                        <SelectValue placeholder={t("consecutive1")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">1 — séances isolées</SelectItem>
-                      <SelectItem value="2">
-                        2 — ex. 7h30→8h15 puis 8h15→9h00
-                      </SelectItem>
-                      <SelectItem value="3">3 périodes d&apos;affilée</SelectItem>
-                      <SelectItem value="4">4 périodes d&apos;affilée</SelectItem>
+                      <SelectItem value="1">{t("consecutive1")}</SelectItem>
+                      <SelectItem value="2">{t("consecutive2")}</SelectItem>
+                      <SelectItem value="3">{t("consecutive3")}</SelectItem>
+                      <SelectItem value="4">{t("consecutive4")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    La génération auto place ces périodes à la suite sur le même
-                    jour.
+                    {tf("consecutiveAutoHint")}
                   </p>
                   <FormMessage />
                 </FormItem>
@@ -404,7 +400,7 @@ export function EnrollmentUpForm({
               name="preferredDays"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Jours préférés</FormLabel>
+                  <FormLabel>{tf("preferredDaysLabel")}</FormLabel>
                   <FormControl>
                     <MultiSelect
                       options={CRENEAU_WEEKDAY_OPTIONS.map((day) => ({
@@ -413,14 +409,13 @@ export function EnrollmentUpForm({
                       }))}
                       value={field.value ?? []}
                       onValueChange={field.onChange}
-                      placeholder="Tous les jours ouvrés"
+                      placeholder={tf("preferredDaysPlaceholder")}
                       searchable={false}
                       maxCount={3}
                     />
                   </FormControl>
                   <p className="text-xs text-muted-foreground">
-                    Vide = n&apos;importe quel jour ouvrable du créneau. Sinon la
-                    génération se limite à ces jours.
+                    {tf("preferredDaysHint")}
                   </p>
                   <FormMessage />
                 </FormItem>
@@ -431,7 +426,7 @@ export function EnrollmentUpForm({
               name="schoolYearId"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>L&apos;année scolaire</FormLabel>
+                  <FormLabel>{t("schoolYear")}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -447,16 +442,16 @@ export function EnrollmentUpForm({
                             ? SchoolYears.find(
                                 (schoolYear) => schoolYear.id === field.value,
                               )?.nameYear
-                            : "Entrez le code du schoolYear "}
+                            : tf("selectSchoolYear")}
                           <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="p-0">
                       <Command>
-                        <CommandInput placeholder="Search schoolYear..." />
+                        <CommandInput placeholder={t("schoolYear")} />
                         <CommandList>
-                          <CommandEmpty>No schoolYear found.</CommandEmpty>
+                          <CommandEmpty>{tf("noSchoolYearFound")}</CommandEmpty>
                           <CommandGroup>
                             {SchoolYears.map((schoolYear) => (
                               <CommandItem
@@ -490,9 +485,7 @@ export function EnrollmentUpForm({
               )}
             />
             <Button type="submit" className="mt-2" loading={isLoading}>
-              {mode === "create"
-                ? "Enregistrer la teaching"
-                : "Mettre à jour de la teaching"}
+              {mode === "create" ? tf("createSubmit") : tf("updateSubmit")}
             </Button>
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>

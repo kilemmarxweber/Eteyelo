@@ -1,12 +1,22 @@
 "use server";
 
+import { headers } from "next/headers";
+
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { getTeacherAttendanceReadScope } from "@/lib/auth/data-scope";
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { auth } from "@/lib/auth";
+import { getServerTranslator } from "@/lib/i18n-server";
+import { resolvePreferredLocale } from "@/lib/resolve-preferred-locale";
+import { intlLocaleFromUserLocale } from "@/lib/user-locale";
 import { AttendanceStatus } from "@/prisma/generated/prisma/client";
 import {
-  ATTENDANCE_STATUS_LABELS,
+  CHART_WEEKDAY_INDICES,
+  getAttendanceStatusLabel,
+  weekdayIndexFromDate,
+} from "./attendance-labels";
+import {
   type AttendanceHourStat,
   type AttendanceRecentItem,
   type AttendanceReportData,
@@ -15,24 +25,41 @@ import {
   type AttendanceWeekdayStat,
 } from "./attendance-report-types";
 
-const WEEKDAY_LABELS = [
-  "Dimanche",
-  "Lundi",
-  "Mardi",
-  "Mercredi",
-  "Jeudi",
-  "Vendredi",
-  "Samedi",
-];
+async function getReportIntlLocale() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  const locale = await resolvePreferredLocale(
+    (session?.user as { locale?: string | null } | undefined)?.locale,
+  );
+  return intlLocaleFromUserLocale(locale);
+}
 
-const CHART_WEEKDAYS = [
-  "Lundi",
-  "Mardi",
-  "Mercredi",
-  "Jeudi",
-  "Vendredi",
-  "Samedi",
-];
+function formatTime(
+  date: Date | null | undefined,
+  locale: string,
+): string | null {
+  if (!date) return null;
+  return date.toLocaleTimeString(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function formatShortTime(date: Date | null | undefined, locale: string): string {
+  if (!date) return "--:--";
+  return date.toLocaleTimeString(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatDate(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale);
+}
+
+function formatWeekday(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, { weekday: "long" });
+}
 
 type UserInfo = {
   name: string;
@@ -52,27 +79,6 @@ type UnifiedRecord = {
   poste: string;
   personKey: string;
 };
-
-function formatTime(date: Date | null | undefined): string | null {
-  if (!date) return null;
-  return date.toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
-
-function formatShortTime(date: Date | null | undefined): string {
-  if (!date) return "--:--";
-  return date.toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString("fr-FR");
-}
 
 function getAgentName(user: UserInfo | null | undefined) {
   if (!user) return "Inconnu";
@@ -135,32 +141,34 @@ function buildUserSearch(search: string) {
   };
 }
 
-function buildWeekdayStats(records: Array<{ date: Date; status: AttendanceStatus }>) {
-  const totals = new Map<string, { present: number; total: number }>();
+function buildWeekdayStats(
+  records: Array<{ date: Date; status: AttendanceStatus }>,
+) {
+  const totals = new Map<number, { present: number; total: number }>();
 
-  for (const day of CHART_WEEKDAYS) {
-    totals.set(day, { present: 0, total: 0 });
+  for (const dayIndex of CHART_WEEKDAY_INDICES) {
+    totals.set(dayIndex, { present: 0, total: 0 });
   }
 
   for (const record of records) {
-    const day = WEEKDAY_LABELS[record.date.getDay()];
-    if (!CHART_WEEKDAYS.includes(day)) continue;
+    const dayIndex = weekdayIndexFromDate(record.date);
+    if (dayIndex == null || !totals.has(dayIndex)) continue;
 
-    const current = totals.get(day)!;
+    const current = totals.get(dayIndex)!;
     current.total += 1;
     if (record.status === "PRESENT" || record.status === "LATE") {
       current.present += 1;
     }
-    totals.set(day, current);
+    totals.set(dayIndex, current);
   }
 
-  return CHART_WEEKDAYS.map((day) => {
-    const value = totals.get(day)!;
+  return CHART_WEEKDAY_INDICES.map((dayIndex) => {
+    const value = totals.get(dayIndex)!;
     const percent =
       value.total > 0 ? Math.round((value.present / value.total) * 100) : 0;
 
     return {
-      day,
+      dayIndex,
       present: value.present,
       total: value.total,
       percent,
@@ -326,6 +334,8 @@ export async function getAttendanceReportAction(
   filters: AttendanceReportFilters = {},
 ): Promise<AttendanceReportData> {
   const { branchId, session, userId } = await requireBranchContext();
+  const t = await getServerTranslator("attendance");
+  const intlLocale = await getReportIntlLocale();
   const teacherScope = await getTeacherAttendanceReadScope({
     session,
     userId,
@@ -470,15 +480,15 @@ export async function getAttendanceReportAction(
     return {
       id: record.id,
       date: record.date.toISOString(),
-      dayLabel: WEEKDAY_LABELS[record.date.getDay()],
+      dayLabel: formatWeekday(record.date, intlLocale),
       agentName: agentName.toUpperCase(),
       agentInitials: getInitials(agentName),
       agentId: record.user?.username ?? record.id.slice(0, 8).toUpperCase(),
       poste: record.poste,
       status: record.status,
-      statusLabel: ATTENDANCE_STATUS_LABELS[record.status],
-      arrival: formatTime(record.arrivalAt),
-      departure: formatTime(record.departureAt),
+      statusLabel: getAttendanceStatusLabel(t, record.status),
+      arrival: formatTime(record.arrivalAt, intlLocale),
+      departure: formatTime(record.departureAt, intlLocale),
     };
   });
 
@@ -487,11 +497,11 @@ export async function getAttendanceReportAction(
 
     return {
       id: record.id,
-      dateLabel: formatDate(record.date),
+      dateLabel: formatDate(record.date, intlLocale),
       name: agentName.toUpperCase(),
-      timeLabel: formatShortTime(record.arrivalAt ?? record.sortAt),
+      timeLabel: formatShortTime(record.arrivalAt ?? record.sortAt, intlLocale),
       status: record.status,
-      statusLabel: ATTENDANCE_STATUS_LABELS[record.status],
+      statusLabel: getAttendanceStatusLabel(t, record.status),
     };
   });
 

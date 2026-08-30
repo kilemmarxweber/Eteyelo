@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { IconBook2, IconSearch } from "@tabler/icons-react";
 import { toast } from "sonner";
 
@@ -32,6 +33,7 @@ export function ImportCourseDialog({
   onOpenChange,
   onSuccess,
 }: ImportCourseDialogProps) {
+  const t = useTranslations("teaching.courses.importDialog");
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [importingId, setImportingId] = useState<string | null>(null);
@@ -74,7 +76,7 @@ export function ImportCourseDialog({
 
   async function handleImport(course: ImportCourseSearchResult) {
     if (course.alreadyImported) {
-      toast.info("Ce cours existe deja dans cette branche");
+      toast.info(t("alreadyImported"));
       return;
     }
 
@@ -90,7 +92,7 @@ export function ImportCourseDialog({
         return;
       }
 
-      toast.success("Cours importe avec succes");
+      toast.success(t("imported"));
       onSuccess();
       onOpenChange(false);
     } finally {
@@ -102,12 +104,8 @@ export function ImportCourseDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="lg" className="rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Importer un cours</DialogTitle>
-          <DialogDescription>
-            Recherchez un cours dans une autre branche de la meme organisation.
-            Les ponderations par filiere sont copiees lorsque les filieres
-            correspondent.
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("desc")}</DialogDescription>
         </DialogHeader>
 
         <div className="relative">
@@ -115,7 +113,7 @@ export function ImportCourseDialog({
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Nom, code ou description..."
+            placeholder={t("searchPlaceholder")}
             className="h-11 rounded-xl pl-9"
             autoFocus
           />
@@ -124,13 +122,13 @@ export function ImportCourseDialog({
         <div className="max-h-[360px] space-y-2 overflow-y-auto pr-1">
           {loading ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              Recherche en cours...
+              {t("searching")}
             </p>
           ) : null}
 
           {!loading && results.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              Aucun cours trouve.
+              {t("noResults")}
             </p>
           ) : null}
 
@@ -150,7 +148,7 @@ export function ImportCourseDialog({
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <BranchTypeBadge typebranch={course.sourceBranchType} />
                       {course.alreadyImported ? (
-                        <Badge variant="secondary">Deja importe</Badge>
+                        <Badge variant="secondary">{t("alreadyImportedBadge")}</Badge>
                       ) : null}
                     </div>
                   </div>
@@ -162,7 +160,7 @@ export function ImportCourseDialog({
                     disabled={course.alreadyImported || importingId !== null}
                     onClick={() => void handleImport(course)}
                   >
-                    Importer
+                    {t("import")}
                   </Button>
                 </div>
               ))

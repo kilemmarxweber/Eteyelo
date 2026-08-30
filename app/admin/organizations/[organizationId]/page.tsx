@@ -84,9 +84,13 @@ export default async function AdminOrganizationHomePage({
     notFound();
   }
 
-  const [branchesCount, membersCount] = await Promise.all([
+  const [branchesCount, membersCount, organizationFlags] = await Promise.all([
     prisma.branch.count({ where: { organizationId } }),
     prisma.member.count({ where: { organizationId } }),
+    prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { messagingEnabled: true },
+    }),
   ]);
 
   return (
@@ -105,6 +109,7 @@ export default async function AdminOrganizationHomePage({
         branches: branchesCount,
         members: membersCount,
       }}
+      messagingEnabled={organizationFlags?.messagingEnabled !== false}
     />
   );
 }

@@ -13,6 +13,11 @@ import type {
   StudentAttendanceReport,
   StudentAttendanceStatusCounts,
 } from "../attendance.action";
+import {
+  formatPdfPeriod,
+  formatPdfSummaryPresent,
+  type AttendancePdfLabels,
+} from "../attendance-pdf-labels";
 
 export type StudentAttendanceReportOptions = {
   emptyMessage?: string;
@@ -39,36 +44,43 @@ function formatPeriodLabel(dateStart: string, dateEnd: string): string {
   return `${formatReportDate(dateStart)} → ${formatReportDate(dateEnd)}`;
 }
 
-function formatSummaryLine(summary: StudentAttendanceStatusCounts): string {
-  return `Présents ${summary.present} · Absents ${summary.absent} · Retards ${summary.late} · Excusés ${summary.excused} (total ${summary.total})`;
+function formatSummaryLine(
+  labels: AttendancePdfLabels,
+  summary: StudentAttendanceStatusCounts,
+): string {
+  return formatPdfSummaryPresent(labels, summary);
 }
 
-/** Titre PDF aligné sur les filtres UI. */
 export function buildStudentAttendanceReportTitle(
+  labels: AttendancePdfLabels,
   report: Pick<StudentAttendanceReport, "classeName">,
 ): string {
   const classeName = report.classeName?.trim();
   if (classeName) {
-    return `Présences élèves — ${classeName}`;
+    return `${labels.studentAttendanceTitle} — ${classeName}`;
   }
-  return "Présences élèves";
+  return labels.studentAttendanceTitle;
 }
 
-/** Libellés des filtres actifs (sous-titre / métadonnées). */
 export function buildStudentAttendanceReportFilterLabels(
+  labels: AttendancePdfLabels,
   report: Pick<
     StudentAttendanceReport,
     "dateStart" | "dateEnd" | "classeName"
   >,
 ): string[] {
-  const labels: string[] = [
-    `Période : ${formatPeriodLabel(report.dateStart, report.dateEnd)}`,
+  const filterLabels: string[] = [
+    formatPdfPeriod(
+      labels,
+      formatReportDate(report.dateStart),
+      formatReportDate(report.dateEnd),
+    ),
   ];
   const classeName = report.classeName?.trim();
   if (classeName) {
-    labels.push(`Classe : ${classeName}`);
+    filterLabels.push(labels.classFilter.replace("{name}", classeName));
   }
-  return labels;
+  return filterLabels;
 }
 
 function buildReportFileName(
@@ -85,14 +97,14 @@ function buildReportFileName(
 export async function buildStudentAttendanceReportPdf(
   report: StudentAttendanceReport,
   context: SchoolReportContext,
+  labels: AttendancePdfLabels,
   options: StudentAttendanceReportOptions = {},
 ) {
   const includeDetail = options.includeDetail !== false;
-  const title = buildStudentAttendanceReportTitle(report);
-  const filterLabels = buildStudentAttendanceReportFilterLabels(report);
+  const title = buildStudentAttendanceReportTitle(labels, report);
+  const filterLabels = buildStudentAttendanceReportFilterLabels(labels, report);
   const emptyMessage =
-    options.emptyMessage?.trim() ||
-    "Aucune présence élève pour cette période.";
+    options.emptyMessage?.trim() || labels.emptyStudents;
 
   const details = report.details;
   const isEmpty = details.length === 0 || report.summary.total === 0;
@@ -100,7 +112,13 @@ export async function buildStudentAttendanceReportPdf(
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
-  const summaryHead = ["Présents", "Absents", "Retards", "Excusés", "Total"];
+  const summaryHead = [
+    labels.columns.present,
+    labels.columns.absent,
+    labels.columns.late,
+    labels.columns.excused,
+    labels.columns.total,
+  ];
   const summaryBody = [
     [
       String(report.summary.present),
@@ -140,7 +158,7 @@ export async function buildStudentAttendanceReportPdf(
         subtitle: context.branchName,
         details: [
           ...filterLabels,
-          isEmpty ? emptyMessage : formatSummaryLine(report.summary),
+          isEmpty ? emptyMessage : formatSummaryLine(labels, report.summary),
         ],
         logoDataUrl: logo,
       });
@@ -153,14 +171,14 @@ export async function buildStudentAttendanceReportPdf(
         ?.finalY ?? REPORT_HEADER_CONTENT_TOP_MM;
 
     const head = [
-      "#",
-      "Élève",
-      "Classe",
-      "Présents",
-      "Absents",
-      "Retards",
-      "Excusés",
-      "Total",
+      labels.columns.index,
+      labels.personType.student,
+      labels.columns.class,
+      labels.columns.present,
+      labels.columns.absent,
+      labels.columns.late,
+      labels.columns.excused,
+      labels.columns.total,
     ];
 
     const body: string[][] = isEmpty
@@ -231,7 +249,7 @@ export async function buildStudentAttendanceReportPdf(
           subtitle: context.branchName,
           details: [
             ...filterLabels,
-            isEmpty ? emptyMessage : formatSummaryLine(report.summary),
+            isEmpty ? emptyMessage : formatSummaryLine(labels, report.summary),
           ],
           logoDataUrl: logo,
         });
@@ -249,10 +267,16 @@ export async function buildStudentAttendanceReportPdf(
 export async function exportStudentAttendanceReportPdf(
   report: StudentAttendanceReport,
   context: SchoolReportContext,
+  labels: AttendancePdfLabels,
   options: StudentAttendanceReportOptions = {},
 ) {
   const date = new Date().toISOString().slice(0, 10);
   const reportName = buildReportFileName(report);
-  const doc = await buildStudentAttendanceReportPdf(report, context, options);
+  const doc = await buildStudentAttendanceReportPdf(
+    report,
+    context,
+    labels,
+    options,
+  );
   doc.save(`${reportName}-${date}.pdf`);
 }

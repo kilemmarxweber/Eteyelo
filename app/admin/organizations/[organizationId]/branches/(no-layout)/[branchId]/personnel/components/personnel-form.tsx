@@ -36,6 +36,7 @@ import generateUsername from "@/src/hooks/generateUsername";
 import { updatePersonnelSchema, userSchema } from "@/src/interfaces/Personnel";
 import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
 
+import { useTranslations } from "next-intl";
 import {
   createPersonnelAction,
   updatePersonnelAction,
@@ -88,6 +89,8 @@ export function PersonnelUpForm({
   const isDialog = layout === "dialog";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const t = useTranslations("users.staff.form");
+  const tCommon = useTranslations("common");
   const [cycleOptions, setCycleOptions] = useState<
     { value: string; label: string }[]
   >([]);
@@ -159,11 +162,11 @@ export function PersonnelUpForm({
 
   function handlePickPhoto(file: File) {
     if (!file.type.startsWith("image/")) {
-      toast.error("Choisissez une image (JPEG, PNG, WebP…).");
+      toast.error(t("chooseImage"));
       return;
     }
     if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
-      toast.error("Image trop volumineuse (max. 5 Mo).");
+      toast.error(t("imageTooLarge"));
       return;
     }
     setPhotoPreview((current) => {
@@ -196,7 +199,7 @@ export function PersonnelUpForm({
       !isCycleGlobalRole(data.orgRole) &&
       (!data.cycles || data.cycles.length === 0)
     ) {
-      setErrorMessage("Sélectionnez au moins un cycle.");
+      setErrorMessage(t("selectCycle"));
       setIsLoading(false);
       return;
     }
@@ -224,10 +227,10 @@ export function PersonnelUpForm({
         const [result, err] = await createPersonnelAction(payload);
         if (err) throw new Error(err.message);
         if (!result?.ok) {
-          throw new Error(result?.message || "Création impossible");
+          throw new Error(result?.message || t("createImpossible"));
         }
 
-        toast.success("Personnel créé avec succès");
+        toast.success(t("createSuccess"));
         form.reset(emptyValues);
         setPhotoFile(null);
         setPhotoPreview((current) => {
@@ -243,7 +246,7 @@ export function PersonnelUpForm({
         });
         if (err) throw new Error(err.message);
 
-        toast.success("Personnel mis à jour avec succès");
+        toast.success(t("updateSuccess"));
         onUpdated?.();
         onPersonnelUpdate?.();
       }
@@ -251,13 +254,9 @@ export function PersonnelUpForm({
       onSuccess?.();
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Une erreur est survenue";
+        error instanceof Error ? error.message : tCommon("errorGeneric");
       setErrorMessage(message);
-      toast.error(
-        mode === "create"
-          ? "Échec de la création du personnel"
-          : "Échec de la mise à jour du personnel",
-      );
+      toast.error(mode === "create" ? t("createFailed") : t("updateFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -284,11 +283,11 @@ export function PersonnelUpForm({
               name="name"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Nom</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("person.lastName")}</FormLabel>
                   <FormControl>
                     <Input
                       inputSize="sm"
-                      placeholder="Nom"
+                      placeholder={tCommon("person.lastName")}
                       className={controlClass}
                       {...field}
                     />
@@ -303,11 +302,11 @@ export function PersonnelUpForm({
               name="postnom"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Postnom</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("person.postnom")}</FormLabel>
                   <FormControl>
                     <Input
                       inputSize="sm"
-                      placeholder="Postnom"
+                      placeholder={tCommon("person.postnom")}
                       className={controlClass}
                       {...field}
                     />
@@ -322,11 +321,11 @@ export function PersonnelUpForm({
               name="prenom"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Prénom</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("person.firstName")}</FormLabel>
                   <FormControl>
                     <Input
                       inputSize="sm"
-                      placeholder="Prénom"
+                      placeholder={tCommon("person.firstName")}
                       className={controlClass}
                       {...field}
                     />
@@ -341,16 +340,16 @@ export function PersonnelUpForm({
               name="sexe"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Sexe</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("person.gender")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className={controlClass}>
-                        <SelectValue placeholder="Sexe" />
+                        <SelectValue placeholder={tCommon("person.gender")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent position="popper">
-                      <SelectItem value="masculin">Masculin</SelectItem>
-                      <SelectItem value="feminin">Féminin</SelectItem>
+                      <SelectItem value="masculin">{tCommon("person.male")}</SelectItem>
+                      <SelectItem value="feminin">{tCommon("person.female")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -363,7 +362,7 @@ export function PersonnelUpForm({
               name="dateOfBirth"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Date de naissance</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("person.birthDate")}</FormLabel>
                   <FormControl>
                     <DateOfBirthPicker
                       value={field.value}
@@ -381,7 +380,7 @@ export function PersonnelUpForm({
               name="orgRole"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Rôle</FormLabel>
+                  <FormLabel className={labelClass}>{t("role")}</FormLabel>
                   <FormControl>
                     <SearchableSelect
                       searchable="auto"
@@ -391,9 +390,9 @@ export function PersonnelUpForm({
                       }))}
                       value={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Choisir un rôle"
-                      searchPlaceholder="Rechercher un rôle…"
-                      emptyMessage="Aucun rôle trouvé."
+                      placeholder={t("chooseRole")}
+                      searchPlaceholder={t("searchRole")}
+                      emptyMessage={t("noRoleFound")}
                       triggerClassName={controlClass}
                     />
                   </FormControl>
@@ -420,11 +419,11 @@ export function PersonnelUpForm({
               name="telephone"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Téléphone</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("person.phone")}</FormLabel>
                   <FormControl>
                     <PhoneInput
                       defaultCountry="CD"
-                      placeholder="Téléphone"
+                      placeholder={tCommon("person.phone")}
                       className="h-8 [&_button]:h-8 [&_input]:h-8 [&_input]:text-sm"
                       {...field}
                     />
@@ -439,11 +438,11 @@ export function PersonnelUpForm({
               name="email"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>E-mail</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("person.email")}</FormLabel>
                   <FormControl>
                     <Input
                       inputSize="sm"
-                      placeholder="Email"
+                      placeholder={tCommon("person.email")}
                       className={controlClass}
                       {...field}
                     />
@@ -458,11 +457,11 @@ export function PersonnelUpForm({
               name="address"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Adresse</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("person.address")}</FormLabel>
                   <FormControl>
                     <Input
                       inputSize="sm"
-                      placeholder="Adresse"
+                      placeholder={tCommon("person.address")}
                       className={controlClass}
                       {...field}
                     />
@@ -516,9 +515,7 @@ export function PersonnelUpForm({
                 )}
                 loading={isLoading}
               >
-                {mode === "create"
-                  ? "Enregistrer le personnel"
-                  : "Mettre à jour le personnel"}
+                {mode === "create" ? t("saveStaff") : t("updateStaff")}
               </Button>
             </div>
 

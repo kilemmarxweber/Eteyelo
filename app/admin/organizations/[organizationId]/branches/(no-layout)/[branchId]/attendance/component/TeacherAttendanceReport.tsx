@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { IconFileTypePdf, IconRefresh } from "@tabler/icons-react";
 import { toast } from "sonner";
 
@@ -12,6 +13,7 @@ import {
   type TeacherAttendanceReport,
 } from "../attendance.action";
 import { exportTeacherAttendanceReportPdf } from "./export-teacher-attendance-pdf";
+import { buildAttendancePdfLabels } from "../attendance-pdf-labels";
 
 function firstDayOfMonthIso(): string {
   const now = new Date();
@@ -29,6 +31,9 @@ export default function TeacherAttendanceReport({
 }: {
   selfOnly?: boolean;
 }) {
+  const t = useTranslations("attendance");
+  const tCommon = useTranslations("common");
+  const pdfLabels = useMemo(() => buildAttendancePdfLabels(t), [t]);
   const [startDate, setStartDate] = useState(firstDayOfMonthIso);
   const [endDate, setEndDate] = useState(todayIso);
   const [report, setReport] = useState<TeacherAttendanceReport | null>(null);
@@ -48,8 +53,7 @@ export default function TeacherAttendanceReport({
 
     if (err || !data) {
       setError(
-        err?.message ??
-          "Impossible de charger le rapport de présences enseignants.",
+        err?.message ?? t("reportCards.loadTeachersFailed"),
       );
       setReport(null);
     } else {
@@ -70,21 +74,19 @@ export default function TeacherAttendanceReport({
     try {
       const [context, err] = await getTeacherAttendanceReportContextAction();
       if (err || !context) {
-        throw new Error(err?.message || "Impossible de charger le contexte");
+        throw new Error(err?.message || t("reportCards.loadContextFailed"));
       }
 
-      await exportTeacherAttendanceReportPdf(report, context, {
+      await exportTeacherAttendanceReportPdf(report, context, pdfLabels, {
         emptyMessage:
           report.summary.total === 0
-            ? "Aucune présence enseignant pour cette période."
+            ? t("reportCards.emptyTeachers")
             : undefined,
       });
-      toast.success("Rapport PDF des présences enseignants généré.");
+      toast.success(t("reportCards.teachersPdfSuccess"));
     } catch (e) {
       toast.error(
-        e instanceof Error
-          ? e.message
-          : "Erreur lors de la génération du PDF",
+        e instanceof Error ? e.message : t("reportCards.pdfGenerateError"),
       );
     } finally {
       setExporting(false);
@@ -98,10 +100,10 @@ export default function TeacherAttendanceReport({
       <CardHeader className="flex flex-col gap-4 px-0 pt-0 md:flex-row md:items-start md:justify-between">
         <div>
           <CardTitle>
-            {selfOnly ? "Mon rapport de présence" : "Présences enseignants"}
+            {selfOnly ? t("reportCards.myReport") : t("reportCards.teachersTitle")}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Synthèse présents / absents / retards / excusés sur une période.
+            {t("reportCards.summaryDescription")}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -112,7 +114,7 @@ export default function TeacherAttendanceReport({
               onChange={(e) => setStartDate(e.target.value)}
               className="border-none bg-transparent text-sm focus:ring-0"
             />
-            <span className="text-sm text-muted-foreground">au</span>
+            <span className="text-sm text-muted-foreground">{t("filters.to")}</span>
             <input
               type="date"
               value={endDate}
@@ -128,7 +130,7 @@ export default function TeacherAttendanceReport({
             disabled={loading}
           >
             <IconRefresh data-icon="inline-start" />
-            Actualiser
+            {t("filters.refresh")}
           </Button>
 
           <Button
@@ -138,7 +140,7 @@ export default function TeacherAttendanceReport({
             disabled={!report || loading || exporting}
           >
             <IconFileTypePdf data-icon="inline-start" />
-            {exporting ? "Génération..." : "Export PDF"}
+            {exporting ? t("reportCards.generating") : tCommon("exportPdf")}
           </Button>
         </div>
       </CardHeader>
@@ -146,7 +148,7 @@ export default function TeacherAttendanceReport({
       <CardContent className="flex flex-col gap-4 px-0 pb-0">
         {loading ? (
           <div className="animate-pulse py-4 text-center text-sm text-muted-foreground">
-            Chargement des présences…
+            {t("reportCards.loading")}
           </div>
         ) : error ? (
           <div className="py-4 text-sm text-destructive">{error}</div>
@@ -154,23 +156,23 @@ export default function TeacherAttendanceReport({
           <>
             <div className="grid gap-4 md:grid-cols-4">
               <div className="rounded-xl border bg-muted p-4">
-                <div className="text-sm text-muted-foreground">Présents</div>
+                <div className="text-sm text-muted-foreground">{t("stats.present")}</div>
                 <div className="mt-2 text-2xl font-semibold text-emerald-600">
                   {summary.present}
                 </div>
               </div>
               <div className="rounded-xl border bg-muted p-4">
-                <div className="text-sm text-muted-foreground">Absents</div>
+                <div className="text-sm text-muted-foreground">{t("stats.absent")}</div>
                 <div className="mt-2 text-2xl font-semibold text-rose-600">
                   {summary.absent}
                 </div>
               </div>
               <div className="rounded-xl border bg-muted p-4">
-                <div className="text-sm text-muted-foreground">Retards</div>
+                <div className="text-sm text-muted-foreground">{t("stats.late")}</div>
                 <div className="mt-2 text-2xl font-semibold">{summary.late}</div>
               </div>
               <div className="rounded-xl border bg-muted p-4">
-                <div className="text-sm text-muted-foreground">Excusés</div>
+                <div className="text-sm text-muted-foreground">{t("stats.excused")}</div>
                 <div className="mt-2 text-2xl font-semibold">
                   {summary.excused}
                 </div>
@@ -179,13 +181,14 @@ export default function TeacherAttendanceReport({
 
             {summary.total === 0 ? (
               <p className="py-2 text-sm text-muted-foreground">
-                Aucune présence pour cette période. Vous pouvez quand même
-                exporter un PDF avec ce message.
+                {t("reportCards.emptyExportHint")}
               </p>
             ) : (
               <p className="text-sm text-muted-foreground">
-                {report?.details.length ?? 0} enseignant(s) · {summary.total}{" "}
-                pointage(s) — le PDF inclut le détail par enseignant.
+                {t("reportCards.teachersDetail", {
+                  count: report?.details.length ?? 0,
+                  total: summary.total,
+                })}
               </p>
             )}
           </>

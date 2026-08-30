@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Download, Eye, FilePlus2, FileText, Trash2, Upload } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -28,15 +29,18 @@ type Props = {
   hint?: string;
 };
 
-function complementaryPdfError(file: File): string | null {
+function complementaryPdfError(
+  file: File,
+  labels: { pdfOnly: string; pdfTooLarge: string },
+): string | null {
   const name = file.name.toLowerCase();
   const isPdf =
     file.type === "application/pdf" ||
     file.type === "application/x-pdf" ||
     name.endsWith(".pdf");
-  if (!isPdf) return "Seuls les fichiers PDF sont acceptés.";
+  if (!isPdf) return labels.pdfOnly;
   if (file.size > MAX_COMPLEMENTARY_PDF_BYTES) {
-    return "Le fichier PDF doit faire moins de 4 Mo.";
+    return labels.pdfTooLarge;
   }
   return null;
 }
@@ -56,6 +60,10 @@ export function TeacherProfileDocuments({
   hint,
 }: Props) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations("users.teachers.documents");
+  const tProfile = useTranslations("users.teachers.profile");
+  const tCommon = useTranslations("common");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -74,7 +82,10 @@ export function TeacherProfileDocuments({
       setFile(null);
       return;
     }
-    const error = complementaryPdfError(next);
+    const error = complementaryPdfError(next, {
+      pdfOnly: t("pdfOnly"),
+      pdfTooLarge: t("pdfTooLarge"),
+    });
     if (error) {
       toast.error(error);
       resetFileInput();
@@ -85,11 +96,14 @@ export function TeacherProfileDocuments({
 
   async function addDocument() {
     if (!title.trim() || !file) {
-      toast.error("Indiquez le nom du document et sélectionnez un PDF.");
+      toast.error(t("nameAndFileRequired"));
       return;
     }
 
-    const errorMessage = complementaryPdfError(file);
+    const errorMessage = complementaryPdfError(file, {
+      pdfOnly: t("pdfOnly"),
+      pdfTooLarge: t("pdfTooLarge"),
+    });
     if (errorMessage) {
       toast.error(errorMessage);
       resetFileInput();
@@ -110,7 +124,7 @@ export function TeacherProfileDocuments({
         url: uploaded.url,
       });
       if (error || !result?.ok) {
-        toast.error(error?.message ?? "Impossible d'ajouter le document.");
+        toast.error(error?.message ?? t("addFailed"));
         return;
       }
 
@@ -120,7 +134,7 @@ export function TeacherProfileDocuments({
       router.refresh();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Impossible d'ajouter le document.",
+        error instanceof Error ? error.message : t("addFailed"),
       );
     } finally {
       setIsPending(false);
@@ -128,14 +142,14 @@ export function TeacherProfileDocuments({
   }
 
   async function removeDocument(documentId: string) {
-    if (!window.confirm("Supprimer ce document du dossier ?")) return;
+    if (!window.confirm(t("deleteConfirm"))) return;
     setIsPending(true);
     try {
       const [result, error] = await deleteTeacherProfileDocumentAction({
         documentId,
       });
       if (error || !result?.ok) {
-        toast.error(error?.message ?? "Impossible de supprimer le document.");
+        toast.error(error?.message ?? t("deleteFailed"));
         return;
       }
       toast.success(result.message);
@@ -150,19 +164,19 @@ export function TeacherProfileDocuments({
       <div className="grid gap-2">
         <div className="space-y-1.5">
           <Label htmlFor={`teacher-doc-title-${teacherId}`} className="text-xs">
-            Nom du document
+            {t("documentName")}
           </Label>
           <Input
             id={`teacher-doc-title-${teacherId}`}
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Ex. Diplôme, attestation…"
+            placeholder={t("documentNamePlaceholder")}
             disabled={isPending}
           />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor={`teacher-doc-file-${teacherId}`} className="text-xs">
-            Fichier PDF
+            {t("pdfFile")}
           </Label>
           <Input
             ref={fileInputRef}
@@ -176,7 +190,7 @@ export function TeacherProfileDocuments({
         </div>
       </div>
       <p className="text-[11px] text-muted-foreground">
-        PDF uniquement, 4 Mo maximum.
+        {t("pdfOnlyMax")}
         {file ? ` · ${file.name} (${formatFileSize(file.size)})` : ""}
       </p>
       <Button
@@ -186,7 +200,7 @@ export function TeacherProfileDocuments({
         className="w-full gap-2 sm:w-auto"
       >
         <Upload className="size-4" />
-        {isPending ? "Ajout…" : "Ajouter le PDF"}
+        {isPending ? t("adding") : t("addPdf")}
       </Button>
     </div>
   ) : null;
@@ -203,7 +217,9 @@ export function TeacherProfileDocuments({
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{document.title}</p>
               <p className="text-[11px] text-muted-foreground">
-                Ajouté le {new Date(document.createdAt).toLocaleDateString("fr-FR")}
+                {t("addedOn", {
+                  date: new Date(document.createdAt).toLocaleDateString(locale),
+                })}
               </p>
             </div>
           </div>
@@ -215,12 +231,12 @@ export function TeacherProfileDocuments({
               onClick={() => setViewer(document)}
             >
               <Eye className="mr-1.5 size-4" />
-              Voir
+              {t("view")}
             </Button>
             <Button asChild type="button" variant="ghost" size="sm">
               <a href={document.url} download target="_blank" rel="noopener noreferrer">
                 <Download className="mr-1.5 size-4" />
-                Télécharger
+                {tProfile("download")}
               </a>
             </Button>
             {canManage ? (
@@ -231,7 +247,7 @@ export function TeacherProfileDocuments({
                 className="text-destructive hover:text-destructive"
                 onClick={() => void removeDocument(document.id)}
                 disabled={isPending}
-                aria-label={`Supprimer ${document.title}`}
+                aria-label={t("deleteAria", { title: document.title })}
               >
                 <Trash2 className="size-4" />
               </Button>
@@ -242,7 +258,7 @@ export function TeacherProfileDocuments({
     </div>
   ) : (
     <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-      Aucun document complémentaire ajouté.
+      {t("noDocuments")}
     </p>
   );
 
@@ -261,9 +277,9 @@ export function TeacherProfileDocuments({
       {embedded ? (
         <section className="space-y-3">
           <div>
-            <h3 className="text-sm font-semibold">Documents complémentaires</h3>
+            <h3 className="text-sm font-semibold">{t("complementary")}</h3>
             <p className="text-xs text-muted-foreground">
-              Diplômes, attestations et justificatifs · PDF de moins de 4 Mo
+              {t("complementaryDesc")}
             </p>
           </div>
           {body}
@@ -276,9 +292,9 @@ export function TeacherProfileDocuments({
                 <FileText className="size-4" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold">Documents complémentaires</h3>
+                <h3 className="text-sm font-semibold">{t("complementary")}</h3>
                 <p className="text-xs text-muted-foreground">
-                  Diplômes, attestations et autres justificatifs (PDF)
+                  {t("complementaryDescShort")}
                 </p>
               </div>
             </div>

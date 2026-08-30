@@ -17,6 +17,7 @@ import {
   ClipboardList,
   Undo2,
   Banknote,
+  MessageSquare,
   FilePenLine,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -36,7 +37,7 @@ import {
   dispatchCandidaturePrefill,
   dispatchRegistrationPrefill,
 } from "@/lib/prefill-events";
-import { NOTIFICATIONS_REFRESH_EVENT } from "@/lib/notification-events";
+import { NOTIFICATIONS_REFRESH_EVENT, openMessagingDrawer } from "@/lib/notification-events";
 import {
   confirmNotificationRequestAction,
   getNotificationCountAction,
@@ -94,6 +95,8 @@ type AbsenceRow = {
   kind: "absence";
   case: AbsenceCaseDialogData | null;
   gradeModificationRequestId?: string | null;
+  conversationId?: string | null;
+  href?: string | null;
 };
 
 type NotificationItem = RegistrationRow | JobRow | AbsenceRow;
@@ -285,23 +288,34 @@ function NotificationRow({
 function AbsenceNotificationRow({
   item,
   onOpen,
+  onReply,
 }: {
   item: AbsenceRow;
   onOpen: (item: AbsenceRow) => void;
+  onReply?: (item: AbsenceRow) => void;
 }) {
   const createdAt =
     item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt);
   const isPayment = item.type === "PAYMENT";
+  const isMessage = item.type === "MESSAGE";
+  const canReplyDirect =
+    Boolean(onReply) &&
+    (item.type === "JUSTIFICATION_SUBMITTED" ||
+      item.type === "JUSTIFICATION_DECISION" ||
+      item.type === "ABSENCE") &&
+    Boolean(item.case?.id);
   const actionLabel = isPayment
     ? "Vu"
-    : item.type === "ABSENCE"
-      ? "Justifier"
-      : item.type === "JUSTIFICATION_SUBMITTED" ||
-          item.type === "GRADE_MODIFICATION_SUBMITTED"
-        ? "Examiner"
-        : item.type === "GRADE_MODIFICATION_DECISION"
-          ? "OK"
-          : "Voir";
+    : isMessage
+      ? "Ouvrir"
+      : item.type === "ABSENCE"
+        ? "Justifier"
+        : item.type === "JUSTIFICATION_SUBMITTED" ||
+            item.type === "GRADE_MODIFICATION_SUBMITTED"
+          ? "Examiner"
+          : item.type === "GRADE_MODIFICATION_DECISION"
+            ? "OK"
+            : "Voir";
 
   return (
     <div className="group flex items-start gap-3 border-b border-border/50 px-4 py-3 last:border-0 transition-colors hover:bg-accent/50">
@@ -316,6 +330,8 @@ function AbsenceNotificationRow({
       >
         {isPayment ? (
           <Banknote className="size-4" />
+        ) : isMessage ? (
+          <MessageSquare className="size-4" />
         ) : item.type.startsWith("GRADE_MODIFICATION") ? (
           <FilePenLine className="size-4" />
         ) : item.type === "RETURN" ? (
@@ -336,15 +352,27 @@ function AbsenceNotificationRow({
           {formatDistanceToNow(createdAt, { addSuffix: true, locale: fr })}
         </p>
       </div>
-      <Button
-        size="sm"
-        variant="ghost"
-        className="h-7 gap-1 px-2 text-[10px] text-primary hover:bg-primary/10"
-        onClick={() => onOpen(item)}
-      >
-        <Eye className="size-3" />
-        {actionLabel}
-      </Button>
+      <div className="flex shrink-0 flex-col gap-1">
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 gap-1 px-2 text-[10px] text-primary hover:bg-primary/10"
+          onClick={() => onOpen(item)}
+        >
+          <Eye className="size-3" />
+          {actionLabel}
+        </Button>
+        {canReplyDirect ? (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 gap-1 px-2 text-[10px] text-primary hover:bg-primary/10"
+            onClick={() => onReply?.(item)}
+          >
+            Répondre
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -422,6 +450,8 @@ export function NotificationBell() {
           kind: "absence" as const,
           case: row.case,
           gradeModificationRequestId: row.gradeModificationRequestId,
+          conversationId: row.conversationId,
+          href: row.href,
         }),
       );
 
@@ -733,6 +763,20 @@ export function NotificationBell() {
                       key={`${item.kind}-${item.id}`}
                       item={item}
                       onOpen={(row) => {
+                        if (row.type === "MESSAGE") {
+                          if (row.conversationId) {
+                            openMessagingDrawer({
+                              conversationId: row.conversationId,
+                            });
+                          } else if (row.href) {
+                            router.push(row.href);
+                          }
+                          void markAbsenceNotificationReadAction({
+                            notificationId: row.id,
+                          }).then(() => void loadRequests());
+                          setOpen(false);
+                          return;
+                        }
                         if (row.type === "PAYMENT") {
                           void markAbsenceNotificationReadAction({
                             notificationId: row.id,
@@ -774,6 +818,17 @@ export function NotificationBell() {
                               ? "review"
                               : "view";
                         setAbsenceDialog({ mode, caseRow: row.case });
+                        setOpen(false);
+                      }}
+                      onReply={(row) => {
+                        if (!row.case || !params.organizationId) return;
+                        void markAbsenceNotificationReadAction({
+                          notificationId: row.id,
+                        });
+                        openMessagingDrawer({
+                          contextType: "ABSENCE_CASE",
+                          contextId: row.case.id,
+                        });
                         setOpen(false);
                       }}
                     />

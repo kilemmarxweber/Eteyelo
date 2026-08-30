@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
@@ -50,6 +51,7 @@ function rowsToSheet(rows: AttendanceReportRow[]) {
 }
 
 export function useAttendanceReport() {
+  const t = useTranslations("attendance");
   const [filters, setFilters] = useState<AttendanceReportFilters>(defaultFilters);
   const [appliedFilters, setAppliedFilters] =
     useState<AttendanceReportFilters>(defaultFilters);
@@ -63,11 +65,11 @@ export function useAttendanceReport() {
         setReport(data);
       } catch (error) {
         toast.error(
-          error instanceof Error ? error.message : "Chargement impossible.",
+          error instanceof Error ? error.message : t("export.loadFailed"),
         );
       }
     });
-  }, [startTransition]);
+  }, [startTransition, t]);
 
   useEffect(() => {
     loadReport(appliedFilters);
@@ -85,18 +87,18 @@ export function useAttendanceReport() {
 
   const exportExcel = useCallback(() => {
     if (!report.rows.length) {
-      toast.error("Aucune donnee a exporter.");
+      toast.error(t("export.noDataExcel"));
       return;
     }
 
     const workbook = XLSX.utils.book_new();
     const sheet = XLSX.utils.json_to_sheet(rowsToSheet(report.rows));
-    XLSX.utils.book_append_sheet(workbook, sheet, "Presences");
+    XLSX.utils.book_append_sheet(workbook, sheet, t("export.sheetName"));
     XLSX.writeFile(workbook, "rapport-presences.xlsx");
-  }, [report.rows]);
+  }, [report.rows, t]);
 
   const exportPdf = useCallback(() => {
-    toast.info("Export PDF disponible via Imprimer.");
+    toast.info(t("export.pdfViaPrint"));
     window.print();
   }, []);
 

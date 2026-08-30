@@ -22,6 +22,7 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
@@ -90,23 +91,26 @@ function numberNotesByCourse(notes: TeacherProfileNote[]) {
   }));
 }
 
-function statusMeta(status: TeacherAttendanceStatus) {
+function statusMeta(
+  status: TeacherAttendanceStatus,
+  t: (key: string) => string,
+) {
   switch (status) {
     case "PRESENT":
-      return { label: "Présent", className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" };
+      return { label: t("present"), className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" };
     case "ABSENT":
-      return { label: "Absent", className: "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300" };
+      return { label: t("absent"), className: "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300" };
     case "LATE":
-      return { label: "Retard", className: "border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300" };
+      return { label: t("late"), className: "border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300" };
     default:
-      return { label: "Excusé", className: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300" };
+      return { label: t("excused"), className: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300" };
   }
 }
 
-function formatDate(iso: string, withTime = false) {
+function formatDate(iso: string, locale: string, withTime = false) {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString("fr-FR", {
+  return date.toLocaleString(locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -114,11 +118,11 @@ function formatDate(iso: string, withTime = false) {
   });
 }
 
-function formatTime(iso: string | null) {
+function formatTime(iso: string | null, locale: string) {
   if (!iso) return "—";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 }
 
 function ScoreRing({ value }: { value: number }) {
@@ -217,6 +221,9 @@ export function TeacherProfileClient({
   workingDays?: string[];
 }) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations("users.teachers.profile");
+  const tCommon = useTranslations("common");
   const [tab, setTab] = React.useState("dossier");
   const [classId, setClassId] = React.useState(
     profile.classes[0]?.id ?? "all",
@@ -264,7 +271,7 @@ export function TeacherProfileClient({
             >
               <Link
                 href={profile.dashboardHref || profile.baseHref}
-                aria-label="Retour au tableau de bord"
+                aria-label={t("backToDashboard")}
               >
                 <ArrowLeft className="size-4" />
               </Link>
@@ -285,14 +292,13 @@ export function TeacherProfileClient({
               <div className="min-w-0">
                 <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-primary/80">
                   <Sparkles className="size-3.5" />
-                  Dossier {profile.teacherLabelLower}
+                  {t("dossier", { teacherLower: profile.teacherLabelLower })}
                 </p>
                 <h1 className="truncate text-lg font-bold uppercase tracking-wide text-foreground md:text-xl">
                   {profile.fullName}
                 </h1>
                 <p className="mt-1 max-w-7xl text-xs leading-relaxed text-muted-foreground md:text-sm">
-                  Former, inspirer et accompagner chaque classe avec exigence et
-                  bienveillance.
+                  {t("tagline")}
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <Badge
@@ -307,7 +313,7 @@ export function TeacherProfileClient({
                   </Badge>
                   {profile.isTitulaire ? (
                     <span className="rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-300">
-                      Titulaire
+                      {t("titulaire")}
                     </span>
                   ) : null}
                   {profile.schoolYearLabel ? (
@@ -324,13 +330,13 @@ export function TeacherProfileClient({
             <Button asChild variant="outline" className="gap-2">
               <Link href={profile.notesHref}>
                 <FilePlus2 className="size-4" />
-                Ajouter des notes
+                {t("addNotes")}
               </Link>
             </Button>
             <Button asChild className="gap-2 shadow-sm">
               <Link href={profile.devoirsHref}>
                 <NotebookPen className="size-4" />
-                Devoirs
+                {t("homework")}
               </Link>
             </Button>
           </div>
@@ -341,32 +347,32 @@ export function TeacherProfileClient({
         <ActionCard
           href={profile.notesHref}
           icon={<FilePlus2 className="size-5" />}
-          title="Ajouter des notes"
-          description={`Saisir les cotes de ce ${profile.teacherLabelLower}.`}
+          title={t("addNotes")}
+          description={t("addNotesDesc", { teacherLower: profile.teacherLabelLower })}
           tone="sky"
           delay="animate-delay-75"
         />
         <ActionCard
           onClick={() => setTab("notes")}
           icon={<ClipboardList className="size-5" />}
-          title="Notes par classe"
-          description="Consulter les fiches déjà ajoutées."
+          title={t("notesByClass")}
+          description={t("notesByClassDesc")}
           tone="amber"
           delay="animate-delay-150"
         />
         <ActionCard
           href={profile.devoirsHref}
           icon={<BookOpen className="size-5" />}
-          title="Devoirs"
-          description="Cours de l'enseignant déjà chargés."
+          title={t("homework")}
+          description={t("homeworkDesc")}
           tone="violet"
           delay="animate-delay-225"
         />
         <ActionCard
           href={profile.calendarHref}
           icon={<CalendarDays className="size-5" />}
-          title="Réunions"
-          description="Agenda pédagogique et réunions."
+          title={t("meetings")}
+          description={t("meetingsDesc")}
           tone="emerald"
           delay="animate-delay-300"
         />
@@ -381,45 +387,45 @@ export function TeacherProfileClient({
                 className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
               >
                 <UserRound className="size-4" />
-                Dossier
+                {t("tabDossier")}
               </TabsTrigger>
               <TabsTrigger
                 value="presences"
                 className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
               >
                 <Users className="size-4" />
-                Présences
+                {t("tabPresences")}
               </TabsTrigger>
               <TabsTrigger
                 value="reunions"
                 className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
               >
                 <CalendarDays className="size-4" />
-                Réunions
+                {t("tabMeetings")}
               </TabsTrigger>
               <TabsTrigger
                 value="notes"
                 className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
               >
                 <FileText className="size-4" />
-                Notes
+                {t("tabNotes")}
               </TabsTrigger>
               <TabsTrigger
                 value="horaires"
                 className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
               >
                 <CalendarClock className="size-4" />
-                Horaires
+                {t("tabSchedule")}
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="dossier" className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {[
-                  { label: "Cours", value: profile.stats.courseCount, hint: "Affectations actives" },
-                  { label: "Classes", value: profile.stats.classCount, hint: "Groupes suivis" },
-                  { label: "Notes", value: profile.stats.notesCount, hint: "Fiches saisies" },
-                  { label: "Devoirs", value: profile.stats.assignmentsCount, hint: "Activités en ligne" },
+                  { label: t("courses"), value: profile.stats.courseCount, hint: t("coursesHint") },
+                  { label: t("classes"), value: profile.stats.classCount, hint: t("classesHint") },
+                  { label: t("notesCount"), value: profile.stats.notesCount, hint: t("notesHint") },
+                  { label: t("assignmentsCount"), value: profile.stats.assignmentsCount, hint: t("assignmentsHint") },
                 ].map((item, index) => (
                   <Card
                     key={item.label}
@@ -451,9 +457,9 @@ export function TeacherProfileClient({
                         <UserRound className="size-4" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-semibold">Identité</h3>
+                        <h3 className="text-sm font-semibold">{tCommon("person.identity")}</h3>
                         <p className="text-xs text-muted-foreground">
-                          Coordonnées du {profile.teacherLabelLower}
+                          {t("coordinatesOf", { teacherLower: profile.teacherLabelLower })}
                         </p>
                       </div>
                       </div>
@@ -484,13 +490,13 @@ export function TeacherProfileClient({
                     </div>
                   </div>
                   <div className="space-y-2.5 p-4">
-                    <InfoRow icon={<Mail className="size-4" />} label="Email" value={profile.email} />
-                    <InfoRow icon={<Phone className="size-4" />} label="Téléphone" value={profile.telephone} />
-                    <InfoRow icon={<MapPin className="size-4" />} label="Adresse" value={profile.address} />
+                    <InfoRow icon={<Mail className="size-4" />} label={tCommon("person.email")} value={profile.email} />
+                    <InfoRow icon={<Phone className="size-4" />} label={tCommon("person.phone")} value={profile.telephone} />
+                    <InfoRow icon={<MapPin className="size-4" />} label={tCommon("person.address")} value={profile.address} />
                     <div className="grid grid-cols-2 gap-2.5">
-                      <MiniField label="Sexe" value={profile.sexe} />
-                      <MiniField label="Naissance" value={profile.dateOfBirthLabel} />
-                      <MiniField label="Âge" value={profile.ageLabel} />
+                      <MiniField label={tCommon("person.gender")} value={profile.sexe} />
+                      <MiniField label={t("birth")} value={profile.dateOfBirthLabel} />
+                      <MiniField label={t("age")} value={profile.ageLabel} />
                     </div>
                   </div>
                 </Card>
@@ -502,10 +508,11 @@ export function TeacherProfileClient({
                         <GraduationCap className="size-4" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-semibold">Cours assignés</h3>
+                        <h3 className="text-sm font-semibold">{t("assignedCourses")}</h3>
                         <p className="text-xs text-muted-foreground">
-                          {profile.courses.length} affectation
-                          {profile.courses.length > 1 ? "s" : ""}
+                          {profile.courses.length === 1
+                            ? t("assignmentCount", { count: profile.courses.length })
+                            : t("assignmentCountPlural", { count: profile.courses.length })}
                         </p>
                       </div>
                     </div>
@@ -523,7 +530,7 @@ export function TeacherProfileClient({
                             </p>
                             {course.titulaire ? (
                               <Badge variant="warning" className="text-[10px]">
-                                Titulaire
+                                {t("titulaire")}
                               </Badge>
                             ) : null}
                           </div>
@@ -535,7 +542,7 @@ export function TeacherProfileClient({
                       ))
                     ) : (
                       <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                        Aucun cours assigné pour l&apos;année en cours.
+                        {t("noCourses")}
                       </p>
                     )}
                   </div>
@@ -547,6 +554,7 @@ export function TeacherProfileClient({
                   application={profile.application}
                   teacherId={profile.teacherId}
                   canEditDocuments={profile.canEditApplicationDocuments}
+                  locale={locale}
                 />
               ) : (
                 <TeacherApplicationCompleteForm
@@ -564,7 +572,7 @@ export function TeacherProfileClient({
                 canManage={false}
                 hint={
                   profile.canEditIdentity
-                    ? "Ajoutez ou retirez ces PDF depuis « Modifier mon identité »."
+                    ? t("documentsHint")
                     : undefined
                 }
               />
@@ -573,10 +581,10 @@ export function TeacherProfileClient({
             <TabsContent value="presences" className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-4">
                 {[
-                  { label: "Présents", value: profile.stats.present, tone: "text-emerald-700 dark:text-emerald-300" },
-                  { label: "Absents", value: profile.stats.absent, tone: "text-rose-700 dark:text-rose-300" },
-                  { label: "Retards", value: profile.stats.late, tone: "text-amber-800 dark:text-amber-300" },
-                  { label: "Excusés", value: profile.stats.excused, tone: "text-sky-700 dark:text-sky-300" },
+                  { label: t("presents"), value: profile.stats.present, tone: "text-emerald-700 dark:text-emerald-300" },
+                  { label: t("absents"), value: profile.stats.absent, tone: "text-rose-700 dark:text-rose-300" },
+                  { label: t("lates"), value: profile.stats.late, tone: "text-amber-800 dark:text-amber-300" },
+                  { label: t("excusedPlural"), value: profile.stats.excused, tone: "text-sky-700 dark:text-sky-300" },
                 ].map((item) => (
                   <Card key={item.label} padding="sm" className="rounded-xl">
                     <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
@@ -591,7 +599,7 @@ export function TeacherProfileClient({
 
               {profile.currentSessions.length > 0 ? (
                 <Card className="rounded-xl p-4">
-                  <h3 className="mb-3 text-sm font-semibold">Séance en cours</h3>
+                  <h3 className="mb-3 text-sm font-semibold">{t("currentSession")}</h3>
                   <div className="space-y-4">
                     {profile.currentSessions.map((session) => {
                       const row = session as { id?: string };
@@ -609,19 +617,19 @@ export function TeacherProfileClient({
               <Card className="rounded-xl p-0 overflow-hidden">
                 <div className="flex items-center justify-between gap-2 border-b bg-muted/20 px-4 py-3">
                   <div>
-                    <h3 className="text-sm font-semibold">Historique des présences</h3>
+                    <h3 className="text-sm font-semibold">{t("attendanceHistory")}</h3>
                     <p className="text-xs text-muted-foreground">
-                      Pointages récents de ce {profile.teacherLabelLower}
+                      {t("recentCheckins", { teacherLower: profile.teacherLabelLower })}
                     </p>
                   </div>
                   <Button asChild size="sm" variant="outline">
-                    <Link href={profile.attendanceHref}>Voir tout</Link>
+                    <Link href={profile.attendanceHref}>{t("seeAll")}</Link>
                   </Button>
                 </div>
                 <div className="divide-y">
                   {profile.attendances.length ? (
                     profile.attendances.map((row) => {
-                      const meta = statusMeta(row.status);
+                      const meta = statusMeta(row.status, t);
                       return (
                         <div
                           key={row.id}
@@ -633,8 +641,8 @@ export function TeacherProfileClient({
                               {row.className ? ` · ${row.className}` : ""}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {formatDate(row.date)} · {formatTime(row.checkIn)} →{" "}
-                              {formatTime(row.checkOut)}
+                              {formatDate(row.date, locale)} · {formatTime(row.checkIn, locale)} →{" "}
+                              {formatTime(row.checkOut, locale)}
                             </p>
                           </div>
                           <span
@@ -650,7 +658,7 @@ export function TeacherProfileClient({
                     })
                   ) : (
                     <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-                      Aucune présence enregistrée pour le moment.
+                      {t("noAttendance")}
                     </p>
                   )}
                 </div>
@@ -659,19 +667,21 @@ export function TeacherProfileClient({
 
             <TabsContent value="reunions" className="space-y-4">
               <MeetingList
-                title="À venir"
-                empty="Aucune réunion à venir."
+                title={t("upcoming")}
+                empty={t("noUpcomingMeetings")}
                 items={upcomingMeetings}
+                locale={locale}
               />
               <MeetingList
-                title="Récentes"
-                empty="Aucune réunion récente."
+                title={t("recent")}
+                empty={t("noRecentMeetings")}
                 items={pastMeetings}
+                locale={locale}
               />
               <Button asChild variant="outline" className="w-full gap-2">
                 <Link href={profile.calendarHref}>
                   <CalendarDays className="size-4" />
-                  Ouvrir le calendrier scolaire
+                  {t("openCalendar")}
                 </Link>
               </Button>
             </TabsContent>
@@ -681,14 +691,14 @@ export function TeacherProfileClient({
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                   <div className="space-y-1.5">
                     <p className="text-xs font-medium text-muted-foreground">
-                      Classe
+                      {t("classLabel")}
                     </p>
                     <Select value={classId} onValueChange={setClassId}>
                       <SelectTrigger className="w-full sm:w-[280px]">
-                        <SelectValue placeholder="Choisir une classe" />
+                        <SelectValue placeholder={t("chooseClass")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Toutes les classes</SelectItem>
+                        <SelectItem value="all">{t("allClasses")}</SelectItem>
                         {profile.classes.map((classe) => (
                           <SelectItem key={classe.id} value={classe.id}>
                             {classe.name}
@@ -702,7 +712,7 @@ export function TeacherProfileClient({
                     <Button asChild variant="outline" className="gap-2">
                       <Link href={notesByClassHref}>
                         <ClipboardList className="size-4" />
-                        Voir la liste
+                        {t("viewList")}
                       </Link>
                     </Button>
                     <Button asChild className="gap-2">
@@ -714,7 +724,7 @@ export function TeacherProfileClient({
                         }
                       >
                         <FilePlus2 className="size-4" />
-                        Ajouter des notes
+                        {t("addNotes")}
                       </Link>
                     </Button>
                   </div>
@@ -724,18 +734,19 @@ export function TeacherProfileClient({
               <Card className="overflow-hidden rounded-xl p-0">
                 <div className="border-b bg-muted/20 px-4 py-3">
                   <h3 className="text-sm font-semibold">
-                    Notes ajoutées
+                    {t("notesAdded")}
                     {classId !== "all"
                       ? ` · ${profile.classes.find((c) => c.id === classId)?.name ?? ""}`
                       : ""}
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    {numberedNotes.length} fiche
-                    {numberedNotes.length > 1 ? "s" : ""}
+                    {numberedNotes.length === 1
+                      ? t("sheetCount", { count: numberedNotes.length })
+                      : t("sheetCountPlural", { count: numberedNotes.length })}
                     {" · "}
-                    cliquez pour voir les cotes
+                    {t("clickToView")}
                     {numberedNotes.some((n) => !n.status)
-                      ? " (modification possible si ouverte, après validation direction)"
+                      ? t("modificationHint")
                       : ""}
                   </p>
                 </div>
@@ -764,7 +775,7 @@ export function TeacherProfileClient({
                           <div className="min-w-0">
                             <p className="text-sm font-medium">{label}</p>
                             <p className="text-xs text-muted-foreground">
-                              {formatDate(note.createdAt)}
+                              {formatDate(note.createdAt, locale)}
                               {" · "}
                               {note.className}
                               {" · "}
@@ -774,7 +785,7 @@ export function TeacherProfileClient({
                           </div>
                           <div className="flex shrink-0 items-center gap-2">
                             <Badge variant={note.status ? "success" : "warning"}>
-                              {note.status ? "Validée" : "Ouverte"}
+                              {note.status ? t("validated") : t("open")}
                             </Badge>
                             <Eye className="size-4 text-muted-foreground" />
                           </div>
@@ -783,7 +794,7 @@ export function TeacherProfileClient({
                     })
                   ) : (
                     <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-                      Aucune note ajoutée pour cette classe.
+                      {t("noNotesForClass")}
                     </p>
                   )}
                 </div>
@@ -794,7 +805,7 @@ export function TeacherProfileClient({
               <Card className="rounded-xl p-4">
                 <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
                   <CalendarDays className="size-4" />
-                  Emploi du temps
+                  {t("schedule")}
                 </h3>
                 <TeacherScheduleTable
                   teaching={teaching}
@@ -809,29 +820,29 @@ export function TeacherProfileClient({
         <aside className="space-y-4">
           <Card className="animate-fade-up overflow-hidden rounded-xl border-primary/20 bg-gradient-to-b from-primary/[0.08] via-card to-card p-4 shadow-sm">
             <p className="text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-primary/80">
-              Performance
+              {t("performance")}
             </p>
             <div className="mt-3">
               <ScoreRing value={profile.stats.score} />
             </div>
             <p className="mt-3 text-center text-xs text-muted-foreground">
-              Présence, cours donnés et interventions effectuées
+              {t("performanceHint")}
             </p>
             <div className="mt-4 space-y-3">
               <PerfRow
-                label="Taux de présence"
+                label={t("presenceRate")}
                 value={profile.stats.presenceRate}
               />
               <PerfRow
-                label="Ponctualité"
+                label={t("punctuality")}
                 value={profile.stats.punctualityRate}
               />
               <PerfRow
-                label={`Cours donnés (${profile.stats.courseCount})`}
+                label={t("coursesGiven", { count: profile.stats.courseCount })}
                 value={profile.stats.coursesRate}
               />
               <PerfRow
-                label={`Interventions (${profile.stats.notesCount + profile.stats.assignmentsCount})`}
+                label={t("interventions", { count: profile.stats.notesCount + profile.stats.assignmentsCount })}
                 value={profile.stats.interventionsRate}
               />
             </div>
@@ -860,12 +871,16 @@ function ApplicationDossierCard({
   application,
   teacherId,
   canEditDocuments,
+  locale,
 }: {
   application: TeacherProfileApplication;
   teacherId: string;
   canEditDocuments: boolean;
+  locale: string;
 }) {
   const router = useRouter();
+  const t = useTranslations("users.teachers.profile");
+  const tCommon = useTranslations("common");
   const [viewer, setViewer] = React.useState<"cv" | "coverLetter" | null>(null);
   const [replacing, setReplacing] = React.useState(false);
   const [cvUrl, setCvUrl] = React.useState(application.cvUrl);
@@ -881,49 +896,49 @@ function ApplicationDossierCard({
   const years = application.yearsOfExperience ?? 0;
   const yearHint = application.assignmentYearLabels.length
     ? application.assignmentYearLabels.join(", ")
-    : "aucune affectation de classe pour le moment";
+    : t("noAssignmentYet");
   const subjectsHint =
     application.subjectsSource === "assignment"
-      ? "selon les cours actuellement affectés"
+      ? t("fromAssignment")
       : application.subjectsSource === "deposit"
-        ? "selon le dépôt de candidature"
+        ? t("fromDeposit")
         : null;
   const levelsHint =
     application.levelsSource === "assignment"
-      ? "selon les classes actuellement affectées"
+      ? t("fromClassesAssignment")
       : application.levelsSource === "deposit"
-        ? "selon le dépôt de candidature"
+        ? t("fromDeposit")
         : null;
   const availabilityHint =
     application.availability === "Actif"
-      ? "engagé et affecté à l'année en cours"
+      ? t("activeEngaged")
       : application.availability === "Renvoyé"
-        ? "compte inactif"
+        ? t("inactiveAccount")
         : application.availability === "N'est plus actif"
-          ? "sans affectation sur l'année en cours"
+          ? t("noCurrentAssignment")
           : null;
   const facts = [
     {
-      label: "Années d'expérience",
-      value: `${years} an${years > 1 ? "s" : ""} · ${yearHint}`,
+      label: t("yearsExperience"),
+      value: `${years} ${years > 1 ? t("yearPlural") : t("yearSingular")} · ${yearHint}`,
     },
     application.desiredSubjects
       ? {
-          label: "Matières",
+          label: t("subjects"),
           value: application.desiredSubjects,
           hint: subjectsHint,
         }
       : null,
     application.desiredLevels
       ? {
-          label: "Niveaux",
+          label: t("levels"),
           value: application.desiredLevels,
           hint: levelsHint,
         }
       : null,
     application.availability
       ? {
-          label: "Disponibilité",
+          label: t("availability"),
           value: application.availability,
           hint: availabilityHint,
         }
@@ -936,19 +951,19 @@ function ApplicationDossierCard({
 
   const texts = (
     [
-      ["Expérience", application.experienceSummary],
-      ["Formation", application.educationSummary],
-      ["Compétences", application.skills],
-      ["Motivation", application.motivation],
+      [t("experience"), application.experienceSummary],
+      [t("education"), application.educationSummary],
+      [t("skills"), application.skills],
+      [t("motivation"), application.motivation],
     ] as const
   ).filter(([, value]) => Boolean(value));
 
   const documents = [
-    cvUrl ? { key: "cv" as const, label: "CV", href: cvUrl } : null,
+    cvUrl ? { key: "cv" as const, label: t("cv"), href: cvUrl } : null,
     coverLetterUrl
       ? {
           key: "coverLetter" as const,
-          label: "Lettre de motivation",
+          label: t("coverLetter"),
           href: coverLetterUrl,
         }
       : null,
@@ -980,16 +995,16 @@ function ApplicationDossierCard({
         url: uploaded.url,
       });
       if (err) {
-        toast.error(err.message || "Remplacement impossible.");
+        toast.error(err.message || t("replaceFailed"));
         return;
       }
       if (document === "cv") setCvUrl(uploaded.url);
       else setCoverLetterUrl(uploaded.url);
-      toast.success("Document remplacé.");
+      toast.success(t("documentReplaced"));
       router.refresh();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Remplacement impossible.",
+        error instanceof Error ? error.message : t("replaceFailed"),
       );
     } finally {
       setReplacing(false);
@@ -998,10 +1013,10 @@ function ApplicationDossierCard({
 
   const activeDoc =
     viewer === "cv"
-      ? { title: "CV", url: cvUrl, kind: "cv" as const }
+      ? { title: t("cv"), url: cvUrl, kind: "cv" as const }
       : viewer === "coverLetter"
         ? {
-            title: "Lettre de motivation",
+            title: t("coverLetter"),
             url: coverLetterUrl,
             kind: "coverLetter" as const,
           }
@@ -1016,10 +1031,9 @@ function ApplicationDossierCard({
               <Briefcase className="size-4" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold">Dossier de candidature</h3>
+              <h3 className="text-sm font-semibold">{t("applicationDossier")}</h3>
               <p className="text-xs text-muted-foreground">
-                {application.reference} · déposé le{" "}
-                {formatDate(application.submittedAt)}
+                {application.reference} · {t("submittedOn", { date: formatDate(application.submittedAt, locale) })}
               </p>
             </div>
           </div>
@@ -1029,7 +1043,7 @@ function ApplicationDossierCard({
         {documents.length ? (
           <div className="space-y-2">
             <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-violet-700/85 dark:text-violet-400">
-              Documents · lecture seule
+              {t("documentsReadOnly")}
             </p>
             <div className="flex flex-wrap gap-2">
               {documents.map((doc) => (
@@ -1041,7 +1055,7 @@ function ApplicationDossierCard({
                     onClick={() => setViewer(doc.key)}
                   >
                     <Eye className="mr-2 size-4" />
-                    Lire {doc.label}
+                    {t("readDoc", { label: doc.label })}
                   </Button>
                   <Button asChild variant="ghost" size="sm">
                     <a
@@ -1051,7 +1065,7 @@ function ApplicationDossierCard({
                       rel="noopener noreferrer"
                     >
                       <Download className="mr-2 size-4" />
-                      Télécharger
+                      {t("download")}
                     </a>
                   </Button>
                 </div>
@@ -1059,13 +1073,11 @@ function ApplicationDossierCard({
             </div>
             {!canEditDocuments ? (
               <p className="text-xs text-muted-foreground">
-                Consultation et téléchargement uniquement. Seul le propriétaire
-                peut remplacer ces fichiers.
+                {t("ownerReadOnlyHint")}
               </p>
             ) : (
               <p className="text-xs text-muted-foreground">
-                Vous êtes propriétaire : ouvrez un document pour le remplacer si
-                besoin.
+                {t("ownerReplaceHint")}
               </p>
             )}
           </div>
@@ -1095,7 +1107,7 @@ function ApplicationDossierCard({
         {showDepositSubjects ? (
           <div className="rounded-lg border border-dashed border-violet-500/20 bg-muted/20 px-3 py-2.5">
             <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-              Matières au dépôt (conservées)
+              {t("depositSubjectsKept")}
             </p>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {application.depositSubjects}
@@ -1106,7 +1118,7 @@ function ApplicationDossierCard({
         {application.parcours.length ? (
           <div className="space-y-2">
             <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-violet-700/85 dark:text-violet-400">
-              Parcours d&apos;affectation
+              {t("assignmentPath")}
             </p>
             <div className="space-y-2">
               {application.parcours.map((year) => (
@@ -1118,7 +1130,7 @@ function ApplicationDossierCard({
                     <p className="text-sm font-semibold">{year.yearLabel}</p>
                     {year.isCurrent ? (
                       <Badge variant="secondary" className="text-[10px]">
-                        Année en cours
+                        {t("currentYear")}
                       </Badge>
                     ) : null}
                   </div>
@@ -1138,7 +1150,7 @@ function ApplicationDossierCard({
                         {" · "}
                         {item.className}
                         {item.classCode ? ` (${item.classCode})` : ""}
-                        {item.titulaire ? " · Titulaire" : ""}
+                        {item.titulaire ? ` · ${t("titulaire")}` : ""}
                       </li>
                     ))}
                   </ul>
@@ -1229,10 +1241,12 @@ function MeetingList({
   title,
   empty,
   items,
+  locale,
 }: {
   title: string;
   empty: string;
   items: TeacherProfileData["meetings"];
+  locale: string;
 }) {
   return (
     <Card className="overflow-hidden rounded-xl p-0">
@@ -1245,7 +1259,7 @@ function MeetingList({
             <div key={meeting.id} className="px-4 py-3">
               <p className="text-sm font-medium">{meeting.title}</p>
               <p className="text-xs text-muted-foreground">
-                {formatDate(meeting.dateStart, true)}
+                {formatDate(meeting.dateStart, locale, true)}
                 {meeting.location ? ` · ${meeting.location}` : ""}
               </p>
               <div className="mt-1.5 flex flex-wrap gap-1.5">

@@ -1,7 +1,8 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { IconArrowUp, IconDots } from "@tabler/icons-react";
+import { IconDots } from "@tabler/icons-react";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/custom/button";
 import {
   DropdownMenu,
@@ -17,117 +18,133 @@ import React from "react";
 import { IOption } from "@/src/interfaces/Option";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
+import type { TrainingLabelKey } from "@/lib/training-labels";
 
-export const columns: ColumnDef<IOption>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
+export function useOptionColumns(labelKey: TrainingLabelKey = "school") {
+  const tClasses = useTranslations("classes");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const tOption = (key: string) => tClasses(`option.${labelKey}.${key}`);
 
-  {
-    accessorKey: "codeOption",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Code de l'option" />
-    ),
-    cell: ({ row }) => {
-      return row.original.codeOption;
+  const columns: ColumnDef<IOption>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label={tCommon("selectAll")}
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label={tCommon("selectRow")}
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
     },
-  },
-  {
-    accessorKey: "nameOption",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nom de l'option'" />
-    ),
-    cell: ({ row }) => {
-      return row.original.nameOption;
+    {
+      accessorKey: "codeOption",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={tOption("codeCol")} />
+      ),
+      cell: ({ row }) => {
+        return row.original.codeOption;
+      },
     },
-  },
-  {
-    accessorKey: "nameSection",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nom de la section" />
-    ),
-    cell: ({ row }) => {
-      return row.original?.codeSection;
+    {
+      accessorKey: "nameOption",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={tOption("name")} />
+      ),
+      cell: ({ row }) => {
+        return row.original.nameOption;
+      },
     },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+    {
+      accessorKey: "nameSection",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={tOption("sectionCol")} />
+      ),
+      cell: ({ row }) => {
+        return row.original?.codeSection;
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
     },
-  },
-  {
-    accessorKey: "createdAt",
-    cell: (row) => new Date(row.getValue() as string).toLocaleDateString(),
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Ajoutée le " />
-    ),
-  },
-  {
-    id: "actions",
-    cell: function Cell({ row }) {
-      const [showUpdateTaskSheet, setShowUpdateTaskSheet] =
-        React.useState(false);
-      const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
-        React.useState(false);
+    {
+      accessorKey: "createdAt",
+      cell: (row) =>
+        new Date(row.getValue() as string).toLocaleDateString(locale),
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title={tCommon("createdOnFeminine")}
+        />
+      ),
+    },
+    {
+      id: "actions",
+      cell: function Cell({ row }) {
+        const [showUpdateTaskSheet, setShowUpdateTaskSheet] =
+          React.useState(false);
+        const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
+          React.useState(false);
 
-      return (
-        <>
-          {/* Dialogue ou feuille pour l'édition */}
-          <UpdateOptionDialog
-            open={showUpdateTaskSheet}
-            onOpenChange={setShowUpdateTaskSheet}
-            option={row.original} // Passerlesdonnéesactuellesdel'élèveonSuccess={() => row.toggleSelected(false)}
-          />
+        return (
+          <>
+            <UpdateOptionDialog
+              open={showUpdateTaskSheet}
+              onOpenChange={setShowUpdateTaskSheet}
+              option={row.original}
+              labelKey={labelKey}
+            />
 
-          <DeleteOptionsDialog
-            open={showDeleteTaskDialog}
-            onOpenChange={setShowDeleteTaskDialog}
-            Options={[row.original]}
-            showTrigger={false}
-            onSuccess={() => row.toggleSelected(false)}
-          />
+            <DeleteOptionsDialog
+              open={showDeleteTaskDialog}
+              onOpenChange={setShowDeleteTaskDialog}
+              Options={[row.original]}
+              showTrigger={false}
+              labelKey={labelKey}
+              onSuccess={() => row.toggleSelected(false)}
+            />
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                aria-label="Open menu"
-                variant="ghost"
-                className="flex size-8 p-0 data-[state= open]:bg-muted"
-              >
-                <IconDots className="size-4" aria-hidden="true" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              {/* Ajout de l'option Edit */}
-              <DropdownMenuItem onSelect={() => setShowUpdateTaskSheet(true)}>
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => setShowDeleteTaskDialog(true)}>
-                Archiver
-                <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </>
-      );
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  aria-label={tCommon("openMenu")}
+                  variant="ghost"
+                  className="flex size-8 p-0 data-[state= open]:bg-muted"
+                >
+                  <IconDots className="size-4" aria-hidden="true" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onSelect={() => setShowUpdateTaskSheet(true)}>
+                  {tCommon("edit")}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => setShowDeleteTaskDialog(true)}>
+                  {tCommon("archive")}
+                  <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        );
+      },
     },
-  },
-];
+  ];
+
+  return columns;
+}
+
+/** @deprecated Use useOptionColumns() hook instead */
+export const columns: ColumnDef<IOption>[] = [];

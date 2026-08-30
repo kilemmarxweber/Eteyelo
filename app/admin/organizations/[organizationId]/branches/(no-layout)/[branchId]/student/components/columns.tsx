@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { IconDots } from "@tabler/icons-react";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Button } from "@/components/custom/button";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
@@ -58,13 +59,21 @@ function calculateAge(dateOfBirth: Date | string | null | undefined) {
   return age >= 0 ? age : null;
 }
 
-export const createStudentColumns = (
+export function useStudentColumns(
   onRefresh?: () => void,
   canManageStudents = true,
   actions?: StudentTableActions,
   canPurgePermanently = false,
   examCodes?: StudentExamCodesColumnContext,
-): ColumnDef<IStudent>[] => {
+): ColumnDef<IStudent>[] {
+  const t = useTranslations("users.students.table");
+  const tCommon = useTranslations("common");
+  const tPerson = useTranslations("common.person");
+  const tDashboard = useTranslations("dashboard");
+  const tProfile = useTranslations("users.teachers.profile");
+  const locale = useLocale();
+
+  return useMemo(() => {
   const columns: ColumnDef<IStudent>[] = [
 
   {
@@ -76,14 +85,14 @@ export const createStudentColumns = (
           (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
+        aria-label={tCommon("selectAll")}
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
+        aria-label={tCommon("selectRow")}
       />
     ),
     enableSorting: false,
@@ -91,7 +100,7 @@ export const createStudentColumns = (
   },
   {
     id: "photo",
-    header: "PHOTO",
+    header: t("photo"),
     cell: ({ row }) => {
       const student = row.original;
       const fullName = [student.nom, student.postnom, student.prenom]
@@ -113,7 +122,7 @@ export const createStudentColumns = (
   {
     accessorKey: "nom",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nom" />
+      <DataTableColumnHeader column={column} title={tPerson("lastName")} />
     ),
     cell: ({ row }) => (
       <span className="font-semibold text-foreground">
@@ -136,7 +145,7 @@ export const createStudentColumns = (
   {
     accessorKey: "postnom",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Postnom" />
+      <DataTableColumnHeader column={column} title={tPerson("postnom")} />
     ),
     cell: ({ row }) => (
       <span className="text-foreground/80">{row.original.postnom ?? "N/A"}</span>
@@ -145,7 +154,7 @@ export const createStudentColumns = (
   {
     accessorKey: "prenom",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Prénom" />
+      <DataTableColumnHeader column={column} title={tPerson("firstName")} />
     ),
     cell: ({ row }) => (
       <span className="text-foreground/80">{row.original.prenom ?? "N/A"}</span>
@@ -154,7 +163,7 @@ export const createStudentColumns = (
   {
     accessorKey: "sexe",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Sexe" />
+      <DataTableColumnHeader column={column} title={tPerson("gender")} />
     ),
     cell: ({ row }) => row.original.sexe ?? "N/A",
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
@@ -233,7 +242,7 @@ export const createStudentColumns = (
     id: "schoolYearId",
     accessorKey: "schoolYearId",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Annee" />
+      <DataTableColumnHeader column={column} title={t("schoolYear")} />
     ),
     cell: ({ row }) => row.original.schoolYearName ?? "—",
     filterFn: (row, _id, value) => {
@@ -251,17 +260,17 @@ export const createStudentColumns = (
   {
     accessorKey: "dateOfBirth",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Date naissance" />
+      <DataTableColumnHeader column={column} title={t("birthDate")} />
     ),
     cell: (row) =>
       row.getValue()
-        ? new Date(row.getValue() as string).toLocaleDateString()
+        ? new Date(row.getValue() as string).toLocaleDateString(locale)
         : "N/A",
   },
   {
     accessorKey: "classCode",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Classe" />
+      <DataTableColumnHeader column={column} title={t("class")} />
     ),
     cell: ({ row, table }) => {
       const yearFilter = table.getColumn("schoolYearId")?.getFilterValue();
@@ -283,7 +292,7 @@ export const createStudentColumns = (
 
       return (
         <span className="font-medium text-primary">
-          {classLabel || "Non inscrit"}
+          {classLabel || tDashboard("notEnrolled")}
         </span>
       );
     },
@@ -301,12 +310,14 @@ export const createStudentColumns = (
   {
     id: "age",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Âge" />
+      <DataTableColumnHeader column={column} title={t("age")} />
     ),
     accessorFn: (student) => calculateAge(student.dateOfBirth),
     cell: ({ row }) => {
       const age = calculateAge(row.original.dateOfBirth);
-      return age === null ? "N/A" : `${age} an${age > 1 ? "s" : ""}`;
+      return age === null
+        ? "N/A"
+        : `${age} ${age > 1 ? tProfile("yearPlural") : tProfile("yearSingular")}`;
     },
   },
   {
@@ -452,7 +463,7 @@ export const createStudentColumns = (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
-                aria-label="Open menu"
+                aria-label={tCommon("openMenu")}
                 variant="ghost"
                 className="flex size-8 p-0 text-foreground hover:bg-blue-50 data-[state=open]:bg-blue-50"
               >
@@ -462,7 +473,7 @@ export const createStudentColumns = (
 
             <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem onSelect={() => setShowDetailsTaskDialog(true)}>
-                Détails
+                {t("details")}
               </DropdownMenuItem>
 
               {canManageStudents ? (
@@ -476,7 +487,7 @@ export const createStudentColumns = (
                       );
                     }}
                   >
-                    Modifier
+                    {t("edit")}
                   </DropdownMenuItem>
 
                   {examCodesState !== "hidden" ? (
@@ -497,7 +508,7 @@ export const createStudentColumns = (
                   <DropdownMenuItem
                     onSelect={() => setShowResetTaskDialog(true)}
                   >
-                    Réinitialiser
+                    {tCommon("reset")}
                   </DropdownMenuItem>
 
                   <DropdownMenuSeparator />
@@ -507,7 +518,7 @@ export const createStudentColumns = (
                       className="text-red-600 focus:text-red-600"
                       onSelect={() => setShowDeleteTaskDialog(true)}
                     >
-                      Archiver
+                      {tCommon("archive")}
                       <DropdownMenuShortcut>Del</DropdownMenuShortcut>
                     </DropdownMenuItem>
                   ) : null}
@@ -517,7 +528,7 @@ export const createStudentColumns = (
                       className="text-red-600 focus:text-red-600"
                       onSelect={() => setShowPurgeTaskDialog(true)}
                     >
-                      Supprimer
+                      {tCommon("delete")}
                       <DropdownMenuShortcut>⇧Del</DropdownMenuShortcut>
                     </DropdownMenuItem>
                   ) : null}
@@ -536,6 +547,20 @@ export const createStudentColumns = (
     }
     return true;
   });
-};
+  }, [
+    t,
+    tCommon,
+    tPerson,
+    tDashboard,
+    tProfile,
+    locale,
+    onRefresh,
+    canManageStudents,
+    actions,
+    canPurgePermanently,
+    examCodes,
+  ]);
+}
 
-export const columns = createStudentColumns();
+/** @deprecated Use useStudentColumns() hook instead */
+export const columns: ColumnDef<IStudent>[] = [];

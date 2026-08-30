@@ -331,6 +331,11 @@ export type UserWhereInput = {
   appNotifications?: Prisma.AppNotificationListRelationFilter
   familyPaymentsCreated?: Prisma.FamilyPaymentListRelationFilter
   cashierExpensesCreated?: Prisma.CashierExpenseListRelationFilter
+  conversationsCreated?: Prisma.ConversationListRelationFilter
+  conversationParticipants?: Prisma.ConversationParticipantListRelationFilter
+  sentMessages?: Prisma.MessageListRelationFilter
+  messageArchives?: Prisma.UserMessageArchiveListRelationFilter
+  messagingAuditLogs?: Prisma.MessagingAuditLogListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -369,6 +374,11 @@ export type UserOrderByWithRelationInput = {
   appNotifications?: Prisma.AppNotificationOrderByRelationAggregateInput
   familyPaymentsCreated?: Prisma.FamilyPaymentOrderByRelationAggregateInput
   cashierExpensesCreated?: Prisma.CashierExpenseOrderByRelationAggregateInput
+  conversationsCreated?: Prisma.ConversationOrderByRelationAggregateInput
+  conversationParticipants?: Prisma.ConversationParticipantOrderByRelationAggregateInput
+  sentMessages?: Prisma.MessageOrderByRelationAggregateInput
+  messageArchives?: Prisma.UserMessageArchiveOrderByRelationAggregateInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -410,6 +420,11 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   appNotifications?: Prisma.AppNotificationListRelationFilter
   familyPaymentsCreated?: Prisma.FamilyPaymentListRelationFilter
   cashierExpensesCreated?: Prisma.CashierExpenseListRelationFilter
+  conversationsCreated?: Prisma.ConversationListRelationFilter
+  conversationParticipants?: Prisma.ConversationParticipantListRelationFilter
+  sentMessages?: Prisma.MessageListRelationFilter
+  messageArchives?: Prisma.UserMessageArchiveListRelationFilter
+  messagingAuditLogs?: Prisma.MessagingAuditLogListRelationFilter
 }, "id" | "username" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -504,6 +519,11 @@ export type UserCreateInput = {
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -542,6 +562,11 @@ export type UserUncheckedCreateInput = {
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserUpdateInput = {
@@ -580,6 +605,11 @@ export type UserUpdateInput = {
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -618,6 +648,11 @@ export type UserUncheckedUpdateInput = {
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -994,6 +1029,76 @@ export type UserUpdateOneRequiredWithoutPlatformEscalationsRequestedNestedInput 
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPlatformEscalationsRequestedInput, Prisma.UserUpdateWithoutPlatformEscalationsRequestedInput>, Prisma.UserUncheckedUpdateWithoutPlatformEscalationsRequestedInput>
 }
 
+export type UserCreateNestedOneWithoutConversationsCreatedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutConversationsCreatedInput, Prisma.UserUncheckedCreateWithoutConversationsCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutConversationsCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutConversationsCreatedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutConversationsCreatedInput, Prisma.UserUncheckedCreateWithoutConversationsCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutConversationsCreatedInput
+  upsert?: Prisma.UserUpsertWithoutConversationsCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutConversationsCreatedInput, Prisma.UserUpdateWithoutConversationsCreatedInput>, Prisma.UserUncheckedUpdateWithoutConversationsCreatedInput>
+}
+
+export type UserCreateNestedOneWithoutConversationParticipantsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutConversationParticipantsInput, Prisma.UserUncheckedCreateWithoutConversationParticipantsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutConversationParticipantsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutConversationParticipantsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutConversationParticipantsInput, Prisma.UserUncheckedCreateWithoutConversationParticipantsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutConversationParticipantsInput
+  upsert?: Prisma.UserUpsertWithoutConversationParticipantsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutConversationParticipantsInput, Prisma.UserUpdateWithoutConversationParticipantsInput>, Prisma.UserUncheckedUpdateWithoutConversationParticipantsInput>
+}
+
+export type UserCreateNestedOneWithoutSentMessagesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSentMessagesInput, Prisma.UserUncheckedCreateWithoutSentMessagesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSentMessagesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutSentMessagesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSentMessagesInput, Prisma.UserUncheckedCreateWithoutSentMessagesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSentMessagesInput
+  upsert?: Prisma.UserUpsertWithoutSentMessagesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSentMessagesInput, Prisma.UserUpdateWithoutSentMessagesInput>, Prisma.UserUncheckedUpdateWithoutSentMessagesInput>
+}
+
+export type UserCreateNestedOneWithoutMessageArchivesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutMessageArchivesInput, Prisma.UserUncheckedCreateWithoutMessageArchivesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutMessageArchivesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutMessageArchivesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutMessageArchivesInput, Prisma.UserUncheckedCreateWithoutMessageArchivesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutMessageArchivesInput
+  upsert?: Prisma.UserUpsertWithoutMessageArchivesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutMessageArchivesInput, Prisma.UserUpdateWithoutMessageArchivesInput>, Prisma.UserUncheckedUpdateWithoutMessageArchivesInput>
+}
+
+export type UserCreateNestedOneWithoutMessagingAuditLogsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutMessagingAuditLogsInput, Prisma.UserUncheckedCreateWithoutMessagingAuditLogsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutMessagingAuditLogsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutMessagingAuditLogsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutMessagingAuditLogsInput, Prisma.UserUncheckedCreateWithoutMessagingAuditLogsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutMessagingAuditLogsInput
+  upsert?: Prisma.UserUpsertWithoutMessagingAuditLogsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutMessagingAuditLogsInput, Prisma.UserUpdateWithoutMessagingAuditLogsInput>, Prisma.UserUncheckedUpdateWithoutMessagingAuditLogsInput>
+}
+
 export type UserCreateWithoutFamilyPaymentsCreatedInput = {
   id?: string
   username?: string | null
@@ -1029,6 +1134,11 @@ export type UserCreateWithoutFamilyPaymentsCreatedInput = {
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutFamilyPaymentsCreatedInput = {
@@ -1066,6 +1176,11 @@ export type UserUncheckedCreateWithoutFamilyPaymentsCreatedInput = {
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutFamilyPaymentsCreatedInput = {
@@ -1119,6 +1234,11 @@ export type UserUpdateWithoutFamilyPaymentsCreatedInput = {
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFamilyPaymentsCreatedInput = {
@@ -1156,6 +1276,11 @@ export type UserUncheckedUpdateWithoutFamilyPaymentsCreatedInput = {
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutCashierExpensesCreatedInput = {
@@ -1193,6 +1318,11 @@ export type UserCreateWithoutCashierExpensesCreatedInput = {
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutCashierExpensesCreatedInput = {
@@ -1230,6 +1360,11 @@ export type UserUncheckedCreateWithoutCashierExpensesCreatedInput = {
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutCashierExpensesCreatedInput = {
@@ -1283,6 +1418,11 @@ export type UserUpdateWithoutCashierExpensesCreatedInput = {
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCashierExpensesCreatedInput = {
@@ -1320,6 +1460,11 @@ export type UserUncheckedUpdateWithoutCashierExpensesCreatedInput = {
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutGradeModificationRequestsInput = {
@@ -1357,6 +1502,11 @@ export type UserCreateWithoutGradeModificationRequestsInput = {
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutGradeModificationRequestsInput = {
@@ -1394,6 +1544,11 @@ export type UserUncheckedCreateWithoutGradeModificationRequestsInput = {
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutGradeModificationRequestsInput = {
@@ -1436,6 +1591,11 @@ export type UserCreateWithoutReviewedGradeModificationsInput = {
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutReviewedGradeModificationsInput = {
@@ -1473,6 +1633,11 @@ export type UserUncheckedCreateWithoutReviewedGradeModificationsInput = {
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutReviewedGradeModificationsInput = {
@@ -1526,6 +1691,11 @@ export type UserUpdateWithoutGradeModificationRequestsInput = {
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGradeModificationRequestsInput = {
@@ -1563,6 +1733,11 @@ export type UserUncheckedUpdateWithoutGradeModificationRequestsInput = {
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserUpsertWithoutReviewedGradeModificationsInput = {
@@ -1611,6 +1786,11 @@ export type UserUpdateWithoutReviewedGradeModificationsInput = {
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewedGradeModificationsInput = {
@@ -1648,6 +1828,11 @@ export type UserUncheckedUpdateWithoutReviewedGradeModificationsInput = {
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutAbsenceCasesInput = {
@@ -1685,6 +1870,11 @@ export type UserCreateWithoutAbsenceCasesInput = {
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutAbsenceCasesInput = {
@@ -1722,6 +1912,11 @@ export type UserUncheckedCreateWithoutAbsenceCasesInput = {
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutAbsenceCasesInput = {
@@ -1764,6 +1959,11 @@ export type UserCreateWithoutReviewedAbsenceCasesInput = {
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutReviewedAbsenceCasesInput = {
@@ -1801,6 +2001,11 @@ export type UserUncheckedCreateWithoutReviewedAbsenceCasesInput = {
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutReviewedAbsenceCasesInput = {
@@ -1854,6 +2059,11 @@ export type UserUpdateWithoutAbsenceCasesInput = {
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAbsenceCasesInput = {
@@ -1891,6 +2101,11 @@ export type UserUncheckedUpdateWithoutAbsenceCasesInput = {
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserUpsertWithoutReviewedAbsenceCasesInput = {
@@ -1939,6 +2154,11 @@ export type UserUpdateWithoutReviewedAbsenceCasesInput = {
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewedAbsenceCasesInput = {
@@ -1976,6 +2196,11 @@ export type UserUncheckedUpdateWithoutReviewedAbsenceCasesInput = {
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutAppNotificationsInput = {
@@ -2013,6 +2238,11 @@ export type UserCreateWithoutAppNotificationsInput = {
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutAppNotificationsInput = {
@@ -2050,6 +2280,11 @@ export type UserUncheckedCreateWithoutAppNotificationsInput = {
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutAppNotificationsInput = {
@@ -2103,6 +2338,11 @@ export type UserUpdateWithoutAppNotificationsInput = {
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAppNotificationsInput = {
@@ -2140,6 +2380,11 @@ export type UserUncheckedUpdateWithoutAppNotificationsInput = {
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -2177,6 +2422,11 @@ export type UserCreateWithoutSessionsInput = {
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -2214,6 +2464,11 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -2267,6 +2522,11 @@ export type UserUpdateWithoutSessionsInput = {
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -2304,6 +2564,11 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -2341,6 +2606,11 @@ export type UserCreateWithoutAccountsInput = {
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -2378,6 +2648,11 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -2431,6 +2706,11 @@ export type UserUpdateWithoutAccountsInput = {
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -2468,6 +2748,11 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutMembersInput = {
@@ -2505,6 +2790,11 @@ export type UserCreateWithoutMembersInput = {
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutMembersInput = {
@@ -2542,6 +2832,11 @@ export type UserUncheckedCreateWithoutMembersInput = {
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutMembersInput = {
@@ -2595,6 +2890,11 @@ export type UserUpdateWithoutMembersInput = {
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembersInput = {
@@ -2632,6 +2932,11 @@ export type UserUncheckedUpdateWithoutMembersInput = {
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutInvitationsInput = {
@@ -2669,6 +2974,11 @@ export type UserCreateWithoutInvitationsInput = {
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutInvitationsInput = {
@@ -2706,6 +3016,11 @@ export type UserUncheckedCreateWithoutInvitationsInput = {
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutInvitationsInput = {
@@ -2759,6 +3074,11 @@ export type UserUpdateWithoutInvitationsInput = {
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutInvitationsInput = {
@@ -2796,6 +3116,11 @@ export type UserUncheckedUpdateWithoutInvitationsInput = {
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutPlatformSupportAgentInput = {
@@ -2833,6 +3158,11 @@ export type UserCreateWithoutPlatformSupportAgentInput = {
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutPlatformSupportAgentInput = {
@@ -2870,6 +3200,11 @@ export type UserUncheckedCreateWithoutPlatformSupportAgentInput = {
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutPlatformSupportAgentInput = {
@@ -2923,6 +3258,11 @@ export type UserUpdateWithoutPlatformSupportAgentInput = {
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlatformSupportAgentInput = {
@@ -2960,6 +3300,11 @@ export type UserUncheckedUpdateWithoutPlatformSupportAgentInput = {
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutPlatformEscalationsRequestedInput = {
@@ -2997,6 +3342,11 @@ export type UserCreateWithoutPlatformEscalationsRequestedInput = {
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutPlatformEscalationsRequestedInput = {
@@ -3034,6 +3384,11 @@ export type UserUncheckedCreateWithoutPlatformEscalationsRequestedInput = {
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutPlatformEscalationsRequestedInput = {
@@ -3087,6 +3442,11 @@ export type UserUpdateWithoutPlatformEscalationsRequestedInput = {
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlatformEscalationsRequestedInput = {
@@ -3124,6 +3484,931 @@ export type UserUncheckedUpdateWithoutPlatformEscalationsRequestedInput = {
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+}
+
+export type UserCreateWithoutConversationsCreatedInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+}
+
+export type UserUncheckedCreateWithoutConversationsCreatedInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+}
+
+export type UserCreateOrConnectWithoutConversationsCreatedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutConversationsCreatedInput, Prisma.UserUncheckedCreateWithoutConversationsCreatedInput>
+}
+
+export type UserUpsertWithoutConversationsCreatedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutConversationsCreatedInput, Prisma.UserUncheckedUpdateWithoutConversationsCreatedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutConversationsCreatedInput, Prisma.UserUncheckedCreateWithoutConversationsCreatedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutConversationsCreatedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutConversationsCreatedInput, Prisma.UserUncheckedUpdateWithoutConversationsCreatedInput>
+}
+
+export type UserUpdateWithoutConversationsCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutConversationsCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+}
+
+export type UserCreateWithoutConversationParticipantsInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+}
+
+export type UserUncheckedCreateWithoutConversationParticipantsInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+}
+
+export type UserCreateOrConnectWithoutConversationParticipantsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutConversationParticipantsInput, Prisma.UserUncheckedCreateWithoutConversationParticipantsInput>
+}
+
+export type UserUpsertWithoutConversationParticipantsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutConversationParticipantsInput, Prisma.UserUncheckedUpdateWithoutConversationParticipantsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutConversationParticipantsInput, Prisma.UserUncheckedCreateWithoutConversationParticipantsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutConversationParticipantsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutConversationParticipantsInput, Prisma.UserUncheckedUpdateWithoutConversationParticipantsInput>
+}
+
+export type UserUpdateWithoutConversationParticipantsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutConversationParticipantsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+}
+
+export type UserCreateWithoutSentMessagesInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+}
+
+export type UserUncheckedCreateWithoutSentMessagesInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+}
+
+export type UserCreateOrConnectWithoutSentMessagesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSentMessagesInput, Prisma.UserUncheckedCreateWithoutSentMessagesInput>
+}
+
+export type UserUpsertWithoutSentMessagesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSentMessagesInput, Prisma.UserUncheckedUpdateWithoutSentMessagesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSentMessagesInput, Prisma.UserUncheckedCreateWithoutSentMessagesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSentMessagesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSentMessagesInput, Prisma.UserUncheckedUpdateWithoutSentMessagesInput>
+}
+
+export type UserUpdateWithoutSentMessagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSentMessagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+}
+
+export type UserCreateWithoutMessageArchivesInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+}
+
+export type UserUncheckedCreateWithoutMessageArchivesInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+}
+
+export type UserCreateOrConnectWithoutMessageArchivesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutMessageArchivesInput, Prisma.UserUncheckedCreateWithoutMessageArchivesInput>
+}
+
+export type UserUpsertWithoutMessageArchivesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutMessageArchivesInput, Prisma.UserUncheckedUpdateWithoutMessageArchivesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutMessageArchivesInput, Prisma.UserUncheckedCreateWithoutMessageArchivesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutMessageArchivesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutMessageArchivesInput, Prisma.UserUncheckedUpdateWithoutMessageArchivesInput>
+}
+
+export type UserUpdateWithoutMessageArchivesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutMessageArchivesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+}
+
+export type UserCreateWithoutMessagingAuditLogsInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutMessagingAuditLogsInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutMessagingAuditLogsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutMessagingAuditLogsInput, Prisma.UserUncheckedCreateWithoutMessagingAuditLogsInput>
+}
+
+export type UserUpsertWithoutMessagingAuditLogsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutMessagingAuditLogsInput, Prisma.UserUncheckedUpdateWithoutMessagingAuditLogsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutMessagingAuditLogsInput, Prisma.UserUncheckedCreateWithoutMessagingAuditLogsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutMessagingAuditLogsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutMessagingAuditLogsInput, Prisma.UserUncheckedUpdateWithoutMessagingAuditLogsInput>
+}
+
+export type UserUpdateWithoutMessagingAuditLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutMessagingAuditLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -3144,6 +4429,11 @@ export type UserCountOutputType = {
   appNotifications: number
   familyPaymentsCreated: number
   cashierExpensesCreated: number
+  conversationsCreated: number
+  conversationParticipants: number
+  sentMessages: number
+  messageArchives: number
+  messagingAuditLogs: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3159,6 +4449,11 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   appNotifications?: boolean | UserCountOutputTypeCountAppNotificationsArgs
   familyPaymentsCreated?: boolean | UserCountOutputTypeCountFamilyPaymentsCreatedArgs
   cashierExpensesCreated?: boolean | UserCountOutputTypeCountCashierExpensesCreatedArgs
+  conversationsCreated?: boolean | UserCountOutputTypeCountConversationsCreatedArgs
+  conversationParticipants?: boolean | UserCountOutputTypeCountConversationParticipantsArgs
+  sentMessages?: boolean | UserCountOutputTypeCountSentMessagesArgs
+  messageArchives?: boolean | UserCountOutputTypeCountMessageArchivesArgs
+  messagingAuditLogs?: boolean | UserCountOutputTypeCountMessagingAuditLogsArgs
 }
 
 /**
@@ -3255,6 +4550,41 @@ export type UserCountOutputTypeCountCashierExpensesCreatedArgs<ExtArgs extends r
   where?: Prisma.CashierExpenseWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountConversationsCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ConversationWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountConversationParticipantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ConversationParticipantWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSentMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MessageWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountMessageArchivesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserMessageArchiveWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountMessagingAuditLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MessagingAuditLogWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -3292,6 +4622,11 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   appNotifications?: boolean | Prisma.User$appNotificationsArgs<ExtArgs>
   familyPaymentsCreated?: boolean | Prisma.User$familyPaymentsCreatedArgs<ExtArgs>
   cashierExpensesCreated?: boolean | Prisma.User$cashierExpensesCreatedArgs<ExtArgs>
+  conversationsCreated?: boolean | Prisma.User$conversationsCreatedArgs<ExtArgs>
+  conversationParticipants?: boolean | Prisma.User$conversationParticipantsArgs<ExtArgs>
+  sentMessages?: boolean | Prisma.User$sentMessagesArgs<ExtArgs>
+  messageArchives?: boolean | Prisma.User$messageArchivesArgs<ExtArgs>
+  messagingAuditLogs?: boolean | Prisma.User$messagingAuditLogsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -3385,6 +4720,11 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   appNotifications?: boolean | Prisma.User$appNotificationsArgs<ExtArgs>
   familyPaymentsCreated?: boolean | Prisma.User$familyPaymentsCreatedArgs<ExtArgs>
   cashierExpensesCreated?: boolean | Prisma.User$cashierExpensesCreatedArgs<ExtArgs>
+  conversationsCreated?: boolean | Prisma.User$conversationsCreatedArgs<ExtArgs>
+  conversationParticipants?: boolean | Prisma.User$conversationParticipantsArgs<ExtArgs>
+  sentMessages?: boolean | Prisma.User$sentMessagesArgs<ExtArgs>
+  messageArchives?: boolean | Prisma.User$messageArchivesArgs<ExtArgs>
+  messagingAuditLogs?: boolean | Prisma.User$messagingAuditLogsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -3406,6 +4746,11 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     appNotifications: Prisma.$AppNotificationPayload<ExtArgs>[]
     familyPaymentsCreated: Prisma.$FamilyPaymentPayload<ExtArgs>[]
     cashierExpensesCreated: Prisma.$CashierExpensePayload<ExtArgs>[]
+    conversationsCreated: Prisma.$ConversationPayload<ExtArgs>[]
+    conversationParticipants: Prisma.$ConversationParticipantPayload<ExtArgs>[]
+    sentMessages: Prisma.$MessagePayload<ExtArgs>[]
+    messageArchives: Prisma.$UserMessageArchivePayload<ExtArgs>[]
+    messagingAuditLogs: Prisma.$MessagingAuditLogPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3846,6 +5191,11 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   appNotifications<T extends Prisma.User$appNotificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$appNotificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   familyPaymentsCreated<T extends Prisma.User$familyPaymentsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$familyPaymentsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FamilyPaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   cashierExpensesCreated<T extends Prisma.User$cashierExpensesCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$cashierExpensesCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CashierExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  conversationsCreated<T extends Prisma.User$conversationsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$conversationsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  conversationParticipants<T extends Prisma.User$conversationParticipantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$conversationParticipantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationParticipantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sentMessages<T extends Prisma.User$sentMessagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sentMessagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  messageArchives<T extends Prisma.User$messageArchivesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$messageArchivesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserMessageArchivePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  messagingAuditLogs<T extends Prisma.User$messagingAuditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$messagingAuditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagingAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4594,6 +5944,126 @@ export type User$cashierExpensesCreatedArgs<ExtArgs extends runtime.Types.Extens
   take?: number
   skip?: number
   distinct?: Prisma.CashierExpenseScalarFieldEnum | Prisma.CashierExpenseScalarFieldEnum[]
+}
+
+/**
+ * User.conversationsCreated
+ */
+export type User$conversationsCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Conversation
+   */
+  select?: Prisma.ConversationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Conversation
+   */
+  omit?: Prisma.ConversationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConversationInclude<ExtArgs> | null
+  where?: Prisma.ConversationWhereInput
+  orderBy?: Prisma.ConversationOrderByWithRelationInput | Prisma.ConversationOrderByWithRelationInput[]
+  cursor?: Prisma.ConversationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ConversationScalarFieldEnum | Prisma.ConversationScalarFieldEnum[]
+}
+
+/**
+ * User.conversationParticipants
+ */
+export type User$conversationParticipantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ConversationParticipant
+   */
+  select?: Prisma.ConversationParticipantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ConversationParticipant
+   */
+  omit?: Prisma.ConversationParticipantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConversationParticipantInclude<ExtArgs> | null
+  where?: Prisma.ConversationParticipantWhereInput
+  orderBy?: Prisma.ConversationParticipantOrderByWithRelationInput | Prisma.ConversationParticipantOrderByWithRelationInput[]
+  cursor?: Prisma.ConversationParticipantWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ConversationParticipantScalarFieldEnum | Prisma.ConversationParticipantScalarFieldEnum[]
+}
+
+/**
+ * User.sentMessages
+ */
+export type User$sentMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Message
+   */
+  select?: Prisma.MessageSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Message
+   */
+  omit?: Prisma.MessageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MessageInclude<ExtArgs> | null
+  where?: Prisma.MessageWhereInput
+  orderBy?: Prisma.MessageOrderByWithRelationInput | Prisma.MessageOrderByWithRelationInput[]
+  cursor?: Prisma.MessageWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MessageScalarFieldEnum | Prisma.MessageScalarFieldEnum[]
+}
+
+/**
+ * User.messageArchives
+ */
+export type User$messageArchivesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserMessageArchive
+   */
+  select?: Prisma.UserMessageArchiveSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserMessageArchive
+   */
+  omit?: Prisma.UserMessageArchiveOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserMessageArchiveInclude<ExtArgs> | null
+  where?: Prisma.UserMessageArchiveWhereInput
+  orderBy?: Prisma.UserMessageArchiveOrderByWithRelationInput | Prisma.UserMessageArchiveOrderByWithRelationInput[]
+  cursor?: Prisma.UserMessageArchiveWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserMessageArchiveScalarFieldEnum | Prisma.UserMessageArchiveScalarFieldEnum[]
+}
+
+/**
+ * User.messagingAuditLogs
+ */
+export type User$messagingAuditLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MessagingAuditLog
+   */
+  select?: Prisma.MessagingAuditLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MessagingAuditLog
+   */
+  omit?: Prisma.MessagingAuditLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MessagingAuditLogInclude<ExtArgs> | null
+  where?: Prisma.MessagingAuditLogWhereInput
+  orderBy?: Prisma.MessagingAuditLogOrderByWithRelationInput | Prisma.MessagingAuditLogOrderByWithRelationInput[]
+  cursor?: Prisma.MessagingAuditLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MessagingAuditLogScalarFieldEnum | Prisma.MessagingAuditLogScalarFieldEnum[]
 }
 
 /**

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Coffee, Edit, Archive, MoreHorizontal, Clock, Trash2 } from "lucide-react";
 
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
@@ -30,7 +31,13 @@ interface CreneausTableProps {
   refreshKey?: string;
 }
 
-function PeriodBadge({ creneau }: { creneau: ICreneau }) {
+function PeriodBadge({
+  creneau,
+  sessionsLabel,
+}: {
+  creneau: ICreneau;
+  sessionsLabel: (count: number) => string;
+}) {
   const preview = previewPeriodsAroundRecreation(
     creneau.startTime,
     creneau.endTime,
@@ -49,13 +56,16 @@ function PeriodBadge({ creneau }: { creneau: ICreneau }) {
         {preview.before} + {preview.after}
       </Badge>
       <span className="text-xs text-muted-foreground">
-        {preview.total} séances
+        {sessionsLabel(preview.total)}
       </span>
     </div>
   );
 }
 
 const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
+  const t = useTranslations("teaching.vacation");
+  const tc = useTranslations("common");
+  const locale = useLocale();
   const [creneaux, setCreneaus] = useState<ICreneau[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -126,29 +136,32 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
     setLocalRefreshKey((value) => value + 1);
   };
 
-  const columns = [
+  const columns = useMemo(
+    () => [
     {
       key: "nameCreneau",
-      header: "Vacation",
+      header: t("columnName"),
       cell: (creneau: ICreneau) => (
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex items-center gap-2">
             <span className="truncate font-medium">{creneau.nameCreneau}</span>
             {creneau.isArchived ? (
               <Badge variant="outline" size="xs">
-                Archivée
+                {t("archived")}
               </Badge>
             ) : null}
           </div>
           <span className="text-xs text-muted-foreground">
-            Créée le {new Date(creneau.createdAt).toLocaleDateString("fr-FR")}
+            {t("createdOn", {
+              date: new Date(creneau.createdAt).toLocaleDateString(locale),
+            })}
           </span>
         </div>
       ),
     },
     {
       key: "schedule",
-      header: "Horaires",
+      header: t("columnSchedule"),
       cell: (creneau: ICreneau) => (
         <div className="flex items-center gap-2">
           <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
@@ -161,7 +174,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
               {creneau.endTime}
             </div>
             <div className="text-xs text-muted-foreground">
-              Séance {creneau.durationCourse} min
+              {t("sessionDuration", { minutes: creneau.durationCourse })}
             </div>
           </div>
         </div>
@@ -169,7 +182,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
     },
     {
       key: "recreation",
-      header: "Récréation",
+      header: t("columnRecreation"),
       cell: (creneau: ICreneau) => (
         <div className="flex items-center gap-2">
           <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
@@ -188,8 +201,13 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
     },
     {
       key: "periods",
-      header: "Séances",
-      cell: (creneau: ICreneau) => <PeriodBadge creneau={creneau} />,
+      header: t("columnSessions"),
+      cell: (creneau: ICreneau) => (
+        <PeriodBadge
+          creneau={creneau}
+          sessionsLabel={(count) => t("sessionsCount", { count })}
+        />
+      ),
     },
     {
       key: "actions",
@@ -199,19 +217,19 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="size-8 p-0">
               <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{tc("actions")}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem onClick={() => handleEdit(creneau)}>
               <Edit className="mr-2 h-4 w-4" />
-              Modifier
+              {tc("edit")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             {!creneau.isArchived ? (
               <DropdownMenuItem onClick={() => handleArchive(creneau)}>
                 <Archive className="mr-2 h-4 w-4" />
-                Archiver
+                {tc("archive")}
               </DropdownMenuItem>
             ) : null}
             <DropdownMenuItem
@@ -219,18 +237,25 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
               onClick={() => handleDelete(creneau)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Supprimer
+              {tc("delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
     },
-  ];
+  ],
+    [handleArchive, handleDelete, handleEdit, locale, t, tc],
+  );
 
-  const cardConfig = {
+  const cardConfig = useMemo(
+    () => ({
     title: (creneau: ICreneau) => creneau.nameCreneau,
     subtitle: (creneau: ICreneau) =>
-      `${creneau.startTime} – ${creneau.endTime} · séance ${creneau.durationCourse} min`,
+      t("cardSubtitle", {
+        start: creneau.startTime,
+        end: creneau.endTime,
+        minutes: creneau.durationCourse,
+      }),
     details: (creneau: ICreneau) => {
       const preview = previewPeriodsAroundRecreation(
         creneau.startTime,
@@ -242,24 +267,24 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
 
       return [
         {
-          label: "Récréation",
+          label: t("columnRecreation"),
           value: `${creneau.recreationHour} (${creneau.recreationDuration} min)`,
         },
         {
-          label: "Séances",
+          label: t("columnSessions"),
           value: preview
-            ? `${preview.before} + ${preview.after} (${preview.total} séances)`
+            ? `${preview.before} + ${preview.after} (${t("sessionsCount", { count: preview.total })})`
             : "—",
         },
         {
-          label: "Statut",
-          value: creneau.isArchived ? "Archivée" : "Active",
+          label: tc("status"),
+          value: creneau.isArchived ? t("archived") : tc("activeFeminine"),
         },
       ];
     },
     actions: (creneau: ICreneau) => [
       {
-        label: "Modifier",
+        label: tc("edit"),
         icon: Edit,
         onClick: () => handleEdit(creneau),
         variant: "outline" as const,
@@ -268,26 +293,31 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
         ? []
         : [
             {
-              label: "Archiver",
+              label: tc("archive"),
               icon: Archive,
               onClick: () => handleArchive(creneau),
               variant: "outline" as const,
             },
           ]),
       {
-        label: "Supprimer",
+        label: tc("delete"),
         icon: Trash2,
         onClick: () => handleDelete(creneau),
         variant: "outline" as const,
       },
     ],
-  };
+  }),
+    [handleArchive, handleDelete, handleEdit, t, tc],
+  );
 
-  const filterOptions = [
-    { value: "active", label: "Actives" },
-    { value: "archived", label: "Archivées" },
-    { value: "all", label: "Toutes" },
-  ];
+  const filterOptions = useMemo(
+    () => [
+      { value: "active", label: t("filterActive") },
+      { value: "archived", label: t("filterArchived") },
+      { value: "all", label: t("filterAll") },
+    ],
+    [t],
+  );
 
   return (
     <div className="space-y-4">
@@ -300,7 +330,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
             setStatusFilter(value as ActiveArchiveFilter)
           }
           filterOptions={filterOptions}
-          searchPlaceholder="Rechercher une vacation…"
+          searchPlaceholder={t("search")}
         />
       </div>
 
@@ -309,7 +339,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
         columns={columns}
         cardConfig={cardConfig}
         loading={loading}
-        emptyMessage="Aucune vacation trouvée"
+        emptyMessage={t("empty")}
         searchTerm={searchTerm}
       />
 

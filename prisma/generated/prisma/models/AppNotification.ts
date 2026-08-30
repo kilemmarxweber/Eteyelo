@@ -27,6 +27,9 @@ export type AggregateAppNotification = {
 export type AppNotificationMinAggregateOutputType = {
   id: string | null
   branchId: string | null
+  organizationId: string | null
+  conversationId: string | null
+  messageId: string | null
   userId: string | null
   type: $Enums.AppNotificationType | null
   title: string | null
@@ -41,6 +44,9 @@ export type AppNotificationMinAggregateOutputType = {
 export type AppNotificationMaxAggregateOutputType = {
   id: string | null
   branchId: string | null
+  organizationId: string | null
+  conversationId: string | null
+  messageId: string | null
   userId: string | null
   type: $Enums.AppNotificationType | null
   title: string | null
@@ -55,6 +61,9 @@ export type AppNotificationMaxAggregateOutputType = {
 export type AppNotificationCountAggregateOutputType = {
   id: number
   branchId: number
+  organizationId: number
+  conversationId: number
+  messageId: number
   userId: number
   type: number
   title: number
@@ -71,6 +80,9 @@ export type AppNotificationCountAggregateOutputType = {
 export type AppNotificationMinAggregateInputType = {
   id?: true
   branchId?: true
+  organizationId?: true
+  conversationId?: true
+  messageId?: true
   userId?: true
   type?: true
   title?: true
@@ -85,6 +97,9 @@ export type AppNotificationMinAggregateInputType = {
 export type AppNotificationMaxAggregateInputType = {
   id?: true
   branchId?: true
+  organizationId?: true
+  conversationId?: true
+  messageId?: true
   userId?: true
   type?: true
   title?: true
@@ -99,6 +114,9 @@ export type AppNotificationMaxAggregateInputType = {
 export type AppNotificationCountAggregateInputType = {
   id?: true
   branchId?: true
+  organizationId?: true
+  conversationId?: true
+  messageId?: true
   userId?: true
   type?: true
   title?: true
@@ -185,7 +203,10 @@ export type AppNotificationGroupByArgs<ExtArgs extends runtime.Types.Extensions.
 
 export type AppNotificationGroupByOutputType = {
   id: string
-  branchId: string
+  branchId: string | null
+  organizationId: string | null
+  conversationId: string | null
+  messageId: string | null
   userId: string
   type: $Enums.AppNotificationType
   title: string
@@ -220,7 +241,10 @@ export type AppNotificationWhereInput = {
   OR?: Prisma.AppNotificationWhereInput[]
   NOT?: Prisma.AppNotificationWhereInput | Prisma.AppNotificationWhereInput[]
   id?: Prisma.StringFilter<"AppNotification"> | string
-  branchId?: Prisma.StringFilter<"AppNotification"> | string
+  branchId?: Prisma.StringNullableFilter<"AppNotification"> | string | null
+  organizationId?: Prisma.StringNullableFilter<"AppNotification"> | string | null
+  conversationId?: Prisma.StringNullableFilter<"AppNotification"> | string | null
+  messageId?: Prisma.StringNullableFilter<"AppNotification"> | string | null
   userId?: Prisma.StringFilter<"AppNotification"> | string
   type?: Prisma.EnumAppNotificationTypeFilter<"AppNotification"> | $Enums.AppNotificationType
   title?: Prisma.StringFilter<"AppNotification"> | string
@@ -230,7 +254,9 @@ export type AppNotificationWhereInput = {
   gradeModificationRequestId?: Prisma.StringNullableFilter<"AppNotification"> | string | null
   readAt?: Prisma.DateTimeNullableFilter<"AppNotification"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AppNotification"> | Date | string
-  branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
+  branch?: Prisma.XOR<Prisma.BranchNullableScalarRelationFilter, Prisma.BranchWhereInput> | null
+  conversation?: Prisma.XOR<Prisma.ConversationNullableScalarRelationFilter, Prisma.ConversationWhereInput> | null
+  message?: Prisma.XOR<Prisma.MessageNullableScalarRelationFilter, Prisma.MessageWhereInput> | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   absenceCase?: Prisma.XOR<Prisma.AbsenceCaseNullableScalarRelationFilter, Prisma.AbsenceCaseWhereInput> | null
   gradeModificationRequest?: Prisma.XOR<Prisma.GradeModificationRequestNullableScalarRelationFilter, Prisma.GradeModificationRequestWhereInput> | null
@@ -238,7 +264,10 @@ export type AppNotificationWhereInput = {
 
 export type AppNotificationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  branchId?: Prisma.SortOrder
+  branchId?: Prisma.SortOrderInput | Prisma.SortOrder
+  organizationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  conversationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  messageId?: Prisma.SortOrderInput | Prisma.SortOrder
   userId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   title?: Prisma.SortOrder
@@ -249,6 +278,8 @@ export type AppNotificationOrderByWithRelationInput = {
   readAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   branch?: Prisma.BranchOrderByWithRelationInput
+  conversation?: Prisma.ConversationOrderByWithRelationInput
+  message?: Prisma.MessageOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
   absenceCase?: Prisma.AbsenceCaseOrderByWithRelationInput
   gradeModificationRequest?: Prisma.GradeModificationRequestOrderByWithRelationInput
@@ -259,7 +290,10 @@ export type AppNotificationWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.AppNotificationWhereInput | Prisma.AppNotificationWhereInput[]
   OR?: Prisma.AppNotificationWhereInput[]
   NOT?: Prisma.AppNotificationWhereInput | Prisma.AppNotificationWhereInput[]
-  branchId?: Prisma.StringFilter<"AppNotification"> | string
+  branchId?: Prisma.StringNullableFilter<"AppNotification"> | string | null
+  organizationId?: Prisma.StringNullableFilter<"AppNotification"> | string | null
+  conversationId?: Prisma.StringNullableFilter<"AppNotification"> | string | null
+  messageId?: Prisma.StringNullableFilter<"AppNotification"> | string | null
   userId?: Prisma.StringFilter<"AppNotification"> | string
   type?: Prisma.EnumAppNotificationTypeFilter<"AppNotification"> | $Enums.AppNotificationType
   title?: Prisma.StringFilter<"AppNotification"> | string
@@ -269,7 +303,9 @@ export type AppNotificationWhereUniqueInput = Prisma.AtLeast<{
   gradeModificationRequestId?: Prisma.StringNullableFilter<"AppNotification"> | string | null
   readAt?: Prisma.DateTimeNullableFilter<"AppNotification"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AppNotification"> | Date | string
-  branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
+  branch?: Prisma.XOR<Prisma.BranchNullableScalarRelationFilter, Prisma.BranchWhereInput> | null
+  conversation?: Prisma.XOR<Prisma.ConversationNullableScalarRelationFilter, Prisma.ConversationWhereInput> | null
+  message?: Prisma.XOR<Prisma.MessageNullableScalarRelationFilter, Prisma.MessageWhereInput> | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   absenceCase?: Prisma.XOR<Prisma.AbsenceCaseNullableScalarRelationFilter, Prisma.AbsenceCaseWhereInput> | null
   gradeModificationRequest?: Prisma.XOR<Prisma.GradeModificationRequestNullableScalarRelationFilter, Prisma.GradeModificationRequestWhereInput> | null
@@ -277,7 +313,10 @@ export type AppNotificationWhereUniqueInput = Prisma.AtLeast<{
 
 export type AppNotificationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  branchId?: Prisma.SortOrder
+  branchId?: Prisma.SortOrderInput | Prisma.SortOrder
+  organizationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  conversationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  messageId?: Prisma.SortOrderInput | Prisma.SortOrder
   userId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   title?: Prisma.SortOrder
@@ -297,7 +336,10 @@ export type AppNotificationScalarWhereWithAggregatesInput = {
   OR?: Prisma.AppNotificationScalarWhereWithAggregatesInput[]
   NOT?: Prisma.AppNotificationScalarWhereWithAggregatesInput | Prisma.AppNotificationScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"AppNotification"> | string
-  branchId?: Prisma.StringWithAggregatesFilter<"AppNotification"> | string
+  branchId?: Prisma.StringNullableWithAggregatesFilter<"AppNotification"> | string | null
+  organizationId?: Prisma.StringNullableWithAggregatesFilter<"AppNotification"> | string | null
+  conversationId?: Prisma.StringNullableWithAggregatesFilter<"AppNotification"> | string | null
+  messageId?: Prisma.StringNullableWithAggregatesFilter<"AppNotification"> | string | null
   userId?: Prisma.StringWithAggregatesFilter<"AppNotification"> | string
   type?: Prisma.EnumAppNotificationTypeWithAggregatesFilter<"AppNotification"> | $Enums.AppNotificationType
   title?: Prisma.StringWithAggregatesFilter<"AppNotification"> | string
@@ -311,13 +353,16 @@ export type AppNotificationScalarWhereWithAggregatesInput = {
 
 export type AppNotificationCreateInput = {
   id?: string
+  organizationId?: string | null
   type: $Enums.AppNotificationType
   title: string
   body: string
   href?: string | null
   readAt?: Date | string | null
   createdAt?: Date | string
-  branch: Prisma.BranchCreateNestedOneWithoutAppNotificationsInput
+  branch?: Prisma.BranchCreateNestedOneWithoutAppNotificationsInput
+  conversation?: Prisma.ConversationCreateNestedOneWithoutNotificationsInput
+  message?: Prisma.MessageCreateNestedOneWithoutNotificationsInput
   user: Prisma.UserCreateNestedOneWithoutAppNotificationsInput
   absenceCase?: Prisma.AbsenceCaseCreateNestedOneWithoutNotificationsInput
   gradeModificationRequest?: Prisma.GradeModificationRequestCreateNestedOneWithoutNotificationsInput
@@ -325,7 +370,10 @@ export type AppNotificationCreateInput = {
 
 export type AppNotificationUncheckedCreateInput = {
   id?: string
-  branchId: string
+  branchId?: string | null
+  organizationId?: string | null
+  conversationId?: string | null
+  messageId?: string | null
   userId: string
   type: $Enums.AppNotificationType
   title: string
@@ -339,13 +387,16 @@ export type AppNotificationUncheckedCreateInput = {
 
 export type AppNotificationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   href?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  branch?: Prisma.BranchUpdateOneRequiredWithoutAppNotificationsNestedInput
+  branch?: Prisma.BranchUpdateOneWithoutAppNotificationsNestedInput
+  conversation?: Prisma.ConversationUpdateOneWithoutNotificationsNestedInput
+  message?: Prisma.MessageUpdateOneWithoutNotificationsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutAppNotificationsNestedInput
   absenceCase?: Prisma.AbsenceCaseUpdateOneWithoutNotificationsNestedInput
   gradeModificationRequest?: Prisma.GradeModificationRequestUpdateOneWithoutNotificationsNestedInput
@@ -353,7 +404,10 @@ export type AppNotificationUpdateInput = {
 
 export type AppNotificationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
@@ -367,7 +421,10 @@ export type AppNotificationUncheckedUpdateInput = {
 
 export type AppNotificationCreateManyInput = {
   id?: string
-  branchId: string
+  branchId?: string | null
+  organizationId?: string | null
+  conversationId?: string | null
+  messageId?: string | null
   userId: string
   type: $Enums.AppNotificationType
   title: string
@@ -381,6 +438,7 @@ export type AppNotificationCreateManyInput = {
 
 export type AppNotificationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -391,7 +449,10 @@ export type AppNotificationUpdateManyMutationInput = {
 
 export type AppNotificationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
@@ -416,6 +477,9 @@ export type AppNotificationOrderByRelationAggregateInput = {
 export type AppNotificationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
+  conversationId?: Prisma.SortOrder
+  messageId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   title?: Prisma.SortOrder
@@ -430,6 +494,9 @@ export type AppNotificationCountOrderByAggregateInput = {
 export type AppNotificationMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
+  conversationId?: Prisma.SortOrder
+  messageId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   title?: Prisma.SortOrder
@@ -444,6 +511,9 @@ export type AppNotificationMaxOrderByAggregateInput = {
 export type AppNotificationMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
+  conversationId?: Prisma.SortOrder
+  messageId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   title?: Prisma.SortOrder
@@ -627,22 +697,112 @@ export type AppNotificationUncheckedUpdateManyWithoutBranchNestedInput = {
   deleteMany?: Prisma.AppNotificationScalarWhereInput | Prisma.AppNotificationScalarWhereInput[]
 }
 
+export type AppNotificationCreateNestedManyWithoutConversationInput = {
+  create?: Prisma.XOR<Prisma.AppNotificationCreateWithoutConversationInput, Prisma.AppNotificationUncheckedCreateWithoutConversationInput> | Prisma.AppNotificationCreateWithoutConversationInput[] | Prisma.AppNotificationUncheckedCreateWithoutConversationInput[]
+  connectOrCreate?: Prisma.AppNotificationCreateOrConnectWithoutConversationInput | Prisma.AppNotificationCreateOrConnectWithoutConversationInput[]
+  createMany?: Prisma.AppNotificationCreateManyConversationInputEnvelope
+  connect?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+}
+
+export type AppNotificationUncheckedCreateNestedManyWithoutConversationInput = {
+  create?: Prisma.XOR<Prisma.AppNotificationCreateWithoutConversationInput, Prisma.AppNotificationUncheckedCreateWithoutConversationInput> | Prisma.AppNotificationCreateWithoutConversationInput[] | Prisma.AppNotificationUncheckedCreateWithoutConversationInput[]
+  connectOrCreate?: Prisma.AppNotificationCreateOrConnectWithoutConversationInput | Prisma.AppNotificationCreateOrConnectWithoutConversationInput[]
+  createMany?: Prisma.AppNotificationCreateManyConversationInputEnvelope
+  connect?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+}
+
+export type AppNotificationUpdateManyWithoutConversationNestedInput = {
+  create?: Prisma.XOR<Prisma.AppNotificationCreateWithoutConversationInput, Prisma.AppNotificationUncheckedCreateWithoutConversationInput> | Prisma.AppNotificationCreateWithoutConversationInput[] | Prisma.AppNotificationUncheckedCreateWithoutConversationInput[]
+  connectOrCreate?: Prisma.AppNotificationCreateOrConnectWithoutConversationInput | Prisma.AppNotificationCreateOrConnectWithoutConversationInput[]
+  upsert?: Prisma.AppNotificationUpsertWithWhereUniqueWithoutConversationInput | Prisma.AppNotificationUpsertWithWhereUniqueWithoutConversationInput[]
+  createMany?: Prisma.AppNotificationCreateManyConversationInputEnvelope
+  set?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  disconnect?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  delete?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  connect?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  update?: Prisma.AppNotificationUpdateWithWhereUniqueWithoutConversationInput | Prisma.AppNotificationUpdateWithWhereUniqueWithoutConversationInput[]
+  updateMany?: Prisma.AppNotificationUpdateManyWithWhereWithoutConversationInput | Prisma.AppNotificationUpdateManyWithWhereWithoutConversationInput[]
+  deleteMany?: Prisma.AppNotificationScalarWhereInput | Prisma.AppNotificationScalarWhereInput[]
+}
+
+export type AppNotificationUncheckedUpdateManyWithoutConversationNestedInput = {
+  create?: Prisma.XOR<Prisma.AppNotificationCreateWithoutConversationInput, Prisma.AppNotificationUncheckedCreateWithoutConversationInput> | Prisma.AppNotificationCreateWithoutConversationInput[] | Prisma.AppNotificationUncheckedCreateWithoutConversationInput[]
+  connectOrCreate?: Prisma.AppNotificationCreateOrConnectWithoutConversationInput | Prisma.AppNotificationCreateOrConnectWithoutConversationInput[]
+  upsert?: Prisma.AppNotificationUpsertWithWhereUniqueWithoutConversationInput | Prisma.AppNotificationUpsertWithWhereUniqueWithoutConversationInput[]
+  createMany?: Prisma.AppNotificationCreateManyConversationInputEnvelope
+  set?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  disconnect?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  delete?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  connect?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  update?: Prisma.AppNotificationUpdateWithWhereUniqueWithoutConversationInput | Prisma.AppNotificationUpdateWithWhereUniqueWithoutConversationInput[]
+  updateMany?: Prisma.AppNotificationUpdateManyWithWhereWithoutConversationInput | Prisma.AppNotificationUpdateManyWithWhereWithoutConversationInput[]
+  deleteMany?: Prisma.AppNotificationScalarWhereInput | Prisma.AppNotificationScalarWhereInput[]
+}
+
+export type AppNotificationCreateNestedManyWithoutMessageInput = {
+  create?: Prisma.XOR<Prisma.AppNotificationCreateWithoutMessageInput, Prisma.AppNotificationUncheckedCreateWithoutMessageInput> | Prisma.AppNotificationCreateWithoutMessageInput[] | Prisma.AppNotificationUncheckedCreateWithoutMessageInput[]
+  connectOrCreate?: Prisma.AppNotificationCreateOrConnectWithoutMessageInput | Prisma.AppNotificationCreateOrConnectWithoutMessageInput[]
+  createMany?: Prisma.AppNotificationCreateManyMessageInputEnvelope
+  connect?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+}
+
+export type AppNotificationUncheckedCreateNestedManyWithoutMessageInput = {
+  create?: Prisma.XOR<Prisma.AppNotificationCreateWithoutMessageInput, Prisma.AppNotificationUncheckedCreateWithoutMessageInput> | Prisma.AppNotificationCreateWithoutMessageInput[] | Prisma.AppNotificationUncheckedCreateWithoutMessageInput[]
+  connectOrCreate?: Prisma.AppNotificationCreateOrConnectWithoutMessageInput | Prisma.AppNotificationCreateOrConnectWithoutMessageInput[]
+  createMany?: Prisma.AppNotificationCreateManyMessageInputEnvelope
+  connect?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+}
+
+export type AppNotificationUpdateManyWithoutMessageNestedInput = {
+  create?: Prisma.XOR<Prisma.AppNotificationCreateWithoutMessageInput, Prisma.AppNotificationUncheckedCreateWithoutMessageInput> | Prisma.AppNotificationCreateWithoutMessageInput[] | Prisma.AppNotificationUncheckedCreateWithoutMessageInput[]
+  connectOrCreate?: Prisma.AppNotificationCreateOrConnectWithoutMessageInput | Prisma.AppNotificationCreateOrConnectWithoutMessageInput[]
+  upsert?: Prisma.AppNotificationUpsertWithWhereUniqueWithoutMessageInput | Prisma.AppNotificationUpsertWithWhereUniqueWithoutMessageInput[]
+  createMany?: Prisma.AppNotificationCreateManyMessageInputEnvelope
+  set?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  disconnect?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  delete?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  connect?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  update?: Prisma.AppNotificationUpdateWithWhereUniqueWithoutMessageInput | Prisma.AppNotificationUpdateWithWhereUniqueWithoutMessageInput[]
+  updateMany?: Prisma.AppNotificationUpdateManyWithWhereWithoutMessageInput | Prisma.AppNotificationUpdateManyWithWhereWithoutMessageInput[]
+  deleteMany?: Prisma.AppNotificationScalarWhereInput | Prisma.AppNotificationScalarWhereInput[]
+}
+
+export type AppNotificationUncheckedUpdateManyWithoutMessageNestedInput = {
+  create?: Prisma.XOR<Prisma.AppNotificationCreateWithoutMessageInput, Prisma.AppNotificationUncheckedCreateWithoutMessageInput> | Prisma.AppNotificationCreateWithoutMessageInput[] | Prisma.AppNotificationUncheckedCreateWithoutMessageInput[]
+  connectOrCreate?: Prisma.AppNotificationCreateOrConnectWithoutMessageInput | Prisma.AppNotificationCreateOrConnectWithoutMessageInput[]
+  upsert?: Prisma.AppNotificationUpsertWithWhereUniqueWithoutMessageInput | Prisma.AppNotificationUpsertWithWhereUniqueWithoutMessageInput[]
+  createMany?: Prisma.AppNotificationCreateManyMessageInputEnvelope
+  set?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  disconnect?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  delete?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  connect?: Prisma.AppNotificationWhereUniqueInput | Prisma.AppNotificationWhereUniqueInput[]
+  update?: Prisma.AppNotificationUpdateWithWhereUniqueWithoutMessageInput | Prisma.AppNotificationUpdateWithWhereUniqueWithoutMessageInput[]
+  updateMany?: Prisma.AppNotificationUpdateManyWithWhereWithoutMessageInput | Prisma.AppNotificationUpdateManyWithWhereWithoutMessageInput[]
+  deleteMany?: Prisma.AppNotificationScalarWhereInput | Prisma.AppNotificationScalarWhereInput[]
+}
+
 export type AppNotificationCreateWithoutUserInput = {
   id?: string
+  organizationId?: string | null
   type: $Enums.AppNotificationType
   title: string
   body: string
   href?: string | null
   readAt?: Date | string | null
   createdAt?: Date | string
-  branch: Prisma.BranchCreateNestedOneWithoutAppNotificationsInput
+  branch?: Prisma.BranchCreateNestedOneWithoutAppNotificationsInput
+  conversation?: Prisma.ConversationCreateNestedOneWithoutNotificationsInput
+  message?: Prisma.MessageCreateNestedOneWithoutNotificationsInput
   absenceCase?: Prisma.AbsenceCaseCreateNestedOneWithoutNotificationsInput
   gradeModificationRequest?: Prisma.GradeModificationRequestCreateNestedOneWithoutNotificationsInput
 }
 
 export type AppNotificationUncheckedCreateWithoutUserInput = {
   id?: string
-  branchId: string
+  branchId?: string | null
+  organizationId?: string | null
+  conversationId?: string | null
+  messageId?: string | null
   type: $Enums.AppNotificationType
   title: string
   body: string
@@ -684,7 +844,10 @@ export type AppNotificationScalarWhereInput = {
   OR?: Prisma.AppNotificationScalarWhereInput[]
   NOT?: Prisma.AppNotificationScalarWhereInput | Prisma.AppNotificationScalarWhereInput[]
   id?: Prisma.StringFilter<"AppNotification"> | string
-  branchId?: Prisma.StringFilter<"AppNotification"> | string
+  branchId?: Prisma.StringNullableFilter<"AppNotification"> | string | null
+  organizationId?: Prisma.StringNullableFilter<"AppNotification"> | string | null
+  conversationId?: Prisma.StringNullableFilter<"AppNotification"> | string | null
+  messageId?: Prisma.StringNullableFilter<"AppNotification"> | string | null
   userId?: Prisma.StringFilter<"AppNotification"> | string
   type?: Prisma.EnumAppNotificationTypeFilter<"AppNotification"> | $Enums.AppNotificationType
   title?: Prisma.StringFilter<"AppNotification"> | string
@@ -698,20 +861,26 @@ export type AppNotificationScalarWhereInput = {
 
 export type AppNotificationCreateWithoutGradeModificationRequestInput = {
   id?: string
+  organizationId?: string | null
   type: $Enums.AppNotificationType
   title: string
   body: string
   href?: string | null
   readAt?: Date | string | null
   createdAt?: Date | string
-  branch: Prisma.BranchCreateNestedOneWithoutAppNotificationsInput
+  branch?: Prisma.BranchCreateNestedOneWithoutAppNotificationsInput
+  conversation?: Prisma.ConversationCreateNestedOneWithoutNotificationsInput
+  message?: Prisma.MessageCreateNestedOneWithoutNotificationsInput
   user: Prisma.UserCreateNestedOneWithoutAppNotificationsInput
   absenceCase?: Prisma.AbsenceCaseCreateNestedOneWithoutNotificationsInput
 }
 
 export type AppNotificationUncheckedCreateWithoutGradeModificationRequestInput = {
   id?: string
-  branchId: string
+  branchId?: string | null
+  organizationId?: string | null
+  conversationId?: string | null
+  messageId?: string | null
   userId: string
   type: $Enums.AppNotificationType
   title: string
@@ -750,20 +919,26 @@ export type AppNotificationUpdateManyWithWhereWithoutGradeModificationRequestInp
 
 export type AppNotificationCreateWithoutAbsenceCaseInput = {
   id?: string
+  organizationId?: string | null
   type: $Enums.AppNotificationType
   title: string
   body: string
   href?: string | null
   readAt?: Date | string | null
   createdAt?: Date | string
-  branch: Prisma.BranchCreateNestedOneWithoutAppNotificationsInput
+  branch?: Prisma.BranchCreateNestedOneWithoutAppNotificationsInput
+  conversation?: Prisma.ConversationCreateNestedOneWithoutNotificationsInput
+  message?: Prisma.MessageCreateNestedOneWithoutNotificationsInput
   user: Prisma.UserCreateNestedOneWithoutAppNotificationsInput
   gradeModificationRequest?: Prisma.GradeModificationRequestCreateNestedOneWithoutNotificationsInput
 }
 
 export type AppNotificationUncheckedCreateWithoutAbsenceCaseInput = {
   id?: string
-  branchId: string
+  branchId?: string | null
+  organizationId?: string | null
+  conversationId?: string | null
+  messageId?: string | null
   userId: string
   type: $Enums.AppNotificationType
   title: string
@@ -802,12 +977,15 @@ export type AppNotificationUpdateManyWithWhereWithoutAbsenceCaseInput = {
 
 export type AppNotificationCreateWithoutBranchInput = {
   id?: string
+  organizationId?: string | null
   type: $Enums.AppNotificationType
   title: string
   body: string
   href?: string | null
   readAt?: Date | string | null
   createdAt?: Date | string
+  conversation?: Prisma.ConversationCreateNestedOneWithoutNotificationsInput
+  message?: Prisma.MessageCreateNestedOneWithoutNotificationsInput
   user: Prisma.UserCreateNestedOneWithoutAppNotificationsInput
   absenceCase?: Prisma.AbsenceCaseCreateNestedOneWithoutNotificationsInput
   gradeModificationRequest?: Prisma.GradeModificationRequestCreateNestedOneWithoutNotificationsInput
@@ -815,6 +993,9 @@ export type AppNotificationCreateWithoutBranchInput = {
 
 export type AppNotificationUncheckedCreateWithoutBranchInput = {
   id?: string
+  organizationId?: string | null
+  conversationId?: string | null
+  messageId?: string | null
   userId: string
   type: $Enums.AppNotificationType
   title: string
@@ -852,9 +1033,128 @@ export type AppNotificationUpdateManyWithWhereWithoutBranchInput = {
   data: Prisma.XOR<Prisma.AppNotificationUpdateManyMutationInput, Prisma.AppNotificationUncheckedUpdateManyWithoutBranchInput>
 }
 
+export type AppNotificationCreateWithoutConversationInput = {
+  id?: string
+  organizationId?: string | null
+  type: $Enums.AppNotificationType
+  title: string
+  body: string
+  href?: string | null
+  readAt?: Date | string | null
+  createdAt?: Date | string
+  branch?: Prisma.BranchCreateNestedOneWithoutAppNotificationsInput
+  message?: Prisma.MessageCreateNestedOneWithoutNotificationsInput
+  user: Prisma.UserCreateNestedOneWithoutAppNotificationsInput
+  absenceCase?: Prisma.AbsenceCaseCreateNestedOneWithoutNotificationsInput
+  gradeModificationRequest?: Prisma.GradeModificationRequestCreateNestedOneWithoutNotificationsInput
+}
+
+export type AppNotificationUncheckedCreateWithoutConversationInput = {
+  id?: string
+  branchId?: string | null
+  organizationId?: string | null
+  messageId?: string | null
+  userId: string
+  type: $Enums.AppNotificationType
+  title: string
+  body: string
+  href?: string | null
+  absenceCaseId?: string | null
+  gradeModificationRequestId?: string | null
+  readAt?: Date | string | null
+  createdAt?: Date | string
+}
+
+export type AppNotificationCreateOrConnectWithoutConversationInput = {
+  where: Prisma.AppNotificationWhereUniqueInput
+  create: Prisma.XOR<Prisma.AppNotificationCreateWithoutConversationInput, Prisma.AppNotificationUncheckedCreateWithoutConversationInput>
+}
+
+export type AppNotificationCreateManyConversationInputEnvelope = {
+  data: Prisma.AppNotificationCreateManyConversationInput | Prisma.AppNotificationCreateManyConversationInput[]
+  skipDuplicates?: boolean
+}
+
+export type AppNotificationUpsertWithWhereUniqueWithoutConversationInput = {
+  where: Prisma.AppNotificationWhereUniqueInput
+  update: Prisma.XOR<Prisma.AppNotificationUpdateWithoutConversationInput, Prisma.AppNotificationUncheckedUpdateWithoutConversationInput>
+  create: Prisma.XOR<Prisma.AppNotificationCreateWithoutConversationInput, Prisma.AppNotificationUncheckedCreateWithoutConversationInput>
+}
+
+export type AppNotificationUpdateWithWhereUniqueWithoutConversationInput = {
+  where: Prisma.AppNotificationWhereUniqueInput
+  data: Prisma.XOR<Prisma.AppNotificationUpdateWithoutConversationInput, Prisma.AppNotificationUncheckedUpdateWithoutConversationInput>
+}
+
+export type AppNotificationUpdateManyWithWhereWithoutConversationInput = {
+  where: Prisma.AppNotificationScalarWhereInput
+  data: Prisma.XOR<Prisma.AppNotificationUpdateManyMutationInput, Prisma.AppNotificationUncheckedUpdateManyWithoutConversationInput>
+}
+
+export type AppNotificationCreateWithoutMessageInput = {
+  id?: string
+  organizationId?: string | null
+  type: $Enums.AppNotificationType
+  title: string
+  body: string
+  href?: string | null
+  readAt?: Date | string | null
+  createdAt?: Date | string
+  branch?: Prisma.BranchCreateNestedOneWithoutAppNotificationsInput
+  conversation?: Prisma.ConversationCreateNestedOneWithoutNotificationsInput
+  user: Prisma.UserCreateNestedOneWithoutAppNotificationsInput
+  absenceCase?: Prisma.AbsenceCaseCreateNestedOneWithoutNotificationsInput
+  gradeModificationRequest?: Prisma.GradeModificationRequestCreateNestedOneWithoutNotificationsInput
+}
+
+export type AppNotificationUncheckedCreateWithoutMessageInput = {
+  id?: string
+  branchId?: string | null
+  organizationId?: string | null
+  conversationId?: string | null
+  userId: string
+  type: $Enums.AppNotificationType
+  title: string
+  body: string
+  href?: string | null
+  absenceCaseId?: string | null
+  gradeModificationRequestId?: string | null
+  readAt?: Date | string | null
+  createdAt?: Date | string
+}
+
+export type AppNotificationCreateOrConnectWithoutMessageInput = {
+  where: Prisma.AppNotificationWhereUniqueInput
+  create: Prisma.XOR<Prisma.AppNotificationCreateWithoutMessageInput, Prisma.AppNotificationUncheckedCreateWithoutMessageInput>
+}
+
+export type AppNotificationCreateManyMessageInputEnvelope = {
+  data: Prisma.AppNotificationCreateManyMessageInput | Prisma.AppNotificationCreateManyMessageInput[]
+  skipDuplicates?: boolean
+}
+
+export type AppNotificationUpsertWithWhereUniqueWithoutMessageInput = {
+  where: Prisma.AppNotificationWhereUniqueInput
+  update: Prisma.XOR<Prisma.AppNotificationUpdateWithoutMessageInput, Prisma.AppNotificationUncheckedUpdateWithoutMessageInput>
+  create: Prisma.XOR<Prisma.AppNotificationCreateWithoutMessageInput, Prisma.AppNotificationUncheckedCreateWithoutMessageInput>
+}
+
+export type AppNotificationUpdateWithWhereUniqueWithoutMessageInput = {
+  where: Prisma.AppNotificationWhereUniqueInput
+  data: Prisma.XOR<Prisma.AppNotificationUpdateWithoutMessageInput, Prisma.AppNotificationUncheckedUpdateWithoutMessageInput>
+}
+
+export type AppNotificationUpdateManyWithWhereWithoutMessageInput = {
+  where: Prisma.AppNotificationScalarWhereInput
+  data: Prisma.XOR<Prisma.AppNotificationUpdateManyMutationInput, Prisma.AppNotificationUncheckedUpdateManyWithoutMessageInput>
+}
+
 export type AppNotificationCreateManyUserInput = {
   id?: string
-  branchId: string
+  branchId?: string | null
+  organizationId?: string | null
+  conversationId?: string | null
+  messageId?: string | null
   type: $Enums.AppNotificationType
   title: string
   body: string
@@ -867,20 +1167,26 @@ export type AppNotificationCreateManyUserInput = {
 
 export type AppNotificationUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   href?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  branch?: Prisma.BranchUpdateOneRequiredWithoutAppNotificationsNestedInput
+  branch?: Prisma.BranchUpdateOneWithoutAppNotificationsNestedInput
+  conversation?: Prisma.ConversationUpdateOneWithoutNotificationsNestedInput
+  message?: Prisma.MessageUpdateOneWithoutNotificationsNestedInput
   absenceCase?: Prisma.AbsenceCaseUpdateOneWithoutNotificationsNestedInput
   gradeModificationRequest?: Prisma.GradeModificationRequestUpdateOneWithoutNotificationsNestedInput
 }
 
 export type AppNotificationUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -893,7 +1199,10 @@ export type AppNotificationUncheckedUpdateWithoutUserInput = {
 
 export type AppNotificationUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -906,7 +1215,10 @@ export type AppNotificationUncheckedUpdateManyWithoutUserInput = {
 
 export type AppNotificationCreateManyGradeModificationRequestInput = {
   id?: string
-  branchId: string
+  branchId?: string | null
+  organizationId?: string | null
+  conversationId?: string | null
+  messageId?: string | null
   userId: string
   type: $Enums.AppNotificationType
   title: string
@@ -919,20 +1231,26 @@ export type AppNotificationCreateManyGradeModificationRequestInput = {
 
 export type AppNotificationUpdateWithoutGradeModificationRequestInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   href?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  branch?: Prisma.BranchUpdateOneRequiredWithoutAppNotificationsNestedInput
+  branch?: Prisma.BranchUpdateOneWithoutAppNotificationsNestedInput
+  conversation?: Prisma.ConversationUpdateOneWithoutNotificationsNestedInput
+  message?: Prisma.MessageUpdateOneWithoutNotificationsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutAppNotificationsNestedInput
   absenceCase?: Prisma.AbsenceCaseUpdateOneWithoutNotificationsNestedInput
 }
 
 export type AppNotificationUncheckedUpdateWithoutGradeModificationRequestInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
@@ -945,7 +1263,10 @@ export type AppNotificationUncheckedUpdateWithoutGradeModificationRequestInput =
 
 export type AppNotificationUncheckedUpdateManyWithoutGradeModificationRequestInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
@@ -958,7 +1279,10 @@ export type AppNotificationUncheckedUpdateManyWithoutGradeModificationRequestInp
 
 export type AppNotificationCreateManyAbsenceCaseInput = {
   id?: string
-  branchId: string
+  branchId?: string | null
+  organizationId?: string | null
+  conversationId?: string | null
+  messageId?: string | null
   userId: string
   type: $Enums.AppNotificationType
   title: string
@@ -971,20 +1295,26 @@ export type AppNotificationCreateManyAbsenceCaseInput = {
 
 export type AppNotificationUpdateWithoutAbsenceCaseInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   href?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  branch?: Prisma.BranchUpdateOneRequiredWithoutAppNotificationsNestedInput
+  branch?: Prisma.BranchUpdateOneWithoutAppNotificationsNestedInput
+  conversation?: Prisma.ConversationUpdateOneWithoutNotificationsNestedInput
+  message?: Prisma.MessageUpdateOneWithoutNotificationsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutAppNotificationsNestedInput
   gradeModificationRequest?: Prisma.GradeModificationRequestUpdateOneWithoutNotificationsNestedInput
 }
 
 export type AppNotificationUncheckedUpdateWithoutAbsenceCaseInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
@@ -997,7 +1327,10 @@ export type AppNotificationUncheckedUpdateWithoutAbsenceCaseInput = {
 
 export type AppNotificationUncheckedUpdateManyWithoutAbsenceCaseInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1010,6 +1343,9 @@ export type AppNotificationUncheckedUpdateManyWithoutAbsenceCaseInput = {
 
 export type AppNotificationCreateManyBranchInput = {
   id?: string
+  organizationId?: string | null
+  conversationId?: string | null
+  messageId?: string | null
   userId: string
   type: $Enums.AppNotificationType
   title: string
@@ -1023,12 +1359,15 @@ export type AppNotificationCreateManyBranchInput = {
 
 export type AppNotificationUpdateWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   href?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  conversation?: Prisma.ConversationUpdateOneWithoutNotificationsNestedInput
+  message?: Prisma.MessageUpdateOneWithoutNotificationsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutAppNotificationsNestedInput
   absenceCase?: Prisma.AbsenceCaseUpdateOneWithoutNotificationsNestedInput
   gradeModificationRequest?: Prisma.GradeModificationRequestUpdateOneWithoutNotificationsNestedInput
@@ -1036,6 +1375,9 @@ export type AppNotificationUpdateWithoutBranchInput = {
 
 export type AppNotificationUncheckedUpdateWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1049,6 +1391,137 @@ export type AppNotificationUncheckedUpdateWithoutBranchInput = {
 
 export type AppNotificationUncheckedUpdateManyWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  href?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  absenceCaseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gradeModificationRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type AppNotificationCreateManyConversationInput = {
+  id?: string
+  branchId?: string | null
+  organizationId?: string | null
+  messageId?: string | null
+  userId: string
+  type: $Enums.AppNotificationType
+  title: string
+  body: string
+  href?: string | null
+  absenceCaseId?: string | null
+  gradeModificationRequestId?: string | null
+  readAt?: Date | string | null
+  createdAt?: Date | string
+}
+
+export type AppNotificationUpdateWithoutConversationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  href?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branch?: Prisma.BranchUpdateOneWithoutAppNotificationsNestedInput
+  message?: Prisma.MessageUpdateOneWithoutNotificationsNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutAppNotificationsNestedInput
+  absenceCase?: Prisma.AbsenceCaseUpdateOneWithoutNotificationsNestedInput
+  gradeModificationRequest?: Prisma.GradeModificationRequestUpdateOneWithoutNotificationsNestedInput
+}
+
+export type AppNotificationUncheckedUpdateWithoutConversationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  href?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  absenceCaseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gradeModificationRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type AppNotificationUncheckedUpdateManyWithoutConversationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  href?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  absenceCaseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gradeModificationRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type AppNotificationCreateManyMessageInput = {
+  id?: string
+  branchId?: string | null
+  organizationId?: string | null
+  conversationId?: string | null
+  userId: string
+  type: $Enums.AppNotificationType
+  title: string
+  body: string
+  href?: string | null
+  absenceCaseId?: string | null
+  gradeModificationRequestId?: string | null
+  readAt?: Date | string | null
+  createdAt?: Date | string
+}
+
+export type AppNotificationUpdateWithoutMessageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  href?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branch?: Prisma.BranchUpdateOneWithoutAppNotificationsNestedInput
+  conversation?: Prisma.ConversationUpdateOneWithoutNotificationsNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutAppNotificationsNestedInput
+  absenceCase?: Prisma.AbsenceCaseUpdateOneWithoutNotificationsNestedInput
+  gradeModificationRequest?: Prisma.GradeModificationRequestUpdateOneWithoutNotificationsNestedInput
+}
+
+export type AppNotificationUncheckedUpdateWithoutMessageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  href?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  absenceCaseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gradeModificationRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type AppNotificationUncheckedUpdateManyWithoutMessageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumAppNotificationTypeFieldUpdateOperationsInput | $Enums.AppNotificationType
   title?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1065,6 +1538,9 @@ export type AppNotificationUncheckedUpdateManyWithoutBranchInput = {
 export type AppNotificationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchId?: boolean
+  organizationId?: boolean
+  conversationId?: boolean
+  messageId?: boolean
   userId?: boolean
   type?: boolean
   title?: boolean
@@ -1074,7 +1550,9 @@ export type AppNotificationSelect<ExtArgs extends runtime.Types.Extensions.Inter
   gradeModificationRequestId?: boolean
   readAt?: boolean
   createdAt?: boolean
-  branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  branch?: boolean | Prisma.AppNotification$branchArgs<ExtArgs>
+  conversation?: boolean | Prisma.AppNotification$conversationArgs<ExtArgs>
+  message?: boolean | Prisma.AppNotification$messageArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   absenceCase?: boolean | Prisma.AppNotification$absenceCaseArgs<ExtArgs>
   gradeModificationRequest?: boolean | Prisma.AppNotification$gradeModificationRequestArgs<ExtArgs>
@@ -1083,6 +1561,9 @@ export type AppNotificationSelect<ExtArgs extends runtime.Types.Extensions.Inter
 export type AppNotificationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchId?: boolean
+  organizationId?: boolean
+  conversationId?: boolean
+  messageId?: boolean
   userId?: boolean
   type?: boolean
   title?: boolean
@@ -1092,7 +1573,9 @@ export type AppNotificationSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   gradeModificationRequestId?: boolean
   readAt?: boolean
   createdAt?: boolean
-  branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  branch?: boolean | Prisma.AppNotification$branchArgs<ExtArgs>
+  conversation?: boolean | Prisma.AppNotification$conversationArgs<ExtArgs>
+  message?: boolean | Prisma.AppNotification$messageArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   absenceCase?: boolean | Prisma.AppNotification$absenceCaseArgs<ExtArgs>
   gradeModificationRequest?: boolean | Prisma.AppNotification$gradeModificationRequestArgs<ExtArgs>
@@ -1101,6 +1584,9 @@ export type AppNotificationSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
 export type AppNotificationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchId?: boolean
+  organizationId?: boolean
+  conversationId?: boolean
+  messageId?: boolean
   userId?: boolean
   type?: boolean
   title?: boolean
@@ -1110,7 +1596,9 @@ export type AppNotificationSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   gradeModificationRequestId?: boolean
   readAt?: boolean
   createdAt?: boolean
-  branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  branch?: boolean | Prisma.AppNotification$branchArgs<ExtArgs>
+  conversation?: boolean | Prisma.AppNotification$conversationArgs<ExtArgs>
+  message?: boolean | Prisma.AppNotification$messageArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   absenceCase?: boolean | Prisma.AppNotification$absenceCaseArgs<ExtArgs>
   gradeModificationRequest?: boolean | Prisma.AppNotification$gradeModificationRequestArgs<ExtArgs>
@@ -1119,6 +1607,9 @@ export type AppNotificationSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
 export type AppNotificationSelectScalar = {
   id?: boolean
   branchId?: boolean
+  organizationId?: boolean
+  conversationId?: boolean
+  messageId?: boolean
   userId?: boolean
   type?: boolean
   title?: boolean
@@ -1130,21 +1621,27 @@ export type AppNotificationSelectScalar = {
   createdAt?: boolean
 }
 
-export type AppNotificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchId" | "userId" | "type" | "title" | "body" | "href" | "absenceCaseId" | "gradeModificationRequestId" | "readAt" | "createdAt", ExtArgs["result"]["appNotification"]>
+export type AppNotificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchId" | "organizationId" | "conversationId" | "messageId" | "userId" | "type" | "title" | "body" | "href" | "absenceCaseId" | "gradeModificationRequestId" | "readAt" | "createdAt", ExtArgs["result"]["appNotification"]>
 export type AppNotificationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  branch?: boolean | Prisma.AppNotification$branchArgs<ExtArgs>
+  conversation?: boolean | Prisma.AppNotification$conversationArgs<ExtArgs>
+  message?: boolean | Prisma.AppNotification$messageArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   absenceCase?: boolean | Prisma.AppNotification$absenceCaseArgs<ExtArgs>
   gradeModificationRequest?: boolean | Prisma.AppNotification$gradeModificationRequestArgs<ExtArgs>
 }
 export type AppNotificationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  branch?: boolean | Prisma.AppNotification$branchArgs<ExtArgs>
+  conversation?: boolean | Prisma.AppNotification$conversationArgs<ExtArgs>
+  message?: boolean | Prisma.AppNotification$messageArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   absenceCase?: boolean | Prisma.AppNotification$absenceCaseArgs<ExtArgs>
   gradeModificationRequest?: boolean | Prisma.AppNotification$gradeModificationRequestArgs<ExtArgs>
 }
 export type AppNotificationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  branch?: boolean | Prisma.AppNotification$branchArgs<ExtArgs>
+  conversation?: boolean | Prisma.AppNotification$conversationArgs<ExtArgs>
+  message?: boolean | Prisma.AppNotification$messageArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   absenceCase?: boolean | Prisma.AppNotification$absenceCaseArgs<ExtArgs>
   gradeModificationRequest?: boolean | Prisma.AppNotification$gradeModificationRequestArgs<ExtArgs>
@@ -1153,14 +1650,19 @@ export type AppNotificationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Ty
 export type $AppNotificationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AppNotification"
   objects: {
-    branch: Prisma.$BranchPayload<ExtArgs>
+    branch: Prisma.$BranchPayload<ExtArgs> | null
+    conversation: Prisma.$ConversationPayload<ExtArgs> | null
+    message: Prisma.$MessagePayload<ExtArgs> | null
     user: Prisma.$UserPayload<ExtArgs>
     absenceCase: Prisma.$AbsenceCasePayload<ExtArgs> | null
     gradeModificationRequest: Prisma.$GradeModificationRequestPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    branchId: string
+    branchId: string | null
+    organizationId: string | null
+    conversationId: string | null
+    messageId: string | null
     userId: string
     type: $Enums.AppNotificationType
     title: string
@@ -1564,7 +2066,9 @@ readonly fields: AppNotificationFieldRefs;
  */
 export interface Prisma__AppNotificationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  branch<T extends Prisma.AppNotification$branchArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AppNotification$branchArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  conversation<T extends Prisma.AppNotification$conversationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AppNotification$conversationArgs<ExtArgs>>): Prisma.Prisma__ConversationClient<runtime.Types.Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  message<T extends Prisma.AppNotification$messageArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AppNotification$messageArgs<ExtArgs>>): Prisma.Prisma__MessageClient<runtime.Types.Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   absenceCase<T extends Prisma.AppNotification$absenceCaseArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AppNotification$absenceCaseArgs<ExtArgs>>): Prisma.Prisma__AbsenceCaseClient<runtime.Types.Result.GetResult<Prisma.$AbsenceCasePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   gradeModificationRequest<T extends Prisma.AppNotification$gradeModificationRequestArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AppNotification$gradeModificationRequestArgs<ExtArgs>>): Prisma.Prisma__GradeModificationRequestClient<runtime.Types.Result.GetResult<Prisma.$GradeModificationRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -1599,6 +2103,9 @@ export interface Prisma__AppNotificationClient<T, Null = never, ExtArgs extends 
 export interface AppNotificationFieldRefs {
   readonly id: Prisma.FieldRef<"AppNotification", 'String'>
   readonly branchId: Prisma.FieldRef<"AppNotification", 'String'>
+  readonly organizationId: Prisma.FieldRef<"AppNotification", 'String'>
+  readonly conversationId: Prisma.FieldRef<"AppNotification", 'String'>
+  readonly messageId: Prisma.FieldRef<"AppNotification", 'String'>
   readonly userId: Prisma.FieldRef<"AppNotification", 'String'>
   readonly type: Prisma.FieldRef<"AppNotification", 'AppNotificationType'>
   readonly title: Prisma.FieldRef<"AppNotification", 'String'>
@@ -2006,6 +2513,63 @@ export type AppNotificationDeleteManyArgs<ExtArgs extends runtime.Types.Extensio
    * Limit how many AppNotifications to delete.
    */
   limit?: number
+}
+
+/**
+ * AppNotification.branch
+ */
+export type AppNotification$branchArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Branch
+   */
+  select?: Prisma.BranchSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Branch
+   */
+  omit?: Prisma.BranchOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BranchInclude<ExtArgs> | null
+  where?: Prisma.BranchWhereInput
+}
+
+/**
+ * AppNotification.conversation
+ */
+export type AppNotification$conversationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Conversation
+   */
+  select?: Prisma.ConversationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Conversation
+   */
+  omit?: Prisma.ConversationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConversationInclude<ExtArgs> | null
+  where?: Prisma.ConversationWhereInput
+}
+
+/**
+ * AppNotification.message
+ */
+export type AppNotification$messageArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Message
+   */
+  select?: Prisma.MessageSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Message
+   */
+  omit?: Prisma.MessageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MessageInclude<ExtArgs> | null
+  where?: Prisma.MessageWhereInput
 }
 
 /**

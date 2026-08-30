@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { getServerTranslator } from "@/lib/i18n-server";
 import { AttendanceReportsClient } from "../components/attendance-reports-client";
 
 export const dynamic = "force-dynamic";
 
 export default async function AttendanceReportsPage() {
   const { branchId } = await requireBranchContext();
+  const t = await getServerTranslator("attendance");
 
   const [teachers, classes] = await Promise.all([
     prisma.teacher.findMany({
@@ -47,12 +49,15 @@ export default async function AttendanceReportsPage() {
           [user?.name, user?.postnom, user?.prenom]
             .filter(Boolean)
             .join(" ")
-            .trim() || "Enseignant";
+            .trim() || t("personType.teacher");
         return { id: teacher.id, name };
       })}
       classes={classes.map((classe) => ({
         id: classe.id,
-        name: classe.nameClasse?.trim() || classe.codeClasse?.trim() || "Classe",
+        name:
+          classe.nameClasse?.trim() ||
+          classe.codeClasse?.trim() ||
+          t("reportCards.classFallback"),
       }))}
     />
   );

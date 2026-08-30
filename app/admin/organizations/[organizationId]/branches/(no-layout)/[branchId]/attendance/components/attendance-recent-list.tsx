@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { IconChevronLeft, IconChevronRight, IconClock } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ function statusVariant(status: AttendanceRecentItem["status"]) {
 }
 
 export function AttendanceRecentList({ items }: { items: AttendanceRecentItem[] }) {
+  const t = useTranslations("attendance");
   const [page, setPage] = useState(0);
   const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages - 1);
@@ -38,7 +40,7 @@ export function AttendanceRecentList({ items }: { items: AttendanceRecentItem[] 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <IconClock size={18} className="text-primary" />
-          <h3 className="font-semibold">Dernieres presences enregistrees</h3>
+          <h3 className="font-semibold">{t("dashboard.recentTitle")}</h3>
         </div>
         {items.length > PAGE_SIZE ? (
           <div className="flex items-center gap-1">
@@ -70,7 +72,7 @@ export function AttendanceRecentList({ items }: { items: AttendanceRecentItem[] 
       </div>
 
       {items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Aucune presence enregistree.</p>
+        <p className="text-sm text-muted-foreground">{t("dashboard.recentEmpty")}</p>
       ) : (
         <div className="grid gap-3">
           {pageItems.map((item) => (

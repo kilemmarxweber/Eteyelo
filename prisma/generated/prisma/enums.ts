@@ -177,7 +177,8 @@ export const AppNotificationType = {
   RETURN: 'RETURN',
   PAYMENT: 'PAYMENT',
   GRADE_MODIFICATION_SUBMITTED: 'GRADE_MODIFICATION_SUBMITTED',
-  GRADE_MODIFICATION_DECISION: 'GRADE_MODIFICATION_DECISION'
+  GRADE_MODIFICATION_DECISION: 'GRADE_MODIFICATION_DECISION',
+  MESSAGE: 'MESSAGE'
 } as const
 
 export type AppNotificationType = (typeof AppNotificationType)[keyof typeof AppNotificationType]
@@ -395,3 +396,22 @@ export const OnlineSubmissionStatus = {
 } as const
 
 export type OnlineSubmissionStatus = (typeof OnlineSubmissionStatus)[keyof typeof OnlineSubmissionStatus]
+
+
+export const ConversationType = {
+  DIRECT: 'DIRECT',
+  GROUP: 'GROUP',
+  CONTEXTUAL: 'CONTEXTUAL'
+} as const
+
+export type ConversationType = (typeof ConversationType)[keyof typeof ConversationType]
+
+
+export const ConversationContextType = {
+  ABSENCE_CASE: 'ABSENCE_CASE',
+  GRADE_MODIFICATION: 'GRADE_MODIFICATION',
+  REGISTRATION_REQUEST: 'REGISTRATION_REQUEST',
+  SUPPORT_TICKET: 'SUPPORT_TICKET'
+} as const
+
+export type ConversationContextType = (typeof ConversationContextType)[keyof typeof ConversationContextType]

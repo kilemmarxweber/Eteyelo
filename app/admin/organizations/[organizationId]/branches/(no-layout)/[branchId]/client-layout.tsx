@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/src/theme/ThemeToggle";
 import { UserNav } from "@/components/user-nav";
 import { Search } from "@/components/search";
 import { NotificationBell } from "@/components/notification-bell";
+import { MessagingDrawer } from "@/components/messaging/messaging-drawer";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { OwnerBranchesLink } from "@/components/owner-branches-link";
 import { AppIntlProvider } from "@/components/app-intl-provider";
@@ -73,6 +74,7 @@ function BranchShell({ children }: { children: React.ReactNode }) {
       </main>
 
       <MobileNav />
+      <MessagingDrawer />
     </div>
   );
 }

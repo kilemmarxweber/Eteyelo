@@ -5,6 +5,7 @@ import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import React from "react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { IconDots, IconTrash } from "@tabler/icons-react";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,7 +28,13 @@ import { DeleteCoursDialog } from "./delete-Cours-dialog";
 import { UpdateCoursDialog } from "./edit-Cours-dialog";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 
-export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
+export function useCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
+  const t = useTranslations("teaching.courses.table");
+  const tf = useTranslations("teaching.courses.form");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+
+  return React.useMemo(() => {
   const cols: ColumnDef<ICours>[] = [
     {
       id: "select",
@@ -38,14 +45,14 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
             (table.getIsSomePageRowsSelected() && "indeterminate")
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Tout sélectionner"
+          aria-label={t("selectAll")}
         />
       ),
       cell: ({ row }) => (
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Sélectionner le cours"
+          aria-label={t("selectRow")}
         />
       ),
       enableSorting: false,
@@ -54,7 +61,7 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
     {
       accessorKey: "codeCours",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Code" />
+        <DataTableColumnHeader column={column} title={tc("code")} />
       ),
       cell: ({ row }) => (
         <span className="font-mono text-xs">{row.original.codeCours}</span>
@@ -63,7 +70,7 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
     {
       accessorKey: "nameCours",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Nom du cours" />
+        <DataTableColumnHeader column={column} title={t("courseName")} />
       ),
       cell: ({ row }) => (
         <span className="font-medium">{row.original.nameCours}</span>
@@ -76,12 +83,14 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
       id: "primaryDomain",
       accessorFn: (row) => row.primaryDomain ?? "",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Domaine" />
+        <DataTableColumnHeader column={column} title={t("domain")} />
       ),
       cell: ({ row }) => {
         const domain = row.original.primaryDomain;
         if (!domain) {
-          return <Badge variant="secondary">Non classé</Badge>;
+          return (
+            <Badge variant="secondary">{tf("unclassified")}</Badge>
+          );
         }
         return (
           <Badge variant="outline">
@@ -98,25 +107,25 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
       id: "statusCours",
       accessorFn: (row) =>
         row.statusCours === false ? "inactive" : "active",
-      header: "Statut",
+      header: tc("status"),
       cell: ({ row }) => (
         <Badge
           variant={
             row.original.statusCours === false ? "secondary" : "success"
           }
         >
-          {row.original.statusCours === false ? "Inactif" : "Actif"}
+          {row.original.statusCours === false ? tc("inactive") : tc("active")}
         </Badge>
       ),
     },
     {
       accessorKey: "createdAt",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Date d'ajout" />
+        <DataTableColumnHeader column={column} title={t("addedOn")} />
       ),
       cell: ({ row }) =>
         row.original.createdAt
-          ? new Date(row.original.createdAt).toLocaleDateString("fr-FR")
+          ? new Date(row.original.createdAt).toLocaleDateString(locale)
           : "—",
     },
     {
@@ -157,7 +166,7 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  aria-label="Actions du cours"
+                  aria-label={t("actionsMenu")}
                   variant="ghost"
                   className="flex size-8 p-0"
                 >
@@ -172,7 +181,7 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
                       openOverlayAfterMenuDismiss(() => setEditOpen(true));
                     }}
                   >
-                    Modifier
+                    {tc("edit")}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
@@ -190,12 +199,12 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
                             toast.error(error.message);
                             return;
                           }
-                          toast.success("Cours réactivé avec succès");
+                          toast.success(t("reactivated"));
                           refresh();
                         })
                       }
                     >
-                      {pending ? "Réactivation..." : "Réactiver"}
+                      {pending ? t("reactivating") : t("reactivate")}
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem
@@ -204,7 +213,7 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
                         openOverlayAfterMenuDismiss(() => setArchiveOpen(true));
                       }}
                     >
-                      Désactiver
+                      {tc("deactivate")}
                     </DropdownMenuItem>
                   ))}
                 {canManage ? (
@@ -216,7 +225,7 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
                     }}
                   >
                     <IconTrash className="mr-2 size-4" />
-                    Supprimer
+                    {tc("delete")}
                   </DropdownMenuItem>
                 ) : null}
               </DropdownMenuContent>
@@ -228,7 +237,5 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
   );
 
   return cols;
+  }, [isPrimary, locale, t, tf, tc]);
 }
-
-/** @deprecated Préférer getCoursColumns(isPrimary) */
-export const columns = getCoursColumns(false);

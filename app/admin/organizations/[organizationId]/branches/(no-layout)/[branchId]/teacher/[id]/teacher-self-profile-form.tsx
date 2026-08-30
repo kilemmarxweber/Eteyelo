@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslations } from "next-intl";
 import { useAppTransition } from "@/hooks/use-app-transition";
 import { updateTeacherIdentityAction } from "./teacher-application.action";
 import { TeacherProfileDocuments } from "./teacher-profile-documents";
@@ -49,6 +50,8 @@ export function TeacherSelfProfileForm({
   initialValues,
   documents,
 }: Props) {
+  const t = useTranslations("users.teachers.selfProfile");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [values, setValues] = useState(initialValues);
   const [isPending, startTransition] = useAppTransition();
@@ -73,7 +76,7 @@ export function TeacherSelfProfileForm({
         ...values,
       });
       if (error || !result?.ok) {
-        toast.error(error?.message ?? "Impossible de mettre à jour l'identité.");
+        toast.error(error?.message ?? t("updateFailed"));
         return;
       }
       toast.success(result.message);
@@ -91,8 +94,8 @@ export function TeacherSelfProfileForm({
         onClick={() => setOpen(true)}
       >
         <Pencil className="size-3.5" />
-        <span className="hidden sm:inline">Modifier mon identité</span>
-        <span className="sm:hidden">Modifier</span>
+        <span className="hidden sm:inline">{t("editIdentity")}</span>
+        <span className="sm:hidden">{t("edit")}</span>
       </Button>
       <ResponsiveDialog open={open} onOpenChange={setOpen}>
         <ResponsiveDialogContent
@@ -100,17 +103,16 @@ export function TeacherSelfProfileForm({
           className="flex w-[min(calc(100vw-1rem),42rem)] max-h-[min(94dvh,52rem)] flex-col gap-0 overflow-hidden p-0 sm:w-[min(calc(100vw-2rem),42rem)] sm:max-h-[min(90dvh,48rem)]"
         >
           <ResponsiveDialogHeader className="shrink-0 border-b px-4 py-3 text-left sm:px-5">
-            <ResponsiveDialogTitle>Modifier mon identité</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>{t("title")}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              Informations personnelles et documents complémentaires (PDF de moins
-              de 4 Mo). Le CV et la lettre de motivation restent protégés.
+              {t("description")}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
           <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-4 py-3 sm:px-5">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="teacher-self-nom">Nom</Label>
+              <Label htmlFor="teacher-self-nom">{tCommon("person.lastName")}</Label>
               <Input
                 id="teacher-self-nom"
                 value={values.nom}
@@ -118,7 +120,7 @@ export function TeacherSelfProfileForm({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="teacher-self-postnom">Post-nom</Label>
+              <Label htmlFor="teacher-self-postnom">{tCommon("person.postnom")}</Label>
               <Input
                 id="teacher-self-postnom"
                 value={values.postnom}
@@ -126,7 +128,7 @@ export function TeacherSelfProfileForm({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="teacher-self-prenom">Prénom</Label>
+              <Label htmlFor="teacher-self-prenom">{tCommon("person.firstName")}</Label>
               <Input
                 id="teacher-self-prenom"
                 value={values.prenom}
@@ -134,22 +136,22 @@ export function TeacherSelfProfileForm({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Sexe</Label>
+              <Label>{tCommon("person.gender")}</Label>
               <Select
                 value={values.sexe}
                 onValueChange={(value: "M" | "F") => update("sexe", value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner" />
+                  <SelectValue placeholder={t("selectPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="M">Masculin</SelectItem>
-                  <SelectItem value="F">Féminin</SelectItem>
+                  <SelectItem value="M">{tCommon("person.male")}</SelectItem>
+                  <SelectItem value="F">{tCommon("person.female")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="teacher-self-birth">Date de naissance</Label>
+              <Label htmlFor="teacher-self-birth">{tCommon("person.birthDate")}</Label>
               <Input
                 id="teacher-self-birth"
                 type="date"
@@ -158,7 +160,7 @@ export function TeacherSelfProfileForm({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="teacher-self-phone">Téléphone</Label>
+              <Label htmlFor="teacher-self-phone">{tCommon("person.phone")}</Label>
               <Input
                 id="teacher-self-phone"
                 type="tel"
@@ -168,7 +170,7 @@ export function TeacherSelfProfileForm({
               />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="teacher-self-email">E-mail</Label>
+              <Label htmlFor="teacher-self-email">{tCommon("person.email")}</Label>
               <Input
                 id="teacher-self-email"
                 type="email"
@@ -178,7 +180,7 @@ export function TeacherSelfProfileForm({
               />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="teacher-self-address">Adresse</Label>
+              <Label htmlFor="teacher-self-address">{tCommon("person.address")}</Label>
               <Input
                 id="teacher-self-address"
                 value={values.address}
@@ -203,7 +205,7 @@ export function TeacherSelfProfileForm({
               onClick={() => setOpen(false)}
               disabled={isPending}
             >
-              Annuler
+              {tCommon("cancel")}
             </Button>
             <Button
               type="button"
@@ -212,7 +214,7 @@ export function TeacherSelfProfileForm({
               className="w-full gap-2 sm:w-auto"
             >
               <Save className="size-4" />
-              {isPending ? "Enregistrement…" : "Enregistrer"}
+              {isPending ? t("saving") : tCommon("save")}
             </Button>
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>

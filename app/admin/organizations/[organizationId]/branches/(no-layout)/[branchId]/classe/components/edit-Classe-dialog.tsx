@@ -60,8 +60,9 @@ export function UpdateClasseDialog({
                 level: classe.level ?? undefined,
                 parallel: classe.parallel ?? undefined,
                 capacity: classe.capacity ?? undefined,
-                optionId: classe.optionId,
-                creneauId: classe.creneauId,
+                optionId: classe.optionId || classe.option?.id || "",
+                sectionId: classe.option?.sectionId || "",
+                creneauId: classe.creneauId || classe.creneau?.id || "",
               }}
               onUpdated={handleUpdated}
             />

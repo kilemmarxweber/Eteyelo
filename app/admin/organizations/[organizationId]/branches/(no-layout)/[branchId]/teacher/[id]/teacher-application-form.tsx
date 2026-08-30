@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Briefcase, FileText, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -32,6 +33,9 @@ export function TeacherApplicationCompleteForm({
   assignmentYearLabels: string[];
 }) {
   const router = useRouter();
+  const t = useTranslations("users.teachers.application");
+  const tProfile = useTranslations("users.teachers.profile");
+  const tSelf = useTranslations("users.teachers.selfProfile");
   const [isPending, startTransition] = useAppTransition();
   const [desiredSubjects, setDesiredSubjects] = useState("");
   const [desiredLevels, setDesiredLevels] = useState("");
@@ -45,9 +49,14 @@ export function TeacherApplicationCompleteForm({
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null);
 
+  const experienceSuffix =
+    assignmentYearLabels.length > 0
+      ? ` (${assignmentYearLabels.join(", ")})`
+      : t("experienceYearsSuffixNone");
+
   function submit() {
     if (!desiredSubjects.trim() || !desiredLevels.trim()) {
-      toast.error("Indiquez les matières et le niveau.");
+      toast.error(t("subjectsLevelsRequired"));
       return;
     }
     if (
@@ -55,15 +64,15 @@ export function TeacherApplicationCompleteForm({
       branchType !== "MATERNELLE" &&
       (!desiredSection.trim() || !desiredOption.trim())
     ) {
-      toast.error("Choisissez la section et l'option.");
+      toast.error(t("sectionOptionRequired"));
       return;
     }
     if (needsBirthDate && !dateOfBirth) {
-      toast.error("Indiquez la date de naissance.");
+      toast.error(t("birthDateRequired"));
       return;
     }
     if (!cvFile || !coverLetterFile) {
-      toast.error("Le CV et la lettre de motivation sont obligatoires.");
+      toast.error(t("cvCoverRequired"));
       return;
     }
 
@@ -98,17 +107,15 @@ export function TeacherApplicationCompleteForm({
         });
 
         if (err) {
-          toast.error(err.message || "Impossible d'enregistrer le dossier.");
+          toast.error(err.message || t("saveFailed"));
           return;
         }
 
-        toast.success("Dossier complété.");
+        toast.success(t("saveSuccess"));
         router.refresh();
       } catch (error) {
         toast.error(
-          error instanceof Error
-            ? error.message
-            : "Impossible d'enregistrer le dossier.",
+          error instanceof Error ? error.message : t("saveFailed"),
         );
       }
     });
@@ -122,10 +129,9 @@ export function TeacherApplicationCompleteForm({
             <Briefcase className="size-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold">Compléter le dossier</h3>
+            <h3 className="text-sm font-semibold">{t("completeTitle")}</h3>
             <p className="text-xs text-muted-foreground">
-              Aucune candidature en ligne. Ajoutez l’expérience et les pièces du{" "}
-              {teacherLabelLower} (identité déjà connue).
+              {t("completeDesc", { teacherLower: teacherLabelLower })}
             </p>
           </div>
         </div>
@@ -134,12 +140,12 @@ export function TeacherApplicationCompleteForm({
       <div className="space-y-4 p-4">
         <div className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2 space-y-1.5">
-            <Label htmlFor="teacher-subjects">Matières *</Label>
+            <Label htmlFor="teacher-subjects">{t("subjectsRequired")}</Label>
             <Input
               id="teacher-subjects"
               value={desiredSubjects}
               onChange={(event) => setDesiredSubjects(event.target.value)}
-              placeholder="Mathématiques, Français…"
+              placeholder={t("subjectsPlaceholder")}
             />
           </div>
 
@@ -162,33 +168,30 @@ export function TeacherApplicationCompleteForm({
 
           <div className="rounded-lg border border-violet-500/15 bg-violet-500/[0.06] px-3 py-2.5 md:col-span-2">
             <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-violet-700/85 dark:text-violet-400">
-              Années d&apos;expérience
+              {t("experienceYearsLabel")}
             </p>
             <p className="mt-0.5 text-sm font-medium">
-              {assignmentYearCount} an{assignmentYearCount > 1 ? "s" : ""}
+              {assignmentYearCount}{" "}
+              {assignmentYearCount > 1
+                ? tProfile("yearPlural")
+                : tProfile("yearSingular")}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Calculé automatiquement selon les années d&apos;affectation en
-              classe
-              {assignmentYearLabels.length
-                ? ` (${assignmentYearLabels.join(", ")})`
-                : " — aucune affectation pour le moment"}
-              . Le dossier évolue à chaque nouvelle année scolaire.
+              {t("experienceYearsAuto", { suffix: experienceSuffix })}
             </p>
           </div>
           <div className="md:col-span-2 rounded-md border border-dashed bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">Disponibilité</p>
+            <p className="font-medium text-foreground">
+              {t("availabilityAutoTitle")}
+            </p>
             <p className="mt-1 text-xs leading-relaxed">
-              Calculée automatiquement : <strong>Actif</strong> si le compte est
-              engagé et affecté à l&apos;année en cours,{" "}
-              <strong>Renvoyé</strong> si le compte est inactif, sinon{" "}
-              <strong>N&apos;est plus actif</strong>.
+              {t("availabilityAutoDesc")}
             </p>
           </div>
 
           {needsBirthDate ? (
             <div className="space-y-1.5">
-              <Label htmlFor="teacher-birth">Date de naissance *</Label>
+              <Label htmlFor="teacher-birth">{t("birthDateLabel")}</Label>
               <Input
                 id="teacher-birth"
                 type="date"
@@ -199,7 +202,7 @@ export function TeacherApplicationCompleteForm({
           ) : null}
 
           <div className="md:col-span-2 space-y-1.5">
-            <Label htmlFor="teacher-education">Formation / diplômes</Label>
+            <Label htmlFor="teacher-education">{t("educationDiplomas")}</Label>
             <Textarea
               id="teacher-education"
               rows={3}
@@ -208,7 +211,7 @@ export function TeacherApplicationCompleteForm({
             />
           </div>
           <div className="md:col-span-2 space-y-1.5">
-            <Label htmlFor="teacher-skills">Compétences</Label>
+            <Label htmlFor="teacher-skills">{t("skills")}</Label>
             <Textarea
               id="teacher-skills"
               rows={3}
@@ -217,7 +220,7 @@ export function TeacherApplicationCompleteForm({
             />
           </div>
           <div className="md:col-span-2 space-y-1.5">
-            <Label htmlFor="teacher-experience">Résumé d&apos;expérience</Label>
+            <Label htmlFor="teacher-experience">{t("experienceSummary")}</Label>
             <Textarea
               id="teacher-experience"
               rows={4}
@@ -226,7 +229,7 @@ export function TeacherApplicationCompleteForm({
             />
           </div>
           <div className="md:col-span-2 space-y-1.5">
-            <Label htmlFor="teacher-motivation">Motivation</Label>
+            <Label htmlFor="teacher-motivation">{t("motivation")}</Label>
             <Textarea
               id="teacher-motivation"
               rows={4}
@@ -240,7 +243,7 @@ export function TeacherApplicationCompleteForm({
           <Label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed p-4">
             <FileText className="size-5 text-primary" />
             <span className="min-w-0 text-sm">
-              {cvFile ? cvFile.name : "CV * (PDF, DOC, DOCX)"}
+              {cvFile ? cvFile.name : t("cvFileEmpty")}
             </span>
             <Upload className="ml-auto size-4 shrink-0 text-muted-foreground" />
             <Input
@@ -255,7 +258,7 @@ export function TeacherApplicationCompleteForm({
             <span className="min-w-0 text-sm">
               {coverLetterFile
                 ? coverLetterFile.name
-                : "Lettre de motivation * (PDF, DOC, DOCX)"}
+                : t("coverLetterFileEmpty")}
             </span>
             <Upload className="ml-auto size-4 shrink-0 text-muted-foreground" />
             <Input
@@ -271,7 +274,7 @@ export function TeacherApplicationCompleteForm({
 
         <div className="flex justify-end">
           <Button type="button" onClick={() => void submit()} disabled={isPending}>
-            {isPending ? "Enregistrement…" : "Enregistrer le dossier"}
+            {isPending ? tSelf("saving") : t("submit")}
           </Button>
         </div>
       </div>

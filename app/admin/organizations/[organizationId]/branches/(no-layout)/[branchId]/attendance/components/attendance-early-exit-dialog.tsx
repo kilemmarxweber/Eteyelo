@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -21,13 +22,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ATTENDANCE_EXIT_REASON_OPTIONS } from "@/lib/attendance-exit";
 import type { AttendanceExitReason } from "@/prisma/generated/prisma/client";
 import {
   recordPersonnelEarlyExitAction,
   recordStudentEarlyExitAction,
   recordTeacherEarlyExitAction,
 } from "../attendance-exit.action";
+
+const EXIT_REASONS: AttendanceExitReason[] = [
+  "MALADIE",
+  "URGENCE",
+  "AUTORISE",
+  "AUTRE",
+];
 
 type PersonType = "student" | "teacher" | "personnel";
 
@@ -48,6 +55,8 @@ export function AttendanceEarlyExitDialog({
   personName,
   onDone,
 }: Props) {
+  const t = useTranslations("attendance");
+  const tCommon = useTranslations("common");
   const [reasonCode, setReasonCode] =
     useState<AttendanceExitReason>("MALADIE");
   const [reasonNote, setReasonNote] = useState("");
@@ -70,15 +79,15 @@ export function AttendanceEarlyExitDialog({
 
       const [data, error] = await action(payload);
       if (error || !data) {
-        throw new Error(error?.message || "Impossible d'enregistrer la sortie.");
+        throw new Error(error?.message || t("checkout.saveFailed"));
       }
-      toast.success(`Sortie anticipée enregistrée pour ${personName}.`);
+      toast.success(t("checkout.earlySuccess", { personName }));
       onOpenChange(false);
       setReasonNote("");
       onDone?.();
     } catch (e) {
       toast.error(
-        e instanceof Error ? e.message : "Erreur lors de l'enregistrement.",
+        e instanceof Error ? e.message : t("checkout.saveError"),
       );
     } finally {
       setPending(false);
@@ -89,17 +98,15 @@ export function AttendanceEarlyExitDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Sortie anticipée</DialogTitle>
+          <DialogTitle>{t("earlyExit.title")}</DialogTitle>
           <DialogDescription>
-            Signalez le motif de sortie pour{" "}
-            <span className="font-medium text-foreground">{personName}</span>.
-            Ce motif apparaîtra sur le rapport journalier.
+            {t("earlyExit.description", { personName })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 py-2">
           <div className="space-y-1.5">
-            <Label>Motif</Label>
+            <Label>{t("checkout.reason")}</Label>
             <Select
               value={reasonCode}
               onValueChange={(value) =>
@@ -110,20 +117,20 @@ export function AttendanceEarlyExitDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {ATTENDANCE_EXIT_REASON_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                {EXIT_REASONS.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {t(`exitReasons.${value}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>Précision (optionnel)</Label>
+            <Label>{t("checkout.noteOptional")}</Label>
             <Textarea
               value={reasonNote}
               onChange={(event) => setReasonNote(event.target.value)}
-              placeholder="Ex. fièvre, rendez-vous médical, urgence familiale…"
+              placeholder={t("earlyExit.notePlaceholder")}
               rows={3}
             />
           </div>
@@ -136,10 +143,10 @@ export function AttendanceEarlyExitDialog({
             onClick={() => onOpenChange(false)}
             disabled={pending}
           >
-            Annuler
+            {tCommon("cancel")}
           </Button>
           <Button type="button" onClick={() => void submit()} disabled={pending}>
-            {pending ? "Enregistrement…" : "Confirmer la sortie"}
+            {pending ? t("checkout.saving") : t("checkout.confirmCheckout")}
           </Button>
         </DialogFooter>
       </DialogContent>

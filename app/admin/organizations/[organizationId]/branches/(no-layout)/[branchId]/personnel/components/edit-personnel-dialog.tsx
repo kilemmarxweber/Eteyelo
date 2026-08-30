@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 
 import {
   Sheet,
@@ -29,6 +30,7 @@ export function UpdatePersonnelDialog({
   ...dialogProps
 }: UpdatePersonnelDialogProps) {
   const { refresh } = useRefresh();
+  const t = useTranslations("users.staff.table");
 
   const handleUpdated = () => {
     refresh();
@@ -43,10 +45,8 @@ export function UpdatePersonnelDialog({
         className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
       >
         <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
-          <SheetTitle>Modifier le personnel</SheetTitle>
-          <SheetDescription>
-            Ajustez les informations du personnel, puis enregistrez.
-          </SheetDescription>
+          <SheetTitle>{t("editTitle")}</SheetTitle>
+          <SheetDescription>{t("editDescription")}</SheetDescription>
         </SheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
           {open ? (

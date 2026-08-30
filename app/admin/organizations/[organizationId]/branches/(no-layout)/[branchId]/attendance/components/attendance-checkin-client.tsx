@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   IconBarcode,
   IconCamera,
@@ -56,13 +57,16 @@ type CheckoutTarget = {
   sessionLabel?: string | null;
 };
 
-const personTypeLabels: Record<AttendancePersonType, string> = {
-  student: "Élève",
-  teacher: "Enseignant",
-  personnel: "Personnel",
-};
-
 export function AttendanceCheckInClient() {
+  const t = useTranslations("attendance");
+  const personTypeLabels = useMemo(
+    () => ({
+      student: t("personType.student"),
+      teacher: t("personType.teacher"),
+      personnel: t("personType.personnel"),
+    }),
+    [t],
+  );
   const [mode, setMode] = useState<PointageMode>("manual");
   const [scanOpen, setScanOpen] = useState(false);
   const [manualCode, setManualCode] = useState("");
@@ -98,7 +102,7 @@ export function AttendanceCheckInClient() {
           await fetchResults(searchQuery);
         } catch (error) {
           toast.error(
-            error instanceof Error ? error.message : "Recherche impossible.",
+            error instanceof Error ? error.message : t("checkInUi.searchFailed"),
           );
         }
       });
@@ -212,7 +216,7 @@ export function AttendanceCheckInClient() {
           const coords = await resolveCheckInCoords();
           const result = await checkInByScanAction(value, coords);
           if (!result) {
-            toast.error("Aucune information trouvee.");
+            toast.error(t("checkInUi.noInfoFound"));
             return;
           }
           handleCheckInResult(result);
@@ -220,7 +224,7 @@ export function AttendanceCheckInClient() {
           toast.error(
             error instanceof Error
               ? error.message
-              : "Pointage impossible. Activez la geolocalisation.",
+              : t("checkInUi.checkInFailed"),
           );
         }
       });
@@ -244,7 +248,7 @@ export function AttendanceCheckInClient() {
         toast.error(
           error instanceof Error
             ? error.message
-            : "Pointage impossible. Activez la geolocalisation.",
+            : t("checkInUi.checkInFailed"),
         );
       }
     });
@@ -260,7 +264,7 @@ export function AttendanceCheckInClient() {
           selected.id,
         );
         if (!result) {
-          toast.error("Aucune présence ouverte trouvée.");
+          toast.error(t("checkInUi.noOpenPresence"));
           return;
         }
         handleCheckInResult(result);
@@ -268,7 +272,7 @@ export function AttendanceCheckInClient() {
         toast.error(
           error instanceof Error
             ? error.message
-            : "Impossible de préparer la sortie.",
+            : t("checkInUi.checkoutPrepareFailed"),
         );
       }
     });
@@ -278,11 +282,9 @@ export function AttendanceCheckInClient() {
     <div className="mx-auto w-full max-w-7xl space-y-5">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0 flex-1">
-          <h2 className="text-xl font-semibold tracking-tight">Pointage</h2>
+          <h2 className="text-xl font-semibold tracking-tight">{t("checkInUi.title")}</h2>
           <p className="mt-1 w-full max-w-7xl text-sm leading-relaxed text-muted-foreground">
-            Recherchez une personne ou saisissez un matricule pour pointer
-            l&apos;arrivée ou la sortie. Le scan caméra s&apos;ouvre dans une
-            fenêtre dédiée.
+            {t("checkInUi.description")}
           </p>
         </div>
         <Button
@@ -291,7 +293,7 @@ export function AttendanceCheckInClient() {
           onClick={() => setScanOpen(true)}
         >
           <IconCamera className="mr-2 size-4" />
-          Scanner une carte
+          {t("checkInUi.scanCard")}
         </Button>
       </div>
 
@@ -307,14 +309,14 @@ export function AttendanceCheckInClient() {
               className="gap-1.5 py-2.5 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
             >
               <IconKeyboard size={16} className="shrink-0" />
-              Manuel
+              {t("checkInUi.manualTab")}
             </TabsTrigger>
             <TabsTrigger
               value="scan"
               className="gap-1.5 py-2.5 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
             >
               <IconScan size={16} className="shrink-0" />
-              Scan
+              {t("checkInUi.scanTab")}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -322,21 +324,20 @@ export function AttendanceCheckInClient() {
         <TabsContent value="manual" className="mt-0">
           <Card>
             <CardHeader className="pb-4">
-              <CardTitle className="text-base">Pointage manuel</CardTitle>
+              <CardTitle className="text-base">{t("checkInUi.manualTitle")}</CardTitle>
               <CardDescription className="w-full max-w-7xl text-pretty">
-                Saisissez un matricule ou un code carte, ou recherchez par nom,
-                puis enregistrez l&apos;arrivée ou la sortie.
+                {t("checkInUi.manualDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="grid gap-4 lg:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">
-                    Matricule ou code carte
+                    {t("checkInUi.matriculeLabel")}
                   </label>
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <Input
-                      placeholder="ELV-…, ENS-…, PRS-… ou matricule"
+                      placeholder={t("checkInUi.matriculePlaceholder")}
                       value={manualCode}
                       onChange={(event) => setManualCode(event.target.value)}
                       onKeyDown={(event) => {
@@ -349,20 +350,20 @@ export function AttendanceCheckInClient() {
                       disabled={pending || !manualCode.trim()}
                     >
                       <IconBarcode className="mr-2 size-4" />
-                      Pointer
+                      {t("checkIn")}
                     </Button>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">
-                    Rechercher une personne
+                    {t("checkInUi.searchLabel")}
                   </label>
                   <div className="relative">
                     <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       className="pl-9"
-                      placeholder="Nom, prénom ou matricule…"
+                      placeholder={t("checkInUi.searchPlaceholder")}
                       value={searchQuery}
                       onChange={(event) => setSearchQuery(event.target.value)}
                     />
@@ -394,7 +395,9 @@ export function AttendanceCheckInClient() {
                           </p>
                           {person.expectedSessionLabel ? (
                             <p className="mt-0.5 truncate text-xs text-primary">
-                              Cours prévu : {person.expectedSessionLabel}
+                              {t("checkInUi.expectedSession", {
+                                session: person.expectedSessionLabel,
+                              })}
                             </p>
                           ) : null}
                         </div>
@@ -403,7 +406,7 @@ export function AttendanceCheckInClient() {
                             {personTypeLabels[person.personType]}
                           </Badge>
                           {isSelected ? (
-                            <Badge variant="outline-primary">Sélectionné</Badge>
+                            <Badge variant="outline-primary">{t("checkInUi.selected")}</Badge>
                           ) : null}
                         </div>
                       </button>
@@ -412,7 +415,7 @@ export function AttendanceCheckInClient() {
                 </div>
               ) : searchQuery.trim().length >= 2 && !pending ? (
                 <p className="rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
-                  Aucune personne trouvée.
+                  {t("checkInUi.noPersonFound")}
                 </p>
               ) : null}
 
@@ -424,7 +427,7 @@ export function AttendanceCheckInClient() {
                   disabled={pending || !selected}
                 >
                   <IconUserCheck className="mr-2 size-4" />
-                  Pointer arrivée
+                  {t("checkInUi.checkInArrival")}
                 </Button>
                 <Button
                   type="button"
@@ -434,7 +437,7 @@ export function AttendanceCheckInClient() {
                   disabled={pending || !selected}
                 >
                   <IconLogout className="mr-2 size-4" />
-                  Pointer sortie
+                  {t("checkInUi.checkOutDeparture")}
                 </Button>
               </div>
             </CardContent>
@@ -448,16 +451,14 @@ export function AttendanceCheckInClient() {
                 <IconCamera className="size-8" />
               </div>
               <div className="w-full space-y-1">
-                <h3 className="text-base font-semibold">Scan caméra</h3>
+                <h3 className="text-base font-semibold">{t("checkInUi.cameraTitle")}</h3>
                 <p className="w-full max-w-7xl text-sm leading-relaxed text-muted-foreground">
-                  L&apos;appareil photo s&apos;ouvre dans une popup. Placez le
-                  QR ou le code-barres de la carte dans le cadre. Un second scan
-                  propose la sortie si la personne est déjà arrivée.
+                  {t("checkInUi.cameraDescription")}
                 </p>
               </div>
               <Button type="button" onClick={() => setScanOpen(true)}>
                 <IconScan className="mr-2 size-4" />
-                Ouvrir l&apos;appareil
+                {t("checkInUi.openCamera")}
               </Button>
             </CardContent>
           </Card>
@@ -467,9 +468,9 @@ export function AttendanceCheckInClient() {
       {recent.length > 0 ? (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Derniers pointages</CardTitle>
+            <CardTitle className="text-base">{t("checkInUi.recentTitle")}</CardTitle>
             <CardDescription className="w-full max-w-7xl">
-              Arrivées et sorties enregistrées pendant cette session.
+              {t("checkInUi.recentDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -479,7 +480,7 @@ export function AttendanceCheckInClient() {
                 className="flex flex-wrap items-center gap-2 rounded-xl border bg-muted/20 px-4 py-3 text-sm"
               >
                 <span className="font-medium">
-                  {item.person?.name ?? "Personne"}
+                  {item.person?.name ?? t("checkInUi.personFallback")}
                 </span>
                 {item.sessionLabel ? (
                   <span className="text-primary">{item.sessionLabel}</span>
@@ -537,7 +538,7 @@ export function AttendanceCheckInClient() {
                 roleLabel: personTypeLabels[checkout.personType],
                 personType: checkout.personType,
               },
-              statusLabel: "Sortie",
+              statusLabel: t("status.checkout"),
               sessionLabel: checkout.sessionLabel ?? undefined,
             });
             setCheckout(null);

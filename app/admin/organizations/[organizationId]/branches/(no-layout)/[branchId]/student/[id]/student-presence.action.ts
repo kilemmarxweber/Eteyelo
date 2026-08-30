@@ -1,34 +1,49 @@
 "use server";
 
+import { headers } from "next/headers";
+
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { assertStudentReadableInBranch } from "@/lib/auth/data-scope";
+import { auth } from "@/lib/auth";
+import { getServerTranslator } from "@/lib/i18n-server";
+import { resolvePreferredLocale } from "@/lib/resolve-preferred-locale";
+import { intlLocaleFromUserLocale } from "@/lib/user-locale";
 import { AttendanceStatus } from "@/prisma/generated/prisma/client";
 import {
-  ATTENDANCE_STATUS_LABELS,
+  CHART_WEEKDAY_INDICES,
+  getAttendanceStatusLabel,
+  weekdayIndexFromDate,
+} from "../../attendance/attendance-labels";
+import {
   type AttendanceHourStat,
   type AttendanceReportFilters,
   type AttendanceWeekdayStat,
 } from "../../attendance/attendance-report-types";
 
-const WEEKDAY_LABELS = [
-  "Dimanche",
-  "Lundi",
-  "Mardi",
-  "Mercredi",
-  "Jeudi",
-  "Vendredi",
-  "Samedi",
-];
+async function getReportIntlLocale() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  const locale = await resolvePreferredLocale(
+    (session?.user as { locale?: string | null } | undefined)?.locale,
+  );
+  return intlLocaleFromUserLocale(locale);
+}
 
-const CHART_WEEKDAYS = [
-  "Lundi",
-  "Mardi",
-  "Mercredi",
-  "Jeudi",
-  "Vendredi",
-  "Samedi",
-];
+function formatTime(
+  date: Date | null | undefined,
+  locale: string,
+): string | null {
+  if (!date) return null;
+  return date.toLocaleTimeString(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function formatWeekday(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, { weekday: "long" });
+}
 
 export type StudentPresenceRow = {
   id: string;
@@ -56,12 +71,38 @@ export type StudentPresenceReport = {
   rows: StudentPresenceRow[];
 };
 
-function formatTime(date: Date | null | undefined): string | null {
-  if (!date) return null;
-  return date.toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
+function buildWeekdayStats(
+  records: Array<{ date: Date; status: AttendanceStatus }>,
+): AttendanceWeekdayStat[] {
+  const totals = new Map<number, { present: number; total: number }>();
+
+  for (const dayIndex of CHART_WEEKDAY_INDICES) {
+    totals.set(dayIndex, { present: 0, total: 0 });
+  }
+
+  for (const record of records) {
+    const dayIndex = weekdayIndexFromDate(record.date);
+    if (dayIndex == null || !totals.has(dayIndex)) continue;
+
+    const current = totals.get(dayIndex)!;
+    current.total += 1;
+    if (record.status === "PRESENT" || record.status === "LATE") {
+      current.present += 1;
+    }
+    totals.set(dayIndex, current);
+  }
+
+  return CHART_WEEKDAY_INDICES.map((dayIndex) => {
+    const value = totals.get(dayIndex)!;
+    const percent =
+      value.total > 0 ? Math.round((value.present / value.total) * 100) : 0;
+
+    return {
+      dayIndex,
+      present: value.present,
+      total: value.total,
+      percent,
+    };
   });
 }
 
@@ -103,41 +144,6 @@ function getDateRange(filters: AttendanceReportFilters) {
   }
 }
 
-function buildWeekdayStats(
-  records: Array<{ date: Date; status: AttendanceStatus }>,
-): AttendanceWeekdayStat[] {
-  const totals = new Map<string, { present: number; total: number }>();
-
-  for (const day of CHART_WEEKDAYS) {
-    totals.set(day, { present: 0, total: 0 });
-  }
-
-  for (const record of records) {
-    const day = WEEKDAY_LABELS[record.date.getDay()];
-    if (!CHART_WEEKDAYS.includes(day)) continue;
-
-    const current = totals.get(day)!;
-    current.total += 1;
-    if (record.status === "PRESENT" || record.status === "LATE") {
-      current.present += 1;
-    }
-    totals.set(day, current);
-  }
-
-  return CHART_WEEKDAYS.map((day) => {
-    const value = totals.get(day)!;
-    const percent =
-      value.total > 0 ? Math.round((value.present / value.total) * 100) : 0;
-
-    return {
-      day,
-      present: value.present,
-      total: value.total,
-      percent,
-    };
-  });
-}
-
 function buildHourStats(
   records: Array<{ arrivalAt: Date | null }>,
 ): AttendanceHourStat[] {
@@ -169,6 +175,8 @@ export async function getStudentPresenceReportAction(
     studentId,
   });
   const { start, end } = getDateRange(filters);
+  const t = await getServerTranslator("attendance");
+  const intlLocale = await getReportIntlLocale();
   const statusFilter =
     filters.status && filters.status !== "ALL" ? filters.status : undefined;
 
@@ -241,12 +249,12 @@ export async function getStudentPresenceReportAction(
   const rows: StudentPresenceRow[] = mapped.map((record) => ({
     id: record.id,
     date: record.date.toISOString(),
-    dayLabel: WEEKDAY_LABELS[record.date.getDay()],
+    dayLabel: formatWeekday(record.date, intlLocale),
     courseName: record.courseName,
     status: record.status,
-    statusLabel: ATTENDANCE_STATUS_LABELS[record.status],
-    arrival: formatTime(record.arrivalAt),
-    departure: formatTime(record.departureAt),
+    statusLabel: getAttendanceStatusLabel(t, record.status),
+    arrival: formatTime(record.arrivalAt, intlLocale),
+    departure: formatTime(record.departureAt, intlLocale),
   }));
 
   return {

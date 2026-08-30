@@ -5,6 +5,7 @@ import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import * as React from "react";
 import { IconArchive, IconReload } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,8 @@ export function DeleteTeachingsDialog({
   teaches,
   ...props
 }: DeleteTeachingsDialogProps) {
+  const t = useTranslations("teaching.assignments.deactivateDialog");
+  const tc = useTranslations("common");
   const [isArchivePending, startArchiveTransition] = useTransition();
 
   const { refresh } = useRefresh();
@@ -47,15 +50,13 @@ export function DeleteTeachingsDialog({
           id: teache.id,
         });
         if (err) {
-          toast.error(err.message ?? "Erreur lors de la désactivation");
+          toast.error(err.message ?? t("errorDeactivate"));
           hasError = true;
         }
       }
       if (!hasError) {
         toast.success(
-          teaches.length === 1
-            ? "Affectation désactivée"
-            : "Affectations désactivées",
+          teaches.length === 1 ? t("deactivatedOne") : t("deactivatedMany"),
         );
         refresh();
         onSuccess?.();
@@ -72,7 +73,7 @@ export function DeleteTeachingsDialog({
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
             <IconArchive className="mr-2 size-4" aria-hidden="true" />
-            Désactiver ({count})
+            {t("deactivateCount", { count })}
           </Button>
         </DialogTrigger>
       ) : null}
@@ -80,21 +81,19 @@ export function DeleteTeachingsDialog({
         <DialogHeader>
           <DialogTitle>
             {count === 1
-              ? "Désactiver l'affectation ?"
-              : `Désactiver ${count} affectations ?`}
+              ? t("titleOne")
+              : t("titleManyCount", { count })}
           </DialogTitle>
           <DialogDescription>
-            {count === 1
-              ? "L'affectation sera désactivée et masquée des listes actives mais l'historique sera conservé."
-              : "Ces affectations seront désactivées et masquées des listes actives mais l'historique sera conservé."}
+            {count === 1 ? t("descOne") : t("descMany")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
           <DialogClose asChild>
-            <Button variant="outline">Annuler</Button>
+            <Button variant="outline">{tc("cancel")}</Button>
           </DialogClose>
           <Button
-            aria-label="Désactiver la sélection"
+            aria-label={t("deactivateSelection")}
             variant="outline"
             onClick={handleArchive}
             disabled={isArchivePending}
@@ -105,7 +104,7 @@ export function DeleteTeachingsDialog({
                 aria-hidden="true"
               />
             )}
-            Désactiver
+            {tc("deactivate")}
           </Button>
         </DialogFooter>
       </DialogContent>

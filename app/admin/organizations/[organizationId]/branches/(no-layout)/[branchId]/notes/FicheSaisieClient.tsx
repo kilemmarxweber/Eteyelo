@@ -21,6 +21,7 @@ import { notesColumns } from "./components/notes.columns";
 import { NotesToolbar } from "./components/notes.toolbar";
 import { useSchoolYearLabels } from "@/hooks/use-school-year-labels";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
   checkExistingFiche,
@@ -71,6 +72,8 @@ export default function FicheSaisieClient({
   initialClassId?: string | null;
 }) {
   const router = useRouter();
+  const tNotes = useTranslations("cursus.notes");
+  const tCommon = useTranslations("common");
   const { label: schoolYearLabel } = useSchoolYearLabels(typebranch);
   const notesLabels = useNotesLabels(typebranch);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -348,12 +351,12 @@ export default function FicheSaisieClient({
     const missingFields: string[] = [];
 
     if (!selectedTeacherId) missingFields.push(notesLabels.teacher);
-    if (!selectedLessonId) missingFields.push("Leçon");
-    if (!selectedPeriodId) missingFields.push("Périodicité");
-    if (!typeFiche) missingFields.push("Type de fiche");
+    if (!selectedLessonId) missingFields.push(tNotes("lesson"));
+    if (!selectedPeriodId) missingFields.push(tNotes("periodicity"));
+    if (!typeFiche) missingFields.push(tNotes("ficheType"));
 
     if (missingFields.length > 0) {
-      toast.error(`Veuillez remplir : ${missingFields.join(", ")}`);
+      toast.error(tNotes("fillRequired", { fields: missingFields.join(", ") }));
       setIsSubmitting(false);
       setIsLoading(false);
       return;
@@ -362,7 +365,7 @@ export default function FicheSaisieClient({
     try {
       const schoolYear = schoolYears.find((y) => y.id === selectedYearId);
       if (!schoolYear) {
-        toast.error(`${schoolYearLabel} non sélectionnée`);
+        toast.error(tNotes("yearNotSelected", { year: schoolYearLabel }));
         return;
       }
       const lesson = selectedTeacher?.lessons.find(
@@ -376,7 +379,7 @@ export default function FicheSaisieClient({
       const period = periods.find((p) => p.id === selectedPeriodId!);
 
       if (!lesson || !period || !schoolYear) {
-        toast.error("Données invalides");
+        toast.error(tNotes("invalidData"));
         return;
       }
 
@@ -413,15 +416,15 @@ export default function FicheSaisieClient({
       });
 
       if (!result.success) {
-        toast.error(result.message ?? "Erreur lors de la création");
+        toast.error(result.message ?? tNotes("createError"));
         return;
       }
 
       const isFicheCote = typeFiche === "ficheCote";
       toast.success(
         isFicheCote
-          ? "Fiche enregistrée"
-          : "Notes enregistrées. Vous pouvez en ajouter d'autres.",
+          ? tNotes("ficheSaved")
+          : tNotes("gradesSaved"),
       );
       router.refresh();
       if (isFicheCote) {
@@ -433,7 +436,7 @@ export default function FicheSaisieClient({
       }
     } catch (error) {
       console.error(error);
-      toast.error("Erreur serveur ❌");
+      toast.error(tNotes("serverError"));
     } finally {
       setIsSubmitting(false);
       setIsLoading(false);
@@ -533,7 +536,7 @@ export default function FicheSaisieClient({
       }));
 
       setStudents(newStudents);
-      toast.success("Import réussi !");
+      toast.success(tNotes("importOk"));
     };
     reader.readAsBinaryString(file);
   };
@@ -676,24 +679,20 @@ export default function FicheSaisieClient({
   /* ===== RENDER ===== */
   return (
     <BranchPageShell
-      title="Saisie des notes"
-          description={
-            notesLabels.isUniversite
-              ? `Sélectionnez le contexte pédagogique, puis saisissez ou importez les notes des ${notesLabels.studentPlural}.`
-              : `Sélectionnez le contexte pédagogique, puis saisissez ou importez les notes des ${notesLabels.studentPlural}.`
-          }
+      title={tNotes("title")}
+          description={tNotes("description", { students: notesLabels.studentPlural })}
           badge={
             <Badge variant="outline-primary" icon={<IconNotes size={14} />}>
-              Notes
+              {tNotes("badge")}
             </Badge>
           }
           contentClassName="space-y-3"
     >
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-          <ContextCard icon={<Users className="size-4" />} label={notesLabels.teacher} value={selectedTeacher?.name ?? "Non sélectionné"} active={Boolean(selectedTeacherId)} />
-          <ContextCard icon={<BookOpen className="size-4" />} label={notesLabels.courseContextLabel} value={selectedTeacher?.lessons.find(item => item.id === selectedLessonId) ? `${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.subjectName} · ${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.codeclasse}` : "Non sélectionné"} active={Boolean(selectedLessonId)} />
-          <ContextCard icon={<CalendarDays className="size-4" />} label={notesLabels.sessionLabel} value={period?.label ?? "Non sélectionnée"} active={Boolean(selectedPeriodId)} />
-          <ContextCard icon={<ClipboardCheck className="size-4" />} label="Progression" value={`${filled}/${students.length} notes saisies`} active={students.length > 0 && filled === students.length} />
+          <ContextCard icon={<Users className="size-4" />} label={notesLabels.teacher} value={selectedTeacher?.name ?? tNotes("notSelected")} active={Boolean(selectedTeacherId)} />
+          <ContextCard icon={<BookOpen className="size-4" />} label={notesLabels.courseContextLabel} value={selectedTeacher?.lessons.find(item => item.id === selectedLessonId) ? `${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.subjectName} · ${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.codeclasse}` : tNotes("notSelected")} active={Boolean(selectedLessonId)} />
+          <ContextCard icon={<CalendarDays className="size-4" />} label={notesLabels.sessionLabel} value={period?.label ?? tNotes("notSelectedFeminine")} active={Boolean(selectedPeriodId)} />
+          <ContextCard icon={<ClipboardCheck className="size-4" />} label={tNotes("progress")} value={tNotes("progressValue", { filled, total: students.length })} active={students.length > 0 && filled === students.length} />
         </div>
         <Card
           variant="elevated"
@@ -728,7 +727,7 @@ export default function FicheSaisieClient({
               )}
               <Combobox
                 label={schoolYearLabel}
-                placeholder="Sélectionner une année"
+                placeholder={tNotes("selectYear")}
                 items={schoolYears.map((y) => ({
                   value: y.id,
                   label: y.nameYear,
@@ -752,8 +751,8 @@ export default function FicheSaisieClient({
               />
 
               <Combobox
-                label="Type de fiche"
-                placeholder="Sélectionner une fiche"
+                label={tNotes("ficheType")}
+                placeholder={tNotes("selectFiche")}
                 items={getFicheTypeComboboxItems({
                   typebranch,
                   isAdmin,
@@ -782,7 +781,7 @@ export default function FicheSaisieClient({
                 loading={isLoading}
                 size="sm"
               >
-                {isSubmitting ? "…" : "Enregistrer"}
+                {isSubmitting ? "…" : tCommon("save")}
               </Button>
 
               <Button
@@ -816,8 +815,8 @@ export default function FicheSaisieClient({
                   <CardTitle className="text-sm">{notesLabels.coursesListTitle}</CardTitle>
                   <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
                     {selectedTeacher
-                      ? `${visibleLessons.length} cours affecté(s)`
-                      : `Choisissez un ${notesLabels.teacherLower} avec des cours affectés`}
+                      ? tNotes("assignedCount", { count: visibleLessons.length })
+                      : tNotes("chooseTeacherCourses", { teacher: notesLabels.teacherLower })}
                   </p>
                 </div>
                 <div className="relative">
@@ -825,7 +824,7 @@ export default function FicheSaisieClient({
                   <Input
                     value={lessonSearch}
                     onChange={(e) => setLessonSearch(e.target.value)}
-                    placeholder="Rechercher un cours…"
+                    placeholder={tNotes("searchCourse")}
                     className="h-8 border-sky-300 bg-sky-50/40 pl-8 text-xs hover:border-sky-400 focus-visible:border-sky-500 focus-visible:ring-sky-300/40 dark:border-sky-700 dark:bg-sky-950/30 dark:hover:border-sky-500 dark:focus-visible:border-sky-400 dark:focus-visible:ring-sky-700/40"
                     disabled={!selectedTeacher}
                   />
@@ -835,11 +834,11 @@ export default function FicheSaisieClient({
               <CardContent className="max-h-[min(560px,calc(100dvh-18rem))] overflow-auto p-1.5">
                 {!selectedTeacher ? (
                   <p className="rounded-lg border border-dashed px-3 py-4 text-center text-xs text-muted-foreground">
-                    Sélectionnez un {notesLabels.teacherLower} pour afficher ses cours affectés.
+                    {tNotes("selectTeacherCourses", { teacher: notesLabels.teacherLower })}
                   </p>
                 ) : visibleLessons.length === 0 ? (
                   <p className="rounded-lg border border-dashed px-3 py-4 text-center text-xs text-muted-foreground">
-                    Aucun cours affecté disponible pour ce {notesLabels.teacherLower}.
+                    {tNotes("noAssignedCourses", { teacher: notesLabels.teacherLower })}
                   </p>
                 ) : (
                   <ul className="divide-y rounded-xl border bg-background">
@@ -897,7 +896,7 @@ export default function FicheSaisieClient({
                                 variant={selected ? "default" : "secondary"}
                                 className="h-5 w-fit shrink-0 px-1.5 text-[10px]"
                               >
-                                {selected ? "Sélectionné" : "Choisir"}
+                                {selected ? tNotes("selected") : tNotes("choose")}
                               </Badge>
                             </div>
                           </button>
@@ -918,8 +917,8 @@ export default function FicheSaisieClient({
                   </CardTitle>
                   <p className="mt-0.5 truncate text-[11px] leading-none text-muted-foreground">
                     {students.length
-                      ? `${filled} note(s) sur ${students.length}`
-                      : `Sélectionnez un cours pour charger les ${notesLabels.studentPlural}`}
+                      ? tNotes("gradesCount", { filled, total: students.length })
+                      : tNotes("selectCourseLoad", { students: notesLabels.studentPlural })}
                   </p>
                 </div>
 
@@ -939,7 +938,7 @@ export default function FicheSaisieClient({
                     data={students}
                     columns={columns}
                     ToolbarComponent={NotesToolbarBound}
-                    emptyText={`Aucun ${notesLabels.studentSingular} trouvé`}
+                    emptyText={tNotes("noneFound", { student: notesLabels.studentSingular })}
                     mobileCardTitle={(s) => `${s.name} ${s.firstname}`}
                     mobileCardSubtitle={(s) => s.classname}
                     mobileCardBadges={(s) => [

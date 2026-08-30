@@ -88,21 +88,22 @@ const SCHOOL_REGISTRATION_MANUAL: RegistrationManualContent = {
       step: 2,
       title: "Parent / tuteur",
       description:
-        "Choisissez « Nouveau parent / tuteur » pour créer le responsable, ou « Parent existant » pour lier l'élève à un parent déjà enregistré dans l'établissement. Pour le premier enfant : inscrivez l'élève, renseignez le parent et sa classe. Pour un deuxième enfant (ou plus) du même parent : sélectionnez « Parent existant », recherchez le responsable et cliquez dessus pour le lier au nouvel élève — le système peut aussi le proposer automatiquement. Le bouton « Ajouter autres infos » en haut de l'étape est important pour compléter la fiche Dinacop (nationalité, nom de la mère, origines — province, territoire, secteur, village — tuteur, langue, etc.) ; vous pouvez le faire maintenant ou plus tard. Si le parent demande une réduction de frais, une demande écrite au promoteur est requise : saisissez le pourcentage dans « Remise familiale en % », puis choisissez « Frais scolaire » comme type de frais concerné par la remise. La remise ne s'applique qu'à ce type lors des paiements — les autres frais ne sont pas concernés.",
+        "Choisissez « Nouveau parent / tuteur » pour créer le responsable, ou « Parent existant » pour lier l'élève à un parent déjà enregistré dans l'établissement. Pour le premier enfant : inscrivez l'élève, renseignez le parent et sa classe. Pour un deuxième enfant (ou plus) du même parent : sélectionnez « Parent existant », recherchez le responsable et cliquez dessus pour le lier au nouvel élève — le système peut aussi le proposer automatiquement. Le bouton « Ajouter autres infos » en haut de l'étape est important pour compléter la fiche Dinacop (nationalité, nom de la mère, origines — province, territoire, secteur, village — tuteur, langue, etc.) ; vous pouvez le faire maintenant ou plus tard. La remise familiale se saisit à l'étape Classe, juste après le choix du niveau.",
       tips: [
         "2e enfant : cocher « Parent existant » et sélectionner le responsable.",
         "« Ajouter autres infos » : données Dinacop (origines, mère, tuteur…).",
-        "Remise : % + type « Frais scolaire » uniquement (demande écrite au promoteur).",
+        "Remise : à l'étape Classe, après la sélection de la classe.",
       ],
     },
     {
       step: 3,
       title: "Classe et provenance",
       description:
-        "Choisissez le niveau demandé (classe) signalé par le parent, ainsi que l'école de provenance de l'élève. Si la classe n'existe pas pour ce niveau, le système propose d'en créer une : sélectionnez le niveau, choisissez la vacation de la classe, puis cliquez sur Créer la classe. Indiquez la capacité (gardez la valeur par défaut ou augmentez-la), puis cliquez sur Continuer.",
+        "Choisissez le niveau demandé (classe) signalé par le parent, ainsi que l'école de provenance de l'élève. Si la classe n'existe pas pour ce niveau, le système propose d'en créer une : sélectionnez le niveau, choisissez la vacation de la classe, puis cliquez sur Créer la classe. Indiquez la capacité (gardez la valeur par défaut ou augmentez-la). Après le choix de la classe, saisissez éventuellement une remise en % : le montant est calculé sur le total des frais actifs du type choisi. Puis cliquez sur Continuer.",
       tips: [
         "Création de classe : Niveau → vacation → Créer la classe.",
         "Capacité : valeur par défaut acceptable au départ.",
+        "Remise : % + type de frais, juste après la sélection de la classe.",
       ],
     },
     {

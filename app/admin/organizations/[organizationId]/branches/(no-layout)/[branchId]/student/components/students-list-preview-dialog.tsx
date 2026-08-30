@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Download, Users } from "lucide-react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -17,10 +18,12 @@ import {
 } from "@/components/ui/table";
 import type { IStudent } from "@/src/interfaces/Student";
 import type { SchoolReportContext } from "@/lib/reports/types";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import {
   buildStudentsReportFilterLabels,
   buildStudentsReportTitle,
   exportStudentsReportPdf,
+  type StudentPdfLabels,
   type StudentReportOptions,
 } from "./export-students-pdf";
 
@@ -29,12 +32,9 @@ export type StudentsListPreviewDialogProps = {
   onOpenChange: (open: boolean) => void;
   students: IStudent[];
   context: SchoolReportContext | null;
-  options?: StudentReportOptions;
+  options?: Omit<StudentReportOptions, "labels">;
 };
 
-/**
- * Aperçu HTML de la liste élèves filtrée, aligné sur le PDF A4 portrait.
- */
 export function StudentsListPreviewDialog({
   open,
   onOpenChange,
@@ -43,11 +43,60 @@ export function StudentsListPreviewDialog({
   options = {},
 }: StudentsListPreviewDialogProps) {
   const [downloading, setDownloading] = React.useState(false);
-  const title = buildStudentsReportTitle(options);
-  const filterLabels = buildStudentsReportFilterLabels(options);
+  const locale = useLocale();
+  const peopleLabels = useBranchPeopleLabels();
+  const tPdf = useTranslations("users.students.pdf");
+
+  const pdfLabels: StudentPdfLabels = React.useMemo(
+    () => ({
+      listTitle: tPdf("listTitle", {
+        studentsLower: peopleLabels.studentPluralLower,
+      }),
+      classTitle: tPdf("classTitle", { className: "{className}" }),
+      boys: tPdf("boys"),
+      girls: tPdf("girls"),
+      active: tPdf("active"),
+      inactive: tPdf("inactive"),
+      unassigned: tPdf("unassigned"),
+      periodToday: tPdf("periodToday"),
+      periodWeek: tPdf("periodWeek"),
+      periodMonth: tPdf("periodMonth"),
+      periodAll: tPdf("periodAll"),
+      studentCount: tPdf("studentCount", { count: "{count}" }),
+      colIndex: tPdf("colIndex"),
+      colMatricule: tPdf("colMatricule"),
+      colLastName: tPdf("colLastName"),
+      colPostnom: tPdf("colPostnom"),
+      colFirstName: tPdf("colFirstName"),
+      colGender: tPdf("colGender"),
+      colAge: tPdf("colAge"),
+      colClass: tPdf("colClass"),
+      colE13: tPdf("colE13"),
+      colE80: tPdf("colE80"),
+      colBirthDate: tPdf("colBirthDate"),
+      colBirthPlace: tPdf("colBirthPlace"),
+      filterPeriod: tPdf("filterPeriod"),
+      filterYear: tPdf("filterYear"),
+      filterYears: tPdf("filterYears"),
+      filterClass: tPdf("filterClass"),
+      filterGender: tPdf("filterGender"),
+      filterStatus: tPdf("filterStatus"),
+      filterSearch: tPdf("filterSearch"),
+      locale,
+    }),
+    [locale, peopleLabels.studentPluralLower, tPdf],
+  );
+
+  const reportOptions: StudentReportOptions = React.useMemo(
+    () => ({ ...options, labels: pdfLabels }),
+    [options, pdfLabels],
+  );
+
+  const title = buildStudentsReportTitle(reportOptions);
+  const filterLabels = buildStudentsReportFilterLabels(reportOptions);
   const isClassReport = Boolean(options.selectedClass);
   const generatedLabel = context?.generatedAt
-    ? new Intl.DateTimeFormat("fr-FR", {
+    ? new Intl.DateTimeFormat(locale, {
         dateStyle: "short",
         timeStyle: "short",
       }).format(new Date(context.generatedAt))
@@ -57,14 +106,16 @@ export function StudentsListPreviewDialog({
     if (!context) return;
     setDownloading(true);
     try {
-      await exportStudentsReportPdf(students, context, options);
-      toast.success("Le rapport PDF des élèves a été généré.");
+      await exportStudentsReportPdf(students, context, reportOptions);
+      toast.success(
+        tPdf("generated", {
+          studentsLower: peopleLabels.studentPluralLower,
+        }),
+      );
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Impossible de générer le rapport PDF.",
+        error instanceof Error ? error.message : tPdf("generateFailed"),
       );
     } finally {
       setDownloading(false);
@@ -79,11 +130,11 @@ export function StudentsListPreviewDialog({
         </Badge>
       ))}
       <Badge variant="outline" size="sm">
-        {students.length} élève{students.length > 1 ? "s" : ""}
+        {tPdf("studentCount", { count: students.length })}
       </Badge>
       {generatedLabel ? (
         <Badge variant="ghost" size="sm" className="text-muted-foreground">
-          Généré le {generatedLabel}
+          {tPdf("generatedAt", { date: generatedLabel })}
         </Badge>
       ) : null}
     </>
@@ -93,8 +144,8 @@ export function StudentsListPreviewDialog({
     <ReportPreviewDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Aperçu du rapport"
-      description="Format A4 portrait — tel qu’il sera exporté en PDF"
+      title={tPdf("previewTitle")}
+      description={tPdf("previewDesc")}
       branding={
         context
           ? {
@@ -117,15 +168,19 @@ export function StudentsListPreviewDialog({
           disabled={!context || !students.length || downloading}
         >
           <Download data-icon="inline-start" />
-          {downloading ? "Génération…" : "Télécharger PDF"}
+          {downloading ? tPdf("generating") : tPdf("downloadPdf")}
         </Button>
       }
     >
       {students.length === 0 ? (
         <EmptyState
           icon={Users}
-          title="Aucun élève"
-          description="Aucun élève ne correspond aux filtres actifs."
+          title={tPdf("emptyTitle", {
+            studentLower: peopleLabels.studentLower,
+          })}
+          description={tPdf("emptyDesc", {
+            studentLower: peopleLabels.studentLower,
+          })}
         />
       ) : (
         <div className="mx-auto w-full overflow-x-auto rounded-lg border border-border">
@@ -133,24 +188,26 @@ export function StudentsListPreviewDialog({
             <TableHeader>
               <TableRow className="bg-primary hover:bg-primary">
                 <TableHead className="w-12 text-center text-primary-foreground">
-                  #
+                  {tPdf("colIndex")}
                 </TableHead>
                 <TableHead className="text-primary-foreground">
-                  Matricule
-                </TableHead>
-                <TableHead className="text-primary-foreground">Nom</TableHead>
-                <TableHead className="text-primary-foreground">
-                  Postnom
+                  {tPdf("colMatricule")}
                 </TableHead>
                 <TableHead className="text-primary-foreground">
-                  Prénom
+                  {tPdf("colLastName")}
+                </TableHead>
+                <TableHead className="text-primary-foreground">
+                  {tPdf("colPostnom")}
+                </TableHead>
+                <TableHead className="text-primary-foreground">
+                  {tPdf("colFirstName")}
                 </TableHead>
                 <TableHead className="w-16 text-center text-primary-foreground">
-                  Sexe
+                  {tPdf("colGender")}
                 </TableHead>
                 {!isClassReport ? (
                   <TableHead className="text-primary-foreground">
-                    Classe
+                    {tPdf("colClass")}
                   </TableHead>
                 ) : null}
               </TableRow>
@@ -174,7 +231,9 @@ export function StudentsListPreviewDialog({
                     {student.sexe || "-"}
                   </TableCell>
                   {!isClassReport ? (
-                    <TableCell>{student.className || "Non affecté"}</TableCell>
+                    <TableCell>
+                      {student.className || tPdf("unassigned")}
+                    </TableCell>
                   ) : null}
                 </TableRow>
               ))}

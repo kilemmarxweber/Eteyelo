@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
 import { canManageOrganization } from "@/lib/auth/session-roles";
@@ -47,6 +48,7 @@ export default function TeacherAttendanceForm({
   onSuccess,
   sessionData,
 }: Props) {
+  const t = useTranslations("attendance");
   const { data: session } = useSession();
   const isManager = canManageOrganization(session);
   const [loading, setLoading] = useState(false);
@@ -135,9 +137,7 @@ export default function TeacherAttendanceForm({
 
   async function submitSelf() {
     if (!resolved?.sessionId || !resolved.teacherId) {
-      toast.error(
-        "Aucune session de cours disponible autour de l'heure actuelle.",
-      );
+      toast.error(t("teacherForm.noSessionNow"));
       return;
     }
 
@@ -151,11 +151,11 @@ export default function TeacherAttendanceForm({
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       });
-      toast.success("Presence enregistree.");
+      toast.success(t("teacherForm.presenceSaved"));
       onSuccess?.();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Pointage impossible.",
+        error instanceof Error ? error.message : t("teacherForm.checkInFailed"),
       );
     } finally {
       setLoading(false);
@@ -164,7 +164,7 @@ export default function TeacherAttendanceForm({
 
   async function submitManager() {
     if (!selected?.activeSession?.id) {
-      toast.error("Aucune session active");
+      toast.error(t("teacherForm.noActiveSession"));
       return;
     }
 
@@ -178,13 +178,13 @@ export default function TeacherAttendanceForm({
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       });
-      toast.success("Presence enregistree.");
+      toast.success(t("teacherForm.presenceSaved"));
       setSelected(null);
       setSearch("");
       onSuccess?.();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Pointage impossible.",
+        error instanceof Error ? error.message : t("teacherForm.checkInFailed"),
       );
     } finally {
       setLoading(false);
@@ -195,11 +195,11 @@ export default function TeacherAttendanceForm({
     return (
       <div className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          Pointage enseignant (secours). La geolocalisation est requise.
+          {t("teacherForm.managerHint")}
         </p>
         <input
           className="w-full rounded border p-2"
-          placeholder="Rechercher..."
+          placeholder={t("teacherForm.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -225,7 +225,9 @@ export default function TeacherAttendanceForm({
           disabled={!selected || loading}
           className="w-full rounded bg-black p-2 text-white disabled:opacity-60"
         >
-          {loading ? "Validation..." : "Valider presence"}
+          {loading
+            ? t("teacherForm.validating")
+            : t("teacherForm.validatePresence")}
         </button>
       </div>
     );
@@ -234,7 +236,7 @@ export default function TeacherAttendanceForm({
   if (loadingSession) {
     return (
       <p className="text-sm text-muted-foreground">
-        Recherche de votre session de cours...
+        {t("teacherForm.findingSession")}
       </p>
     );
   }
@@ -242,7 +244,7 @@ export default function TeacherAttendanceForm({
   if (!resolved) {
     return (
       <p className="text-sm text-muted-foreground">
-        Pointage possible uniquement autour de l&apos;heure de votre cours.
+        {t("teacherForm.onlyAroundClass")}
       </p>
     );
   }
@@ -250,12 +252,10 @@ export default function TeacherAttendanceForm({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Validez votre presence pour{" "}
-        <span className="font-medium text-foreground">
-          {resolved.cours ?? "ce cours"}
-        </span>
-        {resolved.classe ? ` • ${resolved.classe}` : ""}. Vous devez etre dans
-        le rayon configure autour de l&apos;etablissement.
+        {t("teacherForm.validateForCourse", {
+          course: resolved.cours ?? t("teacherForm.thisCourse"),
+          class: resolved.classe ?? "",
+        })}
       </p>
 
       <button
@@ -264,7 +264,9 @@ export default function TeacherAttendanceForm({
         disabled={loading}
         className="w-full rounded bg-black p-2 text-white disabled:opacity-60"
       >
-        {loading ? "Validation..." : "Valider ma presence"}
+        {loading
+          ? t("teacherForm.validating")
+          : t("teacherForm.validateMyPresence")}
       </button>
     </div>
   );

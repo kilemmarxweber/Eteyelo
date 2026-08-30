@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -27,16 +28,15 @@ export function DetailsParentDialog({
   ...props
 }: DetailsParentDialogProps) {
   const [open, setOpen] = React.useState(false);
+  const tPdf = useTranslations("users.parents.pdf");
 
   return (
     <Dialog open={open} onOpenChange={setOpen} {...props}>
       <DialogContent size="lg" className="py-6">
-        {/* ✅ REQUIRED by Radix */}
         <DialogHeader>
-          <DialogTitle>Détails du parent</DialogTitle>
+          <DialogTitle>{tPdf("detailsTitle")}</DialogTitle>
         </DialogHeader>
 
-        {/* Your existing UI (unchanged) */}
         <Card className="w-full max-w-4xl">
           <UserCard parent={parent} childs={[]} payments={[]} />
         </Card>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Table } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 
 import { IconX } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
@@ -21,9 +22,10 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
+  const t = useTranslations("teaching.assignments");
+  const tc = useTranslations("common");
   const isFiltered = table.getState().columnFilters.length > 0;
   const [schoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
-  const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
   const branchId = session?.branch?.id ?? session?.session?.activeBranchId;
 
@@ -41,22 +43,19 @@ export function DataTableToolbar<TData>({
         if (currentYearName && nameYearColumn && !nameYearColumn.getFilterValue()) {
           nameYearColumn.setFilterValue(currentYearName);
         }
-        setLoading(false);
       } catch (error) {
-        setLoading(false);
+        // ignore
       }
     };
 
     fetchSchoolYears();
   }, [branchId, table]);
 
-  // Fonction de transformation
-
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="chercher un enseignant..."
+          placeholder={t("searchTeacher")}
           value={
             (table.getColumn("username")?.getFilterValue() as string) ?? ""
           }
@@ -68,7 +67,7 @@ export function DataTableToolbar<TData>({
         {table.getColumn("nameYear") && (
           <DataTableFacetedFilter
             column={table.getColumn("nameYear")}
-            title="Année scolaire"
+            title={t("schoolYear")}
             options={schoolYears.map((year) => ({
               label: year.nameYear,
               value: year.nameYear,
@@ -90,7 +89,7 @@ export function DataTableToolbar<TData>({
             onClick={() => table.resetColumnFilters()}
             className="h-8 px-2 lg:px-3"
           >
-            Reset
+            {tc("reset")}
             <IconX className="ml-2 h-4 w-4" />
           </Button>
         )}

@@ -1012,12 +1012,23 @@ export async function getAbsenceCaseForUser(params: {
 export async function listUnreadAppNotifications(params: {
   branchId: string;
   userId: string;
+  organizationId?: string;
 }) {
   const rows = await prisma.appNotification.findMany({
     where: {
-      branchId: params.branchId,
       userId: params.userId,
       readAt: null,
+      OR: [
+        { branchId: params.branchId },
+        ...(params.organizationId
+          ? [
+              {
+                type: "MESSAGE" as const,
+                organizationId: params.organizationId,
+              },
+            ]
+          : []),
+      ],
     },
     include: {
       absenceCase: {
@@ -1049,12 +1060,23 @@ export async function listUnreadAppNotifications(params: {
 export async function countUnreadAppNotifications(params: {
   branchId: string;
   userId: string;
+  organizationId?: string;
 }) {
   const rows = await prisma.appNotification.findMany({
     where: {
-      branchId: params.branchId,
       userId: params.userId,
       readAt: null,
+      OR: [
+        { branchId: params.branchId },
+        ...(params.organizationId
+          ? [
+              {
+                type: "MESSAGE" as const,
+                organizationId: params.organizationId,
+              },
+            ]
+          : []),
+      ],
     },
     select: {
       type: true,
@@ -1076,8 +1098,6 @@ export async function markAppNotificationRead(params: {
     where: {
       id: params.notificationId,
       userId: params.userId,
-      branchId: params.branchId,
-      readAt: null,
     },
     data: { readAt: nowLocal() },
   });

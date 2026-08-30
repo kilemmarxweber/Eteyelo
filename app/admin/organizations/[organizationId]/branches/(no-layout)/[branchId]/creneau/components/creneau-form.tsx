@@ -1,5 +1,6 @@
 "use client";
 import { HTMLAttributes, useMemo, useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useForm, SubmitHandler, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -77,47 +78,53 @@ type StructurePreset = {
   values: Partial<CreneauFormValues>;
 };
 
-const STRUCTURE_PRESETS: StructurePreset[] = [
-  {
-    id: "secondaire-matin",
-    label: "Secondaire matin (3 + 3)",
-    description: "6 × 45 min · récré 15 min",
-    values: {
-      nameCreneau: "Horaire standard matin",
-      startTime: "07:30",
-      endTime: "12:15",
-      durationCourse: 45,
-      recreationHour: "09:45",
-      recreationDuration: 15,
-    },
-  },
-  {
-    id: "secondaire-aprem",
-    label: "Secondaire après-midi (3 + 3)",
-    description: "6 × 45 min · récré 15 min",
-    values: {
-      nameCreneau: "Horaire standard après-midi",
-      startTime: "12:30",
-      endTime: "17:15",
-      durationCourse: 45,
-      recreationHour: "14:45",
-      recreationDuration: 15,
-    },
-  },
-  {
-    id: "primaire-matin",
-    label: "Primaire matin (4 + 2)",
-    description: "6 × 40 min · récré 20 min",
-    values: {
-      nameCreneau: "Horaire primaire matin",
-      startTime: "07:30",
-      endTime: "11:50",
-      durationCourse: 40,
-      recreationHour: "10:10",
-      recreationDuration: 20,
-    },
-  },
-];
+function useStructurePresets(): StructurePreset[] {
+  const t = useTranslations("teaching.vacation.form");
+  return useMemo(
+    () => [
+      {
+        id: "secondaire-matin",
+        label: t("presetSecondaryMorning"),
+        description: t("presetSecondaryMorningDesc"),
+        values: {
+          nameCreneau: t("presetSecondaryMorningName"),
+          startTime: "07:30",
+          endTime: "12:15",
+          durationCourse: 45,
+          recreationHour: "09:45",
+          recreationDuration: 15,
+        },
+      },
+      {
+        id: "secondaire-aprem",
+        label: t("presetSecondaryAfternoon"),
+        description: t("presetSecondaryAfternoonDesc"),
+        values: {
+          nameCreneau: t("presetSecondaryAfternoonName"),
+          startTime: "12:30",
+          endTime: "17:15",
+          durationCourse: 45,
+          recreationHour: "14:45",
+          recreationDuration: 15,
+        },
+      },
+      {
+        id: "primaire-matin",
+        label: t("presetPrimaryMorning"),
+        description: t("presetPrimaryMorningDesc"),
+        values: {
+          nameCreneau: t("presetPrimaryMorningName"),
+          startTime: "07:30",
+          endTime: "11:50",
+          durationCourse: 40,
+          recreationHour: "10:10",
+          recreationDuration: 20,
+        },
+      },
+    ],
+    [t],
+  );
+}
 
 interface CreneauUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onCreneauAction?: () => void;
@@ -140,6 +147,9 @@ export function CreneauUpForm({
   layout = "default",
   ...props
 }: CreneauUpFormProps) {
+  const t = useTranslations("teaching.vacation.form");
+  const tc = useTranslations("common");
+  const structurePresets = useStructurePresets();
   const isDialog = layout === "dialog";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -189,7 +199,7 @@ export function CreneauUpForm({
         if (err) {
           throw new Error(err.message);
         }
-        toast.success("Vacation créée avec succès");
+        toast.success(t("created"));
       } else {
         const [, err] = await updateCreneauAction({
           ...data,
@@ -197,7 +207,7 @@ export function CreneauUpForm({
         if (err) {
           throw new Error(err.message);
         }
-        toast.success("Vacation mise à jour avec succès");
+        toast.success(t("updated"));
       }
 
       if (mode === "create") {
@@ -211,12 +221,12 @@ export function CreneauUpForm({
       onCreneauAction?.();
     } catch (error: unknown) {
       const message =
-        error instanceof Error ? error.message : "Une erreur est survenue";
+        error instanceof Error ? error.message : tc("errorGeneric");
       setErrorMessage(message);
       toast.error(
         mode === "create"
-          ? message || "Échec de la création de la vacation"
-          : message || "Échec de la mise à jour de la vacation",
+          ? message || t("createFailed")
+          : message || t("updateFailed"),
       );
     } finally {
       setIsLoading(false);
@@ -250,12 +260,11 @@ export function CreneauUpForm({
                     isDialog ? "text-xs text-muted-foreground" : "text-sm",
                   )}
                 >
-                  Modèles rapides
+                  {t("presetsTitle")}
                 </h3>
                 {!isDialog ? (
                   <p className="text-sm text-muted-foreground">
-                    Secondaire / humanités : souvent 3 + 3 séances autour de la
-                    récréation. Le primaire peut différer.
+                    {t("presetsDesc")}
                   </p>
                 ) : null}
               </div>
@@ -265,7 +274,7 @@ export function CreneauUpForm({
                   isDialog ? "sm:grid-cols-3" : "sm:grid-cols-1",
                 )}
               >
-                {STRUCTURE_PRESETS.map((preset) => {
+                {structurePresets.map((preset) => {
                   const selected = activePresetId === preset.id;
                   return (
                     <button
@@ -302,10 +311,10 @@ export function CreneauUpForm({
             name="nameCreneau"
             render={({ field }) => (
               <FormItem className={fieldClass}>
-                <FormLabel className={labelClass}>Nom de la vacation</FormLabel>
+                <FormLabel className={labelClass}>{t("name")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Ex. Matinée, Après-midi..."
+                    placeholder={t("namePlaceholder")}
                     className={controlClass}
                     {...field}
                     value={field.value ?? ""}
@@ -313,7 +322,7 @@ export function CreneauUpForm({
                 </FormControl>
                 {!isDialog ? (
                   <FormDescription>
-                    Identifiant affiché dans les listes et les emplois du temps.
+                    {t("nameDesc")}
                   </FormDescription>
                 ) : null}
                 <FormMessage />
@@ -324,14 +333,14 @@ export function CreneauUpForm({
           <div className={cn(isDialog ? "space-y-2" : "space-y-4")}>
             {!isDialog ? (
               <div>
-                <h3 className="text-sm font-medium">Horaires de la vacation</h3>
+                <h3 className="text-sm font-medium">{t("scheduleTitle")}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Plage horaire couverte par cette vacation.
+                  {t("scheduleDesc")}
                 </p>
               </div>
             ) : (
               <p className="text-xs font-medium text-muted-foreground">
-                Horaires
+                {t("scheduleShort")}
               </p>
             )}
 
@@ -341,7 +350,7 @@ export function CreneauUpForm({
                 name="startTime"
                 render={({ field }) => (
                   <FormItem className={fieldClass}>
-                    <FormLabel className={labelClass}>Début</FormLabel>
+                    <FormLabel className={labelClass}>{t("start")}</FormLabel>
                     <FormControl>
                       <Input
                         type="time"
@@ -360,7 +369,7 @@ export function CreneauUpForm({
                 name="endTime"
                 render={({ field }) => (
                   <FormItem className={fieldClass}>
-                    <FormLabel className={labelClass}>Fin</FormLabel>
+                    <FormLabel className={labelClass}>{t("end")}</FormLabel>
                     <FormControl>
                       <Input
                         type="time"
@@ -380,7 +389,7 @@ export function CreneauUpForm({
                 render={({ field }) => (
                   <FormItem className={fieldClass}>
                     <FormLabel className={labelClass}>
-                      Durée séance (min)
+                      {t("sessionDurationLabel")}
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -401,7 +410,7 @@ export function CreneauUpForm({
                     </FormControl>
                     {!isDialog ? (
                       <FormDescription>
-                        Durée standard d&apos;une séance.
+                        {t("sessionDurationDesc")}
                       </FormDescription>
                     ) : null}
                     <FormMessage />
@@ -422,10 +431,10 @@ export function CreneauUpForm({
                 <Coffee className="size-3.5" />
               </span>
               <div>
-                <h3 className="text-sm font-medium">Récréation</h3>
+                <h3 className="text-sm font-medium">{t("recreation")}</h3>
                 {!isDialog ? (
                   <p className="text-sm text-muted-foreground">
-                    Pause prévue au milieu de la vacation.
+                    {t("recreationDesc")}
                   </p>
                 ) : null}
               </div>
@@ -437,7 +446,7 @@ export function CreneauUpForm({
                 name="recreationHour"
                 render={({ field }) => (
                   <FormItem className={fieldClass}>
-                    <FormLabel className={labelClass}>Heure</FormLabel>
+                    <FormLabel className={labelClass}>{t("recreationTime")}</FormLabel>
                     <FormControl>
                       <Input
                         type="time"
@@ -456,7 +465,7 @@ export function CreneauUpForm({
                 name="recreationDuration"
                 render={({ field }) => (
                   <FormItem className={fieldClass}>
-                    <FormLabel className={labelClass}>Durée (min)</FormLabel>
+                    <FormLabel className={labelClass}>{t("recreationDuration")}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -488,16 +497,15 @@ export function CreneauUpForm({
               <FormItem className={cn(isDialog ? "space-y-2" : "space-y-3")}>
                 <div>
                   <FormLabel className={labelClass ?? "text-sm font-medium"}>
-                    Jours ouvrables
+                    {t("workingDays")}
                   </FormLabel>
                   {!isDialog ? (
                     <FormDescription>
-                      Jours où cette vacation a cours (décochez le samedi si
-                      besoin).
+                      {t("workingDaysDesc")}
                     </FormDescription>
                   ) : (
                     <p className="text-[11px] text-muted-foreground">
-                      Ex. sans samedi si pas de cours ce jour-là.
+                      {t("workingDaysShort")}
                     </p>
                   )}
                 </div>
@@ -545,14 +553,17 @@ export function CreneauUpForm({
                 isDialog ? "px-3 py-2.5" : "p-4",
               )}
             >
-              <p className="font-medium">Aperçu des séances</p>
+              <p className="font-medium">{t("previewTitle")}</p>
               <p className="mt-1 text-muted-foreground">
-                {periodPreview.before} + {periodPreview.after} ·{" "}
-                {periodPreview.total} séances
+                {t("previewSummary", {
+                  before: periodPreview.before,
+                  after: periodPreview.after,
+                  total: periodPreview.total,
+                })}
               </p>
               {periodPreview.slots.length > 0 ? (
                 <p className="mt-1.5 text-xs text-muted-foreground">
-                  Débuts : {periodPreview.slots.join(" · ")}
+                  {t("previewStarts", { slots: periodPreview.slots.join(" · ") })}
                 </p>
               ) : null}
             </div>
@@ -568,8 +579,8 @@ export function CreneauUpForm({
             loading={isLoading}
           >
             {mode === "create"
-              ? "Enregistrer la vacation"
-              : "Mettre à jour la vacation"}
+              ? t("createSubmit")
+              : t("updateSubmit")}
           </Button>
 
           {errorMessage ? (

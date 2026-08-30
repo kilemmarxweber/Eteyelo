@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { IconFileTypePdf, IconFilter, IconSearch, IconUpload } from "@tabler/icons-react";
 import type { Table } from "@tanstack/react-table";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/custom/button";
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
@@ -15,6 +16,7 @@ import type { IPersonnel } from "@/src/interfaces/Personnel";
 import { getPersonnelReportContextAction } from "../personnel.action";
 import {
   exportPersonnelReportPdf,
+  type PersonnelPdfLabels,
   type PersonnelReportOptions,
   type PersonnelSexeFilter,
 } from "./export-personnel-pdf";
@@ -26,11 +28,6 @@ interface DataTableToolbarProps<TData> {
   onOpenImport?: () => void;
 }
 
-const sexes = [
-  { label: "Masculin", value: "M" },
-  { label: "Féminin", value: "F" },
-];
-
 function readFilterValues(value: unknown): string[] {
   if (Array.isArray(value)) return value.map(String).filter(Boolean);
   if (typeof value === "string" && value.trim() && value !== "all") {
@@ -39,7 +36,10 @@ function readFilterValues(value: unknown): string[] {
   return [];
 }
 
-function resolveReportOptions(table: Table<unknown>): PersonnelReportOptions {
+function resolveReportOptions(table: Table<unknown>): Omit<
+  PersonnelReportOptions,
+  "labels"
+> {
   const sexeValues = readFilterValues(table.getColumn("sexe")?.getFilterValue());
   const sexe =
     sexeValues.length === 1 &&
@@ -57,8 +57,39 @@ export function DataTableToolbar<TData>({
   onOpenImport,
 }: DataTableToolbarProps<TData>) {
   const [exportingPdf, setExportingPdf] = useState(false);
+  const t = useTranslations("users.staff.table");
+  const tPdf = useTranslations("users.staff.pdf");
+  const tCommon = useTranslations("common");
+  const tPerson = useTranslations("common.person");
   const isFiltered = table.getState().columnFilters.length > 0;
   const hasRows = table.getFilteredRowModel().rows.length > 0;
+
+  const sexes = useMemo(
+    () => [
+      { label: tPdf("masculine"), value: "M" },
+      { label: tPdf("feminine"), value: "F" },
+    ],
+    [tPdf],
+  );
+
+  const pdfLabels: PersonnelPdfLabels = useMemo(
+    () => ({
+      listTitle: tPdf("listTitle"),
+      masculine: tPdf("masculine"),
+      feminine: tPdf("feminine"),
+      active: tCommon("active"),
+      inactive: tCommon("inactive"),
+      roleUndefined: tPdf("roleUndefined"),
+      colIndex: "#",
+      colIdentity: tPdf("colIdentity"),
+      colFunction: tPdf("colFunction"),
+      colStatus: tPdf("colStatus"),
+      colContact: tPdf("colContact"),
+      personnelCount: tPdf("personnelCount", { count: "{count}" }),
+      filterGender: tPdf("filterGender"),
+    }),
+    [tCommon, tPdf],
+  );
 
   const exportFilteredPdf = async () => {
     setExportingPdf(true);
@@ -66,21 +97,20 @@ export function DataTableToolbar<TData>({
       const filteredPersonnels = table
         .getFilteredRowModel()
         .rows.map((row) => row.original as IPersonnel);
-      const options = resolveReportOptions(table as Table<unknown>);
+      const options: PersonnelReportOptions = {
+        ...resolveReportOptions(table as Table<unknown>),
+        labels: pdfLabels,
+      };
       const [context, error] = await getPersonnelReportContextAction();
       if (error || !context) {
-        throw new Error(
-          error?.message || "Impossible de charger les informations du rapport.",
-        );
+        throw new Error(error?.message || tCommon("errorGeneric"));
       }
       await exportPersonnelReportPdf(filteredPersonnels, context, options);
-      toast.success("Le rapport PDF du personnel a été généré.");
+      toast.success(tPdf("generated"));
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Impossible de générer le rapport PDF.",
+        error instanceof Error ? error.message : tPdf("generateFailed"),
       );
     } finally {
       setExportingPdf(false);
@@ -93,7 +123,7 @@ export function DataTableToolbar<TData>({
         <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground/40" />
 
         <Input
-          placeholder="Rechercher par nom, prénom ou postnom..."
+          placeholder={t("searchPlaceholder")}
           value={(table.getColumn("nom")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("nom")?.setFilterValue(event.target.value)
@@ -106,7 +136,7 @@ export function DataTableToolbar<TData>({
         {table.getColumn("sexe") ? (
           <DataTableFacetedFilter
             column={table.getColumn("sexe")}
-            title="Sexe"
+            title={tPerson("gender")}
             options={sexes}
             value={
               (table.getColumn("sexe")?.getFilterValue() as string) ?? "all"
@@ -120,7 +150,7 @@ export function DataTableToolbar<TData>({
         ) : null}
 
         <Button variant="outline" leftSection={<IconFilter size={16} />}>
-          Filtres
+          {t("filters")}
         </Button>
 
         {canManagePersonnel && supportsStaffImport ? (
@@ -129,7 +159,7 @@ export function DataTableToolbar<TData>({
             leftSection={<IconUpload size={16} />}
             onClick={() => onOpenImport?.()}
           >
-            Importer
+            {t("import")}
           </Button>
         ) : null}
 
@@ -140,7 +170,7 @@ export function DataTableToolbar<TData>({
           loading={exportingPdf}
           disabled={!hasRows || exportingPdf}
         >
-          {exportingPdf ? "Generation..." : "Rapport PDF"}
+          {exportingPdf ? tCommon("loading") : t("exportPdf")}
         </Button>
 
         {isFiltered ? (
@@ -149,7 +179,7 @@ export function DataTableToolbar<TData>({
             onClick={() => table.resetColumnFilters()}
             className="h-10 border-border text-primary hover:bg-blue-50 hover:text-blue-800"
           >
-            Réinitialiser
+            {tCommon("reset")}
             <Cross2Icon className="ml-2 size-4" />
           </Button>
         ) : null}

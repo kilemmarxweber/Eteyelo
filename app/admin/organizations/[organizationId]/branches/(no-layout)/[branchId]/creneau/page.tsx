@@ -4,6 +4,7 @@ import { BranchPageShell } from "@/components/layout/branch-page-shell";
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { IconBeach, IconPlus } from "@tabler/icons-react";
 
 import { Button } from "@/components/custom/button";
@@ -21,7 +22,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default function Creneaus() {
-  const t = useTranslations("teaching");
+  const t = useTranslations("teaching.vacation");
   const [open, setOpen] = useState(false);
   const { refreshKey, refresh } = useRefresh();
 
@@ -32,11 +33,11 @@ export default function Creneaus() {
 
   return (
     <BranchPageShell
-      title={t("vacation.title")}
-      description={t("vacation.description")}
+      title={t("title")}
+      description={t("description")}
       badge={
         <Badge variant="outline-primary" icon={<IconBeach size={14} />}>
-          {t("vacation.badge")}
+          {t("badge")}
         </Badge>
       }
       actions={
@@ -47,7 +48,7 @@ export default function Creneaus() {
           leftSection={<IconPlus size={16} />}
           onClick={() => setOpen(true)}
         >
-          {t("vacation.add")}
+          {t("add")}
         </Button>
       }
     >
@@ -57,9 +58,9 @@ export default function Creneaus() {
           className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
         >
           <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
-            <SheetTitle>Nouvelle vacation</SheetTitle>
+            <SheetTitle>{t("newTitle")}</SheetTitle>
             <SheetDescription>
-              Choisissez un modèle, puis ajustez les horaires si besoin.
+              {t("newDesc")}
             </SheetDescription>
           </SheetHeader>
           <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">

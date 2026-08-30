@@ -146,7 +146,7 @@ export const getNotificationCountAction = action.handler(async () => {
           },
         })
       : Promise.resolve(0),
-    countUnreadAppNotifications({ branchId, userId }),
+    countUnreadAppNotifications({ branchId, userId, organizationId }),
   ]);
 
   return {

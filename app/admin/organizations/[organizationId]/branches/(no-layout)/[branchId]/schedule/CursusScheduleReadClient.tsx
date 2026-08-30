@@ -4,6 +4,7 @@ import { BranchPageShell } from "@/components/layout/branch-page-shell";
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { IconCalendarTime } from "@tabler/icons-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +36,7 @@ export default function CursusScheduleReadClient({
   schedule,
   notesHref,
 }: CursusScheduleReadClientProps) {
+  const t = useTranslations("teaching.schedule");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -47,18 +49,20 @@ export default function CursusScheduleReadClient({
 
   return (
     <BranchPageShell
-      title="Horaire de l'année"
+      title={t("yearTitle")}
           description={
             role === "parent"
-              ? `Emploi du temps annuel de chaque ${studentLabel.toLowerCase()} lié — lecture seule.`
-              : "Vos cours / créneaux pour toute l'année scolaire active — lecture seule."
+              ? t("parentYearReadOnlyDesc", {
+                  studentLabel: studentLabel.toLowerCase(),
+                })
+              : t("yearReadOnlyDesc")
           }
           badge={
             <Badge
               variant="outline-primary"
               icon={<IconCalendarTime size={14} />}
             >
-              Cursus
+              {t("cursusBadge")}
             </Badge>
           }
       fixedHeight
@@ -75,7 +79,9 @@ export default function CursusScheduleReadClient({
             >
               <SelectTrigger>
                 <SelectValue
-                  placeholder={`Choisir un ${studentLabel.toLowerCase()}`}
+                  placeholder={t("chooseStudent", {
+                    studentLabel: studentLabel.toLowerCase(),
+                  })}
                 />
               </SelectTrigger>
               <SelectContent>
@@ -102,9 +108,9 @@ export default function CursusScheduleReadClient({
         </div>
 
         <p className="text-xs text-muted-foreground">
-          La planification des créneaux est réservée à l&apos;administration.{" "}
+          {t("planningAdminOnly")}{" "}
           <Link href={notesHref} className="underline">
-            Voir les notes
+            {t("seeGrades")}
           </Link>
         </p>
     </BranchPageShell>

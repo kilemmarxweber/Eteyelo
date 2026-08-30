@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Table } from "@tanstack/react-table";
 import { IconFileTypePdf, IconSearch, IconUpload, IconX } from "@tabler/icons-react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Button } from "@/components/custom/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,7 @@ import {
 import {
   exportTeachersReportPdf,
   type TeacherAssignmentStatus,
+  type TeacherPdfLabels,
   type TeacherReportOptions,
 } from "./export-teachers-pdf";
 import { getTeacherReportContextAction } from "../teacher.action";
@@ -31,22 +33,16 @@ interface DataTableToolbarProps<TData> {
   canManageTeachers?: boolean;
   supportsStaffImport?: boolean;
   onOpenImport?: () => void;
-  /** Conservé pour compatibilité avec l’appelant. */
   peopleLabels?: PeopleLabels;
   cycles?: SchoolCycle[];
   cycleFilter?: "all" | SchoolCycle;
   onCycleFilterChange?: (cycle: "all" | SchoolCycle) => void;
 }
 
-const assignmentStatuses = [
-  { value: "assigned", label: "Affectes" },
-  { value: "unassigned", label: "Non affectes" },
-];
-
-function uniqueOptions(values: string[]) {
+function uniqueOptions(values: string[], locale: string) {
   return Array.from(new Set(values))
     .filter(Boolean)
-    .sort((left, right) => left.localeCompare(right, "fr"))
+    .sort((left, right) => left.localeCompare(right, locale))
     .map((value) => ({ value, label: value }));
 }
 
@@ -83,20 +79,67 @@ export function DataTableToolbar<TData>({
   canManageTeachers = false,
   supportsStaffImport = false,
   onOpenImport,
+  peopleLabels,
   cycles = [],
   cycleFilter = "all",
   onCycleFilterChange,
 }: DataTableToolbarProps<TData>) {
   const [exportingPdf, setExportingPdf] = useState(false);
+  const locale = useLocale();
+  const t = useTranslations("users.teachers.table");
+  const tPdf = useTranslations("users.teachers.pdf");
+  const tCommon = useTranslations("common");
   const isFiltered = table.getState().columnFilters.length > 0;
+
+  const assignmentStatuses = useMemo(
+    () => [
+      { value: "assigned", label: t("assigned") },
+      { value: "unassigned", label: t("unassigned") },
+    ],
+    [t],
+  );
+
+  const pdfLabels: TeacherPdfLabels = useMemo(
+    () => ({
+      listTitle: tPdf("listTitle", {
+        teachersLower: peopleLabels?.teacherPluralLower ?? "",
+      }),
+      assignedPlural: t("assigned"),
+      unassignedPlural: t("unassigned"),
+      assigned: t("assigned"),
+      unassigned: t("unassigned"),
+      active: tCommon("active"),
+      inactive: tCommon("inactive"),
+      none: tCommon("none"),
+      colIndex: "#",
+      colName: tPdf("colLastName"),
+      colContact: tPdf("colPhone"),
+      colClasses: tPdf("colClasses"),
+      colCourses: tPdf("colCourses"),
+      colStatus: t("status"),
+      teacherCount: tPdf("teacherCount", { count: "{count}" }),
+      classPrefix: t("classes"),
+      classesCount: t("classes"),
+      coursesCount: t("courses"),
+      filterAssignment: t("assignment"),
+      filterClass: t("classes"),
+      filterClasses: t("classes"),
+      filterCourse: t("courses"),
+      filterCourses: t("courses"),
+    }),
+    [t, tPdf, tCommon, peopleLabels?.teacherPluralLower],
+  );
+
   const teachers = table
     .getPreFilteredRowModel()
     .rows.map((row) => row.original as ITeacher);
   const classOptions = uniqueOptions(
     teachers.flatMap((teacher) => teacher.classNames ?? []),
+    locale,
   );
   const courseOptions = uniqueOptions(
     teachers.flatMap((teacher) => teacher.courseNames ?? []),
+    locale,
   );
   const hasRows = table.getFilteredRowModel().rows.length > 0;
 
@@ -106,21 +149,24 @@ export function DataTableToolbar<TData>({
       const filteredTeachers = table
         .getFilteredRowModel()
         .rows.map((row) => row.original as ITeacher);
-      const options = resolveReportOptions(table as Table<unknown>);
+      const options: TeacherReportOptions = {
+        ...resolveReportOptions(table as Table<unknown>),
+        labels: pdfLabels,
+      };
       const [context, error] = await getTeacherReportContextAction();
       if (error || !context) {
-        throw new Error(
-          error?.message || "Impossible de charger les informations du rapport.",
-        );
+        throw new Error(error?.message || tCommon("errorGeneric"));
       }
       await exportTeachersReportPdf(filteredTeachers, context, options);
-      toast.success("Le rapport PDF des enseignants a été généré.");
+      toast.success(
+        tPdf("generated", {
+          teachersLower: peopleLabels?.teacherPluralLower ?? "",
+        }),
+      );
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Impossible de générer le rapport PDF.",
+        error instanceof Error ? error.message : tPdf("generateFailed"),
       );
     } finally {
       setExportingPdf(false);
@@ -132,7 +178,7 @@ export function DataTableToolbar<TData>({
       <div className="relative w-full lg:max-w-[300px]">
         <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground/40" />
         <Input
-          placeholder="Rechercher par nom, prénom ou postnom..."
+          placeholder={t("searchPlaceholder")}
           value={(table.getColumn("nom")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("nom")?.setFilterValue(event.target.value)
@@ -150,10 +196,10 @@ export function DataTableToolbar<TData>({
             }
           >
             <SelectTrigger className="h-8 w-[170px]">
-              <SelectValue placeholder="Cycle" />
+              <SelectValue placeholder={tCommon("all")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous les cycles</SelectItem>
+              <SelectItem value="all">{tCommon("all")}</SelectItem>
               {cycles.map((cycle) => (
                 <SelectItem key={cycle} value={cycle}>
                   {cycleLabel(cycle)}
@@ -165,7 +211,7 @@ export function DataTableToolbar<TData>({
         {table.getColumn("assignmentStatus") ? (
           <DataTableFacetedFilter
             column={table.getColumn("assignmentStatus")}
-            title="Affectation"
+            title={t("assignment")}
             options={assignmentStatuses}
             value="all"
             onValueChange={() => undefined}
@@ -174,7 +220,7 @@ export function DataTableToolbar<TData>({
         {classOptions.length > 0 && table.getColumn("classNames") ? (
           <DataTableFacetedFilter
             column={table.getColumn("classNames")}
-            title="Classe"
+            title={t("classes")}
             options={classOptions}
             value="all"
             onValueChange={() => undefined}
@@ -183,7 +229,7 @@ export function DataTableToolbar<TData>({
         {courseOptions.length > 0 && table.getColumn("courseNames") ? (
           <DataTableFacetedFilter
             column={table.getColumn("courseNames")}
-            title="Cours"
+            title={t("courses")}
             options={courseOptions}
             value="all"
             onValueChange={() => undefined}
@@ -196,7 +242,7 @@ export function DataTableToolbar<TData>({
           loading={exportingPdf}
           disabled={!hasRows || exportingPdf}
         >
-          {exportingPdf ? "Génération..." : "Rapport PDF"}
+          {exportingPdf ? tCommon("loading") : t("exportPdf")}
         </Button>
         {isFiltered ? (
           <Button
@@ -204,7 +250,7 @@ export function DataTableToolbar<TData>({
             size="sm"
             onClick={() => table.resetColumnFilters()}
           >
-            Reinitialiser
+            {tCommon("reset")}
             <IconX className="ml-2 size-4" />
           </Button>
         ) : null}
@@ -215,7 +261,7 @@ export function DataTableToolbar<TData>({
             leftSection={<IconUpload size={16} />}
             onClick={() => onOpenImport?.()}
           >
-            Importer
+            {t("import")}
           </Button>
         ) : null}
         <DataTableViewOptions table={table} />

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +56,9 @@ export function CarteEnseignantComplete({ teacher }: Props) {
   const [teaching, setTeaching] = useState<ITeaching[]>([]);
   const [schedules, setSchedules] = useState<HoraireJour[]>([]);
   const [loading, setLoading] = useState(true);
+  const tProfile = useTranslations("users.teachers.profile");
+  const tSchedule = useTranslations("users.teachers.schedule");
+  const tCommon = useTranslations("common");
 
   /* =========================
      TEACHING
@@ -157,7 +161,7 @@ export function CarteEnseignantComplete({ teacher }: Props) {
               <AccordionTrigger>
                 <h3 className="flex items-center gap-2 text-lg font-semibold">
                   <GraduationCap className="h-5 w-5" />
-                  Cours dispensés
+                  {tProfile("coursesTaught")}
                 </h3>
               </AccordionTrigger>
 
@@ -170,7 +174,7 @@ export function CarteEnseignantComplete({ teacher }: Props) {
                       </Badge>
                     ))
                   ) : (
-                    <div>Aucun cours</div>
+                    <div>{tProfile("noCoursesShort")}</div>
                   )}
                 </div>
               </AccordionContent>
@@ -181,13 +185,13 @@ export function CarteEnseignantComplete({ teacher }: Props) {
               <AccordionTrigger>
                 <h3 className="flex items-center gap-2 text-lg font-semibold">
                   <CalendarDays className="h-5 w-5" />
-                  Emploi du temps complet
+                  {tProfile("fullSchedule")}
                 </h3>
               </AccordionTrigger>
 
               <AccordionContent>
                 {loading ? (
-                  <div>Chargement...</div>
+                  <div>{tCommon("loading")}</div>
                 ) : (
                   <div className="space-y-4">
                     {DAYS.map((day) => (
@@ -199,16 +203,16 @@ export function CarteEnseignantComplete({ teacher }: Props) {
 
                         {grouped[day].length === 0 ? (
                           <p className="text-sm text-muted-foreground">
-                            Aucun cours
+                            {tProfile("noCoursesShort")}
                           </p>
                         ) : (
                           <ScrollArea className="max-h-[180px]">
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead>Classe</TableHead>
-                                  <TableHead>Cours</TableHead>
-                                  <TableHead>Heure</TableHead>
+                                  <TableHead>{tSchedule("class")}</TableHead>
+                                  <TableHead>{tSchedule("course")}</TableHead>
+                                  <TableHead>{tSchedule("hour")}</TableHead>
                                 </TableRow>
                               </TableHeader>
 

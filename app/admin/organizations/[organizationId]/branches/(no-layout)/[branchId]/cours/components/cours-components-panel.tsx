@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,8 @@ export function CoursComponentsPanel({
   parentCoursId: string;
   parentName: string;
 }) {
+  const t = useTranslations("teaching.courses.components");
+  const tc = useTranslations("common");
   const [rows, setRows] = useState<ICours[]>([]);
   const [label, setLabel] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,7 +31,7 @@ export function CoursComponentsPanel({
   async function reload() {
     const [data, error] = await getCoursComponentsAction({ parentCoursId });
     if (error) {
-      toast.error(error.message ?? "Chargement impossible");
+      toast.error(error.message ?? t("loadFailed"));
       return;
     }
     setRows(data ?? []);
@@ -41,7 +44,7 @@ export function CoursComponentsPanel({
   async function addComponent() {
     const name = label.trim();
     if (name.length < 2) {
-      toast.error("Indiquez un nom de poste (min. 2 caractères)");
+      toast.error(t("nameTooShort"));
       return;
     }
     setLoading(true);
@@ -51,11 +54,11 @@ export function CoursComponentsPanel({
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message ?? "Création impossible");
+      toast.error(error.message ?? t("createFailed"));
       return;
     }
     setLabel("");
-    toast.success("Poste d'horaire ajouté");
+    toast.success(t("added"));
     await reload();
   }
 
@@ -64,10 +67,10 @@ export function CoursComponentsPanel({
     const [, error] = await deleteCoursComponentAction({ id });
     setLoading(false);
     if (error) {
-      toast.error(error.message ?? "Suppression impossible");
+      toast.error(error.message ?? t("deleteFailed"));
       return;
     }
-    toast.success("Poste supprimé");
+    toast.success(t("deleted"));
     await reload();
   }
 
@@ -78,11 +81,11 @@ export function CoursComponentsPanel({
       nameCours,
     });
     if (error) {
-      toast.error(error.message ?? "Mise à jour impossible");
+      toast.error(error.message ?? t("updateFailed"));
       await reload();
       return;
     }
-    toast.success("Poste mis à jour");
+    toast.success(t("updated"));
     await reload();
   }
 
@@ -90,14 +93,13 @@ export function CoursComponentsPanel({
     <div className="w-full min-w-0 space-y-3 rounded-lg border p-3">
       <div className="flex min-w-0 items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-sm font-medium">Postes d&apos;horaire</p>
+          <p className="text-sm font-medium">{t("title")}</p>
           <p className="text-xs text-muted-foreground">
-            Visibles sur l&apos;emploi du temps et l&apos;affectation. Les notes
-            restent sur « {parentName} ». Un seul enseignant pour tout le groupe.
+            {t("desc", { parent: parentName })}
           </p>
         </div>
         <Badge variant="outline" className="shrink-0">
-          Horaire seul
+          {t("badge")}
         </Badge>
       </div>
 
@@ -106,7 +108,7 @@ export function CoursComponentsPanel({
           className="min-w-0 flex-1"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
-          placeholder="Ex. Écriture, Récitation…"
+          placeholder={t("placeholder")}
           disabled={loading}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -123,7 +125,7 @@ export function CoursComponentsPanel({
           onClick={() => void addComponent()}
         >
           <IconPlus className="mr-1 size-4" />
-          Ajouter
+          {t("add")}
         </Button>
       </div>
 
@@ -153,7 +155,7 @@ export function CoursComponentsPanel({
               variant="ghost"
               className="shrink-0 text-destructive"
               disabled={loading}
-              title="Supprimer le poste"
+              title={t("deleteTitle")}
               onClick={() => void removeComponent(row.id)}
             >
               <IconTrash className="size-4" />
@@ -161,9 +163,7 @@ export function CoursComponentsPanel({
           </li>
         ))}
         {!rows.length ? (
-          <li className="text-xs text-muted-foreground">
-            Aucun poste — le cours reste une seule ligne à l&apos;horaire.
-          </li>
+          <li className="text-xs text-muted-foreground">{t("empty")}</li>
         ) : null}
       </ul>
     </div>

@@ -5,6 +5,7 @@ import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import * as React from "react";
 import { IconArchive, IconReload, IconTrash } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,8 @@ export function DeleteParentDialog({
 }: DeleteParentDialogProps) {
   const [isPending, startTransition] = useTransition();
   const { refresh } = useRefresh();
+  const t = useTranslations("users.parents.delete");
+  const tCommon = useTranslations("common");
 
   const handleConfirm = () => {
     startTransition(async () => {
@@ -60,9 +63,7 @@ export function DeleteParentDialog({
           if (error) {
             toast.error(
               error.message ??
-                (permanent
-                  ? "Erreur lors de la suppression"
-                  : "Erreur lors de l'archivage"),
+                (permanent ? tCommon("errorDelete") : tCommon("errorArchive")),
             );
             continue;
           }
@@ -72,15 +73,13 @@ export function DeleteParentDialog({
             toast.success(
               result.message ??
                 (permanent
-                  ? "Parent désactivé dans la branche"
-                  : "Parent archivé"),
+                  ? t("deactivatedOne")
+                  : t("archivedOne")),
             );
           } else {
             toast.error(
               result?.message ??
-                (permanent
-                  ? "Erreur lors de la suppression"
-                  : "Erreur lors de l'archivage"),
+                (permanent ? tCommon("errorDelete") : tCommon("errorArchive")),
             );
           }
         }
@@ -92,7 +91,7 @@ export function DeleteParentDialog({
         }
       } catch (err: unknown) {
         const message =
-          err instanceof Error ? err.message : "Erreur serveur";
+          err instanceof Error ? err.message : tCommon("errorGeneric");
         toast.error(message);
       }
     });
@@ -110,7 +109,9 @@ export function DeleteParentDialog({
             ) : (
               <IconArchive className="mr-2 size-4" aria-hidden="true" />
             )}
-            {permanent ? `Supprimer (${count})` : `Archiver (${count})`}
+            {permanent
+              ? `${tCommon("delete")} (${count})`
+              : `${tCommon("archive")} (${count})`}
           </Button>
         </DialogTrigger>
       ) : null}
@@ -119,29 +120,29 @@ export function DeleteParentDialog({
           <DialogTitle>
             {permanent
               ? count === 1
-                ? "Désactiver le parent dans cette branche ?"
-                : `Désactiver ${count} parents dans cette branche ?`
+                ? t("deactivateOne")
+                : t("deactivateMany", { count })
               : count === 1
-                ? "Archiver le parent ?"
-                : `Archiver ${count} parents ?`}
+                ? t("archiveOne")
+                : t("archiveMany", { count })}
           </DialogTitle>
           <DialogDescription>
             {permanent
               ? count === 1
-                ? "Il ne sera plus visible dans cette branche, mais restera membre de l'organisation. Tout l'historique (paiements, etc.) est conservé pour les rapports. Ses autres branches ne sont pas affectées."
-                : "Ils ne seront plus visibles dans cette branche, mais resteront membres de l'organisation. L'historique est conservé pour les rapports."
+                ? t("permanentDescOne")
+                : t("permanentDescMany")
               : count === 1
-                ? "Le parent sera désactivé dans cette branche seulement. L'historique reste disponible pour les rapports ; les autres branches ne sont pas affectées."
-                : "Ces parents seront désactivés dans cette branche seulement. L'historique reste disponible pour les rapports."}
+                ? t("archiveDescOne")
+                : t("archiveDescMany")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
           <DialogClose asChild>
-            <Button variant="outline">Annuler</Button>
+            <Button variant="outline">{tCommon("cancel")}</Button>
           </DialogClose>
           <Button
             aria-label={
-              permanent ? "Désactiver dans la branche" : "Archiver la sélection"
+              permanent ? t("deactivateInBranch") : tCommon("archiveSelection")
             }
             variant={permanent ? "destructive" : "outline"}
             onClick={handleConfirm}
@@ -153,7 +154,7 @@ export function DeleteParentDialog({
                 aria-hidden="true"
               />
             )}
-            {permanent ? "Désactiver" : "Archiver"}
+            {permanent ? tCommon("deactivate") : tCommon("archive")}
           </Button>
         </DialogFooter>
       </DialogContent>

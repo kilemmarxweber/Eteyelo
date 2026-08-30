@@ -11,13 +11,37 @@ import type { SchoolReportContext } from "@/lib/reports/types";
 
 export type TeacherAssignmentStatus = "assigned" | "unassigned";
 
+export type TeacherPdfLabels = {
+  listTitle: string;
+  assignedPlural: string;
+  unassignedPlural: string;
+  assigned: string;
+  unassigned: string;
+  active: string;
+  inactive: string;
+  none: string;
+  colIndex: string;
+  colName: string;
+  colContact: string;
+  colClasses: string;
+  colCourses: string;
+  colStatus: string;
+  teacherCount: string;
+  classPrefix: string;
+  classesCount: string;
+  coursesCount: string;
+  filterAssignment: string;
+  filterClass: string;
+  filterClasses: string;
+  filterCourse: string;
+  filterCourses: string;
+};
+
 export type TeacherReportOptions = {
-  /** Filtre affectation UI si un seul statut actif. */
   assignmentStatus?: TeacherAssignmentStatus | null;
-  /** Filtre classe UI (une ou plusieurs). */
   classNames?: string[];
-  /** Filtre cours / matière UI (une ou plusieurs). */
   courseNames?: string[];
+  labels: TeacherPdfLabels;
 };
 
 function safeFilePart(value: string) {
@@ -27,10 +51,6 @@ function safeFilePart(value: string) {
     .replace(/[^a-zA-Z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .toLowerCase();
-}
-
-function assignmentStatusLabel(status: TeacherAssignmentStatus): string {
-  return status === "assigned" ? "Affectés" : "Non affectés";
 }
 
 function formatFullName(teacher: ITeacher): string {
@@ -47,78 +67,89 @@ function formatContact(teacher: ITeacher): string {
   return parts.length > 0 ? parts.join(" · ") : "-";
 }
 
-function formatList(values: string[] | undefined, empty = "-"): string {
+function formatList(values: string[] | undefined, empty: string): string {
   if (!values?.length) return empty;
   return values.join(", ");
 }
 
-function teacherStatusLabel(teacher: ITeacher): string {
+function teacherStatusLabel(
+  teacher: ITeacher,
+  labels: TeacherPdfLabels,
+): string {
   if (teacher.assignmentStatus === "assigned") {
     const count = teacher.assignmentCount;
     return typeof count === "number" && count > 0
-      ? `Affecté (${count})`
-      : "Affecté";
+      ? `${labels.assigned} (${count})`
+      : labels.assigned;
   }
-  if (teacher.assignmentStatus === "unassigned") return "Non affecté";
-  return teacher.statusUser === false ? "Inactif" : "Actif";
+  if (teacher.assignmentStatus === "unassigned") return labels.unassigned;
+  return teacher.statusUser === false ? labels.inactive : labels.active;
 }
 
-/** Titre PDF aligné sur l'intention des filtres UI. */
-export function buildTeachersReportTitle(
-  options: TeacherReportOptions = {},
-): string {
+export function buildTeachersReportTitle(options: TeacherReportOptions): string {
+  const { labels } = options;
   const assignmentStatus = options.assignmentStatus ?? null;
   const classNames = options.classNames ?? [];
   const courseNames = options.courseNames ?? [];
 
-  let title = "Liste des enseignants";
+  let title = labels.listTitle;
 
   if (assignmentStatus) {
-    title = `Liste des enseignants — ${assignmentStatusLabel(assignmentStatus)}`;
+    title = `${title} — ${
+      assignmentStatus === "assigned"
+        ? labels.assignedPlural
+        : labels.unassignedPlural
+    }`;
   }
 
   if (classNames.length === 1) {
-    title = `${title} — Classe ${classNames[0]}`;
+    title = `${title} — ${labels.classPrefix} ${classNames[0]}`;
   } else if (classNames.length > 1) {
-    title = `${title} — ${classNames.length} classes`;
+    title = `${title} — ${classNames.length} ${labels.classesCount}`;
   }
 
   if (courseNames.length === 1) {
     title = `${title} — ${courseNames[0]}`;
   } else if (courseNames.length > 1) {
-    title = `${title} — ${courseNames.length} cours`;
+    title = `${title} — ${courseNames.length} ${labels.coursesCount}`;
   }
 
   return title;
 }
 
-/** Libellés des filtres actifs (pour sous-titre / métadonnées). */
 export function buildTeachersReportFilterLabels(
-  options: TeacherReportOptions = {},
+  options: TeacherReportOptions,
 ): string[] {
-  const labels: string[] = [];
+  const { labels } = options;
+  const result: string[] = [];
   const assignmentStatus = options.assignmentStatus ?? null;
   const classNames = options.classNames ?? [];
   const courseNames = options.courseNames ?? [];
 
   if (assignmentStatus) {
-    labels.push(`Affectation : ${assignmentStatusLabel(assignmentStatus)}`);
+    result.push(
+      `${labels.filterAssignment} : ${
+        assignmentStatus === "assigned"
+          ? labels.assignedPlural
+          : labels.unassignedPlural
+      }`,
+    );
   }
   if (classNames.length === 1) {
-    labels.push(`Classe : ${classNames[0]}`);
+    result.push(`${labels.filterClass} : ${classNames[0]}`);
   } else if (classNames.length > 1) {
-    labels.push(`Classes : ${classNames.join(", ")}`);
+    result.push(`${labels.filterClasses} : ${classNames.join(", ")}`);
   }
   if (courseNames.length === 1) {
-    labels.push(`Cours : ${courseNames[0]}`);
+    result.push(`${labels.filterCourse} : ${courseNames[0]}`);
   } else if (courseNames.length > 1) {
-    labels.push(`Cours : ${courseNames.join(", ")}`);
+    result.push(`${labels.filterCourses} : ${courseNames.join(", ")}`);
   }
 
-  return labels;
+  return result;
 }
 
-function buildReportFileName(options: TeacherReportOptions = {}): string {
+function buildReportFileName(options: TeacherReportOptions): string {
   const parts = ["liste-enseignants"];
   const assignmentStatus = options.assignmentStatus ?? null;
   const classNames = options.classNames ?? [];
@@ -135,21 +166,29 @@ function buildReportFileName(options: TeacherReportOptions = {}): string {
 export async function buildTeachersReportPdf(
   teachers: ITeacher[],
   context: SchoolReportContext,
-  options: TeacherReportOptions = {},
+  options: TeacherReportOptions,
 ) {
+  const { labels } = options;
   const title = buildTeachersReportTitle(options);
   const filterLabels = buildTeachersReportFilterLabels(options);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
-  const head = ["#", "Nom", "Contact", "Classes", "Matières", "Statut"];
+  const head = [
+    labels.colIndex,
+    labels.colName,
+    labels.colContact,
+    labels.colClasses,
+    labels.colCourses,
+    labels.colStatus,
+  ];
   const body = teachers.map((teacher, index) => [
     index + 1,
     formatFullName(teacher),
     formatContact(teacher),
-    formatList(teacher.classNames, "Aucune"),
-    formatList(teacher.courseNames, "Aucune"),
-    teacherStatusLabel(teacher),
+    formatList(teacher.classNames, labels.none),
+    formatList(teacher.courseNames, labels.none),
+    teacherStatusLabel(teacher, labels),
   ]);
 
   autoTable(doc, {
@@ -190,7 +229,10 @@ export async function buildTeachersReportPdf(
       drawReportHeader(doc, context, {
         title,
         subtitle: context.branchName,
-        details: [...filterLabels, `${teachers.length} enseignant(s)`],
+        details: [
+          ...filterLabels,
+          labels.teacherCount.replace("{count}", String(teachers.length)),
+        ],
         logoDataUrl: logo,
       });
     },
@@ -206,7 +248,7 @@ export async function buildTeachersReportPdf(
 export async function exportTeachersReportPdf(
   teachers: ITeacher[],
   context: SchoolReportContext,
-  options: TeacherReportOptions = {},
+  options: TeacherReportOptions,
 ) {
   const date = new Date().toISOString().slice(0, 10);
   const reportName = buildReportFileName(options);

@@ -5,6 +5,7 @@ import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import * as React from "react";
 import { IconArchive, IconReload, IconTrash } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import {
   deleteOptionPermanentlyAction,
 } from "../option.action";
 import { useRefresh } from "@/src/hooks/RefreshContext";
+import type { TrainingLabelKey } from "@/lib/training-labels";
 
 interface DeleteOptionsDialogProps
   extends React.ComponentPropsWithoutRef<typeof Dialog> {
@@ -31,6 +33,7 @@ interface DeleteOptionsDialogProps
   onSuccess?: () => void;
   Options: Row<IOption>["original"][];
   permanent?: boolean;
+  labelKey?: TrainingLabelKey;
 }
 
 function optionClassesCount(option: IOption) {
@@ -42,8 +45,13 @@ export function DeleteOptionsDialog({
   onSuccess,
   Options,
   permanent = false,
+  labelKey = "school",
   ...props
 }: DeleteOptionsDialogProps) {
+  const tClasses = useTranslations("classes");
+  const tCommon = useTranslations("common");
+  const tOption = (key: string, values?: Record<string, string | number>) =>
+    tClasses(`option.${labelKey}.${key}`, values);
   const [isPending, startTransition] = useTransition();
   const { refresh } = useRefresh();
 
@@ -69,9 +77,7 @@ export function DeleteOptionsDialog({
         if (err) {
           toast.error(
             err.message ??
-              (permanent
-                ? "Erreur lors de la suppression"
-                : "Erreur lors de l'archivage"),
+              (permanent ? tCommon("errorDelete") : tCommon("errorArchive")),
           );
           hasError = true;
         }
@@ -80,11 +86,11 @@ export function DeleteOptionsDialog({
         toast.success(
           permanent
             ? count === 1
-              ? "Option supprimée"
-              : "Options supprimées"
+              ? tOption("deleted")
+              : tOption("deletedPlural")
             : count === 1
-              ? "Option archivée"
-              : "Options archivées",
+              ? tOption("archived")
+              : tOption("archivedPlural"),
         );
         refresh();
         onSuccess?.();
@@ -92,6 +98,28 @@ export function DeleteOptionsDialog({
       }
     });
   };
+
+  const dialogTitle = blocked
+    ? tCommon("cannotDelete")
+    : permanent
+      ? count === 1
+        ? tOption("deleteOne")
+        : tOption("deleteMany", { count })
+      : count === 1
+        ? tOption("archiveOne")
+        : tOption("archiveMany", { count });
+
+  const dialogDescription = blocked
+    ? count === 1
+      ? tOption("blockedOne", { classCount: blockedCount })
+      : tOption("blockedMany", { classCount: blockedCount })
+    : permanent
+      ? count === 1
+        ? tOption("irreversibleOne")
+        : tOption("irreversibleMany")
+      : count === 1
+        ? tOption("hiddenOne")
+        : tOption("hiddenMany");
 
   return (
     <Dialog {...props}>
@@ -103,7 +131,9 @@ export function DeleteOptionsDialog({
             ) : (
               <IconArchive className="mr-2 size-4" aria-hidden="true" />
             )}
-            {permanent ? `Supprimer (${count})` : `Archiver (${count})`}
+            {permanent
+              ? `${tCommon("delete")} (${count})`
+              : `${tCommon("archive")} (${count})`}
           </Button>
         </DialogTrigger>
       ) : null}
@@ -112,39 +142,21 @@ export function DeleteOptionsDialog({
         onCloseAutoFocus={(event) => event.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>
-            {blocked
-              ? "Impossible de supprimer"
-              : permanent
-                ? count === 1
-                  ? "Supprimer l'option ?"
-                  : `Supprimer ${count} options ?`
-                : count === 1
-                  ? "Archiver l'option ?"
-                  : `Archiver ${count} options ?`}
-          </DialogTitle>
-          <DialogDescription>
-            {blocked
-              ? count === 1
-                ? `Cette option a encore ${blockedCount} classe${blockedCount > 1 ? "s" : ""}. Supprimez d'abord ${blockedCount > 1 ? "ces classes" : "cette classe"} avant de supprimer l'option.`
-                : `Ces options ont encore ${blockedCount} classe${blockedCount > 1 ? "s" : ""} liée${blockedCount > 1 ? "s" : ""}. Supprimez d'abord ces classes avant de supprimer les options.`
-              : permanent
-                ? count === 1
-                  ? "Cette action est irréversible. L'option sera effacée définitivement."
-                  : "Cette action est irréversible. Ces options seront effacées définitivement."
-                : count === 1
-                  ? "L'option sera masquée des listes actives mais l'historique sera conservé."
-                  : "Ces options seront masquées des listes actives mais l'historique sera conservé."}
-          </DialogDescription>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogDescription>{dialogDescription}</DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
           <DialogClose asChild>
-            <Button variant="outline">{blocked ? "Fermer" : "Annuler"}</Button>
+            <Button variant="outline">
+              {blocked ? tCommon("close") : tCommon("cancel")}
+            </Button>
           </DialogClose>
           {blocked ? null : (
             <Button
               aria-label={
-                permanent ? "Supprimer la sélection" : "Archiver la sélection"
+                permanent
+                  ? tCommon("deleteSelection")
+                  : tCommon("archiveSelection")
               }
               variant="destructive"
               onClick={handleConfirm}
@@ -160,7 +172,7 @@ export function DeleteOptionsDialog({
               ) : (
                 <IconArchive className="mr-2 size-4" aria-hidden="true" />
               )}
-              {permanent ? "Supprimer" : "Archiver"}
+              {permanent ? tCommon("delete") : tCommon("archive")}
             </Button>
           )}
         </DialogFooter>

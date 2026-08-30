@@ -4,6 +4,7 @@ import { HTMLAttributes, useState, useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslations } from "next-intl";
 import {
   Form,
   FormControl,
@@ -34,6 +35,7 @@ import {
 import { getSectionsAction } from "../../section/section.action";
 import { optionSchema } from "@/src/interfaces/Option";
 import { ISection } from "@/src/interfaces/Section";
+import type { TrainingLabelKey } from "@/lib/training-labels";
 
 interface OptionUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: () => void;
@@ -42,6 +44,7 @@ interface OptionUpFormProps extends HTMLAttributes<HTMLDivElement> {
   initialData?: z.infer<typeof optionSchema>;
   mode: "create" | "update";
   layout?: "default" | "dialog";
+  labelKey?: TrainingLabelKey;
 }
 
 export function OptionUpForm({
@@ -52,8 +55,12 @@ export function OptionUpForm({
   initialData,
   mode,
   layout = "default",
+  labelKey = "school",
   ...props
 }: OptionUpFormProps) {
+  const tClasses = useTranslations("classes");
+  const tCommon = useTranslations("common");
+  const tOption = (key: string) => tClasses(`option.${labelKey}.${key}`);
   const isDialog = layout === "dialog";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -95,7 +102,7 @@ export function OptionUpForm({
         if (err) {
           throw new Error(err.message);
         }
-        toast.success("Option créée avec succès");
+        toast.success(tOption("created"));
       } else {
         const [, err] = await updateOptionAction({
           ...data,
@@ -103,7 +110,7 @@ export function OptionUpForm({
         if (err) {
           throw new Error(err.message);
         }
-        toast.success("Option mise à jour avec succès");
+        toast.success(tOption("updated"));
       }
 
       if (mode === "create") {
@@ -116,12 +123,12 @@ export function OptionUpForm({
       onSuccess?.();
     } catch (error: unknown) {
       const message =
-        error instanceof Error ? error.message : "Une erreur est survenue";
+        error instanceof Error ? error.message : tCommon("errorGeneric");
       setErrorMessage(message);
       toast.error(
         mode === "create"
-          ? message || "Échec de la création de l'option"
-          : message || "Échec de la mise à jour de l'option",
+          ? message || tOption("createFail")
+          : message || tOption("updateFail"),
       );
     } finally {
       setIsLoading(false);
@@ -154,10 +161,12 @@ export function OptionUpForm({
               name="nameOption"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Nom de l&apos;option</FormLabel>
+                  <FormLabel className={labelClass}>
+                    {tOption("name")}
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Ex. Bio-Chimie, Math-Physique…"
+                      placeholder={tOption("namePlaceholder")}
                       className={controlClass}
                       {...field}
                     />
@@ -172,7 +181,9 @@ export function OptionUpForm({
               name="sectionId"
               render={({ field }) => (
                 <FormItem className={cn(fieldClass, "flex flex-col")}>
-                  <FormLabel className={labelClass}>Section</FormLabel>
+                  <FormLabel className={labelClass}>
+                    {tOption("sectionCol")}
+                  </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -190,7 +201,7 @@ export function OptionUpForm({
                             ? sections.find(
                                 (section) => section.id === field.value,
                               )?.nameSection
-                            : "Choisir une section"}
+                            : tOption("chooseSection")}
                           <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </FormControl>
@@ -198,12 +209,12 @@ export function OptionUpForm({
                     <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
                       <Command>
                         <CommandInput
-                          placeholder="Rechercher une section…"
+                          placeholder={tOption("searchSection")}
                           value={searchTerm}
                           onValueChange={setSearchTerm}
                         />
                         <CommandList>
-                          <CommandEmpty>Aucune section trouvée.</CommandEmpty>
+                          <CommandEmpty>{tOption("noSection")}</CommandEmpty>
                           <CommandGroup>
                             {filteredSections.map((section) => (
                               <CommandItem
@@ -236,8 +247,7 @@ export function OptionUpForm({
 
             {mode === "create" && isDialog ? (
               <p className="rounded-md border bg-muted/30 p-2.5 text-xs text-muted-foreground sm:col-span-2">
-                Le code sera généré automatiquement et restera unique dans cette
-                branche.
+                {tCommon("codeAutoGenerated")}
               </p>
             ) : null}
 
@@ -251,9 +261,7 @@ export function OptionUpForm({
                 )}
                 loading={isLoading}
               >
-                {mode === "create"
-                  ? "Enregistrer l'option"
-                  : "Mettre à jour l'option"}
+                {mode === "create" ? tOption("save") : tOption("update")}
               </Button>
             </div>
 

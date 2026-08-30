@@ -13,9 +13,25 @@ import type { IPersonnel } from "@/src/interfaces/Personnel";
 
 export type PersonnelSexeFilter = "M" | "F";
 
+export type PersonnelPdfLabels = {
+  listTitle: string;
+  masculine: string;
+  feminine: string;
+  active: string;
+  inactive: string;
+  roleUndefined: string;
+  colIndex: string;
+  colIdentity: string;
+  colFunction: string;
+  colStatus: string;
+  colContact: string;
+  personnelCount: string;
+  filterGender: string;
+};
+
 export type PersonnelReportOptions = {
-  /** Filtre sexe UI si un seul statut actif. */
   sexe?: PersonnelSexeFilter | null;
+  labels: PersonnelPdfLabels;
 };
 
 function safeFilePart(value: string) {
@@ -27,8 +43,8 @@ function safeFilePart(value: string) {
     .toLowerCase();
 }
 
-function sexeLabel(sexe: PersonnelSexeFilter): string {
-  return sexe === "M" ? "Masculin" : "Féminin";
+function sexeLabel(sexe: PersonnelSexeFilter, labels: PersonnelPdfLabels): string {
+  return sexe === "M" ? labels.masculine : labels.feminine;
 }
 
 function formatFullName(personnel: IPersonnel): string {
@@ -46,45 +62,51 @@ function formatContact(personnel: IPersonnel): string {
   return parts.length > 0 ? parts.join(" · ") : "-";
 }
 
-function formatFonction(personnel: IPersonnel): string {
-  return personnel.role ? orgRoleLabel(personnel.role) : "Non défini";
-}
-
-function personnelStatusLabel(personnel: IPersonnel): string {
-  if (personnel.statusPersonnal === false) return "Inactif";
-  if (personnel.statusUser === false) return "Inactif";
-  return "Actif";
-}
-
-/** Titre PDF aligné sur l'intention des filtres UI. */
-export function buildPersonnelReportTitle(
-  options: PersonnelReportOptions = {},
+function formatFonction(
+  personnel: IPersonnel,
+  roleUndefined: string,
 ): string {
+  return personnel.role ? orgRoleLabel(personnel.role) : roleUndefined;
+}
+
+function personnelStatusLabel(
+  personnel: IPersonnel,
+  labels: PersonnelPdfLabels,
+): string {
+  if (personnel.statusPersonnal === false) return labels.inactive;
+  if (personnel.statusUser === false) return labels.inactive;
+  return labels.active;
+}
+
+export function buildPersonnelReportTitle(
+  options: PersonnelReportOptions,
+): string {
+  const { labels } = options;
   const sexe = options.sexe ?? null;
-  let title = "Liste du personnel";
+  let title = labels.listTitle;
 
   if (sexe) {
-    title = `${title} — ${sexeLabel(sexe)}`;
+    title = `${title} — ${sexeLabel(sexe, labels)}`;
   }
 
   return title;
 }
 
-/** Libellés des filtres actifs (pour sous-titre / métadonnées). */
 export function buildPersonnelReportFilterLabels(
-  options: PersonnelReportOptions = {},
+  options: PersonnelReportOptions,
 ): string[] {
-  const labels: string[] = [];
+  const { labels } = options;
+  const result: string[] = [];
   const sexe = options.sexe ?? null;
 
   if (sexe) {
-    labels.push(`Sexe : ${sexeLabel(sexe)}`);
+    result.push(`${labels.filterGender} ${sexeLabel(sexe, labels)}`);
   }
 
-  return labels;
+  return result;
 }
 
-function buildReportFileName(options: PersonnelReportOptions = {}): string {
+function buildReportFileName(options: PersonnelReportOptions): string {
   const parts = ["liste-personnel"];
   const sexe = options.sexe ?? null;
 
@@ -97,21 +119,33 @@ function buildReportFileName(options: PersonnelReportOptions = {}): string {
 export async function buildPersonnelReportPdf(
   personnels: IPersonnel[],
   context: SchoolReportContext,
-  options: PersonnelReportOptions = {},
+  options: PersonnelReportOptions,
 ) {
+  const { labels } = options;
   const title = buildPersonnelReportTitle(options);
   const filterLabels = buildPersonnelReportFilterLabels(options);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
-  const head = ["#", "Identité", "Fonction", "Statut", "Contact"];
+  const head = [
+    labels.colIndex,
+    labels.colIdentity,
+    labels.colFunction,
+    labels.colStatus,
+    labels.colContact,
+  ];
   const body = personnels.map((personnel, index) => [
     index + 1,
     formatFullName(personnel),
-    formatFonction(personnel),
-    personnelStatusLabel(personnel),
+    formatFonction(personnel, labels.roleUndefined),
+    personnelStatusLabel(personnel, labels),
     formatContact(personnel),
   ]);
+
+  const countLabel = labels.personnelCount.replace(
+    "{count}",
+    String(personnels.length),
+  );
 
   autoTable(doc, {
     startY: REPORT_HEADER_CONTENT_TOP_MM,
@@ -150,7 +184,7 @@ export async function buildPersonnelReportPdf(
       drawReportHeader(doc, context, {
         title,
         subtitle: context.branchName,
-        details: [...filterLabels, `${personnels.length} personnel(s)`],
+        details: [...filterLabels, countLabel],
         logoDataUrl: logo,
       });
     },
@@ -166,7 +200,7 @@ export async function buildPersonnelReportPdf(
 export async function exportPersonnelReportPdf(
   personnels: IPersonnel[],
   context: SchoolReportContext,
-  options: PersonnelReportOptions = {},
+  options: PersonnelReportOptions,
 ) {
   const date = new Date().toISOString().slice(0, 10);
   const reportName = buildReportFileName(options);

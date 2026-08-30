@@ -10,6 +10,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { IconListDetails } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -26,8 +27,10 @@ import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { AttendanceHourChart } from "../../../attendance/components/attendance-hour-chart";
 import { AttendanceWeekdayChart } from "../../../attendance/components/attendance-weekday-chart";
 import {
-  ATTENDANCE_PERIOD_OPTIONS,
-  MONTH_OPTIONS,
+  ATTENDANCE_PERIOD_VALUES,
+  MONTH_INDICES,
+} from "../../../attendance/attendance-labels";
+import {
   type AttendancePeriod,
   type AttendanceReportFilters,
 } from "../../../attendance/attendance-report-types";
@@ -86,6 +89,7 @@ type StudentPresenceSectionProps = {
 };
 
 export function StudentPresenceSection({ studentId }: StudentPresenceSectionProps) {
+  const t = useTranslations("attendance");
   const [filters, setFilters] = useState<AttendanceReportFilters>(defaultFilters);
   const [appliedFilters, setAppliedFilters] =
     useState<AttendanceReportFilters>(defaultFilters);
@@ -166,9 +170,9 @@ export function StudentPresenceSection({ studentId }: StudentPresenceSectionProp
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {ATTENDANCE_PERIOD_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                {ATTENDANCE_PERIOD_VALUES.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {t(`period.${value}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -189,9 +193,9 @@ export function StudentPresenceSection({ studentId }: StudentPresenceSectionProp
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {MONTH_OPTIONS.map((month, index) => (
-                  <SelectItem key={month} value={String(index)}>
-                    {month}
+                {MONTH_INDICES.map((index) => (
+                  <SelectItem key={index} value={String(index)}>
+                    {t(`months.${index}`)}
                   </SelectItem>
                 ))}
               </SelectContent>

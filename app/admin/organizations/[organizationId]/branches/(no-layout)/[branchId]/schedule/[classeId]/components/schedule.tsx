@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback, HTMLAttributes } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -126,6 +127,8 @@ export default function Schedule({
   classeId,
   ...props
 }: ScheduleUpFormProps) {
+  const t = useTranslations("teaching.schedule");
+  const tc = useTranslations("common");
   const params = useParams<{ organizationId: string; branchId: string }>();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -325,7 +328,7 @@ export default function Schedule({
 
       await loadHoraires();
       onScheduleAction?.();
-      toast.success("Cours placé dans l'horaire");
+      toast.success(t("coursePlaced"));
       closeCellDialog();
     } catch (error) {
       console.error(error);
@@ -365,7 +368,7 @@ export default function Schedule({
       setHoraires((prev) =>
         prev.filter((horaire) => horaire.id !== deleteTarget.id),
       );
-      toast.success("Cours supprimé de l'horaire");
+      toast.success(t("courseRemoved"));
       setDeleteTarget(null);
       onScheduleAction?.();
     } catch {
@@ -405,7 +408,7 @@ export default function Schedule({
         classeId,
       });
       if (err || !result) {
-        toast.error(err?.message ?? "Generation impossible");
+        toast.error(err?.message ?? t("generateFailed"));
         return;
       }
       await loadHoraires();
@@ -413,21 +416,26 @@ export default function Schedule({
       if (result.foundComplete) {
         toast.success(
           result.attempts > 1
-            ? `Horaire complet trouve apres ${result.attempts} propositions (${result.placed} seance(s)).`
-            : `Horaire genere : ${result.placed} seance(s) placee(s).`,
+            ? t("generateCompleteRetry", {
+                attempts: result.attempts,
+                placed: result.placed,
+              })
+            : t("generateCompleteFirst", { placed: result.placed }),
         );
       } else if (result.failures.length) {
         toast.warning(
-          `Meilleure proposition apres ${result.attempts} essais : ${result.placed} seance(s). ${result.failures.length} cours incomplete(s) (enseignants deja pris ailleurs ou vacation saturee). Regenerer pour reessayer.`,
+          t("generatePartial", {
+            attempts: result.attempts,
+            placed: result.placed,
+            failures: result.failures.length,
+          }),
         );
       } else {
-        toast.success(
-          `Nouvelle proposition : ${result.placed} seance(s) placee(s).`,
-        );
+        toast.success(t("generateNew", { placed: result.placed }));
       }
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de la generation de l'horaire");
+      toast.error(t("generateError"));
     } finally {
       setGenerating(false);
     }
@@ -442,7 +450,7 @@ export default function Schedule({
         <CardHeader className="gap-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle>Horaire hebdomadaire</CardTitle>
+              <CardTitle>{t("weeklyTitle")}</CardTitle>
               {reportContext && (
                 <p className="mt-1 text-sm text-muted-foreground">
                   {reportContext.classeName}
@@ -453,8 +461,7 @@ export default function Schedule({
               )}
               {canCreateSchedule && hasCreneau && (
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Cliquez sur une case vide pour y placer un cours (lundi à
-                  samedi).
+                  {t("clickEmptyCell")}
                 </p>
               )}
             </div>
@@ -467,7 +474,7 @@ export default function Schedule({
                   disabled={loading || generating || !hasCreneau || !classeId}
                 >
                   <Sparkles className="mr-2 size-4" />
-                  {generating ? "Generation..." : "Generer horaire"}
+                  {generating ? t("generating") : t("generate")}
                 </Button>
               )}
               <Button
@@ -478,7 +485,7 @@ export default function Schedule({
                 }
               >
                 <Download className="mr-2 size-4" />
-                {exporting ? "Generation..." : "Telecharger"}
+                {exporting ? t("generating") : t("download")}
               </Button>
             </div>
           </div>
@@ -490,26 +497,22 @@ export default function Schedule({
               <AlertTriangle className="mt-0.5 size-4 shrink-0" />
               <div>
                 <p className="font-semibold">
-                  {conflicts.length} conflit(s) detecte(s) dans l&apos;horaire
+                  {t("conflicts", { count: conflicts.length })}
                 </p>
-                <p>
-                  Les cours concernes sont affiches ensemble et seront signales
-                  dans le PDF.
-                </p>
+                <p>{t("conflictsHint")}</p>
               </div>
             </div>
           )}
 
           {!loading && !hasCreneau && (
             <div className="mb-6 rounded-lg border border-dashed p-6 text-center">
-              <p className="font-medium">Aucune vacation assignee a cette classe</p>
+              <p className="font-medium">{t("noVacationTitle")}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Configurez la structure de la journee (periodes et recreation)
-                puis assignez une vacation a la classe.
+                {t("noVacationDesc")}
               </p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <Button asChild>
-                  <Link href={vacationHref}>Gérer les vacations</Link>
+                  <Link href={vacationHref}>{t("manageVacations")}</Link>
                 </Button>
               </div>
             </div>
@@ -520,7 +523,7 @@ export default function Schedule({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[150px]">Heures</TableHead>
+                    <TableHead className="w-[150px]">{t("hoursColumn")}</TableHead>
                     {joursList.map((jour) => (
                       <TableHead key={jour}>{jour}</TableHead>
                     ))}
@@ -535,8 +538,10 @@ export default function Schedule({
                           className="bg-muted/40 text-center"
                         >
                           <span className="text-sm font-medium tracking-wide text-muted-foreground">
-                            Recreation ({heure} –{" "}
-                            {displayHeuresDebut[index + 1] || endTime})
+                            {t("recreationRow", {
+                              start: heure,
+                              end: displayHeuresDebut[index + 1] || endTime,
+                            })}
                           </span>
                         </TableCell>
                       </TableRow>
@@ -591,7 +596,7 @@ export default function Schedule({
                                       onClick={() => openDeleteDialog(horaire)}
                                     >
                                       <Trash2 className="h-4 w-4" />
-                                      <span className="sr-only">Retirer</span>
+                                      <span className="sr-only">{t("removeSr")}</span>
                                     </Button>
                                   )}
                                 </div>
@@ -606,7 +611,7 @@ export default function Schedule({
                                 >
                                   <Plus className="size-4" />
                                   <span className="sr-only">
-                                    Ajouter un cours le {jour} a {heure}
+                                    {t("addCourseSr", { day: jour, hour: heure })}
                                   </span>
                                 </button>
                               )}
@@ -622,7 +627,7 @@ export default function Schedule({
                         colSpan={Object.values(JOURS).length + 1}
                         className="py-3 text-center text-sm font-semibold"
                       >
-                        Fin des cours · {endTime}
+                        {t("endOfDay", { time: endTime })}
                       </TableCell>
                     </TableRow>
                   )}
@@ -634,8 +639,8 @@ export default function Schedule({
           {horaires.length === 0 && !loading && hasCreneau && (
             <p className="py-6 text-center text-sm text-muted-foreground">
               {canCreateSchedule
-                ? "Aucun cours planifie. Cliquez sur une case pour commencer."
-                : "Aucun horaire disponible pour cette classe."}
+                ? t("emptyEditable")
+                : t("emptyReadOnly")}
             </p>
           )}
         </CardContent>
@@ -649,7 +654,7 @@ export default function Schedule({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Placer un cours</DialogTitle>
+            <DialogTitle>{t("placeCourse")}</DialogTitle>
             <DialogDescription>
               {cellTarget
                 ? `${cellTarget.jour} · ${cellTarget.heureDebut} – ${cellTarget.heureFin}`
@@ -658,10 +663,10 @@ export default function Schedule({
           </DialogHeader>
 
           <div className="space-y-2">
-            <Label htmlFor="cours-cell">Cours</Label>
+            <Label htmlFor="cours-cell">{t("course")}</Label>
             <Select value={selectedCours} onValueChange={setSelectedCours}>
               <SelectTrigger id="cours-cell">
-                <SelectValue placeholder="Choisir un cours" />
+                <SelectValue placeholder={t("chooseCourse")} />
               </SelectTrigger>
               <SelectContent>
                 {uniqueCours.map((c) => (
@@ -673,22 +678,21 @@ export default function Schedule({
             </Select>
             {uniqueCours.length === 0 && (
               <p className="text-sm text-muted-foreground">
-                Aucun cours affecte a cette classe. Ajoutez d&apos;abord une
-                affectation enseignant.
+                {t("noAssignedCourses")}
               </p>
             )}
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={closeCellDialog}>
-              Annuler
+              {tc("cancel")}
             </Button>
             <Button
               type="button"
               disabled={!selectedCours || saving || uniqueCours.length === 0}
               onClick={assignCourse}
             >
-              {saving ? "Enregistrement..." : "Placer"}
+              {saving ? t("saving") : t("place")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -702,23 +706,10 @@ export default function Schedule({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Generer une nouvelle proposition d&apos;horaire ?</DialogTitle>
-            <DialogDescription>
-              Les seances generees automatiquement (AUTO) de cette classe seront
-              remplacees par une nouvelle disposition aleatoire basee sur les
-              minutes / semaine et la vacation. Les placements manuels sont
-              conserves. L&apos;occupation de chaque enseignant est respectee
-              sur les autres classes, cycles et etablissements de
-              l&apos;organisation.
-            </DialogDescription>
+            <DialogTitle>{t("confirmGenerateTitle")}</DialogTitle>
+            <DialogDescription>{t("confirmGenerateDesc")}</DialogDescription>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Si une proposition bloque des cours, le systeme enchaine
-            automatiquement d&apos;autres dispositions (jusqu&apos;a ~50 essais)
-            pour liberer une place, tout en evitant les conflits enseignants
-            (autres classes, cycles et etablissements). Vous pourrez regenerer
-            manuellement pour une autre variante.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("confirmGenerateHint")}</p>
           <DialogFooter>
             <Button
               type="button"
@@ -726,14 +717,14 @@ export default function Schedule({
               disabled={generating}
               onClick={() => setConfirmGenerateOpen(false)}
             >
-              Annuler
+              {tc("cancel")}
             </Button>
             <Button
               type="button"
               disabled={generating}
               onClick={handleGenerateSchedule}
             >
-              {generating ? "Generation..." : "Confirmer et generer"}
+              {generating ? t("generating") : t("confirmGenerate")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -747,17 +738,14 @@ export default function Schedule({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Supprimer ce cours</DialogTitle>
+            <DialogTitle>{t("deleteCourseTitle")}</DialogTitle>
             <DialogDescription>
               {deleteTarget
                 ? `${deleteTarget.cours.nameCours} · ${deleteTarget.jour} · ${deleteTarget.heureDebut} – ${deleteTarget.heureFin}`
                 : ""}
             </DialogDescription>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Cette action est définitive. Vous pourrez ensuite placer un autre
-            cours sur cette case.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("deleteCourseDesc")}</p>
           <DialogFooter>
             <Button
               type="button"
@@ -765,7 +753,7 @@ export default function Schedule({
               disabled={deleting}
               onClick={closeDeleteDialog}
             >
-              Annuler
+              {tc("cancel")}
             </Button>
             <Button
               type="button"
@@ -773,7 +761,7 @@ export default function Schedule({
               disabled={deleting}
               onClick={confirmDeleteHoraire}
             >
-              {deleting ? "Suppression..." : "Supprimer"}
+              {deleting ? t("deleting") : tc("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>

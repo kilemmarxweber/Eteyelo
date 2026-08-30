@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createParentColumns } from "./columns";
+import { useParentColumns } from "./columns";
 import { ResponsiveDataTable } from "@/components/custom";
 import { TableSkeleton } from "@/components/custom";
 import { EmptyTableState } from "@/components/custom";
@@ -12,6 +12,7 @@ import { DataTableToolbar } from "./data-table-toolbar";
 import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { UpdateParentDialog } from "./edit-parent-dialog";
+import { useTranslations } from "next-intl";
 import { useSession } from "@/lib/auth-client";
 import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 
@@ -25,6 +26,9 @@ const ParentsList = ({ refreshKey }: { refreshKey: number }) => {
   const { refreshKey: contextRefreshKey } = useRefresh();
   const { data: session } = useSession();
   const canPurgePermanently = isOrganizationOwnerSession(session);
+  const t = useTranslations("users.parents.table");
+  const tPerson = useTranslations("common.person");
+  const tCommon = useTranslations("common");
 
   const tableActions = useMemo(
     () => ({
@@ -33,10 +37,7 @@ const ParentsList = ({ refreshKey }: { refreshKey: number }) => {
     [],
   );
 
-  const columns = useMemo(
-    () => createParentColumns(tableActions, canPurgePermanently),
-    [tableActions, canPurgePermanently],
-  );
+  const columns = useParentColumns(tableActions, canPurgePermanently);
 
   const fetchParents = useCallback(async () => {
     const isInitialLoad = !hasLoadedOnce.current;
@@ -50,7 +51,7 @@ const ParentsList = ({ refreshKey }: { refreshKey: number }) => {
 
       const [rawParents, err] = await getParentsAction();
       if (err) {
-        throw new Error(err.message || "Erreur lors du chargement des parents");
+        throw new Error(err.message || t("loadError"));
       }
 
       setParents(rawParents);
@@ -66,7 +67,7 @@ const ParentsList = ({ refreshKey }: { refreshKey: number }) => {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void fetchParents();
@@ -106,7 +107,7 @@ const ParentsList = ({ refreshKey }: { refreshKey: number }) => {
           <Alert variant="destructive">
             <IconAlertCircle className="h-4 w-4" />
             <AlertDescription>
-              {error}. Veuillez réessayer plus tard.
+              {error}. {t("retryLater")}
             </AlertDescription>
           </Alert>
         </div>
@@ -120,8 +121,8 @@ const ParentsList = ({ refreshKey }: { refreshKey: number }) => {
         {dialogs}
         <div className="p-6">
           <EmptyTableState
-            title="Aucun parent enregistré"
-            description="Ajoutez votre premier parent pour commencer."
+            title={t("emptyTitle")}
+            description={t("emptyAddDesc")}
             icon={<IconUsers className="h-10 w-10 text-muted-foreground" />}
           />
         </div>
@@ -142,17 +143,17 @@ const ParentsList = ({ refreshKey }: { refreshKey: number }) => {
           columns={columns}
           ToolbarComponent={DataTableToolbar}
           data={parents}
-          emptyText="Aucun tuteur ajouté"
+          emptyText={t("noResults")}
           mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}
           mobileCardSubtitle={(row) => row.username ?? ""}
           mobileCardBadges={(row) =>
             [
               {
-                label: row.sexe === "M" ? "Masculin" : "Féminin",
+                label: row.sexe === "M" ? tPerson("male") : tPerson("female"),
                 variant: "secondary" as const,
               },
               {
-                label: row.telephone || "Téléphone non défini",
+                label: row.telephone || tPerson("phone"),
                 variant: "outline" as const,
               },
             ].filter((b) => b.label)

@@ -13,22 +13,52 @@ export type StudentReportSexe = "M" | "F";
 export type StudentReportStatus = "active" | "inactive";
 export type StudentReportPeriod = "all" | "today" | "week" | "month";
 
+export type StudentPdfLabels = {
+  listTitle: string;
+  classTitle: string;
+  boys: string;
+  girls: string;
+  active: string;
+  inactive: string;
+  unassigned: string;
+  periodToday: string;
+  periodWeek: string;
+  periodMonth: string;
+  periodAll: string;
+  studentCount: string;
+  colIndex: string;
+  colMatricule: string;
+  colLastName: string;
+  colPostnom: string;
+  colFirstName: string;
+  colGender: string;
+  colAge: string;
+  colClass: string;
+  colE13: string;
+  colE80: string;
+  colBirthDate: string;
+  colBirthPlace: string;
+  filterPeriod: string;
+  filterYear: string;
+  filterYears: string;
+  filterClass: string;
+  filterGender: string;
+  filterStatus: string;
+  filterSearch: string;
+  locale: string;
+};
+
 export type StudentReportOptions = {
   selectedClass?: { code: string; name: string } | null;
-  /** Filtre genre UI (un seul sexe actif). */
   sexe?: StudentReportSexe | null;
-  /** Filtre statut UI si présent. */
   status?: StudentReportStatus | null;
-  /** Filtre période d'enregistrement. */
   period?: StudentReportPeriod | null;
-  /** Libellés des années scolaires filtrées. */
   schoolYears?: string[] | null;
-  /** Ids des années scolaires filtrées (affichage classe). */
   schoolYearIds?: string[] | null;
-  /** Texte de recherche actif. */
   search?: string | null;
   typebranch?: unknown;
   educationSystem?: unknown;
+  labels: StudentPdfLabels;
 };
 
 function safeFilePart(value: string) {
@@ -40,52 +70,56 @@ function safeFilePart(value: string) {
     .toLowerCase();
 }
 
-function sexeLabel(sexe: StudentReportSexe): string {
-  return sexe === "M" ? "Garçons" : "Filles";
-}
-
-function statusLabel(status: StudentReportStatus): string {
-  return status === "active" ? "Actifs" : "Inactifs";
-}
-
-function periodLabel(period: StudentReportPeriod): string {
+function periodLabel(
+  period: StudentReportPeriod,
+  labels: StudentPdfLabels,
+): string {
   switch (period) {
     case "today":
-      return "Aujourd'hui";
+      return labels.periodToday;
     case "week":
-      return "Semaine";
+      return labels.periodWeek;
     case "month":
-      return "Mois";
+      return labels.periodMonth;
     default:
-      return "Toute";
+      return labels.periodAll;
   }
 }
 
-/** Titre PDF aligné sur l'intention des filtres UI. */
-export function buildStudentsReportTitle(
-  options: StudentReportOptions = {},
+function sexeLabel(sexe: StudentReportSexe, labels: StudentPdfLabels): string {
+  return sexe === "M" ? labels.boys : labels.girls;
+}
+
+function statusLabel(
+  status: StudentReportStatus,
+  labels: StudentPdfLabels,
 ): string {
+  return status === "active" ? labels.active : labels.inactive;
+}
+
+export function buildStudentsReportTitle(options: StudentReportOptions): string {
+  const { labels } = options;
   const selectedClass = options.selectedClass ?? null;
   const sexe = options.sexe ?? null;
   const status = options.status ?? null;
   const period = options.period ?? null;
 
-  let title = "Liste des élèves";
+  let title = labels.listTitle;
 
   if (selectedClass) {
-    title = `Liste des élèves de la classe ${selectedClass.name}`;
+    title = labels.classTitle.replace("{className}", selectedClass.name);
   }
 
   if (sexe) {
-    title = `${title} — ${sexeLabel(sexe)}`;
+    title = `${title} — ${sexeLabel(sexe, labels)}`;
   }
 
   if (status) {
-    title = `${title} — ${statusLabel(status)}`;
+    title = `${title} — ${statusLabel(status, labels)}`;
   }
 
   if (period && period !== "all") {
-    title = `${title} — ${periodLabel(period)}`;
+    title = `${title} — ${periodLabel(period, labels)}`;
   }
 
   const schoolYears = options.schoolYears?.filter(Boolean) ?? [];
@@ -96,11 +130,11 @@ export function buildStudentsReportTitle(
   return title;
 }
 
-/** Libellés des filtres actifs (pour sous-titre / métadonnées). */
 export function buildStudentsReportFilterLabels(
-  options: StudentReportOptions = {},
+  options: StudentReportOptions,
 ): string[] {
-  const labels: string[] = [];
+  const { labels } = options;
+  const result: string[] = [];
   const selectedClass = options.selectedClass ?? null;
   const sexe = options.sexe ?? null;
   const status = options.status ?? null;
@@ -109,30 +143,30 @@ export function buildStudentsReportFilterLabels(
   const search = options.search?.trim() || null;
 
   if (period && period !== "all") {
-    labels.push(`Période : ${periodLabel(period)}`);
+    result.push(`${labels.filterPeriod} ${periodLabel(period, labels)}`);
   }
   if (schoolYears.length === 1) {
-    labels.push(`Année : ${schoolYears[0]}`);
+    result.push(`${labels.filterYear} ${schoolYears[0]}`);
   } else if (schoolYears.length > 1) {
-    labels.push(`Années : ${schoolYears.join(", ")}`);
+    result.push(`${labels.filterYears} ${schoolYears.join(", ")}`);
   }
   if (selectedClass) {
-    labels.push(`Classe : ${selectedClass.name}`);
+    result.push(`${labels.filterClass} ${selectedClass.name}`);
   }
   if (sexe) {
-    labels.push(`Genre : ${sexeLabel(sexe)}`);
+    result.push(`${labels.filterGender} ${sexeLabel(sexe, labels)}`);
   }
   if (status) {
-    labels.push(`Statut : ${statusLabel(status)}`);
+    result.push(`${labels.filterStatus} ${statusLabel(status, labels)}`);
   }
   if (search) {
-    labels.push(`Recherche : ${search}`);
+    result.push(`${labels.filterSearch} ${search}`);
   }
 
-  return labels;
+  return result;
 }
 
-function buildReportFileName(options: StudentReportOptions = {}): string {
+function buildReportFileName(options: StudentReportOptions): string {
   const parts = ["liste-eleves"];
   const selectedClass = options.selectedClass ?? null;
   const sexe = options.sexe ?? null;
@@ -153,6 +187,7 @@ function buildReportFileName(options: StudentReportOptions = {}): string {
 
 function resolveStudentClassLabel(
   student: IStudent,
+  labels: StudentPdfLabels,
   schoolYearIds?: string[] | null,
 ): string {
   if (schoolYearIds?.length === 1) {
@@ -160,13 +195,16 @@ function resolveStudentClassLabel(
       (item) => item.schoolYearId === schoolYearIds[0],
     );
     if (enrollment) {
-      return enrollment.className || enrollment.classCode || "Non affecté";
+      return (
+        enrollment.className ||
+        enrollment.classCode ||
+        labels.unassigned
+      );
     }
   }
-  return student.className || student.classCode || "Non affecté";
+  return student.className || student.classCode || labels.unassigned;
 }
 
-/** Codes E13 / E80 : inscription filtrée (année) sinon valeurs préférées. */
 function resolveStudentExamCodes(
   student: IStudent,
   schoolYearIds?: string[] | null,
@@ -201,22 +239,25 @@ function calculateAge(dateOfBirth: Date | string | null | undefined) {
   return age >= 0 ? age : null;
 }
 
-function formatDateOfBirth(dateOfBirth: Date | string | null | undefined) {
+function formatDateOfBirth(
+  dateOfBirth: Date | string | null | undefined,
+  locale: string,
+) {
   if (!dateOfBirth) return "-";
   const date = new Date(dateOfBirth);
   if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleDateString("fr-FR");
+  return date.toLocaleDateString(locale);
 }
 
 export async function buildStudentsReportPdf(
   students: IStudent[],
   context: SchoolReportContext,
-  options: StudentReportOptions = {},
+  options: StudentReportOptions,
 ) {
+  const { labels } = options;
   const selectedClass = options.selectedClass ?? null;
   const isClassReport = Boolean(selectedClass);
   const hasYearFilter = Boolean(options.schoolYearIds?.length);
-  // Liste classe + année uniquement : pas de Date n. / Lieu de naissance.
   const isClassYearOnlyReport =
     isClassReport &&
     hasYearFilter &&
@@ -234,7 +275,6 @@ export async function buildStudentsReportPdf(
   );
   const title = buildStudentsReportTitle(options);
   const filterLabels = buildStudentsReportFilterLabels(options);
-  // Landscape : place pour E13 / E80 (comme Liste finalistes / Cursus).
   const doc = new jsPDF({
     orientation: "landscape",
     unit: "mm",
@@ -248,24 +288,26 @@ export async function buildStudentsReportPdf(
   const headerOptions = {
     title,
     subtitle: context.branchName,
-    details: [...filterLabels, `${students.length} élève(s)`],
+    details: [
+      ...filterLabels,
+      labels.studentCount.replace("{count}", String(students.length)),
+    ],
     logoDataUrl: logo,
   };
 
-  // Dessine l'en-tête page 1 et récupère la vraie hauteur (évite le chevauchement).
   const contentTop = drawReportHeader(doc, context, headerOptions);
 
   const head = [
-    "#",
-    "Matricule",
-    "Nom",
-    "Postnom",
-    "Prénom",
-    "Sexe",
-    "Âge",
-    ...(!isClassReport ? (["Classe"] as const) : []),
-    ...(showExamCodes ? (["E13", "E80"] as const) : []),
-    ...(showBirthColumns ? (["Date n.", "Lieu de naissance"] as const) : []),
+    labels.colIndex,
+    labels.colMatricule,
+    labels.colLastName,
+    labels.colPostnom,
+    labels.colFirstName,
+    labels.colGender,
+    labels.colAge,
+    ...(!isClassReport ? [labels.colClass] : []),
+    ...(showExamCodes ? [labels.colE13, labels.colE80] : []),
+    ...(showBirthColumns ? [labels.colBirthDate, labels.colBirthPlace] : []),
   ];
 
   const body = students.map((student, index) => {
@@ -282,32 +324,33 @@ export async function buildStudentsReportPdf(
       age === null ? "-" : String(age),
     ];
     if (!isClassReport) {
-      row.push(resolveStudentClassLabel(student, options.schoolYearIds));
+      row.push(
+        resolveStudentClassLabel(student, labels, options.schoolYearIds),
+      );
     }
     if (showExamCodes) {
       row.push(allowed ? exam.e13 : "—", allowed ? exam.e80 : "—");
     }
     if (showBirthColumns) {
       row.push(
-        formatDateOfBirth(student.dateOfBirth),
+        formatDateOfBirth(student.dateOfBirth, labels.locale),
         student.placeOfBirth?.trim() || "-",
       );
     }
     return row;
   });
 
-  // Largeurs proportionnelles — E13 / E80 seulement si au moins un élève terminal.
   type PdfColumnStyle = { cellWidth: number; halign: "center" | "left" };
   const columnStyles: Record<number, PdfColumnStyle> = (() => {
     const styles: Record<number, PdfColumnStyle> = {};
     const fractions: Array<{ width: number; align: "center" | "left" }> = [
-      { width: 0.04, align: "center" }, // #
-      { width: 0.12, align: "left" }, // Matricule
-      { width: 0.11, align: "left" }, // Nom
-      { width: 0.11, align: "left" }, // Postnom
-      { width: 0.11, align: "left" }, // Prénom
-      { width: 0.05, align: "center" }, // Sexe
-      { width: 0.05, align: "center" }, // Âge
+      { width: 0.04, align: "center" },
+      { width: 0.12, align: "left" },
+      { width: 0.11, align: "left" },
+      { width: 0.11, align: "left" },
+      { width: 0.11, align: "left" },
+      { width: 0.05, align: "center" },
+      { width: 0.05, align: "center" },
     ];
     if (!isClassReport) fractions.push({ width: 0.12, align: "left" });
     if (showExamCodes) {
@@ -378,7 +421,7 @@ export async function buildStudentsReportPdf(
 export async function exportStudentsReportPdf(
   students: IStudent[],
   context: SchoolReportContext,
-  options: StudentReportOptions = {},
+  options: StudentReportOptions,
 ) {
   const date = new Date().toISOString().slice(0, 10);
   const reportName = buildReportFileName(options);

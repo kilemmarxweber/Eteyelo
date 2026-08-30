@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { useTranslations } from "next-intl";
 import { MemberPhotoField } from "@/app/admin/organizations/[organizationId]/members/member-photo-field";
 import { Button } from "@/components/custom/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -74,21 +75,26 @@ export function TeacherUpForm({
     initialData?.image?.trim() || null,
   );
   const peopleLabels = useBranchPeopleLabels();
+  const t = useTranslations("users.teachers.form");
+  const tStaff = useTranslations("users.staff.form");
+  const tCommon = useTranslations("common.person");
   const { data: session } = useSession();
   const classLabel = getClassDisplayLabel(session?.branch?.typebranch);
   const classLabelLower = classLabel.toLowerCase();
-  const classOfLabel =
+  const classOfKey =
     classLabelLower === "auditoire"
-      ? "de l'auditoire"
+      ? "classOfAuditoire"
       : classLabelLower === "groupe"
-        ? "du groupe"
-        : `de la ${classLabelLower}`;
-  const classSelectLabel =
+        ? "classOfGroupe"
+        : "classOf";
+  const classSelectKey =
     classLabelLower === "auditoire"
-      ? "l'auditoire"
+      ? "selectAuditoire"
       : classLabelLower === "groupe"
-        ? "le groupe"
-        : `la ${classLabelLower}`;
+        ? "selectGroupe"
+        : "selectClass";
+  const classOfLabel = t(classOfKey, { classLabel: classLabelLower });
+  const classSelectLabel = t(classSelectKey, { classLabel: classLabelLower });
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
     M: "masculin",
     F: "feminin",
@@ -142,11 +148,11 @@ export function TeacherUpForm({
 
   function handlePickPhoto(file: File) {
     if (!file.type.startsWith("image/")) {
-      toast.error("Choisissez une image (JPEG, PNG, WebP…).");
+      toast.error(t("chooseImage"));
       return;
     }
     if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
-      toast.error("Image trop volumineuse (max. 5 Mo).");
+      toast.error(t("imageTooLarge"));
       return;
     }
     setPhotoPreview((current) => {
@@ -232,7 +238,7 @@ export function TeacherUpForm({
 
     const estTitulaire = Boolean(data.estTitulaire);
     if (isMultiCycle && (!data.cycles || data.cycles.length === 0)) {
-      setErrorMessage("Sélectionnez au moins un cycle.");
+      setErrorMessage(tStaff("selectCycle"));
       setIsLoading(false);
       return;
     }
@@ -261,31 +267,31 @@ export function TeacherUpForm({
         const [result, err] = await createTeacherAction(payload);
         if (err) throw new Error(err.message);
         if (!result?.ok) {
-          throw new Error(result?.message || "Creation impossible");
+          throw new Error(result?.message || t("createImpossible"));
         }
 
         toast.success(
           estTitulaire
-            ? `${peopleLabels.teacher} titulaire créé avec succès`
-            : `${peopleLabels.teacher} cree avec succes`,
+            ? t("createTitulaireSuccess", { teacher: peopleLabels.teacher })
+            : t("createSuccess", { teacher: peopleLabels.teacher }),
         );
         onTeacherCreated?.();
       } else {
         const [result, err] = await updateTeacherAction(payload);
         if (err) throw new Error(err.message);
         if (!result?.ok) {
-          throw new Error(result?.message || "Mise a jour impossible");
+          throw new Error(result?.message || t("updateImpossible"));
         }
 
         toast.success(
           estTitulaire
-            ? `${peopleLabels.teacher} titulaire mis à jour avec succès`
-            : `${peopleLabels.teacher} mis a jour avec succes`,
+            ? t("updateTitulaireSuccess", { teacher: peopleLabels.teacher })
+            : t("updateSuccess", { teacher: peopleLabels.teacher }),
         );
         onTeacherUpdate?.();
       }
     } catch (error: any) {
-      const message = error?.message || "Erreur lors de l'operation";
+      const message = error?.message || t("createImpossible");
       setErrorMessage(message);
       toast.error(message);
     } finally {
@@ -314,11 +320,11 @@ export function TeacherUpForm({
               name="nom"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Nom</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("lastName")}</FormLabel>
                   <FormControl>
                     <Input
                       inputSize="sm"
-                      placeholder="Nom"
+                      placeholder={tCommon("lastName")}
                       className={controlClass}
                       {...field}
                     />
@@ -333,11 +339,11 @@ export function TeacherUpForm({
               name="postnom"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Postnom</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("postnom")}</FormLabel>
                   <FormControl>
                     <Input
                       inputSize="sm"
-                      placeholder="Postnom"
+                      placeholder={tCommon("postnom")}
                       className={controlClass}
                       {...field}
                     />
@@ -352,11 +358,11 @@ export function TeacherUpForm({
               name="prenom"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Prénom</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("firstName")}</FormLabel>
                   <FormControl>
                     <Input
                       inputSize="sm"
-                      placeholder="Prénom"
+                      placeholder={tCommon("firstName")}
                       className={controlClass}
                       {...field}
                     />
@@ -371,16 +377,16 @@ export function TeacherUpForm({
               name="sexe"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Sexe</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("gender")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className={controlClass}>
-                        <SelectValue placeholder="Sexe" />
+                        <SelectValue placeholder={tCommon("gender")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent position="popper">
-                      <SelectItem value="masculin">Masculin</SelectItem>
-                      <SelectItem value="feminin">Féminin</SelectItem>
+                      <SelectItem value="masculin">{tCommon("male")}</SelectItem>
+                      <SelectItem value="feminin">{tCommon("female")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -393,7 +399,7 @@ export function TeacherUpForm({
               name="dateOfBirth"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Date de naissance</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("birthDate")}</FormLabel>
                   <FormControl>
                     <DateOfBirthPicker
                       value={field.value}
@@ -411,11 +417,11 @@ export function TeacherUpForm({
               name="telephone"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Téléphone</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("phone")}</FormLabel>
                   <FormControl>
                     <PhoneInput
                       defaultCountry="CD"
-                      placeholder="Téléphone"
+                      placeholder={tCommon("phone")}
                       maxLength={14}
                       className="h-8 [&_button]:h-8 [&_input]:h-8 [&_input]:text-sm"
                       {...field}
@@ -431,11 +437,11 @@ export function TeacherUpForm({
               name="email"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>E-mail</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("email")}</FormLabel>
                   <FormControl>
                     <Input
                       inputSize="sm"
-                      placeholder="Email"
+                      placeholder={tCommon("email")}
                       className={controlClass}
                       {...field}
                     />
@@ -450,11 +456,11 @@ export function TeacherUpForm({
               name="address"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>Adresse</FormLabel>
+                  <FormLabel className={labelClass}>{tCommon("address")}</FormLabel>
                   <FormControl>
                     <Input
                       inputSize="sm"
-                      placeholder="Adresse"
+                      placeholder={tCommon("address")}
                       className={controlClass}
                       {...field}
                     />
@@ -485,7 +491,7 @@ export function TeacherUpForm({
                 />
                 {isMultiCycle && (form.watch("cycles")?.length ?? 0) === 0 ? (
                   <p className="mt-1 text-xs text-destructive">
-                    Sélectionnez au moins un cycle.
+                    {tStaff("selectCycle")}
                   </p>
                 ) : null}
               </div>
@@ -511,11 +517,13 @@ export function TeacherUpForm({
                   </FormControl>
                   <div className="space-y-0.5">
                     <FormLabel className="font-normal leading-snug">
-                      Titulaire (superviseur) {classOfLabel}
+                      {t("titulaireOf", { classOf: classOfLabel })}
                     </FormLabel>
                     <p className="text-xs text-muted-foreground">
-                      Cochez si ce {peopleLabels.teacherLower} est le titulaire{" "}
-                      {classOfLabel} pour l&apos;année en cours.
+                      {t("titulaireCheckboxHint", {
+                        teacherLower: peopleLabels.teacherLower,
+                        classOf: classOfLabel,
+                      })}
                     </p>
                   </div>
                   <FormMessage />
@@ -541,7 +549,9 @@ export function TeacherUpForm({
                         <FormControl>
                           <SelectTrigger className={controlClass}>
                             <SelectValue
-                              placeholder={`Sélectionner ${classSelectLabel}`}
+                              placeholder={t("selectClassPlaceholder", {
+                                classSelect: classSelectLabel,
+                              })}
                             />
                           </SelectTrigger>
                         </FormControl>
@@ -564,7 +574,7 @@ export function TeacherUpForm({
                   render={({ field }) => (
                     <FormItem className={fieldClass}>
                       <FormLabel className={labelClass}>
-                        Cours principal
+                        {t("mainCourse")}
                       </FormLabel>
                       <Select
                         onValueChange={field.onChange}
@@ -572,7 +582,7 @@ export function TeacherUpForm({
                       >
                         <FormControl>
                           <SelectTrigger className={controlClass}>
-                            <SelectValue placeholder="Sélectionner le cours" />
+                            <SelectValue placeholder={t("selectCourse")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent position="popper">
@@ -585,7 +595,7 @@ export function TeacherUpForm({
                       </Select>
                       {selectedClasseId && courses.length === 0 ? (
                         <p className="text-xs text-muted-foreground">
-                          Aucun cours pondéré pour cette classe.
+                          {t("noCoursesForClass")}
                         </p>
                       ) : null}
                       <FormMessage />
@@ -620,8 +630,8 @@ export function TeacherUpForm({
                 loading={isLoading}
               >
                 {mode === "create"
-                  ? `Enregistrer l'${peopleLabels.teacherLower}`
-                  : `Mettre à jour l'${peopleLabels.teacherLower}`}
+                  ? t("saveTeacher", { teacherLower: peopleLabels.teacherLower })
+                  : t("updateTeacher", { teacherLower: peopleLabels.teacherLower })}
               </Button>
             </div>
 

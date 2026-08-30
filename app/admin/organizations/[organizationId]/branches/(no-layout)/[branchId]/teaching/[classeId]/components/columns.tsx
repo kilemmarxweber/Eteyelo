@@ -1,9 +1,9 @@
 "use client";
 
-import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
-
-import { ColumnDef } from "@tanstack/react-table";
+import React from "react";
+import { type ColumnDef } from "@tanstack/react-table";
 import { IconDots } from "@tabler/icons-react";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/custom/button";
 import {
   DropdownMenu,
@@ -14,181 +14,173 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UpdateStudentDialog } from "./edit-Teaching-dialog";
-
-import React from "react";
 import { ITeaching } from "@/src/interfaces/Teaching";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { DeleteTeachingsDialog } from "./delete-Teaching-dialog";
 
-export const columns: ColumnDef<ITeaching>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "username",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="username" />
-    ),
-    cell: ({ row }) => {
-      return row.original.username ?? "N/A";
-    },
-  },
-  {
-    accessorKey: "nom",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nom" />
-    ),
-    cell: ({ row }) => {
-      return row.original.nom ?? "N/A";
-    },
-  },
-  {
-    accessorKey: "postnom",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Postnom" />
-    ),
-    cell: ({ row }) => {
-      return row.original.postnom ?? "N/A";
-    },
-  },
-  {
-    accessorKey: "prenom",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Prenom" />
-    ),
-    cell: ({ row }) => {
-      return row.original.prenom ?? "N/A";
-    },
-  },
-  {
-    accessorKey: "sexe",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Sexe" />
-    ),
-    cell: ({ row }) => {
-      return (
-        <div className="flex items-center">
-          <span>{row.original.sexe}</span>
-        </div>
-      );
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-  },
-  {
-    accessorKey: "coursId",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nom du cours" />
-    ),
-    cell: ({ row }) => {
-      return row.original.nameCours ?? "N/A";
-    },
-  },
-  {
-    accessorKey: "nameYear",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Année scolaire" />
-    ),
-    cell: ({ row }) => {
-      return (
-        <div className="flex items-center">
-          {/*           <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-           */}{" "}
-          <span>{row.original.nameYear}</span>
-        </div>
-      );
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-  },
-  {
-    accessorKey: "createdAt",
-    cell: (row) => new Date(row.getValue() as string).toLocaleDateString(),
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Affectée le" />
-    ),
-  },
-  {
-    id: "actions",
-    cell: function Cell({ row }) {
-      const [isUpdatePending, startUpdateTransition] = useTransition();
-      const [showUpdateTaskSheet, setShowUpdateTaskSheet] =
-        React.useState(false);
-      const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
-        React.useState(false);
+export function useTeachingColumns(): ColumnDef<ITeaching>[] {
+  const t = useTranslations("teaching.assignments");
+  const tt = useTranslations("teaching.assignments.table");
+  const tc = useTranslations("common");
+  const locale = useLocale();
 
-      return (
-        <>
-          {/* Dialogue ou feuille pour l'édition */}
-          <UpdateStudentDialog
-            open={showUpdateTaskSheet}
-            onOpenChange={setShowUpdateTaskSheet}
-            teaching={row.original} // Passerlesdonnéesactuellesdel'enseignantonSuccess={() => row.toggleSelected(false)}
+  return React.useMemo(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label={tt("selectAll")}
           />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label={tt("selectRow")}
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: "username",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="username" />
+        ),
+        cell: ({ row }) => row.original.username ?? "N/A",
+      },
+      {
+        accessorKey: "nom",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={tc("person.lastName")}
+          />
+        ),
+        cell: ({ row }) => row.original.nom ?? "N/A",
+      },
+      {
+        accessorKey: "postnom",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={tc("person.postnom")} />
+        ),
+        cell: ({ row }) => row.original.postnom ?? "N/A",
+      },
+      {
+        accessorKey: "prenom",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={tc("person.firstName")}
+          />
+        ),
+        cell: ({ row }) => row.original.prenom ?? "N/A",
+      },
+      {
+        accessorKey: "sexe",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={tc("person.gender")}
+          />
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center">
+            <span>{row.original.sexe}</span>
+          </div>
+        ),
+        filterFn: (row, id, value) => value.includes(row.getValue(id)),
+      },
+      {
+        accessorKey: "coursId",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={tt("courseNameColumn")} />
+        ),
+        cell: ({ row }) => row.original.nameCours ?? "N/A",
+      },
+      {
+        accessorKey: "nameYear",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("schoolYear")} />
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center">
+            <span>{row.original.nameYear}</span>
+          </div>
+        ),
+        filterFn: (row, id, value) => value.includes(row.getValue(id)),
+      },
+      {
+        accessorKey: "createdAt",
+        cell: (row) =>
+          new Date(row.getValue() as string).toLocaleDateString(locale),
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("assignedOn")} />
+        ),
+      },
+      {
+        id: "actions",
+        cell: function Cell({ row }) {
+          const [showUpdateTaskSheet, setShowUpdateTaskSheet] =
+            React.useState(false);
+          const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
+            React.useState(false);
 
-          <DeleteTeachingsDialog
-            open={showDeleteTaskDialog}
-            onOpenChange={setShowDeleteTaskDialog}
-            teaches={[row.original]}
-            showTrigger={false}
-            onSuccess={() => row.toggleSelected(false)}
-          />
+          return (
+            <>
+              <UpdateStudentDialog
+                open={showUpdateTaskSheet}
+                onOpenChange={setShowUpdateTaskSheet}
+                teaching={row.original}
+              />
 
-          {/* 
-          <UpdateStudentDialog
-            open={showDeleteTaskDialog}
-            onOpenChange={setShowDeleteTaskDialog}
-            users={[row.original]}
-            showTrigger={false}
-            onSuccess={() => row.toggleSelected(false)}
-          />
- */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                aria-label="Open menu"
-                variant="ghost"
-                className="flex size-8 p-0 data-[state= open]:bg-muted"
-              >
-                <IconDots className="size-4" aria-hidden="true" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              {/* Ajout de l'option Edit */}
-              <DropdownMenuItem onSelect={() => setShowUpdateTaskSheet(true)}>
-                Modifier
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => setShowDeleteTaskDialog(true)}>
-                Désactiver
-                <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </>
-      );
-    },
-  },
-];
+              <DeleteTeachingsDialog
+                open={showDeleteTaskDialog}
+                onOpenChange={setShowDeleteTaskDialog}
+                teaches={[row.original]}
+                showTrigger={false}
+                onSuccess={() => row.toggleSelected(false)}
+              />
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    aria-label="Open menu"
+                    variant="ghost"
+                    className="flex size-8 p-0 data-[state= open]:bg-muted"
+                  >
+                    <IconDots className="size-4" aria-hidden="true" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuItem
+                    onSelect={() => setShowUpdateTaskSheet(true)}
+                  >
+                    {tc("edit")}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={() => setShowDeleteTaskDialog(true)}
+                  >
+                    {tc("deactivate")}
+                    <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          );
+        },
+      },
+    ],
+    [locale, t, tc, tt],
+  );
+}

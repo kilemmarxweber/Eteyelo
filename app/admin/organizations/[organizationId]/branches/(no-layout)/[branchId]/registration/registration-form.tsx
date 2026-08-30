@@ -66,6 +66,7 @@ import {
   findStudentHistoryAction,
   getRegistrationOptionsAction,
   getRegistrationRequestForPrefillAction,
+  getActiveFraisForDiscountPreviewAction,
   suggestNextClassAction,
   updateRegistrationClassCapacityAction,
 } from "./registration.action";
@@ -136,6 +137,7 @@ import {
   normalizeCreneauWorkingDays,
 } from "@/lib/creneau-working-days";
 import { Checkbox } from "@/components/ui/checkbox";
+import { computeScopedDiscountAmount } from "@/lib/payment-discount";
 
 type RegistrationStepKey = "student" | "parent" | "class" | "confirm";
 
@@ -336,11 +338,14 @@ function isParentStepReady(
   parent: ParentForm,
 ) {
   if (parentMode === "existing") return Boolean(parentId);
-  return Boolean(
-    parent.name &&
-    parent.address &&
-    (parent.discountPercentage <= 0 || parent.discountTypeFraisId),
-  );
+  return Boolean(parent.name && parent.address);
+}
+
+function formatDiscountAmount(value: number) {
+  return new Intl.NumberFormat("fr-FR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value);
 }
 
 function previewParentEmail(prenom: string, name: string) {
@@ -435,6 +440,14 @@ export function RegistrationForm({
   const [extraSheetOpen, setExtraSheetOpen] = useState(false);
   const [siblingParentHint, setSiblingParentHint] = useState("");
   const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
+  const [classFrais, setClassFrais] = useState<
+    Array<{
+      id: string;
+      nameFrais: string;
+      montant: number;
+      typeFraisId: string | null;
+    }>
+  >([]);
   const draftReadyRef = useRef(false);
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestDraftRef = useRef<AdminRegistrationDraftPayload | null>(null);
@@ -749,7 +762,6 @@ export function RegistrationForm({
   const currentTone = stepTone[currentStepKey];
   const lastStepIndex = registrationStepKeys.length - 1;
   const studentStepIndex = registrationStepKeys.indexOf("student");
-  const parentStepIndex = registrationStepKeys.indexOf("parent");
   const historyLabels = useMemo(
     () => ({
       new: tReg("history.new", { student: peopleLabels.studentLower }),
@@ -1186,6 +1198,53 @@ export function RegistrationForm({
     );
   }, [parentResults, parentId, parent]);
   const hasCreneaux = (options.creneaux?.length ?? 0) > 0;
+  const discountClassId = predictedClass?.id ?? selectedClasses[0]?.id ?? "";
+  const showDiscountFields = !hidesParent && parentMode === "new";
+  const discountEligibleTotal = useMemo(() => {
+    if (parent.discountPercentage <= 0) return 0;
+    return classFrais.reduce((sum, item) => {
+      if (!parent.discountTypeFraisId) return sum;
+      if (item.typeFraisId !== parent.discountTypeFraisId) return sum;
+      return sum + Math.max(item.montant || 0, 0);
+    }, 0);
+  }, [classFrais, parent.discountPercentage, parent.discountTypeFraisId]);
+  const discountAmount = useMemo(
+    () =>
+      computeScopedDiscountAmount(
+        classFrais.map((item) => ({
+          base: item.montant,
+          typeFraisId: item.typeFraisId,
+        })),
+        {
+          percentage: parent.discountPercentage,
+          typeFraisId: parent.discountTypeFraisId || null,
+          typeFraisName: null,
+        },
+      ),
+    [classFrais, parent.discountPercentage, parent.discountTypeFraisId],
+  );
+
+  useEffect(() => {
+    if (!showDiscountFields || !discountClassId || !schoolYearId) {
+      setClassFrais([]);
+      return;
+    }
+    let cancelled = false;
+    void getActiveFraisForDiscountPreviewAction({
+      classeId: discountClassId,
+      schoolYearId,
+    }).then(([data, error]) => {
+      if (cancelled) return;
+      if (error || !data) {
+        setClassFrais([]);
+        return;
+      }
+      setClassFrais(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [discountClassId, schoolYearId, showDiscountFields]);
 
   useEffect(() => {
     if (!needsClassAction) return;
@@ -1224,6 +1283,7 @@ export function RegistrationForm({
     setCreneauId("");
     setClassCapacity("30");
     setCreneauForm(emptyCreneau());
+    setClassFrais([]);
     setRequestId("");
     setRequestReference("");
   }
@@ -1506,6 +1566,16 @@ export function RegistrationForm({
         return toast.error(
           "Toutes les parallèles sont pleines. Créez la prochaine parallèle avant de continuer.",
         );
+      if (
+        !hidesParent &&
+        parentMode === "new" &&
+        parent.discountPercentage > 0 &&
+        !parent.discountTypeFraisId
+      ) {
+        return toast.error(
+          "Choisissez le type de frais concerné par la remise.",
+        );
+      }
     }
     setStep((current) => current + 1);
   }
@@ -2213,75 +2283,6 @@ export function RegistrationForm({
             </>
           )}
         </div>
-        {!studentFields && (
-          <>
-            <Separator />
-            <div className="grid gap-2.5 md:grid-cols-2">
-              <Field label={tReg("fields.familyDiscountOptional")}>
-                <Input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={(value as ParentForm).discountPercentage}
-                  onChange={(event) => {
-                    const next = Number(event.target.value);
-                    setter({
-                      ...(value as ParentForm),
-                      discountPercentage: next,
-                      discountTypeFraisId:
-                        next > 0
-                          ? (value as ParentForm).discountTypeFraisId
-                          : "",
-                    });
-                  }}
-                  onBlur={() =>
-                    parentStepIndex >= 0
-                      ? advanceAfterLastOptional(
-                          parentStepIndex,
-                          isParentStepReady(parentMode, parentId, parent),
-                        )
-                      : undefined
-                  }
-                />
-              </Field>
-              {(value as ParentForm).discountPercentage > 0 ? (
-                <Field label={tReg("fields.discountFeeType")}>
-                  <Select
-                    value={
-                      (value as ParentForm).discountTypeFraisId || undefined
-                    }
-                    onValueChange={(next: string) =>
-                      updatePerson(
-                        value,
-                        setter,
-                        "discountTypeFraisId",
-                        next,
-                      )
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={tReg("placeholders.chooseFeeType")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(options.typeFrais ?? []).map(
-                        (type: { id: string; nameType: string }) => (
-                          <SelectItem key={type.id} value={type.id}>
-                            {type.nameType}
-                          </SelectItem>
-                        ),
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {tReg("discountHint")}
-                  </p>
-                </Field>
-              ) : (
-                <div className="hidden md:block" aria-hidden />
-              )}
-            </div>
-          </>
-        )}
       </div>
     );
   }
@@ -2962,6 +2963,90 @@ export function RegistrationForm({
                       )
                     ) : null}
                   </div>
+                  {showDiscountFields ? (
+                    <div className="grid gap-2.5 md:grid-cols-2">
+                      <Field label={tReg("fields.familyDiscountOptional")}>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={parent.discountPercentage}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            setParent((current) => ({
+                              ...current,
+                              discountPercentage: Number.isFinite(next) ? next : 0,
+                              discountTypeFraisId:
+                                next > 0 ? current.discountTypeFraisId : "",
+                            }));
+                          }}
+                        />
+                      </Field>
+                      {parent.discountPercentage > 0 ? (
+                        <Field label={tReg("fields.discountFeeType")}>
+                          <Select
+                            value={parent.discountTypeFraisId || undefined}
+                            onValueChange={(next: string) =>
+                              setParent((current) => ({
+                                ...current,
+                                discountTypeFraisId: next,
+                              }))
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={tReg("placeholders.chooseFeeType")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(options.typeFrais ?? []).map(
+                                (type: { id: string; nameType: string }) => (
+                                  <SelectItem key={type.id} value={type.id}>
+                                    {type.nameType}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {tReg("discountHint")}
+                          </p>
+                        </Field>
+                      ) : (
+                        <div className="hidden md:block" aria-hidden />
+                      )}
+                      {parent.discountPercentage > 0 && parent.discountTypeFraisId ? (
+                        <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm md:col-span-2">
+                          {discountEligibleTotal > 0 ? (
+                            <p>
+                              <span className="font-medium">
+                                {tReg("discountAmount", {
+                                  amount: formatDiscountAmount(discountAmount),
+                                })}
+                              </span>
+                              <span className="mt-0.5 block text-xs text-muted-foreground">
+                                {tReg("discountAmountDetail", {
+                                  pct: parent.discountPercentage,
+                                  total: formatDiscountAmount(discountEligibleTotal),
+                                  type:
+                                    (options.typeFrais ?? []).find(
+                                      (type: { id: string; nameType: string }) =>
+                                        type.id === parent.discountTypeFraisId,
+                                    )?.nameType ?? "",
+                                })}
+                              </span>
+                            </p>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">
+                              {discountClassId
+                                ? tReg("discountNoEligibleFees")
+                                : tReg("discountNeedClass")}
+                            </p>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <Alert>
                     <IconSchool className="h-4 w-4" />
                     <AlertTitle>{tReg("autoAssignTitle")}</AlertTitle>
@@ -3128,6 +3213,12 @@ export function RegistrationForm({
                                     (typeName
                                       ? tReg("summary.discountOn", {
                                           type: typeName,
+                                        })
+                                      : "") +
+                                    (discountAmount > 0
+                                      ? tReg("summary.discountValue", {
+                                          amount:
+                                            formatDiscountAmount(discountAmount),
                                         })
                                       : "")
                                   );

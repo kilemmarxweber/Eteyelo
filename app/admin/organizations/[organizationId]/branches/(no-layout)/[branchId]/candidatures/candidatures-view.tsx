@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
+import { intlLocaleFromUserLocale, normalizeUserLocale } from "@/lib/user-locale";
 import {
   Briefcase,
   CheckCircle2,
@@ -48,23 +50,88 @@ import {
   reviewJobApplicationAction,
 } from "@/app/components/depot-candidature/job-application.actions";
 import {
-  CANDIDATURE_STATUS_LABEL,
   downloadCandidatureDossierPdf,
   exportCandidaturesReportPdf,
+  type CandidaturePdfLabels,
   type CandidatureStatusFilter,
 } from "./export-candidatures-pdf";
 
-const STATUS_FILTERS: Array<{
-  value: CandidatureStatusFilter;
-  label: string;
-}> = [
-  { value: "ALL", label: "Toutes" },
-  { value: "PENDING", label: "En attente" },
-  { value: "REVIEWED", label: "Examination" },
-  { value: "ACCEPTED", label: "Acceptées" },
-  { value: "HIRED", label: "Embauchées" },
-  { value: "REJECTED", label: "Refusées" },
+const STATUS_FILTER_VALUES: CandidatureStatusFilter[] = [
+  "ALL",
+  "PENDING",
+  "REVIEWED",
+  "ACCEPTED",
+  "HIRED",
+  "REJECTED",
 ];
+
+const STATUS_CARD_VALUES = [
+  "PENDING",
+  "REVIEWED",
+  "ACCEPTED",
+  "HIRED",
+  "REJECTED",
+] as const;
+
+function buildPdfLabels(
+  t: ReturnType<typeof useTranslations<"candidatures">>,
+  tCommon: ReturnType<typeof useTranslations<"common">>,
+): CandidaturePdfLabels {
+  return {
+    statusLabels: {
+      PENDING: t("status.PENDING"),
+      REVIEWED: t("status.REVIEWED"),
+      ACCEPTED: t("status.ACCEPTED"),
+      HIRED: t("status.HIRED"),
+      REJECTED: t("status.REJECTED"),
+      CANCELLED: t("status.CANCELLED"),
+    },
+    allStatuses: t("pdf.allStatuses"),
+    listTitle: t("pdf.listTitle"),
+    listTitleFiltered: t("pdf.listTitleFiltered"),
+    statusFilter: t("pdf.statusFilter"),
+    dossierTitle: t("pdf.dossierTitle"),
+    reference: t("pdf.reference"),
+    statusLabel: t("pdf.statusLabel"),
+    depositedOn: t("pdf.depositedOn"),
+    statusBanner: t("pdf.statusBanner"),
+    candidateIdentity: t("pdf.candidateIdentity"),
+    fullName: t("pdf.fullName"),
+    phone: t("fields.phone"),
+    typeTeacher: t("applicationType.TEACHER"),
+    typeStaff: t("applicationType.STAFF"),
+    gender: t("pdf.gender"),
+    genderMale: tCommon("person.male"),
+    genderFemale: tCommon("person.female"),
+    birthDate: t("pdf.birthDate"),
+    address: t("pdf.address"),
+    profileSought: t("pdf.profileSought"),
+    profileRole: t("pdf.profileRole"),
+    yearsExperience: t("pdf.yearsExperience"),
+    availability: t("fields.availability"),
+    experience: t("fields.experience"),
+    education: t("fields.education"),
+    skills: t("fields.skills"),
+    motivation: t("fields.motivation"),
+    rejectReason: t("pdf.rejectReason"),
+    timelineTitle: t("pdf.timelineTitle"),
+    timelineDeposit: t("pdf.timelineDeposit"),
+    timelineReview: t("pdf.timelineReview"),
+    timelineAccept: t("pdf.timelineAccept"),
+    timelineHire: t("pdf.timelineHire"),
+    timelineReject: t("pdf.timelineReject"),
+    applicationCount: t("pdf.applicationCount"),
+    columns: {
+      index: t("pdf.columns.index"),
+      reference: t("pdf.columns.reference"),
+      identity: t("pdf.columns.identity"),
+      type: t("pdf.columns.type"),
+      profile: t("pdf.columns.profile"),
+      status: t("pdf.columns.status"),
+      date: t("pdf.columns.date"),
+    },
+  };
+}
 
 function statusTone(status: string) {
   switch (status) {
@@ -113,7 +180,13 @@ function statusTone(status: string) {
   }
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({
+  status,
+  label,
+}: {
+  status: string;
+  label: string;
+}) {
   const tone = statusTone(status);
   const Icon = tone.icon;
   return (
@@ -125,7 +198,7 @@ function StatusBadge({ status }: { status: string }) {
       )}
     >
       <Icon className="size-3" />
-      {CANDIDATURE_STATUS_LABEL[status] ?? status}
+      {label}
     </Badge>
   );
 }
@@ -135,6 +208,26 @@ export function CandidaturesView({
 }: {
   initialApplicationId?: string;
 }) {
+  const t = useTranslations("candidatures");
+  const tCommon = useTranslations("common");
+  const locale = intlLocaleFromUserLocale(normalizeUserLocale(useLocale()));
+  const pdfLabels = useMemo(
+    () => buildPdfLabels(t, tCommon),
+    [t, tCommon],
+  );
+  const statusLabel = useCallback(
+    (status: string) =>
+      t(`status.${status}` as "status.PENDING") ?? status,
+    [t],
+  );
+  const statusFilters = useMemo(
+    () =>
+      STATUS_FILTER_VALUES.map((value) => ({
+        value,
+        label: statusLabel(value),
+      })),
+    [statusLabel],
+  );
   const requestedApplicationId = initialApplicationId;
   const [applications, setApplications] = useState<JobApplicationListItem[]>(
     [],
@@ -228,7 +321,7 @@ export function CandidaturesView({
   function runAction(
     applicationId: string,
     action: () => Promise<[unknown, { message: string } | null]>,
-    successMessage = "Action effectuée.",
+    successMessage = t("actionDone"),
   ) {
     setActionId(applicationId);
     startTransition(() => {
@@ -249,11 +342,14 @@ export function CandidaturesView({
         const assignment = hireResult?.teachingAssignment;
         if (assignment && assignment.assigned > 0) {
           toast.success(
-            `Embauche OK — affecté à ${assignment.classNames.join(", ")} (${assignment.assigned} cours).`,
+            t("hireSuccessAssigned", {
+              classes: assignment.classNames.join(", "),
+              count: assignment.assigned,
+            }),
           );
         } else if (assignment?.reason) {
           toast.success(
-            `Embauche OK. Affectation non faite : ${assignment.reason}.`,
+            t("hireSuccessNoAssign", { reason: assignment.reason }),
           );
         } else {
           toast.success(successMessage);
@@ -274,15 +370,15 @@ export function CandidaturesView({
     try {
       const [context, error] = await getJobApplicationReportContextAction();
       if (error || !context) {
-        toast.error(error?.message ?? "Impossible de préparer le PDF.");
+        toast.error(error?.message ?? t("pdfPrepareFailed"));
         return;
       }
-      await exportCandidaturesReportPdf(filteredApplications, context, {
+      await exportCandidaturesReportPdf(filteredApplications, context, pdfLabels, {
         status: statusFilter,
       });
-      toast.success("Rapport PDF généré.");
+      toast.success(t("reportPdfSuccess"));
     } catch {
-      toast.error("Impossible de générer le rapport PDF.");
+      toast.error(t("reportPdfFailed"));
     } finally {
       setExportingPdf(false);
     }
@@ -294,13 +390,13 @@ export function CandidaturesView({
     try {
       const [context, error] = await getJobApplicationReportContextAction();
       if (error || !context) {
-        toast.error(error?.message ?? "Impossible de préparer le PDF.");
+        toast.error(error?.message ?? t("pdfPrepareFailed"));
         return;
       }
-      await downloadCandidatureDossierPdf(detail, context);
-      toast.success("Dossier PDF téléchargé.");
+      await downloadCandidatureDossierPdf(detail, context, pdfLabels);
+      toast.success(t("dossierPdfSuccess"));
     } catch {
-      toast.error("Impossible de générer le dossier PDF.");
+      toast.error(t("dossierPdfFailed"));
     } finally {
       setExportingDossier(false);
     }
@@ -309,18 +405,11 @@ export function CandidaturesView({
   return (
     <div className="space-y-6">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        {(
-          [
-            ["PENDING", "En attente"],
-            ["REVIEWED", "Examination"],
-            ["ACCEPTED", "Acceptées"],
-            ["HIRED", "Embauchées"],
-            ["REJECTED", "Refusées"],
-          ] as const
-        ).map(([status, label]) => {
+        {STATUS_CARD_VALUES.map((status) => {
           const tone = statusTone(status);
           const Icon = tone.icon;
           const active = statusFilter === status;
+          const label = t(`statusCard.${status}`);
           return (
             <button
               key={status}
@@ -356,7 +445,7 @@ export function CandidaturesView({
         <CardHeader className="gap-3 space-y-0 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="flex items-center gap-2">
             <Briefcase className="size-5" />
-            Candidatures reçues
+            {t("listTitle")}
             <Badge variant="outline">{filteredApplications.length}</Badge>
           </CardTitle>
           <Button
@@ -373,12 +462,12 @@ export function CandidaturesView({
             ) : (
               <FileDown className="mr-2 size-4" />
             )}
-            Rapport PDF
+            {t("reportPdf")}
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
-            {STATUS_FILTERS.map((filter) => (
+            {statusFilters.map((filter) => (
               <Button
                 key={filter.value}
                 type="button"
@@ -396,11 +485,9 @@ export function CandidaturesView({
           </div>
 
           {loading ? (
-            <p className="text-sm text-muted-foreground">Chargement...</p>
+            <p className="text-sm text-muted-foreground">{tCommon("loading")}</p>
           ) : filteredApplications.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Aucune candidature pour ce filtre.
-            </p>
+            <p className="text-sm text-muted-foreground">{t("emptyFilter")}</p>
           ) : (
             <div className="grid gap-3">
               {filteredApplications.map((application) => {
@@ -419,17 +506,20 @@ export function CandidaturesView({
                           {application.prenom} {application.nom}{" "}
                           {application.postnom}
                         </p>
-                        <StatusBadge status={application.status} />
+                        <StatusBadge
+                          status={application.status}
+                          label={statusLabel(application.status)}
+                        />
                         <Badge variant="outline">
                           {application.applicationType === "TEACHER"
-                            ? "Enseignant"
-                            : "Personnel"}
+                            ? t("applicationType.TEACHER")
+                            : t("applicationType.STAFF")}
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {application.reference} · {application.email} ·{" "}
                         {new Date(application.createdAt).toLocaleDateString(
-                          "fr-FR",
+                          locale,
                         )}
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -448,7 +538,7 @@ export function CandidaturesView({
                         onClick={() => openDetail(application.id)}
                       >
                         <Eye className="mr-2 size-4" />
-                        Détails
+                        {t("details")}
                       </Button>
 
                       {application.status === "PENDING" ? (
@@ -466,7 +556,7 @@ export function CandidaturesView({
                           }
                         >
                           <Clock3 className="mr-2 size-4" />
-                          Examiner
+                          {t("review")}
                         </Button>
                       ) : null}
 
@@ -482,12 +572,12 @@ export function CandidaturesView({
                                 acceptJobApplicationAction({
                                   applicationId: application.id,
                                 }),
-                              "Candidature acceptée.",
+                              t("accepted"),
                             )
                           }
                         >
                           <CheckCircle2 className="mr-2 size-4" />
-                          Accepter
+                          {t("accept")}
                         </Button>
                       ) : null}
 
@@ -505,7 +595,7 @@ export function CandidaturesView({
                           }
                         >
                           <UserCheck className="mr-2 size-4" />
-                          Embaucher
+                          {t("hire")}
                         </Button>
                       ) : null}
 
@@ -524,7 +614,7 @@ export function CandidaturesView({
                           }}
                         >
                           <XCircle className="mr-2 size-4" />
-                          Refuser
+                          {t("reject")}
                         </Button>
                       ) : null}
                     </div>
@@ -543,13 +633,21 @@ export function CandidaturesView({
         >
           <DialogHeader className="shrink-0 space-y-2 border-b px-4 py-3 text-left sm:px-5">
             <DialogTitle className="flex flex-wrap items-center gap-2">
-              Dossier candidature
-              {detail ? <StatusBadge status={detail.status} /> : null}
+              {t("dossierTitle")}
+              {detail ? (
+                <StatusBadge
+                  status={detail.status}
+                  label={statusLabel(detail.status)}
+                />
+              ) : null}
             </DialogTitle>
             <DialogDescription>
               {detail
-                ? `${detail.reference} · déposée le ${new Date(detail.createdAt).toLocaleDateString("fr-FR")}`
-                : "Chargement du dossier…"}
+                ? t("dossierDeposited", {
+                    reference: detail.reference,
+                    date: new Date(detail.createdAt).toLocaleDateString(locale),
+                  })
+                : t("dossierLoading")}
             </DialogDescription>
           </DialogHeader>
 
@@ -570,7 +668,7 @@ export function CandidaturesView({
               {detail.status === "REJECTED" && detail.rejectedReason ? (
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
                   <p className="text-xs font-semibold uppercase tracking-wide">
-                    Motif du refus
+                    {t("rejectReasonTitle")}
                   </p>
                   <p className="mt-1 whitespace-pre-wrap">
                     {detail.rejectedReason}
@@ -581,32 +679,35 @@ export function CandidaturesView({
               <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
                 {[
                   {
-                    label: "Nom",
+                    label: tCommon("person.lastName"),
                     value: `${detail.prenom} ${detail.nom} ${detail.postnom}`.trim(),
                   },
-                  { label: "Email", value: detail.email },
-                  { label: "Téléphone", value: detail.telephone },
+                  { label: tCommon("person.email"), value: detail.email },
+                  { label: t("fields.phone"), value: detail.telephone },
                   {
-                    label: "Type",
+                    label: t("fields.type"),
                     value:
                       detail.applicationType === "TEACHER"
-                        ? "Enseignant"
-                        : "Personnel",
+                        ? t("applicationType.TEACHER")
+                        : t("applicationType.STAFF"),
                   },
                   detail.desiredOrgRole
                     ? {
-                        label: "Rôle souhaité",
+                        label: t("fields.desiredRole"),
                         value: orgRoleLabel(detail.desiredOrgRole),
                       }
                     : null,
                   detail.desiredSubjects
-                    ? { label: "Matières", value: detail.desiredSubjects }
+                    ? { label: t("fields.subjects"), value: detail.desiredSubjects }
                     : null,
                   detail.desiredLevels
-                    ? { label: "Niveaux", value: detail.desiredLevels }
+                    ? { label: t("fields.levels"), value: detail.desiredLevels }
                     : null,
                   detail.availability
-                    ? { label: "Disponibilité", value: detail.availability }
+                    ? {
+                        label: t("fields.availability"),
+                        value: detail.availability,
+                      }
                     : null,
                 ]
                   .filter(Boolean)
@@ -624,10 +725,10 @@ export function CandidaturesView({
 
               {(
                 [
-                  ["Expérience", detail.experienceSummary],
-                  ["Formation", detail.educationSummary],
-                  ["Compétences", detail.skills],
-                  ["Motivation", detail.motivation],
+                  [t("fields.experience"), detail.experienceSummary],
+                  [t("fields.education"), detail.educationSummary],
+                  [t("fields.skills"), detail.skills],
+                  [t("fields.motivation"), detail.motivation],
                 ] as const
               )
                 .filter(([, value]) => Boolean(value))
@@ -660,7 +761,7 @@ export function CandidaturesView({
               ) : (
                 <Download className="mr-2 size-4" />
               )}
-              PDF dossier
+              {t("dossierPdf")}
             </Button>
             {detail?.cvUrl ? (
               <Button
@@ -670,7 +771,7 @@ export function CandidaturesView({
                 onClick={() => setDocViewer("cv")}
               >
                 <Eye className="mr-2 size-4" />
-                Lire CV
+                {t("readCv")}
               </Button>
             ) : null}
             {detail?.coverLetterUrl ? (
@@ -681,7 +782,7 @@ export function CandidaturesView({
                 onClick={() => setDocViewer("coverLetter")}
               >
                 <Eye className="mr-2 size-4" />
-                Lire lettre
+                {t("readCoverLetter")}
               </Button>
             ) : null}
             {detail?.cvUrl ? (
@@ -693,7 +794,7 @@ export function CandidaturesView({
                   rel="noopener noreferrer"
                 >
                   <Download className="mr-2 size-4" />
-                  CV
+                  {t("cv")}
                 </a>
               </Button>
             ) : null}
@@ -706,7 +807,7 @@ export function CandidaturesView({
                   rel="noopener noreferrer"
                 >
                   <Download className="mr-2 size-4" />
-                  Lettre
+                  {t("coverLetter")}
                 </a>
               </Button>
             ) : null}
@@ -716,7 +817,7 @@ export function CandidaturesView({
               className="w-full sm:w-auto"
               onClick={() => setDetailOpen(false)}
             >
-              Fermer
+              {tCommon("close")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -728,18 +829,16 @@ export function CandidaturesView({
           className="flex max-h-[min(92dvh,28rem)] w-[min(calc(100vw-1rem),36rem)] flex-col gap-0 overflow-hidden p-0 sm:w-[min(calc(100vw-2rem),40rem)]"
         >
           <DialogHeader className="shrink-0 space-y-1 border-b px-4 py-3 text-left sm:px-5">
-            <DialogTitle>Refuser la candidature</DialogTitle>
-            <DialogDescription>
-              Indiquez un motif clair pour le candidat.
-            </DialogDescription>
+            <DialogTitle>{t("rejectDialogTitle")}</DialogTitle>
+            <DialogDescription>{t("rejectDialogDescription")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 px-4 py-3 sm:px-5">
-            <Label htmlFor="reject-reason">Motif</Label>
+            <Label htmlFor="reject-reason">{t("reason")}</Label>
             <Input
               id="reject-reason"
               value={rejectReason}
               onChange={(event) => setRejectReason(event.target.value)}
-              placeholder="Expliquez brièvement le refus"
+              placeholder={t("rejectPlaceholder")}
             />
           </div>
           <DialogFooter className="shrink-0 gap-2 border-t px-4 py-3 sm:flex-row sm:justify-end sm:space-x-0 sm:px-5">
@@ -748,7 +847,7 @@ export function CandidaturesView({
               className="w-full sm:w-auto"
               onClick={() => setRejectOpen(false)}
             >
-              Annuler
+              {tCommon("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -762,12 +861,12 @@ export function CandidaturesView({
                       applicationId: rejectTargetId,
                       reason: rejectReason.trim(),
                     }),
-                  "Candidature refusée.",
+                  t("rejected"),
                 );
                 setRejectOpen(false);
               }}
             >
-              Confirmer le refus
+              {t("confirmReject")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -779,7 +878,7 @@ export function CandidaturesView({
           onOpenChange={(open) => {
             if (!open) setDocViewer(null);
           }}
-          title="CV"
+          title={t("cv")}
           fileUrl={detail.cvUrl}
         />
       ) : null}
@@ -789,7 +888,7 @@ export function CandidaturesView({
           onOpenChange={(open) => {
             if (!open) setDocViewer(null);
           }}
-          title="Lettre de motivation"
+          title={t("coverLetterFull")}
           fileUrl={detail.coverLetterUrl}
         />
       ) : null}

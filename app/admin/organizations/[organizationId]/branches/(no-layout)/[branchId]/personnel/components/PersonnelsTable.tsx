@@ -13,11 +13,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { IPersonnel } from "@/src/interfaces/Personnel";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
-import { createPersonnelColumns } from "./columns";
+import { usePersonnelColumns } from "./columns";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { getPersonnelsAction } from "../personnel.action";
 import { UpdatePersonnelDialog } from "./edit-personnel-dialog";
 import { sortActiveStatusUserFirst } from "@/lib/archive";
+import { useTranslations } from "next-intl";
 
 const PersonnelsList = ({
   refreshKey,
@@ -43,6 +44,10 @@ const PersonnelsList = ({
   );
   const hasLoadedOnce = useRef(false);
   const { refreshKey: contextRefreshKey } = useRefresh();
+  const t = useTranslations("users.staff.table");
+  const tStaff = useTranslations("users.staff");
+  const tPerson = useTranslations("common.person");
+  const tCommon = useTranslations("common");
 
   const tableActions = useMemo(
     () => ({
@@ -51,15 +56,11 @@ const PersonnelsList = ({
     [],
   );
 
-  const columns = useMemo(
-    () =>
-      createPersonnelColumns(
-        onRefresh,
-        canManagePersonnel,
-        tableActions,
-        canPurgePermanently,
-      ),
-    [canManagePersonnel, canPurgePermanently, onRefresh, tableActions],
+  const columns = usePersonnelColumns(
+    onRefresh,
+    canManagePersonnel,
+    tableActions,
+    canPurgePermanently,
   );
 
   const Toolbar = useMemo(
@@ -93,7 +94,7 @@ const PersonnelsList = ({
       setPersonnels(sortActiveStatusUserFirst(rawPersonnels || []));
       hasLoadedOnce.current = true;
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Erreur serveur");
+      setError(e instanceof Error ? e.message : tCommon("errorGeneric"));
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -150,16 +151,14 @@ const PersonnelsList = ({
       <>
         {dialogs}
         <EmptyTableState
-          title="Aucun personnel enregistré"
+          title={t("emptyTitle")}
           description={
-            supportsStaffImport
-              ? "Creez ou importez un personnel depuis une autre branche pour commencer."
-              : "Ajoutez votre premier membre du personnel pour commencer."
+            supportsStaffImport ? t("emptyImportDesc") : t("emptyAddDesc")
           }
           icon={<IconUsers />}
           actionLabel={
             supportsStaffImport && canManagePersonnel
-              ? "Importer un personnel"
+              ? tStaff("importOne")
               : undefined
           }
           onAction={
@@ -183,7 +182,7 @@ const PersonnelsList = ({
           columns={columns}
           ToolbarComponent={Toolbar}
           data={personnels}
-          emptyText="Aucun personnel"
+          emptyText={t("noResults")}
           mobileCardTitle={(row) =>
             [row.nom, row.postnom, row.prenom].filter(Boolean).join(" ")
           }
@@ -191,11 +190,12 @@ const PersonnelsList = ({
           mobileCardBadges={(row) =>
             [
               {
-                label: row.sexe === "M" ? "Masculin" : "Féminin",
+                label:
+                  row.sexe === "M" ? tPerson("male") : tPerson("female"),
                 variant: "secondary" as const,
               },
               {
-                label: row.telephone || "Téléphone non défini",
+                label: row.telephone || tPerson("phone"),
                 variant: "outline" as const,
               },
             ].filter((badge) => badge.label)

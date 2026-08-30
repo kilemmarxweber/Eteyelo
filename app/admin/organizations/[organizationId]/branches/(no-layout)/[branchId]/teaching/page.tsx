@@ -67,7 +67,8 @@ type ClassTeaching = ClassCourses["teachings"][number];
 const PAGE_SIZE = 8;
 
 export default function TeachingWorkspacePage() {
-  const t = useTranslations("teaching");
+  const t = useTranslations("teaching.assignments");
+  const tc = useTranslations("common");
   const [data, setData] = useState<Workspace | null>(null);
   const [classCourses, setClassCourses] = useState<ClassCourses | null>(null);
   const [classCache, setClassCache] = useState<Record<string, ClassCourses>>(
@@ -94,7 +95,7 @@ export default function TeachingWorkspacePage() {
       startTransition(async () => {
         const [result, error] = await getTeachingWorkspaceAction();
         if (error || !result) {
-          toast.error(error?.message ?? "Chargement impossible");
+          toast.error(error?.message ?? t("loadFailed"));
           return;
         }
         setData(result);
@@ -121,7 +122,7 @@ export default function TeachingWorkspacePage() {
       });
       if (cancelled) return;
       if (error || !result) {
-        toast.error(error?.message ?? "Chargement des cours impossible");
+        toast.error(error?.message ?? t("loadCoursesFailed"));
         return;
       }
       setClassCache((current) => ({ ...current, [selectedClassId]: result }));
@@ -338,7 +339,7 @@ export default function TeachingWorkspacePage() {
       setSavingCourseId(null);
       if (error || !saved) {
         updateClassTeachings(selectedClassId, previous);
-        toast.error(error?.message ?? "Affectation impossible");
+        toast.error(error?.message ?? t("assignFailed"));
         return;
       }
       updateClassTeachings(selectedClassId, [
@@ -353,18 +354,14 @@ export default function TeachingWorkspacePage() {
       ]);
       setSelectedCourses([]);
       setBulkTeacherId("");
-      toast.success(
-        courseIds.length > 1
-          ? `${courseIds.length} cours affectés`
-          : "Cours affecté",
-      );
+      toast.success(t("coursesAssigned", { count: courseIds.length }));
     });
   }
 
   function saveWeeklyHours(teachingId: string, coursId: string, value: string) {
     const weeklyHours = Number(value);
     if (!Number.isFinite(weeklyHours) || weeklyHours <= 0) {
-      toast.error("Indiquez un volume en minutes / semaine valide (> 0).");
+      toast.error(t("invalidWeeklyHours"));
       return;
     }
     if (!classCourses || !selectedClassId) return;
@@ -384,14 +381,14 @@ export default function TeachingWorkspacePage() {
       setSavingCourseId(null);
       if (error || !updated) {
         updateClassTeachings(selectedClassId, previous);
-        toast.error(error?.message ?? "Mise à jour impossible");
+        toast.error(error?.message ?? t("updateFailed"));
         return;
       }
       updateClassTeachings(
         selectedClassId,
         previous.map((item) => (item.id === teachingId ? { ...item, ...updated } : item)),
       );
-      toast.success("Minutes / semaine enregistrées");
+      toast.success(t("weeklyHoursSaved"));
     });
   }
 
@@ -438,7 +435,7 @@ export default function TeachingWorkspacePage() {
       setSavingCourseId(null);
       if (error || !updated) {
         updateClassTeachings(selectedClassId, previous);
-        toast.error(error?.message ?? "Mise à jour impossible");
+        toast.error(error?.message ?? t("updateFailed"));
         return;
       }
       updateClassTeachings(
@@ -447,7 +444,7 @@ export default function TeachingWorkspacePage() {
           item.id === teachingId ? { ...item, ...updated } : item,
         ),
       );
-      toast.success("Contraintes d'horaire enregistrées");
+      toast.success(t("scheduleConstraintsSaved"));
     });
   }
 
@@ -473,15 +470,11 @@ export default function TeachingWorkspacePage() {
       setSavingCourseId(null);
       if (error || !result) {
         updateClassTeachings(selectedClassId, previous);
-        toast.error(error?.message ?? "Retrait impossible");
+        toast.error(error?.message ?? t("removeFailed"));
         return;
       }
       setSelectedCourses([]);
-      toast.success(
-        result.removed > 1
-          ? `${result.removed} cours retirés de l'enseignant`
-          : "Cours retiré de l'enseignant",
-      );
+      toast.success(t("coursesRemoved", { count: result.removed }));
     });
   }
 
@@ -499,13 +492,13 @@ export default function TeachingWorkspacePage() {
 
   return (
     <BranchPageShell
-      title={t("assignments.title")}
-      description={t("assignments.year", {
-        year: data.schoolYear?.nameYear ?? t("assignments.yearMissing"),
+      title={t("title")}
+      description={t("year", {
+        year: data.schoolYear?.nameYear ?? t("yearMissing"),
       })}
           badge={
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
-              {t("assignments.badge")}
+              {t("badge")}
             </Badge>
           }
           actions={
@@ -514,7 +507,7 @@ export default function TeachingWorkspacePage() {
               onClick={() => setAssignmentFilter("unassigned")}
             >
               <IconUserOff className="mr-2 size-4" />
-              {t("assignments.unassigned", { count: totalUnassigned })}
+              {t("unassigned", { count: totalUnassigned })}
             </Button>
           }
       fixedHeight
@@ -523,7 +516,7 @@ export default function TeachingWorkspacePage() {
       <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
           <Card className="flex min-h-0 flex-col overflow-hidden">
             <div className="border-b p-3">
-              <h2 className="font-semibold">{t("assignments.classes")}</h2>
+              <h2 className="font-semibold">{t("classes")}</h2>
               <div className="relative mt-2">
                 <IconSearch className="absolute left-3 top-3 size-4 text-muted-foreground" />
                 <Input
@@ -532,7 +525,7 @@ export default function TeachingWorkspacePage() {
                     setClassSearch(e.target.value);
                     setPage(0);
                   }}
-                  placeholder={t("assignments.searchClass")}
+                  placeholder={t("searchClass")}
                   className="pl-9"
                 />
               </div>
@@ -571,7 +564,7 @@ export default function TeachingWorkspacePage() {
               })}
               {!paginatedClasses.length && (
                 <p className="p-4 text-center text-sm text-muted-foreground">
-                  Aucune classe
+                  {t("noClass")}
                 </p>
               )}
             </div>
@@ -585,8 +578,10 @@ export default function TeachingWorkspacePage() {
                 <IconChevronLeft className="size-4" />
               </Button>
               <span className="text-xs">
-                Page {page + 1}/
-                {Math.max(1, Math.ceil(filteredClasses.length / PAGE_SIZE))}
+                {t("page", {
+                  current: page + 1,
+                  total: Math.max(1, Math.ceil(filteredClasses.length / PAGE_SIZE)),
+                })}
               </span>
               <Button
                 size="icon"
@@ -604,15 +599,15 @@ export default function TeachingWorkspacePage() {
               <div className="flex flex-col gap-1">
                 <div className="min-w-0">
                   <h2 className="text-lg font-semibold">
-                    {selectedClass?.nameClasse ?? "Sélectionnez une classe"}
+                    {selectedClass?.nameClasse ?? t("selectClass")}
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    {assignedCount} cours affecté(s) · {unassignedCount} sans
-                    enseignant
+                    {t("statsAssigned", { count: assignedCount })} ·{" "}
+                    {t("statsUnassigned", { count: unassignedCount })}
                     {classCourses
-                      ? ` · ${courses.length} ligne(s)`
+                      ? ` · ${t("statsRows", { count: courses.length })}`
                       : selectedClass
-                        ? ` · ${selectedClass.configuredCount} ligne(s)`
+                        ? ` · ${t("statsRows", { count: selectedClass.configuredCount })}`
                         : ""}
                   </p>
                 </div>
@@ -622,7 +617,7 @@ export default function TeachingWorkspacePage() {
                       teachers={teachersForClass}
                       value={bulkTeacherId}
                       onChange={setBulkTeacherId}
-                      placeholder="Enseignant pour le lot"
+                      placeholder={t("bulkTeacher")}
                       className="h-9 min-w-[9rem] flex-1"
                     />
                     <Input
@@ -632,9 +627,9 @@ export default function TeachingWorkspacePage() {
                       step={15}
                       value={bulkWeeklyHours}
                       onChange={(e) => setBulkWeeklyHours(e.target.value)}
-                      placeholder="min"
+                      placeholder={t("minutesShort")}
                       className="h-9 w-[4.25rem] shrink-0 px-1.5 text-center tabular-nums"
-                      title="Minutes / semaine (ex. 135)"
+                      title={t("minutesPerWeekTitle")}
                     />
                     <Select
                       value={bulkConsecutiveSlots}
@@ -642,15 +637,15 @@ export default function TeachingWorkspacePage() {
                     >
                       <SelectTrigger
                         className="h-9 w-[5.5rem] shrink-0 px-2"
-                        title="Périodes d'affilée"
+                        title={t("consecutiveTitle")}
                       >
-                        <SelectValue placeholder="Affilé" />
+                        <SelectValue placeholder={t("consecutivePlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1">1 isolée</SelectItem>
-                        <SelectItem value="2">2 d&apos;affilée</SelectItem>
-                        <SelectItem value="3">3 d&apos;affilée</SelectItem>
-                        <SelectItem value="4">4 d&apos;affilée</SelectItem>
+                        <SelectItem value="1">{t("consecutive1")}</SelectItem>
+                        <SelectItem value="2">{t("consecutive2")}</SelectItem>
+                        <SelectItem value="3">{t("consecutive3")}</SelectItem>
+                        <SelectItem value="4">{t("consecutive4")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <div className="w-[4.5rem] shrink-0">
@@ -663,7 +658,7 @@ export default function TeachingWorkspacePage() {
                         onValueChange={(days) =>
                           setBulkPreferredDays(days as TeachingWeekday[])
                         }
-                        placeholder="Jours"
+                        placeholder={t("days")}
                         searchable={false}
                         hideSelected
                         selectedCountLabel={(count) => String(count)}
@@ -687,7 +682,7 @@ export default function TeachingWorkspacePage() {
                         );
                       }}
                     >
-                      Affecter ({selectedCourses.length})
+                      {t("assign", { count: selectedCourses.length })}
                     </Button>
                     {selectedAssignedCourses.length > 0 && (
                       <Button
@@ -699,7 +694,7 @@ export default function TeachingWorkspacePage() {
                         }
                       >
                         <IconX className="mr-2 size-4" />
-                        Retirer ({selectedAssignedCourses.length})
+                        {t("remove", { count: selectedAssignedCourses.length })}
                       </Button>
                     )}
                   </div>
@@ -711,7 +706,7 @@ export default function TeachingWorkspacePage() {
                   <Input
                     value={courseSearch}
                     onChange={(e) => setCourseSearch(e.target.value)}
-                    placeholder="Cours..."
+                    placeholder={t("courseSearchShort")}
                     className="pl-9"
                   />
                 </div>
@@ -719,7 +714,7 @@ export default function TeachingWorkspacePage() {
                   teachers={teachersForClass}
                   value={teacherFilter}
                   onChange={setTeacherFilter}
-                  placeholder="Tous les enseignants"
+                  placeholder={t("allTeachers")}
                   allowAll
                   className="w-full"
                 />
@@ -731,9 +726,9 @@ export default function TeachingWorkspacePage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tous les cours</SelectItem>
-                    <SelectItem value="assigned">Affectés</SelectItem>
-                    <SelectItem value="unassigned">Non affectés</SelectItem>
+                    <SelectItem value="all">{t("allCourses")}</SelectItem>
+                    <SelectItem value="assigned">{t("filterAssigned")}</SelectItem>
+                    <SelectItem value="unassigned">{t("filterUnassigned")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <div className="flex items-center gap-2">
@@ -744,8 +739,9 @@ export default function TeachingWorkspacePage() {
                     disabled={!rowIds.length || allVisibleSelected}
                     onClick={() => toggleSelectAllVisible(true)}
                   >
-                    Tout cocher
-                    {rowIds.length > 0 ? ` (${rowIds.length})` : ""}
+                    {rowIds.length > 0
+                      ? t("selectAllVisible", { count: rowIds.length })
+                      : t("selectAll")}
                   </Button>
                   <Button
                     type="button"
@@ -754,14 +750,12 @@ export default function TeachingWorkspacePage() {
                     disabled={!someVisibleSelected}
                     onClick={() => toggleSelectAllVisible(false)}
                   >
-                    Tout décocher
+                    {t("deselectAll")}
                   </Button>
                 </div>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                Minutes / semaine, périodes d&apos;affilée (2–4) et jours
-                préférés pilotent la génération automatique d&apos;horaire.
-                Ex. 2 d&apos;affilée = 7h30→8h15 puis 8h15→9h00 le même jour.
+                {t("autoScheduleHint")}
               </p>
             </div>
             <div className="min-h-0 flex-1 overflow-auto">
@@ -779,21 +773,21 @@ export default function TeachingWorkspacePage() {
                                 : false
                           }
                           onCheckedChange={toggleSelectAllVisible}
-                          aria-label="Tout cocher les cours visibles"
+                          aria-label={t("selectAllAria")}
                           disabled={!rowIds.length}
                         />
                         <span className="text-xs font-medium text-muted-foreground">
-                          Tout
+                          {t("allRows")}
                         </span>
                       </label>
                     </th>
-                    <th className="p-2">Cours</th>
-                    <th className="p-2 w-[11rem]">Enseignant</th>
-                    <th className="p-2 w-[4.5rem]">min/sem</th>
-                    <th className="p-2 w-[4.5rem]">Affilée</th>
-                    <th className="p-2 w-[4.5rem]">Jours</th>
-                    <th className="p-2 w-[6.5rem]">État</th>
-                    <th className="p-2 w-[1%]">Actions</th>
+                    <th className="p-2">{t("courseColumn")}</th>
+                    <th className="p-2 w-[11rem]">{t("teacherColumn")}</th>
+                    <th className="p-2 w-[4.5rem]">{t("minPerWeek")}</th>
+                    <th className="p-2 w-[4.5rem]">{t("consecutiveColumn")}</th>
+                    <th className="p-2 w-[4.5rem]">{t("daysColumn")}</th>
+                    <th className="p-2 w-[6.5rem]">{t("stateColumn")}</th>
+                    <th className="p-2 w-[1%]">{tc("actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -824,7 +818,7 @@ export default function TeachingWorkspacePage() {
                               : ""}
                             {(course as { kind?: string }).kind ===
                             "SCHEDULE_COMPONENT"
-                              ? " · poste horaire"
+                              ? ` · ${t("schedulePost")}`
                               : ""}
                           </p>
                         </td>
@@ -850,7 +844,7 @@ export default function TeachingWorkspacePage() {
                               );
                             }}
                             disabled={isSaving}
-                            placeholder="Affecter…"
+                            placeholder={t("assignPlaceholder")}
                             allowClear={Boolean(assignment)}
                             className="h-9 w-full max-w-[11rem]"
                           />
@@ -867,7 +861,7 @@ export default function TeachingWorkspacePage() {
                               disabled={isSaving}
                               className="h-9 w-[4.25rem] px-1.5 text-center tabular-nums"
                               placeholder="135"
-                              title="Minutes / semaine"
+                              title={t("minutesPerWeekField")}
                               onBlur={(e) => {
                                 const next = e.target.value;
                                 const prev = assignment.weeklyHours;
@@ -938,7 +932,7 @@ export default function TeachingWorkspacePage() {
                                   preferredDays: days as TeachingWeekday[],
                                 });
                               }}
-                              placeholder="Tous"
+                              placeholder={t("allDays")}
                               searchable={false}
                               hideSelected
                               selectedCountLabel={(count) => String(count)}
@@ -960,7 +954,7 @@ export default function TeachingWorkspacePage() {
                               )
                             }
                           >
-                            {assignment ? "Affecté" : "Non affecté"}
+                            {assignment ? t("assignedBadge") : t("unassignedBadge")}
                           </Badge>
                         </td>
                         <td className="p-2">
@@ -974,7 +968,7 @@ export default function TeachingWorkspacePage() {
                               onClick={() => removeAssignments([course.id])}
                             >
                               <IconX className="mr-1 size-4" />
-                              Retirer
+                              {t("removeAction")}
                             </Button>
                           ) : (
                             <span className="text-xs text-muted-foreground">—</span>
@@ -989,10 +983,10 @@ export default function TeachingWorkspacePage() {
                 <div className="p-10 text-center text-muted-foreground">
                   <IconBooks className="mx-auto mb-2 size-8" />
                   {!classCourses && selectedClassId
-                    ? "Chargement des cours pondérés..."
+                    ? t("loadingWeighted")
                     : selectedClass && selectedClass.configuredCount === 0
-                      ? "Aucun cours pondéré pour cette classe. Configurez d'abord les pondérations."
-                      : "Aucun cours correspondant"}
+                      ? t("noWeightedConfigure")
+                      : t("noMatching")}
                 </div>
               )}
             </div>
@@ -1021,12 +1015,12 @@ function TeacherPicker({
   allowAll?: boolean;
   allowClear?: boolean;
 }) {
-  const t = useTranslations("teaching");
+  const t = useTranslations("teaching.assignments");
   const [open, setOpen] = useState(false);
   const selected = teachers.find((teacher) => teacher.id === value);
   const displayValue =
     allowAll && value === "all"
-      ? "Tous les enseignants"
+      ? t("allTeachers")
       : selected?.name;
 
   return (
@@ -1050,12 +1044,10 @@ function TeacherPicker({
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0" align="start">
         <Command>
-          <CommandInput placeholder={t("assignments.searchTeacher")} />
+          <CommandInput placeholder={t("searchTeacher")} />
           <CommandList className="max-h-64">
-            <CommandEmpty>{t("assignments.noTeacherFound")}</CommandEmpty>
-            <CommandGroup
-              heading={t("assignments.teachersCount", { count: teachers.length })}
-            >
+            <CommandEmpty>{t("noTeacherFound")}</CommandEmpty>
+            <CommandGroup heading={t("teachersCount", { count: teachers.length })}>
               {allowAll && (
                 <CommandItem
                   value="tous les enseignants"
@@ -1070,7 +1062,7 @@ function TeacherPicker({
                       value === "all" ? "opacity-100" : "opacity-0",
                     )}
                   />
-                  Tous les enseignants
+                  {t("allTeachers")}
                 </CommandItem>
               )}
               {allowClear && (
@@ -1082,7 +1074,7 @@ function TeacherPicker({
                   }}
                 >
                   <IconX className="mr-2 size-4 text-destructive" />
-                  <span className="text-destructive">Retirer l&apos;affectation</span>
+                  <span className="text-destructive">{t("removeAssignment")}</span>
                 </CommandItem>
               )}
               {teachers.map((teacher) => (

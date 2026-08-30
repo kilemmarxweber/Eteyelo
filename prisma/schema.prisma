@@ -52,6 +52,11 @@ model User {
   appNotifications         AppNotification[]
   familyPaymentsCreated    FamilyPayment[]  @relation("FamilyPaymentCreatedBy")
   cashierExpensesCreated   CashierExpense[] @relation("CashierExpenseCreatedBy")
+  conversationsCreated     Conversation[]    @relation("ConversationCreator")
+  conversationParticipants ConversationParticipant[]
+  sentMessages             Message[]         @relation("SentMessages")
+  messageArchives          UserMessageArchive[]
+  messagingAuditLogs       MessagingAuditLog[]
 
   @@index([telephone])
   @@index([role])
@@ -1157,6 +1162,7 @@ enum AppNotificationType {
   PAYMENT
   GRADE_MODIFICATION_SUBMITTED
   GRADE_MODIFICATION_DECISION
+  MESSAGE
 }
 
 enum GradeModificationStatus {
@@ -1239,8 +1245,13 @@ model AbsenceCase {
 
 model AppNotification {
   id            String              @id @default(cuid())
-  branchId      String
-  branch        Branch              @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  branchId      String?
+  branch        Branch?             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  organizationId String?
+  conversationId String?
+  conversation  Conversation?       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  messageId     String?
+  message       Message?           @relation(fields: [messageId], references: [id], onDelete: Cascade)
   userId        String
   user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   type          AppNotificationType
@@ -1256,8 +1267,11 @@ model AppNotification {
 
   @@index([userId, readAt])
   @@index([branchId, userId, createdAt])
+  @@index([organizationId, userId, createdAt])
   @@index([absenceCaseId])
   @@index([gradeModificationRequestId])
+  @@index([conversationId])
+  @@index([messageId, userId])
 }
 
 enum StudentCategory {
@@ -1344,6 +1358,8 @@ model Organization {
   invitations       Invitation[]
   organizationSupportAgents OrganizationSupportAgent[]
   platformSupportEscalations PlatformSupportEscalation[]
+  conversations      Conversation[]
+  messagingAuditLogs MessagingAuditLog[]
   exchangeRates     ExchangeRate[]
   /// Afficher la 2e devise (conversion) sur les reçus. Désactiver pour AOA sans conversion.
   showReceiptConversion Boolean @default(true)
@@ -1357,6 +1373,8 @@ model Organization {
   whatsappTemplate String?
   /// URL liée à la clé Zindua (si la clé est bound à un site). Vide = env ZINDUA_SITE_URL.
   whatsappSiteUrl String?
+  /// Messagerie interne organisation. Désactiver masque le menu et bloque les actions.
+  messagingEnabled Boolean @default(true)
 
   @@unique([name])
   @@unique([slug])
@@ -1507,6 +1525,7 @@ model Branch {
   primaryDomains       BranchPrimaryDomain[]
   absenceCases         AbsenceCase[]
   appNotifications     AppNotification[]
+  sourceConversations  Conversation[] @relation("ConversationSourceBranch")
   gradeModificationRequests GradeModificationRequest[]
   /// En-tête listing finalistes Excel : province, centre, établissement, option, gestion…
   examExportMeta       Json?
@@ -2222,4 +2241,107 @@ model OnlineSubmissionFile {
   createdAt    DateTime         @default(now())
 
   @@index([submissionId])
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+  CONTEXTUAL
+}
+
+enum ConversationContextType {
+  ABSENCE_CASE
+  GRADE_MODIFICATION
+  REGISTRATION_REQUEST
+  SUPPORT_TICKET
+}
+
+model Conversation {
+  id             String                    @id @default(cuid())
+  organizationId String
+  organization    Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  type           ConversationType           @default(DIRECT)
+  subject        String?
+  createdById    String
+  createdBy      User                      @relation("ConversationCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  sourceBranchId String?
+  sourceBranch   Branch?                  @relation("ConversationSourceBranch", fields: [sourceBranchId], references: [id], onDelete: SetNull)
+  contextType    ConversationContextType?
+  contextId      String?
+  deletedAt      DateTime?
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  participants   ConversationParticipant[]
+  messages       Message[]
+  notifications  AppNotification[]
+
+  @@index([organizationId, updatedAt])
+  @@index([organizationId, deletedAt])
+  @@index([contextType, contextId])
+  @@index([createdById])
+}
+
+model ConversationParticipant {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt       DateTime     @default(now())
+  lastReadAt     DateTime?
+  archivedAt     DateTime?
+  mutedAt        DateTime?
+  leftAt         DateTime?
+
+  @@unique([conversationId, userId])
+  @@index([userId, lastReadAt, archivedAt])
+  @@index([userId, archivedAt])
+}
+
+model Message {
+  id              String       @id @default(cuid())
+  conversationId  String
+  conversation    Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId        String
+  sender          User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  body            String        @db.Text
+  replyToId       String?
+  replyTo         Message?     @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies         Message[]   @relation("MessageReplies")
+  clientMessageId String?
+  createdAt       DateTime     @default(now())
+  editedAt        DateTime?
+  deletedAt       DateTime?
+  archives        UserMessageArchive[]
+  notifications   AppNotification[]
+
+  @@index([conversationId, createdAt])
+  @@index([senderId, createdAt])
+}
+
+model UserMessageArchive {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageId  String
+  message    Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  archivedAt DateTime @default(now())
+
+  @@unique([userId, messageId])
+  @@index([userId, archivedAt])
+}
+
+model MessagingAuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorUserId    String
+  actor          User         @relation(fields: [actorUserId], references: [id], onDelete: Cascade)
+  action         String
+  details        String       @db.Text
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([actorUserId, createdAt])
 }

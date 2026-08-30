@@ -5,6 +5,7 @@ import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import * as React from "react";
 import { IconArchive, IconReload, IconTrash } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,8 @@ export function DeleteCreneausDialog({
   permanent = false,
   ...props
 }: DeleteCreneausDialogProps) {
+  const t = useTranslations("teaching.vacation.deleteDialog");
+  const tc = useTranslations("common");
   const [isPending, startTransition] = useTransition();
   const { refresh } = useRefresh();
 
@@ -65,9 +68,7 @@ export function DeleteCreneausDialog({
         if (err) {
           toast.error(
             err.message ??
-              (permanent
-                ? "Erreur lors de la suppression"
-                : "Erreur lors de l'archivage"),
+              (permanent ? tc("errorDelete") : tc("errorArchive")),
           );
           hasError = true;
         }
@@ -76,11 +77,11 @@ export function DeleteCreneausDialog({
         toast.success(
           permanent
             ? count === 1
-              ? "Vacation supprimée"
-              : "Vacations supprimées"
+              ? t("deletedOne")
+              : t("deletedMany")
             : count === 1
-              ? "Vacation archivée"
-              : "Vacations archivées",
+              ? t("archivedOne")
+              : t("archivedMany"),
         );
         refresh();
         onSuccess?.();
@@ -99,7 +100,9 @@ export function DeleteCreneausDialog({
             ) : (
               <IconArchive className="mr-2 size-4" aria-hidden="true" />
             )}
-            {permanent ? `Supprimer (${count})` : `Archiver (${count})`}
+            {permanent
+              ? t("deleteCount", { count })
+              : t("archiveCount", { count })}
           </Button>
         </DialogTrigger>
       ) : null}
@@ -110,37 +113,39 @@ export function DeleteCreneausDialog({
         <DialogHeader>
           <DialogTitle>
             {blocked
-              ? "Impossible de supprimer"
+              ? tc("cannotDelete")
               : permanent
                 ? count === 1
-                  ? "Supprimer la vacation ?"
-                  : `Supprimer ${count} vacations ?`
+                  ? t("titleDeleteOne")
+                  : t("titleDeleteMany", { count })
                 : count === 1
-                  ? "Archiver la vacation ?"
-                  : `Archiver ${count} vacations ?`}
+                  ? t("titleArchiveOne")
+                  : t("titleArchiveMany", { count })}
           </DialogTitle>
           <DialogDescription>
             {blocked
               ? count === 1
-                ? `Cette vacation a encore ${blockedCount} classe${blockedCount > 1 ? "s" : ""}. Supprimez d'abord ${blockedCount > 1 ? "ces classes" : "cette classe"} avant de supprimer la vacation.`
-                : `Ces vacations ont encore ${blockedCount} classe${blockedCount > 1 ? "s" : ""} liée${blockedCount > 1 ? "s" : ""}. Supprimez d'abord ces classes avant de supprimer les vacations.`
+                ? t("blockedOne", { count: blockedCount })
+                : t("blockedMany", { count: blockedCount })
               : permanent
                 ? count === 1
-                  ? "Cette action est irréversible. La vacation sera effacée définitivement."
-                  : "Cette action est irréversible. Ces vacations seront effacées définitivement."
+                  ? t("permanentOne")
+                  : t("permanentMany")
                 : count === 1
-                  ? "La vacation sera masquée des listes actives mais l'historique sera conservé."
-                  : "Ces vacations seront masquées des listes actives mais l'historique sera conservé."}
+                  ? t("archiveOne")
+                  : t("archiveMany")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
           <DialogClose asChild>
-            <Button variant="outline">{blocked ? "Fermer" : "Annuler"}</Button>
+            <Button variant="outline">
+              {blocked ? tc("close") : tc("cancel")}
+            </Button>
           </DialogClose>
           {blocked ? null : (
             <Button
               aria-label={
-                permanent ? "Supprimer la sélection" : "Archiver la sélection"
+                permanent ? tc("deleteSelection") : tc("archiveSelection")
               }
               variant="destructive"
               onClick={handleConfirm}
@@ -156,7 +161,7 @@ export function DeleteCreneausDialog({
               ) : (
                 <IconArchive className="mr-2 size-4" aria-hidden="true" />
               )}
-              {permanent ? "Supprimer" : "Archiver"}
+              {permanent ? tc("delete") : tc("archive")}
             </Button>
           )}
         </DialogFooter>

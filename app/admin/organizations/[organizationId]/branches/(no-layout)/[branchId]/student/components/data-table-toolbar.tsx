@@ -5,6 +5,7 @@ import { Cross2Icon } from "@radix-ui/react-icons";
 import { Table } from "@tanstack/react-table";
 import { IconFileTypePdf, IconSearch, IconUpload } from "@tabler/icons-react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Button } from "@/components/custom/button";
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
@@ -21,6 +22,7 @@ import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
 import type { IStudent } from "@/src/interfaces/Student";
 import {
   exportStudentsReportPdf,
+  type StudentPdfLabels,
   type StudentReportOptions,
   type StudentReportPeriod,
   type StudentReportSexe,
@@ -39,17 +41,6 @@ interface DataTableToolbarProps<TData> {
   typebranch?: unknown;
   educationSystem?: unknown;
 }
-
-const sexes = [
-  {
-    label: "Masculin",
-    value: "M",
-  },
-  {
-    label: "Féminin",
-    value: "F",
-  },
-];
 
 function readFilterValues(value: unknown): string[] {
   if (Array.isArray(value)) return value.map(String).filter(Boolean);
@@ -72,7 +63,10 @@ function readPeriodFilter(value: unknown): StudentReportPeriod {
   return "all";
 }
 
-function resolveReportOptions(table: Table<unknown>): StudentReportOptions {
+function resolveReportOptions(table: Table<unknown>): Omit<
+  StudentReportOptions,
+  "labels"
+> {
   const classFilterValue = table.getColumn("classCode")?.getFilterValue();
   const selectedClassCodes = readFilterValues(classFilterValue);
   const selectedClassCode =
@@ -158,16 +152,69 @@ export function DataTableToolbar<TData>({
   requiresImport = false,
   supportsImport = false,
   peopleLabels = DEFAULT_PEOPLE_LABELS,
-  classLabel = "Classe",
+  classLabel,
   onOpenImport,
   typebranch,
   educationSystem,
 }: DataTableToolbarProps<TData>) {
   const [exportingPdf, setExportingPdf] = useState(false);
+  const locale = useLocale();
+  const t = useTranslations("users.students.table");
+  const tPdf = useTranslations("users.students.pdf");
+  const tCommon = useTranslations("common");
   const isFiltered = table.getState().columnFilters.length > 0;
   const preFilteredRows = table.getPreFilteredRowModel().rows;
   const selectedYearIds = readFilterValues(
     table.getColumn("schoolYearId")?.getFilterValue(),
+  );
+  const resolvedClassLabel = classLabel ?? t("class");
+
+  const sexes = useMemo(
+    () => [
+      { label: t("masculine"), value: "M" },
+      { label: t("feminine"), value: "F" },
+    ],
+    [t],
+  );
+
+  const pdfLabels: StudentPdfLabels = useMemo(
+    () => ({
+      listTitle: tPdf("listTitle", {
+        studentsLower: peopleLabels.studentPluralLower,
+      }),
+      classTitle: tPdf("classTitle", { className: "{className}" }),
+      boys: tPdf("boys"),
+      girls: tPdf("girls"),
+      active: tPdf("active"),
+      inactive: tPdf("inactive"),
+      unassigned: tPdf("unassigned"),
+      periodToday: tPdf("periodToday"),
+      periodWeek: tPdf("periodWeek"),
+      periodMonth: tPdf("periodMonth"),
+      periodAll: tPdf("periodAll"),
+      studentCount: tPdf("studentCount", { count: "{count}" }),
+      colIndex: tPdf("colIndex"),
+      colMatricule: tPdf("colMatricule"),
+      colLastName: tPdf("colLastName"),
+      colPostnom: tPdf("colPostnom"),
+      colFirstName: tPdf("colFirstName"),
+      colGender: tPdf("colGender"),
+      colAge: tPdf("colAge"),
+      colClass: tPdf("colClass"),
+      colE13: tPdf("colE13"),
+      colE80: tPdf("colE80"),
+      colBirthDate: tPdf("colBirthDate"),
+      colBirthPlace: tPdf("colBirthPlace"),
+      filterPeriod: tPdf("filterPeriod"),
+      filterYear: tPdf("filterYear"),
+      filterYears: tPdf("filterYears"),
+      filterClass: tPdf("filterClass"),
+      filterGender: tPdf("filterGender"),
+      filterStatus: tPdf("filterStatus"),
+      filterSearch: tPdf("filterSearch"),
+      locale,
+    }),
+    [locale, peopleLabels.studentPluralLower, tPdf],
   );
 
   const classOptions = useMemo(() => {
@@ -207,9 +254,9 @@ export function DataTableToolbar<TData>({
     });
 
     return Array.from(new Map(entries).values()).sort((left, right) =>
-      left.label.localeCompare(right.label, "fr"),
+      left.label.localeCompare(right.label, locale),
     );
-  }, [preFilteredRows, selectedYearIds]);
+  }, [locale, preFilteredRows, selectedYearIds]);
 
   const yearOptions = useMemo(
     () =>
@@ -242,12 +289,11 @@ export function DataTableToolbar<TData>({
             return [];
           }),
         ).values(),
-      ).sort((left, right) => right.label.localeCompare(left.label, "fr")),
-    [preFilteredRows],
+      ).sort((left, right) => right.label.localeCompare(left.label, locale)),
+    [locale, preFilteredRows],
   );
 
   const loadReportPayload = async () => {
-    // Même jeu que la liste visible : filtré + trié (avant pagination).
     const filteredStudents = table
       .getSortedRowModel()
       .rows.map((row) => row.original as IStudent);
@@ -255,12 +301,11 @@ export function DataTableToolbar<TData>({
       ...resolveReportOptions(table as Table<unknown>),
       typebranch,
       educationSystem,
+      labels: pdfLabels,
     };
     const [context, error] = await getStudentReportContextAction();
     if (error || !context) {
-      throw new Error(
-        error?.message || "Impossible de charger les informations du rapport.",
-      );
+      throw new Error(error?.message || tCommon("errorGeneric"));
     }
     return { filteredStudents, context, options };
   };
@@ -271,14 +316,14 @@ export function DataTableToolbar<TData>({
       const { filteredStudents, context, options } = await loadReportPayload();
       await exportStudentsReportPdf(filteredStudents, context, options);
       toast.success(
-        `Le rapport PDF des ${peopleLabels.studentPluralLower} a ete genere.`,
+        tPdf("generated", {
+          studentsLower: peopleLabels.studentPluralLower,
+        }),
       );
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Impossible de generer le rapport PDF.",
+        error instanceof Error ? error.message : tPdf("generateFailed"),
       );
     } finally {
       setExportingPdf(false);
@@ -296,7 +341,7 @@ export function DataTableToolbar<TData>({
         <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground/40" />
 
         <Input
-          placeholder="Rechercher par nom ou matricule..."
+          placeholder={t("searchPlaceholder")}
           value={(table.getColumn("nom")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("nom")?.setFilterValue(event.target.value)
@@ -318,13 +363,13 @@ export function DataTableToolbar<TData>({
             }
           >
             <SelectTrigger className="h-8 w-[130px] border-dashed">
-              <SelectValue placeholder="Période" />
+              <SelectValue placeholder={t("period")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Toute</SelectItem>
-              <SelectItem value="today">Aujourd&apos;hui</SelectItem>
-              <SelectItem value="week">Semaine</SelectItem>
-              <SelectItem value="month">Mois</SelectItem>
+              <SelectItem value="all">{t("periodAll")}</SelectItem>
+              <SelectItem value="today">{t("periodToday")}</SelectItem>
+              <SelectItem value="week">{t("periodWeek")}</SelectItem>
+              <SelectItem value="month">{t("periodMonth")}</SelectItem>
             </SelectContent>
           </Select>
         ) : null}
@@ -332,7 +377,7 @@ export function DataTableToolbar<TData>({
         {table.getColumn("schoolYearId") && yearOptions.length ? (
           <DataTableFacetedFilter
             column={table.getColumn("schoolYearId")}
-            title="Annee"
+            title={t("schoolYear")}
             options={yearOptions}
             value="all"
             onValueChange={() => undefined}
@@ -342,7 +387,7 @@ export function DataTableToolbar<TData>({
         {table.getColumn("classCode") && classOptions.length ? (
           <DataTableFacetedFilter
             column={table.getColumn("classCode")}
-            title={classLabel}
+            title={resolvedClassLabel}
             options={classOptions}
             value="all"
             onValueChange={() => undefined}
@@ -352,7 +397,7 @@ export function DataTableToolbar<TData>({
         {table.getColumn("sexe") ? (
           <DataTableFacetedFilter
             column={table.getColumn("sexe")}
-            title="Sexe"
+            title={tPdf("colGender")}
             options={sexes}
             value={
               (table.getColumn("sexe")?.getFilterValue() as string) ?? "all"
@@ -372,7 +417,7 @@ export function DataTableToolbar<TData>({
           loading={exportingPdf}
           disabled={!hasRows || exportingPdf}
         >
-          {exportingPdf ? "Generation..." : "Rapport PDF"}
+          {exportingPdf ? tPdf("generating") : t("exportPdf")}
         </Button>
 
         {isFiltered ? (
@@ -381,7 +426,7 @@ export function DataTableToolbar<TData>({
             onClick={() => table.resetColumnFilters()}
             className="h-10 border-border text-primary hover:bg-blue-50 hover:text-blue-800"
           >
-            Reinitialiser
+            {tCommon("reset")}
             <Cross2Icon className="ml-2 size-4" />
           </Button>
         ) : null}
@@ -392,7 +437,7 @@ export function DataTableToolbar<TData>({
             leftSection={<IconUpload size={16} />}
             onClick={() => onOpenImport?.()}
           >
-            Importer
+            {t("import")}
           </Button>
         ) : null}
       </div>

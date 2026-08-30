@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { IconCalendarTime } from "@tabler/icons-react";
 
@@ -43,15 +44,14 @@ export default async function ScheduleClassePage({
   });
 
   const isTeacherViewer = !canManageOrganization(session);
+  const t = await getTranslations("teaching.schedule");
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
       <div className="flex items-center gap-2 text-muted-foreground">
         <IconCalendarTime size={18} />
         <span className="text-sm">
-          {isTeacherViewer
-            ? "Consultez vos créneaux dans cette classe (lundi à samedi)."
-            : "Planifiez l'horaire de la semaine (lundi à samedi) dans une seule grille"}
+          {isTeacherViewer ? t("teacherViewDesc") : t("editorDesc")}
         </span>
       </div>
       <div className="min-h-0 flex-1">

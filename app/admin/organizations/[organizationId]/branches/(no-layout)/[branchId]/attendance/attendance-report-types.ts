@@ -28,7 +28,8 @@ export type AttendanceRecentItem = {
 };
 
 export type AttendanceWeekdayStat = {
-  day: string;
+  /** 1 = Monday … 6 = Saturday */
+  dayIndex: number;
   present: number;
   total: number;
   percent: number;
@@ -60,35 +61,3 @@ export type AttendanceReportData = {
   hourStats: AttendanceHourStat[];
   rows: AttendanceReportRow[];
 };
-
-export const ATTENDANCE_STATUS_LABELS: Record<AttendanceStatus, string> = {
-  PRESENT: "Présent",
-  ABSENT: "Absent",
-  LATE: "Retard",
-  EXCUSED: "Excusé",
-};
-
-export const ATTENDANCE_PERIOD_OPTIONS: Array<{
-  value: AttendancePeriod;
-  label: string;
-}> = [
-  { value: "today", label: "Aujourd'hui" },
-  { value: "week", label: "Cette semaine" },
-  { value: "month", label: "Ce mois" },
-  { value: "year", label: "Cette année" },
-];
-
-export const MONTH_OPTIONS = [
-  "Janvier",
-  "Février",
-  "Mars",
-  "Avril",
-  "Mai",
-  "Juin",
-  "Juillet",
-  "Août",
-  "Septembre",
-  "Octobre",
-  "Novembre",
-  "Décembre",
-];

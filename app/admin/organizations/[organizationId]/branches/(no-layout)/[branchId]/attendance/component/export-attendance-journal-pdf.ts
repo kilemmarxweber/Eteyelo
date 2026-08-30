@@ -14,6 +14,17 @@ import type {
   PersonRosterReport,
   TeacherSessionReport,
 } from "../attendance-exit.action";
+import {
+  formatPdfPeriod,
+  type AttendancePdfLabels,
+} from "../attendance-pdf-labels";
+
+function fill(template: string, values: Record<string, string | number>): string {
+  return Object.entries(values).reduce(
+    (result, [key, value]) => result.replace(`{${key}}`, String(value)),
+    template,
+  );
+}
 
 function formatReportDate(iso: string): string {
   const date = new Date(iso);
@@ -24,34 +35,47 @@ function formatReportDate(iso: string): string {
 export async function exportTeacherSessionReportPdf(
   report: TeacherSessionReport,
   context: SchoolReportContext,
+  labels: AttendancePdfLabels,
 ) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
-  const title = "Rapport séances enseignants";
+  const title = labels.teacherSessionsTitle;
   const filters = [
-    `Période : ${formatReportDate(report.dateStart)} → ${formatReportDate(report.dateEnd)}`,
-    report.teacherName ? `Enseignant : ${report.teacherName}` : null,
-    report.classeName ? `Classe : ${report.classeName}` : null,
-    `Séances : ${report.summary.sessions} · Heures effectuées : ${formatDurationMinutes(report.summary.minutesTotal)} · Sorties anticipées : ${report.summary.earlyExits}`,
+    formatPdfPeriod(
+      labels,
+      formatReportDate(report.dateStart),
+      formatReportDate(report.dateEnd),
+    ),
+    report.teacherName
+      ? labels.teacherFilter.replace("{name}", report.teacherName)
+      : null,
+    report.classeName
+      ? labels.classFilter.replace("{name}", report.classeName)
+      : null,
+    fill(labels.sessionsSummary, {
+      sessions: report.summary.sessions,
+      duration: formatDurationMinutes(report.summary.minutesTotal),
+      earlyExits: report.summary.earlyExits,
+    }),
   ].filter(Boolean) as string[];
 
   const head = [
-    "#",
-    "Date",
-    "Séance",
-    "Enseignant",
-    "Matière",
-    "Classe",
-    "Début",
-    "Fin",
-    "Durée",
-    "Statut",
-    "Motif sortie",
+    labels.columns.index,
+    labels.columns.date,
+    labels.columns.session,
+    labels.columns.teacher,
+    labels.columns.subject,
+    labels.columns.class,
+    labels.columns.start,
+    labels.columns.end,
+    labels.columns.duration,
+    labels.columns.status,
+    labels.columns.exitReason,
   ];
 
   const body =
     report.rows.length === 0
-      ? [["Aucune séance pour cette période.", "", "", "", "", "", "", "", "", "", ""]]
+      ? [[labels.noSessionPeriod, "", "", "", "", "", "", "", "", "", ""]]
       : report.rows.map((row, index) => [
           String(index + 1),
           formatReportDate(row.date),
@@ -63,7 +87,9 @@ export async function exportTeacherSessionReportPdf(
           row.actualEnd ?? row.plannedEnd,
           row.minutesLabel,
           row.statusLabel,
-          row.earlyExit ? row.exitReason || "Sortie anticipée" : "—",
+          row.earlyExit
+            ? row.exitReason || labels.earlyExitLabel
+            : "—",
         ]);
 
   autoTable(doc, {
@@ -114,15 +140,23 @@ export async function exportTeacherSessionReportPdf(
 export async function exportAttendanceDailyJournalPdf(
   journal: AttendanceDailyJournal,
   context: SchoolReportContext,
+  labels: AttendancePdfLabels,
 ) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const dayLabel = formatReportDate(journal.date);
-  const title = "Rapport journalier de présence";
+  const title = labels.dailyJournalTitle;
   const details = [
-    `Date : ${dayLabel}`,
-    `Séances enseignants : ${journal.stats.teacherSessions} · Durée totale : ${formatDurationMinutes(journal.stats.teacherMinutes)}`,
-    `Sorties anticipées — Élèves : ${journal.stats.studentEarlyExits} · Enseignants : ${journal.stats.teacherEarlyExits} · Personnel : ${journal.stats.personnelEarlyExits}`,
+    labels.dateLabel.replace("{date}", dayLabel),
+    fill(labels.dailyStats, {
+      sessions: journal.stats.teacherSessions,
+      duration: formatDurationMinutes(journal.stats.teacherMinutes),
+    }),
+    fill(labels.earlyExitsStats, {
+      students: journal.stats.studentEarlyExits,
+      teachers: journal.stats.teacherEarlyExits,
+      personnel: journal.stats.personnelEarlyExits,
+    }),
   ];
 
   autoTable(doc, {
@@ -135,19 +169,19 @@ export async function exportAttendanceDailyJournalPdf(
     },
     head: [
       [
-        "Séance",
-        "Enseignant",
-        "Matière",
-        "Classe",
-        "Début",
-        "Fin",
-        "Durée",
-        "Statut",
+        labels.columns.session,
+        labels.columns.teacher,
+        labels.columns.subject,
+        labels.columns.class,
+        labels.columns.start,
+        labels.columns.end,
+        labels.columns.duration,
+        labels.columns.status,
       ],
     ],
     body:
       journal.teacherSessions.length === 0
-        ? [["Aucune séance enseignant ce jour.", "", "", "", "", "", "", ""]]
+        ? [[labels.noTeacherSessionToday, "", "", "", "", "", "", ""]]
         : journal.teacherSessions.map((row) => [
             row.sessionLabel,
             row.teacherName,
@@ -157,7 +191,9 @@ export async function exportAttendanceDailyJournalPdf(
             row.actualEnd ?? row.plannedEnd,
             row.minutesLabel,
             row.earlyExit
-              ? `Sortie : ${row.exitReason || "anticipée"}`
+              ? fill(labels.exitPrefix, {
+                  reason: row.exitReason || labels.earlyExitShort,
+                })
               : row.statusLabel,
           ]),
     theme: "grid",
@@ -190,17 +226,21 @@ export async function exportAttendanceDailyJournalPdf(
     startY: exitStartY + 8,
     margin: { top: 20, right: 8, bottom: 14, left: 8 },
     head: [
-      ["Type", "Nom", "Contexte", "Arrivée", "Sortie", "Motif", "Statut"],
+      [
+        labels.columns.type,
+        labels.columns.name,
+        labels.columns.context,
+        labels.columns.arrival,
+        labels.columns.departure,
+        labels.columns.reason,
+        labels.columns.status,
+      ],
     ],
     body:
       journal.earlyExits.length === 0
-        ? [["Aucune sortie anticipée.", "", "", "", "", "", ""]]
+        ? [[labels.noEarlyExit, "", "", "", "", "", ""]]
         : journal.earlyExits.map((row) => [
-            row.personType === "student"
-              ? "Élève"
-              : row.personType === "teacher"
-                ? "Enseignant"
-                : "Personnel",
+            labels.personType[row.personType],
             row.personName,
             row.contextLabel || "—",
             row.checkIn || "—",
@@ -232,31 +272,45 @@ export async function exportAttendanceDailyJournalPdf(
 export async function exportPersonRosterReportPdf(
   report: PersonRosterReport,
   context: SchoolReportContext,
+  labels: AttendancePdfLabels,
   options: { title: string; filePrefix: string },
 ) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const filters = [
-    `Période : ${formatReportDate(report.dateStart)} → ${formatReportDate(report.dateEnd)}`,
-    report.classeName ? `Classe : ${report.classeName}` : null,
-    `Total ${report.summary.total} · Présents ${report.summary.present} · Retards ${report.summary.late} · Excusés ${report.summary.excused} · Absents ${report.summary.absent} · Sorties anticipées ${report.summary.earlyExits}`,
+    formatPdfPeriod(
+      labels,
+      formatReportDate(report.dateStart),
+      formatReportDate(report.dateEnd),
+    ),
+    report.classeName
+      ? labels.classFilter.replace("{name}", report.classeName)
+      : null,
+    fill(labels.rosterSummary, {
+      total: report.summary.total,
+      present: report.summary.present,
+      late: report.summary.late,
+      excused: report.summary.excused,
+      absent: report.summary.absent,
+      earlyExits: report.summary.earlyExits,
+    }),
   ].filter(Boolean) as string[];
 
   const head = [
-    "#",
-    "Date",
-    "Nom",
-    "Contexte",
-    "Statut",
-    "Arrivée",
-    "Sortie",
-    "Sortie anticipée",
-    "Motif",
+    labels.columns.index,
+    labels.columns.date,
+    labels.columns.name,
+    labels.columns.context,
+    labels.columns.status,
+    labels.columns.arrival,
+    labels.columns.departure,
+    labels.columns.earlyExit,
+    labels.columns.reason,
   ];
 
   const body =
     report.rows.length === 0
-      ? [["Aucune donnée pour cette période.", "", "", "", "", "", "", "", ""]]
+      ? [[labels.noDataPeriod, "", "", "", "", "", "", "", ""]]
       : report.rows.map((row, index) => [
           String(index + 1),
           formatReportDate(row.date),
@@ -265,7 +319,7 @@ export async function exportPersonRosterReportPdf(
           row.statusLabel,
           row.checkIn || "—",
           row.checkOut || "—",
-          row.earlyExit ? "Oui" : "Non",
+          row.earlyExit ? labels.yes : labels.no,
           row.earlyExit ? row.exitReason || "—" : "—",
         ]);
 

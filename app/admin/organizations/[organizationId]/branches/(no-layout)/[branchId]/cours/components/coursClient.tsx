@@ -42,7 +42,8 @@ export default function Cours({
   isPrimary?: boolean;
   supportsCourseImport?: boolean;
 }) {
-  const t = useTranslations("teaching");
+  const t = useTranslations("teaching.courses");
+  const tc = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [importCourseOpen, setImportCourseOpen] = useState(false);
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
@@ -89,7 +90,7 @@ export default function Cours({
         const message =
           error instanceof Error
             ? error.message
-            : "Échec de l'import du catalogue";
+            : t("importCatalogFail");
         toast.error(message);
       }
     });
@@ -106,13 +107,13 @@ export default function Cours({
           disabled={stats.total > 0}
           title={
             stats.total > 0
-              ? "Le catalogue ne peut plus être importé : des cours existent déjà."
+              ? t("importCatalogDisabled")
               : undefined
           }
           onClick={handleImportCatalog}
         >
           <IconDownload size={16} className="mr-2" />
-          Importer catalogue
+          {t("importCatalog")}
         </Button>
       ) : null}
       {supportsCourseImport ? (
@@ -123,13 +124,13 @@ export default function Cours({
           onClick={() => setImportCourseOpen(true)}
         >
           <IconDownload size={16} className="mr-2" />
-          Importer un cours
+          {t("importCourse")}
         </Button>
       ) : null}
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button size="sm" leftSection={<IconPlus size={16} />}>
-            Ajouter un cours
+            {t("addCourse")}
           </Button>
         </SheetTrigger>
         <SheetContent
@@ -137,11 +138,11 @@ export default function Cours({
           className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
         >
           <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
-            <SheetTitle>Créer un cours</SheetTitle>
+            <SheetTitle>{t("createTitle")}</SheetTitle>
             <SheetDescription>
               {isPrimary
-                ? "Renseignez le nom, la description et optionnellement le domaine du bulletin."
-                : "Renseignez le nom et la description. Le code unique sera généré automatiquement."}
+                ? t("createDescPrimary")
+                : t("createDescSecondary")}
             </SheetDescription>
           </SheetHeader>
           <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
@@ -159,38 +160,38 @@ export default function Cours({
 
   return (
     <BranchPageShell
-      title={t("courses.title")}
+      title={t("title")}
           description={
             isPrimary
-              ? t("courses.descPrimary")
+              ? t("descPrimary")
               : supportsCourseImport
-                ? t("courses.descImportOrg")
-                : t("courses.descImportCatalog")
+                ? t("descImportOrg")
+                : t("descImportCatalog")
           }
           badge={
             <Badge variant="outline-primary" icon={<IconBooks size={14} />}>
-              {t("courses.badge")}
+              {t("badge")}
             </Badge>
           }
           actions={headerActions}
     >
       <div className="grid gap-4 sm:grid-cols-3">
           <BranchStatCard
-            label={t("courses.total")}
+            label={t("total")}
             value={stats.total}
-            description={t("courses.totalHint")}
+            description={t("totalHint")}
             icon={IconBooks}
           />
           <BranchStatCard
-            label={t("courses.active")}
+            label={t("active")}
             value={stats.active}
-            description={t("courses.activeHint")}
+            description={t("activeHint")}
             icon={IconBook}
           />
           <BranchStatCard
-            label={t("courses.inactive")}
+            label={t("inactive")}
             value={stats.inactive}
-            description="Masqués des listes actives"
+            description={t("inactiveHint")}
             icon={IconBookOff}
           />
         </div>

@@ -6,6 +6,7 @@ import {
   ChartBar,
   Headphones,
   MailPlus,
+  MessageSquare,
   School,
   Users,
 } from "lucide-react";
@@ -71,6 +72,25 @@ const sections = [
     hideForGestionnaire: true,
   },
   {
+    title: "Messagerie",
+    description:
+      "Échanger avec les membres des établissements de l'organisation.",
+    path: "messagerie",
+    icon: MessageSquare,
+    countKey: null,
+    countLabel: null,
+    tone: {
+      border: "border-violet-200/80 dark:border-violet-900/40",
+      gradient: "bg-gradient-to-b from-violet-500/[0.08] via-card to-card",
+      iconBox: "bg-violet-500/15 text-violet-700 dark:text-violet-300",
+      label: "text-violet-700/85 dark:text-violet-400",
+      hover: "hover:border-violet-400/40 hover:shadow-violet-500/10",
+    },
+    ownerOnly: false,
+    hideForGestionnaire: false,
+    feature: "messaging" as const,
+  },
+  {
     title: "Support établissement",
     description: "Gérer les agents internes et escalader vers Klambocore.",
     path: "support",
@@ -129,6 +149,7 @@ export type OrganizationHomeViewProps = {
     branches: number;
     members: number;
   };
+  messagingEnabled?: boolean;
 };
 
 export function OrganizationHomeView({
@@ -139,6 +160,7 @@ export function OrganizationHomeView({
   canViewMembers,
   roleLabel,
   counts = { branches: 0, members: 0 },
+  messagingEnabled = true,
 }: OrganizationHomeViewProps) {
   const base = `/admin/organizations/${organizationId}`;
 
@@ -219,6 +241,13 @@ export function OrganizationHomeView({
           .filter((section) => {
             if (section.hideForGestionnaire && !canViewMembers) return false;
             if (section.ownerOnly && !canListAll) return false;
+            if (
+              "feature" in section &&
+              section.feature === "messaging" &&
+              !messagingEnabled
+            ) {
+              return false;
+            }
             return true;
           })
           .map(({ icon: Icon, ...section }) => {

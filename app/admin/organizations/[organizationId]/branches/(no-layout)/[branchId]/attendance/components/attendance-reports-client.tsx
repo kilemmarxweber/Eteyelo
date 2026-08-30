@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { IconFileTypePdf, IconRefresh } from "@tabler/icons-react";
 import { toast } from "sonner";
 
@@ -30,6 +31,8 @@ import {
   exportPersonRosterReportPdf,
   exportTeacherSessionReportPdf,
 } from "../component/export-attendance-journal-pdf";
+import { buildAttendancePdfLabels } from "../attendance-pdf-labels";
+import { intlLocaleFromUserLocale, normalizeUserLocale } from "@/lib/user-locale";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -49,6 +52,11 @@ export function AttendanceReportsClient({
   teachers: Array<{ id: string; name: string }>;
   classes: Array<{ id: string; name: string }>;
 }) {
+  const t = useTranslations("attendance");
+  const tCommon = useTranslations("common");
+  const locale = intlLocaleFromUserLocale(normalizeUserLocale(useLocale()));
+  const pdfLabels = useMemo(() => buildAttendancePdfLabels(t), [t]);
+  const dash = t("dash");
   const [day, setDay] = useState(todayIso);
   const [startDate, setStartDate] = useState(firstDayOfMonthIso);
   const [endDate, setEndDate] = useState(todayIso);
@@ -76,7 +84,7 @@ export function AttendanceReportsClient({
       date: new Date(day),
     });
     if (error || !data) {
-      toast.error(error?.message || "Impossible de charger le journal.");
+      toast.error(error?.message || t("reports.loadJournalFailed"));
       setJournal(null);
     } else {
       setJournal(data);
@@ -93,7 +101,7 @@ export function AttendanceReportsClient({
       classeId: classeId === "all" ? null : classeId,
     });
     if (error || !data) {
-      toast.error(error?.message || "Impossible de charger les séances.");
+      toast.error(error?.message || t("reports.loadSessionsFailed"));
       setSessions(null);
     } else {
       setSessions(data);
@@ -109,7 +117,7 @@ export function AttendanceReportsClient({
       classeId: studentClasseId === "all" ? null : studentClasseId,
     });
     if (error || !data) {
-      toast.error(error?.message || "Impossible de charger le rapport élèves.");
+      toast.error(error?.message || t("reports.loadStudentsFailed"));
       setStudentRoster(null);
     } else {
       setStudentRoster(data);
@@ -125,7 +133,7 @@ export function AttendanceReportsClient({
     });
     if (error || !data) {
       toast.error(
-        error?.message || "Impossible de charger le rapport personnel.",
+        error?.message || t("reports.loadPersonnelFailed"),
       );
       setPersonnelRoster(null);
     } else {
@@ -153,11 +161,11 @@ export function AttendanceReportsClient({
   const personTypeLabel = useMemo(
     () =>
       ({
-        student: "Élève",
-        teacher: "Enseignant",
-        personnel: "Personnel",
+        student: t("personType.student"),
+        teacher: t("personType.teacher"),
+        personnel: t("personType.personnel"),
       }) as const,
-    [],
+    [t],
   );
 
   async function exportJournal() {
@@ -165,11 +173,11 @@ export function AttendanceReportsClient({
     setExporting(true);
     try {
       const [context, error] = await getAttendanceReportContextAction();
-      if (error || !context) throw new Error(error?.message || "Contexte PDF");
-      await exportAttendanceDailyJournalPdf(journal, context);
-      toast.success("Rapport journalier PDF généré.");
+      if (error || !context) throw new Error(error?.message || t("reports.pdfContextFailed"));
+      await exportAttendanceDailyJournalPdf(journal, context, pdfLabels);
+      toast.success(t("reports.journalPdfSuccess"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erreur PDF");
+      toast.error(e instanceof Error ? e.message : t("reports.pdfError"));
     } finally {
       setExporting(false);
     }
@@ -180,11 +188,11 @@ export function AttendanceReportsClient({
     setExporting(true);
     try {
       const [context, error] = await getAttendanceReportContextAction();
-      if (error || !context) throw new Error(error?.message || "Contexte PDF");
-      await exportTeacherSessionReportPdf(sessions, context);
-      toast.success("Rapport séances enseignants PDF généré.");
+      if (error || !context) throw new Error(error?.message || t("reports.pdfContextFailed"));
+      await exportTeacherSessionReportPdf(sessions, context, pdfLabels);
+      toast.success(t("reports.sessionsPdfSuccess"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erreur PDF");
+      toast.error(e instanceof Error ? e.message : t("reports.pdfError"));
     } finally {
       setExporting(false);
     }
@@ -195,14 +203,14 @@ export function AttendanceReportsClient({
     setExporting(true);
     try {
       const [context, error] = await getAttendanceReportContextAction();
-      if (error || !context) throw new Error(error?.message || "Contexte PDF");
-      await exportPersonRosterReportPdf(studentRoster, context, {
-        title: "Rapport de présence élèves",
+      if (error || !context) throw new Error(error?.message || t("reports.pdfContextFailed"));
+      await exportPersonRosterReportPdf(studentRoster, context, pdfLabels, {
+        title: t("pdf.studentRosterTitle"),
         filePrefix: "rapport-presence-eleves",
       });
-      toast.success("Rapport élèves PDF généré.");
+      toast.success(t("reports.studentsPdfSuccess"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erreur PDF");
+      toast.error(e instanceof Error ? e.message : t("reports.pdfError"));
     } finally {
       setExporting(false);
     }
@@ -213,14 +221,14 @@ export function AttendanceReportsClient({
     setExporting(true);
     try {
       const [context, error] = await getAttendanceReportContextAction();
-      if (error || !context) throw new Error(error?.message || "Contexte PDF");
-      await exportPersonRosterReportPdf(personnelRoster, context, {
-        title: "Rapport de présence personnel",
+      if (error || !context) throw new Error(error?.message || t("reports.pdfContextFailed"));
+      await exportPersonRosterReportPdf(personnelRoster, context, pdfLabels, {
+        title: t("pdf.personnelRosterTitle"),
         filePrefix: "rapport-presence-personnel",
       });
-      toast.success("Rapport personnel PDF généré.");
+      toast.success(t("reports.personnelPdfSuccess"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erreur PDF");
+      toast.error(e instanceof Error ? e.message : t("reports.pdfError"));
     } finally {
       setExporting(false);
     }
@@ -229,24 +237,23 @@ export function AttendanceReportsClient({
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div>
-        <h1 className="text-xl font-semibold">Rapports de présence</h1>
+        <h1 className="text-xl font-semibold">{t("reports.pageTitle")}</h1>
         <p className="text-sm text-muted-foreground">
-          Journal du jour, séances enseignants, et effectifs complets élèves /
-          personnel (arrivée, sortie, absents, motifs de sortie anticipée).
+          {t("reports.pageDescription")}
         </p>
       </div>
 
       <Card>
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <CardTitle>Rapport journalier</CardTitle>
+            <CardTitle>{t("reports.dailyTitle")}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Séances du jour, heures début/fin, sorties anticipées avec motif.
+              {t("reports.dailyDescription")}
             </p>
           </div>
           <div className="flex flex-wrap items-end gap-2">
             <div className="space-y-1">
-              <Label className="text-xs">Date</Label>
+              <Label className="text-xs">{t("filters.date")}</Label>
               <input
                 type="date"
                 value={day}
@@ -261,7 +268,7 @@ export function AttendanceReportsClient({
               disabled={loadingJournal}
             >
               <IconRefresh className="mr-1 size-4" />
-              Actualiser
+              {t("filters.refresh")}
             </Button>
             <Button
               size="sm"
@@ -269,30 +276,30 @@ export function AttendanceReportsClient({
               disabled={!journal || exporting}
             >
               <IconFileTypePdf className="mr-1 size-4" />
-              PDF journalier
+              {t("reports.dailyPdf")}
             </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {loadingJournal ? (
-            <p className="text-sm text-muted-foreground">Chargement…</p>
+            <p className="text-sm text-muted-foreground">{tCommon("loading")}</p>
           ) : journal ? (
             <>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <Stat
-                  label="Séances enseignants"
+                  label={t("reports.teacherSessions")}
                   value={String(journal.stats.teacherSessions)}
                 />
                 <Stat
-                  label="Heures effectuées"
+                  label={t("reports.hoursWorked")}
                   value={formatDurationMinutes(journal.stats.teacherMinutes)}
                 />
                 <Stat
-                  label="Sorties élèves"
+                  label={t("reports.studentExits")}
                   value={String(journal.stats.studentEarlyExits)}
                 />
                 <Stat
-                  label="Sorties ens. / pers."
+                  label={t("reports.staffExits")}
                   value={`${journal.stats.teacherEarlyExits} / ${journal.stats.personnelEarlyExits}`}
                 />
               </div>
@@ -301,14 +308,14 @@ export function AttendanceReportsClient({
                 <table className="min-w-full text-sm">
                   <thead className="bg-muted/50 text-left">
                     <tr>
-                      <th className="px-3 py-2">Séance</th>
-                      <th className="px-3 py-2">Enseignant</th>
-                      <th className="px-3 py-2">Matière</th>
-                      <th className="px-3 py-2">Classe</th>
-                      <th className="px-3 py-2">Début</th>
-                      <th className="px-3 py-2">Fin</th>
-                      <th className="px-3 py-2">Durée</th>
-                      <th className="px-3 py-2">Statut</th>
+                      <th className="px-3 py-2">{t("reports.columns.session")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.teacher")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.subject")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.class")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.start")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.end")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.duration")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.status")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -318,7 +325,7 @@ export function AttendanceReportsClient({
                           colSpan={8}
                           className="px-3 py-4 text-center text-muted-foreground"
                         >
-                          Aucune séance enseignant ce jour.
+                          {t("reports.noTeacherSessionToday")}
                         </td>
                       </tr>
                     ) : (
@@ -337,7 +344,7 @@ export function AttendanceReportsClient({
                           <td className="px-3 py-2">{row.minutesLabel}</td>
                           <td className="px-3 py-2">
                             {row.earlyExit
-                              ? row.exitReason || "Sortie anticipée"
+                              ? row.exitReason || t("reports.earlyExitLabel")
                               : row.statusLabel}
                           </td>
                         </tr>
@@ -349,18 +356,18 @@ export function AttendanceReportsClient({
 
               <div>
                 <h3 className="mb-2 text-sm font-semibold">
-                  Sorties anticipées du jour
+                  {t("reports.earlyExitsTitle")}
                 </h3>
                 <div className="overflow-x-auto rounded-md border">
                   <table className="min-w-full text-sm">
                     <thead className="bg-amber-50 text-left dark:bg-amber-950/30">
                       <tr>
-                        <th className="px-3 py-2">Type</th>
-                        <th className="px-3 py-2">Nom</th>
-                        <th className="px-3 py-2">Contexte</th>
-                        <th className="px-3 py-2">Arrivée</th>
-                        <th className="px-3 py-2">Sortie</th>
-                        <th className="px-3 py-2">Motif</th>
+                        <th className="px-3 py-2">{t("reports.columns.type")}</th>
+                        <th className="px-3 py-2">{t("reports.columns.name")}</th>
+                        <th className="px-3 py-2">{t("reports.columns.context")}</th>
+                        <th className="px-3 py-2">{t("reports.columns.arrival")}</th>
+                        <th className="px-3 py-2">{t("reports.columns.departure")}</th>
+                        <th className="px-3 py-2">{t("reports.columns.reason")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -370,7 +377,7 @@ export function AttendanceReportsClient({
                             colSpan={6}
                             className="px-3 py-4 text-center text-muted-foreground"
                           >
-                            Aucune sortie anticipée.
+                            {t("reports.noEarlyExit")}
                           </td>
                         </tr>
                       ) : (
@@ -381,10 +388,10 @@ export function AttendanceReportsClient({
                             </td>
                             <td className="px-3 py-2">{row.personName}</td>
                             <td className="px-3 py-2">
-                              {row.contextLabel || "—"}
+                              {row.contextLabel || dash}
                             </td>
-                            <td className="px-3 py-2">{row.checkIn || "—"}</td>
-                            <td className="px-3 py-2">{row.checkOut || "—"}</td>
+                            <td className="px-3 py-2">{row.checkIn || dash}</td>
+                            <td className="px-3 py-2">{row.checkOut || dash}</td>
                             <td className="px-3 py-2">{row.exitReason}</td>
                           </tr>
                         ))
@@ -395,7 +402,7 @@ export function AttendanceReportsClient({
               </div>
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">Aucune donnée.</p>
+            <p className="text-sm text-muted-foreground">{t("reports.noData")}</p>
           )}
         </CardContent>
       </Card>
@@ -403,15 +410,14 @@ export function AttendanceReportsClient({
       <Card>
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <CardTitle>Rapport séances enseignants (période)</CardTitle>
+            <CardTitle>{t("reports.sessionsTitle")}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Nom, matière, classe, 1ère séance…, heures début/fin et durée
-              effectuée. Filtrable par enseignant ou classe.
+              {t("reports.sessionsDescription")}
             </p>
           </div>
           <div className="flex flex-wrap items-end gap-2">
             <div className="space-y-1">
-              <Label className="text-xs">Du</Label>
+              <Label className="text-xs">{t("filters.dateFrom")}</Label>
               <input
                 type="date"
                 value={startDate}
@@ -420,7 +426,7 @@ export function AttendanceReportsClient({
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Au</Label>
+              <Label className="text-xs">{t("filters.dateTo")}</Label>
               <input
                 type="date"
                 value={endDate}
@@ -429,13 +435,13 @@ export function AttendanceReportsClient({
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Enseignant</Label>
+              <Label className="text-xs">{t("filters.teacher")}</Label>
               <Select value={teacherId} onValueChange={setTeacherId}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Tous" />
+                  <SelectValue placeholder={t("filters.allTeachers")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous</SelectItem>
+                  <SelectItem value="all">{t("filters.allTeachers")}</SelectItem>
                   {teachers.map((teacher) => (
                     <SelectItem key={teacher.id} value={teacher.id}>
                       {teacher.name}
@@ -445,13 +451,13 @@ export function AttendanceReportsClient({
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Classe</Label>
+              <Label className="text-xs">{t("filters.class")}</Label>
               <Select value={classeId} onValueChange={setClasseId}>
                 <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Toutes" />
+                  <SelectValue placeholder={t("filters.allClasses")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Toutes</SelectItem>
+                  <SelectItem value="all">{t("filters.allClasses")}</SelectItem>
                   {classes.map((classe) => (
                     <SelectItem key={classe.id} value={classe.id}>
                       {classe.name}
@@ -467,7 +473,7 @@ export function AttendanceReportsClient({
               disabled={loadingSessions}
             >
               <IconRefresh className="mr-1 size-4" />
-              Actualiser
+              {t("filters.refresh")}
             </Button>
             <Button
               size="sm"
@@ -475,33 +481,35 @@ export function AttendanceReportsClient({
               disabled={!sessions || exporting}
             >
               <IconFileTypePdf className="mr-1 size-4" />
-              PDF séances
+              {t("reports.sessionsPdf")}
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           {loadingSessions ? (
-            <p className="text-sm text-muted-foreground">Chargement…</p>
+            <p className="text-sm text-muted-foreground">{tCommon("loading")}</p>
           ) : sessions ? (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                {sessions.summary.sessions} séance(s) ·{" "}
-                {formatDurationMinutes(sessions.summary.minutesTotal)} ·{" "}
-                {sessions.summary.earlyExits} sortie(s) anticipée(s)
+                {t("reports.sessionsSummary", {
+                  sessions: sessions.summary.sessions,
+                  duration: formatDurationMinutes(sessions.summary.minutesTotal),
+                  earlyExits: sessions.summary.earlyExits,
+                })}
               </p>
               <div className="overflow-x-auto rounded-md border">
                 <table className="min-w-full text-sm">
                   <thead className="bg-muted/50 text-left">
                     <tr>
-                      <th className="px-3 py-2">Date</th>
-                      <th className="px-3 py-2">Séance</th>
-                      <th className="px-3 py-2">Enseignant</th>
-                      <th className="px-3 py-2">Matière</th>
-                      <th className="px-3 py-2">Classe</th>
-                      <th className="px-3 py-2">Début</th>
-                      <th className="px-3 py-2">Fin</th>
-                      <th className="px-3 py-2">Durée</th>
-                      <th className="px-3 py-2">Motif</th>
+                      <th className="px-3 py-2">{t("reports.columns.date")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.session")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.teacher")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.subject")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.class")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.start")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.end")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.duration")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.reason")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -511,14 +519,14 @@ export function AttendanceReportsClient({
                           colSpan={9}
                           className="px-3 py-4 text-center text-muted-foreground"
                         >
-                          Aucune séance pour cette période / filtre.
+                          {t("reports.noSessionPeriod")}
                         </td>
                       </tr>
                     ) : (
                       sessions.rows.map((row) => (
                         <tr key={row.id} className="border-t">
                           <td className="px-3 py-2">
-                            {new Date(row.date).toLocaleDateString("fr-FR")}
+                            {new Date(row.date).toLocaleDateString(locale)}
                           </td>
                           <td className="px-3 py-2">{row.sessionLabel}</td>
                           <td className="px-3 py-2">{row.teacherName}</td>
@@ -532,7 +540,7 @@ export function AttendanceReportsClient({
                           </td>
                           <td className="px-3 py-2">{row.minutesLabel}</td>
                           <td className="px-3 py-2">
-                            {row.earlyExit ? row.exitReason || "—" : "—"}
+                            {row.earlyExit ? row.exitReason || dash : dash}
                           </td>
                         </tr>
                       ))
@@ -542,7 +550,7 @@ export function AttendanceReportsClient({
               </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Aucune donnée.</p>
+            <p className="text-sm text-muted-foreground">{t("reports.noData")}</p>
           )}
         </CardContent>
       </Card>
@@ -550,15 +558,14 @@ export function AttendanceReportsClient({
       <Card>
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <CardTitle>Rapport élèves (effectifs complets)</CardTitle>
+            <CardTitle>{t("reports.studentsTitle")}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Tous les élèves : arrivée, sortie, absents, sorties anticipées avec
-              motif. Filtrable par classe et période.
+              {t("reports.studentsDescription")}
             </p>
           </div>
           <div className="flex flex-wrap items-end gap-2">
             <div className="space-y-1">
-              <Label className="text-xs">Du</Label>
+              <Label className="text-xs">{t("filters.dateFrom")}</Label>
               <input
                 type="date"
                 value={rosterStart}
@@ -567,7 +574,7 @@ export function AttendanceReportsClient({
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Au</Label>
+              <Label className="text-xs">{t("filters.dateTo")}</Label>
               <input
                 type="date"
                 value={rosterEnd}
@@ -576,16 +583,16 @@ export function AttendanceReportsClient({
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Classe</Label>
+              <Label className="text-xs">{t("filters.class")}</Label>
               <Select
                 value={studentClasseId}
                 onValueChange={setStudentClasseId}
               >
                 <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Toutes" />
+                  <SelectValue placeholder={t("filters.allClasses")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Toutes</SelectItem>
+                  <SelectItem value="all">{t("filters.allClasses")}</SelectItem>
                   {classes.map((classe) => (
                     <SelectItem key={classe.id} value={classe.id}>
                       {classe.name}
@@ -601,7 +608,7 @@ export function AttendanceReportsClient({
               disabled={loadingStudents}
             >
               <IconRefresh className="mr-1 size-4" />
-              Actualiser
+              {t("filters.refresh")}
             </Button>
             <Button
               size="sm"
@@ -609,7 +616,7 @@ export function AttendanceReportsClient({
               disabled={!studentRoster || exporting}
             >
               <IconFileTypePdf className="mr-1 size-4" />
-              PDF élèves
+              {t("reports.studentsPdf")}
             </Button>
           </div>
         </CardHeader>
@@ -617,7 +624,7 @@ export function AttendanceReportsClient({
           <RosterTable
             loading={loadingStudents}
             report={studentRoster}
-            emptyLabel="Aucun élève inscrit pour cette période / classe."
+            emptyLabel={t("reports.noStudentPeriod")}
           />
         </CardContent>
       </Card>
@@ -625,10 +632,9 @@ export function AttendanceReportsClient({
       <Card>
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <CardTitle>Rapport personnel (effectifs complets)</CardTitle>
+            <CardTitle>{t("reports.personnelTitle")}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Tout le personnel : arrivée, sortie, absents, sorties anticipées
-              avec motif.
+              {t("reports.personnelDescription")}
             </p>
           </div>
           <div className="flex flex-wrap items-end gap-2">
@@ -639,7 +645,7 @@ export function AttendanceReportsClient({
               disabled={loadingPersonnel}
             >
               <IconRefresh className="mr-1 size-4" />
-              Actualiser
+              {t("filters.refresh")}
             </Button>
             <Button
               size="sm"
@@ -647,18 +653,21 @@ export function AttendanceReportsClient({
               disabled={!personnelRoster || exporting}
             >
               <IconFileTypePdf className="mr-1 size-4" />
-              PDF personnel
+              {t("reports.personnelPdf")}
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           <p className="mb-3 text-xs text-muted-foreground">
-            Même période que le rapport élèves ({rosterStart} → {rosterEnd}).
+            {t("reports.samePeriodHint", {
+              start: rosterStart,
+              end: rosterEnd,
+            })}
           </p>
           <RosterTable
             loading={loadingPersonnel}
             report={personnelRoster}
-            emptyLabel="Aucun personnel pour cette période."
+            emptyLabel={t("reports.noPersonnelPeriod")}
           />
         </CardContent>
       </Card>
@@ -675,38 +684,47 @@ function RosterTable({
   report: PersonRosterReport | null;
   emptyLabel: string;
 }) {
+  const t = useTranslations("attendance");
+  const tCommon = useTranslations("common");
+  const locale = intlLocaleFromUserLocale(normalizeUserLocale(useLocale()));
+  const dash = t("dash");
+
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Chargement…</p>;
+    return (
+      <p className="text-sm text-muted-foreground">{tCommon("loading")}</p>
+    );
   }
   if (!report) {
-    return <p className="text-sm text-muted-foreground">Aucune donnée.</p>;
+    return (
+      <p className="text-sm text-muted-foreground">{t("reports.noData")}</p>
+    );
   }
 
   return (
     <div className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <Stat label="Total" value={String(report.summary.total)} />
-        <Stat label="Présents" value={String(report.summary.present)} />
-        <Stat label="Retards" value={String(report.summary.late)} />
-        <Stat label="Excusés" value={String(report.summary.excused)} />
-        <Stat label="Absents" value={String(report.summary.absent)} />
+        <Stat label={t("stats.total")} value={String(report.summary.total)} />
+        <Stat label={t("stats.present")} value={String(report.summary.present)} />
+        <Stat label={t("stats.late")} value={String(report.summary.late)} />
+        <Stat label={t("stats.excused")} value={String(report.summary.excused)} />
+        <Stat label={t("stats.absent")} value={String(report.summary.absent)} />
       </div>
       {report.summary.earlyExits > 0 ? (
         <p className="text-sm text-amber-700">
-          {report.summary.earlyExits} sortie(s) anticipée(s) avec motif.
+          {t("reports.earlyExitsCount", { count: report.summary.earlyExits })}
         </p>
       ) : null}
       <div className="overflow-x-auto rounded-md border">
         <table className="min-w-full text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
-              <th className="px-3 py-2">Date</th>
-              <th className="px-3 py-2">Nom</th>
-              <th className="px-3 py-2">Contexte</th>
-              <th className="px-3 py-2">Statut</th>
-              <th className="px-3 py-2">Arrivée</th>
-              <th className="px-3 py-2">Sortie</th>
-              <th className="px-3 py-2">Motif sortie</th>
+              <th className="px-3 py-2">{t("reports.columns.date")}</th>
+              <th className="px-3 py-2">{t("reports.columns.name")}</th>
+              <th className="px-3 py-2">{t("reports.columns.context")}</th>
+              <th className="px-3 py-2">{t("reports.columns.status")}</th>
+              <th className="px-3 py-2">{t("reports.columns.arrival")}</th>
+              <th className="px-3 py-2">{t("reports.columns.departure")}</th>
+              <th className="px-3 py-2">{t("reports.columns.exitReason")}</th>
             </tr>
           </thead>
           <tbody>
@@ -732,15 +750,15 @@ function RosterTable({
                   }
                 >
                   <td className="px-3 py-2">
-                    {new Date(row.date).toLocaleDateString("fr-FR")}
+                    {new Date(row.date).toLocaleDateString(locale)}
                   </td>
                   <td className="px-3 py-2 font-medium">{row.personName}</td>
                   <td className="px-3 py-2">{row.contextLabel}</td>
                   <td className="px-3 py-2">{row.statusLabel}</td>
-                  <td className="px-3 py-2">{row.checkIn || "—"}</td>
-                  <td className="px-3 py-2">{row.checkOut || "—"}</td>
+                  <td className="px-3 py-2">{row.checkIn || dash}</td>
+                  <td className="px-3 py-2">{row.checkOut || dash}</td>
                   <td className="px-3 py-2">
-                    {row.earlyExit ? row.exitReason || "—" : "—"}
+                    {row.earlyExit ? row.exitReason || dash : dash}
                   </td>
                 </tr>
               ))

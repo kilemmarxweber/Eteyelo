@@ -13,6 +13,11 @@ import type {
   PersonnelAttendanceReport,
   StudentAttendanceStatusCounts,
 } from "../attendance.action";
+import {
+  formatPdfPeriod,
+  formatPdfSummaryPresent,
+  type AttendancePdfLabels,
+} from "../attendance-pdf-labels";
 
 export type PersonnelAttendanceReportOptions = {
   emptyMessage?: string;
@@ -30,18 +35,30 @@ function formatPeriodLabel(dateStart: string, dateEnd: string): string {
   return `${formatReportDate(dateStart)} → ${formatReportDate(dateEnd)}`;
 }
 
-function formatSummaryLine(summary: StudentAttendanceStatusCounts): string {
-  return `Présents ${summary.present} · Absents ${summary.absent} · Retards ${summary.late} · Excusés ${summary.excused} (total ${summary.total})`;
+function formatSummaryLine(
+  labels: AttendancePdfLabels,
+  summary: StudentAttendanceStatusCounts,
+): string {
+  return formatPdfSummaryPresent(labels, summary);
 }
 
-export function buildPersonnelAttendanceReportTitle(): string {
-  return "Présences personnel";
+export function buildPersonnelAttendanceReportTitle(
+  labels: AttendancePdfLabels,
+): string {
+  return labels.personnelAttendanceTitle;
 }
 
 export function buildPersonnelAttendanceReportFilterLabels(
+  labels: AttendancePdfLabels,
   report: Pick<PersonnelAttendanceReport, "dateStart" | "dateEnd">,
 ): string[] {
-  return [`Période : ${formatPeriodLabel(report.dateStart, report.dateEnd)}`];
+  return [
+    formatPdfPeriod(
+      labels,
+      formatReportDate(report.dateStart),
+      formatReportDate(report.dateEnd),
+    ),
+  ];
 }
 
 function buildReportFileName(
@@ -57,14 +74,14 @@ function buildReportFileName(
 export async function buildPersonnelAttendanceReportPdf(
   report: PersonnelAttendanceReport,
   context: SchoolReportContext,
+  labels: AttendancePdfLabels,
   options: PersonnelAttendanceReportOptions = {},
 ) {
   const includeDetail = options.includeDetail !== false;
-  const title = buildPersonnelAttendanceReportTitle();
-  const filterLabels = buildPersonnelAttendanceReportFilterLabels(report);
+  const title = buildPersonnelAttendanceReportTitle(labels);
+  const filterLabels = buildPersonnelAttendanceReportFilterLabels(labels, report);
   const emptyMessage =
-    options.emptyMessage?.trim() ||
-    "Aucune présence personnel pour cette période.";
+    options.emptyMessage?.trim() || labels.emptyPersonnel;
 
   const details = report.details;
   const isEmpty = details.length === 0 || report.summary.total === 0;
@@ -72,7 +89,13 @@ export async function buildPersonnelAttendanceReportPdf(
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
-  const summaryHead = ["Présents", "Absents", "Retards", "Excusés", "Total"];
+  const summaryHead = [
+    labels.columns.present,
+    labels.columns.absent,
+    labels.columns.late,
+    labels.columns.excused,
+    labels.columns.total,
+  ];
   const summaryBody = [
     [
       String(report.summary.present),
@@ -112,7 +135,7 @@ export async function buildPersonnelAttendanceReportPdf(
         subtitle: context.branchName,
         details: [
           ...filterLabels,
-          isEmpty ? emptyMessage : formatSummaryLine(report.summary),
+          isEmpty ? emptyMessage : formatSummaryLine(labels, report.summary),
         ],
         logoDataUrl: logo,
       });
@@ -125,13 +148,13 @@ export async function buildPersonnelAttendanceReportPdf(
         ?.finalY ?? REPORT_HEADER_CONTENT_TOP_MM;
 
     const head = [
-      "#",
-      "Personnel",
-      "Présents",
-      "Absents",
-      "Retards",
-      "Excusés",
-      "Total",
+      labels.columns.index,
+      labels.columns.personnel,
+      labels.columns.present,
+      labels.columns.absent,
+      labels.columns.late,
+      labels.columns.excused,
+      labels.columns.total,
     ];
 
     const body: string[][] = isEmpty
@@ -200,7 +223,7 @@ export async function buildPersonnelAttendanceReportPdf(
           subtitle: context.branchName,
           details: [
             ...filterLabels,
-            isEmpty ? emptyMessage : formatSummaryLine(report.summary),
+            isEmpty ? emptyMessage : formatSummaryLine(labels, report.summary),
           ],
           logoDataUrl: logo,
         });
@@ -218,10 +241,16 @@ export async function buildPersonnelAttendanceReportPdf(
 export async function exportPersonnelAttendanceReportPdf(
   report: PersonnelAttendanceReport,
   context: SchoolReportContext,
+  labels: AttendancePdfLabels,
   options: PersonnelAttendanceReportOptions = {},
 ) {
   const date = new Date().toISOString().slice(0, 10);
   const reportName = buildReportFileName(report);
-  const doc = await buildPersonnelAttendanceReportPdf(report, context, options);
+  const doc = await buildPersonnelAttendanceReportPdf(
+    report,
+    context,
+    labels,
+    options,
+  );
   doc.save(`${reportName}-${date}.pdf`);
 }
