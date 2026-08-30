@@ -17,7 +17,6 @@ import {
   ClipboardList,
   Undo2,
   Banknote,
-  MessageSquare,
   FilePenLine,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -297,7 +296,6 @@ function AbsenceNotificationRow({
   const createdAt =
     item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt);
   const isPayment = item.type === "PAYMENT";
-  const isMessage = item.type === "MESSAGE";
   const canReplyDirect =
     Boolean(onReply) &&
     (item.type === "JUSTIFICATION_SUBMITTED" ||
@@ -306,9 +304,7 @@ function AbsenceNotificationRow({
     Boolean(item.case?.id);
   const actionLabel = isPayment
     ? "Vu"
-    : isMessage
-      ? "Ouvrir"
-      : item.type === "ABSENCE"
+    : item.type === "ABSENCE"
         ? "Justifier"
         : item.type === "JUSTIFICATION_SUBMITTED" ||
             item.type === "GRADE_MODIFICATION_SUBMITTED"
@@ -330,8 +326,6 @@ function AbsenceNotificationRow({
       >
         {isPayment ? (
           <Banknote className="size-4" />
-        ) : isMessage ? (
-          <MessageSquare className="size-4" />
         ) : item.type.startsWith("GRADE_MODIFICATION") ? (
           <FilePenLine className="size-4" />
         ) : item.type === "RETURN" ? (
@@ -391,7 +385,7 @@ export function NotificationBell() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const hasLoadedRef = useRef(false);
-  const lastNotificationCountRef = useRef<number | null>(null);
+  const lastMessagingCountRef = useRef<number | null>(null);
   const [absenceDialog, setAbsenceDialog] = useState<{
     mode: "justify" | "review" | "view";
     caseRow: AbsenceCaseDialogData;
@@ -416,12 +410,15 @@ export function NotificationBell() {
     try {
       const [data] = await getNotificationCountAction();
       if (typeof data?.count === "number") {
-        const previous = lastNotificationCountRef.current;
         setPendingCount(data.count);
-        if (previous !== null && data.count > previous) {
+      }
+      const messagingCount = data?.messagingCount;
+      if (typeof messagingCount === "number") {
+        const previous = lastMessagingCountRef.current;
+        if (previous !== null && messagingCount > previous) {
           refreshMessagingBell();
         }
-        lastNotificationCountRef.current = data.count;
+        lastMessagingCountRef.current = messagingCount;
       }
     } catch {
       // Conserver le dernier compteur connu.
@@ -446,7 +443,9 @@ export function NotificationBell() {
       const [absenceData] = absenceResult;
       const [legacyData] = legacyResult;
 
-      const absenceItems: AbsenceRow[] = (absenceData?.notifications ?? []).map(
+      const absenceItems: AbsenceRow[] = (absenceData?.notifications ?? [])
+        .filter((row) => row.type !== "MESSAGE")
+        .map(
         (row) => ({
           id: row.id,
           type: row.type,
@@ -769,20 +768,6 @@ export function NotificationBell() {
                       key={`${item.kind}-${item.id}`}
                       item={item}
                       onOpen={(row) => {
-                        if (row.type === "MESSAGE") {
-                          if (row.conversationId) {
-                            openMessagingDrawer({
-                              conversationId: row.conversationId,
-                            });
-                          } else if (row.href) {
-                            router.push(row.href);
-                          }
-                          void markAbsenceNotificationReadAction({
-                            notificationId: row.id,
-                          }).then(() => void loadRequests());
-                          setOpen(false);
-                          return;
-                        }
                         if (row.type === "PAYMENT") {
                           void markAbsenceNotificationReadAction({
                             notificationId: row.id,

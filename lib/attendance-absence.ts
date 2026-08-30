@@ -1018,17 +1018,8 @@ export async function listUnreadAppNotifications(params: {
     where: {
       userId: params.userId,
       readAt: null,
-      OR: [
-        { branchId: params.branchId },
-        ...(params.organizationId
-          ? [
-              {
-                type: "MESSAGE" as const,
-                organizationId: params.organizationId,
-              },
-            ]
-          : []),
-      ],
+      branchId: params.branchId,
+      type: { not: "MESSAGE" },
     },
     include: {
       absenceCase: {
@@ -1066,17 +1057,8 @@ export async function countUnreadAppNotifications(params: {
     where: {
       userId: params.userId,
       readAt: null,
-      OR: [
-        { branchId: params.branchId },
-        ...(params.organizationId
-          ? [
-              {
-                type: "MESSAGE" as const,
-                organizationId: params.organizationId,
-              },
-            ]
-          : []),
-      ],
+      branchId: params.branchId,
+      type: { not: "MESSAGE" },
     },
     select: {
       type: true,
@@ -1087,6 +1069,20 @@ export async function countUnreadAppNotifications(params: {
     if (row.type !== "GRADE_MODIFICATION_SUBMITTED") return true;
     return row.gradeModificationRequest?.requestedById !== params.userId;
   }).length;
+}
+
+export async function countUnreadMessageNotifications(params: {
+  userId: string;
+  organizationId: string;
+}) {
+  return prisma.appNotification.count({
+    where: {
+      userId: params.userId,
+      organizationId: params.organizationId,
+      type: "MESSAGE",
+      readAt: null,
+    },
+  });
 }
 
 export async function markAppNotificationRead(params: {

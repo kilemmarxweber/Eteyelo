@@ -9,7 +9,7 @@ import {
   canSeeInscriptionNotifications,
 } from "@/lib/auth/session-roles";
 import { Prisma } from "@/prisma/generated/prisma/client";
-import { countUnreadAppNotifications } from "@/lib/attendance-absence";
+import { countUnreadAppNotifications, countUnreadMessageNotifications } from "@/lib/attendance-absence";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 export type NotificationRequestRow = {
@@ -128,7 +128,8 @@ export const getNotificationCountAction = action.handler(async () => {
     canSeeCandidatures,
   } = await requireNotificationContext();
 
-  const [registrationCount, jobCount, absenceCount] = await Promise.all([
+  const [registrationCount, jobCount, absenceCount, messagingCount] =
+    await Promise.all([
     canSeeInscriptions
       ? prisma.$queryRaw<Array<{ count: bigint }>>(Prisma.sql`
           SELECT COUNT(*) AS count
@@ -147,10 +148,12 @@ export const getNotificationCountAction = action.handler(async () => {
         })
       : Promise.resolve(0),
     countUnreadAppNotifications({ branchId, userId, organizationId }),
+    countUnreadMessageNotifications({ userId, organizationId }),
   ]);
 
   return {
     count: Number(registrationCount[0]?.count ?? 0) + jobCount + absenceCount,
+    messagingCount,
   };
 });
 

@@ -1090,7 +1090,7 @@ export const updateTeachingAction = action
           consecutiveSlots == null || consecutiveSlots <= 1
             ? null
             : consecutiveSlots,
-        preferredDays: preferredDays ?? [],
+        preferredDays: { set: preferredDays ?? [] },
         branchId,
       },
       where: {

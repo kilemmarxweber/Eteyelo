@@ -37,7 +37,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { BackLink } from "@/components/ui/back-link";
-import { cn } from "@/lib/utils";
+import { cn, normalizeImageSrc } from "@/lib/utils";
 import {
   refreshMessagingBell,
   refreshNotificationBell,
@@ -79,6 +79,12 @@ function initials(name: string) {
   if (parts.length === 0) return "?";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
+}
+
+function photoSrc(image?: string | null) {
+  const trimmed = image?.trim();
+  if (!trimmed) return undefined;
+  return normalizeImageSrc(trimmed);
 }
 
 function formatTime(iso: string) {
@@ -494,7 +500,13 @@ export function MessagingWorkspace({
                     )}
                   >
                     <Avatar className="size-10">
-                      <AvatarImage src={row.participants.find((p) => p.userId !== currentUserId)?.image ?? undefined} />
+                      <AvatarImage
+                        src={photoSrc(
+                          row.participants.find((p) => p.userId !== currentUserId)
+                            ?.image,
+                        )}
+                        className="object-cover"
+                      />
                       <AvatarFallback>{initials(row.title)}</AvatarFallback>
                     </Avatar>
                     <span className="min-w-0 flex-1">
@@ -608,6 +620,21 @@ export function MessagingWorkspace({
                       .filter((row) => filter === "archived" || !row.archivedForMe)
                       .map((row) => {
                         const mine = row.senderId === currentUserId;
+                        const senderPhoto = photoSrc(row.senderImage);
+                        const senderAvatar = (
+                          <Avatar className="mt-1 size-8 shrink-0">
+                            {senderPhoto ? (
+                              <AvatarImage
+                                src={senderPhoto}
+                                alt={row.senderName}
+                                className="object-cover"
+                              />
+                            ) : null}
+                            <AvatarFallback>
+                              {initials(row.senderName)}
+                            </AvatarFallback>
+                          </Avatar>
+                        );
                         return (
                           <div
                             key={row.id}
@@ -616,12 +643,7 @@ export function MessagingWorkspace({
                               mine ? "justify-end" : "justify-start",
                             )}
                           >
-                            {!mine ? (
-                              <Avatar className="mt-1 size-8">
-                                <AvatarImage src={row.senderImage ?? undefined} />
-                                <AvatarFallback>{initials(row.senderName)}</AvatarFallback>
-                              </Avatar>
-                            ) : null}
+                            {!mine ? senderAvatar : null}
                             <div
                               className={cn(
                                 "max-w-[80%] rounded-2xl px-3 py-2 text-sm",
@@ -673,6 +695,7 @@ export function MessagingWorkspace({
                                 </button>
                               </div>
                             </div>
+                            {mine ? senderAvatar : null}
                           </div>
                         );
                       })}
@@ -930,7 +953,10 @@ function NewConversationDialog({
                   onClick={() => setSelected((prev) => [...prev, row])}
                 >
                   <Avatar className="size-8 shrink-0">
-                    <AvatarImage src={row.image ?? undefined} />
+                    <AvatarImage
+                      src={photoSrc(row.image)}
+                      className="object-cover"
+                    />
                     <AvatarFallback>{initials(row.name)}</AvatarFallback>
                   </Avatar>
                   <span className="min-w-0 flex-1">
@@ -1117,7 +1143,10 @@ function NewGroupDialog({
                   onClick={() => setSelected((prev) => [...prev, row])}
                 >
                   <Avatar className="size-8 shrink-0">
-                    <AvatarImage src={row.image ?? undefined} />
+                    <AvatarImage
+                      src={photoSrc(row.image)}
+                      className="object-cover"
+                    />
                     <AvatarFallback>{initials(row.name)}</AvatarFallback>
                   </Avatar>
                   <span className="min-w-0 flex-1">
