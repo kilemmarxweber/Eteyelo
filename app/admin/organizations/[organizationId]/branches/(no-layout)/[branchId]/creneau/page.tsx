@@ -4,7 +4,6 @@ import { BranchPageShell } from "@/components/layout/branch-page-shell";
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useTranslations } from "next-intl";
 import { IconBeach, IconPlus } from "@tabler/icons-react";
 
 import { Button } from "@/components/custom/button";
