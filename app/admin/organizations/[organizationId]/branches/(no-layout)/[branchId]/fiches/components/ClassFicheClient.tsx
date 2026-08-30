@@ -172,7 +172,16 @@ export default function ClassFicheClient({
   const [exportingExcel, setExportingExcel] = useState(false);
   const [totalPeriods, setTotalPeriods] = useState(0);
   const [families, setFamilies] = useState<
-    Record<string, { fatherName: string; motherName: string; placeOfBirth: string }>
+    Record<
+      string,
+      {
+        fatherName: string;
+        motherName: string;
+        placeOfBirth: string;
+        studentCode?: string;
+        enrollmentNumber?: string;
+      }
+    >
   >({});
   const selectedClass = classes.find((c) => c.id === selectedClassId);
   const academicCycle = resolveCycle(
@@ -421,6 +430,10 @@ export default function ClassFicheClient({
             fatherName: families[studentNote.studentId]?.fatherName ?? "",
             motherName: families[studentNote.studentId]?.motherName ?? "",
             placeOfBirth: families[studentNote.studentId]?.placeOfBirth ?? "",
+            studentCode: families[studentNote.studentId]?.studentCode ?? "",
+            enrollmentNumber:
+              families[studentNote.studentId]?.enrollmentNumber ?? "",
+            biNumber: families[studentNote.studentId]?.studentCode ?? "",
             periods: [],
           };
         }
@@ -516,6 +529,10 @@ export default function ClassFicheClient({
             fatherName: families[studentNote.studentId]?.fatherName ?? "",
             motherName: families[studentNote.studentId]?.motherName ?? "",
             placeOfBirth: families[studentNote.studentId]?.placeOfBirth ?? "",
+            studentCode: families[studentNote.studentId]?.studentCode ?? "",
+            enrollmentNumber:
+              families[studentNote.studentId]?.enrollmentNumber ?? "",
+            biNumber: families[studentNote.studentId]?.studentCode ?? "",
             periods: [],
           };
         }

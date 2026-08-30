@@ -2917,7 +2917,7 @@ export function RegistrationForm({
                             {isCtebLevel(level) || angolaNucleoLevel ? (
                               <p className="mt-1 text-xs text-muted-foreground">
                                 {angolaNucleoLevel
-                                  ? "7ª–9ª : Núcleo comum (comme le tronc commun). Pas d'option à choisir."
+                                  ? "7ª–8ª : Núcleo comum (comme le tronc commun). Pas d'option à choisir."
                                   : tReg("ctebHint")}
                               </p>
                             ) : null}

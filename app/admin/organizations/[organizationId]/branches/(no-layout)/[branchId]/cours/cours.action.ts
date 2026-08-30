@@ -12,8 +12,10 @@ import {
   generateCourseCode,
 } from "@/lib/generated-identifiers";
 import { getCatalogPrimaryPlacement, type PrimaryDomainCode } from "@/lib/primary-domains";
+import { upsertAngolaSecondaryCoursesForBranch } from "@/lib/angola-secondary-catalog-sync";
 import { upsertSecondaryCatalogCoursesForBranch } from "@/lib/secondary-catalog-sync";
 import { normalizeBranchType } from "@/lib/academic-structure";
+import { normalizeEducationSystem } from "@/lib/education-system";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import {
   importCourseToBranch,
@@ -601,11 +603,12 @@ export const getCourseAction = action
   });
 
 /**
- * Importe le catalogue RDC des cours secondaire pour la branche courante.
+ * Importe le catalogue des cours secondaire pour la branche courante
+ * (PORTUGUESA si enseignement angolais, sinon catalogue RDC).
  * Crée les matières et leurs pondérations par option (sections/options doivent déjà exister).
  */
 export async function importSecondaryCatalogCoursesAction() {
-  const { branchId, organizationId, session, typebranch } =
+  const { branchId, organizationId, session, typebranch, educationSystem } =
     await requireBranchContext();
   requireCoursManagement(session);
 
@@ -622,7 +625,10 @@ export async function importSecondaryCatalogCoursesAction() {
     };
   }
 
-  const result = await upsertSecondaryCatalogCoursesForBranch(branchId);
+  const isAngola = normalizeEducationSystem(educationSystem) === "ANGOLAIS";
+  const result = isAngola
+    ? await upsertAngolaSecondaryCoursesForBranch(branchId)
+    : await upsertSecondaryCatalogCoursesForBranch(branchId);
   revalidateCoursPages(organizationId, branchId);
   revalidatePath(
     `/admin/organizations/${organizationId}/branches/${branchId}/coursPonderationOption`,

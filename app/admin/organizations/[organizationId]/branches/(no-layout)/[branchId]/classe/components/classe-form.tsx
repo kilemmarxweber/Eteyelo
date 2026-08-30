@@ -43,6 +43,8 @@ import {
 } from "@/lib/cycle";
 import {
   ANGOLA_CICLO1_SECTION_CODE,
+  ANGOLA_TECNICA_SECTION_CODE,
+  isAngolaElectOption,
   isAngolaNucleoComumOption,
   angolaHoraireHelp,
   getAngolaHoraireType,
@@ -50,6 +52,10 @@ import {
   isAngolaSecondarySystem,
   angolaRequiresArea,
 } from "@/lib/angola-secondary-structure";
+import {
+  isAngolaPrimaryOption,
+  isAngolaPrimarySystem,
+} from "@/lib/angola-primary-structure";
 import { IOption } from "@/src/interfaces/Option";
 import { ICreneau } from "@/src/interfaces/creneau";
 import { getCreneauxAction } from "../../creneau/creneau.action";
@@ -231,6 +237,7 @@ export function ClasseUpForm({
   const classCycle = (watchedCycle || activatedCycles[0] || branchType) as Cycle;
   const multiCycle = activatedCycles.length > 1;
   const angolaSecondary = isAngolaSecondarySystem(classCycle, educationSystem);
+  const angolaPrimary = isAngolaPrimarySystem(classCycle, educationSystem);
   const classLevels = getClassLevelsForBranch(classCycle, educationSystem);
   const showOptionField = classCycle !== "ATELIER";
   const angolaCycle1 = angolaSecondary && isAngolaFirstCycleLevel(watchedLevel);
@@ -315,6 +322,14 @@ export function ClasseUpForm({
 
   useEffect(() => {
     if (classCycle !== "PRIMAIRE" || !watchedLevel) return;
+    if (angolaPrimary) {
+      const geral = options.find((option) => isAngolaPrimaryOption(option));
+      if (geral && !form.getValues("optionId")) {
+        form.setValue("optionId", geral.id);
+        if (geral.sectionId) setSelectedSectionId(geral.sectionId);
+      }
+      return;
+    }
     const code = primaryLevelOptionCode(watchedLevel);
     const levelOption = options.find(
       (option) =>
@@ -323,7 +338,7 @@ export function ClasseUpForm({
     if (levelOption && !form.getValues("optionId")) {
       form.setValue("optionId", levelOption.id);
     }
-  }, [classCycle, form, cycleOptions, watchedLevel]);
+  }, [angolaPrimary, classCycle, form, options, watchedLevel]);
 
   // 7è / 8è : section CTEB + option Tronc commun obligatoires (RDC)
   useEffect(() => {
@@ -353,7 +368,7 @@ export function ClasseUpForm({
     form,
   ]);
 
-  // Angola 7ª–9ª : Núcleo comum (comme le tronc commun)
+  // Angola 7ª–8ª : Núcleo comum (comme le tronc commun)
   useEffect(() => {
     if (!angolaSecondary || !isAngolaFirstCycleLevel(watchedLevel ?? "")) return;
 
@@ -367,6 +382,29 @@ export function ClasseUpForm({
     }
     if (cicloOption && !form.getValues("optionId")) {
       form.setValue("optionId", cicloOption.id);
+    }
+  }, [
+    angolaSecondary,
+    watchedLevel,
+    sections,
+    options,
+    selectedSectionId,
+    form,
+  ]);
+
+  // Angola 9ª–13ª : Técnica / Electricidade par défaut
+  useEffect(() => {
+    if (!angolaSecondary || !angolaRequiresArea(watchedLevel ?? "")) return;
+    if (form.getValues("optionId")) return;
+
+    const tecnica = sections.find((s) => s.code === ANGOLA_TECNICA_SECTION_CODE);
+    const elect = options.find((o) => isAngolaElectOption(o));
+
+    if (tecnica && selectedSectionId !== tecnica.id) {
+      setSelectedSectionId(tecnica.id);
+    }
+    if (elect) {
+      form.setValue("optionId", elect.id);
     }
   }, [
     angolaSecondary,
@@ -687,7 +725,7 @@ export function ClasseUpForm({
 
             {angolaCycle1 ? (
               <p className="text-[11px] leading-snug text-muted-foreground sm:col-span-2">
-                7ª–9ª : Núcleo comum est proposé par défaut. Vous pouvez choisir
+                7ª–8ª : Núcleo comum est proposé par défaut. Vous pouvez choisir
                 une autre option.
               </p>
             ) : null}

@@ -18,6 +18,9 @@ import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure
 import { ensureMaternelleAcademicStructure } from "@/lib/maternelle-academic-structure";
 import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import { ensureAngolaSecondaryStructure } from "@/lib/angola-secondary-bootstrap";
+import { ensureAngolaPrimaryStructure } from "@/lib/angola-primary-bootstrap";
+import { upsertAngolaSecondaryCoursesForBranch } from "@/lib/angola-secondary-catalog-sync";
+import { upsertAngolaPrimaryCoursesForBranch } from "@/lib/angola-primary-catalog-sync";
 import { ensureDefaultCreneaux } from "@/lib/default-creneaux";
 import { ensureExtendedBranchStructure } from "@/lib/extended-branch-bootstrap";
 import { persistActivatedBranchCycles } from "@/lib/persist-branch-cycles";
@@ -145,7 +148,11 @@ export async function createBranchAction(
       await ensureMaternelleAcademicStructure(tx, createdBranch.id);
     }
     if (activatedCycles.includes("PRIMAIRE")) {
-      await ensurePrimaryAcademicStructure(tx, createdBranch.id);
+      if (parsed.data.educationSystem === "ANGOLAIS") {
+        await ensureAngolaPrimaryStructure(tx, createdBranch.id);
+      } else {
+        await ensurePrimaryAcademicStructure(tx, createdBranch.id);
+      }
     }
 
     if (activatedCycles.includes("SECONDAIRE")) {
@@ -157,7 +164,11 @@ export async function createBranchAction(
     }
 
     await ensureExtendedBranchStructure(tx, createdBranch.id, typebranch);
-    await ensureDefaultCreneaux(tx, createdBranch.id);
+    await ensureDefaultCreneaux(
+      tx,
+      createdBranch.id,
+      parsed.data.educationSystem,
+    );
     await persistActivatedBranchCycles(tx, createdBranch.id, activatedCycles);
 
     return createdBranch;
@@ -175,6 +186,20 @@ export async function createBranchAction(
       cycles: activatedCycles,
       importSectionsAndOptions: activatedCycles.includes("SECONDAIRE"),
     });
+  }
+
+  if (
+    activatedCycles.includes("SECONDAIRE") &&
+    parsed.data.educationSystem === "ANGOLAIS"
+  ) {
+    await upsertAngolaSecondaryCoursesForBranch(branch.id);
+  }
+
+  if (
+    activatedCycles.includes("PRIMAIRE") &&
+    parsed.data.educationSystem === "ANGOLAIS"
+  ) {
+    await upsertAngolaPrimaryCoursesForBranch(branch.id);
   }
 
   revalidatePath(`/admin/organizations/${organizationId}/branches`);
@@ -369,12 +394,18 @@ export async function updateBranchAction(
     await ensureMaternelleAcademicStructure(prisma, branchId);
   }
   if (activatedCycles.includes("PRIMAIRE")) {
-    await ensurePrimaryAcademicStructure(prisma, branchId);
+    if (branch.educationSystem === "ANGOLAIS") {
+      await ensureAngolaPrimaryStructure(prisma, branchId);
+      await upsertAngolaPrimaryCoursesForBranch(branchId);
+    } else {
+      await ensurePrimaryAcademicStructure(prisma, branchId);
+    }
   }
 
   if (activatedCycles.includes("SECONDAIRE")) {
     if (branch.educationSystem === "ANGOLAIS") {
       await ensureAngolaSecondaryStructure(prisma, branchId);
+      await upsertAngolaSecondaryCoursesForBranch(branchId);
     } else {
       await ensureSecondaryCtebStructure(prisma, branchId);
     }

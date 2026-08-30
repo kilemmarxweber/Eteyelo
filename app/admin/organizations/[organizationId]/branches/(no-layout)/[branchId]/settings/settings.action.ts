@@ -315,7 +315,7 @@ export async function ensurePrimaryDomainsAction() {
   };
 }
 
-/** Crée / met à jour tous les cours du catalogue officiel RDC (5 domaines) pour la branche. */
+/** Crée / met à jour le catalogue primaire officiel (RDC ou 1.º ciclo angolais). */
 export async function importPrimaryCatalogCoursesAction() {
   const context = await requireBranchContext();
   assertCanManageSchoolOps(context.session);
@@ -328,10 +328,30 @@ export async function importPrimaryCatalogCoursesAction() {
     };
   }
 
-  const { upsertPrimaryCatalogCoursesForBranch } = await import(
-    "@/lib/primary-catalog-sync"
-  );
-  const result = await upsertPrimaryCatalogCoursesForBranch(context.branchId);
+  const { normalizeEducationSystem } = await import("@/lib/education-system");
+  const isAngola = normalizeEducationSystem(context.educationSystem) === "ANGOLAIS";
+
+  const result = isAngola
+    ? await (async () => {
+        const { upsertAngolaPrimaryCoursesForBranch } = await import(
+          "@/lib/angola-primary-catalog-sync"
+        );
+        const synced = await upsertAngolaPrimaryCoursesForBranch(context.branchId);
+        return {
+          created: synced.coursesCreated,
+          updated: synced.coursesUpdated,
+          skipped: synced.coursesSkipped,
+          ponderationsCreated: synced.ponderationsCreated,
+          ponderationsUpdated: synced.ponderationsUpdated,
+          ponderationsSkipped: synced.ponderationsSkipped,
+        };
+      })()
+    : await (async () => {
+        const { upsertPrimaryCatalogCoursesForBranch } = await import(
+          "@/lib/primary-catalog-sync"
+        );
+        return upsertPrimaryCatalogCoursesForBranch(context.branchId);
+      })();
 
   revalidatePath(
     `/admin/organizations/${context.organizationId}/branches/${context.branchId}/settings/primary-domains`,
@@ -343,9 +363,13 @@ export async function importPrimaryCatalogCoursesAction() {
     `/admin/organizations/${context.organizationId}/branches/${context.branchId}/coursPonderationOption`,
   );
 
+  const catalogLabel = isAngola
+    ? "Catalogue 1.º ciclo angolais (1ª–4ª)"
+    : "Catalogue RDC";
+
   return {
     ok: true,
-    message: `Catalogue RDC importé : ${result.created} cours créé(s), ${result.updated} mis à jour, ${result.skipped} déjà à jour. Pondérations : ${result.ponderationsCreated} créée(s), ${result.ponderationsUpdated} mise(s) à jour.`,
+    message: `${catalogLabel} importé : ${result.created} cours créé(s), ${result.updated} mis à jour, ${result.skipped} déjà à jour. Pondérations : ${result.ponderationsCreated} créée(s), ${result.ponderationsUpdated} mise(s) à jour.`,
     ...result,
   };
 }

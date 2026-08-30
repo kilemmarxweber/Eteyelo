@@ -34,6 +34,7 @@ import {
   formatPersonFullName,
   memberHasOrgRole,
 } from "@/lib/person-full-name";
+import { normalizeEducationSystem } from "@/lib/education-system";
 
 export async function logout() {
   await auth.api.signOut({
@@ -326,6 +327,22 @@ export async function getClassStudentFamilies(classId: string) {
         select: {
           id: true,
           placeOfBirth: true,
+          branchMember: {
+            select: {
+              member: {
+                select: {
+                  user: {
+                    select: {
+                      username: true,
+                      name: true,
+                      postnom: true,
+                      prenom: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
           parent: {
             select: {
               nomMere: true,
@@ -351,29 +368,50 @@ export async function getClassStudentFamilies(classId: string) {
     },
   });
 
-  const families: Record<
-    string,
-    { fatherName: string; motherName: string; placeOfBirth: string }
-  > = {};
+  type FamilyRow = {
+    fatherName: string;
+    motherName: string;
+    placeOfBirth: string;
+    studentCode: string;
+    enrollmentNumber: string;
+  };
 
-  for (const enrollment of enrollments) {
-    const student = enrollment.student;
-    if (!student) continue;
-    families[student.id] = {
+  const rows = enrollments
+    .map((enrollment) => enrollment.student)
+    .filter((student): student is NonNullable<typeof student> => Boolean(student))
+    .map((student) => ({
+      id: student.id,
+      sortName: formatPersonFullName(
+        student.branchMember?.member?.user,
+      ).toLowerCase(),
       fatherName: formatPersonFullName(
         student.parent?.branchMember?.member?.user,
       ),
       motherName: student.parent?.nomMere?.trim() ?? "",
       placeOfBirth: student.placeOfBirth?.trim() ?? "",
+      studentCode: student.branchMember?.member?.user?.username?.trim() ?? "",
+    }))
+    .sort((a, b) => a.sortName.localeCompare(b.sortName, "pt"));
+
+  const families: Record<string, FamilyRow> = {};
+  rows.forEach((row, index) => {
+    families[row.id] = {
+      fatherName: row.fatherName,
+      motherName: row.motherName,
+      placeOfBirth: row.placeOfBirth,
+      studentCode: row.studentCode,
+      enrollmentNumber: String(index + 1).padStart(2, "0"),
     };
-  }
+  });
 
   return families;
 }
 
 export async function getBranchDirectorForBulletin() {
-  const { branchId, typebranch } = await requireBranchContext();
-  const preferPrefet = typebranch === "SECONDAIRE";
+  const { branchId, typebranch, educationSystem } = await requireBranchContext();
+  const preferPrefet =
+    typebranch === "SECONDAIRE" ||
+    normalizeEducationSystem(educationSystem) === "ANGOLAIS";
 
   const leaders = await prisma.branchMember.findMany({
     where: {

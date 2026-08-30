@@ -42,6 +42,8 @@ import {
   isAngolaFirstCycleLevel,
   isAngolaSecondarySystem,
 } from "@/lib/angola-secondary-structure";
+import { ensureAngolaPrimaryStructure } from "@/lib/angola-primary-bootstrap";
+import { isAngolaPrimarySystem } from "@/lib/angola-primary-structure";
 import {
   ensureUniqueIdentifier,
   generateClassCode,
@@ -89,6 +91,10 @@ async function resolveClassIdentity(params: {
   const primary = isPrimaryBranch(params.typebranch);
   const maternelle = isMaternelleCycle(params.typebranch);
   const angola = isAngolaSecondarySystem(
+    params.typebranch,
+    params.educationSystem,
+  );
+  const angolaPrimary = isAngolaPrimarySystem(
     params.typebranch,
     params.educationSystem,
   );
@@ -141,11 +147,16 @@ async function resolveClassIdentity(params: {
   }
 
   if (!option && primary) {
-    const primaryStructure = await ensurePrimaryAcademicStructure(
-      prisma,
-      params.branchId,
-    );
-    option = getPrimaryOptionForLevel(primaryStructure, validated.level);
+    if (angolaPrimary) {
+      option = (await ensureAngolaPrimaryStructure(prisma, params.branchId))
+        .option;
+    } else {
+      const primaryStructure = await ensurePrimaryAcademicStructure(
+        prisma,
+        params.branchId,
+      );
+      option = getPrimaryOptionForLevel(primaryStructure, validated.level);
+    }
     if (!option) {
       throw new Error("Niveau primaire invalide pour la pondération");
     }
@@ -687,10 +698,9 @@ export const statusClasseAction = action
   });
 
 /**
- * Importe le catalogue RDC des classes pour la branche courante.
- * - PRIMAIRE : 1è-PR … 6è-PR
- * - SECONDAIRE : 7è/8è CTEB Tronc commun + 1è–4è Humanités pour options actives
- * @param importSectionsAndOptions D3=A si true (upsert sections/options catalogue)
+ * Importe le catalogue de classes pour la branche courante.
+ * Congolais : 1è-PR … 6è-PR, CTEB 7è/8è, Humanités.
+ * Angolais : 1ª–4ª (Geral), 7ª–8ª núcleo, 9ª–13ª Técnica/Electricidade.
  */
 export async function importClassCatalogAction(params?: {
   importSectionsAndOptions?: boolean;

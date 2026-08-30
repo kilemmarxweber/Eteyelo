@@ -39,10 +39,10 @@ export function memberHasOrgRole(
     .includes(wanted);
 }
 
-/** Libellé école dans « Directora do ECPL » : code si présent, sinon nom. */
+/** Nom officiel de l'établissement dans la Declaração (description de branche). */
 export function angolaDeclarationSchoolLabel(
   schoolName?: string | null,
   schoolCode?: string | null,
 ): string {
-  return schoolCode?.trim() || schoolName?.trim() || "________";
+  return schoolName?.trim() || schoolCode?.trim() || "________";
 }

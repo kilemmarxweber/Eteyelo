@@ -18,6 +18,11 @@ type TermPeriodStudent = {
   fatherName?: string;
   motherName?: string;
   placeOfBirth?: string;
+  enrollmentNumber?: string;
+  studentCode?: string;
+  username?: string;
+  biNumber?: string;
+  biIssuedAt?: string;
   periods?: Array<{
     periodName: string;
     notes?: Record<string, { score?: number; maxScore?: number }>;
@@ -125,8 +130,6 @@ export function renderTermPeriodBulletins(
     classParallel: params.classParallel,
   };
 
-  // Angola : le modèle « primaire » (tableau L. Port / Mat. / E. Meio)
-  // et le modèle « secondaire » (liste des disciplines) étaient inversés.
   if (
     shouldUseAngolaPrimaryStudyDeclaration(
       params.branchContext.educationSystem,
@@ -135,7 +138,7 @@ export function renderTermPeriodBulletins(
       classLabel,
     )
   ) {
-    renderAngolaStudyDeclarations(doc, declarationParams);
+    renderAngolaPrimaryStudyDeclarations(doc, declarationParams);
     return;
   }
 
@@ -146,7 +149,7 @@ export function renderTermPeriodBulletins(
       classLabel,
     )
   ) {
-    renderAngolaPrimaryStudyDeclarations(doc, declarationParams);
+    renderAngolaStudyDeclarations(doc, declarationParams);
     return;
   }
 

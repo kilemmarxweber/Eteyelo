@@ -1,14 +1,14 @@
 import { normalizeEducationSystem } from "@/lib/education-system";
 
 /**
- * Secundário angolais — 2 ciclos seulement.
+ * Secundário angolais — 2 ciclos.
  *
- * 1.º Ciclo (7ª–9ª) : núcleo comum, comme le tronc commun congolais — pas de choix d'option.
- * 2.º Ciclo (10ª–12ª + 13ª) : section et option obligatoires.
+ * 1.º Ciclo (7ª–8ª) : núcleo comum, comme le tronc commun congolais — pas de choix d'option.
+ * 2.º Ciclo (9ª–12ª + 13ª) : section et option obligatoires (défaut Técnica / Electricidade).
  */
 
-export const ANGOLA_FIRST_CYCLE_LEVELS = ["7ª", "8ª", "9ª"] as const;
-export const ANGOLA_SECOND_CYCLE_LEVELS = ["10ª", "11ª", "12ª"] as const;
+export const ANGOLA_FIRST_CYCLE_LEVELS = ["7ª", "8ª"] as const;
+export const ANGOLA_SECOND_CYCLE_LEVELS = ["9ª", "10ª", "11ª", "12ª"] as const;
 export const ANGOLA_REDUCED_LEVEL = "13ª";
 
 export const ANGOLA_SECONDARY_LEVELS = [
@@ -66,6 +66,11 @@ export const ANGOLA_CICLO_OPTION_NAME = "Núcleo comum";
 export const ANGOLA_CICLO_OPTION_CODE_LEGACY = "CICLO";
 export const ANGOLA_CICLO2_SECTION_CODE = "CICLO2";
 export const ANGOLA_CICLO2_SECTION_NAME = "2.º Ciclo";
+export const ANGOLA_TECNICA_SECTION_CODE = "TECNICA";
+export const ANGOLA_TECNICA_SECTION_NAME = "Técnica";
+export const ANGOLA_ELECT_OPTION_CODE = "ELECT";
+export const ANGOLA_ELECT_OPTION_NAME = "Electricidade";
+export const ANGOLA_ELECT_OPTION_ABBREV = "EL";
 
 export function isAngolaNucleoComumOption(option: {
   codeOption?: string | null;
@@ -142,7 +147,7 @@ export function getAngolaSecondaryCycle(
   return null;
 }
 
-/** 10ª–12ª : tous les jours. 13ª : horaire réduit. 1.º Ciclo : complet. */
+/** 9ª–12ª : tous les jours. 13ª : horaire réduit. 7ª–8ª : complet. */
 export function getAngolaHoraireType(
   level: string | null | undefined,
 ): AngolaHoraireType {
@@ -163,7 +168,7 @@ export function angolaSecondaryLevelLabel(level: string): string {
   return labels[normalized] ?? level;
 }
 
-/** Libellé officiel type « 7ª Sétima Classe » (Declaração de estudo). */
+/** Libellé officiel type « 7ª (Sétima Classe) » (Declaração de estudo). */
 export function angolaStudyDeclarationClassPhrase(
   level?: string | null,
 ): string {
@@ -171,13 +176,13 @@ export function angolaStudyDeclarationClassPhrase(
     normalizeAngolaSecondaryLevel(level) ??
     extractAngolaSecondaryLevelFromLabel(level);
   const phrases: Record<string, string> = {
-    "7ª": "7ª Sétima Classe",
-    "8ª": "8ª Oitava Classe",
-    "9ª": "9ª Nona Classe",
-    "10ª": "10ª Décima Classe",
-    "11ª": "11ª Décima Primeira Classe",
-    "12ª": "12ª Décima Segunda Classe",
-    "13ª": "13ª Décima Terceira Classe",
+    "7ª": "7ª (Sétima Classe)",
+    "8ª": "8ª (Oitava Classe)",
+    "9ª": "9ª (Nona Classe)",
+    "10ª": "10ª (Décima Classe)",
+    "11ª": "11ª (Décima Primeira Classe)",
+    "12ª": "12ª (Décima Segunda Classe)",
+    "13ª": "13ª (Décima Terceira Classe)",
   };
   if (normalized && phrases[normalized]) return phrases[normalized];
   return level?.trim() || "_______ Classe";
@@ -200,19 +205,48 @@ export function shouldUseAngolaStudyDeclaration(
   classLabel?: string | null,
 ): boolean {
   if (normalizeEducationSystem(educationSystem) !== "ANGOLAIS") return false;
+  const fromLabel = extractAngolaSecondaryLevelFromLabel(classLabel);
   return (
-    isAngolaFirstCycleLevel(classLevel) ||
-    isAngolaFirstCycleLevel(classLabel) ||
-    isAngolaFirstCycleLevel(extractAngolaSecondaryLevelFromLabel(classLabel))
+    isAngolaSecondaryLevel(classLevel) ||
+    isAngolaSecondaryLevel(classLabel) ||
+    isAngolaSecondaryLevel(fromLabel)
+  );
+}
+
+export function isAngolaTecnicaSection(section: {
+  codeSection?: string | null;
+  nameSection?: string | null;
+}): boolean {
+  const code = section.codeSection?.toUpperCase();
+  const name = section.nameSection
+    ?.toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  return code === ANGOLA_TECNICA_SECTION_CODE || name === "tecnica";
+}
+
+export function isAngolaElectOption(option: {
+  codeOption?: string | null;
+  nameOption?: string | null;
+}): boolean {
+  const code = option.codeOption?.toUpperCase();
+  const name = option.nameOption
+    ?.toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  return (
+    code === ANGOLA_ELECT_OPTION_CODE ||
+    name === "electricidade" ||
+    name === "electrotecnia"
   );
 }
 
 export function angolaHoraireHelp(level: string | null | undefined): string {
   if (isAngolaFirstCycleLevel(level)) {
-    return "7ª–9ª : núcleo comum (comme le tronc commun). Pas d'option ni de filière à choisir.";
+    return "7ª–8ª : núcleo comum (comme le tronc commun). Pas d'option ni de filière à choisir.";
   }
   if (isAngolaSecondCycleLevel(level)) {
-    return "10ª–12ª : 2.º Ciclo, section et option obligatoires. Horaire complet, présence tous les jours.";
+    return "9ª–12ª : 2.º Ciclo, section et option obligatoires (défaut Técnica / Electricidade). Horaire complet.";
   }
   if (isAngolaReducedHoursLevel(level)) {
     return "13ª : 2.º Ciclo (longo), section et option obligatoires. Horaire réduit, cours pas tous les jours.";

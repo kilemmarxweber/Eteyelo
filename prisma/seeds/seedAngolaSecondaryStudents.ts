@@ -3,6 +3,7 @@ import { hashPassword } from "better-auth/crypto";
 import { prisma } from "@/lib/prisma";
 import { ensureAcademicPeriodsForBranch } from "@/lib/academic-periods";
 import { ensureAngolaSecondaryStructure } from "@/lib/angola-secondary-bootstrap";
+import { upsertAngolaSecondaryCoursesForBranch } from "@/lib/angola-secondary-catalog-sync";
 import { buildClassCode, buildClassName } from "@/lib/class-structure";
 
 const SEED_PASSWORD = "Student123!";
@@ -337,6 +338,10 @@ export async function seedAngolaSecondaryStudents() {
   });
 
   const angola = await ensureAngolaSecondaryStructure(prisma, branch.id);
+  const courses = await upsertAngolaSecondaryCoursesForBranch(branch.id);
+  console.log(
+    `  Cours PORTUGUESA: ${courses.coursesCreated} créé(s), ${courses.coursesSkipped} déjà présents`,
+  );
   const ciencias = await ensureCienciasOption(branch.id, angola.ciclo2.id);
   const schoolYear = await ensureSchoolYear(branch.id);
   const creneau = await ensureCreneau(branch.id);

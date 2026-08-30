@@ -23,8 +23,9 @@ const SYSTEM_CARDS: Array<{
   {
     value: "ANGOLAIS",
     title: "Angolais",
-    description: "3 trimestres et 3 périodes. Pondération inchangée.",
-    hint: "Termes",
+    description:
+      "1ª–4ª, 7ª–8ª (núcleo) et 9ª–13ª (Técnica). Langue par défaut : PT.",
+    hint: "PT",
     icon: Globe,
   },
   {

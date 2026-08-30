@@ -18,9 +18,22 @@ import {
 } from "../lib/class-structure";
 import {
   angolaPrimaryLevelLabel,
+  isAngolaPrimaryFirstCycleLevel,
   shouldUseAngolaPrimaryStudyDeclaration,
 } from "../lib/angola-primary-structure";
-import { mapAngolaPrimaryGrades } from "../lib/angola-primary-declaration-render";
+import { matchAngolaPrimaryCourse } from "../lib/angola-primary-course-catalog";
+import {
+  formatAngolaPrimaryIssueLine,
+  mapAngolaPrimaryGrades,
+  resolveAngolaPrimaryEnrollmentNumber,
+  resolveAngolaPrimaryIdentityNumber,
+} from "../lib/angola-primary-declaration-render";
+import { matchAngolaSecondaryCourse } from "../lib/angola-secondary-course-catalog";
+import {
+  angolaDeclarationTurma,
+  buildAngolaStudyDeclarationRows,
+  formatAngolaDeclarationIssueLine,
+} from "../lib/angola-study-declaration-render";
 import { branchDocumentName } from "../lib/branch-document-name";
 import {
   angolaDirectorTitle,
@@ -50,20 +63,25 @@ test("Angola : 2 ciclos + 13ª horaire réduit", () => {
     "7ª,8ª,9ª,10ª,11ª,12ª,13ª",
   );
   assert.equal(getAngolaSecondaryCycle("8ª"), "CICLO1");
+  assert.equal(getAngolaSecondaryCycle("9ª"), "CICLO2");
   assert.equal(getAngolaSecondaryCycle("11ª"), "CICLO2");
   assert.equal(getAngolaSecondaryCycle("13ª"), "CICLO2");
   assert.equal(getAngolaHoraireType("12ª"), "COMPLET");
   assert.equal(getAngolaHoraireType("13ª"), "REDUIT");
-  assert.ok(isAngolaFirstCycleLevel("9ª"));
+  assert.ok(isAngolaFirstCycleLevel("8ª"));
+  assert.equal(isAngolaFirstCycleLevel("9ª"), false);
+  assert.ok(isAngolaSecondCycleLevel("9ª"));
   assert.ok(isAngolaSecondCycleLevel("10ª"));
   assert.ok(isAngolaReducedHoursLevel("13ª"));
   assert.ok(isAngolaSecondarySystem("SECONDAIRE", "ANGOLAIS"));
   assert.equal(isAngolaSecondarySystem("SECONDAIRE", "CONGOLAIS"), false);
 });
 
-test("7ª–9ª núcleo comum ; 10ª–13ª section + option", () => {
+test("7ª–8ª núcleo comum ; 9ª–13ª section + option", () => {
   assert.equal(requiresOptionForClass("SECONDAIRE", "7ª", "ANGOLAIS"), false);
   assert.equal(requiresSectionForClass("SECONDAIRE", "7ª", "ANGOLAIS"), false);
+  assert.equal(requiresOptionForClass("SECONDAIRE", "8ª", "ANGOLAIS"), false);
+  assert.equal(requiresOptionForClass("SECONDAIRE", "9ª", "ANGOLAIS"), true);
   assert.equal(requiresOptionForClass("SECONDAIRE", "12ª", "ANGOLAIS"), true);
   assert.equal(requiresOptionForClass("SECONDAIRE", "13ª", "ANGOLAIS"), true);
   assert.equal(
@@ -99,7 +117,7 @@ test("Declaração : directora, père et mère", () => {
   assert.equal(memberHasOrgRole("directeur", "prefet"), false);
   assert.equal(
     angolaDeclarationSchoolLabel("École Communautaire", "ECPL"),
-    "ECPL",
+    "École Communautaire",
   );
   assert.equal(
     branchDocumentName({
@@ -110,18 +128,26 @@ test("Declaração : directora, père et mère", () => {
   );
 });
 
-test("Declaração de estudo : 7ª–9ª seulement", () => {
+test("Declaração de estudo : 7ª (Sétima Classe) jusqu'à 13ª", () => {
   assert.equal(
     angolaStudyDeclarationClassPhrase("7ª"),
-    "7ª Sétima Classe",
+    "7ª (Sétima Classe)",
   );
   assert.equal(
     angolaStudyDeclarationClassPhrase("8a"),
-    "8ª Oitava Classe",
+    "8ª (Oitava Classe)",
   );
   assert.equal(
     angolaStudyDeclarationClassPhrase("9ª A"),
-    "9ª Nona Classe",
+    "9ª (Nona Classe)",
+  );
+  assert.equal(
+    angolaStudyDeclarationClassPhrase("12ª"),
+    "12ª (Décima Segunda Classe)",
+  );
+  assert.equal(
+    angolaStudyDeclarationClassPhrase("13ª"),
+    "13ª (Décima Terceira Classe)",
   );
   assert.equal(
     shouldUseAngolaStudyDeclaration("ANGOLAIS", "7ª", "7ª A"),
@@ -129,7 +155,11 @@ test("Declaração de estudo : 7ª–9ª seulement", () => {
   );
   assert.equal(
     shouldUseAngolaStudyDeclaration("ANGOLAIS", "10ª", "10ª A"),
-    false,
+    true,
+  );
+  assert.equal(
+    shouldUseAngolaStudyDeclaration("ANGOLAIS", "13ª", "13ª"),
+    true,
   );
   assert.equal(
     shouldUseAngolaStudyDeclaration("CONGOLAIS", "7ª", "7è A"),
@@ -152,23 +182,101 @@ test("Primaire angolais : 1ª (Primeira Classe) … 6ª (Sexta Classe)", () => {
   );
   assert.equal(angolaPrimaryLevelLabel("6ª"), "6ª (Sexta Classe)");
   assert.ok(getClassLevelsForBranch("PRIMAIRE").includes("1è"));
+  assert.equal(isAngolaPrimaryFirstCycleLevel("4ª"), true);
+  assert.equal(isAngolaPrimaryFirstCycleLevel("4ª A"), true);
+  assert.equal(isAngolaPrimaryFirstCycleLevel("5ª"), false);
+  assert.equal(isAngolaPrimaryFirstCycleLevel("6ª"), false);
   assert.equal(
     shouldUseAngolaPrimaryStudyDeclaration("ANGOLAIS", "PRIMAIRE", "2ª", "2ª A"),
     true,
   );
   assert.equal(
+    shouldUseAngolaPrimaryStudyDeclaration("ANGOLAIS", "PRIMAIRE", "4ª", "4ª A"),
+    true,
+  );
+  assert.equal(
+    shouldUseAngolaPrimaryStudyDeclaration("ANGOLAIS", "PRIMAIRE", "5ª", "5ª A"),
+    false,
+  );
+  assert.equal(
+    shouldUseAngolaPrimaryStudyDeclaration("ANGOLAIS", "PRIMAIRE", "6ª", "6ª A"),
+    false,
+  );
+  assert.equal(
     shouldUseAngolaPrimaryStudyDeclaration("ANGOLAIS", "SECONDAIRE", "7ª", "7ª A"),
     false,
   );
+  assert.equal(matchAngolaPrimaryCourse("Língua Portuguesa")?.declarationLabel, "L. Port");
+  assert.equal(matchAngolaPrimaryCourse("Mat.")?.declarationLabel, "Mat.");
+  assert.equal(matchAngolaPrimaryCourse("Estudo do Meio")?.declarationLabel, "E. Meio");
+  assert.equal(matchAngolaPrimaryCourse("E.M.P")?.declarationLabel, "E.M.P");
+  assert.equal(matchAngolaPrimaryCourse("Educação Musical")?.declarationLabel, "E. Mus");
+  assert.equal(matchAngolaPrimaryCourse("Educação Física")?.declarationLabel, "E. Fis");
   const grades = mapAngolaPrimaryGrades([
-    ["Língua Portuguesa", { score: 9, maxScore: 10 }],
-    ["Matemática", { score: 9, maxScore: 10 }],
+    ["Língua Portuguesa", { score: 8, maxScore: 10 }],
+    ["Matemática", { score: 8, maxScore: 10 }],
     ["Estudo do Meio", { score: 8, maxScore: 10 }],
+    ["E.M.P", { score: 8, maxScore: 10 }],
+    ["Educação Musical", { score: 7, maxScore: 10 }],
+    ["Educação Física", { score: 7, maxScore: 10 }],
   ]);
-  assert.equal(grades[0]?.header, "L. Port");
-  assert.equal(grades[0]?.score, 9);
-  assert.equal(grades[1]?.header, "Mat.");
-  assert.equal(grades[2]?.header, "E. Meio");
+  assert.equal(grades.map((row) => row.header).join("|"), "L. Port|Mat.|E. Meio|E.M.P|E. Mus|E. Fis");
+  assert.equal(grades[0]?.score, 8);
+  assert.equal(grades[4]?.score, 7);
+  assert.equal(
+    resolveAngolaPrimaryIdentityNumber({ biNumber: "0230557106CA059" }),
+    "0230557106CA059",
+  );
+  assert.equal(
+    resolveAngolaPrimaryIdentityNumber({ studentCode: "0230557106CA059" }),
+    "0230557106CA059",
+  );
+  assert.equal(resolveAngolaPrimaryIdentityNumber({}), "________");
+  assert.equal(resolveAngolaPrimaryEnrollmentNumber({ enrollmentNumber: "1" }), "01");
+  assert.equal(resolveAngolaPrimaryEnrollmentNumber({}), "____");
+  assert.match(
+    formatAngolaPrimaryIssueLine("Cabinda", new Date(2026, 7, 6)),
+    /^Cabinda, ao 06 de Agosto de 2026$/,
+  );
+});
+
+test("Catalogue PORTUGUESA + Declaração (tableau officiel)", () => {
+  assert.equal(matchAngolaSecondaryCourse("Portugais")?.declarationLabel, "L. PORTUGUESA");
+  assert.equal(matchAngolaSecondaryCourse("E.M.C")?.declarationLabel, "E.M.C");
+  assert.equal(matchAngolaSecondaryCourse("Educação Física")?.declarationLabel, "ED. FÍSICA");
+  assert.equal(angolaDeclarationTurma(null, "7ª"), "Única");
+  assert.equal(angolaDeclarationTurma("A", "7ª A"), "A");
+  assert.match(
+    formatAngolaDeclarationIssueLine(
+      "Complexo Escolar Anexo ao Magistério em Cabinda",
+      new Date(2026, 7, 13),
+    ),
+    /^COMPLEXO ESCOLAR ANEXO AO MAGISTÉRIO EM CABINDA, AO 13 DE AGOSTO DE 2026$/,
+  );
+
+  const rows = buildAngolaStudyDeclarationRows({
+    "Língua Portuguesa": { score: 10, maxScore: 20 },
+    Matemática: { score: 14, maxScore: 20 },
+    Biologia: { score: 10, maxScore: 20 },
+    Geografia: { score: 10, maxScore: 20 },
+    História: { score: 12, maxScore: 20 },
+    Química: { score: 10, maxScore: 20 },
+    Física: { score: 10, maxScore: 20 },
+    "E.M.C": { score: 11, maxScore: 20 },
+    Inglês: { score: 10, maxScore: 20 },
+    "E.V.P": { score: 10, maxScore: 20 },
+    "Ed. Laboral": { score: 10, maxScore: 20 },
+    "Ed. Física": { score: 11, maxScore: 20 },
+  });
+  assert.equal(rows[0]?.disciplina, "L. PORTUGUESA");
+  assert.equal(rows[0]?.score, 10);
+  assert.equal(rows[1]?.score, 14);
+  const frances = rows.find((row) => row.disciplina === "FRANCÊS");
+  const religiao = rows.find((row) => row.disciplina === "RELIGIÃO");
+  assert.ok(frances);
+  assert.ok(Number.isNaN(frances.score));
+  assert.ok(religiao);
+  assert.ok(Number.isNaN(religiao.score));
 });
 
 console.log("Angola secondary tests passed.");

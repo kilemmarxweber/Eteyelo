@@ -17,6 +17,8 @@ import {
   seedAngolaSecondaryStudents,
   clearAngolaSecondaryStudents,
 } from "./seedAngolaSecondaryStudents";
+import { seedAngolaPortuguesaCourses } from "./seedAngolaPortuguesaCourses";
+import { seedAngolaPrimaryCourses } from "./seedAngolaPrimaryCourses";
 
 const INIT_ORDER = [
   { name: "superAdmin", init: seedSuperAdmin, clear: clearSuperAdmin },
@@ -87,6 +89,7 @@ Env bibliothèque :
   pnpm seed:library            Importe les EPUB (désactive les stubs PDF)
   pnpm seed:library:reset      Écrase la base bibliothèque seed puis réimporte
   pnpm seed -- --angola-students   Élèves 7ª + 10ª (branche secondaire angolaise)
+  pnpm seed -- --angola-courses    Disciplinas PORTUGUESA (7ª–13ª) + 1.º ciclo (1ª–4ª)
 `);
     return;
   }
@@ -96,6 +99,9 @@ Env bibliothèque :
       console.log(`  - ${script.name}`);
     }
     console.log("  - angolaSecondaryStudents (pnpm seed:angola-students)");
+    console.log(
+      "  - angolaPortuguesaCourses + angolaPrimaryCourses (pnpm seed:angola-courses)",
+    );
     return;
   }
 
@@ -107,6 +113,12 @@ Env bibliothèque :
   if (args.includes("--library-reset")) {
     await clearLibraryBooksSeed();
     await seedLibraryBooks();
+    return;
+  }
+
+  if (args.includes("--angola-courses")) {
+    await seedAngolaPortuguesaCourses();
+    await seedAngolaPrimaryCourses();
     return;
   }
 

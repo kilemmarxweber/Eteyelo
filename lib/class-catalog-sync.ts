@@ -20,6 +20,17 @@ import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure
 import { ensureMaternelleAcademicStructure } from "@/lib/maternelle-academic-structure";
 import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import { ensureUniqueIdentifier } from "@/lib/generated-identifiers";
+import { ensureAngolaPrimaryStructure } from "@/lib/angola-primary-bootstrap";
+import { ensureAngolaSecondaryStructure } from "@/lib/angola-secondary-bootstrap";
+import { ANGOLA_PRIMARY_FIRST_CYCLE_LEVELS } from "@/lib/angola-primary-structure";
+import {
+  ANGOLA_ELECT_OPTION_ABBREV,
+  ANGOLA_ELECT_OPTION_NAME,
+  ANGOLA_FIRST_CYCLE_LEVELS,
+  ANGOLA_REDUCED_LEVEL,
+  ANGOLA_SECOND_CYCLE_LEVELS,
+} from "@/lib/angola-secondary-structure";
+import { normalizeEducationSystem } from "@/lib/education-system";
 
 export type UpsertClassCatalogResult = {
   branchId: string;
@@ -99,14 +110,17 @@ async function upsertClasseRow(params: {
   optionName: string | null;
   optionAbbrev?: string | null;
   cycle: Cycle;
+  educationSystem?: unknown;
 }): Promise<"created" | "skipped"> {
   const nameClasse = buildClassName({
     typebranch: params.typebranch,
+    educationSystem: params.educationSystem,
     level: params.level,
     optionName: params.optionName,
   });
   const codeBase = buildClassCode({
     typebranch: params.typebranch,
+    educationSystem: params.educationSystem,
     level: params.level,
     optionName: params.optionName,
     optionAbbrev: params.optionAbbrev,
@@ -201,6 +215,109 @@ export type UpsertClassCatalogOptions = {
 /**
  * Importe le catalogue de classes pour les cycles activés (maternelle, primaire, secondaire).
  */
+async function upsertAngolaClassCatalog(
+  branchId: string,
+  cycles: Cycle[],
+): Promise<UpsertClassCatalogResult> {
+  let created = 0;
+  let skipped = 0;
+  let sectionsCreated = 0;
+  let optionsCreated = 0;
+  const educationSystem = "ANGOLAIS";
+
+  if (cycles.includes("MATERNELLE")) {
+    const { optionsByLevel } = await ensureMaternelleAcademicStructure(
+      Prisma,
+      branchId,
+    );
+    for (const level of MATERNELLE_CLASS_LEVELS) {
+      const option = optionsByLevel[level];
+      const result = await upsertClasseRow({
+        branchId,
+        typebranch: "MATERNELLE",
+        educationSystem,
+        level,
+        optionId: option.id,
+        optionName: null,
+        cycle: "MATERNELLE",
+      });
+      if (result === "created") created += 1;
+      else skipped += 1;
+    }
+  }
+
+  if (cycles.includes("PRIMAIRE")) {
+    const beforeSections = await Prisma.section.count({ where: { branchId } });
+    const beforeOptions = await Prisma.option.count({ where: { branchId } });
+    const { option } = await ensureAngolaPrimaryStructure(Prisma, branchId);
+    const afterSections = await Prisma.section.count({ where: { branchId } });
+    const afterOptions = await Prisma.option.count({ where: { branchId } });
+    sectionsCreated += Math.max(0, afterSections - beforeSections);
+    optionsCreated += Math.max(0, afterOptions - beforeOptions);
+
+    for (const level of ANGOLA_PRIMARY_FIRST_CYCLE_LEVELS) {
+      const result = await upsertClasseRow({
+        branchId,
+        typebranch: "PRIMAIRE",
+        educationSystem,
+        level,
+        optionId: option.id,
+        optionName: null,
+        cycle: "PRIMAIRE",
+      });
+      if (result === "created") created += 1;
+      else skipped += 1;
+    }
+  }
+
+  if (!cycles.includes("SECONDAIRE")) {
+    return { branchId, created, skipped, sectionsCreated, optionsCreated };
+  }
+
+  const beforeSections = await Prisma.section.count({ where: { branchId } });
+  const beforeOptions = await Prisma.option.count({ where: { branchId } });
+  const angola = await ensureAngolaSecondaryStructure(Prisma, branchId);
+  const afterSections = await Prisma.section.count({ where: { branchId } });
+  const afterOptions = await Prisma.option.count({ where: { branchId } });
+  sectionsCreated += Math.max(0, afterSections - beforeSections);
+  optionsCreated += Math.max(0, afterOptions - beforeOptions);
+
+  for (const level of ANGOLA_FIRST_CYCLE_LEVELS) {
+    const result = await upsertClasseRow({
+      branchId,
+      typebranch: "SECONDAIRE",
+      educationSystem,
+      level,
+      optionId: angola.option.id,
+      optionName: null,
+      cycle: "SECONDAIRE",
+    });
+    if (result === "created") created += 1;
+    else skipped += 1;
+  }
+
+  const secondCycleLevels = [
+    ...ANGOLA_SECOND_CYCLE_LEVELS,
+    ANGOLA_REDUCED_LEVEL,
+  ];
+  for (const level of secondCycleLevels) {
+    const result = await upsertClasseRow({
+      branchId,
+      typebranch: "SECONDAIRE",
+      educationSystem,
+      level,
+      optionId: angola.elect.id,
+      optionName: ANGOLA_ELECT_OPTION_NAME,
+      optionAbbrev: ANGOLA_ELECT_OPTION_ABBREV,
+      cycle: "SECONDAIRE",
+    });
+    if (result === "created") created += 1;
+    else skipped += 1;
+  }
+
+  return { branchId, created, skipped, sectionsCreated, optionsCreated };
+}
+
 export async function upsertClassCatalogForBranch(
   branchId: string,
   options: UpsertClassCatalogOptions = {},
@@ -210,6 +327,7 @@ export async function upsertClassCatalogForBranch(
     select: {
       id: true,
       typebranch: true,
+      educationSystem: true,
       cycles: { where: { isActive: true }, select: { cycle: true, isActive: true, sortOrder: true } },
     },
   });
@@ -221,6 +339,10 @@ export async function upsertClassCatalogForBranch(
     ? options.cycles
     : getBranchCycles(branch)
   ).filter((cycle) => isSchoolCycle(cycle) || cycle === branch.typebranch);
+
+  if (normalizeEducationSystem(branch.educationSystem) === "ANGOLAIS") {
+    return upsertAngolaClassCatalog(branchId, cycles);
+  }
 
   const importAll = options.importSectionsAndOptions ?? cycles.includes("SECONDAIRE");
   let created = 0;

@@ -66,7 +66,8 @@ import {
 import type { BranchFormActionResult } from "@/app/components/inscription-ecole/ecole.action";
 import { uploadFile, uploadFiles } from "@/lib/upload-file";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { writeLocaleCookie } from "@/lib/user-locale";
 
 type BranchImages = {
   logo: string;
@@ -209,9 +210,28 @@ export function CreateBranchForm({
 
   const { isSubmitting } = form.formState;
   const selectedTypebranch = form.watch("typebranch") as ManagedBranchType;
+  const selectedEducationSystem = form.watch("educationSystem");
   const selectedSchoolCycles = (form.watch("schoolCycles") ?? []).filter(
     isSchoolCycle,
   );
+
+  useEffect(() => {
+    if (mode !== "create") return;
+    if (selectedEducationSystem === "ANGOLAIS") {
+      writeLocaleCookie("pt");
+      const pays = form.getValues("pays")?.trim() || "RDC";
+      if (pays === "RDC" || pays === "RD Congo" || pays === "Congo") {
+        form.setValue("pays", "Angola", { shouldDirty: true });
+      }
+      return;
+    }
+    if (selectedEducationSystem === "CONGOLAIS") {
+      const pays = form.getValues("pays")?.trim() || "";
+      if (pays === "Angola") {
+        form.setValue("pays", "RDC", { shouldDirty: true });
+      }
+    }
+  }, [form, mode, selectedEducationSystem]);
   const showEducationSystem =
     selectedSchoolCycles.length > 0 ||
     (!isExtendedBranch(selectedTypebranch) &&
@@ -746,7 +766,12 @@ export function CreateBranchForm({
                             <EducationSystemCards
                               value={field.value ?? "CONGOLAIS"}
                               disabled={isSubmitting}
-                              onChange={field.onChange}
+                              onChange={(value) => {
+                                field.onChange(value);
+                                if (mode === "create" && value === "ANGOLAIS") {
+                                  writeLocaleCookie("pt");
+                                }
+                              }}
                             />
                           </FormControl>
                           <FormMessage />

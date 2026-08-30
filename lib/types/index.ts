@@ -394,6 +394,10 @@ export type RecapRow = {
   fatherName?: string;
   motherName?: string;
   placeOfBirth?: string;
+  studentCode?: string;
+  enrollmentNumber?: string;
+  biNumber?: string;
+  biIssuedAt?: string;
 };
 // Map period indices to semester and periodKey
 export type SemesterKey = "sem1" | "sem2" | "sem3";

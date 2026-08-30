@@ -13,10 +13,12 @@ import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-lev
 import { getClassLevelsForBranch, requiresOptionForClass, allowsOptionForBranch, isCtebLevel } from "@/lib/class-structure";
 import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import { ensureAngolaSecondaryStructure } from "@/lib/angola-secondary-bootstrap";
+import { ensureAngolaPrimaryStructure } from "@/lib/angola-primary-bootstrap";
 import {
   isAngolaFirstCycleLevel,
   isAngolaSecondarySystem,
 } from "@/lib/angola-secondary-structure";
+import { isAngolaPrimarySystem } from "@/lib/angola-primary-structure";
 import { buildClassCode, buildClassName, validateClassInput } from "@/lib/class-structure";
 import { ensureUniqueIdentifier, generateSlug } from "@/lib/generated-identifiers";
 import { registrationSchema } from "@/src/interfaces/registration";
@@ -670,8 +672,16 @@ export const getRegistrationOptionsAction = action.handler(async () => {
   ) {
     await ensureSecondaryCtebStructure(prisma, branchId);
   }
+  const isAngolaPrimary =
+    cycles.includes("PRIMAIRE") &&
+    isAngolaPrimarySystem("PRIMAIRE", educationSystem);
+  if (isAngolaPrimary) {
+    await ensureAngolaPrimaryStructure(prisma, branchId);
+  }
   const primaryStructure = cycles.includes("PRIMAIRE")
-    ? await ensurePrimaryAcademicStructure(prisma, branchId)
+    ? isAngolaPrimary
+      ? null
+      : await ensurePrimaryAcademicStructure(prisma, branchId)
     : null;
   const maternelleStructure = cycles.includes("MATERNELLE")
     ? await ensureMaternelleAcademicStructure(prisma, branchId)
@@ -887,10 +897,12 @@ export const createNextParallelForRegistrationAction = action
       optionId: isPrimaire || isMaternelle ? undefined : optionId || undefined,
     });
     const option = isPrimaire
-      ? getPrimaryOptionForLevel(
-          await ensurePrimaryAcademicStructure(prisma, branchId),
-          validated.level ?? input.level,
-        )
+      ? isAngolaPrimarySystem("PRIMAIRE", educationSystem)
+        ? (await ensureAngolaPrimaryStructure(prisma, branchId)).option
+        : getPrimaryOptionForLevel(
+            await ensurePrimaryAcademicStructure(prisma, branchId),
+            validated.level ?? input.level,
+          )
       : isMaternelle
         ? getMaternelleOptionForLevel(
             await ensureMaternelleAcademicStructure(prisma, branchId),
@@ -1328,6 +1340,16 @@ export const suggestNextClassAction = action
     const nextLevel = levels[index + 1];
 
     if (classCycle === "PRIMAIRE") {
+      if (isAngolaPrimarySystem("PRIMAIRE", educationSystem)) {
+        const structure = await ensureAngolaPrimaryStructure(prisma, branchId);
+        return {
+          level: nextLevel,
+          optionId: structure.option.id,
+          sectionId: structure.section.id,
+          cycle: classCycle,
+          reason: "Niveau supérieur après réussite — année actuelle",
+        };
+      }
       const structure = await ensurePrimaryAcademicStructure(prisma, branchId);
       const primaryOption = getPrimaryOptionForLevel(structure, nextLevel);
       return {
@@ -1417,10 +1439,12 @@ export const createRegistrationFlowAction = action
 
     const selectedOption =
       academicCycle === "PRIMAIRE"
-        ? getPrimaryOptionForLevel(
-            await ensurePrimaryAcademicStructure(prisma, branchId),
-            input.level,
-          )
+        ? isAngolaPrimarySystem("PRIMAIRE", educationSystem)
+          ? (await ensureAngolaPrimaryStructure(prisma, branchId)).option
+          : getPrimaryOptionForLevel(
+              await ensurePrimaryAcademicStructure(prisma, branchId),
+              input.level,
+            )
         : academicCycle === "MATERNELLE"
           ? getMaternelleOptionForLevel(
               await ensureMaternelleAcademicStructure(prisma, branchId),

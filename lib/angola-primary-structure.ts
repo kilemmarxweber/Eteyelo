@@ -1,5 +1,11 @@
 import { normalizeEducationSystem } from "@/lib/education-system";
 
+/** Section unique du 1.º ciclo primário (1ª–4ª). */
+export const ANGOLA_PRIMARY_SECTION_CODE = "PRIMARIO";
+export const ANGOLA_PRIMARY_SECTION_NAME = "Ensino Primário";
+export const ANGOLA_PRIMARY_OPTION_CODE = "GERAL";
+export const ANGOLA_PRIMARY_OPTION_NAME = "Geral";
+
 /** Ensino Primário angolais : 1ª à 6ª classe. */
 export const ANGOLA_PRIMARY_LEVELS = [
   "1ª",
@@ -10,7 +16,17 @@ export const ANGOLA_PRIMARY_LEVELS = [
   "6ª",
 ] as const;
 
+/** 1.º Ciclo do Ensino Primário : 1ª–4ª. */
+export const ANGOLA_PRIMARY_FIRST_CYCLE_LEVELS = [
+  "1ª",
+  "2ª",
+  "3ª",
+  "4ª",
+] as const;
+
 export type AngolaPrimaryLevel = (typeof ANGOLA_PRIMARY_LEVELS)[number];
+export type AngolaPrimaryFirstCycleLevel =
+  (typeof ANGOLA_PRIMARY_FIRST_CYCLE_LEVELS)[number];
 
 const ANGOLA_PRIMARY_LABELS: Record<AngolaPrimaryLevel, string> = {
   "1ª": "1ª (Primeira Classe)",
@@ -88,6 +104,20 @@ export function extractAngolaPrimaryLevelFromLabel(
   return normalizeAngolaPrimaryLevel(`${match[1]}ª`);
 }
 
+export function isAngolaPrimaryFirstCycleLevel(
+  level: string | null | undefined,
+): boolean {
+  const normalized =
+    extractAngolaPrimaryLevelFromLabel(level) ??
+    normalizeAngolaPrimaryLevel(level);
+  return (
+    !!normalized &&
+    (ANGOLA_PRIMARY_FIRST_CYCLE_LEVELS as readonly string[]).includes(
+      normalized,
+    )
+  );
+}
+
 export function shouldUseAngolaPrimaryStudyDeclaration(
   educationSystem: unknown,
   branchType?: unknown,
@@ -95,12 +125,29 @@ export function shouldUseAngolaPrimaryStudyDeclaration(
   classLabel?: string | null,
 ): boolean {
   if (normalizeEducationSystem(educationSystem) !== "ANGOLAIS") return false;
-  if (branchType === "PRIMAIRE") return true;
-  return (
-    isAngolaPrimaryLevel(classLevel) ||
-    isAngolaPrimaryLevel(classLabel) ||
-    isAngolaPrimaryLevel(extractAngolaPrimaryLevelFromLabel(classLabel))
-  );
+  if (
+    isAngolaPrimaryFirstCycleLevel(classLevel) ||
+    isAngolaPrimaryFirstCycleLevel(classLabel)
+  ) {
+    return true;
+  }
+  const extracted =
+    extractAngolaPrimaryLevelFromLabel(classLevel) ??
+    extractAngolaPrimaryLevelFromLabel(classLabel);
+  if (extracted) return isAngolaPrimaryFirstCycleLevel(extracted);
+  return branchType === "PRIMAIRE";
+}
+
+export function isAngolaPrimaryOption(option: {
+  codeOption?: string | null;
+  nameOption?: string | null;
+}): boolean {
+  const code = option.codeOption?.toUpperCase();
+  const name = option.nameOption
+    ?.toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  return code === ANGOLA_PRIMARY_OPTION_CODE || name === "geral";
 }
 
 /** Relie 1ª → 1è pour la pondération primaire déjà en place. */

@@ -7,6 +7,10 @@ import {
   ANGOLA_CICLO_OPTION_CODE,
   ANGOLA_CICLO_OPTION_CODE_LEGACY,
   ANGOLA_CICLO_OPTION_NAME,
+  ANGOLA_ELECT_OPTION_CODE,
+  ANGOLA_ELECT_OPTION_NAME,
+  ANGOLA_TECNICA_SECTION_CODE,
+  ANGOLA_TECNICA_SECTION_NAME,
 } from "@/lib/angola-secondary-structure";
 
 type AcademicDb = Pick<Prisma.TransactionClient, "section" | "option">;
@@ -16,6 +20,7 @@ async function ensureSection(
   branchId: string,
   codeSection: string,
   nameSection: string,
+  extraNames: string[] = [],
 ) {
   let section = await db.section.findFirst({
     where: {
@@ -23,7 +28,7 @@ async function ensureSection(
       OR: [
         { codeSection },
         { nameSection },
-        { nameSection: "1.º Ciclo" },
+        ...extraNames.map((name) => ({ nameSection: name })),
       ],
     },
     select: { id: true, codeSection: true, nameSection: true },
@@ -36,18 +41,72 @@ async function ensureSection(
         codeSection,
         nameSection,
         statusSection: true,
+        cycle: "SECONDAIRE",
       },
       select: { id: true, codeSection: true, nameSection: true },
     });
-  } else if (section.nameSection !== nameSection || section.codeSection !== codeSection) {
+  } else if (
+    section.nameSection !== nameSection ||
+    section.codeSection !== codeSection
+  ) {
     section = await db.section.update({
       where: { id: section.id },
-      data: { codeSection, nameSection, statusSection: true },
+      data: { codeSection, nameSection, statusSection: true, cycle: "SECONDAIRE" },
       select: { id: true, codeSection: true, nameSection: true },
     });
   }
 
   return section;
+}
+
+async function ensureOption(
+  db: AcademicDb,
+  branchId: string,
+  sectionId: string,
+  codeOption: string,
+  nameOption: string,
+  extraCodes: string[] = [],
+  extraNames: string[] = [],
+) {
+  let option = await db.option.findFirst({
+    where: {
+      branchId,
+      OR: [
+        { codeOption },
+        { nameOption },
+        ...extraCodes.map((code) => ({ codeOption: code })),
+        ...extraNames.map((name) => ({ nameOption: name })),
+      ],
+    },
+    select: { id: true, codeOption: true, nameOption: true },
+  });
+
+  if (!option) {
+    option = await db.option.create({
+      data: {
+        branchId,
+        sectionId,
+        codeOption,
+        nameOption,
+        statusOption: true,
+        cycle: "SECONDAIRE",
+      },
+      select: { id: true, codeOption: true, nameOption: true },
+    });
+  } else {
+    await db.option.update({
+      where: { id: option.id },
+      data: {
+        sectionId,
+        codeOption,
+        nameOption,
+        statusOption: true,
+        cycle: "SECONDAIRE",
+      },
+    });
+  }
+
+  return option;
 }
 
 export async function ensureAngolaSecondaryStructure(
@@ -59,6 +118,13 @@ export async function ensureAngolaSecondaryStructure(
     branchId,
     ANGOLA_CICLO1_SECTION_CODE,
     ANGOLA_CICLO1_SECTION_NAME,
+    ["1.º Ciclo"],
+  );
+  const tecnica = await ensureSection(
+    db,
+    branchId,
+    ANGOLA_TECNICA_SECTION_CODE,
+    ANGOLA_TECNICA_SECTION_NAME,
   );
   const ciclo2 = await ensureSection(
     db,
@@ -67,41 +133,25 @@ export async function ensureAngolaSecondaryStructure(
     ANGOLA_CICLO2_SECTION_NAME,
   );
 
-  let option = await db.option.findFirst({
-    where: {
-      branchId,
-      OR: [
-        { codeOption: ANGOLA_CICLO_OPTION_CODE },
-        { codeOption: ANGOLA_CICLO_OPTION_CODE_LEGACY },
-        { nameOption: ANGOLA_CICLO_OPTION_NAME },
-        { nameOption: "Ciclo" },
-      ],
-    },
-    select: { id: true, codeOption: true, nameOption: true },
-  });
+  const option = await ensureOption(
+    db,
+    branchId,
+    ciclo1.id,
+    ANGOLA_CICLO_OPTION_CODE,
+    ANGOLA_CICLO_OPTION_NAME,
+    [ANGOLA_CICLO_OPTION_CODE_LEGACY],
+    ["Ciclo"],
+  );
 
-  if (!option) {
-    option = await db.option.create({
-      data: {
-        branchId,
-        sectionId: ciclo1.id,
-        codeOption: ANGOLA_CICLO_OPTION_CODE,
-        nameOption: ANGOLA_CICLO_OPTION_NAME,
-        statusOption: true,
-      },
-      select: { id: true, codeOption: true, nameOption: true },
-    });
-  } else {
-    await db.option.update({
-      where: { id: option.id },
-      data: {
-        sectionId: ciclo1.id,
-        codeOption: ANGOLA_CICLO_OPTION_CODE,
-        nameOption: ANGOLA_CICLO_OPTION_NAME,
-        statusOption: true,
-      },
-    });
-  }
+  const elect = await ensureOption(
+    db,
+    branchId,
+    tecnica.id,
+    ANGOLA_ELECT_OPTION_CODE,
+    ANGOLA_ELECT_OPTION_NAME,
+    [],
+    ["Electrotecnia"],
+  );
 
-  return { ciclo1, ciclo2, option };
+  return { ciclo1, ciclo2, tecnica, option, elect };
 }

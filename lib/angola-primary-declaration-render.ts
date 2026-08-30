@@ -1,13 +1,20 @@
 import type { jsPDF } from "jspdf";
 
 import {
+  ANGOLA_PRIMARY_COURSE_CATALOG,
+  matchAngolaPrimaryCourse,
+} from "@/lib/angola-primary-course-catalog";
+import {
   angolaPrimaryLevelLabel,
   extractAngolaPrimaryLevelFromLabel,
 } from "@/lib/angola-primary-structure";
 import { angolaStudyDeclarationClassPhrase } from "@/lib/angola-secondary-structure";
 import type { BulletinBranchContext } from "@/lib/bulletin-context";
 import { numberToWords } from "@/lib/number-to-words";
-import { declarationBlankName } from "@/lib/person-full-name";
+import {
+  angolaDeclarationSchoolLabel,
+  declarationBlankName,
+} from "@/lib/person-full-name";
 
 const HIGHLIGHT: [number, number, number] = [176, 36, 68];
 const INK: [number, number, number] = [20, 20, 20];
@@ -42,6 +49,12 @@ type DeclarationStudent = {
   fatherName?: string;
   motherName?: string;
   placeOfBirth?: string;
+  enrollmentNumber?: string;
+  studentCode?: string;
+  username?: string;
+  biNumber?: string;
+  identityDocument?: string;
+  biIssuedAt?: string;
   periods?: DeclarationPeriod[];
   [key: string]: unknown;
 };
@@ -57,61 +70,7 @@ export type AngolaPrimaryDeclarationParams = {
   classParallel?: string | null;
 };
 
-const PRIMARY_COLUMNS: Array<{ header: string; aliases: string[] }> = [
-  {
-    header: "L. Port",
-    aliases: [
-      "lingua portuguesa",
-      "l. port",
-      "portugues",
-      "portugais",
-      "francais",
-      "langue francaise",
-    ],
-  },
-  {
-    header: "Mat.",
-    aliases: ["matematica", "mathematique", "mathematiques", "math"],
-  },
-  {
-    header: "E. Meio",
-    aliases: [
-      "estudo do meio",
-      "e. meio",
-      "estudos do meio",
-      "environnement",
-      "sciences",
-    ],
-  },
-  {
-    header: "E.M.P",
-    aliases: [
-      "educacao manual",
-      "educacao plastica",
-      "educacao visual",
-      "emp",
-      "e.m.p",
-      "arts plastiques",
-      "education artistique",
-    ],
-  },
-  {
-    header: "E. Mus",
-    aliases: ["educacao musical", "musica", "musique", "e. mus"],
-  },
-  {
-    header: "E. Fis",
-    aliases: [
-      "educacao fisica",
-      "education physique",
-      "eps",
-      "e. fis",
-      "sport",
-    ],
-  },
-];
-
-function fold(value: string): string {
+function foldKey(value: string): string {
   return value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -131,21 +90,41 @@ function studentFullName(student: DeclarationStudent): string {
   return [...new Set(parts)].join(" ").trim() || "________________";
 }
 
-function formatLongPtDate(value?: string): string {
-  if (!value) return "___ de ________ de ______";
+function parseDateParts(value?: string): {
+  day: number;
+  month: number;
+  year: number;
+} | null {
+  if (!value) return null;
+  const iso = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    return { year: Number(iso[1]), month: Number(iso[2]), day: Number(iso[3]) };
+  }
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "___ de ________ de ______";
-  const month = PT_MONTHS[date.getMonth()] ?? "";
-  const titled = month.charAt(0) + month.slice(1).toLowerCase();
-  return `${date.getDate()} de ${titled} de ${date.getFullYear()}`;
+  if (Number.isNaN(date.getTime())) return null;
+  return {
+    day: date.getUTCDate(),
+    month: date.getUTCMonth() + 1,
+    year: date.getUTCFullYear(),
+  };
 }
 
-function formatIssuePlaceDate(city: string): string {
-  const now = new Date();
-  const month = PT_MONTHS[now.getMonth()] ?? "";
+function formatLongPtDate(value?: string): string {
+  const parts = parseDateParts(value);
+  if (!parts) return "___ de ________ de ______";
+  const month = PT_MONTHS[parts.month - 1] ?? "";
+  const titled = month.charAt(0) + month.slice(1).toLowerCase();
+  return `${String(parts.day).padStart(2, "0")} de ${titled} de ${parts.year}`;
+}
+
+export function formatAngolaPrimaryIssueLine(
+  city: string,
+  issuedAt: Date = new Date(),
+): string {
+  const month = PT_MONTHS[issuedAt.getMonth()] ?? "";
   const titled = month.charAt(0) + month.slice(1).toLowerCase();
   const place = city.trim() || "________";
-  return `${place}, ao ${now.getDate()} de ${titled} de ${now.getFullYear()}`;
+  return `${place}, ao ${String(issuedAt.getDate()).padStart(2, "0")} de ${titled} de ${issuedAt.getFullYear()}`;
 }
 
 function extractTurma(
@@ -156,6 +135,49 @@ function extractTurma(
   if (fromParallel) return fromParallel.replace(/^turma\s+/i, "");
   const match = classLabel?.match(/(?:turma\s+)?([A-Z])\s*$/i);
   return match?.[1]?.toUpperCase() ?? "Única";
+}
+
+function optionalStudentField(
+  student: DeclarationStudent,
+  keys: string[],
+): string {
+  for (const key of keys) {
+    const value = student[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+    if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  }
+  return "";
+}
+
+/** BI, sinon code élève / username. Champs optionnels. */
+export function resolveAngolaPrimaryIdentityNumber(
+  student: DeclarationStudent,
+): string {
+  return (
+    optionalStudentField(student, [
+      "biNumber",
+      "identityDocument",
+      "bi",
+      "studentCode",
+      "username",
+    ]) || "________"
+  );
+}
+
+export function resolveAngolaPrimaryEnrollmentNumber(
+  student: DeclarationStudent,
+): string {
+  const raw = optionalStudentField(student, [
+    "enrollmentNumber",
+    "numero",
+    "nInscricao",
+  ]);
+  if (!raw) return "____";
+  const asNum = Number(raw);
+  if (Number.isFinite(asNum) && asNum > 0 && asNum < 1000) {
+    return String(Math.trunc(asNum)).padStart(2, "0");
+  }
+  return raw;
 }
 
 function primaryScore(note: SubjectNote): number {
@@ -200,26 +222,20 @@ export function mapAngolaPrimaryGrades(
   const remaining = [...subjects];
   const mapped: Array<{ header: string; score: number }> = [];
 
-  for (const column of PRIMARY_COLUMNS) {
+  for (const entry of ANGOLA_PRIMARY_COURSE_CATALOG) {
     const index = remaining.findIndex(([name]) => {
-      const folded = fold(name);
-      return column.aliases.some(
-        (alias) => folded.includes(alias) || alias.includes(folded),
-      );
+      const match = matchAngolaPrimaryCourse(name);
+      if (match?.codeCours === entry.codeCours) return true;
+      return foldKey(name) === foldKey(entry.declarationLabel);
     });
     if (index >= 0) {
       const [, note] = remaining.splice(index, 1)[0];
-      mapped.push({ header: column.header, score: primaryScore(note) });
+      mapped.push({
+        header: entry.declarationLabel,
+        score: primaryScore(note),
+      });
     } else {
-      mapped.push({ header: column.header, score: Number.NaN });
-    }
-  }
-
-  for (const [name, note] of remaining) {
-    const empty = mapped.find((item) => !Number.isFinite(item.score));
-    if (empty) {
-      empty.header = name.slice(0, 10);
-      empty.score = primaryScore(note);
+      mapped.push({ header: entry.declarationLabel, score: Number.NaN });
     }
   }
 
@@ -379,10 +395,16 @@ export function renderAngolaPrimaryStudyDeclarations(
   const innerLeft = 18;
   const innerRight = pageWidth - 18;
   const textWidth = innerRight - innerLeft;
-  const school = params.branchContext.branchName.trim() || "________________";
+  const school = angolaDeclarationSchoolLabel(
+    params.branchContext.branchName,
+    params.branchContext.branchCode,
+  );
   const province = params.branchContext.province.trim();
   const city = params.branchContext.city.trim();
+  const municipality = params.branchContext.commune.trim() || city;
   const directorName = params.branchContext.directorName?.trim() || "________";
+  const directorTitle =
+    params.branchContext.directorTitle?.trim() || "Directora";
   const classLevel =
     extractAngolaPrimaryLevelFromLabel(params.classLevel) ||
     extractAngolaPrimaryLevelFromLabel(params.classLabel) ||
@@ -430,6 +452,16 @@ export function renderAngolaPrimaryStudyDeclarations(
       (typeof student.placeOfBirth === "string" && student.placeOfBirth.trim()) ||
       city ||
       "________";
+    const identityNumber = resolveAngolaPrimaryIdentityNumber(student);
+    const enrollmentNumber = resolveAngolaPrimaryEnrollmentNumber(student);
+    const biIssuedRaw = optionalStudentField(student, [
+      "biIssuedAt",
+      "biIssueDate",
+    ]);
+    const biIssuedAt = biIssuedRaw
+      ? formatLongPtDate(biIssuedRaw)
+      : "________";
+    const issuerPlace = province || city || "________";
 
     drawPageFrame(doc, pageWidth, pageHeight);
     drawCoatOfArms(doc, pageWidth / 2, 22);
@@ -488,31 +520,31 @@ export function renderAngolaPrimaryStudyDeclarations(
     y += 11;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.6);
+    const cityClause = city ? `, em ${city}` : "";
     y = drawRuns(
       doc,
       [
-        { text: "a) " },
         { text: directorName, highlight: true },
-        { text: ", Directora da " },
+        { text: `, ${directorTitle} do ` },
         { text: school, highlight: true },
-        { text: " Certifica que, " },
+        { text: `${cityClause}, Declaro que, ` },
         { text: fullName, accent: true },
-        { text: female ? " Filha de " : " Filho de " },
+        { text: female ? ", Filha de " : ", Filho de " },
         { text: fatherName, highlight: true },
         { text: " e de " },
         { text: motherName, highlight: true },
-        { text: female ? ", nascida aos " : ", nascido aos " },
+        { text: female ? ", nascida ao " : ", nascido ao " },
         { text: formatLongPtDate(student.studentnaissance), highlight: true },
-        { text: ", Natural de " },
+        { text: ", natural de " },
         { text: birthPlace, highlight: true },
         { text: ", Município de " },
-        { text: city || "________", highlight: true },
+        { text: municipality || "________", highlight: true },
         { text: ", Província de " },
         { text: province || "________", highlight: true },
         {
           text: female
-            ? ", Portadora de BI Nº ________ emitido aos ________."
-            : ", Portador de BI Nº ________ emitido aos ________.",
+            ? `, Portadora do Bilhete de Identidade Nº ${identityNumber}, emitido aos ${biIssuedAt} pelo Sector Provincial de ${issuerPlace}.`
+            : `, Portador do Bilhete de Identidade Nº ${identityNumber}, emitido aos ${biIssuedAt} pelo Sector Provincial de ${issuerPlace}.`,
         },
       ],
       innerLeft,
@@ -531,9 +563,11 @@ export function renderAngolaPrimaryStudyDeclarations(
         { text: school, highlight: true },
         { text: ", Turma " },
         { text: turma, highlight: true },
-        { text: ", Nº ____, no ano Lectivo " },
+        { text: ", Nº " },
+        { text: enrollmentNumber, highlight: true },
+        { text: ", no ano Lectivo " },
         { text: year, highlight: true },
-        { text: " no qual concluiu com resultado final " },
+        { text: ", no qual concluiu com resultado final " },
         { text: passed ? "Transita" : "Não transita", accent: true },
         {
           text: ", tendo obtido até ao final do ano o seguinte rendimento, conforme consta das pautas arquivadas neste estabelecimento de ensino:",
@@ -567,12 +601,15 @@ export function renderAngolaPrimaryStudyDeclarations(
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
-    doc.text(formatIssuePlaceDate(city), innerLeft, y);
+    doc.text(formatAngolaPrimaryIssueLine(city), innerLeft, y);
 
     y = Math.max(y + 16, pageHeight - 48);
+    const article = /a$/i.test(directorTitle) ? "A" : "O";
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
-    doc.text("A Directora da Escola,", pageWidth / 2, y, { align: "center" });
+    doc.text(`${article} ${directorTitle} da Escola`, pageWidth / 2, y, {
+      align: "center",
+    });
     y += 14;
     doc.setFont("helvetica", "italic");
     doc.setFontSize(10);

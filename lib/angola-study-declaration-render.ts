@@ -1,9 +1,9 @@
 import type { jsPDF } from "jspdf";
 
 import {
-  angolaPrimaryLevelLabel,
-  extractAngolaPrimaryLevelFromLabel,
-} from "@/lib/angola-primary-structure";
+  ANGOLA_SECONDARY_COURSE_CATALOG,
+  matchAngolaSecondaryCourse,
+} from "@/lib/angola-secondary-course-catalog";
 import {
   angolaStudyDeclarationClassPhrase,
   shouldUseAngolaStudyDeclaration,
@@ -50,8 +50,16 @@ type DeclarationStudent = {
   fatherName?: string;
   motherName?: string;
   placeOfBirth?: string;
+  enrollmentNumber?: string;
+  biNumber?: string;
+  biIssuedAt?: string;
   periods?: DeclarationPeriod[];
   [key: string]: unknown;
+};
+
+export type AngolaDeclarationSubjectRow = {
+  disciplina: string;
+  score: number;
 };
 
 type TextRun = { text: string; highlight?: boolean };
@@ -83,30 +91,63 @@ function formatScore(value: number): string {
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
 }
 
-function formatLongPtDate(value?: string): string {
-  if (!value) return "___ de ________ de ______";
+function parseDateParts(value?: string): {
+  day: number;
+  month: number;
+  year: number;
+} | null {
+  if (!value) return null;
+  const iso = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    return { year: Number(iso[1]), month: Number(iso[2]), day: Number(iso[3]) };
+  }
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "___ de ________ de ______";
-  const month = PT_MONTHS[date.getMonth()] ?? "";
+  if (Number.isNaN(date.getTime())) return null;
+  return {
+    day: date.getUTCDate(),
+    month: date.getUTCMonth() + 1,
+    year: date.getUTCFullYear(),
+  };
+}
+
+function formatLongPtDate(value?: string): string {
+  const parts = parseDateParts(value);
+  if (!parts) return "__ de ________ de ______";
+  const month = PT_MONTHS[parts.month - 1] ?? "";
   const titled = month.charAt(0) + month.slice(1).toLowerCase();
-  return `${date.getDate()} de ${titled} de ${date.getFullYear()}`;
+  return `${String(parts.day).padStart(2, "0")} de ${titled} de ${parts.year}`;
 }
 
-function formatIssuePlaceDate(city: string, school: string): string {
-  const now = new Date();
-  const month = PT_MONTHS[now.getMonth()] ?? "";
-  const place = (city.trim() || school).toUpperCase();
-  return `${place}, AOS ${now.getDate()} DE ${month} DE ${now.getFullYear()}`;
+export function formatAngolaDeclarationIssueLine(
+  school: string,
+  issuedAt: Date = new Date(),
+): string {
+  const month = PT_MONTHS[issuedAt.getMonth()] ?? "";
+  const place = school.trim().toUpperCase() || "________";
+  return `${place}, AO ${issuedAt.getDate()} DE ${month} DE ${issuedAt.getFullYear()}`;
 }
 
-function extractTurma(
+export function angolaDeclarationTurma(
   classParallel?: string | null,
   classLabel?: string,
 ): string {
-  const fromParallel = classParallel?.trim();
-  if (fromParallel) return fromParallel.replace(/^turma\s+/i, "").toUpperCase();
-  const match = classLabel?.match(/(?:turma\s+)?([A-Z])\s*$/i);
-  return match?.[1]?.toUpperCase() ?? "____";
+  const fromParallel = classParallel?.trim().replace(/^turma\s+/i, "");
+  if (fromParallel) return fromParallel;
+  const match = classLabel?.match(/(?:turma\s+|[\s-])([A-Z])\s*$/i);
+  if (match?.[1]) return match[1].toUpperCase();
+  return "Única";
+}
+
+function optionalStudentField(
+  student: DeclarationStudent,
+  keys: string[],
+): string {
+  for (const key of keys) {
+    const value = student[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+    if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  }
+  return "";
 }
 
 function subjectScore(note: SubjectNote): number {
@@ -222,26 +263,105 @@ function drawRuns(
   return cursorY;
 }
 
-function drawSubjectCell(
+export function buildAngolaStudyDeclarationRows(
+  notes: Record<string, SubjectNote>,
+): AngolaDeclarationSubjectRow[] {
+  const remaining = new Map(
+    Object.entries(notes).filter(([name]) => name.trim().length > 0),
+  );
+  const rows: AngolaDeclarationSubjectRow[] = [];
+
+  for (const entry of ANGOLA_SECONDARY_COURSE_CATALOG) {
+    let foundKey: string | undefined;
+    for (const [name] of remaining) {
+      const match = matchAngolaSecondaryCourse(name);
+      if (match?.codeCours === entry.codeCours) {
+        foundKey = name;
+        break;
+      }
+    }
+    const note = foundKey ? remaining.get(foundKey) : undefined;
+    if (foundKey) remaining.delete(foundKey);
+    rows.push({
+      disciplina: entry.declarationLabel,
+      score: note ? subjectScore(note) : Number.NaN,
+    });
+  }
+
+  for (const [name, note] of remaining) {
+    rows.push({
+      disciplina: name.trim().toUpperCase(),
+      score: subjectScore(note),
+    });
+  }
+
+  return rows;
+}
+
+function scoreCell(score: number): { mark: string; words: string } {
+  if (!Number.isFinite(score)) {
+    return { mark: "( )", words: "( )" };
+  }
+  return {
+    mark: formatScore(score),
+    words: `(${numberToWords(Math.round(score), "pt")})`,
+  };
+}
+
+function drawSubjectTable(
   doc: jsPDF,
   x: number,
   y: number,
   width: number,
-  name: string,
-  score: number,
-) {
-  const mark = Number.isFinite(score) ? formatScore(score) : "—";
-  const words = Number.isFinite(score)
-    ? numberToWords(Math.round(score), "pt")
-    : "—";
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.4);
-  doc.setTextColor(...INK);
-  doc.text(name.toUpperCase().slice(0, 18), x, y);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...HIGHLIGHT);
-  doc.text(`${mark}  (${words})`, x + width, y, { align: "right" });
-  doc.setTextColor(...INK);
+  rows: AngolaDeclarationSubjectRow[],
+): number {
+  const colDisciplina = width * 0.5;
+  const colMedia = width * 0.16;
+  const colWords = width - colDisciplina - colMedia;
+  const headerH = 6.2;
+  const rowH = Math.min(5.35, rows.length > 16 ? 4.7 : 5.35);
+
+  const drawRow = (
+    top: number,
+    height: number,
+    disciplina: string,
+    media: string,
+    words: string,
+    header: boolean,
+  ) => {
+    doc.setDrawColor(...INK);
+    doc.setLineWidth(0.28);
+    doc.rect(x, top, width, height);
+    doc.line(x + colDisciplina, top, x + colDisciplina, top + height);
+    doc.line(
+      x + colDisciplina + colMedia,
+      top,
+      x + colDisciplina + colMedia,
+      top + height,
+    );
+    doc.setFont("helvetica", header ? "bold" : "normal");
+    doc.setFontSize(header ? 8.2 : 8);
+    doc.setTextColor(...INK);
+    const textY = top + height * 0.68;
+    doc.text(disciplina, x + 1.6, textY);
+    doc.setTextColor(...(header ? INK : HIGHLIGHT));
+    doc.text(media, x + colDisciplina + colMedia / 2, textY, {
+      align: "center",
+    });
+    doc.text(words, x + colDisciplina + colMedia + colWords / 2, textY, {
+      align: "center",
+    });
+    doc.setTextColor(...INK);
+  };
+
+  drawRow(y, headerH, "DISCIPLINA", "MÉDIA", "POR EXTENSO", true);
+  let cursor = y + headerH;
+  for (const row of rows) {
+    const cell = scoreCell(row.score);
+    drawRow(cursor, rowH, row.disciplina, cell.mark, cell.words, false);
+    cursor += rowH;
+  }
+  return cursor;
 }
 
 export function renderAngolaStudyDeclarations(
@@ -253,28 +373,25 @@ export function renderAngolaStudyDeclarations(
   const innerLeft = 18;
   const innerRight = pageWidth - 18;
   const textWidth = innerRight - innerLeft;
-  const school = params.branchContext.branchName.trim() || "________________";
-  const schoolLabel = angolaDeclarationSchoolLabel(
+  const school = angolaDeclarationSchoolLabel(
     params.branchContext.branchName,
     params.branchContext.branchCode,
   );
   const province = params.branchContext.province.trim();
   const city = params.branchContext.city.trim();
+  const municipality = params.branchContext.commune.trim() || city;
   const directorName = params.branchContext.directorName?.trim() ?? "";
-  const directorTitle = "Directora";
-  const primaryLevel =
-    extractAngolaPrimaryLevelFromLabel(params.classLevel) ||
-    extractAngolaPrimaryLevelFromLabel(params.classLabel);
-  const classPhrase = primaryLevel
-    ? angolaPrimaryLevelLabel(primaryLevel)
-    : angolaStudyDeclarationClassPhrase(
-        params.classLevel || params.classLabel,
-      );
-  const turma = extractTurma(
+  const directorTitle =
+    params.branchContext.directorTitle?.trim() || "Directora";
+  const classPhrase = angolaStudyDeclarationClassPhrase(
+    params.classLevel || params.classLabel,
+  );
+  const turma = angolaDeclarationTurma(
     params.classParallel,
     params.classLabel || params.classLevel || "",
   );
   const year = params.schoolYear?.trim() || "________";
+  const branchCode = params.branchContext.branchCode.trim();
 
   params.students.forEach((student, index) => {
     if (index > 0) doc.addPage();
@@ -283,11 +400,11 @@ export function renderAngolaStudyDeclarations(
     const period =
       periods.find((item) => periodLabelOf(item) === params.periodLabel) ??
       periods[0];
-    const subjects = Object.entries(period ? periodNotes(period) : {}).filter(
-      ([name]) => name.trim().length > 0,
+    const rows = buildAngolaStudyDeclarationRows(
+      period ? periodNotes(period) : {},
     );
-    const scores = subjects
-      .map(([, note]) => subjectScore(note))
+    const scores = rows
+      .map((row) => row.score)
       .filter((value) => Number.isFinite(value));
     const average =
       scores.length > 0
@@ -306,6 +423,22 @@ export function renderAngolaStudyDeclarations(
       (typeof student.placeOfBirth === "string" && student.placeOfBirth.trim()) ||
       city ||
       "________";
+    const enrollment =
+      optionalStudentField(student, ["enrollmentNumber", "numero", "nInscricao"]) ||
+      "____";
+    const biNumber =
+      optionalStudentField(student, ["biNumber", "identityDocument", "bi"]) ||
+      "________";
+    const biIssuedRaw = optionalStudentField(student, [
+      "biIssuedAt",
+      "biIssueDate",
+    ]);
+    const biIssuedAt = biIssuedRaw
+      ? formatLongPtDate(biIssuedRaw)
+      : "________";
+    const processNumber = branchCode
+      ? `${branchCode}/${enrollment}/${year}`
+      : "________";
 
     drawPageFrame(doc, pageWidth, pageHeight);
     drawCoatOfArms(doc, pageWidth / 2, 22);
@@ -361,133 +494,136 @@ export function renderAngolaStudyDeclarations(
       y + 1.4,
     );
 
-    y += 10;
+    y += 9;
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
+    doc.setFontSize(9.4);
+    const cityClause = city ? `, em ${city}` : "";
     y = drawRuns(
       doc,
       [
         { text: directorName || "________", highlight: true },
-        { text: ", Directora do " },
-        { text: schoolLabel, highlight: true },
-        { text: ", declara para os devidos efeitos que " },
+        { text: `, ${directorTitle} do ` },
+        { text: school, highlight: true },
+        { text: `${cityClause}, Declaro que, ` },
         { text: fullName, highlight: true },
-        { text: female ? ", filha de " : ", filho de " },
+        { text: female ? ", Filha de " : ", Filho de " },
         { text: fatherName, highlight: true },
         { text: " e de " },
         { text: motherName, highlight: true },
-        {
-          text: female ? ", nascida aos " : ", nascido aos ",
-        },
+        { text: female ? ", nascida aos " : ", nascido aos " },
         { text: formatLongPtDate(student.studentnaissance), highlight: true },
+        { text: ", Natural de " },
+        { text: birthPlace, highlight: true },
+        { text: ", Município de " },
+        { text: municipality || "________", highlight: true },
+        { text: ", Província de " },
+        { text: province || "________", highlight: true },
         {
-          text: `, no Município de ${birthPlace}, Província de ${province || "________"}, frequentou neste Estabelecimento de Ensino, no ano lectivo `,
+          text: female
+            ? `, Portadora de BI Nº ${biNumber}, emitido aos ${biIssuedAt}, pelo Arquivo de Identificação de ${city || "________"}.`
+            : `, Portador de BI Nº ${biNumber}, emitido aos ${biIssuedAt}, pelo Arquivo de Identificação de ${city || "________"}.`,
         },
-        { text: year, highlight: true },
-        { text: ", com o n.º ____ da turma " },
-        { text: turma, highlight: true },
-        { text: ", a " },
-        { text: classPhrase, highlight: true },
-        { text: ", cujo Resultado Final " },
-        { text: passed ? "Transita" : "Não transita", highlight: true },
-        { text: ", com as seguintes classificações:" },
       ],
       innerLeft,
       y,
       textWidth,
-      5.1,
+      4.85,
     );
 
-    y += 4;
-    const colGap = 8;
-    const colWidth = (textWidth - colGap) / 2;
-    const mid = Math.ceil(subjects.length / 2) || 1;
-    const leftSubjects = subjects.slice(0, mid);
-    const rightSubjects = subjects.slice(mid);
-    const rows = Math.max(leftSubjects.length, rightSubjects.length, 1);
-
-    for (let row = 0; row < rows; row += 1) {
-      const leftItem = leftSubjects[row];
-      const rightItem = rightSubjects[row];
-      if (leftItem) {
-        drawSubjectCell(
-          doc,
-          innerLeft,
-          y,
-          colWidth,
-          leftItem[0],
-          subjectScore(leftItem[1]),
-        );
-      }
-      if (rightItem) {
-        drawSubjectCell(
-          doc,
-          innerLeft + colWidth + colGap,
-          y,
-          colWidth,
-          rightItem[0],
-          subjectScore(rightItem[1]),
-        );
-      }
-      y += 5.6;
-    }
-
-    y += 6;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10.5);
-    doc.setTextColor(...INK);
-    doc.text("MÉDIA GERAL DE ", innerLeft, y);
-    const prefixW = doc.getTextWidth("MÉDIA GERAL DE ");
-    doc.setTextColor(...HIGHLIGHT);
-    doc.text(`${formatScore(average)} Valores`, innerLeft + prefixW, y);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    doc.setTextColor(...INK);
-    y += 6;
-    const closing = doc.splitTextToSize(
-      "conforme consta na respectiva pauta e termo de matrícula, processo n.º ________ arquivados nesta Escola.",
+    y += 2.2;
+    y = drawRuns(
+      doc,
+      [
+        { text: "Frequentou este Estabelecimento de Ensino no ano Lectivo de " },
+        { text: year, highlight: true },
+        { text: ", sob nº " },
+        { text: enrollment, highlight: true },
+        { text: ", turma " },
+        { text: turma, highlight: true },
+        { text: ", no qual concluiu a " },
+        { text: classPhrase, highlight: true },
+        { text: " com o Resultado Final " },
+        { text: passed ? "Transita" : "Não transita", highlight: true },
+        {
+          text: ", tendo obtido as seguintes médias nas matérias professadas no respectivo ano neste ",
+        },
+        { text: school, highlight: true },
+        { text: ":" },
+      ],
+      innerLeft,
+      y,
       textWidth,
+      4.85,
     );
-    doc.text(closing, innerLeft, y);
-    y += closing.length * 4.6 + 6;
 
+    y += 3.2;
+    y = drawSubjectTable(doc, innerLeft, y, textWidth, rows);
+
+    y += 5;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.2);
+    doc.setTextColor(...INK);
+    doc.text("Valores respectivamente.", innerLeft, y);
+
+    y += 5.4;
+    const averageWords = Number.isFinite(average)
+      ? numberToWords(Math.round(average), "pt")
+      : "________";
+    y = drawRuns(
+      doc,
+      [
+        { text: "MÉDIA GERAL DE " },
+        {
+          text: `${formatScore(average)} (${averageWords})`,
+          highlight: true,
+        },
+        {
+          text: ` Valores conforme consta na respectiva pauta e termo de matrícula, processo nº ${processNumber} arquivados nesta Escola.`,
+        },
+      ],
+      innerLeft,
+      y,
+      textWidth,
+      4.7,
+    );
+
+    y += 3.2;
     const legal = doc.splitTextToSize(
-      "Por ser verdade e me ter sido solicitada, mandei passar a presente Declaração que vai por mim assinada e autenticada com o carimbo a óleo em uso nesta Escola.",
+      "Por ser verdade e me ter sido requerido, mandei passar a presente DECLARAÇÃO DE ESTUDO que confiro, assino e vai autenticada com o carimbo a óleo em uso neste Estabelecimento de Ensino.",
       textWidth,
     );
     doc.text(legal, innerLeft, y);
-    y += legal.length * 4.8 + 8;
+    y += legal.length * 4.5 + 7;
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.text(formatIssuePlaceDate(city, school), pageWidth / 2, y, {
-      align: "center",
-    });
+    doc.setFontSize(8.6);
+    const issueLines = doc.splitTextToSize(
+      formatAngolaDeclarationIssueLine(school),
+      textWidth,
+    ) as string[];
+    doc.text(issueLines, pageWidth / 2, y, { align: "center" });
 
-    y = Math.max(y + 22, pageHeight - 42);
-    const sigWidth = textWidth / 2;
+    y = Math.max(y + 18 + (issueLines.length - 1) * 4, pageHeight - 38);
+    const sigMid = (innerLeft + innerRight) / 2;
     doc.setDrawColor(...INK);
     doc.setLineWidth(0.3);
-    doc.line(innerLeft + 6, y, innerLeft + sigWidth - 10, y);
-    doc.line(innerLeft + sigWidth + 10, y, innerRight - 6, y);
+    doc.line(sigMid - 38, y, sigMid + 38, y);
     y += 5;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
-    doc.text("O Subdirector Pedagógico", innerLeft + sigWidth / 2, y, {
-      align: "center",
-    });
-    doc.text(`A ${directorTitle} da Escola`, innerLeft + sigWidth + sigWidth / 2, y, {
-      align: "center",
-    });
+    const article = /a$/i.test(directorTitle) ? "A" : "O";
+    doc.text(
+      `${article} ${directorTitle} da Escola`,
+      sigMid,
+      y,
+      { align: "center" },
+    );
     if (directorName) {
       y += 4;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7.5);
       doc.setTextColor(...HIGHLIGHT);
-      doc.text(directorName, innerLeft + sigWidth + sigWidth / 2, y, {
-        align: "center",
-      });
+      doc.text(directorName, sigMid, y, { align: "center" });
       doc.setTextColor(...INK);
     }
   });
