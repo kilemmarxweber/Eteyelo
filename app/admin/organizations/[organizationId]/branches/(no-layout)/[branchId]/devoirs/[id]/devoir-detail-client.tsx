@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   CalendarClock,
@@ -25,6 +25,7 @@ import {
   publishResultsAction,
   saveAnswersAction,
   submitAssignmentAction,
+  updateAssignmentAction,
 } from "@/lib/online-assignments/actions";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ import { DevoirsShell } from "../devoirs-shell";
 import {
   QuestionEditor,
   questionsFromServer,
+  type QuestionEditorHandle,
 } from "./question-editor";
 import { FormulaPreview } from "./formula-preview";
 import { FormulaToolbar } from "./formula-toolbar";
@@ -172,6 +174,7 @@ export function DevoirDetailClient({
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const editorRef = useRef<QuestionEditorHandle>(null);
   const base = `/admin/organizations/${organizationId}/branches/${branchId}/devoirs`;
 
   const initialAnswers = useMemo(() => {
@@ -250,6 +253,18 @@ export function DevoirDetailClient({
 
   const publish = () => {
     startTransition(async () => {
+      if (mode === "manage" && assignment.status === "DRAFT") {
+        const questions = editorRef.current?.getValidatedPayload();
+        if (!questions) return;
+        const [, saveErr] = await updateAssignmentAction({
+          id: assignment.id,
+          questions,
+        });
+        if (saveErr) {
+          toast.error(saveErr.message);
+          return;
+        }
+      }
       const [, err] = await publishAssignmentAction({ id: assignment.id });
       if (err) toast.error(err.message);
       else {
@@ -469,6 +484,7 @@ export function DevoirDetailClient({
           key={assignment.questions
             .map((q) => `${q.id}:${q.points}:${q.statementHtml.length}`)
             .join("|")}
+          ref={editorRef}
           assignmentId={assignment.id}
           initialQuestions={questionsFromServer(assignment.questions)}
           onSaved={() => router.refresh()}
