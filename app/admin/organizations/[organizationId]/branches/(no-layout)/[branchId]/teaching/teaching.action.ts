@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { action } from "@/lib/zsa";
 import { Prisma } from "@/prisma/generated/prisma/client";
-import { ITeaching, teachingSchema, consecutiveSlotsSchema, teachingWeekdaySchema } from "@/src/interfaces/Teaching";
+import { ITeaching, teachingSchema, consecutiveSlotsSchema, teachingWeekdaySchema, type TeachingWeekday } from "@/src/interfaces/Teaching";
 import { z } from "zod";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
@@ -920,6 +920,7 @@ function mapTeaching(teaching: TeachingWithRelations): ITeaching {
 
   return {
     ...teaching,
+    preferredDays: (teaching.preferredDays ?? []) as TeachingWeekday[],
     titulaire: teaching.titulaire || false,
     statusTeaching: teaching.statusTeaching || true,
     //Teacher

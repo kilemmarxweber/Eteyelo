@@ -40,9 +40,9 @@ export function MakeTeacherPersonnelDialog({
   teacher,
   onSuccess,
 }: Props) {
-  const [orgRole, setOrgRole] = React.useState(
-    PERSONNEL_ORG_ROLE_OPTIONS[0] ?? "agent_bureau",
-  );
+  const [orgRole, setOrgRole] = React.useState<
+    (typeof PERSONNEL_ORG_ROLE_OPTIONS)[number]
+  >(PERSONNEL_ORG_ROLE_OPTIONS[0]);
   const { execute, isPending } = useServerAction(makeTeacherAlsoPersonnelAction);
 
   const fullName =
@@ -77,7 +77,12 @@ export function MakeTeacherPersonnelDialog({
 
         <div className="space-y-2 py-2">
           <Label htmlFor="dual-org-role">Rôle administratif</Label>
-          <Select value={orgRole} onValueChange={setOrgRole}>
+          <Select
+            value={orgRole}
+            onValueChange={(value) =>
+              setOrgRole(value as (typeof PERSONNEL_ORG_ROLE_OPTIONS)[number])
+            }
+          >
             <SelectTrigger id="dual-org-role">
               <SelectValue placeholder="Choisir un rôle" />
             </SelectTrigger>

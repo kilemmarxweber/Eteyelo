@@ -75,6 +75,9 @@ export function EnrollmentUpForm({
       schoolYearId: currentSchoolYearId,
       teacherId: "",
       classeId: classeId!,
+      weeklyHours: 45,
+      consecutiveSlots: null,
+      preferredDays: [],
     },
   });
 

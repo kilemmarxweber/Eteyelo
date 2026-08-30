@@ -58,5 +58,5 @@ export const teachingSchema = z.object({
     .positive("Les minutes / semaine doivent être > 0")
     .max(600, "Maximum 600 min / semaine pour une affectation"),
   consecutiveSlots: consecutiveSlotsSchema,
-  preferredDays: z.array(teachingWeekdaySchema).optional().default([]),
+  preferredDays: z.array(teachingWeekdaySchema).optional(),
 });

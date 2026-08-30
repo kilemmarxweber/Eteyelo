@@ -57,6 +57,8 @@ export function UpdateStudentDialog({
             schoolYearId: teaching.schoolYearId ?? "",
             coursId: teaching.coursId ?? "",
             weeklyHours: teaching.weeklyHours ?? 45,
+            consecutiveSlots: teaching.consecutiveSlots ?? null,
+            preferredDays: teaching.preferredDays ?? [],
           }} // Pass the teaching data for editing
           classeId={teaching.classeId}
           onUpdated={handleUpdate}

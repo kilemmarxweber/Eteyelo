@@ -55,6 +55,7 @@ import {
 import type { Cycle } from "@/lib/cycle";
 import { CRENEAU_WEEKDAY_OPTIONS } from "@/lib/creneau-working-days";
 import { MultiSelect } from "../paiement/components/MultiSelect";
+import type { TeachingWeekday } from "@/src/interfaces/Teaching";
 
 type Workspace = NonNullable<
   Awaited<ReturnType<typeof getTeachingWorkspaceAction>>[0]
@@ -62,6 +63,7 @@ type Workspace = NonNullable<
 type ClassCourses = NonNullable<
   Awaited<ReturnType<typeof getTeachingClassCoursesAction>>[0]
 >;
+type ClassTeaching = ClassCourses["teachings"][number];
 const PAGE_SIZE = 8;
 
 export default function TeachingWorkspacePage() {
@@ -81,7 +83,9 @@ export default function TeachingWorkspacePage() {
   const [bulkTeacherId, setBulkTeacherId] = useState("");
   const [bulkWeeklyHours, setBulkWeeklyHours] = useState("");
   const [bulkConsecutiveSlots, setBulkConsecutiveSlots] = useState("1");
-  const [bulkPreferredDays, setBulkPreferredDays] = useState<string[]>([]);
+  const [bulkPreferredDays, setBulkPreferredDays] = useState<TeachingWeekday[]>(
+    [],
+  );
   const [savingCourseId, setSavingCourseId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -237,7 +241,7 @@ export default function TeachingWorkspacePage() {
 
   function updateClassTeachings(
     classeId: string,
-    nextTeachings: ClassCourses["teachings"],
+    nextTeachings: ClassTeaching[],
   ) {
     const visibleIds = new Set(
       (
@@ -290,15 +294,15 @@ export default function TeachingWorkspacePage() {
     teacherId: string,
     weeklyHours?: number,
     consecutiveSlots?: number | null,
-    preferredDays?: string[],
+    preferredDays?: TeachingWeekday[],
   ) {
     if (!data || !classCourses || !selectedClassId || !teacherId || !courseIds.length)
       return;
     const previous = classCourses.teachings;
     const consecutive =
       consecutiveSlots != null && consecutiveSlots > 1 ? consecutiveSlots : null;
-    const days = (preferredDays ?? []).filter(Boolean);
-    const tempRows = courseIds.map((coursId) => ({
+    const days = (preferredDays ?? []).filter(Boolean) as TeachingWeekday[];
+    const tempRows: ClassTeaching[] = courseIds.map((coursId) => ({
       id: `temp-${coursId}`,
       classeId: selectedClassId,
       coursId,
@@ -308,7 +312,7 @@ export default function TeachingWorkspacePage() {
       titulaire: false,
       weeklyHours: weeklyHours ?? null,
       consecutiveSlots: consecutive,
-      preferredDays: days,
+      preferredDays: days as ClassTeaching["preferredDays"],
       updatedAt: new Date(),
     }));
     updateClassTeachings(selectedClassId, [
@@ -329,9 +333,7 @@ export default function TeachingWorkspacePage() {
         teacherId,
         ...(weeklyHours != null && weeklyHours > 0 ? { weeklyHours } : {}),
         consecutiveSlots: consecutive,
-        preferredDays: days as Array<
-          "Lundi" | "Mardi" | "Mercredi" | "Jeudi" | "Vendredi" | "Samedi"
-        >,
+        preferredDays: days,
       });
       setSavingCourseId(null);
       if (error || !saved) {
@@ -398,7 +400,7 @@ export default function TeachingWorkspacePage() {
     coursId: string,
     prefs: {
       consecutiveSlots?: number | null;
-      preferredDays?: string[];
+      preferredDays?: TeachingWeekday[];
     },
   ) {
     if (!classCourses || !selectedClassId) return;
@@ -417,7 +419,9 @@ export default function TeachingWorkspacePage() {
               ...(prefs.consecutiveSlots !== undefined
                 ? { consecutiveSlots: consecutive }
                 : {}),
-              ...(days !== undefined ? { preferredDays: days } : {}),
+              ...(days !== undefined
+                ? { preferredDays: days as ClassTeaching["preferredDays"] }
+                : {}),
             }
           : item,
       ),
@@ -429,13 +433,7 @@ export default function TeachingWorkspacePage() {
         ...(prefs.consecutiveSlots !== undefined
           ? { consecutiveSlots: consecutive }
           : {}),
-        ...(days !== undefined
-          ? {
-              preferredDays: days as Array<
-                "Lundi" | "Mardi" | "Mercredi" | "Jeudi" | "Vendredi" | "Samedi"
-              >,
-            }
-          : {}),
+        ...(days !== undefined ? { preferredDays: days } : {}),
       });
       setSavingCourseId(null);
       if (error || !updated) {
@@ -662,7 +660,9 @@ export default function TeachingWorkspacePage() {
                           label: day.short,
                         }))}
                         value={bulkPreferredDays}
-                        onValueChange={setBulkPreferredDays}
+                        onValueChange={(days) =>
+                          setBulkPreferredDays(days as TeachingWeekday[])
+                        }
                         placeholder="Jours"
                         searchable={false}
                         hideSelected
@@ -935,7 +935,7 @@ export default function TeachingWorkspacePage() {
                                   return;
                                 }
                                 savePlacementPrefs(assignment.id, course.id, {
-                                  preferredDays: days,
+                                  preferredDays: days as TeachingWeekday[],
                                 });
                               }}
                               placeholder="Tous"
