@@ -131,6 +131,7 @@ export type TeacherProfileData = {
   dateOfBirthLabel: string;
   ageLabel: string;
   image: string | null;
+  canManagePhoto: boolean;
   statusActive: boolean;
   statusLabel: string;
   isTitulaire: boolean;

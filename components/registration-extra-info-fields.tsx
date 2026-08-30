@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SearchCombobox } from "@/components/ui/search-combobox";
+import { MultiSelect } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/[branchId]/paiement/components/MultiSelect";
 import {
   FAMILY_EXTRA_FIELD_LABELS,
-  isPresetRegistrationLanguage,
   REGISTRATION_LANGUAGE_OPTIONS,
   STUDENT_EXTRA_FIELD_LABELS,
   type FamilyExtraInfo,
@@ -39,11 +38,12 @@ export function RegistrationExtraInfoFields({
   className,
 }: Props) {
   const langueValue = studentExtra.langue?.trim() ?? "";
-  const [extraLanguages, setExtraLanguages] = useState<string[]>(() =>
-    langueValue && !isPresetRegistrationLanguage(langueValue)
-      ? [langueValue]
-      : [],
-  );
+  const selectedLanguages = langueValue
+    ? langueValue
+        .split(",")
+        .map((language) => language.trim())
+        .filter(Boolean)
+    : [];
 
   const languageOptions = useMemo(() => {
     const seen = new Set<string>();
@@ -51,8 +51,7 @@ export function RegistrationExtraInfoFields({
 
     for (const option of [
       ...REGISTRATION_LANGUAGE_OPTIONS,
-      ...extraLanguages,
-      ...(langueValue ? [langueValue] : []),
+      ...selectedLanguages,
     ]) {
       const key = option.toLowerCase();
       if (seen.has(key)) continue;
@@ -61,7 +60,7 @@ export function RegistrationExtraInfoFields({
     }
 
     return options;
-  }, [extraLanguages, langueValue]);
+  }, [langueValue]);
 
   return (
     <div className={className ?? "space-y-5"}>
@@ -85,26 +84,19 @@ export function RegistrationExtraInfoFields({
 
             <div className="min-w-0 space-y-1.5">
               <Label className="text-xs">{STUDENT_EXTRA_FIELD_LABELS.langue}</Label>
-              <SearchCombobox
-                freeText
-                items={languageOptions}
-                value={studentExtra.langue ?? ""}
-                onValueChange={(next) => onStudentChange("langue", next)}
-                onSelectItem={(item) => onStudentChange("langue", item.label)}
-                onCreate={(name) => {
-                  setExtraLanguages((prev) =>
-                    prev.some(
-                      (item) => item.toLowerCase() === name.toLowerCase(),
-                    )
-                      ? prev
-                      : [...prev, name],
-                  );
-                  onStudentChange("langue", name);
-                }}
-                createLabel={(query) => `+ Ajouter «${query}»`}
-                placeholder="Saisir ou rechercher une langue"
-                emptyText="Aucune langue — continuez pour en ajouter une."
-                showClear
+              <MultiSelect
+                options={languageOptions}
+                value={selectedLanguages}
+                onValueChange={(next) =>
+                  onStudentChange("langue", next.join(", "))
+                }
+                placeholder="Choisir une ou plusieurs langues"
+                searchable
+                maxCount={2}
+                hideSelected
+                selectedCountLabel={(count) =>
+                  `${count} langue${count > 1 ? "s" : ""} sélectionnée${count > 1 ? "s" : ""}`
+                }
               />
             </div>
           </div>

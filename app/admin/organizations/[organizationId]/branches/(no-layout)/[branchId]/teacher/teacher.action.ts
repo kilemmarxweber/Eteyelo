@@ -964,6 +964,65 @@ export const updateTeacherAction = action
     };
   });
 
+const updateTeacherPhotoSchema = z.object({
+  teacherId: z.string().min(1),
+  imageUrl: z.string().min(1).max(2000),
+});
+
+export const updateTeacherPhotoAction = action
+  .input(updateTeacherPhotoSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, canManageTeachers } =
+      await getCurrentBranch();
+
+    if (!canManageTeachers) {
+      return { ok: false as const, message: "Action non autorisee" };
+    }
+
+    const teacher = await prisma.teacher.findFirst({
+      where: {
+        id: input.teacherId,
+        branchMember: { branchId },
+      },
+      select: {
+        branchMember: {
+          select: {
+            member: {
+              select: { userId: true, user: { select: { image: true } } },
+            },
+          },
+        },
+      },
+    });
+
+    const userId = teacher?.branchMember?.member?.userId;
+    if (!userId) {
+      throw new Error("Enseignant introuvable dans cette branche");
+    }
+
+    const hadPhoto = Boolean(
+      teacher.branchMember?.member?.user?.image?.trim(),
+    );
+    await prisma.user.update({
+      where: { id: userId },
+      data: { image: input.imageUrl.trim() },
+    });
+
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/teacher/${input.teacherId}`,
+    );
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/teacher`,
+    );
+
+    return {
+      ok: true as const,
+      message: hadPhoto
+        ? "Photo mise a jour avec succes"
+        : "Photo ajoutee avec succes",
+    };
+  });
+
 export const getTeacherReportContextAction = action.handler(async () => {
   const { branchId, organizationId, canManageTeachers, isTeacher } =
     await getCurrentBranch();

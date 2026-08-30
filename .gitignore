@@ -46,7 +46,8 @@ next-env.d.ts
 /../../../../prisma/generated
 
 /.agents/
-/context/
+/context/*
+!/context/messagerie-organisation.context.md
 /.cursor/
 /.vscode/
 /build-log.txt
@@ -55,4 +56,3 @@ next-env.d.ts
 
 # local database dumps
 /backups/
-/context/

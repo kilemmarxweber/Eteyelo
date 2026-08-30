@@ -36,7 +36,8 @@ export function useStudentPhotoUpload({
     setPhotoUrl(normalizeStudentPhotoUrl(initialImage));
   }, [initialImage]);
 
-  const canAddPhoto = canManageStudents && !photoUrl;
+  // Le même contrôle sert à ajouter et remplacer la photo.
+  const canAddPhoto = canManageStudents;
 
   const savePhoto = React.useCallback(
     async (file: File) => {

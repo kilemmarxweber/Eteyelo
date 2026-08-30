@@ -36,8 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn, normalizeImageSrc } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { DocumentReadViewer } from "@/components/documents/document-read-viewer";
 import { FicheScoresDialog } from "@/components/fiche-scores-dialog";
 import {
@@ -50,6 +49,7 @@ import TeacherScheduleTable, {
   type TeacherScheduleUI,
 } from "./TeacherScheduleTable";
 import { TeacherApplicationCompleteForm } from "./teacher-application-form";
+import { TeacherPhotoAvatar } from "./teacher-photo-avatar";
 import { replaceTeacherApplicationDocumentAction } from "./teacher-application.action";
 import { uploadDocument } from "@/lib/upload-file";
 import { toast } from "sonner";
@@ -271,17 +271,13 @@ export function TeacherProfileClient({
             <div className="flex min-w-0 items-center gap-3.5">
               <div className="relative">
                 <span className="absolute -inset-1 rounded-full bg-primary/30 blur-md animate-pulse" />
-                <Avatar className="relative size-[4.75rem] border-2 border-background shadow-md">
-                  {profile.image ? (
-                    <AvatarImage
-                      src={normalizeImageSrc(profile.image)}
-                      alt={profile.fullName}
-                    />
-                  ) : null}
-                  <AvatarFallback className="bg-primary/15 text-lg font-semibold text-primary">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                <TeacherPhotoAvatar
+                  teacherId={profile.teacherId}
+                  fullName={profile.fullName}
+                  initials={initials}
+                  initialImage={profile.image}
+                  canManage={profile.canManagePhoto}
+                />
               </div>
 
               <div className="min-w-0">

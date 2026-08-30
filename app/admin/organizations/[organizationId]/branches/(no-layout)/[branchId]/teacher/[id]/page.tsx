@@ -373,6 +373,7 @@ const SingleTeacherPage = async ({
     dateOfBirthLabel: formatBirthDate(user?.dateOfBirth),
     ageLabel: formatAgeLabel(user?.dateOfBirth),
     image: user?.image ?? null,
+    canManagePhoto: canManage,
     statusActive: user?.statusUser !== false,
     statusLabel: user?.statusUser === false ? "Inactif" : "Actif",
     isTitulaire: teacher.teaching.some((item) => item.titulaire),

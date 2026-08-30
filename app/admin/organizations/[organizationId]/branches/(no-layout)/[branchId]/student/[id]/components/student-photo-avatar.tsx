@@ -2,9 +2,15 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { Camera, Loader2 } from "lucide-react";
+import { Camera, Eye, Loader2 } from "lucide-react";
 
 import { cn, normalizeImageSrc } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { StudentPhotoUploadState } from "./use-student-photo-upload";
 
 type StudentPhotoAvatarProps = {
@@ -28,6 +34,7 @@ export function StudentPhotoAvatar({
     openCamera,
     handlePhotoError,
   } = upload;
+  const [previewOpen, setPreviewOpen] = React.useState(false);
 
   const avatarContent = photoUrl ? (
     <Image
@@ -89,6 +96,33 @@ export function StudentPhotoAvatar({
           {avatarContent}
         </div>
       )}
+      {photoUrl ? (
+        <>
+          <button
+            type="button"
+            className="absolute -right-1 -top-1 z-10 flex size-6 items-center justify-center rounded-full border-2 border-card bg-background text-primary shadow-sm hover:bg-primary/10"
+            onClick={() => setPreviewOpen(true)}
+            aria-label="Agrandir la photo"
+            title="Agrandir la photo"
+          >
+            <Eye className="size-3" />
+          </button>
+          <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+            <DialogContent size="md" className="overflow-hidden p-2 sm:p-3">
+              <DialogHeader className="sr-only">
+                <DialogTitle>Photo de {fullName}</DialogTitle>
+              </DialogHeader>
+              <Image
+                src={normalizeImageSrc(photoUrl)}
+                alt={fullName}
+                width={800}
+                height={800}
+                className="max-h-[75vh] w-full rounded-lg object-contain"
+              />
+            </DialogContent>
+          </Dialog>
+        </>
+      ) : null}
     </div>
   );
 }
