@@ -14,6 +14,7 @@ import {
 import {
   buildClassCode,
   buildClassName,
+  compareClassesByLevel,
   getClassLevelLabel,
   getClassLevelsForBranch,
   requiresOptionForClass,
@@ -515,6 +516,27 @@ test("7è / 8è : Tronc commun CTEB par défaut", () => {
   ];
   assert.equal(findCtebSection(sections, "SECONDAIRE")?.id, "s2");
   assert.equal(findCtebOption(options, "SECONDAIRE")?.id, "o2");
+});
+
+test("classes triées du plus petit niveau au plus grand", () => {
+  const rows = [
+    { nameClasse: "6è-PR", level: "6è", cycle: "PRIMAIRE" },
+    { nameClasse: "1è-PR A", level: "1è", cycle: "PRIMAIRE" },
+    { nameClasse: "2è-PR", level: "2è", cycle: "PRIMAIRE" },
+    { nameClasse: "1è-MATE", level: "1è", cycle: "MATERNELLE" },
+  ];
+  const ordered = [...rows].sort(compareClassesByLevel).map((row) => row.nameClasse);
+  assert.deepEqual(ordered, ["1è-MATE", "1è-PR A", "2è-PR", "6è-PR"]);
+
+  const secondary = [
+    { nameClasse: "1è BIO", level: "1è", cycle: "SECONDAIRE" },
+    { nameClasse: "8è TC", level: "8è", cycle: "SECONDAIRE" },
+    { nameClasse: "7è TC", level: "7è", cycle: "SECONDAIRE" },
+  ];
+  assert.deepEqual(
+    [...secondary].sort(compareClassesByLevel).map((row) => row.level),
+    ["7è", "8è", "1è"],
+  );
 });
 
 console.log("Cycle tests passed.");

@@ -13,6 +13,7 @@ import {
   generateCode,
 } from "@/lib/generated-identifiers";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
+import { compareClassesByLevel } from "@/lib/class-structure";
 
 function revalidateOptionPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/option`);
@@ -264,7 +265,8 @@ export const getOptionsAction = action.handler(async (): Promise<IOption[]> => {
       statuSection: option.section?.statusSection ?? true,
 
       classesCount: option.classe.length,
-      classes: option.classe.map((classe) => ({
+      classes: option.classe
+        .map((classe) => ({
         id: classe.id,
         nameClasse: classe.nameClasse ?? "",
         optionId: classe.optionId ?? undefined,
@@ -278,7 +280,10 @@ export const getOptionsAction = action.handler(async (): Promise<IOption[]> => {
         nameSection: option.section?.nameSection ?? "",
         creneauId: classe.creneauId ?? "",
         statusClasse: classe.statusClasse ?? true,
-      })),
+        level: classe.level ?? null,
+        cycle: classe.cycle ?? option.cycle ?? null,
+      }))
+        .sort(compareClassesByLevel),
     }));
 
     return transformedOptions;

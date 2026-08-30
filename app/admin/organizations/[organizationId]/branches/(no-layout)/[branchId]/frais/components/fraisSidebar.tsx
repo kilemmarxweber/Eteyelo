@@ -3,18 +3,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import {
+  IconChevronLeft,
+  IconChevronRight,
   IconSearch,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
 import { getFraisClassSidebarAction } from "../frais.action";
 import { cycleLabel } from "@/lib/cycle";
+import { compareClassesByLevel } from "@/lib/class-structure";
 
 type SidebarClass = {
   id: string;
@@ -27,11 +31,14 @@ type SidebarClass = {
   activeFraisCount: number;
 };
 
+const PAGE_SIZE = 8;
+
 export function OptionSidebar() {
   const [classes, setClasses] = useState<SidebarClass[]>([]);
   const [schoolYearName, setSchoolYearName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
   const router = useRouter();
   const { refreshKey } = useRefresh();
   const params = useParams<{
@@ -60,26 +67,33 @@ export function OptionSidebar() {
 
   const filtered = useMemo(
     () =>
-      classes.filter((classe) =>
-        `${classe.nameClasse} ${classe.codeClasse} ${classe.optionName} ${classe.sectionName}`
-          .toLowerCase()
-          .includes(search.toLowerCase()),
-      ),
+      [...classes]
+        .filter((classe) =>
+          `${classe.nameClasse} ${classe.codeClasse} ${classe.optionName} ${classe.sectionName}`
+            .toLowerCase()
+            .includes(search.toLowerCase()),
+        )
+        .sort(compareClassesByLevel),
     [classes, search],
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const paginated = filtered.slice(
+    safePage * PAGE_SIZE,
+    safePage * PAGE_SIZE + PAGE_SIZE,
   );
 
   const grouped = useMemo(() => {
     const map = new Map<string, SidebarClass[]>();
-    for (const classe of filtered) {
+    for (const classe of paginated) {
       const key = classe.cycle ?? "";
       const current = map.get(key) ?? [];
       current.push(classe);
       map.set(key, current);
     }
-    return Array.from(map.entries()).sort(([a], [b]) =>
-      cycleLabel(a || "SECONDAIRE").localeCompare(cycleLabel(b || "SECONDAIRE"), "fr"),
-    );
-  }, [filtered]);
+    return Array.from(map.entries());
+  }, [paginated]);
 
   function selectClass(classId: string) {
     router.push(
@@ -106,6 +120,7 @@ export function OptionSidebar() {
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);
+              setPage(0);
             }}
             placeholder="Rechercher une classe..."
             className="h-9 pl-9"
@@ -120,7 +135,7 @@ export function OptionSidebar() {
       <div className="min-h-0 flex-1 overflow-y-auto p-2">
         {grouped.map(([cycle, items]) => (
           <div key={cycle || "default"} className="mb-3">
-            {grouped.length > 1 ? (
+            {grouped.length > 1 || cycle ? (
               <p className="mb-1 px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {cycle ? cycleLabel(cycle) : "Autres"}
               </p>
@@ -178,7 +193,32 @@ export function OptionSidebar() {
           </p>
         ) : null}
       </div>
+
+      {filtered.length > PAGE_SIZE ? (
+        <div className="flex items-center justify-between border-t p-2">
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            disabled={safePage === 0}
+            onClick={() => setPage((value) => Math.max(0, value - 1))}
+          >
+            <IconChevronLeft className="size-4" />
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            Page {safePage + 1}/{totalPages}
+          </span>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            disabled={safePage + 1 >= totalPages}
+            onClick={() => setPage((value) => value + 1)}
+          >
+            <IconChevronRight className="size-4" />
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }
-

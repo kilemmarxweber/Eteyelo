@@ -21,6 +21,7 @@ import {
 import { syncTeacherDossierExperienceYears } from "@/lib/teacher-assignment-years";
 import { assertTeacherFreeAt } from "@/lib/teacher-availability";
 import { cycleLabel, resolveCycle, type Cycle } from "@/lib/cycle";
+import { compareClassesByLevel } from "@/lib/class-structure";
 import {
   buildBranchMemberDirectoryWhere,
   classeCycleWhere,
@@ -347,7 +348,8 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
   }
 
   return {
-    classes: classes.map((classe) => {
+    classes: classes
+      .map((classe) => {
       const configuredIds = scheduleIdsForParents(
         configuredCoursIdsForClass(ponderations, classe),
       );
@@ -364,7 +366,8 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
         configuredCount: configuredIds.size,
         assignedCount,
       };
-    }),
+    })
+      .sort(compareClassesByLevel),
     teachers: teachers.map((teacher) => ({
       id: teacher.id,
       cycles: (teacher.branchMember?.memberCycles ?? []).map(

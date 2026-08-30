@@ -499,3 +499,94 @@ export function getBranchTypeLabel(typebranch: unknown): string {
 }
 
 export type BranchType = ManagedBranchType;
+
+const CLASS_CYCLE_ORDER = [
+  "MATERNELLE",
+  "PRIMAIRE",
+  "SECONDAIRE",
+  "UNIVERSITE",
+  "CENTRE_FORMATION",
+  "ATELIER",
+] as const;
+
+const CLASS_LEVEL_ORDER = [
+  "Crèche",
+  ...MATERNELLE_CLASS_LEVELS,
+  ...PRIMARY_CLASS_LEVELS,
+  ...ANGOLA_PRIMARY_LEVELS,
+  ...SECONDARY_CTEB_LEVELS,
+  ...SECONDARY_HUMANITES_LEVELS,
+  ...ANGOLA_SECONDARY_LEVELS,
+  ...UNIVERSITY_CLASS_LEVELS,
+  ...TRAINING_CLASS_LEVELS,
+  ...WORKSHOP_CLASS_LEVELS,
+] as const;
+
+export type ClassSortable = {
+  level?: string | null;
+  nameClasse?: string | null;
+  codeClasse?: string | null;
+  cycle?: string | null;
+  parallel?: string | null;
+};
+
+function cycleRank(cycle?: string | null) {
+  const index = CLASS_CYCLE_ORDER.indexOf(
+    (cycle ?? "").toUpperCase() as (typeof CLASS_CYCLE_ORDER)[number],
+  );
+  return index >= 0 ? index : CLASS_CYCLE_ORDER.length;
+}
+
+function levelListForCycle(cycle?: string | null) {
+  const key = (cycle ?? "").toUpperCase();
+  if (key === "MATERNELLE") return MATERNELLE_CLASS_LEVELS;
+  if (key === "PRIMAIRE") {
+    return [...PRIMARY_CLASS_LEVELS, ...ANGOLA_PRIMARY_LEVELS];
+  }
+  if (key === "SECONDAIRE") {
+    return [...SECONDARY_CLASS_LEVELS, ...ANGOLA_SECONDARY_LEVELS];
+  }
+  if (key === "UNIVERSITE") return UNIVERSITY_CLASS_LEVELS;
+  if (key === "CENTRE_FORMATION") return TRAINING_CLASS_LEVELS;
+  if (key === "ATELIER") return WORKSHOP_CLASS_LEVELS;
+  return CLASS_LEVEL_ORDER;
+}
+
+function levelTokenRank(value?: string | null, cycle?: string | null) {
+  const raw = value?.trim() ?? "";
+  if (!raw) return Number.POSITIVE_INFINITY;
+  const ordered = levelListForCycle(cycle);
+  const exact = (ordered as readonly string[]).indexOf(raw);
+  if (exact >= 0) return exact;
+  let prefixRank = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < ordered.length; i++) {
+    const token = ordered[i];
+    if (raw === token || raw.startsWith(`${token}-`) || raw.startsWith(`${token} `)) {
+      prefixRank = Math.min(prefixRank, i);
+    }
+  }
+  if (prefixRank !== Number.POSITIVE_INFINITY) return prefixRank;
+  const digits = raw.match(/(\d+)/);
+  if (digits) return 1_000 + Number(digits[1]);
+  return 9_000;
+}
+
+export function compareClassesByLevel(a: ClassSortable, b: ClassSortable) {
+  const cycle = cycleRank(a.cycle) - cycleRank(b.cycle);
+  if (cycle !== 0) return cycle;
+  const level =
+    levelTokenRank(a.level || a.nameClasse, a.cycle) -
+    levelTokenRank(b.level || b.nameClasse, b.cycle);
+  if (level !== 0) return level;
+  const parallel = (a.parallel ?? "").localeCompare(b.parallel ?? "", "fr");
+  if (parallel !== 0) return parallel;
+  return (a.nameClasse || a.codeClasse || "").localeCompare(
+    b.nameClasse || b.codeClasse || "",
+    "fr",
+    { numeric: true },
+  );
+}
+
+export function sortClassesByLevel<T extends ClassSortable>(items: T[]) {
+  return [...items].sort(compareClassesByLevel);
+}

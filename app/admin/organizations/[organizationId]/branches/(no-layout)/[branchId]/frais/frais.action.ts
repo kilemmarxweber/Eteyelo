@@ -23,6 +23,7 @@ import {
   requireCurrentSchoolYear,
 } from "@/lib/school-year";
 import { resolveCycle } from "@/lib/cycle";
+import { compareClassesByLevel } from "@/lib/class-structure";
 import { randomUUID } from "crypto";
 import {
   canPermanentlyDeleteInformation,
@@ -730,9 +731,26 @@ export const getFraisClassSidebarAction = action.handler(async () => {
     counts.map((item) => [item.classeId, item._count._all]),
   );
 
+  const sorted = [...classes].sort((a, b) =>
+    compareClassesByLevel(
+      {
+        level: a.level,
+        nameClasse: a.nameClasse,
+        codeClasse: a.codeClasse,
+        cycle: a.cycle,
+      },
+      {
+        level: b.level,
+        nameClasse: b.nameClasse,
+        codeClasse: b.codeClasse,
+        cycle: b.cycle,
+      },
+    ),
+  );
+
   return {
     schoolYearName: currentYear?.nameYear ?? null,
-    classes: classes.map((classe) => ({
+    classes: sorted.map((classe) => ({
       id: classe.id,
       nameClasse: classe.nameClasse,
       codeClasse: classe.codeClasse,

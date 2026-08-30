@@ -76,6 +76,12 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
     );
   });
 
+  const totalPages = Math.max(1, Math.ceil(filteredFraiss.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(page, totalPages - 1);
+  const start = safePage * ITEMS_PER_PAGE;
+  const end = start + ITEMS_PER_PAGE;
+  const paginatedFraiss = filteredFraiss.slice(start, end);
+
   const handleEdit = (frais: IFrais) => {
     setSelectedFrais(frais);
     setShowUpdateDialog(true);
@@ -221,10 +227,6 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
         : []),
     ],
   };
-  const start = page * ITEMS_PER_PAGE;
-  const end = start + ITEMS_PER_PAGE;
-
-  const paginatedFraiss = filteredFraiss.slice(start, end);
   const classTotal = fraiss.reduce(
     (sum, frais) => sum + Number(frais.montantFrais || 0),
     0,
@@ -234,61 +236,63 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
     maximumFractionDigits: 2,
   });
   return (
-    <div className="space-y-4">
+    <div className="flex min-h-0 flex-1 flex-col space-y-4">
       <SearchAndFilter
         searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
         searchPlaceholder="Rechercher un frais..."
+        onSearchChange={(value) => {
+          setSearchTerm(value);
+          setPage(0);
+        }}
       />
-      <ResponsiveDataTable
-        data={paginatedFraiss}
-        columns={columns}
-        cardConfig={cardConfig}
-        loading={loading}
-        emptyMessage="Pas de frais pour cette classe"
-        searchTerm={searchTerm}
-        footer={
-          fraiss.length > 0
-            ? {
-                cells: [
-                  { content: "Total", className: "font-semibold" },
-                  {
-                    content: formattedClassTotal,
-                    className: "font-bold tabular-nums text-green-700",
-                  },
-                  { colSpan: 3 },
-                ],
-              }
-            : undefined
-        }
-      />
+      <div className="min-h-0 flex-1 overflow-auto">
+        <ResponsiveDataTable
+          data={paginatedFraiss}
+          columns={columns}
+          cardConfig={cardConfig}
+          loading={loading}
+          emptyMessage="Pas de frais pour cette classe"
+          searchTerm={searchTerm}
+          footer={
+            fraiss.length > 0
+              ? {
+                  cells: [
+                    { content: "Total", className: "font-semibold" },
+                    {
+                      content: formattedClassTotal,
+                      className: "font-bold tabular-nums text-green-700",
+                    },
+                    { colSpan: 3 },
+                  ],
+                }
+              : undefined
+          }
+        />
+      </div>
       {filteredFraiss.length > ITEMS_PER_PAGE && (
-        <div className="flex items-center justify-between px-2 py-3 border-t">
-          {/* Prev */}
+        <div className="flex shrink-0 items-center justify-between border-t px-2 py-3">
           <button
-            disabled={page === 0}
+            disabled={safePage === 0}
             onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-            className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-md border bg-background hover:bg-muted transition disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+            className="flex items-center gap-1 rounded-md border bg-background px-3 py-1.5 text-sm transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 active:scale-95"
           >
             <IconChevronLeft size={16} />
             Prev
           </button>
 
-          {/* Page info */}
           <div className="flex items-center gap-2 text-sm">
-            <span className="px-2 py-1 rounded bg-muted font-medium">
-              {page + 1}
+            <span className="rounded bg-muted px-2 py-1 font-medium">
+              {safePage + 1}
             </span>
             <span className="text-muted-foreground">
-              / {Math.ceil(filteredFraiss.length / ITEMS_PER_PAGE)}
+              / {totalPages}
             </span>
           </div>
 
-          {/* Next */}
           <button
-            disabled={end >= filteredFraiss.length}
+            disabled={safePage + 1 >= totalPages}
             onClick={() => setPage((prev) => prev + 1)}
-            className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-md border bg-background hover:bg-muted transition disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+            className="flex items-center gap-1 rounded-md border bg-background px-3 py-1.5 text-sm transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 active:scale-95"
           >
             Next
             <IconChevronRight size={16} />

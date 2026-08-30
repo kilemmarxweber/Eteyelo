@@ -44,6 +44,7 @@ import {
   normalizeCycle,
   type Cycle,
 } from "@/lib/cycle";
+import { compareClassesByLevel } from "@/lib/class-structure";
 import {
   classeCycleWhere,
   primaryOrgRoleFromSession,
@@ -934,7 +935,10 @@ export const getScheduleOptionsAction = action.handler(
         codeSection: group.codeSection,
         nameSection: group.nameSection,
         statuSection: true,
-        classes: group.classes.map((classe) => ({
+        classes: group.classes
+          .slice()
+          .sort(compareClassesByLevel)
+          .map((classe) => ({
           ...classe,
           nameOption: group.nameOption,
           codeOption: group.id,

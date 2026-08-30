@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { getScheduleOptionsAction } from "../schedule.action";
+import { compareClassesByLevel } from "@/lib/class-structure";
 
 type OptionsData = NonNullable<
   Awaited<ReturnType<typeof getScheduleOptionsAction>>[0]
@@ -57,6 +58,7 @@ export function OptionSidebar() {
           optionName: option.nameOption,
           sectionName: option.nameSection ?? "",
           cycle: classe.cycle ?? "",
+          level: classe.level ?? "",
         })),
       ),
     [options],
@@ -64,11 +66,13 @@ export function OptionSidebar() {
 
   const filtered = useMemo(
     () =>
-      classes.filter((classe) =>
+      [...classes]
+        .filter((classe) =>
           `${classe.nameClasse} ${classe.codeClasse} ${classe.optionName} ${classe.sectionName} ${classe.cycle}`
-          .toLowerCase()
-          .includes(search.toLowerCase()),
-      ),
+            .toLowerCase()
+            .includes(search.toLowerCase()),
+        )
+        .sort(compareClassesByLevel),
     [classes, search],
   );
 

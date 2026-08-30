@@ -15,6 +15,7 @@ import {
   resolvePrimaryClassLevel,
 } from "@/lib/primary-academic-structure";
 import { type Cycle } from "@/lib/cycle";
+import { compareClassesByLevel } from "@/lib/class-structure";
 import { DEFAULT_PONDERATION_LEVEL, normalizePonderationLevel } from "@/lib/course-ponderation";
 import {
   canManageOrganization,
@@ -202,6 +203,7 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
               OR: [{ statusClasse: true }, { statusClasse: null }],
             },
             select: { id: true, nameClasse: true, level: true },
+            orderBy: { nameClasse: "asc" },
           },
         },
       }),
@@ -302,8 +304,18 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
       : [];
 
     const orderedOptions = [
-      ...maternelleOptions,
-      ...primaryOptions,
+      ...maternelleOptions.sort((a, b) =>
+        compareClassesByLevel(
+          { level: a.nameOption, nameClasse: a.displayName, cycle: a.cycle },
+          { level: b.nameOption, nameClasse: b.displayName, cycle: b.cycle },
+        ),
+      ),
+      ...primaryOptions.sort((a, b) =>
+        compareClassesByLevel(
+          { level: a.nameOption, nameClasse: a.displayName, cycle: a.cycle },
+          { level: b.nameOption, nameClasse: b.displayName, cycle: b.cycle },
+        ),
+      ),
       ...secondaryOptions,
     ];
 

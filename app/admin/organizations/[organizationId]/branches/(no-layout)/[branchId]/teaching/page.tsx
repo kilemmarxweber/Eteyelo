@@ -53,6 +53,7 @@ import {
   updateTeachingWeeklyHoursAction,
 } from "./teaching.action";
 import type { Cycle } from "@/lib/cycle";
+import { compareClassesByLevel } from "@/lib/class-structure";
 import { CRENEAU_WEEKDAY_OPTIONS } from "@/lib/creneau-working-days";
 import { MultiSelect } from "../paiement/components/MultiSelect";
 import type { TeachingWeekday } from "@/src/interfaces/Teaching";
@@ -158,11 +159,13 @@ export default function TeachingWorkspacePage() {
   const unassignedCount = Math.max(0, courses.length - assignedCount);
   const filteredClasses = useMemo(
     () =>
-      (data?.classes ?? []).filter((item) =>
-        `${item.codeClasse} ${item.nameClasse} ${item.option?.nameOption ?? ""}`
-          .toLowerCase()
-          .includes(classSearch.toLowerCase()),
-      ),
+      [...(data?.classes ?? [])]
+        .filter((item) =>
+          `${item.codeClasse} ${item.nameClasse} ${item.option?.nameOption ?? ""}`
+            .toLowerCase()
+            .includes(classSearch.toLowerCase()),
+        )
+        .sort(compareClassesByLevel),
     [classSearch, data],
   );
   const paginatedClasses = filteredClasses.slice(

@@ -20,6 +20,7 @@ import { getSessionRoles } from "@/lib/auth/session-roles";
 import {
   buildClassCode,
   buildClassName,
+  compareClassesByLevel,
   isCtebLevel,
   isPrimaryBranch,
   validateClassInput,
@@ -393,7 +394,7 @@ export const getClassesAction = action.handler(async (): Promise<IClasse[]> => {
         _count: { select: { classEnrollment: true } },
       },
     });
-    return classes.map(transformClasse);
+    return classes.map(transformClasse).sort(compareClassesByLevel);
   } catch (error: any) {
     throw new Error(error.message);
   }

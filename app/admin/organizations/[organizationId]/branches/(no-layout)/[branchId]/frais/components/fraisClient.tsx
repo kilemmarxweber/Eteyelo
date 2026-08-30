@@ -29,7 +29,7 @@ export default function FraisClient({ classeId }: { classeId: string }) {
       <Card
         variant="elevated"
         padding="none"
-        className="p-4 rounded-md border max-h-[70vh] overflow-auto"
+        className="flex max-h-[70vh] flex-col overflow-hidden rounded-md border p-4"
       >
         <FraissList params={{ classeId }} key={refreshKey} />
       </Card>
