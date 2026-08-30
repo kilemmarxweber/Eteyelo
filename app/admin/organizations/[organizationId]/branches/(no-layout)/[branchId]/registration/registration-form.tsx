@@ -2997,9 +2997,9 @@ export function RegistrationForm({
                                 key={classe.id}
                                 classe={classe}
                                 tReg={tReg}
-                                onSaveCapacity={(value) =>
-                                  saveClassCapacity(classe.id, value)
-                                }
+                                onSaveCapacity={async (value) => {
+                                  await saveClassCapacity(classe.id, value);
+                                }}
                               />
                             ))}
                           </div>
