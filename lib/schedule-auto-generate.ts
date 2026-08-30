@@ -203,6 +203,58 @@ export function normalizeConsecutiveSlots(
   return Math.min(4, Math.max(1, Math.floor(value)));
 }
 
+/**
+ * Plafond de séances par jour quand au moins 2 jours sont attachés.
+ * Ex. 3 séances + 2 h d'affilée + Lundi/Mercredi → max 2 / jour
+ * (le reliquat va sur l'autre jour, pas 3 matières sur un seul).
+ */
+export function maxSessionsPerSpreadDay(params: {
+  sessionsNeeded: number;
+  attachedDayCount: number;
+  consecutiveSlots?: number | null;
+}): number {
+  const needed = Math.max(0, params.sessionsNeeded);
+  const days = Math.max(1, params.attachedDayCount);
+  if (days < 2) return needed;
+  const consecutive = normalizeConsecutiveSlots(params.consecutiveSlots);
+  return Math.max(consecutive, Math.ceil(needed / days));
+}
+
+/** Jours les moins chargés d'abord ; égalité tirée au sort. */
+export function orderDaysByLoad(
+  days: Day[],
+  loadForDay: (day: Day) => number,
+): Day[] {
+  const groups = new Map<number, Day[]>();
+  for (const day of days) {
+    const load = loadForDay(day);
+    const bucket = groups.get(load);
+    if (bucket) bucket.push(day);
+    else groups.set(load, [day]);
+  }
+  const ordered: Day[] = [];
+  for (const load of [...groups.keys()].sort((a, b) => a - b)) {
+    ordered.push(...shuffledCopy(groups.get(load)!));
+  }
+  return ordered;
+}
+
+function sessionsFromBusyIntervals(
+  intervals: TeacherBusyInterval[],
+  durationMinutes: number,
+): Map<Day, number> {
+  const byDay = new Map<Day, number>();
+  const duration = durationMinutes > 0 ? durationMinutes : 1;
+  for (const slot of intervals) {
+    const n = Math.max(
+      1,
+      Math.round((slot.endMin - slot.startMin) / duration),
+    );
+    byDay.set(slot.day, (byDay.get(slot.day) ?? 0) + n);
+  }
+  return byDay;
+}
+
 function resolveCandidateDays(
   workDays: Day[],
   preferredDays: Day[] | null | undefined,
@@ -250,7 +302,9 @@ export function teacherIntervalConflicts(params: {
  *   branches de l'organisation) via intervalles start/end ;
  * - place des blocs d'affilée (consecutiveSlots 2–4) quand demandé ;
  * - restreint aux preferredDays s'ils sont renseignés ;
- * - répartit 1 bloc / jour par passe ; ordre aléatoire à chaque appel.
+ * - si ≥ 2 jours attachés : répartit sur TOUS ces jours (pas seulement le
+ *   dernier) ; 2 h d'affilée + 3 séances → 2 + 1, jamais 3 le même jour ;
+ * - répartit 1 bloc / jour par passe ; jours les moins chargés d'abord.
  */
 export function placeTeachingsGreedy(params: {
   candidates: PlacementCandidate[];
@@ -286,8 +340,13 @@ export function placeTeachingsGreedy(params: {
 
   const occupiedClass = new Set(params.occupiedClassSlots);
   const occupiedTeachers = new Map<string, TeacherBusyInterval[]>();
+  const teacherDayLoad = new Map<string, Map<Day, number>>();
   for (const [teacherId, intervals] of params.occupiedTeacherIntervals) {
     occupiedTeachers.set(teacherId, intervals.map((item) => ({ ...item })));
+    teacherDayLoad.set(
+      teacherId,
+      sessionsFromBusyIntervals(intervals, params.durationCourseMinutes),
+    );
   }
 
   const placed: PlacementResult["placed"] = [];
@@ -300,6 +359,15 @@ export function placeTeachingsGreedy(params: {
       occupiedTeachers.get(candidate.teacherId) ?? [];
     const blockSize = normalizeConsecutiveSlots(candidate.consecutiveSlots);
     const daysPool = resolveCandidateDays(workDays, candidate.preferredDays);
+    const teacherLoad =
+      teacherDayLoad.get(candidate.teacherId) ?? new Map<Day, number>();
+    const teachingDayLoad = new Map<Day, number>();
+    const spreadCap = maxSessionsPerSpreadDay({
+      sessionsNeeded: candidate.sessionsNeeded,
+      attachedDayCount: daysPool.length,
+      consecutiveSlots: blockSize,
+    });
+    let enforceSpread = daysPool.length >= 2;
 
     if (!daysPool.length) {
       failures.push({
@@ -328,7 +396,18 @@ export function placeTeachingsGreedy(params: {
       continue;
     }
 
+    const dayLoadScore = (day: Day) =>
+      (teachingDayLoad.get(day) ?? 0) * 1000 + (teacherLoad.get(day) ?? 0);
+
+    const orderedDays = () => orderDaysByLoad(daysPool, dayLoadScore);
+
     const tryPlaceBlock = (day: Day, block: string[]): boolean => {
+      if (
+        enforceSpread &&
+        (teachingDayLoad.get(day) ?? 0) + block.length > spreadCap
+      ) {
+        return false;
+      }
       const starts = block.map(parseHmToMinutes);
       const blockStart = starts[0]!;
       const blockEnd = starts[starts.length - 1]! + duration;
@@ -358,59 +437,62 @@ export function placeTeachingsGreedy(params: {
         endMin: blockEnd,
         label: candidate.courseName,
       });
+      teachingDayLoad.set(
+        day,
+        (teachingDayLoad.get(day) ?? 0) + block.length,
+      );
+      teacherLoad.set(day, (teacherLoad.get(day) ?? 0) + block.length);
       remaining -= block.length;
       return true;
     };
 
-    while (remaining > 0) {
+    const placeOnePerDay = (availableBlocks: string[][]) => {
       let placedThisRound = 0;
-      const days = shuffledCopy(daysPool);
-
-      if (blockSize > 1 && remaining >= blockSize) {
-        for (const day of days) {
-          if (remaining < blockSize) break;
-          for (const block of shuffledCopy(blocks)) {
-            if (tryPlaceBlock(day, block)) {
-              placedThisRound += 1;
-              break;
-            }
+      const chunk = availableBlocks[0]?.length ?? 1;
+      for (const day of orderedDays()) {
+        if (remaining < chunk) break;
+        for (const block of shuffledCopy(availableBlocks)) {
+          if (tryPlaceBlock(day, block)) {
+            placedThisRound += 1;
+            break;
           }
         }
+      }
+      return placedThisRound;
+    };
+
+    while (remaining > 0) {
+      let placedThisRound = 0;
+
+      if (blockSize > 1 && remaining >= blockSize) {
+        placedThisRound = placeOnePerDay(blocks);
       } else {
         const singleBlocks =
           blockSize === 1
             ? blocks
             : findConsecutiveSlotBlocks(params.courseSlots, 1, duration);
-        for (const day of days) {
-          if (remaining <= 0) break;
-          for (const block of shuffledCopy(singleBlocks)) {
-            if (tryPlaceBlock(day, block)) {
-              placedThisRound += 1;
-              break;
-            }
-          }
-        }
+        placedThisRound = placeOnePerDay(singleBlocks);
       }
 
       if (placedThisRound === 0) {
-        // Reste < taille de bloc : tenter des séances isolées pour finir.
         if (blockSize > 1 && remaining > 0 && remaining < blockSize) {
-          let placedRemainder = 0;
           const singles = findConsecutiveSlotBlocks(
             params.courseSlots,
             1,
             duration,
           );
-          for (const day of shuffledCopy(daysPool)) {
-            if (remaining <= 0) break;
-            for (const block of shuffledCopy(singles)) {
-              if (tryPlaceBlock(day, block)) {
-                placedRemainder += 1;
-                break;
-              }
+          const placedRemainder = placeOnePerDay(singles);
+          if (placedRemainder === 0) {
+            if (enforceSpread) {
+              enforceSpread = false;
+              continue;
             }
+            break;
           }
-          if (placedRemainder === 0) break;
+          continue;
+        }
+        if (enforceSpread) {
+          enforceSpread = false;
           continue;
         }
         break;
@@ -418,6 +500,7 @@ export function placeTeachingsGreedy(params: {
     }
 
     occupiedTeachers.set(candidate.teacherId, teacherBusy);
+    teacherDayLoad.set(candidate.teacherId, teacherLoad);
 
     if (remaining > 0) {
       failures.push({

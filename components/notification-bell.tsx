@@ -37,7 +37,7 @@ import {
   dispatchCandidaturePrefill,
   dispatchRegistrationPrefill,
 } from "@/lib/prefill-events";
-import { NOTIFICATIONS_REFRESH_EVENT, openMessagingDrawer } from "@/lib/notification-events";
+import { NOTIFICATIONS_REFRESH_EVENT, openMessagingDrawer, refreshMessagingBell } from "@/lib/notification-events";
 import {
   confirmNotificationRequestAction,
   getNotificationCountAction,
@@ -391,6 +391,7 @@ export function NotificationBell() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const hasLoadedRef = useRef(false);
+  const lastNotificationCountRef = useRef<number | null>(null);
   const [absenceDialog, setAbsenceDialog] = useState<{
     mode: "justify" | "review" | "view";
     caseRow: AbsenceCaseDialogData;
@@ -415,7 +416,12 @@ export function NotificationBell() {
     try {
       const [data] = await getNotificationCountAction();
       if (typeof data?.count === "number") {
+        const previous = lastNotificationCountRef.current;
         setPendingCount(data.count);
+        if (previous !== null && data.count > previous) {
+          refreshMessagingBell();
+        }
+        lastNotificationCountRef.current = data.count;
       }
     } catch {
       // Conserver le dernier compteur connu.

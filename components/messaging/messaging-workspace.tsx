@@ -42,6 +42,7 @@ import {
   refreshMessagingBell,
   refreshNotificationBell,
 } from "@/lib/notification-events";
+import { useMessagingRefreshListener } from "@/lib/messaging/use-messaging-refresh-listener";
 import {
   archiveConversationAction,
   archiveMessageAction,
@@ -150,6 +151,7 @@ export function MessagingWorkspace({
   const [offline, setOffline] = useState(false);
   const threadEndRef = useRef<HTMLDivElement | null>(null);
   const selectedIdRef = useRef<string | null>(initialConversationId);
+  const lastThreadMessageIdRef = useRef<string | null>(null);
 
   const selected = conversations.find((row) => row.id === selectedId) ?? null;
   const compact = variant === "drawer";
@@ -187,9 +189,13 @@ export function MessagingWorkspace({
         return;
       }
       setMessages(data.items);
-      await markConversationReadAction({ organizationId, conversationId });
-      refreshNotificationBell();
-      refreshMessagingBell();
+      const lastId = data.items.at(-1)?.id ?? null;
+      const hasNew = lastId !== lastThreadMessageIdRef.current;
+      lastThreadMessageIdRef.current = lastId;
+      if (!silent || hasNew) {
+        await markConversationReadAction({ organizationId, conversationId });
+        refreshNotificationBell();
+      }
     },
     [organizationId],
   );
@@ -209,6 +215,7 @@ export function MessagingWorkspace({
 
   useEffect(() => {
     selectedIdRef.current = selectedId;
+    lastThreadMessageIdRef.current = null;
     if (!selectedId) {
       setMessages([]);
       return;
@@ -231,14 +238,11 @@ export function MessagingWorkspace({
     threadEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      void loadList();
-      const openId = selectedIdRef.current;
-      if (openId) void loadThread(openId, true);
-    }, 12_000);
-    return () => window.clearInterval(interval);
-  }, [loadList, loadThread]);
+  useMessagingRefreshListener(() => {
+    void loadList();
+    const openId = selectedIdRef.current;
+    if (openId) void loadThread(openId, true);
+  });
 
   useEffect(() => {
     const onOnline = () => setOffline(false);

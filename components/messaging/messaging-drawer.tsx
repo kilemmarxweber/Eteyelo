@@ -14,10 +14,9 @@ import {
 import { getMessagingUnreadCountAction } from "@/lib/actions/messaging.actions";
 import {
   MESSAGING_DRAWER_OPEN_EVENT,
-  MESSAGING_REFRESH_EVENT,
-  NOTIFICATIONS_REFRESH_EVENT,
   type MessagingDrawerOpenDetail,
 } from "@/lib/notification-events";
+import { useMessagingRefreshListener } from "@/lib/messaging/use-messaging-refresh-listener";
 import { shouldPreventDismissOutside } from "@/lib/radix-portal-dismiss";
 import { cn } from "@/lib/utils";
 
@@ -42,7 +41,7 @@ function UnreadBadge({ count }: { count: number }) {
 
 export function MessagingDrawer() {
   const params = useParams<{ organizationId: string; branchId: string }>();
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
   const organizationId = params.organizationId;
   const branchId = params.branchId ?? null;
   const currentUserId = session?.user?.id ?? "";
@@ -54,6 +53,7 @@ export function MessagingDrawer() {
     memberRole,
   });
 
+  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -62,8 +62,12 @@ export function MessagingDrawer() {
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const loadCount = useCallback(async () => {
-    if (!organizationId || !allowed) {
+    if (!organizationId || !allowed || !currentUserId) {
       setUnread(0);
       return;
     }
@@ -73,36 +77,16 @@ export function MessagingDrawer() {
     } catch {
       // Conserver le dernier compteur connu.
     }
-  }, [organizationId, allowed]);
+  }, [organizationId, allowed, currentUserId]);
 
   useEffect(() => {
     void loadCount();
   }, [loadCount]);
 
-  useEffect(() => {
-    if (!organizationId || !allowed) return;
-    const interval = window.setInterval(() => {
-      void loadCount();
-    }, 15_000);
-    return () => window.clearInterval(interval);
-  }, [organizationId, allowed, loadCount]);
-
-  useEffect(() => {
-    function onRefresh() {
-      void loadCount();
-    }
-    window.addEventListener(MESSAGING_REFRESH_EVENT, onRefresh);
-    window.addEventListener(NOTIFICATIONS_REFRESH_EVENT, onRefresh);
-    function onVisible() {
-      if (document.visibilityState === "visible") onRefresh();
-    }
-    document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      window.removeEventListener(MESSAGING_REFRESH_EVENT, onRefresh);
-      window.removeEventListener(NOTIFICATIONS_REFRESH_EVENT, onRefresh);
-      document.removeEventListener("visibilitychange", onVisible);
-    };
-  }, [loadCount]);
+  useMessagingRefreshListener(
+    loadCount,
+    Boolean(mounted && organizationId && allowed && currentUserId),
+  );
 
   useEffect(() => {
     function onOpen(event: Event) {
@@ -148,7 +132,9 @@ export function MessagingDrawer() {
     };
   }, [open]);
 
-  if (!organizationId || !allowed || !currentUserId) return null;
+  if (!mounted || isPending || !organizationId || !allowed || !currentUserId) {
+    return null;
+  }
 
   return (
     <>

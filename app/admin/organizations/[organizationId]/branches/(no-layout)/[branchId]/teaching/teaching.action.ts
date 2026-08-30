@@ -633,7 +633,7 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
         }
       : {}),
     ...(input.preferredDays !== undefined
-      ? { preferredDays: input.preferredDays }
+      ? { preferredDays: { set: input.preferredDays } }
       : {}),
   };
   const teachingSelect = {
@@ -778,7 +778,7 @@ export const updateTeachingWeeklyHoursAction = action
             }
           : {}),
         ...(input.preferredDays !== undefined
-          ? { preferredDays: input.preferredDays }
+          ? { preferredDays: { set: input.preferredDays } }
           : {}),
       },
       select: {
