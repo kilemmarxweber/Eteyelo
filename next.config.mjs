@@ -33,6 +33,14 @@ const nextConfig = {
   },
   webpack: (config) => {
     // react-pdf / pdfjs : pas de canvas natif côté serveur
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings ?? []),
+      {
+        message:
+          /Parsing of .*next-intl[\\/]dist[\\/]esm[\\/]production[\\/]extractor[\\/]format[\\/]index\.js for build dependencies failed at 'import\(t\)'/,
+      },
+    ];
+
     config.resolve.alias = {
       ...config.resolve.alias,
       canvas: false,
