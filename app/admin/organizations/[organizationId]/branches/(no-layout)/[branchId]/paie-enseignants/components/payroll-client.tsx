@@ -116,7 +116,12 @@ export default function PayrollClient() {
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
   const [policy, setPolicy] = useState<Policy | null>(null);
+  const [hydrated, setHydrated] = useState(false);
   const loadRequestRef = useRef(0);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   const load = useCallback(async () => {
     const requestId = ++loadRequestRef.current;
@@ -163,9 +168,18 @@ export default function PayrollClient() {
     });
   }, []);
 
-  const isManager = useMemo(() => canComputePayroll(session), [session]);
-  const canValidate = useMemo(() => canValidatePayroll(session), [session]);
-  const canPay = useMemo(() => canPayPayroll(session), [session]);
+  const isManager = useMemo(
+    () => hydrated && canComputePayroll(session),
+    [hydrated, session],
+  );
+  const canValidate = useMemo(
+    () => hydrated && canValidatePayroll(session),
+    [hydrated, session],
+  );
+  const canPay = useMemo(
+    () => hydrated && canPayPayroll(session),
+    [hydrated, session],
+  );
 
   async function recalculate() {
     setWorking(true);
