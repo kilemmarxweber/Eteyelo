@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { Readable } from "stream";
 
 import { resolveLibraryFileAccess } from "@/lib/library/access";
+import {
+  driveFileIdFromStorageKey,
+  isGoogleDriveStorageKey,
+  openGoogleDriveFileStream,
+} from "@/lib/library/google-drive";
 import { openLibraryFileStream } from "@/lib/library/storage";
 import { prisma } from "@/lib/prisma";
 
@@ -24,9 +29,15 @@ export async function GET(_request: Request, { params }: RouteParams) {
   }
 
   try {
-    const { stream, mimeType, size } = await openLibraryFileStream(
-      access.book.fileUrl,
-    );
+    const driveFileId = driveFileIdFromStorageKey(access.book.fileUrl);
+    const { stream, mimeType, size } =
+      isGoogleDriveStorageKey(access.book.fileUrl) && driveFileId
+        ? await openGoogleDriveFileStream({
+            fileId: driveFileId,
+            apiKey: access.book.driveApiKey,
+            fileType: access.book.fileType,
+          })
+        : await openLibraryFileStream(access.book.fileUrl);
 
     void prisma.libraryBook
       .update({

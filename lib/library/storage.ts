@@ -266,7 +266,7 @@ export async function uploadLibraryFile(
 }
 
 export async function deleteLibraryFile(storageKey: string): Promise<void> {
-  if (!storageKey || storageKey.startsWith("http")) {
+  if (!storageKey || storageKey.startsWith("http") || storageKey.startsWith("gdrive:")) {
     return;
   }
 

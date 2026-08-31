@@ -19,6 +19,7 @@ import {
   IconShieldLock,
   IconBrandWhatsapp,
   IconMessage,
+  IconCloud,
 } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
@@ -195,6 +196,13 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         href: `${settingsBasePath}/messagerie`,
         access: "org",
         dacKey: "messagerie",
+      },
+      {
+        title: t("library"),
+        icon: <IconCloud size={18} />,
+        href: `${settingsBasePath}/bibliotheque`,
+        access: "org",
+        dacKey: "bibliotheque",
       },
       {
         title: t("publicCommunication"),

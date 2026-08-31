@@ -40,6 +40,10 @@ export default async function LibraryBookReaderPage({ params }: PageProps) {
       id: bookId,
       branchId: access.branchId,
       ...(access.mode === "student" ? { isActive: true } : {}),
+      OR: [
+        { catalogSourceId: null },
+        { catalogSource: { isEnabled: true } },
+      ],
     },
     select: {
       id: true,

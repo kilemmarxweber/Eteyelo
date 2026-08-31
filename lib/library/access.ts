@@ -172,6 +172,7 @@ export async function resolveLibraryFileAccess(bookId: string): Promise<
         fileType: "PDF" | "EPUB";
         title: string;
         isActive: boolean;
+        driveApiKey: string | null;
       };
       userId: string;
     }
@@ -200,6 +201,9 @@ export async function resolveLibraryFileAccess(bookId: string): Promise<
       fileType: true,
       title: true,
       isActive: true,
+      catalogSource: {
+        select: { isEnabled: true, apiKey: true },
+      },
     },
   });
 
@@ -211,22 +215,42 @@ export async function resolveLibraryFileAccess(bookId: string): Promise<
     ? await canManageLibraryForOrg(session, userId, organizationId)
     : canManageLibrary(session);
 
-  if (isManager) {
-    return { ok: true, book, userId };
-  }
-
-  if (!book.isActive) {
+  const sourceDisabled = book.catalogSource && !book.catalogSource.isEnabled;
+  if (!isManager && (!book.isActive || sourceDisabled)) {
     return { ok: false, status: 404 };
   }
 
-  const membership = await findLibraryReaderMembership(userId, branchId);
-
-  if (!membership) {
-    return { ok: false, status: 403 };
+  if (!isManager) {
+    const membership = await findLibraryReaderMembership(userId, branchId);
+    if (!membership) {
+      return { ok: false, status: 403 };
+    }
   }
 
-  return { ok: true, book, userId };
+  return {
+    ok: true,
+    userId,
+    book: {
+      id: book.id,
+      branchId: book.branchId,
+      fileUrl: book.fileUrl,
+      fileType: book.fileType,
+      title: book.title,
+      isActive: book.isActive,
+      driveApiKey: book.catalogSource?.apiKey ?? null,
+    },
+  };
 }
+
+/** Livres d’une source Drive désactivée : masqués du catalogue. */
+export const enabledCatalogSourceWhere: {
+  OR: Array<{ catalogSourceId: null } | { catalogSource: { isEnabled: true } }>;
+} = {
+  OR: [
+    { catalogSourceId: null },
+    { catalogSource: { isEnabled: true } },
+  ],
+};
 
 /** Champs catalogue sûrs (sans fileUrl). */
 export function toPublicLibraryBook<

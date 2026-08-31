@@ -357,6 +357,11 @@ export type IssuedDocument = Prisma.IssuedDocumentModel
  */
 export type BranchInvitation = Prisma.BranchInvitationModel
 /**
+ * Model LibraryCatalogSource
+ * Dossier / catalogue externe (Drive, …) — une ou plusieurs sources par école.
+ */
+export type LibraryCatalogSource = Prisma.LibraryCatalogSourceModel
+/**
  * Model LibraryBook
  * 
  */

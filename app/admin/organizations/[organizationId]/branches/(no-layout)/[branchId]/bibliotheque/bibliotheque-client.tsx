@@ -2,7 +2,8 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, LibraryBig, Plus, Search } from "lucide-react";
+import Link from "next/link";
+import { BookOpen, Cloud, LibraryBig, Plus, Search } from "lucide-react";
 
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Badge } from "@/components/ui/badge";
@@ -94,15 +95,25 @@ export function BibliothequeClient({
       }
       actions={
         mode === "manage" ? (
-          <Button
-            size="sm"
-            onClick={() => setCreateOpen(true)}
-            className="gap-1.5"
-            disabled={pending}
-          >
-            <Plus className="size-3.5" />
-            Ajouter un livre
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild variant="outline" size="sm" className="gap-1.5">
+              <Link
+                href={`/admin/organizations/${organizationId}/branches/${branchId}/settings/bibliotheque`}
+              >
+                <Cloud className="size-3.5" />
+                Sources
+              </Link>
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setCreateOpen(true)}
+              className="gap-1.5"
+              disabled={pending}
+            >
+              <Plus className="size-3.5" />
+              Ajouter un livre
+            </Button>
+          </div>
         ) : null
       }
       contentClassName="space-y-4"

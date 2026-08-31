@@ -65,6 +65,8 @@ export type LibraryBookMinAggregateOutputType = {
   source: $Enums.LibrarySource | null
   sortOrder: number | null
   viewCount: number | null
+  catalogSourceId: string | null
+  externalId: string | null
   branchId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -96,6 +98,8 @@ export type LibraryBookMaxAggregateOutputType = {
   source: $Enums.LibrarySource | null
   sortOrder: number | null
   viewCount: number | null
+  catalogSourceId: string | null
+  externalId: string | null
   branchId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -128,6 +132,8 @@ export type LibraryBookCountAggregateOutputType = {
   source: number
   sortOrder: number
   viewCount: number
+  catalogSourceId: number
+  externalId: number
   branchId: number
   createdAt: number
   updatedAt: number
@@ -175,6 +181,8 @@ export type LibraryBookMinAggregateInputType = {
   source?: true
   sortOrder?: true
   viewCount?: true
+  catalogSourceId?: true
+  externalId?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -206,6 +214,8 @@ export type LibraryBookMaxAggregateInputType = {
   source?: true
   sortOrder?: true
   viewCount?: true
+  catalogSourceId?: true
+  externalId?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -238,6 +248,8 @@ export type LibraryBookCountAggregateInputType = {
   source?: true
   sortOrder?: true
   viewCount?: true
+  catalogSourceId?: true
+  externalId?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -357,6 +369,8 @@ export type LibraryBookGroupByOutputType = {
   source: $Enums.LibrarySource
   sortOrder: number
   viewCount: number
+  catalogSourceId: string | null
+  externalId: string | null
   branchId: string
   createdAt: Date
   updatedAt: Date
@@ -412,10 +426,13 @@ export type LibraryBookWhereInput = {
   source?: Prisma.EnumLibrarySourceFilter<"LibraryBook"> | $Enums.LibrarySource
   sortOrder?: Prisma.IntFilter<"LibraryBook"> | number
   viewCount?: Prisma.IntFilter<"LibraryBook"> | number
+  catalogSourceId?: Prisma.StringNullableFilter<"LibraryBook"> | string | null
+  externalId?: Prisma.StringNullableFilter<"LibraryBook"> | string | null
   branchId?: Prisma.StringFilter<"LibraryBook"> | string
   createdAt?: Prisma.DateTimeFilter<"LibraryBook"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LibraryBook"> | Date | string
   createdById?: Prisma.StringNullableFilter<"LibraryBook"> | string | null
+  catalogSource?: Prisma.XOR<Prisma.LibraryCatalogSourceNullableScalarRelationFilter, Prisma.LibraryCatalogSourceWhereInput> | null
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
 }
 
@@ -445,15 +462,19 @@ export type LibraryBookOrderByWithRelationInput = {
   source?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
   viewCount?: Prisma.SortOrder
+  catalogSourceId?: Prisma.SortOrderInput | Prisma.SortOrder
+  externalId?: Prisma.SortOrderInput | Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrderInput | Prisma.SortOrder
+  catalogSource?: Prisma.LibraryCatalogSourceOrderByWithRelationInput
   branch?: Prisma.BranchOrderByWithRelationInput
 }
 
 export type LibraryBookWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  catalogSourceId_externalId?: Prisma.LibraryBookCatalogSourceIdExternalIdCompoundUniqueInput
   AND?: Prisma.LibraryBookWhereInput | Prisma.LibraryBookWhereInput[]
   OR?: Prisma.LibraryBookWhereInput[]
   NOT?: Prisma.LibraryBookWhereInput | Prisma.LibraryBookWhereInput[]
@@ -481,12 +502,15 @@ export type LibraryBookWhereUniqueInput = Prisma.AtLeast<{
   source?: Prisma.EnumLibrarySourceFilter<"LibraryBook"> | $Enums.LibrarySource
   sortOrder?: Prisma.IntFilter<"LibraryBook"> | number
   viewCount?: Prisma.IntFilter<"LibraryBook"> | number
+  catalogSourceId?: Prisma.StringNullableFilter<"LibraryBook"> | string | null
+  externalId?: Prisma.StringNullableFilter<"LibraryBook"> | string | null
   branchId?: Prisma.StringFilter<"LibraryBook"> | string
   createdAt?: Prisma.DateTimeFilter<"LibraryBook"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LibraryBook"> | Date | string
   createdById?: Prisma.StringNullableFilter<"LibraryBook"> | string | null
+  catalogSource?: Prisma.XOR<Prisma.LibraryCatalogSourceNullableScalarRelationFilter, Prisma.LibraryCatalogSourceWhereInput> | null
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
-}, "id">
+}, "id" | "catalogSourceId_externalId">
 
 export type LibraryBookOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -514,6 +538,8 @@ export type LibraryBookOrderByWithAggregationInput = {
   source?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
   viewCount?: Prisma.SortOrder
+  catalogSourceId?: Prisma.SortOrderInput | Prisma.SortOrder
+  externalId?: Prisma.SortOrderInput | Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -554,6 +580,8 @@ export type LibraryBookScalarWhereWithAggregatesInput = {
   source?: Prisma.EnumLibrarySourceWithAggregatesFilter<"LibraryBook"> | $Enums.LibrarySource
   sortOrder?: Prisma.IntWithAggregatesFilter<"LibraryBook"> | number
   viewCount?: Prisma.IntWithAggregatesFilter<"LibraryBook"> | number
+  catalogSourceId?: Prisma.StringNullableWithAggregatesFilter<"LibraryBook"> | string | null
+  externalId?: Prisma.StringNullableWithAggregatesFilter<"LibraryBook"> | string | null
   branchId?: Prisma.StringWithAggregatesFilter<"LibraryBook"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"LibraryBook"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"LibraryBook"> | Date | string
@@ -586,9 +614,11 @@ export type LibraryBookCreateInput = {
   source?: $Enums.LibrarySource
   sortOrder?: number
   viewCount?: number
+  externalId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: string | null
+  catalogSource?: Prisma.LibraryCatalogSourceCreateNestedOneWithoutBooksInput
   branch: Prisma.BranchCreateNestedOneWithoutLibraryBooksInput
 }
 
@@ -618,6 +648,8 @@ export type LibraryBookUncheckedCreateInput = {
   source?: $Enums.LibrarySource
   sortOrder?: number
   viewCount?: number
+  catalogSourceId?: string | null
+  externalId?: string | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -650,9 +682,11 @@ export type LibraryBookUpdateInput = {
   source?: Prisma.EnumLibrarySourceFieldUpdateOperationsInput | $Enums.LibrarySource
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  catalogSource?: Prisma.LibraryCatalogSourceUpdateOneWithoutBooksNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutLibraryBooksNestedInput
 }
 
@@ -682,6 +716,8 @@ export type LibraryBookUncheckedUpdateInput = {
   source?: Prisma.EnumLibrarySourceFieldUpdateOperationsInput | $Enums.LibrarySource
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  catalogSourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -714,6 +750,8 @@ export type LibraryBookCreateManyInput = {
   source?: $Enums.LibrarySource
   sortOrder?: number
   viewCount?: number
+  catalogSourceId?: string | null
+  externalId?: string | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -746,6 +784,7 @@ export type LibraryBookUpdateManyMutationInput = {
   source?: Prisma.EnumLibrarySourceFieldUpdateOperationsInput | $Enums.LibrarySource
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -777,6 +816,8 @@ export type LibraryBookUncheckedUpdateManyInput = {
   source?: Prisma.EnumLibrarySourceFieldUpdateOperationsInput | $Enums.LibrarySource
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  catalogSourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -799,6 +840,11 @@ export type StringNullableListFilter<$PrismaModel = never> = {
   hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
   hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
   isEmpty?: boolean
+}
+
+export type LibraryBookCatalogSourceIdExternalIdCompoundUniqueInput = {
+  catalogSourceId: string
+  externalId: string
 }
 
 export type LibraryBookCountOrderByAggregateInput = {
@@ -827,6 +873,8 @@ export type LibraryBookCountOrderByAggregateInput = {
   source?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
   viewCount?: Prisma.SortOrder
+  catalogSourceId?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -865,6 +913,8 @@ export type LibraryBookMaxOrderByAggregateInput = {
   source?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
   viewCount?: Prisma.SortOrder
+  catalogSourceId?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -896,6 +946,8 @@ export type LibraryBookMinOrderByAggregateInput = {
   source?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
   viewCount?: Prisma.SortOrder
+  catalogSourceId?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -951,6 +1003,48 @@ export type LibraryBookUncheckedUpdateManyWithoutBranchNestedInput = {
   deleteMany?: Prisma.LibraryBookScalarWhereInput | Prisma.LibraryBookScalarWhereInput[]
 }
 
+export type LibraryBookCreateNestedManyWithoutCatalogSourceInput = {
+  create?: Prisma.XOR<Prisma.LibraryBookCreateWithoutCatalogSourceInput, Prisma.LibraryBookUncheckedCreateWithoutCatalogSourceInput> | Prisma.LibraryBookCreateWithoutCatalogSourceInput[] | Prisma.LibraryBookUncheckedCreateWithoutCatalogSourceInput[]
+  connectOrCreate?: Prisma.LibraryBookCreateOrConnectWithoutCatalogSourceInput | Prisma.LibraryBookCreateOrConnectWithoutCatalogSourceInput[]
+  createMany?: Prisma.LibraryBookCreateManyCatalogSourceInputEnvelope
+  connect?: Prisma.LibraryBookWhereUniqueInput | Prisma.LibraryBookWhereUniqueInput[]
+}
+
+export type LibraryBookUncheckedCreateNestedManyWithoutCatalogSourceInput = {
+  create?: Prisma.XOR<Prisma.LibraryBookCreateWithoutCatalogSourceInput, Prisma.LibraryBookUncheckedCreateWithoutCatalogSourceInput> | Prisma.LibraryBookCreateWithoutCatalogSourceInput[] | Prisma.LibraryBookUncheckedCreateWithoutCatalogSourceInput[]
+  connectOrCreate?: Prisma.LibraryBookCreateOrConnectWithoutCatalogSourceInput | Prisma.LibraryBookCreateOrConnectWithoutCatalogSourceInput[]
+  createMany?: Prisma.LibraryBookCreateManyCatalogSourceInputEnvelope
+  connect?: Prisma.LibraryBookWhereUniqueInput | Prisma.LibraryBookWhereUniqueInput[]
+}
+
+export type LibraryBookUpdateManyWithoutCatalogSourceNestedInput = {
+  create?: Prisma.XOR<Prisma.LibraryBookCreateWithoutCatalogSourceInput, Prisma.LibraryBookUncheckedCreateWithoutCatalogSourceInput> | Prisma.LibraryBookCreateWithoutCatalogSourceInput[] | Prisma.LibraryBookUncheckedCreateWithoutCatalogSourceInput[]
+  connectOrCreate?: Prisma.LibraryBookCreateOrConnectWithoutCatalogSourceInput | Prisma.LibraryBookCreateOrConnectWithoutCatalogSourceInput[]
+  upsert?: Prisma.LibraryBookUpsertWithWhereUniqueWithoutCatalogSourceInput | Prisma.LibraryBookUpsertWithWhereUniqueWithoutCatalogSourceInput[]
+  createMany?: Prisma.LibraryBookCreateManyCatalogSourceInputEnvelope
+  set?: Prisma.LibraryBookWhereUniqueInput | Prisma.LibraryBookWhereUniqueInput[]
+  disconnect?: Prisma.LibraryBookWhereUniqueInput | Prisma.LibraryBookWhereUniqueInput[]
+  delete?: Prisma.LibraryBookWhereUniqueInput | Prisma.LibraryBookWhereUniqueInput[]
+  connect?: Prisma.LibraryBookWhereUniqueInput | Prisma.LibraryBookWhereUniqueInput[]
+  update?: Prisma.LibraryBookUpdateWithWhereUniqueWithoutCatalogSourceInput | Prisma.LibraryBookUpdateWithWhereUniqueWithoutCatalogSourceInput[]
+  updateMany?: Prisma.LibraryBookUpdateManyWithWhereWithoutCatalogSourceInput | Prisma.LibraryBookUpdateManyWithWhereWithoutCatalogSourceInput[]
+  deleteMany?: Prisma.LibraryBookScalarWhereInput | Prisma.LibraryBookScalarWhereInput[]
+}
+
+export type LibraryBookUncheckedUpdateManyWithoutCatalogSourceNestedInput = {
+  create?: Prisma.XOR<Prisma.LibraryBookCreateWithoutCatalogSourceInput, Prisma.LibraryBookUncheckedCreateWithoutCatalogSourceInput> | Prisma.LibraryBookCreateWithoutCatalogSourceInput[] | Prisma.LibraryBookUncheckedCreateWithoutCatalogSourceInput[]
+  connectOrCreate?: Prisma.LibraryBookCreateOrConnectWithoutCatalogSourceInput | Prisma.LibraryBookCreateOrConnectWithoutCatalogSourceInput[]
+  upsert?: Prisma.LibraryBookUpsertWithWhereUniqueWithoutCatalogSourceInput | Prisma.LibraryBookUpsertWithWhereUniqueWithoutCatalogSourceInput[]
+  createMany?: Prisma.LibraryBookCreateManyCatalogSourceInputEnvelope
+  set?: Prisma.LibraryBookWhereUniqueInput | Prisma.LibraryBookWhereUniqueInput[]
+  disconnect?: Prisma.LibraryBookWhereUniqueInput | Prisma.LibraryBookWhereUniqueInput[]
+  delete?: Prisma.LibraryBookWhereUniqueInput | Prisma.LibraryBookWhereUniqueInput[]
+  connect?: Prisma.LibraryBookWhereUniqueInput | Prisma.LibraryBookWhereUniqueInput[]
+  update?: Prisma.LibraryBookUpdateWithWhereUniqueWithoutCatalogSourceInput | Prisma.LibraryBookUpdateWithWhereUniqueWithoutCatalogSourceInput[]
+  updateMany?: Prisma.LibraryBookUpdateManyWithWhereWithoutCatalogSourceInput | Prisma.LibraryBookUpdateManyWithWhereWithoutCatalogSourceInput[]
+  deleteMany?: Prisma.LibraryBookScalarWhereInput | Prisma.LibraryBookScalarWhereInput[]
+}
+
 export type LibraryBookCreatetagsInput = {
   set: string[]
 }
@@ -1002,9 +1096,11 @@ export type LibraryBookCreateWithoutBranchInput = {
   source?: $Enums.LibrarySource
   sortOrder?: number
   viewCount?: number
+  externalId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: string | null
+  catalogSource?: Prisma.LibraryCatalogSourceCreateNestedOneWithoutBooksInput
 }
 
 export type LibraryBookUncheckedCreateWithoutBranchInput = {
@@ -1033,6 +1129,8 @@ export type LibraryBookUncheckedCreateWithoutBranchInput = {
   source?: $Enums.LibrarySource
   sortOrder?: number
   viewCount?: number
+  catalogSourceId?: string | null
+  externalId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: string | null
@@ -1093,10 +1191,104 @@ export type LibraryBookScalarWhereInput = {
   source?: Prisma.EnumLibrarySourceFilter<"LibraryBook"> | $Enums.LibrarySource
   sortOrder?: Prisma.IntFilter<"LibraryBook"> | number
   viewCount?: Prisma.IntFilter<"LibraryBook"> | number
+  catalogSourceId?: Prisma.StringNullableFilter<"LibraryBook"> | string | null
+  externalId?: Prisma.StringNullableFilter<"LibraryBook"> | string | null
   branchId?: Prisma.StringFilter<"LibraryBook"> | string
   createdAt?: Prisma.DateTimeFilter<"LibraryBook"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LibraryBook"> | Date | string
   createdById?: Prisma.StringNullableFilter<"LibraryBook"> | string | null
+}
+
+export type LibraryBookCreateWithoutCatalogSourceInput = {
+  id?: string
+  title: string
+  author?: string | null
+  publisher?: string | null
+  description?: string | null
+  coverImage?: string | null
+  fileUrl: string
+  fileType: $Enums.LibraryFileType
+  fileSize?: number | null
+  pageCount?: number | null
+  language?: string
+  license?: string | null
+  isbn?: string | null
+  cycle?: $Enums.LibraryCycle | null
+  level?: string | null
+  section?: string | null
+  subject?: string | null
+  category?: string | null
+  tags?: Prisma.LibraryBookCreatetagsInput | string[]
+  visibility?: $Enums.LibraryVisibility
+  allowDownload?: boolean
+  isActive?: boolean
+  source?: $Enums.LibrarySource
+  sortOrder?: number
+  viewCount?: number
+  externalId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: string | null
+  branch: Prisma.BranchCreateNestedOneWithoutLibraryBooksInput
+}
+
+export type LibraryBookUncheckedCreateWithoutCatalogSourceInput = {
+  id?: string
+  title: string
+  author?: string | null
+  publisher?: string | null
+  description?: string | null
+  coverImage?: string | null
+  fileUrl: string
+  fileType: $Enums.LibraryFileType
+  fileSize?: number | null
+  pageCount?: number | null
+  language?: string
+  license?: string | null
+  isbn?: string | null
+  cycle?: $Enums.LibraryCycle | null
+  level?: string | null
+  section?: string | null
+  subject?: string | null
+  category?: string | null
+  tags?: Prisma.LibraryBookCreatetagsInput | string[]
+  visibility?: $Enums.LibraryVisibility
+  allowDownload?: boolean
+  isActive?: boolean
+  source?: $Enums.LibrarySource
+  sortOrder?: number
+  viewCount?: number
+  externalId?: string | null
+  branchId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: string | null
+}
+
+export type LibraryBookCreateOrConnectWithoutCatalogSourceInput = {
+  where: Prisma.LibraryBookWhereUniqueInput
+  create: Prisma.XOR<Prisma.LibraryBookCreateWithoutCatalogSourceInput, Prisma.LibraryBookUncheckedCreateWithoutCatalogSourceInput>
+}
+
+export type LibraryBookCreateManyCatalogSourceInputEnvelope = {
+  data: Prisma.LibraryBookCreateManyCatalogSourceInput | Prisma.LibraryBookCreateManyCatalogSourceInput[]
+  skipDuplicates?: boolean
+}
+
+export type LibraryBookUpsertWithWhereUniqueWithoutCatalogSourceInput = {
+  where: Prisma.LibraryBookWhereUniqueInput
+  update: Prisma.XOR<Prisma.LibraryBookUpdateWithoutCatalogSourceInput, Prisma.LibraryBookUncheckedUpdateWithoutCatalogSourceInput>
+  create: Prisma.XOR<Prisma.LibraryBookCreateWithoutCatalogSourceInput, Prisma.LibraryBookUncheckedCreateWithoutCatalogSourceInput>
+}
+
+export type LibraryBookUpdateWithWhereUniqueWithoutCatalogSourceInput = {
+  where: Prisma.LibraryBookWhereUniqueInput
+  data: Prisma.XOR<Prisma.LibraryBookUpdateWithoutCatalogSourceInput, Prisma.LibraryBookUncheckedUpdateWithoutCatalogSourceInput>
+}
+
+export type LibraryBookUpdateManyWithWhereWithoutCatalogSourceInput = {
+  where: Prisma.LibraryBookScalarWhereInput
+  data: Prisma.XOR<Prisma.LibraryBookUpdateManyMutationInput, Prisma.LibraryBookUncheckedUpdateManyWithoutCatalogSourceInput>
 }
 
 export type LibraryBookCreateManyBranchInput = {
@@ -1125,6 +1317,8 @@ export type LibraryBookCreateManyBranchInput = {
   source?: $Enums.LibrarySource
   sortOrder?: number
   viewCount?: number
+  catalogSourceId?: string | null
+  externalId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: string | null
@@ -1156,9 +1350,11 @@ export type LibraryBookUpdateWithoutBranchInput = {
   source?: Prisma.EnumLibrarySourceFieldUpdateOperationsInput | $Enums.LibrarySource
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  catalogSource?: Prisma.LibraryCatalogSourceUpdateOneWithoutBooksNestedInput
 }
 
 export type LibraryBookUncheckedUpdateWithoutBranchInput = {
@@ -1187,6 +1383,8 @@ export type LibraryBookUncheckedUpdateWithoutBranchInput = {
   source?: Prisma.EnumLibrarySourceFieldUpdateOperationsInput | $Enums.LibrarySource
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  catalogSourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1218,6 +1416,140 @@ export type LibraryBookUncheckedUpdateManyWithoutBranchInput = {
   source?: Prisma.EnumLibrarySourceFieldUpdateOperationsInput | $Enums.LibrarySource
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  catalogSourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type LibraryBookCreateManyCatalogSourceInput = {
+  id?: string
+  title: string
+  author?: string | null
+  publisher?: string | null
+  description?: string | null
+  coverImage?: string | null
+  fileUrl: string
+  fileType: $Enums.LibraryFileType
+  fileSize?: number | null
+  pageCount?: number | null
+  language?: string
+  license?: string | null
+  isbn?: string | null
+  cycle?: $Enums.LibraryCycle | null
+  level?: string | null
+  section?: string | null
+  subject?: string | null
+  category?: string | null
+  tags?: Prisma.LibraryBookCreatetagsInput | string[]
+  visibility?: $Enums.LibraryVisibility
+  allowDownload?: boolean
+  isActive?: boolean
+  source?: $Enums.LibrarySource
+  sortOrder?: number
+  viewCount?: number
+  externalId?: string | null
+  branchId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: string | null
+}
+
+export type LibraryBookUpdateWithoutCatalogSourceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publisher?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  fileType?: Prisma.EnumLibraryFileTypeFieldUpdateOperationsInput | $Enums.LibraryFileType
+  fileSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pageCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  license?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isbn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cycle?: Prisma.NullableEnumLibraryCycleFieldUpdateOperationsInput | $Enums.LibraryCycle | null
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  section?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.LibraryBookUpdatetagsInput | string[]
+  visibility?: Prisma.EnumLibraryVisibilityFieldUpdateOperationsInput | $Enums.LibraryVisibility
+  allowDownload?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  source?: Prisma.EnumLibrarySourceFieldUpdateOperationsInput | $Enums.LibrarySource
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branch?: Prisma.BranchUpdateOneRequiredWithoutLibraryBooksNestedInput
+}
+
+export type LibraryBookUncheckedUpdateWithoutCatalogSourceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publisher?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  fileType?: Prisma.EnumLibraryFileTypeFieldUpdateOperationsInput | $Enums.LibraryFileType
+  fileSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pageCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  license?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isbn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cycle?: Prisma.NullableEnumLibraryCycleFieldUpdateOperationsInput | $Enums.LibraryCycle | null
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  section?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.LibraryBookUpdatetagsInput | string[]
+  visibility?: Prisma.EnumLibraryVisibilityFieldUpdateOperationsInput | $Enums.LibraryVisibility
+  allowDownload?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  source?: Prisma.EnumLibrarySourceFieldUpdateOperationsInput | $Enums.LibrarySource
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type LibraryBookUncheckedUpdateManyWithoutCatalogSourceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publisher?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  fileType?: Prisma.EnumLibraryFileTypeFieldUpdateOperationsInput | $Enums.LibraryFileType
+  fileSize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  pageCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  license?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isbn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cycle?: Prisma.NullableEnumLibraryCycleFieldUpdateOperationsInput | $Enums.LibraryCycle | null
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  section?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.LibraryBookUpdatetagsInput | string[]
+  visibility?: Prisma.EnumLibraryVisibilityFieldUpdateOperationsInput | $Enums.LibraryVisibility
+  allowDownload?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  source?: Prisma.EnumLibrarySourceFieldUpdateOperationsInput | $Enums.LibrarySource
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1251,10 +1583,13 @@ export type LibraryBookSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   source?: boolean
   sortOrder?: boolean
   viewCount?: boolean
+  catalogSourceId?: boolean
+  externalId?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   createdById?: boolean
+  catalogSource?: boolean | Prisma.LibraryBook$catalogSourceArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["libraryBook"]>
 
@@ -1284,10 +1619,13 @@ export type LibraryBookSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   source?: boolean
   sortOrder?: boolean
   viewCount?: boolean
+  catalogSourceId?: boolean
+  externalId?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   createdById?: boolean
+  catalogSource?: boolean | Prisma.LibraryBook$catalogSourceArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["libraryBook"]>
 
@@ -1317,10 +1655,13 @@ export type LibraryBookSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   source?: boolean
   sortOrder?: boolean
   viewCount?: boolean
+  catalogSourceId?: boolean
+  externalId?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   createdById?: boolean
+  catalogSource?: boolean | Prisma.LibraryBook$catalogSourceArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["libraryBook"]>
 
@@ -1350,26 +1691,32 @@ export type LibraryBookSelectScalar = {
   source?: boolean
   sortOrder?: boolean
   viewCount?: boolean
+  catalogSourceId?: boolean
+  externalId?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   createdById?: boolean
 }
 
-export type LibraryBookOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "author" | "publisher" | "description" | "coverImage" | "fileUrl" | "fileType" | "fileSize" | "pageCount" | "language" | "license" | "isbn" | "cycle" | "level" | "section" | "subject" | "category" | "tags" | "visibility" | "allowDownload" | "isActive" | "source" | "sortOrder" | "viewCount" | "branchId" | "createdAt" | "updatedAt" | "createdById", ExtArgs["result"]["libraryBook"]>
+export type LibraryBookOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "author" | "publisher" | "description" | "coverImage" | "fileUrl" | "fileType" | "fileSize" | "pageCount" | "language" | "license" | "isbn" | "cycle" | "level" | "section" | "subject" | "category" | "tags" | "visibility" | "allowDownload" | "isActive" | "source" | "sortOrder" | "viewCount" | "catalogSourceId" | "externalId" | "branchId" | "createdAt" | "updatedAt" | "createdById", ExtArgs["result"]["libraryBook"]>
 export type LibraryBookInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  catalogSource?: boolean | Prisma.LibraryBook$catalogSourceArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
 export type LibraryBookIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  catalogSource?: boolean | Prisma.LibraryBook$catalogSourceArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
 export type LibraryBookIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  catalogSource?: boolean | Prisma.LibraryBook$catalogSourceArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
 
 export type $LibraryBookPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "LibraryBook"
   objects: {
+    catalogSource: Prisma.$LibraryCatalogSourcePayload<ExtArgs> | null
     branch: Prisma.$BranchPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1401,6 +1748,11 @@ export type $LibraryBookPayload<ExtArgs extends runtime.Types.Extensions.Interna
     source: $Enums.LibrarySource
     sortOrder: number
     viewCount: number
+    catalogSourceId: string | null
+    /**
+     * Identifiant externe (ex. fileId Google Drive)
+     */
+    externalId: string | null
     branchId: string
     createdAt: Date
     updatedAt: Date
@@ -1799,6 +2151,7 @@ readonly fields: LibraryBookFieldRefs;
  */
 export interface Prisma__LibraryBookClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  catalogSource<T extends Prisma.LibraryBook$catalogSourceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LibraryBook$catalogSourceArgs<ExtArgs>>): Prisma.Prisma__LibraryCatalogSourceClient<runtime.Types.Result.GetResult<Prisma.$LibraryCatalogSourcePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1854,6 +2207,8 @@ export interface LibraryBookFieldRefs {
   readonly source: Prisma.FieldRef<"LibraryBook", 'LibrarySource'>
   readonly sortOrder: Prisma.FieldRef<"LibraryBook", 'Int'>
   readonly viewCount: Prisma.FieldRef<"LibraryBook", 'Int'>
+  readonly catalogSourceId: Prisma.FieldRef<"LibraryBook", 'String'>
+  readonly externalId: Prisma.FieldRef<"LibraryBook", 'String'>
   readonly branchId: Prisma.FieldRef<"LibraryBook", 'String'>
   readonly createdAt: Prisma.FieldRef<"LibraryBook", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"LibraryBook", 'DateTime'>
@@ -2256,6 +2611,25 @@ export type LibraryBookDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Limit how many LibraryBooks to delete.
    */
   limit?: number
+}
+
+/**
+ * LibraryBook.catalogSource
+ */
+export type LibraryBook$catalogSourceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LibraryCatalogSource
+   */
+  select?: Prisma.LibraryCatalogSourceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LibraryCatalogSource
+   */
+  omit?: Prisma.LibraryCatalogSourceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LibraryCatalogSourceInclude<ExtArgs> | null
+  where?: Prisma.LibraryCatalogSourceWhereInput
 }
 
 /**

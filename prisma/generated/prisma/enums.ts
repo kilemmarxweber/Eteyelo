@@ -336,10 +336,18 @@ export type LibraryVisibility = (typeof LibraryVisibility)[keyof typeof LibraryV
 export const LibrarySource = {
   SCHOOL_UPLOAD: 'SCHOOL_UPLOAD',
   OPEN_LICENSE: 'OPEN_LICENSE',
-  PLATFORM_CATALOG: 'PLATFORM_CATALOG'
+  PLATFORM_CATALOG: 'PLATFORM_CATALOG',
+  GOOGLE_DRIVE: 'GOOGLE_DRIVE'
 } as const
 
 export type LibrarySource = (typeof LibrarySource)[keyof typeof LibrarySource]
+
+
+export const LibraryCatalogSourceKind = {
+  GOOGLE_DRIVE: 'GOOGLE_DRIVE'
+} as const
+
+export type LibraryCatalogSourceKind = (typeof LibraryCatalogSourceKind)[keyof typeof LibraryCatalogSourceKind]
 
 
 export const PlatformSupportEscalationStatus = {

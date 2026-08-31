@@ -1522,6 +1522,7 @@ model Branch {
   sourceStudentLinks   StudentBranchLink[] @relation("SourceBranchLinks")
   issuedDocuments      IssuedDocument[]
   libraryBooks         LibraryBook[]
+  libraryCatalogSources LibraryCatalogSource[]
   supportTickets       PlatformSupportEscalation[]
   onlineAssignments    OnlineAssignment[]
   primaryDomains       BranchPrimaryDomain[]
@@ -1941,6 +1942,35 @@ enum LibrarySource {
   SCHOOL_UPLOAD
   OPEN_LICENSE
   PLATFORM_CATALOG
+  GOOGLE_DRIVE
+}
+
+enum LibraryCatalogSourceKind {
+  GOOGLE_DRIVE
+}
+
+/// Dossier / catalogue externe (Drive, …) — une ou plusieurs sources par école.
+model LibraryCatalogSource {
+  id           String                   @id @default(cuid())
+  branchId     String
+  branch       Branch                   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  kind         LibraryCatalogSourceKind @default(GOOGLE_DRIVE)
+  name         String
+  url          String
+  folderId     String?
+  /// Clé API Drive optionnelle (repli si pas de compte de service)
+  apiKey       String?
+  isEnabled    Boolean                  @default(true)
+  lastSyncedAt DateTime?
+  lastError    String?                  @db.Text
+  fileCount    Int                      @default(0)
+  sortOrder    Int                      @default(0)
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  books        LibraryBook[]
+
+  @@index([branchId, isEnabled])
+  @@index([branchId, kind])
 }
 
 model LibraryBook {
@@ -1974,6 +2004,11 @@ model LibraryBook {
   sortOrder     Int               @default(0)
   viewCount     Int               @default(0)
 
+  catalogSourceId String?
+  catalogSource   LibraryCatalogSource? @relation(fields: [catalogSourceId], references: [id], onDelete: Cascade)
+  /// Identifiant externe (ex. fileId Google Drive)
+  externalId      String?
+
   branchId    String
   branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
@@ -1989,6 +2024,8 @@ model LibraryBook {
   @@index([category])
   @@index([visibility])
   @@index([fileType])
+  @@index([catalogSourceId])
+  @@unique([catalogSourceId, externalId])
 }
 
 // ─── Support plateforme (équipe Klambocore) ───────────────────────────────────

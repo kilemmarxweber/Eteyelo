@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import {
+  enabledCatalogSourceWhere,
   enforceLibraryAccess,
   enforceLibraryManageAccess,
   toPublicLibraryBook,
@@ -48,15 +49,35 @@ export const listLibraryBooksAction = action
         ...(input.cycle ? { cycle: input.cycle } : {}),
         ...(input.subject ? { subject: input.subject } : {}),
         ...(input.level ? { level: input.level } : {}),
-        ...(input.q?.trim()
-          ? {
-              OR: [
-                { title: { contains: input.q.trim(), mode: "insensitive" } },
-                { author: { contains: input.q.trim(), mode: "insensitive" } },
-                { subject: { contains: input.q.trim(), mode: "insensitive" } },
-              ],
-            }
-          : {}),
+        AND: [
+          enabledCatalogSourceWhere,
+          ...(input.q?.trim()
+            ? [
+                {
+                  OR: [
+                    {
+                      title: {
+                        contains: input.q.trim(),
+                        mode: "insensitive" as const,
+                      },
+                    },
+                    {
+                      author: {
+                        contains: input.q.trim(),
+                        mode: "insensitive" as const,
+                      },
+                    },
+                    {
+                      subject: {
+                        contains: input.q.trim(),
+                        mode: "insensitive" as const,
+                      },
+                    },
+                  ],
+                },
+              ]
+            : []),
+        ],
       },
       orderBy: [{ sortOrder: "asc" }, { title: "asc" }],
       select: {
@@ -108,6 +129,7 @@ export const getLibraryBookAction = action
         id: input.id,
         branchId,
         ...(mode === "student" ? { isActive: true } : {}),
+        ...enabledCatalogSourceWhere,
       },
       select: {
         id: true,

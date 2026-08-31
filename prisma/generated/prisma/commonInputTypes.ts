@@ -901,6 +901,23 @@ export type EnumIssuedDocumentTypeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumIssuedDocumentTypeFilter<$PrismaModel>
 }
 
+export type EnumLibraryCatalogSourceKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryCatalogSourceKind | Prisma.EnumLibraryCatalogSourceKindFieldRefInput<$PrismaModel>
+  in?: $Enums.LibraryCatalogSourceKind[] | Prisma.ListEnumLibraryCatalogSourceKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibraryCatalogSourceKind[] | Prisma.ListEnumLibraryCatalogSourceKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibraryCatalogSourceKindFilter<$PrismaModel> | $Enums.LibraryCatalogSourceKind
+}
+
+export type EnumLibraryCatalogSourceKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryCatalogSourceKind | Prisma.EnumLibraryCatalogSourceKindFieldRefInput<$PrismaModel>
+  in?: $Enums.LibraryCatalogSourceKind[] | Prisma.ListEnumLibraryCatalogSourceKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibraryCatalogSourceKind[] | Prisma.ListEnumLibraryCatalogSourceKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibraryCatalogSourceKindWithAggregatesFilter<$PrismaModel> | $Enums.LibraryCatalogSourceKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLibraryCatalogSourceKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLibraryCatalogSourceKindFilter<$PrismaModel>
+}
+
 export type EnumLibraryFileTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.LibraryFileType | Prisma.EnumLibraryFileTypeFieldRefInput<$PrismaModel>
   in?: $Enums.LibraryFileType[] | Prisma.ListEnumLibraryFileTypeFieldRefInput<$PrismaModel>
@@ -1927,6 +1944,23 @@ export type NestedEnumIssuedDocumentTypeWithAggregatesFilter<$PrismaModel = neve
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumIssuedDocumentTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumIssuedDocumentTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumLibraryCatalogSourceKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryCatalogSourceKind | Prisma.EnumLibraryCatalogSourceKindFieldRefInput<$PrismaModel>
+  in?: $Enums.LibraryCatalogSourceKind[] | Prisma.ListEnumLibraryCatalogSourceKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibraryCatalogSourceKind[] | Prisma.ListEnumLibraryCatalogSourceKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibraryCatalogSourceKindFilter<$PrismaModel> | $Enums.LibraryCatalogSourceKind
+}
+
+export type NestedEnumLibraryCatalogSourceKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryCatalogSourceKind | Prisma.EnumLibraryCatalogSourceKindFieldRefInput<$PrismaModel>
+  in?: $Enums.LibraryCatalogSourceKind[] | Prisma.ListEnumLibraryCatalogSourceKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibraryCatalogSourceKind[] | Prisma.ListEnumLibraryCatalogSourceKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibraryCatalogSourceKindWithAggregatesFilter<$PrismaModel> | $Enums.LibraryCatalogSourceKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLibraryCatalogSourceKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLibraryCatalogSourceKindFilter<$PrismaModel>
 }
 
 export type NestedEnumLibraryFileTypeFilter<$PrismaModel = never> = {

@@ -114,6 +114,7 @@ export const ModelName = {
   StudentBranchLink: 'StudentBranchLink',
   IssuedDocument: 'IssuedDocument',
   BranchInvitation: 'BranchInvitation',
+  LibraryCatalogSource: 'LibraryCatalogSource',
   LibraryBook: 'LibraryBook',
   PlatformSupportAgent: 'PlatformSupportAgent',
   OrganizationSupportAgent: 'OrganizationSupportAgent',
@@ -1270,6 +1271,26 @@ export const BranchInvitationScalarFieldEnum = {
 export type BranchInvitationScalarFieldEnum = (typeof BranchInvitationScalarFieldEnum)[keyof typeof BranchInvitationScalarFieldEnum]
 
 
+export const LibraryCatalogSourceScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  kind: 'kind',
+  name: 'name',
+  url: 'url',
+  folderId: 'folderId',
+  apiKey: 'apiKey',
+  isEnabled: 'isEnabled',
+  lastSyncedAt: 'lastSyncedAt',
+  lastError: 'lastError',
+  fileCount: 'fileCount',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LibraryCatalogSourceScalarFieldEnum = (typeof LibraryCatalogSourceScalarFieldEnum)[keyof typeof LibraryCatalogSourceScalarFieldEnum]
+
+
 export const LibraryBookScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -1296,6 +1317,8 @@ export const LibraryBookScalarFieldEnum = {
   source: 'source',
   sortOrder: 'sortOrder',
   viewCount: 'viewCount',
+  catalogSourceId: 'catalogSourceId',
+  externalId: 'externalId',
   branchId: 'branchId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',

@@ -460,6 +460,7 @@ export const ModelName = {
   StudentBranchLink: 'StudentBranchLink',
   IssuedDocument: 'IssuedDocument',
   BranchInvitation: 'BranchInvitation',
+  LibraryCatalogSource: 'LibraryCatalogSource',
   LibraryBook: 'LibraryBook',
   PlatformSupportAgent: 'PlatformSupportAgent',
   OrganizationSupportAgent: 'OrganizationSupportAgent',
@@ -491,7 +492,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -5157,6 +5158,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    LibraryCatalogSource: {
+      payload: Prisma.$LibraryCatalogSourcePayload<ExtArgs>
+      fields: Prisma.LibraryCatalogSourceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LibraryCatalogSourceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryCatalogSourcePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LibraryCatalogSourceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryCatalogSourcePayload>
+        }
+        findFirst: {
+          args: Prisma.LibraryCatalogSourceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryCatalogSourcePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LibraryCatalogSourceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryCatalogSourcePayload>
+        }
+        findMany: {
+          args: Prisma.LibraryCatalogSourceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryCatalogSourcePayload>[]
+        }
+        create: {
+          args: Prisma.LibraryCatalogSourceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryCatalogSourcePayload>
+        }
+        createMany: {
+          args: Prisma.LibraryCatalogSourceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LibraryCatalogSourceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryCatalogSourcePayload>[]
+        }
+        delete: {
+          args: Prisma.LibraryCatalogSourceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryCatalogSourcePayload>
+        }
+        update: {
+          args: Prisma.LibraryCatalogSourceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryCatalogSourcePayload>
+        }
+        deleteMany: {
+          args: Prisma.LibraryCatalogSourceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LibraryCatalogSourceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LibraryCatalogSourceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryCatalogSourcePayload>[]
+        }
+        upsert: {
+          args: Prisma.LibraryCatalogSourceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryCatalogSourcePayload>
+        }
+        aggregate: {
+          args: Prisma.LibraryCatalogSourceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLibraryCatalogSource>
+        }
+        groupBy: {
+          args: Prisma.LibraryCatalogSourceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LibraryCatalogSourceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LibraryCatalogSourceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LibraryCatalogSourceCountAggregateOutputType> | number
+        }
+      }
+    }
     LibraryBook: {
       payload: Prisma.$LibraryBookPayload<ExtArgs>
       fields: Prisma.LibraryBookFieldRefs
@@ -7502,6 +7577,26 @@ export const BranchInvitationScalarFieldEnum = {
 export type BranchInvitationScalarFieldEnum = (typeof BranchInvitationScalarFieldEnum)[keyof typeof BranchInvitationScalarFieldEnum]
 
 
+export const LibraryCatalogSourceScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  kind: 'kind',
+  name: 'name',
+  url: 'url',
+  folderId: 'folderId',
+  apiKey: 'apiKey',
+  isEnabled: 'isEnabled',
+  lastSyncedAt: 'lastSyncedAt',
+  lastError: 'lastError',
+  fileCount: 'fileCount',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LibraryCatalogSourceScalarFieldEnum = (typeof LibraryCatalogSourceScalarFieldEnum)[keyof typeof LibraryCatalogSourceScalarFieldEnum]
+
+
 export const LibraryBookScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -7528,6 +7623,8 @@ export const LibraryBookScalarFieldEnum = {
   source: 'source',
   sortOrder: 'sortOrder',
   viewCount: 'viewCount',
+  catalogSourceId: 'catalogSourceId',
+  externalId: 'externalId',
   branchId: 'branchId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -8280,6 +8377,20 @@ export type ListEnumIssuedDocumentTypeFieldRefInput<$PrismaModel> = FieldRefInpu
 
 
 /**
+ * Reference to a field of type 'LibraryCatalogSourceKind'
+ */
+export type EnumLibraryCatalogSourceKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LibraryCatalogSourceKind'>
+    
+
+
+/**
+ * Reference to a field of type 'LibraryCatalogSourceKind[]'
+ */
+export type ListEnumLibraryCatalogSourceKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LibraryCatalogSourceKind[]'>
+    
+
+
+/**
  * Reference to a field of type 'LibraryFileType'
  */
 export type EnumLibraryFileTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LibraryFileType'>
@@ -8660,6 +8771,7 @@ export type GlobalOmitConfig = {
   studentBranchLink?: Prisma.StudentBranchLinkOmit
   issuedDocument?: Prisma.IssuedDocumentOmit
   branchInvitation?: Prisma.BranchInvitationOmit
+  libraryCatalogSource?: Prisma.LibraryCatalogSourceOmit
   libraryBook?: Prisma.LibraryBookOmit
   platformSupportAgent?: Prisma.PlatformSupportAgentOmit
   organizationSupportAgent?: Prisma.OrganizationSupportAgentOmit
