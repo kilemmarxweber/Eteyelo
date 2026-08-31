@@ -4,6 +4,7 @@ import { getBranchAbsenceReviewers } from "@/lib/email/get-branch-manager-emails
 import { sendPayrollDeductionEmail } from "@/lib/email/send-payroll-notification-email";
 import { CURRENCY_LABELS, getBaseCurrency, roundCurrency } from "@/lib/exchange-rate";
 import { prisma } from "@/lib/prisma";
+import { startOfTodayParis } from "@/lib/timezone";
 import type { CurrencyCode } from "@/prisma/generated/prisma/client";
 
 export async function notifyTeacherPayrollImpact(input: {
@@ -209,23 +210,45 @@ export async function notifyTeacherPayrollImpact(input: {
     branchId: input.branchId,
     organizationId: input.organizationId,
   });
-  await Promise.all(
-    reviewers
-      .filter((reviewer) => reviewer.userId !== user.id)
-      .map((reviewer) =>
-        prisma.appNotification.create({
-          data: {
-            branchId: input.branchId,
-            organizationId: input.organizationId,
-            userId: reviewer.userId,
-            type: "PAYROLL_DEDUCTION",
-            title: "Impact paie enseignant",
-            body: `${user.name} · ${body}`,
-            href,
-          },
-        }),
-      ),
-  );
+  const todayStart = startOfTodayParis();
+  for (const reviewer of reviewers.filter((r) => r.userId !== user.id)) {
+    const existing = await prisma.appNotification.findFirst({
+      where: {
+        userId: reviewer.userId,
+        branchId: input.branchId,
+        type: "PAYROLL_DEDUCTION",
+        readAt: null,
+        createdAt: { gte: todayStart },
+      },
+      select: { id: true, body: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (existing) {
+      // Incrémenter le compteur dans la notification existante
+      const countMatch = existing.body.match(/^(\d+) impact/);
+      const currentCount = countMatch ? parseInt(countMatch[1], 10) : 1;
+      await prisma.appNotification.update({
+        where: { id: existing.id },
+        data: {
+          title: "Impacts paie enseignants",
+          body: `${currentCount + 1} impacts paie détectés aujourd'hui`,
+        },
+      });
+    } else {
+      await prisma.appNotification.create({
+        data: {
+          branchId: input.branchId,
+          organizationId: input.organizationId,
+          userId: reviewer.userId,
+          type: "PAYROLL_DEDUCTION",
+          title: "Impact paie enseignant",
+          body: `${user.name} · ${body}`,
+          href,
+        },
+      });
+    }
+  }
 
   if (policy?.notifyByEmail !== false && estimate > 0) {
     await sendPayrollDeductionEmail({

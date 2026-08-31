@@ -18,6 +18,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -340,18 +350,25 @@ export default function PayrollClient() {
     setWorking(false);
   }
 
-  async function deletePayslips(payslipIds?: string[]) {
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [pendingDeleteTarget, setPendingDeleteTarget] = useState<{
+    payslipIds?: string[];
+    scopeLabel: string;
+  } | null>(null);
+
+  function requestDeletePayslips(payslipIds?: string[]) {
     const scope =
       payslipIds && payslipIds.length > 0
         ? `${payslipIds.length} bulletin(s) sélectionné(s)`
         : "tous les brouillons et validés du mois";
-    if (
-      !window.confirm(
-        `Supprimer ${scope} ? Les bulletins payés sont conservés. Cette action est irréversible.`,
-      )
-    ) {
-      return;
-    }
+    setPendingDeleteTarget({ payslipIds, scopeLabel: scope });
+    setDeleteConfirmOpen(true);
+  }
+
+  async function executePendingDelete() {
+    if (!pendingDeleteTarget) return;
+    const { payslipIds } = pendingDeleteTarget;
+    setDeleteConfirmOpen(false);
     setWorking(true);
     const [result, error] = await deleteTeacherPayslipsAction({
       year,
@@ -365,6 +382,7 @@ export default function PayrollClient() {
       setSelectedIds(new Set());
       await load();
     }
+    setPendingDeleteTarget(null);
     setWorking(false);
   }
 
@@ -472,7 +490,7 @@ export default function PayrollClient() {
                   variant="outline"
                   size="sm"
                   className="flex-1 sm:flex-none text-destructive hover:text-destructive"
-                  onClick={() => void deletePayslips()}
+                  onClick={() => requestDeletePayslips()}
                   disabled={working || deletableRows.length === 0}
                 >
                   <IconTrash size={16} />
@@ -504,7 +522,7 @@ export default function PayrollClient() {
               className="text-destructive hover:text-destructive"
               disabled={working || selectedDeletable.length === 0}
               onClick={() =>
-                void deletePayslips(selectedDeletable.map((row) => row.id))
+                requestDeletePayslips(selectedDeletable.map((row) => row.id))
               }
             >
               <IconTrash size={15} />
@@ -773,7 +791,7 @@ export default function PayrollClient() {
                               size="icon"
                               className="size-8 text-destructive hover:text-destructive"
                               disabled={working}
-                              onClick={() => void deletePayslips([row.id])}
+                              onClick={() => requestDeletePayslips([row.id])}
                               title="Supprimer"
                               aria-label={`Supprimer le bulletin de ${row.teacherName || "enseignant"}`}
                             >
@@ -857,6 +875,31 @@ export default function PayrollClient() {
           </div>
         </CardContent>
       ) : null}
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Voulez-vous vraiment supprimer {pendingDeleteTarget?.scopeLabel ?? "les bulletins"} ?
+              Les bulletins payés sont conservés. Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={working}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={working}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault();
+                void executePendingDelete();
+              }}
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
