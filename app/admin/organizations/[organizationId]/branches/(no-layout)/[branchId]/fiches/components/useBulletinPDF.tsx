@@ -128,6 +128,7 @@ export default function BulletinPDF({
   variant = "outline",
   size = "default",
   classCode,
+  className,
   classLevel,
   classOptionName,
   classParallel,
@@ -141,6 +142,8 @@ export default function BulletinPDF({
   size?: any;
   /** Code classe (ex. codeClasse) */
   classCode?: string;
+  /** Nom de classe (ex. 7ª A) */
+  className?: string | null;
   /** Niveau / degré (ex. Degré moyen) */
   classLevel?: string | null;
   /** Option de la classe (ex. Biologie-Chimie) */
@@ -206,7 +209,8 @@ export default function BulletinPDF({
         branchContext,
         periodLabel: selectedPeriod || data[0]?.periods?.[0]?.periodName || "",
         schoolYear,
-        classLabel: classOptionName || classLevel || classCode,
+        classLabel:
+          className || classCode || classLevel || classOptionName || "",
         classLevel,
         classParallel,
       });
@@ -1624,7 +1628,7 @@ export default function BulletinPDF({
     const url = URL.createObjectURL(pdfBlob);
     setPdfUrl(url);
     return url;
-  }, [imageData1, imageData2, watermarkData, data, branchContext, classCode, classLevel, classOptionName, classParallel, schoolYear, selectedPeriod]);
+  }, [imageData1, imageData2, watermarkData, data, branchContext, classCode, className, classLevel, classOptionName, classParallel, schoolYear, selectedPeriod]);
   return (
     <div className="flex flex-col gap-4">
       {imageData1 && (

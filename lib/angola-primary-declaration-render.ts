@@ -478,9 +478,7 @@ export function renderAngolaPrimaryStudyDeclarations(
     doc.setFontSize(8.2);
     doc.setFont("helvetica", "normal");
     doc.text(
-      province
-        ? `SECRETARIA PROVINCIAL DA EDUCAÇÃO, CIÊNCIA E TECNOLOGIA — ${province.toUpperCase()}`
-        : "SECRETARIA PROVINCIAL DA EDUCAÇÃO, CIÊNCIA E TECNOLOGIA",
+      "SECRETARIA PROVINCIAL DA EDUCAÇÃO, CIÊNCIA E TECNOLOGIA",
       pageWidth / 2,
       y,
       { align: "center" },

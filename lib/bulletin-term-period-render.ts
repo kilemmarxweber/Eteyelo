@@ -147,6 +147,7 @@ export function renderTermPeriodBulletins(
       params.branchContext.educationSystem,
       params.classLevel,
       classLabel,
+      academicCycle,
     )
   ) {
     renderAngolaStudyDeclarations(doc, declarationParams);

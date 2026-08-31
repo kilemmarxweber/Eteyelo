@@ -1074,6 +1074,7 @@ export default function ClassFicheClient({
             )}
             branchContext={{ ...branchContext, cycle: academicCycle }}
             classCode={selectedClass?.codename}
+            className={selectedClass?.name}
             classLevel={selectedClass?.level}
             classOptionName={selectedClass?.optionName}
             classParallel={selectedClass?.parallel}
@@ -1299,6 +1300,7 @@ export default function ClassFicheClient({
                 data={bulletinDataForPDF}
                 branchContext={{ ...branchContext, cycle: academicCycle }}
                 classCode={selectedClass?.codename}
+                className={selectedClass?.name}
                 classLevel={selectedClass?.level}
                 classOptionName={selectedClass?.optionName}
                 classParallel={selectedClass?.parallel}

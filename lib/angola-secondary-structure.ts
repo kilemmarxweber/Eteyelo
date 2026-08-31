@@ -205,14 +205,15 @@ export function shouldUseAngolaStudyDeclaration(
   educationSystem: unknown,
   classLevel?: string | null,
   classLabel?: string | null,
+  branchType?: unknown,
 ): boolean {
   if (normalizeEducationSystem(educationSystem) !== "ANGOLAIS") return false;
-  const fromLabel = extractAngolaSecondaryLevelFromLabel(classLabel);
-  return (
-    isAngolaSecondaryLevel(classLevel) ||
-    isAngolaSecondaryLevel(classLabel) ||
-    isAngolaSecondaryLevel(fromLabel)
-  );
+  const extracted =
+    extractAngolaSecondaryLevelFromLabel(classLevel) ??
+    extractAngolaSecondaryLevelFromLabel(classLabel);
+  if (extracted) return true;
+  if (branchType === "PRIMAIRE" || branchType === "MATERNELLE") return false;
+  return branchType === "SECONDAIRE";
 }
 
 export function isAngolaTecnicaSection(section: {

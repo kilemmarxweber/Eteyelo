@@ -121,10 +121,15 @@ function formatLongPtDate(value?: string): string {
 export function formatAngolaDeclarationIssueLine(
   school: string,
   issuedAt: Date = new Date(),
+  city?: string,
 ): string {
   const month = PT_MONTHS[issuedAt.getMonth()] ?? "";
   const place = school.trim().toUpperCase() || "________";
-  return `${place}, AO ${issuedAt.getDate()} DE ${month} DE ${issuedAt.getFullYear()}`;
+  const cityPart = city?.trim().toUpperCase();
+  const withCity =
+    cityPart && !place.includes(cityPart) ? `${place} EM ${cityPart}` : place;
+  const day = String(issuedAt.getDate()).padStart(2, "0");
+  return `${withCity}, AO ${day} DE ${month} DE ${issuedAt.getFullYear()}`;
 }
 
 export function angolaDeclarationTurma(
@@ -455,9 +460,7 @@ export function renderAngolaStudyDeclarations(
     doc.setFontSize(8.2);
     doc.setFont("helvetica", "normal");
     doc.text(
-      province
-        ? `SECRETARIA PROVINCIAL DA EDUCAÇÃO, CIÊNCIA E TECNOLOGIA — ${province.toUpperCase()}`
-        : "SECRETARIA PROVINCIAL DA EDUCAÇÃO, CIÊNCIA E TECNOLOGIA",
+      "SECRETARIA PROVINCIAL DA EDUCAÇÃO, CIÊNCIA E TECNOLOGIA",
       pageWidth / 2,
       y,
       { align: "center" },
@@ -598,7 +601,7 @@ export function renderAngolaStudyDeclarations(
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8.6);
     const issueLines = doc.splitTextToSize(
-      formatAngolaDeclarationIssueLine(school),
+      formatAngolaDeclarationIssueLine(school, new Date(), city),
       textWidth,
     ) as string[];
     doc.text(issueLines, pageWidth / 2, y, { align: "center" });

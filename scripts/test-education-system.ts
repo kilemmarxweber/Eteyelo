@@ -64,11 +64,11 @@ test("Université + Angolais : calendrier LMD inchangé", () => {
   );
 });
 
-test("Bulletin Angola / Anglais : primaire term-period, secondaire cadre", () => {
+test("Bulletin Angola / Anglais : Angola Declaração (term-period), Anglais term-period", () => {
   assert.equal(resolveBulletinLayoutKind("PRIMAIRE"), "primary");
   assert.equal(resolveBulletinLayoutKind("SECONDAIRE"), "secondary");
   assert.equal(resolveBulletinLayoutKind("PRIMAIRE", "ANGOLAIS"), "term-period");
-  assert.equal(resolveBulletinLayoutKind("SECONDAIRE", "ANGOLAIS"), "secondary");
+  assert.equal(resolveBulletinLayoutKind("SECONDAIRE", "ANGOLAIS"), "term-period");
   assert.equal(resolveBulletinLayoutKind("SECONDAIRE", "ANGLAIS"), "term-period");
 });
 

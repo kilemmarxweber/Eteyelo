@@ -176,10 +176,22 @@ test("Declaração de estudo : 7ª (Sétima Classe) jusqu'à 13ª", () => {
     shouldUseAngolaStudyDeclaration("CONGOLAIS", "7ª", "7è A"),
     false,
   );
+  assert.equal(
+    shouldUseAngolaStudyDeclaration("ANGOLAIS", "7ª (Sétima Classe)", "Núcleo comum"),
+    true,
+  );
+  assert.equal(
+    shouldUseAngolaStudyDeclaration("ANGOLAIS", null, "Núcleo comum", "SECONDAIRE"),
+    true,
+  );
+  assert.equal(
+    shouldUseAngolaStudyDeclaration("ANGOLAIS", null, "Geral", "PRIMAIRE"),
+    false,
+  );
 });
 
-test("Bulletin 7ª–8ª et 9ª–12ª : même cadre secondaire (tronc commun)", () => {
-  assert.equal(resolveBulletinLayoutKind("SECONDAIRE", "ANGOLAIS"), "secondary");
+test("Bulletin 7ª–13ª : Declaração de Estudo (term-period)", () => {
+  assert.equal(resolveBulletinLayoutKind("SECONDAIRE", "ANGOLAIS"), "term-period");
   assert.equal(resolveBulletinLayoutKind("PRIMAIRE", "ANGOLAIS"), "term-period");
   assert.deepEqual(
     getActivePeriodKeys("1.ª Período", "SECONDAIRE", "ANGOLAIS"),
