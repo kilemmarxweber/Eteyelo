@@ -325,7 +325,7 @@ const staticSidebarMenu: StaticMenuItem[] = [
         title: "transactions",
         href: "/admin/transactions",
         icon: "paiement",
-        roles: FINANCE_ROLES,
+        roles: PAYROLL_ROLES,
       },
     ],
   },

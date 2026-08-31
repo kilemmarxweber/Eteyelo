@@ -77,7 +77,7 @@ export const getBranchTransactionsAction = action
   )
   .handler(async ({ input }) => {
     const context = await requireFinanceBranchContext();
-    await assertBranchAreaAccess("finance", context.session, {
+    await assertBranchAreaAccess("payroll", context.session, {
       organizationId: context.organizationId,
       branchId: context.branchId,
     });
@@ -378,7 +378,7 @@ export const archiveBranchTransactionAction = action
   )
   .handler(async ({ input }) => {
     const context = await requireFinanceBranchContext();
-    await assertBranchAreaAccess("finance", context.session, {
+    await assertBranchAreaAccess("payroll", context.session, {
       organizationId: context.organizationId,
       branchId: context.branchId,
     });
@@ -434,7 +434,7 @@ export const unarchiveBranchTransactionAction = action
   )
   .handler(async ({ input }) => {
     const context = await requireFinanceBranchContext();
-    await assertBranchAreaAccess("finance", context.session, {
+    await assertBranchAreaAccess("payroll", context.session, {
       organizationId: context.organizationId,
       branchId: context.branchId,
     });
@@ -490,7 +490,7 @@ export const deleteBranchTransactionAction = action
   )
   .handler(async ({ input }) => {
     const context = await requireFinanceBranchContext();
-    await assertBranchAreaAccess("finance", context.session, {
+    await assertBranchAreaAccess("payroll", context.session, {
       organizationId: context.organizationId,
       branchId: context.branchId,
     });

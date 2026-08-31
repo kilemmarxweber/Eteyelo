@@ -406,23 +406,23 @@ export default function TransactionsClient() {
           if (!open && !working) setPendingDelete(null);
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[calc(100vw-2rem)] max-w-lg p-4 sm:p-6 sm:w-full max-h-[90vh] overflow-y-auto">
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer définitivement ?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-base sm:text-lg">Supprimer définitivement ?</AlertDialogTitle>
+            <AlertDialogDescription className="break-words text-xs sm:text-sm">
               Cette action est irréversible.{" "}
               {pendingDelete?.kind === "EXPENSE" ? "La dépense" : "La transaction"}{" "}
-              <span className="font-mono font-medium text-foreground">
+              <span className="font-mono font-medium text-foreground break-all inline-block max-w-full">
                 {pendingDelete?.transactionRef}
               </span>{" "}
               sera effacée de la base. Préférez l’archivage pour seulement la
               masquer de la caisse.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={working}>Annuler</AlertDialogCancel>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end sm:space-x-2">
+            <AlertDialogCancel disabled={working} className="w-full sm:w-auto">Annuler</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90 sm:w-auto"
               disabled={working}
               onClick={(event) => {
                 event.preventDefault();
