@@ -44,8 +44,7 @@ export function MessagingDrawer() {
   const organizationId = params.organizationId;
   const branchId = params.branchId ?? null;
   const currentUserId = session?.user?.id ?? "";
-  const memberRole =
-    session?.organization?.role ?? session?.member?.role ?? null;
+  const memberRole = session?.organization?.role ?? null;
 
   const allowed = canUseMessaging({
     appRole: session?.user?.role,

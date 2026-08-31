@@ -70,9 +70,9 @@ export function getTrainingLabelKey(typebranch: unknown): TrainingLabelKey {
 
 export function getTrainingLabels(typebranch: unknown): TrainingLabels {
   switch (getTrainingLabelKey(typebranch)) {
-    case "CENTRE_FORMATION":
+    case "centre":
       return CENTRE_LABELS;
-    case "UNIVERSITE":
+    case "university":
       return UNIVERSITY_LABELS;
     default:
       return DEFAULT_LABELS;

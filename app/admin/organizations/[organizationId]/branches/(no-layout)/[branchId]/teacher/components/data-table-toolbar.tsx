@@ -54,7 +54,9 @@ function readFilterValues(value: unknown): string[] {
   return [];
 }
 
-function resolveReportOptions(table: Table<unknown>): TeacherReportOptions {
+function resolveReportOptions(
+  table: Table<unknown>,
+): Omit<TeacherReportOptions, "labels"> {
   const assignmentValues = readFilterValues(
     table.getColumn("assignmentStatus")?.getFilterValue(),
   );

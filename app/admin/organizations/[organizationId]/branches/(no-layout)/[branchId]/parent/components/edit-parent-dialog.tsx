@@ -12,6 +12,7 @@ import {
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { IParent } from "@/src/interfaces/Parent";
 import { useTranslations } from "next-intl";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { ParentUpForm } from "./parent-form";
 
 interface UpdateParentDialogProps

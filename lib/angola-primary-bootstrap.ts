@@ -83,7 +83,7 @@ export async function ensureAngolaPrimaryStructure(
         statusOption: true,
         cycle: "PRIMAIRE",
       },
-      select: { id: true, nameOption: true, codeOption: true },
+      select: { id: true, nameOption: true, codeOption: true, statusOption: true },
     });
   } else {
     await db.option.update({
