@@ -35,6 +35,11 @@ import {
   isCycleGlobalRole,
   resolveAccessibleCycles,
 } from "@/lib/auth/cycle-scope";
+import {
+  activeClasseWhere,
+  activeStudentFilter,
+  activeTeacherProfileFilter,
+} from "@/lib/active-status";
 
 const BRANCH_CYCLE_SELECT = {
   where: { isActive: true },
@@ -149,7 +154,21 @@ async function getBranchStudentAverages(params: {
   }
 
   const averages: number[] = [];
-  for (const totals of byStudent.values()) {
+  const studentIds = [...byStudent.keys()];
+  const activeStudents =
+    studentIds.length === 0
+      ? []
+      : await prisma.student.findMany({
+          where: {
+            id: { in: studentIds },
+            ...activeStudentFilter(params.branchId),
+          },
+          select: { id: true },
+        });
+  const activeStudentIds = new Set(activeStudents.map((row) => row.id));
+
+  for (const [studentId, totals] of byStudent) {
+    if (!activeStudentIds.has(studentId)) continue;
     const totalMax = sumBulletinMaxima(totals.maxScores);
     if (!(totalMax > 0)) continue;
     averages.push(calculateBulletinPercentage(totals.score, totalMax));
@@ -186,6 +205,44 @@ function calcPercentage(current: number, previous: number) {
 function calcRate(part: number, total: number) {
   return total > 0 ? Number(((part / total) * 100).toFixed(0)) : 0;
 }
+
+function activeEnrollmentWhere(opts: {
+  branchId: string;
+  classScope: object;
+  createdAtLte: Date;
+  schoolYearId?: string;
+}) {
+  return {
+    branchId: opts.branchId,
+    statusEnrollment: true,
+    createdAt: { lte: opts.createdAtLte },
+    ...(opts.schoolYearId
+      ? { schoolYearId: opts.schoolYearId }
+      : { schoolYear: { isCurrentYear: true } }),
+    classe: activeClasseWhere(opts.classScope),
+    student: activeStudentFilter(opts.branchId),
+  };
+}
+
+function activeTeachingWhere(opts: {
+  branchId: string;
+  classScope: object;
+  createdAtLte?: Date;
+  schoolYearId: string;
+  statusTeaching?: boolean;
+}) {
+  return {
+    schoolYearId: opts.schoolYearId,
+    branchId: opts.branchId,
+    ...(opts.statusTeaching != null
+      ? { statusTeaching: opts.statusTeaching }
+      : {}),
+    ...(opts.createdAtLte ? { createdAt: { lte: opts.createdAtLte } } : {}),
+    classe: activeClasseWhere(opts.classScope),
+    teacher: activeTeacherProfileFilter,
+  };
+}
+
 const adminStatsSchema = z.object({
   branchId: z.string(),
   organizationId: z.string(),
@@ -302,7 +359,10 @@ export async function getAdminStats({
       const classRows =
         activatedCycles.length > 1
           ? await prisma.classe.findMany({
-              where: { branchId: branch.id, ...classScope },
+              where: {
+                branchId: branch.id,
+                ...activeClasseWhere(classScope),
+              },
               select: { cycle: true },
             })
           : [];
@@ -349,94 +409,90 @@ export async function getAdminStats({
     ] = await Promise.all([
       prisma.classEnrollment.groupBy({
         by: ["studentId"],
-        where: {
-          schoolYearId: currentYear.id,
+        where: activeEnrollmentWhere({
           branchId: branch.id,
-          statusEnrollment: true,
-          createdAt: { lte: endCurrent },
-          classe: classScope,
-        },
+          classScope,
+          createdAtLte: endCurrent,
+          schoolYearId: currentYear.id,
+        }),
       }),
       prisma.classEnrollment.groupBy({
         by: ["studentId"],
-        where: {
-          schoolYearId: currentYear.id,
+        where: activeEnrollmentWhere({
           branchId: branch.id,
-          statusEnrollment: true,
-          createdAt: { lte: endPrev },
-          classe: classScope,
-        },
+          classScope,
+          createdAtLte: endPrev,
+          schoolYearId: currentYear.id,
+        }),
       }),
       prisma.classEnrollment.groupBy({
         by: ["classeId"],
-        where: {
-          schoolYearId: currentYear.id,
+        where: activeEnrollmentWhere({
           branchId: branch.id,
-          statusEnrollment: true,
-          createdAt: { lte: endCurrent },
-          classe: classScope,
-        },
+          classScope,
+          createdAtLte: endCurrent,
+          schoolYearId: currentYear.id,
+        }),
       }),
       prisma.classEnrollment.groupBy({
         by: ["classeId"],
-        where: {
-          schoolYearId: currentYear.id,
+        where: activeEnrollmentWhere({
           branchId: branch.id,
-          statusEnrollment: true,
-          createdAt: { lte: endPrev },
-          classe: classScope,
-        },
+          classScope,
+          createdAtLte: endPrev,
+          schoolYearId: currentYear.id,
+        }),
       }),
       prisma.teaching.groupBy({
         by: ["teacherId"],
-        where: {
-          schoolYearId: currentYear.id,
+        where: activeTeachingWhere({
           branchId: branch.id,
+          classScope,
+          createdAtLte: endCurrent,
+          schoolYearId: currentYear.id,
           statusTeaching: true,
-          createdAt: { lte: endCurrent },
-          classe: classScope,
-        },
+        }),
       }),
       prisma.teaching.groupBy({
         by: ["teacherId"],
-        where: {
-          schoolYearId: currentYear.id,
+        where: activeTeachingWhere({
           branchId: branch.id,
+          classScope,
+          createdAtLte: endPrev,
+          schoolYearId: currentYear.id,
           statusTeaching: true,
-          createdAt: { lte: endPrev },
-          classe: classScope,
-        },
+        }),
       }),
       prisma.classEnrollment
         .groupBy({
           by: ["studentId"],
-          where: {
+          where: activeEnrollmentWhere({
             branchId: branch.id,
-            statusEnrollment: true,
-            schoolYear: { isCurrentYear: true },
-            createdAt: { lte: endCurrent },
-            classe: classScope,
-          },
+            classScope,
+            createdAtLte: endCurrent,
+          }),
         })
         .then((rows) => rows.length),
       prisma.classEnrollment
         .groupBy({
           by: ["studentId"],
-          where: {
+          where: activeEnrollmentWhere({
             branchId: branch.id,
-            statusEnrollment: true,
-            schoolYear: { isCurrentYear: true },
-            createdAt: { lte: endPrev },
-            classe: classScope,
-          },
+            classScope,
+            createdAtLte: endPrev,
+          }),
         })
         .then((rows) => rows.length),
       prisma.classe.count({
-        where: { branchId: branch.id, ...classScope },
+        where: {
+          branchId: branch.id,
+          ...activeClasseWhere(classScope),
+        },
       }),
       prisma.teacher.count({
         where: {
-          branchMember: { branchId: branch.id },
+          isActive: true,
+          branchMember: { branchId: branch.id, isActive: true },
           OR: [
             {
               branchMember: {
@@ -450,7 +506,7 @@ export async function getAdminStats({
                 some: {
                   schoolYearId: currentYear.id,
                   statusTeaching: true,
-                  classe: classScope,
+                  classe: activeClasseWhere(classScope),
                 },
               },
             },
@@ -464,7 +520,8 @@ export async function getAdminStats({
             some: {
               schoolYearId: currentYear.id,
               statusTeaching: true,
-              classe: classScope,
+              classe: activeClasseWhere(classScope),
+              teacher: activeTeacherProfileFilter,
             },
           },
         },
@@ -515,28 +572,30 @@ export async function getAdminStats({
       activatedCycles.length > 1
         ? await Promise.all([
             prisma.classe.findMany({
-              where: { branchId: branch.id, ...classScope },
+              where: {
+                branchId: branch.id,
+                ...activeClasseWhere(classScope),
+              },
               select: { cycle: true },
             }),
             prisma.classEnrollment.findMany({
-              where: {
-                schoolYearId: currentYear.id,
+              where: activeEnrollmentWhere({
                 branchId: branch.id,
-                statusEnrollment: true,
-                createdAt: { lte: endCurrent },
-                classe: classScope,
-              },
+                classScope,
+                createdAtLte: endCurrent,
+                schoolYearId: currentYear.id,
+              }),
               select: {
                 studentId: true,
                 classe: { select: { cycle: true } },
               },
             }),
             prisma.teaching.findMany({
-              where: {
-                schoolYearId: currentYear.id,
+              where: activeTeachingWhere({
                 branchId: branch.id,
-                classe: classScope,
-              },
+                classScope,
+                schoolYearId: currentYear.id,
+              }),
               select: {
                 teacherId: true,
                 classe: { select: { cycle: true } },
@@ -783,11 +842,17 @@ export const getDashboardMetrics = action.handler(async () => {
     await Promise.allSettled([
       (async () => {
         const [totalAttendance, presentOrLate] = await Promise.all([
-          prisma.studentAttendance.count({ where: { branchId } }),
+          prisma.studentAttendance.count({
+            where: {
+              branchId,
+              student: activeStudentFilter(branchId),
+            },
+          }),
           prisma.studentAttendance.count({
             where: {
               branchId,
               status: { in: ["PRESENT", "LATE"] },
+              student: activeStudentFilter(branchId),
             },
           }),
         ]);
@@ -830,7 +895,7 @@ export const getDashboardMetrics = action.handler(async () => {
       (async () => {
         const [totalParents, yearFeedbacks, monthFeedbacks] = await Promise.all([
           prisma.parent.count({
-            where: { branchMember: { branchId } },
+            where: { branchMember: { branchId, isActive: true } },
           }),
           prisma.parentFeedback.findMany({
             where: {

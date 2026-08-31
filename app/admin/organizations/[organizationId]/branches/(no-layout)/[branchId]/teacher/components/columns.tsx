@@ -417,7 +417,3 @@ function AssignmentListPopover({
     </Popover>
   );
 }
-
-}
-
-function AssignmentListPopover({

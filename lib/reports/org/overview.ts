@@ -61,10 +61,10 @@ export function buildOverviewReport(input: {
   });
 
   return {
-    students: input.effectifs.students.total,
-    teachers: input.effectifs.teachers.total,
-    parents: input.effectifs.parents.total,
-    personnel: input.effectifs.personnel.total,
+    students: input.effectifs.students.active,
+    teachers: input.effectifs.teachers.active,
+    parents: input.effectifs.parents.active,
+    personnel: input.effectifs.personnel.active,
     attendanceRate: input.attendance.students.presentRate,
     budget: input.finance.budgetAnnuel,
     recoltes: input.finance.recoltes,

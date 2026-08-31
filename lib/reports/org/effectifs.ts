@@ -120,6 +120,7 @@ export async function getEffectifsReport(params: {
           branchMember: {
             select: {
               branchId: true,
+              isActive: true,
               branch: { select: { name: true, description: true } },
               member: {
                 select: {
@@ -145,6 +146,7 @@ export async function getEffectifsReport(params: {
           branchMember: {
             select: {
               branchId: true,
+              isActive: true,
               branch: { select: { name: true, description: true } },
               member: {
                 select: {
@@ -160,9 +162,11 @@ export async function getEffectifsReport(params: {
         where: { branchMember: branchFilter },
         select: {
           id: true,
+          isActive: true,
           branchMember: {
             select: {
               branchId: true,
+              isActive: true,
               branch: { select: { name: true, description: true } },
               member: {
                 select: {
@@ -178,9 +182,11 @@ export async function getEffectifsReport(params: {
         where: { branchMember: branchFilter },
         select: {
           id: true,
+          isActive: true,
           branchMember: {
             select: {
               branchId: true,
+              isActive: true,
               branch: { select: { name: true, description: true } },
               member: {
                 select: {
@@ -193,7 +199,10 @@ export async function getEffectifsReport(params: {
         },
       }),
       prisma.classe.findMany({
-        where: branchFilter,
+        where: {
+          ...branchFilter,
+          OR: [{ statusClasse: true }, { statusClasse: null }],
+        },
         select: { id: true, nameClasse: true, branchId: true },
         orderBy: { nameClasse: "asc" },
       }),
@@ -228,27 +237,31 @@ export async function getEffectifsReport(params: {
   const studentList: EffectifsPersonRow[] = [];
 
   for (const s of students) {
-    const isActive = s.statusStudent === true;
+    const isActive = s.branchMember.isActive !== false;
     if (isActive) active += 1;
     else inactive += 1;
 
     const user = s.branchMember.member.user;
     const g = genderBucket(user.sexe);
-    if (g === "M") boys += 1;
-    else if (g === "F") girls += 1;
-    else unknownSex += 1;
+    if (isActive) {
+      if (g === "M") boys += 1;
+      else if (g === "F") girls += 1;
+      else unknownSex += 1;
+    }
 
     const classNames = s.classEnrollment
       .map((enr) => enr.classe?.nameClasse)
       .filter((name): name is string => Boolean(name));
 
-    for (const enr of s.classEnrollment) {
-      if (!enr.classe) continue;
-      const row = classMap.get(enr.classe.id);
-      if (!row) continue;
-      row.total += 1;
-      if (g === "M") row.boys += 1;
-      if (g === "F") row.girls += 1;
+    if (isActive) {
+      for (const enr of s.classEnrollment) {
+        if (!enr.classe) continue;
+        const row = classMap.get(enr.classe.id);
+        if (!row) continue;
+        row.total += 1;
+        if (g === "M") row.boys += 1;
+        if (g === "F") row.girls += 1;
+      }
     }
 
     studentList.push({
@@ -269,8 +282,10 @@ export async function getEffectifsReport(params: {
 
   function peopleBlock(
     rows: Array<{
+      isActive?: boolean | null;
       branchMember: {
         branchId: string;
+        isActive?: boolean | null;
         branch: { name: string };
         member: {
           isArchived: boolean;
@@ -296,7 +311,10 @@ export async function getEffectifsReport(params: {
     for (const row of rows) {
       if (!row.branchMember) continue;
       total += 1;
-      const archived = row.branchMember.member.isArchived;
+      const archived =
+        row.isActive === false ||
+        row.branchMember.isActive === false ||
+        Boolean(row.branchMember.member.isArchived);
       if (archived) inact += 1;
       else act += 1;
       const user = row.branchMember.member.user;
@@ -337,16 +355,25 @@ export async function getEffectifsReport(params: {
 
   const byBranch: BranchCount[] = branches.map((b) => {
     const studentCount = students.filter(
-      (s) => s.branchMember.branchId === b.id,
+      (s) =>
+        s.branchMember.branchId === b.id && s.branchMember.isActive !== false,
     ).length;
     const parentCount = parents.filter(
-      (p) => p.branchMember?.branchId === b.id,
+      (p) =>
+        p.branchMember?.branchId === b.id &&
+        p.branchMember.isActive !== false,
     ).length;
     const teacherCount = teachers.filter(
-      (t) => t.branchMember?.branchId === b.id,
+      (t) =>
+        t.branchMember?.branchId === b.id &&
+        t.isActive !== false &&
+        t.branchMember.isActive !== false,
     ).length;
     const personnelCount = personnel.filter(
-      (p) => p.branchMember?.branchId === b.id,
+      (p) =>
+        p.branchMember?.branchId === b.id &&
+        p.isActive !== false &&
+        p.branchMember.isActive !== false,
     ).length;
     return {
       branchId: b.id,

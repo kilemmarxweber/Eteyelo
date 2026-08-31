@@ -51,10 +51,15 @@ async function getOrganizationBranches(organizationId: string) {
           option: true,
           cours: true,
           coursPonderations: true,
-          classes: true,
+          classes: {
+            where: {
+              OR: [{ statusClasse: true }, { statusClasse: null }],
+            },
+          },
         },
       },
       branchemembers: {
+        where: { isActive: true },
         select: {
           _count: {
             select: { student: true },
