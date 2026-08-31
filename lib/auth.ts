@@ -21,7 +21,6 @@ import { INVITATION_MESSAGES } from "@/lib/invitations/messages";
 import { admin, customSession, organization } from "better-auth/plugins";
 import {
   APP_ROLE,
-  ALL_ORG_ROLE_SLUGS,
   ORG_ROLE,
   applicationRoles,
   authAccessControl,
@@ -239,10 +238,16 @@ const authOptions = {
           if (!role) {
             throw new Error(INVITATION_MESSAGES.roleRequired);
           }
-          if (
-            !(ALL_ORG_ROLE_SLUGS as readonly string[]).includes(role) ||
-            !isInvitableRole(role, config)
-          ) {
+          const roleRow = await prisma.organizationRole.findUnique({
+            where: {
+              organizationId_role: {
+                organizationId: organization.id,
+                role,
+              },
+            },
+            select: { id: true },
+          });
+          if (!roleRow || !isInvitableRole(role, config)) {
             throw new Error(INVITATION_MESSAGES.roleInvalid);
           }
 

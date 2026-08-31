@@ -5,7 +5,7 @@ import { Table } from "@tanstack/react-table";
 import { IconX } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 import { DataTableViewOptions } from "@/components/data-table-view-options";
 
 import { useEffect, useState } from "react";
@@ -49,7 +49,7 @@ export function DataTableToolbar<TData>({
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
-        <Input
+        <SearchInput
           placeholder={tClasses(`option.${labelKey}.search`)}
           value={
             (table.getColumn("nameOption")?.getFilterValue() as string) ?? ""

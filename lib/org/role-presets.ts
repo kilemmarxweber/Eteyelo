@@ -8,6 +8,7 @@ import {
   ORG_ROLE,
   organizationRoleStatements,
 } from "@/lib/permissions";
+import { completePermissionMatrix } from "@/lib/auth/org-role-permission-shared";
 
 export type OrgRolePresetMeta = {
   slug: string;
@@ -127,7 +128,11 @@ export function listOrgRolePresetMetas(): OrgRolePresetMeta[] {
 /** Statements JSON prêts pour upsert OrganizationRole.permission. */
 export function getOrgRolePresetPermissionJson(slug: string): string {
   const statements = organizationRoleStatements[slug] ?? {};
-  return JSON.stringify(statements);
+  const asRecord: Record<string, string[]> = {};
+  for (const [key, value] of Object.entries(statements)) {
+    asRecord[key] = [...(value ?? [])].map(String);
+  }
+  return JSON.stringify(completePermissionMatrix(asRecord));
 }
 
 export function getOrgRolePresetSeedRows() {

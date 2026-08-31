@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 import {
   Select,
   SelectContent,
@@ -221,10 +222,17 @@ export default function TeachingWorkspacePage() {
   const teachersForClass = useMemo(() => {
     const teachers = data?.teachers ?? [];
     if (!classCycle) return teachers;
-    return teachers.filter((teacher) => {
+    const matching: typeof teachers = [];
+    const others: typeof teachers = [];
+    for (const teacher of teachers) {
       const cycles = teacher.cycles ?? [];
-      return cycles.length === 0 || cycles.includes(classCycle);
-    });
+      if (cycles.length === 0 || cycles.includes(classCycle)) {
+        matching.push(teacher);
+      } else {
+        others.push(teacher);
+      }
+    }
+    return [...matching, ...others];
   }, [classCycle, data?.teachers]);
 
   useEffect(() => {
@@ -522,7 +530,7 @@ export default function TeachingWorkspacePage() {
               <h2 className="font-semibold">{t("classes")}</h2>
               <div className="relative mt-2">
                 <IconSearch className="absolute left-3 top-3 size-4 text-muted-foreground" />
-                <Input
+                <SearchInput
                   value={classSearch}
                   onChange={(e) => {
                     setClassSearch(e.target.value);
@@ -706,10 +714,11 @@ export default function TeachingWorkspacePage() {
               <div className="mt-3 grid gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
                 <div className="relative">
                   <IconSearch className="absolute left-3 top-3 size-4 text-muted-foreground" />
-                  <Input
+                  <SearchInput
                     value={courseSearch}
                     onChange={(e) => setCourseSearch(e.target.value)}
                     placeholder={t("courseSearchShort")}
+                    autoFocus={false}
                     className="pl-9"
                   />
                 </div>

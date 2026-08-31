@@ -1,6 +1,7 @@
 "use client";
 
 import { HTMLAttributes, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -30,6 +31,7 @@ import { MemberCyclesField } from "@/components/member-cycles-field";
 import { isCycleGlobalRole } from "@/lib/auth/cycle-global-roles";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
+import { useAssignableOrgRoles } from "@/app/admin/organizations/[organizationId]/members/use-assignable-org-roles";
 import { cn } from "@/lib/utils";
 import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
 import generateUsername from "@/src/hooks/generateUsername";
@@ -86,6 +88,9 @@ export function PersonnelUpForm({
   layout = "default",
   ...props
 }: PersonnelUpFormProps) {
+  const params = useParams<{ organizationId: string }>();
+  const organizationId = String(params.organizationId ?? "");
+  const { roles: orgRoles } = useAssignableOrgRoles(organizationId);
   const isDialog = layout === "dialog";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -384,9 +389,15 @@ export function PersonnelUpForm({
                   <FormControl>
                     <SearchableSelect
                       searchable="auto"
-                      options={ALL_ORG_ROLE_SLUGS.map((slug) => ({
-                        value: slug,
-                        label: orgRoleLabel(slug),
+                      options={(orgRoles.length
+                        ? orgRoles
+                        : ALL_ORG_ROLE_SLUGS.map((slug) => ({
+                            slug,
+                            label: orgRoleLabel(slug),
+                          }))
+                      ).map((item) => ({
+                        value: item.slug,
+                        label: item.label,
                       }))}
                       value={field.value}
                       onValueChange={field.onChange}

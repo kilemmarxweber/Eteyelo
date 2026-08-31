@@ -91,6 +91,7 @@ export function FinalistesClient() {
   const [rows, setRows] = useState<FinalisteRow[]>([]);
   const [session, setSession] = useState("");
   const [classLabel, setClassLabel] = useState("");
+  const [showExamCodes, setShowExamCodes] = useState(false);
 
   useEffect(() => {
     startTransition(async () => {
@@ -132,12 +133,16 @@ export function FinalistesClient() {
       setRows(result.rows as FinalisteRow[]);
       setSession(result.session);
       setClassLabel(result.classLabel);
+      setShowExamCodes(Boolean(result.showExamCodes));
     });
   }, [schoolYearId, classeId]);
 
   const missingCodes = useMemo(
-    () => rows.filter((row) => !row.e13 && !row.e80).length,
-    [rows],
+    () =>
+      showExamCodes
+        ? rows.filter((row) => !row.e13 && !row.e80).length
+        : 0,
+    [rows, showExamCodes],
   );
 
   async function handleSaveMeta() {
@@ -167,6 +172,7 @@ export function FinalistesClient() {
         session,
         classLabel,
         rows,
+        showExamCodes,
       });
       toast.success("Fichier Excel téléchargé");
     } catch (error) {
@@ -200,13 +206,13 @@ export function FinalistesClient() {
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Classe finaliste (6è)</Label>
+              <Label>Classe finaliste</Label>
               <Select value={classeId} onValueChange={setClasseId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Toutes les 6è" />
+                  <SelectValue placeholder="Toutes les classes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Toutes les classes 6è</SelectItem>
+                  <SelectItem value="all">Toutes les classes finalistes</SelectItem>
                   {workspace.classes.map((classe) => (
                     <SelectItem key={classe.id} value={classe.id}>
                       {classe.nameClasse}
@@ -220,7 +226,7 @@ export function FinalistesClient() {
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
               {rows.length} finaliste{rows.length > 1 ? "s" : ""}
             </Badge>
-            {missingCodes > 0 ? (
+            {showExamCodes && missingCodes > 0 ? (
               <Badge variant="warning">
                 {missingCodes} sans E13/E80
               </Badge>
@@ -282,8 +288,12 @@ export function FinalistesClient() {
               <th className="p-2">Matricule</th>
               <th className="p-2">Nom complet</th>
               <th className="p-2">Classe</th>
-              <th className="p-2">E13</th>
-              <th className="p-2">E80</th>
+              {showExamCodes ? (
+                <>
+                  <th className="p-2">E13</th>
+                  <th className="p-2">E80</th>
+                </>
+              ) : null}
               <th className="p-2">Sexe</th>
               <th className="p-2">Nationalité</th>
             </tr>
@@ -299,8 +309,12 @@ export function FinalistesClient() {
                 <td className="p-2 text-muted-foreground">
                   {row.className || classLabel}
                 </td>
-                <td className="p-2 font-mono text-xs">{row.e13 || "—"}</td>
-                <td className="p-2 font-mono text-xs">{row.e80 || "—"}</td>
+                {showExamCodes ? (
+                  <>
+                    <td className="p-2 font-mono text-xs">{row.e13 || "—"}</td>
+                    <td className="p-2 font-mono text-xs">{row.e80 || "—"}</td>
+                  </>
+                ) : null}
                 <td className="p-2">{row.sexe || "—"}</td>
                 <td className="p-2">{row.nationalite || "—"}</td>
               </tr>
@@ -309,8 +323,8 @@ export function FinalistesClient() {
         </table>
         {!rows.length && !pending ? (
           <p className="p-8 text-center text-sm text-muted-foreground">
-            Aucun élève inscrit en 6è pour cette année. Saisissez les codes
-            E13/E80 depuis la liste des élèves.
+            Aucun élève inscrit dans une classe finaliste (6è primaire, 8è
+            tronc commun ou 4è secondaire) pour cette année.
           </p>
         ) : null}
       </Card>

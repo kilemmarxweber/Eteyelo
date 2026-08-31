@@ -1,13 +1,12 @@
 import { z } from "zod";
 
+import { normalizeAngolaPrimaryLevel } from "@/lib/angola-primary-structure";
 import {
-  isAngolaPrimarySystem,
-  normalizeAngolaPrimaryLevel,
-} from "@/lib/angola-primary-structure";
-import {
+  isAngolaFirstCycleLevel,
   isAngolaSecondarySystem,
   normalizeAngolaSecondaryLevel,
 } from "@/lib/angola-secondary-structure";
+import { isCtebLevel } from "@/lib/class-structure";
 import { normalizeCycle, resolveCycle, type Cycle } from "@/lib/cycle";
 
 /** En-tête administratif du listing Excel finalistes (TENAFEP / 6è). */
@@ -48,10 +47,13 @@ export function parseExamExportMeta(raw: unknown): ExamExportMeta {
     : emptyExamExportMeta();
 }
 
-/** Niveau finaliste primaire (TENAFEP / 6è). */
+/** Niveau finaliste primaire (TENAFEP / 6è) — liste sans E13/E80. */
 export const PRIMARY_FINALIST_LEVEL = "6è";
 
-/** Dernière année Humanités (EXETAT / 6ᵉ secondaire). */
+/** 8è tronc commun (CTEB) — liste sans E13/E80. */
+export const CTEB_FINALIST_LEVEL = "8è";
+
+/** Dernière année Humanités (EXETAT) — seul niveau E13/E80. */
 export const SECONDARY_FINALIST_LEVEL = "4è";
 
 export type ExamCodesClassInput = {
@@ -113,20 +115,16 @@ function resolveExamCycle(input: ExamCodesClassInput): Cycle {
   );
 }
 
-/** Niveaux autorisés pour E13/E80 selon le type de branche / cycle. */
+/** Niveaux autorisés pour E13/E80 : secondaire terminal uniquement. */
 export function getExamCodeLevels(
   cycleOrType: unknown,
   educationSystem?: unknown,
 ): readonly string[] {
   if (cycleOrType === "MATERNELLE") return [];
   const cycle = normalizeCycle(cycleOrType);
-  if (cycle === "MATERNELLE") return [];
+  if (cycle === "MATERNELLE" || cycle === "PRIMAIRE") return [];
 
   switch (cycle) {
-    case "PRIMAIRE":
-      return isAngolaPrimarySystem("PRIMAIRE", educationSystem)
-        ? (["6ª"] as const)
-        : ([PRIMARY_FINALIST_LEVEL] as const);
     case "SECONDAIRE":
       return isAngolaSecondarySystem("SECONDAIRE", educationSystem)
         ? (["12ª", "13ª"] as const)
@@ -188,26 +186,72 @@ export function isPrimaryFinalistClass(classe: {
   );
 }
 
+export function isCtebFinalistClass(classe: {
+  level?: string | null;
+  nameClasse?: string | null;
+  codeClasse?: string | null;
+}) {
+  const level = classe.level?.trim() ?? "";
+  if (level === CTEB_FINALIST_LEVEL || level === "8e") return true;
+  if (normalizeAngolaSecondaryLevel(level) === "8ª") return true;
+  const name = classLabelOf(classe.nameClasse, classe.codeClasse);
+  return (
+    name.includes("8è-") ||
+    name.includes("8e-") ||
+    name.includes("8ª") ||
+    /\b8[èe]\b/.test(name)
+  );
+}
+
 export function isExamCodesClass(input: ExamCodesClassInput): boolean {
   const cycle = resolveExamCycle(input);
-  if (cycle === "MATERNELLE") return false;
+  if (cycle === "MATERNELLE" || cycle === "PRIMAIRE") return false;
 
   const allowed = getExamCodeLevels(cycle, input.educationSystem);
   if (allowed.length === 0) return false;
 
   const level = input.level?.trim() ?? "";
+  if (isCtebLevel(level) || isAngolaFirstCycleLevel(level)) return false;
+
   if (level && examLevelMatches(level, allowed, cycle, input.educationSystem)) {
     return true;
   }
 
-  if (cycle === "PRIMAIRE") {
-    return isPrimaryFinalistClass({
-      level: input.level,
-      nameClasse: input.className,
-      codeClasse: input.classCode,
-    });
+  if (cycle === "SECONDAIRE") {
+    if (
+      isCtebFinalistClass({
+        level: input.level,
+        nameClasse: input.className,
+        codeClasse: input.classCode,
+      })
+    ) {
+      return false;
+    }
+    const name = classLabelOf(input.className, input.classCode);
+    return (
+      name.includes("4è-") ||
+      name.includes("4e-") ||
+      /\b4[èe]\b/.test(name) ||
+      name.includes("12ª") ||
+      name.includes("13ª")
+    );
   }
 
+  return false;
+}
+
+/** Classes listées comme finalistes : 6è primaire, 8è tronc commun, 4è secondaire. */
+export function isFinalistListingClass(input: ExamCodesClassInput): boolean {
+  const cycle = resolveExamCycle(input);
+  const classe = {
+    level: input.level,
+    nameClasse: input.className,
+    codeClasse: input.classCode,
+  };
+  if (cycle === "PRIMAIRE") return isPrimaryFinalistClass(classe);
+  if (cycle === "SECONDAIRE") {
+    return isCtebFinalistClass(classe) || isExamCodesClass(input);
+  }
   return false;
 }
 
@@ -261,7 +305,7 @@ export function studentAllowsExamCodes(
   return isExamCodesClass(examCodesInputFromStudent(student, options));
 }
 
-/** Maternelle (et types sans examen) : pas d'action. Sinon griser hors niveau terminal. */
+/** Maternelle / primaire / CTEB : pas d'E13-E80. Secondaire : terminal uniquement. */
 export function getStudentExamCodesActionState(
   student: ExamCodesStudentLike,
   options: {
@@ -273,5 +317,7 @@ export function getStudentExamCodesActionState(
   const input = examCodesInputFromStudent(student, options);
   const cycle = resolveExamCycle(input);
   if (!examCodesExistForCycle(cycle, options.educationSystem)) return "hidden";
+  const level = input.level?.trim() ?? "";
+  if (isCtebLevel(level) || isAngolaFirstCycleLevel(level)) return "hidden";
   return isExamCodesClass(input) ? "enabled" : "disabled";
 }

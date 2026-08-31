@@ -1,6 +1,8 @@
 import { getOrganizationInvitationsConfig } from "@/lib/invitations/config";
 import { APP_ROLE, isPlatformOwnerRole } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+import { fetchOrganizationRoleStatements } from "@/lib/auth/org-role-permissions-load";
+import { roleStatementsMapToRecord } from "@/lib/auth/org-role-permission-shared";
 
 const SINGLE_ORG_MESSAGE =
   "Un utilisateur ne peut appartenir qu'à une seule organisation.";
@@ -120,6 +122,8 @@ export type SessionOrganization = {
   id: string;
   name: string;
   role: string;
+  /** Matrice OrganizationRole (DB) — source des privilèges dynamiques. */
+  rolePermissions?: Record<string, Record<string, string[]>>;
 };
 
 /** Contexte org exposé dans la session (org active ou unique appartenance). */
@@ -128,18 +132,18 @@ export async function getSessionOrganizationContext(
   activeOrganizationId?: string | null,
   appRole?: string | null,
 ): Promise<SessionOrganization | null> {
-  // Owner plateforme : peut activer n'importe quelle org sans row Member.
+  // Owner plateforme : peut activer n’importe quelle org sans row Member.
   if (isPlatformOwnerRole(appRole) && activeOrganizationId) {
     const organization = await prisma.organization.findUnique({
       where: { id: activeOrganizationId },
       select: { id: true, name: true },
     });
     if (organization) {
-      return {
+      return withRolePermissions({
         id: organization.id,
         name: organization.name,
         role: APP_ROLE.OWNER,
-      };
+      });
     }
   }
 
@@ -158,11 +162,11 @@ export async function getSessionOrganizationContext(
       },
     });
     if (member) {
-      return {
+      return withRolePermissions({
         id: member.organizationId,
         name: member.organization.name,
         role: member.role,
-      };
+      });
     }
   }
 
@@ -182,9 +186,19 @@ export async function getSessionOrganizationContext(
 
   if (!member) return null;
 
-  return {
+  return withRolePermissions({
     id: member.organizationId,
     name: member.organization.name,
     role: member.role,
+  });
+}
+
+async function withRolePermissions(
+  organization: SessionOrganization,
+): Promise<SessionOrganization> {
+  const map = await fetchOrganizationRoleStatements(organization.id);
+  return {
+    ...organization,
+    rolePermissions: roleStatementsMapToRecord(map),
   };
 }

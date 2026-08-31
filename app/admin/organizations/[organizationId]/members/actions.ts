@@ -32,6 +32,7 @@ import {
   updateOrganizationMemberRole,
 } from "@/lib/auth/organization-member-operations";
 import { buildIsArchivedUpdate } from "@/lib/archive";
+import { organizationRoleExists } from "@/lib/org/assignable-org-roles";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { orgRoleToBranchRole } from "@/lib/auth/org-role-to-branch-role";
 import { ensureBranchMemberRoleProfiles } from "@/lib/auth/ensure-branch-member-profile";
@@ -302,6 +303,10 @@ export async function createOrganizationMemberAction(
     return { ok: false, message: guard.message };
   }
 
+  if (!(await organizationRoleExists(parsed.data.organizationId, parsed.data.orgRole))) {
+    return { ok: false, message: "Rôle d’organisation invalide." };
+  }
+
   const {
     organizationId,
     branchId,
@@ -494,6 +499,10 @@ export async function updateOrganizationMemberAction(
   });
   if (!guard.ok) {
     return { ok: false, message: guard.message };
+  }
+
+  if (!(await organizationRoleExists(organizationId, orgRole))) {
+    return { ok: false, message: "Rôle d’organisation invalide." };
   }
 
   const implicitAllBranches = memberHasImplicitAllBranchAccess(orgRole);

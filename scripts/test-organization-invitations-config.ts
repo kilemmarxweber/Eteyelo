@@ -31,16 +31,16 @@ test("config invitations: parse metadata org", () => {
   assert.deepEqual(config.invitableRoles, ["gestionnaire", "teacher"]);
 });
 
-test("config invitations: ignore rôles inconnus", () => {
+test("config invitations: conserve un rôle custom (slug valide)", () => {
   const config = parseOrganizationInvitationsConfig(
     JSON.stringify({
       invitations: {
         enabled: true,
-        invitableRoles: ["gestionnaire", "not-a-role"],
+        invitableRoles: ["gestionnaire", "secretaire"],
       },
     }),
   );
-  assert.deepEqual(config.invitableRoles, ["gestionnaire"]);
+  assert.deepEqual(config.invitableRoles, ["gestionnaire", "secretaire"]);
 });
 
 test("config invitations: schema refuse expiresInDays hors bornes", () => {

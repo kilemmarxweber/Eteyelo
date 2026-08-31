@@ -148,9 +148,10 @@ test("routes documents isolees par type de branche", () => {
   assert.equal(getBranchRouteRedirect("/releves", "UNIVERSITE", org, base), null);
 
   assert.ok(
-    getBranchRouteRedirect("/finalistes", "SECONDAIRE", org, base)?.includes("/results"),
+    getBranchRouteRedirect("/finalistes", "MATERNELLE", org, base)?.includes("/results"),
   );
   assert.equal(getBranchRouteRedirect("/finalistes", "PRIMAIRE", org, base), null);
+  assert.equal(getBranchRouteRedirect("/finalistes", "SECONDAIRE", org, base), null);
   assert.equal(
     getBranchRouteRedirect(
       "/finalistes",
@@ -174,7 +175,7 @@ test("sidebar : entrees specifiques masquees hors type compatible", () => {
   assert.equal(shouldHideSidebarHref("/admin/brevets", "ATELIER"), true);
   assert.equal(shouldHideSidebarHref("/admin/releves", "UNIVERSITE"), false);
   assert.equal(shouldHideSidebarHref("/admin/finalistes", "PRIMAIRE"), false);
-  assert.equal(shouldHideSidebarHref("/admin/finalistes", "SECONDAIRE"), true);
+  assert.equal(shouldHideSidebarHref("/admin/finalistes", "SECONDAIRE"), false);
   assert.equal(shouldHideSidebarHref("/admin/help", "ATELIER"), false);
 });
 

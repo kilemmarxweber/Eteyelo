@@ -10,7 +10,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 import { IPersonnel } from "@/src/interfaces/Personnel";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
@@ -68,7 +67,7 @@ export function UpdatePersonnelDialog({
                   : new Date(),
                 address: personnel.address,
                 image: personnel.image ?? "",
-                orgRole: personnel.role ?? ALL_ORG_ROLE_SLUGS[0],
+                orgRole: personnel.role ?? "",
                 cycles: personnel.cycles ?? [],
               }}
               onUpdated={handleUpdated}

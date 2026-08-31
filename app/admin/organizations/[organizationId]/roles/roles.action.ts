@@ -5,14 +5,19 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { action } from "@/lib/zsa";
-import { guardOrganizationOwner } from "@/lib/auth/require-organization-permission";
+import { completePermissionMatrix } from "@/lib/auth/org-role-permission-shared";
+import {
+  guardOrganizationAccess,
+  guardOrganizationOwner,
+} from "@/lib/auth/require-organization-permission";
 import { seedOrganizationRolePresets } from "@/lib/auth/seed-organization-roles";
+import { listAssignableOrganizationRoles } from "@/lib/org/assignable-org-roles";
 import {
   getOrgRolePresetPermissionJson,
   listOrgRolePresetMetas,
 } from "@/lib/org/role-presets";
-import { ALL_ORG_ROLE_SLUGS, ORG_ROLE, accessControlStatements } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { ALL_ORG_ROLE_SLUGS, ORG_ROLE } from "@/lib/permissions";
 
 const slugSchema = z
   .string()
@@ -58,19 +63,7 @@ function parsePermission(raw: string | null | undefined): Record<string, string[
 function sanitizePermission(
   input: Record<string, string[]>,
 ): Record<string, string[]> {
-  const catalog = accessControlStatements as Record<string, readonly string[]>;
-  const out: Record<string, string[]> = {};
-  for (const [resource, actions] of Object.entries(input)) {
-    const allowed = catalog[resource];
-    if (!allowed) continue;
-    const allowSet = new Set(allowed.map(String));
-    const next = [...new Set(actions.map(String))].filter((a) =>
-      allowSet.has(a),
-    );
-    // Conserver [] pour un refus explicite de toutes les actions.
-    out[resource] = next;
-  }
-  return out;
+  return completePermissionMatrix(input);
 }
 
 function rolesPath(organizationId: string) {
@@ -138,9 +131,11 @@ export const listOrganizationRolesAction = action
 
     for (const meta of presetMetas) {
       const db = bySlug.get(meta.slug);
-      const permission = db
-        ? parsePermission(db.permission)
-        : parsePermission(getOrgRolePresetPermissionJson(meta.slug));
+      const permission = completePermissionMatrix(
+        db
+          ? parsePermission(db.permission)
+          : parsePermission(getOrgRolePresetPermissionJson(meta.slug)),
+      );
       items.push({
         id: db?.id ?? null,
         slug: meta.slug,
@@ -166,12 +161,20 @@ export const listOrganizationRolesAction = action
         locked: db.role === ORG_ROLE.OWNER,
         sortOrder: db.sortOrder,
         memberCount: memberCountByRole.get(db.role) ?? 0,
-        permission: parsePermission(db.permission),
+        permission: completePermissionMatrix(parsePermission(db.permission)),
         source: "db",
       });
     }
 
     return items.sort((a, b) => a.sortOrder - b.sortOrder || a.slug.localeCompare(b.slug));
+  });
+
+export const listAssignableOrganizationRolesAction = action
+  .input(z.object({ organizationId: z.string().min(1) }))
+  .handler(async ({ input }) => {
+    const access = await guardOrganizationAccess(input.organizationId);
+    if (!access.ok) throw new Error(access.message);
+    return listAssignableOrganizationRoles(input.organizationId);
   });
 
 export const updateOrganizationRoleAction = action

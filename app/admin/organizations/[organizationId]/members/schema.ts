@@ -1,9 +1,8 @@
 import { z } from "zod";
 import { memberHasImplicitAllBranchAccess } from "@/lib/auth/role-labels";
-import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 import { phoneRegex } from "@/src/interfaces/User";
-const orgRoleRefine = (role: string) =>
-  (ALL_ORG_ROLE_SLUGS as readonly string[]).includes(role);
+
+const orgRoleRefine = (role: string) => /^[a-z][a-z0-9_]*$/.test(role.trim());
 
 const namePart = z
   .string()

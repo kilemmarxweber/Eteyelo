@@ -91,10 +91,17 @@ export function EnrollmentUpForm({
 
   const teachersForCycle = useMemo(() => {
     if (!classCycle) return Teachers;
-    return Teachers.filter((teacher) => {
+    const matching: typeof Teachers = [];
+    const others: typeof Teachers = [];
+    for (const teacher of Teachers) {
       const cycles = (teacher.cycles ?? []) as Cycle[];
-      return cycles.length === 0 || cycles.includes(classCycle);
-    });
+      if (cycles.length === 0 || cycles.includes(classCycle)) {
+        matching.push(teacher);
+      } else {
+        others.push(teacher);
+      }
+    }
+    return [...matching, ...others];
   }, [Teachers, classCycle]);
 
   const form = useForm<z.infer<typeof teachingSchema>>({

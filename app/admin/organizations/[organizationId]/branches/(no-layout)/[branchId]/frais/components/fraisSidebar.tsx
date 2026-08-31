@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
@@ -116,13 +116,14 @@ export function OptionSidebar() {
       <div className="border-b p-3">
         <div className="relative">
           <IconSearch className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
+          <SearchInput
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);
               setPage(0);
             }}
             placeholder="Rechercher une classe..."
+            autoFocus={false}
             className="h-9 pl-9"
           />
         </div>

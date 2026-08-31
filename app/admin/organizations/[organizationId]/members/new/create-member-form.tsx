@@ -9,12 +9,12 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
-import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { isCycleGlobalRole } from "@/lib/auth/cycle-global-roles";
 import { memberHasImplicitAllBranchAccess } from "@/lib/auth/role-labels";
 import { formatPersonFullName } from "@/lib/person-full-name";
 import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
+import { ORG_ROLE } from "@/lib/permissions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -41,6 +41,7 @@ import {
   createOrgMemberFormSchema,
   type CreateOrgMemberFormInput,
 } from "../schema";
+import { useAssignableOrgRoles } from "../use-assignable-org-roles";
 import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
 
 type Props = {
@@ -71,6 +72,7 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [cyclesError, setCyclesError] = useState<string | undefined>();
+  const { roles: orgRoles } = useAssignableOrgRoles(organizationId);
 
   const defaultBranchIds =
     branches.length === 1 ? [branches[0]!.id] : [];
@@ -84,7 +86,7 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
       postnom: "",
       prenom: "",
       dateOfBirth: undefined,
-      orgRole: ALL_ORG_ROLE_SLUGS[2],
+      orgRole: ORG_ROLE.GESTIONNAIRE,
       branchIds: defaultBranchIds,
       branchCycles: initialBranchCycles(defaultBranchIds, branches),
     },
@@ -101,6 +103,20 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
   const fullName = formatPersonFullName({ name: nom, postnom, prenom });
   const implicitAllBranches = memberHasImplicitAllBranchAccess(orgRole);
   const showCycles = !implicitAllBranches && !isCycleGlobalRole(orgRole);
+  const orgRoleDisplay =
+    orgRoles.find((r) => r.slug === orgRole)?.label || orgRoleLabel(orgRole);
+
+  useEffect(() => {
+    if (!orgRoles.length) return;
+    const current = form.getValues("orgRole");
+    if (!orgRoles.some((r) => r.slug === current)) {
+      const next =
+        orgRoles.find((r) => r.slug === ORG_ROLE.GESTIONNAIRE)?.slug ??
+        orgRoles.find((r) => r.slug !== ORG_ROLE.OWNER)?.slug ??
+        orgRoles[0]?.slug;
+      if (next) form.setValue("orgRole", next);
+    }
+  }, [orgRoles, form]);
 
   useEffect(() => {
     return () => {
@@ -219,7 +235,7 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
                 />
                 <MemberFormSummaryRow
                   label="Rôle"
-                  value={orgRoleLabel(orgRole)}
+                  value={orgRoleDisplay}
                 />
                 <MemberFormSummaryRow
                   label="Établissements"
@@ -352,9 +368,12 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
               disabled={pending}
               className={memberFieldClass + " border bg-background px-3"}
             >
-              {ALL_ORG_ROLE_SLUGS.map((slug) => (
-                <option key={slug} value={slug}>
-                  {orgRoleLabel(slug)}
+              {(orgRoles.length
+                ? orgRoles
+                : [{ slug: orgRole, label: orgRoleLabel(orgRole) }]
+              ).map((item) => (
+                <option key={item.slug} value={item.slug}>
+                  {item.label}
                 </option>
               ))}
             </select>

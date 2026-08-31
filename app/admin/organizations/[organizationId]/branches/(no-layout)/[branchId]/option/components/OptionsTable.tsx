@@ -276,6 +276,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({
         onFilterChange={setStatusFilter}
         filterOptions={filterOptions}
         searchPlaceholder={tOption("search")}
+        autoFocus
       />
 
       <ResponsiveDataTable

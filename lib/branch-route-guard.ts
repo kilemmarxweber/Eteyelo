@@ -24,6 +24,10 @@ export type BranchRouteRule = {
   redirectTo: string;
 };
 
+function usesFinalistesForBranch(typebranch: unknown): boolean {
+  return typebranch === "PRIMAIRE" || typebranch === "SECONDAIRE";
+}
+
 export const BRANCH_ROUTE_RULES: BranchRouteRule[] = [
   {
     suffix: "/section",
@@ -82,7 +86,7 @@ export const BRANCH_ROUTE_RULES: BranchRouteRule[] = [
   },
   {
     suffix: "/finalistes",
-    isAllowed: isPrimaryBranch,
+    isAllowed: usesFinalistesForBranch,
     redirectTo: "/results",
   },
   {
@@ -202,7 +206,7 @@ function shouldHideSidebarHrefForCycle(
     return true;
   }
 
-  if (normalizedHref === "/finalistes" && !isPrimaryBranch(typebranch)) {
+  if (normalizedHref === "/finalistes" && !usesFinalistesForBranch(typebranch)) {
     return true;
   }
 

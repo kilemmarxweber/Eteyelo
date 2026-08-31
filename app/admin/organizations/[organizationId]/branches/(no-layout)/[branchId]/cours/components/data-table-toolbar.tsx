@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/custom/button";
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
 import { DataTableViewOptions } from "@/components/data-table-view-options";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -25,7 +25,7 @@ export function DataTableToolbar<TData>({
     <div className="flex flex-col gap-3 border-b border bg-card p-4 lg:flex-row lg:items-center lg:justify-between">
       <div className="relative w-full lg:max-w-[300px]">
         <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground/40" />
-        <Input
+        <SearchInput
           placeholder={t("search")}
           value={
             (table.getColumn("nameCours")?.getFilterValue() as string) ?? ""
@@ -33,7 +33,7 @@ export function DataTableToolbar<TData>({
           onChange={(event) =>
             table.getColumn("nameCours")?.setFilterValue(event.target.value)
           }
-          className="h-11 rounded-xl border bg-card pl-9 text-foreground placeholder:text-foreground/40 focus-visible:ring-blue-200"
+          className="h-11 rounded-xl bg-card pl-9 text-foreground placeholder:text-foreground/40"
         />
       </div>
 

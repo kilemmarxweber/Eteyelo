@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { BackLink } from "@/components/ui/back-link";
 import { getOrganizationAccessAction } from "@/app/admin/organizations/actions";
 import { getOrganizationInvitationsConfig } from "@/lib/invitations/config";
+import { listAssignableOrganizationRoles } from "@/lib/org/assignable-org-roles";
 import { enforceOrganizationManagerPage } from "@/lib/auth/require-organization-permission";
 import { InvitationsConfigForm } from "./invitations-config-form";
 
@@ -18,7 +19,10 @@ export default async function OrganizationInvitationsConfigPage({
     notFound();
   }
 
-  const config = await getOrganizationInvitationsConfig(organizationId);
+  const [config, roles] = await Promise.all([
+    getOrganizationInvitationsConfig(organizationId),
+    listAssignableOrganizationRoles(organizationId),
+  ]);
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
@@ -39,6 +43,7 @@ export default async function OrganizationInvitationsConfigPage({
           <InvitationsConfigForm
             organizationId={organizationId}
             initialConfig={config}
+            roles={roles}
           />
         </div>
       </section>

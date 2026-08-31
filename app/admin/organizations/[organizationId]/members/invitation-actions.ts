@@ -15,7 +15,8 @@ import {
   type OrganizationInvitationsConfig,
 } from "@/lib/invitations/config";
 import { INVITATION_MESSAGES } from "@/lib/invitations/messages";
-import { ALL_ORG_ROLE_SLUGS, isPlatformOwnerRole } from "@/lib/permissions";
+import { isPlatformOwnerRole } from "@/lib/permissions";
+import { organizationRoleExists } from "@/lib/org/assignable-org-roles";
 import { prisma } from "@/lib/prisma";
 
 function errMessage(error: unknown): string {
@@ -44,10 +45,7 @@ const inviteSchema = z.object({
   role: z
     .string()
     .min(1, INVITATION_MESSAGES.roleRequired)
-    .refine(
-      (role) => (ALL_ORG_ROLE_SLUGS as readonly string[]).includes(role),
-      INVITATION_MESSAGES.roleInvalid,
-    ),
+    .regex(/^[a-z][a-z0-9_]*$/, INVITATION_MESSAGES.roleInvalid),
   resend: z.boolean().optional(),
 });
 
@@ -186,7 +184,10 @@ export async function inviteOrganizationMemberAction(
     if (!config.enabled) {
       return { ok: false, message: INVITATION_MESSAGES.disabled };
     }
-    if (!isInvitableRole(role, config)) {
+    if (
+      !isInvitableRole(role, config) ||
+      !(await organizationRoleExists(organizationId, role))
+    ) {
       return { ok: false, message: INVITATION_MESSAGES.roleInvalid };
     }
 

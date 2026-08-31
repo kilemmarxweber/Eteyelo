@@ -26,13 +26,13 @@ export default async function FinalistesPage() {
   return (
     <BranchPageShell
       title="Liste finalistes"
-      description="Export Excel des élèves de 6è (E13 & E80) pour la session d'examen."
+      description="6è primaire et 8è tronc commun : liste sans E13/E80. Secondaire terminal (4è) : liste avec E13 et E80."
       badge={
         <Badge
           variant="outline-primary"
           icon={<IconFileSpreadsheet size={14} />}
         >
-          Cursus · Primaire
+          Cursus · Finalistes
         </Badge>
       }
       fixedHeight

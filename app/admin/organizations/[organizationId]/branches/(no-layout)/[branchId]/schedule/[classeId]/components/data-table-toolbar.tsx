@@ -4,7 +4,7 @@ import { Table } from "@tanstack/react-table";
 
 import { IconX } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 import { DataTableViewOptions } from "@/components/data-table-view-options";
 
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
@@ -54,7 +54,7 @@ export function DataTableToolbar<TData>({
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
-        <Input
+        <SearchInput
           placeholder="chercher un enseignant..."
           value={
             (table.getColumn("username")?.getFilterValue() as string) ?? ""
@@ -63,6 +63,7 @@ export function DataTableToolbar<TData>({
             table.getColumn("username")?.setFilterValue(event.target.value)
           }
           className="h-8 w-[150px] lg:w-[250px]"
+          autoFocus={false}
         />
         {table.getColumn("nameYear") && (
           <DataTableFacetedFilter

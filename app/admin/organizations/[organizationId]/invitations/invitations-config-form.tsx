@@ -5,19 +5,21 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { updateOrganizationInvitationsConfigAction } from "@/app/admin/organizations/[organizationId]/members/invitation-actions";
 import { Button } from "@/components/ui/button";
-import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
-import { orgRoleLabel } from "@/lib/org-role-labels";
 import type { OrganizationInvitationsConfig } from "@/lib/invitations/config";
 import { INVITATION_MESSAGES } from "@/lib/invitations/messages";
+
+type AssignableRole = { slug: string; label: string };
 
 type Props = {
   organizationId: string;
   initialConfig: OrganizationInvitationsConfig;
+  roles: AssignableRole[];
 };
 
 export function InvitationsConfigForm({
   organizationId,
   initialConfig,
+  roles,
 }: Props) {
   const [pending, startTransition] = useTransition();
   const [config, setConfig] = useState(initialConfig);
@@ -110,18 +112,18 @@ export function InvitationsConfigForm({
       <div className="space-y-3">
         <p className="text-sm font-medium">Rôles invitables</p>
         <div className="grid gap-2 sm:grid-cols-2">
-          {ALL_ORG_ROLE_SLUGS.map((role) => (
+          {roles.map((item) => (
             <label
-              key={role}
+              key={item.slug}
               className="flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm"
             >
               <input
                 type="checkbox"
-                checked={config.invitableRoles.includes(role)}
+                checked={config.invitableRoles.includes(item.slug)}
                 disabled={pending}
-                onChange={() => toggleRole(role)}
+                onChange={() => toggleRole(item.slug)}
               />
-              {orgRoleLabel(role)}
+              {item.label}
             </label>
           ))}
         </div>

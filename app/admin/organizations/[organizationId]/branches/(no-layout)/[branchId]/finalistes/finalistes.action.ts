@@ -8,7 +8,8 @@ import { isBranchRouteAllowed } from "@/lib/branch-route-guard";
 import {
   emptyExamExportMeta,
   examExportMetaSchema,
-  isPrimaryFinalistClass,
+  isExamCodesClass,
+  isFinalistListingClass,
   parseExamExportMeta,
 } from "@/lib/exam-export-meta";
 import { branchDocumentName } from "@/lib/branch-document-name";
@@ -18,7 +19,7 @@ import type { Prisma } from "@/prisma/generated/prisma/client";
 
 function assertFinalistesBranchAccess(cycles: unknown[], typebranch: unknown) {
   if (!isBranchRouteAllowed("/finalistes", cycles.length ? cycles : typebranch)) {
-    throw new Error("Réservé aux établissements avec cycle primaire.");
+    throw new Error("Réservé aux établissements primaire et secondaire.");
   }
 }
 
@@ -54,7 +55,7 @@ function sessionFromYear(nameYear: string, endYear?: Date | null) {
 }
 
 export const getFinalistesWorkspaceAction = action.handler(async () => {
-  const { branchId, organizationId, session, typebranch, cycles } =
+  const { branchId, organizationId, session, typebranch, cycles, educationSystem } =
     await requireBranchContext();
 
   assertFinalistesBranchAccess(cycles, typebranch);
@@ -94,6 +95,7 @@ export const getFinalistesWorkspaceAction = action.handler(async () => {
         nameClasse: true,
         codeClasse: true,
         level: true,
+        cycle: true,
       },
       orderBy: { nameClasse: "asc" },
     }),
@@ -101,7 +103,16 @@ export const getFinalistesWorkspaceAction = action.handler(async () => {
 
   if (!branch) throw new Error("Branche introuvable");
 
-  const finalistClasses = classes.filter(isPrimaryFinalistClass);
+  const finalistClasses = classes.filter((classe) =>
+    isFinalistListingClass({
+      cycle: classe.cycle,
+      typebranch,
+      level: classe.level,
+      className: classe.nameClasse,
+      classCode: classe.codeClasse,
+      educationSystem,
+    }),
+  );
   const meta = parseExamExportMeta(branch.examExportMeta);
   if (!meta.etablissement) meta.etablissement = branchDocumentName(branch);
   if (!meta.etablissementCode && branch.code) {
@@ -127,7 +138,7 @@ const listFinalistesSchema = z.object({
 export const listFinalistesAction = action
   .input(listFinalistesSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, typebranch, cycles } =
+    const { branchId, organizationId, typebranch, cycles, educationSystem } =
       await requireBranchContext();
 
     assertFinalistesBranchAccess(cycles, typebranch);
@@ -149,6 +160,7 @@ export const listFinalistesAction = action
           nameClasse: true,
           codeClasse: true,
           level: true,
+          cycle: true,
         },
       }),
       prisma.branch.findFirst({
@@ -156,14 +168,23 @@ export const listFinalistesAction = action
         select: { ville: true, commune: true, name: true },
       }),
     ]);
-    const allowedIds = new Set(
-      finalistClasses.filter(isPrimaryFinalistClass).map((item) => item.id),
+    const listingClasses = finalistClasses.filter((item) =>
+      isFinalistListingClass({
+        cycle: item.cycle,
+        typebranch,
+        level: item.level,
+        className: item.nameClasse,
+        classCode: item.codeClasse,
+        educationSystem,
+      }),
     );
+    const allowedIds = new Set(listingClasses.map((item) => item.id));
     if (!allowedIds.size) {
       return {
         session: sessionFromYear(schoolYear.nameYear, schoolYear.endYear),
         schoolYearName: schoolYear.nameYear,
-        classLabel: "Aucune classe 6è",
+        classLabel: "Aucune classe finaliste",
+        showExamCodes: false,
         rows: [] as Array<Record<string, string | number>>,
       };
     }
@@ -249,8 +270,20 @@ export const listFinalistesAction = action
     });
 
     const selectedClass = input.classeId
-      ? finalistClasses.find((item) => item.id === input.classeId)
+      ? listingClasses.find((item) => item.id === input.classeId)
       : null;
+
+    const scopedClasses = selectedClass ? [selectedClass] : listingClasses;
+    const showExamCodes = scopedClasses.some((classe) =>
+      isExamCodesClass({
+        cycle: classe.cycle,
+        typebranch,
+        level: classe.level,
+        className: classe.nameClasse,
+        classCode: classe.codeClasse,
+        educationSystem,
+      }),
+    );
 
     const rows = enrollments
       .filter((item) => item.student?.branchMember?.member?.user?.statusUser !== false)
@@ -299,7 +332,8 @@ export const listFinalistesAction = action
       schoolYearName: schoolYear.nameYear,
       classLabel: selectedClass
         ? selectedClass.nameClasse
-        : `Toutes les classes 6è (${allowedIds.size})`,
+        : `Toutes les classes finalistes (${allowedIds.size})`,
+      showExamCodes,
       rows,
     };
   });

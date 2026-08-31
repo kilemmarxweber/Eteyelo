@@ -59,7 +59,7 @@ export function parseOrganizationInvitationsConfig(
   }
 
   const invitableRoles = parsed.data.invitableRoles.filter((role) =>
-    (ALL_ORG_ROLE_SLUGS as readonly string[]).includes(role),
+    /^[a-z][a-z0-9_]*$/.test(role),
   );
 
   return {

@@ -36,6 +36,9 @@ import { orgRoleLabel, schoolHeadRoleLabel } from "../lib/org-role-labels";
 import { APP_ROLE, ORG_ROLE } from "../lib/permissions";
 import { OWNER_ONLY_MENU_ROLES, buildStaticSideLinks } from "../lib/sidebar-menu";
 
+// Carte historique par slug (session-roles). La matrice DB est couverte en unit-09.
+process.env.PERMISSIONS_FROM_DAC = "false";
+
 function test(name: string, assertion: () => void) {
   assertion();
   console.log(`✓ ${name}`);

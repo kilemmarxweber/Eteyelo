@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { Building2, KeyRound, Shield, UserRound } from "lucide-react";
 import { toast } from "sonner";
-import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { isCycleGlobalRole } from "@/lib/auth/cycle-global-roles";
 import { memberHasImplicitAllBranchAccess } from "@/lib/auth/role-labels";
@@ -52,6 +51,8 @@ import {
 import { MemberPhotoField } from "../../member-photo-field";
 import { ResetUsersDialog } from "../../../branches/(no-layout)/[branchId]/student/components/reset-users-dialog";
 import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
+import { useAssignableOrgRoles } from "../../use-assignable-org-roles";
+import { ORG_ROLE } from "@/lib/permissions";
 
 type MemberRow = {
   id: string;
@@ -76,8 +77,9 @@ type Props = {
 
 export function EditMemberForm({ organizationId, memberId, branches }: Props) {
   const router = useRouter();
+  const { roles: orgRoles } = useAssignableOrgRoles(organizationId);
   const [member, setMember] = useState<MemberRow | null | undefined>(undefined);
-  const [role, setRole] = useState<string>(ALL_ORG_ROLE_SLUGS[2]);
+  const [role, setRole] = useState<string>(ORG_ROLE.GESTIONNAIRE);
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | undefined>();
   const [branchIds, setBranchIds] = useState<string[]>([]);
@@ -146,12 +148,8 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
         toast.error(assignedRes.message);
       }
       const primary =
-        found.role.split(",")[0]?.trim() ?? ALL_ORG_ROLE_SLUGS[2];
-      setRole(
-        (ALL_ORG_ROLE_SLUGS as readonly string[]).includes(primary)
-          ? primary
-          : ALL_ORG_ROLE_SLUGS[2],
-      );
+        found.role.split(",")[0]?.trim() ?? ORG_ROLE.GESTIONNAIRE;
+      setRole(primary);
     } catch {
       toast.error("Erreur réseau.");
       setMember(null);
@@ -491,11 +489,14 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
                 disabled={busy}
                 className={memberFieldClass + " border bg-background px-3"}
               >
-                {ALL_ORG_ROLE_SLUGS.map((slug) => (
-                  <option key={slug} value={slug}>
-                    {orgRoleLabel(slug)}
+                {orgRoles.map((item) => (
+                  <option key={item.slug} value={item.slug}>
+                    {item.label}
                   </option>
                 ))}
+                {role && !orgRoles.some((item) => item.slug === role) ? (
+                  <option value={role}>{orgRoleLabel(role)}</option>
+                ) : null}
               </select>
             </div>
           </MemberFormSection>

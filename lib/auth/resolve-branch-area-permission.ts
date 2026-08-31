@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/branch-area-permissions";
 import {
   getStatementsForRole,
+  statementsMapFromSession,
   type RoleStatements,
 } from "@/lib/auth/org-role-permission-shared";
 import {
@@ -43,7 +44,8 @@ export function roleAllowsAll(
  * True si un des rôles session couvre la permission de la zone.
  * Bypass owner plateforme / support.
  *
- * @param roleStatements Map DB (OrganizationRole) — si absente, repli seed code.
+ * @param roleStatements Map DB (OrganizationRole). Si absente, lecture depuis
+ *   `session.organization.rolePermissions`, sinon repli seed (tests).
  */
 export function canAccessBranchAreaFromPermissions(
   area: BranchArea,
@@ -57,14 +59,14 @@ export function canAccessBranchAreaFromPermissions(
   if (appRole && hasPlatformSupportPrivileges(appRole)) {
     return true;
   }
-  // Le propriétaire d'organisation suit aussi la matrice OrganizationRole
-  // (sinon décocher « Voir » n'a aucun effet en test / tuning).
 
   const required = BRANCH_AREA_PERMISSION[area];
   if (!required) return false;
 
+  const map = roleStatements ?? statementsMapFromSession(session);
+
   for (const slug of roles) {
-    const statements = getStatementsForRole(slug, roleStatements);
+    const statements = getStatementsForRole(slug, map);
     if (!statements) continue;
 
     let ok = true;

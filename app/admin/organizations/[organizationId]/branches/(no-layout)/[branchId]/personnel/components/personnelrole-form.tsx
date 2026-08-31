@@ -26,11 +26,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useParams } from "next/navigation";
 import { orgRoleLabel } from "@/lib/org-role-labels";
-import {
-  ORGANIZATION_ROLE_SLUGS,
-  organizationRoleStatements,
-} from "@/lib/permissions";
+import { useAssignableOrgRoles } from "@/app/admin/organizations/[organizationId]/members/use-assignable-org-roles";
 
 import { updatePersonnelFullAction } from "../personnel.action";
 
@@ -71,25 +69,15 @@ const roleSchema = z.object({
 
 type PersonnelFullFormValues = z.infer<typeof roleSchema>;
 
-function getRolePermissions(role: string): string[] {
-  const roleConfig =
-    organizationRoleStatements[role as keyof typeof organizationRoleStatements];
-
-  if (!roleConfig) return [];
-
-  return (
-    Object.entries(roleConfig) as Array<[string, readonly string[]]>
-  ).flatMap(([resource, actions]) =>
-    actions.map((action) => `${resource}:${action}`),
-  );
-}
-
 export function PersonnelRoleUpForm({
   mode,
   initialData,
   onSuccess,
   onCancel,
 }: Props) {
+  const params = useParams<{ organizationId: string }>();
+  const organizationId = String(params.organizationId ?? "");
+  const { roles: orgRoles } = useAssignableOrgRoles(organizationId);
   const [loading, setLoading] = useState(false);
   const [permissions, setPermissions] = useState<string[]>([]);
   const [permissionSearch, setPermissionSearch] = useState("");
@@ -138,14 +126,18 @@ export function PersonnelRoleUpForm({
     });
 
     if (initialData.orgRole) {
-      setPermissions(getRolePermissions(initialData.orgRole));
+      const keys =
+        orgRoles.find((r) => r.slug === initialData.orgRole)?.permissionKeys ?? [];
+      setPermissions(keys);
     }
-  }, [initialData, form]);
+  }, [initialData, form, orgRoles]);
 
   useEffect(() => {
     if (!selectedRole) return;
-    setPermissions(getRolePermissions(selectedRole));
-  }, [selectedRole]);
+    setPermissions(
+      orgRoles.find((r) => r.slug === selectedRole)?.permissionKeys ?? [],
+    );
+  }, [selectedRole, orgRoles]);
 
   const filteredPermissions = useMemo(() => {
     const q = permissionSearch.trim().toLowerCase();
@@ -206,9 +198,15 @@ export function PersonnelRoleUpForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {ORGANIZATION_ROLE_SLUGS.map((role) => (
+                    {(orgRoles.length
+                      ? orgRoles.map((item) => item.slug)
+                      : selectedRole
+                        ? [selectedRole]
+                        : []
+                    ).map((role) => (
                       <SelectItem key={role} value={String(role)}>
-                        {orgRoleLabel(String(role))}
+                        {orgRoles.find((r) => r.slug === role)?.label ||
+                          orgRoleLabel(String(role))}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -222,10 +220,14 @@ export function PersonnelRoleUpForm({
         <Card className="space-y-3 border-border p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-semibold text-foreground">
-              Permissions du rôle
+              Privilèges du rôle
             </h3>
-            <Badge variant="secondary">{permissions.length} permissions</Badge>
+            <Badge variant="secondary">{permissions.length} actifs</Badge>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Aperçu de la matrice enregistrée dans Paramètres → Rôles &
+            privilèges. Les cases se gèrent uniquement à cet endroit.
+          </p>
 
           <Input
             value={permissionSearch}

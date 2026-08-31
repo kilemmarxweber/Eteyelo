@@ -257,6 +257,7 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
       <SearchAndFilter
         searchTerm={searchTerm}
         searchPlaceholder="Rechercher un frais..."
+        autoFocus
         onSearchChange={(value) => {
           setSearchTerm(value);
           setPage(0);

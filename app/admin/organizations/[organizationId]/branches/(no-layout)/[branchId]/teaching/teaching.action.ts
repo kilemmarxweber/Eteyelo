@@ -23,7 +23,6 @@ import { assertTeacherFreeAt } from "@/lib/teacher-availability";
 import { cycleLabel, resolveCycle, type Cycle } from "@/lib/cycle";
 import { compareClassesByLevel } from "@/lib/class-structure";
 import {
-  buildBranchMemberDirectoryWhere,
   classeCycleWhere,
   isCycleGlobalRole,
   primaryOrgRoleFromSession,
@@ -190,11 +189,6 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
   ]);
   const seeAll = sessionCanViewAllDirectoryUsers(session, orgMember?.role);
   const seeWholeBranch = !seeAll && isCycleGlobalRole(orgMember?.role);
-  const directoryWhere = await buildBranchMemberDirectoryWhere({
-    viewerBranchMemberId: viewerBm?.id ?? null,
-    seeAll,
-    seeWholeBranch,
-  });
   const accessibleCycles = await resolveAccessibleCycles({
     branchId,
     branchMemberId: viewerBm?.id ?? null,
@@ -227,14 +221,23 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
       }),
       prisma.teacher.findMany({
         where: {
+          isActive: true,
           branchMember: {
-            AND: [
-              {
-                branchId,
-                branch: { organizationId },
-              },
-              ...(directoryWhere ? [directoryWhere] : []),
-            ],
+            branchId,
+            isActive: true,
+            branch: { organizationId },
+            ...(seeAll || seeWholeBranch
+              ? {}
+              : {
+                  OR: [
+                    { memberCycles: { none: {} } },
+                    {
+                      memberCycles: {
+                        some: { cycle: { in: accessibleCycles } },
+                      },
+                    },
+                  ],
+                }),
           },
         },
         orderBy: { createdAt: "asc" },

@@ -16,6 +16,30 @@ function test(name: string, assertion: () => void) {
   console.log(`✓ ${name}`);
 }
 
+test("matrice dynamique : décocher un privilège n'est pas réinjecté par le seed", () => {
+  delete process.env.PERMISSIONS_FROM_DAC;
+  const session = {
+    organization: {
+      role: ORG_ROLE.CAISSIER,
+      rolePermissions: {
+        [ORG_ROLE.CAISSIER]: {
+          finance: ["read", "encaisser"],
+        },
+      },
+    },
+  };
+  assert.equal(canAccessBranchArea("finance", session), true);
+  assert.equal(
+    canAccessBranchArea("fee_catalog", session),
+    false,
+    "fees:read du seed ne doit pas revenir si absent de la matrice",
+  );
+  assert.equal(canAccessBranchArea("registration", session), false);
+});
+
+// Carte historique par slug (session-roles). La matrice DB est testée plus haut.
+process.env.PERMISSIONS_FROM_DAC = "false";
+
 function sessionWithOrgRole(role: string) {
   return { organization: { role } };
 }

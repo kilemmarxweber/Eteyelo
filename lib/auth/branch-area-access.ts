@@ -28,8 +28,9 @@ export type { BranchArea };
  * Zones sensibles sous `.../branches/[branchId]/` (unit-09).
  * Module client-safe (pas de next/headers / prisma).
  *
- * DAC sync = seed code. Pour OrganizationRole DB : `assertBranchAreaAccess`
- * ou `canAccessBranchAreaAsync` (server-only).
+ * DAC : matrice `session.organization.rolePermissions` (DB).
+ * Sans map session : repli seed (tests). Côté serveur, préférer
+ * `assertBranchAreaAccess` qui recharge OrganizationRole.
  */
 export function canAccessBranchArea(
   area: BranchArea,

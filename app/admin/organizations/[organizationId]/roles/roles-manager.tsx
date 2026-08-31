@@ -23,6 +23,7 @@ import {
   resourceLabelFr,
 } from "@/lib/permission-labels-fr";
 import { accessControlStatements } from "@/lib/permissions";
+import { completePermissionMatrix } from "@/lib/auth/org-role-permission-shared";
 import {
   createOrganizationRoleAction,
   deleteOrganizationRoleAction,
@@ -46,8 +47,6 @@ function toggleAction(
   const set = new Set(next[resource] ?? []);
   if (checked) set.add(action);
   else set.delete(action);
-  // Tableau vide = refus explicite (ne pas supprimer la clé : sinon le seed
-  // réinjecte Voir au chargement).
   next[resource] = [...set];
   return next;
 }
@@ -165,12 +164,12 @@ export function OrganizationRolesManager({
 
   function openEdit(item: OrgRoleListItem) {
     setEditing(item);
-    // Copie profonde des tableaux d’actions (évite de muter l’item listé).
+    // Copie profonde + catalogue complet (décoché = [] persisté).
     const permissionCopy: Record<string, string[]> = {};
     for (const [key, actions] of Object.entries(item.permission)) {
       permissionCopy[key] = [...actions];
     }
-    setDraftPermission(permissionCopy);
+    setDraftPermission(completePermissionMatrix(permissionCopy));
     setDraftLabel(item.label);
     setDraftDescription(item.description);
   }
@@ -183,7 +182,7 @@ export function OrganizationRolesManager({
       slug: editing.slug,
       label: draftLabel,
       description: draftDescription,
-      permission: draftPermission,
+      permission: completePermissionMatrix(draftPermission),
     });
     setSaving(false);
     if (err) {

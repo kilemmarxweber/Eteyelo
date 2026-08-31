@@ -38,6 +38,7 @@ import {
   getExamCodeLevels,
   getStudentExamCodesActionState,
   isExamCodesClass,
+  isFinalistListingClass,
 } from "../lib/exam-export-meta";
 import {
   findCtebOption,
@@ -423,7 +424,7 @@ test("buildDashboardCycleStats : branche mono-cycle → vide", () => {
   );
 });
 
-test("E13/E80 : maternelle n'existe pas, terminal uniquement", () => {
+test("E13/E80 : secondaire terminal uniquement, pas 6è ni 8è", () => {
   assert.deepEqual(getExamCodeLevels("MATERNELLE"), []);
   assert.equal(examCodesExistForCycle("MATERNELLE"), false);
   assert.equal(
@@ -448,28 +449,29 @@ test("E13/E80 : maternelle n'existe pas, terminal uniquement", () => {
     "hidden",
   );
 
-  assert.deepEqual(getExamCodeLevels("PRIMAIRE"), ["6è"]);
+  assert.deepEqual(getExamCodeLevels("PRIMAIRE"), []);
+  assert.equal(examCodesExistForCycle("PRIMAIRE"), false);
   assert.equal(
     isExamCodesClass({ cycle: "PRIMAIRE", typebranch: "PRIMAIRE", level: "5è" }),
     false,
   );
   assert.equal(
     isExamCodesClass({ cycle: "PRIMAIRE", typebranch: "PRIMAIRE", level: "6è" }),
-    true,
+    false,
   );
   assert.equal(
     getStudentExamCodesActionState(
       { classLevel: "2è", classCycle: "PRIMAIRE", className: "2è-PR" },
       { typebranch: "PRIMAIRE" },
     ),
-    "disabled",
+    "hidden",
   );
   assert.equal(
     getStudentExamCodesActionState(
       { classLevel: "6è", classCycle: "PRIMAIRE", className: "6è-PR" },
       { typebranch: "PRIMAIRE" },
     ),
-    "enabled",
+    "hidden",
   );
 
   assert.deepEqual(getExamCodeLevels("SECONDAIRE"), ["4è"]);
@@ -480,6 +482,13 @@ test("E13/E80 : maternelle n'existe pas, terminal uniquement", () => {
       level: "8è",
     }),
     false,
+  );
+  assert.equal(
+    getStudentExamCodesActionState(
+      { classLevel: "8è", classCycle: "SECONDAIRE", className: "8è TC" },
+      { typebranch: "SECONDAIRE" },
+    ),
+    "hidden",
   );
   assert.equal(
     isExamCodesClass({
@@ -500,6 +509,43 @@ test("E13/E80 : maternelle n'existe pas, terminal uniquement", () => {
   );
   assert.equal(examCodesExistForCycle("ATELIER"), false);
   assert.equal(examCodesExistForCycle("CENTRE_FORMATION"), false);
+
+  assert.equal(
+    isFinalistListingClass({
+      cycle: "PRIMAIRE",
+      typebranch: "PRIMAIRE",
+      level: "6è",
+      className: "6è-PR",
+    }),
+    true,
+  );
+  assert.equal(
+    isFinalistListingClass({
+      cycle: "SECONDAIRE",
+      typebranch: "SECONDAIRE",
+      level: "8è",
+      className: "8è TC",
+    }),
+    true,
+  );
+  assert.equal(
+    isFinalistListingClass({
+      cycle: "SECONDAIRE",
+      typebranch: "SECONDAIRE",
+      level: "7è",
+      className: "7è TC",
+    }),
+    false,
+  );
+  assert.equal(
+    isFinalistListingClass({
+      cycle: "SECONDAIRE",
+      typebranch: "SECONDAIRE",
+      level: "4è",
+      className: "4è MATH",
+    }),
+    true,
+  );
 });
 
 test("7è / 8è : Tronc commun CTEB par défaut", () => {

@@ -26,28 +26,30 @@ export type FinalisteExcelPayload = {
   session: string;
   classLabel: string;
   rows: FinalisteExcelRow[];
+  showExamCodes?: boolean;
 };
 
-const HEADERS = [
-  "N°",
-  "MATRICULE",
-  "NOM, POST-NOM ET PRENOM",
-  "LIEU DE NAISSANCE",
-  "DATE DE NAISSANCE",
-  "SEXE",
-  "E13",
-  "E80",
-  "NOM DU PERE",
-  "NOM DE LA MERE",
-  "NATIONALITE",
-  "AVENUE/RUE/VILLAGE",
-  "NUMERO",
-  "QUARTIER/CITE/SECTEUR",
-  "COMMUNE/TERRITOIRE",
-  "VILLE",
-  "ANNEE",
-  "ECOLE",
-] as const;
+function tableHeaders(showExamCodes: boolean) {
+  return [
+    "N°",
+    "MATRICULE",
+    "NOM, POST-NOM ET PRENOM",
+    "LIEU DE NAISSANCE",
+    "DATE DE NAISSANCE",
+    "SEXE",
+    ...(showExamCodes ? (["E13", "E80"] as const) : []),
+    "NOM DU PERE",
+    "NOM DE LA MERE",
+    "NATIONALITE",
+    "AVENUE/RUE/VILLAGE",
+    "NUMERO",
+    "QUARTIER/CITE/SECTEUR",
+    "COMMUNE/TERRITOIRE",
+    "VILLE",
+    "ANNEE",
+    "ECOLE",
+  ];
+}
 
 const META_ROW_COUNT = 7;
 const TABLE_HEADER_ROW = META_ROW_COUNT + 1;
@@ -173,6 +175,8 @@ export async function downloadFinalistesExcel(payload: FinalisteExcelPayload) {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Eteyelo";
   workbook.created = new Date();
+  const showExamCodes = Boolean(payload.showExamCodes);
+  const headers = tableHeaders(showExamCodes);
 
   const sheet = workbook.addWorksheet("Finalistes", {
     views: [{ state: "frozen", ySplit: TABLE_HEADER_ROW }],
@@ -183,7 +187,7 @@ export async function downloadFinalistesExcel(payload: FinalisteExcelPayload) {
   });
 
   const headerRow = sheet.getRow(TABLE_HEADER_ROW);
-  HEADERS.forEach((title, index) => {
+  headers.forEach((title, index) => {
     const cell = headerRow.getCell(index + 1);
     cell.value = title;
     cell.font = { bold: true, size: 9 };
@@ -210,8 +214,7 @@ export async function downloadFinalistesExcel(payload: FinalisteExcelPayload) {
       row.placeOfBirth,
       row.dateOfBirth,
       row.sexe,
-      row.e13,
-      row.e80,
+      ...(showExamCodes ? [row.e13, row.e80] : []),
       row.fatherName,
       row.motherName,
       row.nationalite,
@@ -241,7 +244,9 @@ export async function downloadFinalistesExcel(payload: FinalisteExcelPayload) {
   sheet.getColumn(5).width = 4;
   sheet.getColumn(6).width = 14;
 
-  const dataWidths = [6, 14, 32, 16, 16, 8, 12, 12, 24, 24, 14, 18, 10, 18, 16, 14, 10, 14];
+  const dataWidths = showExamCodes
+    ? [6, 14, 32, 16, 16, 8, 12, 12, 24, 24, 14, 18, 10, 18, 16, 14, 10, 14]
+    : [6, 14, 32, 16, 16, 8, 24, 24, 14, 18, 10, 18, 16, 14, 10, 14];
   dataWidths.forEach((width, index) => {
     sheet.getColumn(index + 1).width = Math.max(
       sheet.getColumn(index + 1).width ?? 0,
@@ -257,7 +262,7 @@ export async function downloadFinalistesExcel(payload: FinalisteExcelPayload) {
   const anchor = document.createElement("a");
   const date = new Date().toISOString().slice(0, 10);
   anchor.href = url;
-  anchor.download = `liste-finalistes-6e-${payload.session}-${date}.xlsx`;
+  anchor.download = `liste-finalistes-${payload.session}-${date}.xlsx`;
   anchor.click();
   URL.revokeObjectURL(url);
 }

@@ -254,6 +254,7 @@ const SectionsTable: React.FC<SectionsTableProps> = ({
         onFilterChange={setStatusFilter}
         filterOptions={filterOptions}
         searchPlaceholder={tSection("search")}
+        autoFocus
       />
 
       <ResponsiveDataTable
