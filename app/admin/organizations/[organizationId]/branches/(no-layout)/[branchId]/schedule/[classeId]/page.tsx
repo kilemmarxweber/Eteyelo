@@ -1,8 +1,9 @@
 import { getTranslations } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { IconCalendarTime } from "@tabler/icons-react";
 
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { prisma } from "@/lib/prisma";
 import {
   enforceScheduleAreaAccess,
   isCursusSelfScopedRole,
@@ -22,7 +23,7 @@ export default async function ScheduleClassePage({
   params: Promise<{ classeId: string }>;
 }) {
   const { classeId } = await params;
-  const { session, userId, branchId } = await requireBranchContext({
+  const { session, userId, branchId, organizationId } = await requireBranchContext({
     onMissing: "redirect",
   });
   const role = enforceScheduleAreaAccess(session);
@@ -42,6 +43,21 @@ export default async function ScheduleClassePage({
     branchId,
     classId: classeId,
   });
+
+  const classe = await prisma.classe.findFirst({
+    where: {
+      id: classeId,
+      branchId,
+      branch: { organizationId },
+    },
+    select: { id: true },
+  });
+
+  if (!classe) {
+    redirect(
+      `/admin/organizations/${organizationId}/branches/${branchId}/schedule`,
+    );
+  }
 
   const isTeacherViewer = !canManageOrganization(session);
   const t = await getTranslations("teaching.schedule");
