@@ -321,6 +321,12 @@ const staticSidebarMenu: StaticMenuItem[] = [
         icon: "finance",
         roles: PAYROLL_ROLES,
       },
+      {
+        title: "transactions",
+        href: "/admin/transactions",
+        icon: "paiement",
+        roles: FINANCE_ROLES,
+      },
     ],
   },
   {

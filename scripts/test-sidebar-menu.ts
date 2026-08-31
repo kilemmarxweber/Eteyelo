@@ -237,7 +237,7 @@ test("propriétaire de branche : tous les menus malgré le rôle organisation us
     ],
     "propriétaire de branche",
   );
-  assertIncludes(financeSubs, ["teacherPayroll"], "paie propriétaire de branche");
+  assertIncludes(financeSubs, ["teacherPayroll", "transactions"], "paie propriétaire de branche");
 });
 
 test("directeur de branche : pas le bypass propriétaire (menus limités au rôle org)", () => {

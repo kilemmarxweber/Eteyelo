@@ -30,8 +30,7 @@ export async function requireBranchContext(
   const branchId = session?.branch?.id ?? session?.session?.activeBranchId;
 
   if (!userId) {
-    if (onMissing === "redirect") redirect("/auth/sign-in");
-    throw new Error("Aucune branche active");
+    redirect("/auth/sign-in");
   }
 
   if (!organizationId || !branchId) {

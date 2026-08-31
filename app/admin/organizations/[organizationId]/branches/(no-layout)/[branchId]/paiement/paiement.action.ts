@@ -156,6 +156,7 @@ async function getAutomaticOpeningBalance(
       where: {
         branchId,
         status: StatusPaiement.VALIDE,
+        isArchived: false,
         createdAt: { lt: before },
         ...cashierFilter,
       },
@@ -164,6 +165,7 @@ async function getAutomaticOpeningBalance(
     prisma.cashierExpense.aggregate({
       where: {
         branchId,
+        isArchived: false,
         createdAt: { lt: before },
         ...cashierFilter,
       },
@@ -1254,6 +1256,7 @@ export const getCashierReportAction = action
       branchId,
       createdAt: { gte: start, lte: end },
       status: StatusPaiement.VALIDE,
+      isArchived: false,
       ...(cashierScope ? { createdByUserId: cashierScope } : {}),
     };
 
@@ -1301,6 +1304,7 @@ export const getCashierReportAction = action
       : await prisma.cashierExpense.findMany({
           where: {
             branchId,
+            isArchived: false,
             createdAt: { gte: start, lte: end },
             ...(cashierScope ? { createdByUserId: cashierScope } : {}),
           },

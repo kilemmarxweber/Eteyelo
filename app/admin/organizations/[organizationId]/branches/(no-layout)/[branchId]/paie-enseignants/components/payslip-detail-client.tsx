@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { Button } from "@/components/custom/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { exportTeacherPayslipPdf } from "./export-teacher-payslip-pdf";
 import type { TeacherPayslipLineDetailSnapshot } from "@/lib/payroll/teacher-payslip-line-detail";
 
@@ -34,11 +36,52 @@ type Payslip = {
   }>;
 };
 
+const MONTHS = [
+  "Janvier",
+  "Février",
+  "Mars",
+  "Avril",
+  "Mai",
+  "Juin",
+  "Juillet",
+  "Août",
+  "Septembre",
+  "Octobre",
+  "Novembre",
+  "Décembre",
+];
+
 const STATUS_LABELS: Record<string, string> = {
   PRESENT: "Présent",
   LATE: "Retard",
   ABSENT: "Absent",
   EXCUSED: "Excusé",
+};
+
+const PAYSLIP_STATUS: Record<
+  string,
+  { label: string; className: string }
+> = {
+  DRAFT: {
+    label: "Brouillon",
+    className:
+      "border-amber-300/70 bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300",
+  },
+  VALIDATED: {
+    label: "Validé",
+    className:
+      "border-sky-300/70 bg-sky-50 text-sky-800 dark:bg-sky-950/40 dark:text-sky-300",
+  },
+  PAID: {
+    label: "Payé",
+    className:
+      "border-emerald-300/70 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
+  },
+  CANCELLED: {
+    label: "Annulé",
+    className:
+      "border-rose-300/70 bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300",
+  },
 };
 
 const KIND_LABELS: Record<string, string> = {
@@ -95,6 +138,12 @@ export default function PayslipDetailClient({
   const summaryLine = payslip.lines.find(
     (line) => line.kind === "GROSS" && !line.occurredOn && !line.detail,
   );
+  const isMatricule = payslip.teacher.employmentKind === "MATRICULE";
+  const statusMeta = PAYSLIP_STATUS[payslip.status] ?? {
+    label: payslip.status,
+    className: "border-border bg-muted text-foreground",
+  };
+  const periodLabel = `${MONTHS[payslip.month - 1] ?? payslip.month} ${payslip.year}`;
 
   return (
     <div className="space-y-4">
@@ -106,28 +155,80 @@ export default function PayslipDetailClient({
           Télécharger le PDF
         </Button>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>{name || "Enseignant"} · {payslip.month}/{payslip.year}</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {payslip.teacher.employmentKind === "MATRICULE" ? "Matriculé État" : "Non matriculé"}
-            {payslip.teacher.matriculeEtat ? ` · ${payslip.teacher.matriculeEtat}` : ""}
-            {" · "}Statut : {payslip.status} · Devise : {payslip.currency}
-          </p>
-        </CardHeader>
-        <CardContent>
+      <Card className="overflow-hidden border-primary/15">
+        <div className="border-b bg-gradient-to-r from-primary/10 via-sky-500/5 to-emerald-500/10 px-6 py-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 space-y-2">
+              <CardTitle className="text-xl tracking-tight">
+                {name || "Enseignant"}
+              </CardTitle>
+              <p className="text-sm font-medium text-primary/90">
+                Bulletin · {periodLabel}
+              </p>
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "font-medium",
+                    isMatricule
+                      ? "border-indigo-300/70 bg-indigo-50 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300"
+                      : "border-violet-300/70 bg-violet-50 text-violet-800 dark:bg-violet-950/40 dark:text-violet-300",
+                  )}
+                >
+                  {isMatricule ? "Matriculé État" : "Non matriculé"}
+                </Badge>
+                {payslip.teacher.matriculeEtat ? (
+                  <Badge
+                    variant="outline"
+                    className="border-slate-300/70 bg-slate-50 font-mono text-[11px] text-slate-700 dark:bg-slate-900/50 dark:text-slate-300"
+                  >
+                    {payslip.teacher.matriculeEtat}
+                  </Badge>
+                ) : null}
+                <Badge variant="outline" className={cn("font-medium", statusMeta.className)}>
+                  {statusMeta.label}
+                </Badge>
+                <Badge
+                  variant="outline"
+                  className="border-teal-300/70 bg-teal-50 font-medium text-teal-800 dark:bg-teal-950/40 dark:text-teal-300"
+                >
+                  {payslip.currency}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </div>
+        <CardContent className="pt-5">
           <div className="grid gap-3 sm:grid-cols-3">
-            <Metric label="Brut" value={formatAmount(payslip.gross, payslip.currency)} />
-            <Metric label="Retenues" value={formatAmount(payslip.deductions, payslip.currency)} />
-            <Metric label="Net à payer" value={formatAmount(payslip.net, payslip.currency)} />
+            <Metric
+              label="Brut"
+              value={formatAmount(payslip.gross, payslip.currency)}
+              tone="sky"
+            />
+            <Metric
+              label="Retenues"
+              value={formatAmount(payslip.deductions, payslip.currency)}
+              tone="rose"
+            />
+            <Metric
+              label="Net à payer"
+              value={formatAmount(payslip.net, payslip.currency)}
+              tone="emerald"
+            />
           </div>
           {summaryLine ? (
-            <p className="mt-3 text-sm text-muted-foreground">
-              {summaryLine.label} · {summaryLine.sessions} séance
-              {summaryLine.sessions > 1 ? "s" : ""} · durée prévue cumulée{" "}
-              {formatMinutes(summaryLine.minutes)} ·{" "}
-              {formatAmount(summaryLine.amount, payslip.currency)}
-            </p>
+            <div className="mt-4 rounded-lg border border-primary/10 bg-muted/40 px-3 py-2.5 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{summaryLine.label}</span>
+              {" · "}
+              {summaryLine.sessions} séance
+              {summaryLine.sessions > 1 ? "s" : ""}
+              {" · durée prévue cumulée "}
+              {formatMinutes(summaryLine.minutes)}
+              {" · "}
+              <span className="font-semibold text-foreground">
+                {formatAmount(summaryLine.amount, payslip.currency)}
+              </span>
+            </div>
           ) : null}
         </CardContent>
       </Card>
@@ -232,11 +333,47 @@ export default function PayslipDetailClient({
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "sky" | "rose" | "emerald";
+}) {
   return (
-    <div className="rounded-md border p-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="font-semibold">{value}</p>
+    <div
+      className={cn(
+        "rounded-xl border p-3.5 shadow-sm",
+        tone === "sky" &&
+          "border-sky-200/80 bg-sky-50/80 dark:border-sky-900 dark:bg-sky-950/30",
+        tone === "rose" &&
+          "border-rose-200/80 bg-rose-50/80 dark:border-rose-900 dark:bg-rose-950/30",
+        tone === "emerald" &&
+          "border-emerald-200/80 bg-emerald-50/80 dark:border-emerald-900 dark:bg-emerald-950/30",
+      )}
+    >
+      <p
+        className={cn(
+          "text-xs font-medium uppercase tracking-wide",
+          tone === "sky" && "text-sky-700 dark:text-sky-300",
+          tone === "rose" && "text-rose-700 dark:text-rose-300",
+          tone === "emerald" && "text-emerald-700 dark:text-emerald-300",
+        )}
+      >
+        {label}
+      </p>
+      <p
+        className={cn(
+          "mt-1 text-lg font-semibold tabular-nums",
+          tone === "sky" && "text-sky-950 dark:text-sky-50",
+          tone === "rose" && "text-rose-950 dark:text-rose-50",
+          tone === "emerald" && "text-emerald-950 dark:text-emerald-50",
+        )}
+      >
+        {value}
+      </p>
     </div>
   );
 }

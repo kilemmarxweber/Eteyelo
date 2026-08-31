@@ -915,6 +915,10 @@ model FamilyPayment {
   transactionRef    String
   notes             String?
   status            PaymentStatus           @default(EN_ATTENTE)
+  /// Masqué de la caisse / listes actives (conservé pour historique)
+  isArchived        Boolean                 @default(false)
+  archivedAt        DateTime?
+  archivedById      String?
   createdAt         DateTime                @default(now())
   updatedAt         DateTime                @default(now())
   parent            Parent                  @relation(fields: [parentId], references: [id])
@@ -941,6 +945,7 @@ model FamilyPayment {
   @@index([branchId, receivedCurrency])
   @@index([branchId, status, classEnrollmentId, fraisId])
   @@index([branchId, createdByUserId, createdAt])
+  @@index([branchId, isArchived, createdAt])
   @@unique([branchId, transactionRef])
 }
 
@@ -950,6 +955,10 @@ model CashierExpense {
   amount         Float
   description    String?
   category       String?
+  /// Masqué de la caisse / listes actives
+  isArchived     Boolean  @default(false)
+  archivedAt     DateTime?
+  archivedById   String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   branchId             String
@@ -959,6 +968,8 @@ model CashierExpense {
   createdByUser   User?    @relation("CashierExpenseCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   @@index([branchId])
   @@index([branchId, createdByUserId, createdAt])
+  @@index([branchId, createdAt])
+  @@index([branchId, isArchived, createdAt])
   @@unique([branchId, transactionRef])
 }
 

@@ -17,11 +17,43 @@ import {
 } from "@/lib/payroll/teacher-payroll";
 import { prisma } from "@/lib/prisma";
 import { action } from "@/lib/zsa";
+import { StatusPaiement } from "@/src/interfaces/Paiement";
+import { getBaseCurrency } from "@/lib/exchange-rate";
+
+const CYCLE_SORT_ORDER: Record<string, number> = {
+  MATERNELLE: 0,
+  PRIMAIRE: 1,
+  SECONDAIRE: 2,
+  ATELIER: 3,
+  CENTRE_FORMATION: 4,
+  UNIVERSITE: 5,
+  MIXTE: 6,
+  AUTRE: 7,
+};
+
+const CYCLE_LABELS: Record<string, string> = {
+  MATERNELLE: "Maternelle",
+  PRIMAIRE: "Primaire",
+  SECONDAIRE: "Secondaire",
+  ATELIER: "Atelier",
+  CENTRE_FORMATION: "Centre de formation",
+  UNIVERSITE: "Université",
+  MIXTE: "Mixte",
+  AUTRE: "Autre",
+};
 
 const periodSchema = z.object({
   year: z.coerce.number().int().min(2000).max(2200),
   month: z.coerce.number().int().min(1).max(12),
   schoolYearId: z.string().min(1).optional(),
+});
+
+const recalculateSchema = periodSchema.extend({
+  teacherIds: z.array(z.string().min(1)).optional(),
+});
+
+const deletePayslipsSchema = periodSchema.extend({
+  payslipIds: z.array(z.string().min(1)).optional(),
 });
 
 const payslipSchema = z.object({ payslipId: z.string().min(1) });
@@ -36,6 +68,8 @@ const policySchema = z.object({
   lateGraceMinutes: z.coerce.number().int().min(0).max(120),
   notifyByEmail: z.boolean(),
 });
+
+const DELETABLE_STATUSES = ["DRAFT", "VALIDATED"] as const;
 
 async function getContext() {
   const context = await requireBranchContext();
@@ -123,8 +157,89 @@ export const updatePayrollPolicyAction = action
     return policy;
   });
 
-function toListItem(row: any) {
+function extractClassNames(
+  lines: Array<{ label: string; detail: unknown }>,
+): string[] {
+  const classes = new Set<string>();
+  for (const line of lines) {
+    const detail =
+      line.detail && typeof line.detail === "object"
+        ? (line.detail as { className?: string })
+        : null;
+    if (detail?.className?.trim()) {
+      classes.add(detail.className.trim());
+      continue;
+    }
+    if (line.label.startsWith("Forfait")) continue;
+    const separator = line.label.indexOf(" · ");
+    if (separator > 0) {
+      const className = line.label.slice(0, separator).trim();
+      if (className) classes.add(className);
+    }
+  }
+  return [...classes].sort((a, b) => a.localeCompare(b, "fr"));
+}
+
+function extractCycles(
+  lines: Array<{ cycle: string | null }>,
+): string[] {
+  const cycles = new Set<string>();
+  for (const line of lines) {
+    if (line.cycle) cycles.add(line.cycle);
+  }
+  return [...cycles].sort(
+    (a, b) => (CYCLE_SORT_ORDER[a] ?? 99) - (CYCLE_SORT_ORDER[b] ?? 99),
+  );
+}
+
+function resolveCycleGroup(cycles: string[]): string {
+  if (cycles.length === 0) return "AUTRE";
+  if (cycles.length === 1) return cycles[0]!;
+  return "MIXTE";
+}
+
+function toListItem(row: {
+  id: string;
+  teacherId: string;
+  year: number;
+  month: number;
+  currency: string;
+  gross: number;
+  deductions: number;
+  net: number;
+  status: string;
+  createdAt: Date;
+  branch?: { name: string } | null;
+  teacher: {
+    employmentKind: string;
+    branchMember?: {
+      member?: {
+        user?: {
+          name?: string | null;
+          postnom?: string | null;
+          prenom?: string | null;
+        } | null;
+      } | null;
+    } | null;
+  };
+  lines: Array<{
+    sessions: number;
+    label: string;
+    detail: unknown;
+    cycle: string | null;
+    minutes: number;
+    kind: string;
+  }>;
+}) {
   const user = row.teacher.branchMember?.member?.user;
+  const classes = extractClassNames(row.lines);
+  const cycles = extractCycles(row.lines);
+  const cycleGroup = resolveCycleGroup(cycles);
+  const lostMinutes = row.lines
+    .filter((line) =>
+      line.kind === "ABSENCE" || line.kind === "LATE" || line.kind === "EARLY_EXIT",
+    )
+    .reduce((sum, line) => sum + Number(line.minutes || 0), 0);
   return {
     id: row.id,
     teacherId: row.teacherId,
@@ -132,17 +247,102 @@ function toListItem(row: any) {
       .filter(Boolean)
       .join(" "),
     employmentKind: row.teacher.employmentKind,
+    branchName: row.branch?.name ?? "",
+    classes,
+    classSummary:
+      classes.length === 0
+        ? "—"
+        : classes.length <= 3
+          ? classes.join(" · ")
+          : `${classes.slice(0, 2).join(" · ")} +${classes.length - 2}`,
+    cycles,
+    cycleGroup,
+    cycleLabel:
+      cycles.length === 0
+        ? "—"
+        : cycles.length === 1
+          ? (CYCLE_LABELS[cycles[0]!] ?? cycles[0])
+          : cycles.map((cycle) => CYCLE_LABELS[cycle] ?? cycle).join(" · "),
     year: row.year,
     month: row.month,
     currency: row.currency,
     gross: row.gross,
     deductions: row.deductions,
     net: row.net,
+    lostMinutes: Math.round(lostMinutes * 10) / 10,
+    difference: Math.round((row.gross - row.net) * 100) / 100,
     status: row.status,
-    sessions: row.lines.reduce((sum: number, line: any) => sum + line.sessions, 0),
+    sessions: row.lines.reduce((sum, line) => sum + line.sessions, 0),
     createdAt: row.createdAt,
   };
 }
+
+export const getPayrollCashSnapshotAction = action
+  .input(periodSchema)
+  .handler(async ({ input }) => {
+    const context = await getContext();
+    const schoolYearId = await resolveSchoolYearId(
+      context.branchId,
+      input.schoolYearId,
+    );
+
+    const [incomeAgg, expenseAgg, rates, payrollRows] = await Promise.all([
+      prisma.familyPayment.aggregate({
+        where: {
+          branchId: context.branchId,
+          status: StatusPaiement.VALIDE,
+          isArchived: false,
+        },
+        _sum: { amount: true },
+      }),
+      prisma.cashierExpense.aggregate({
+        where: { branchId: context.branchId, isArchived: false },
+        _sum: { amount: true },
+      }),
+      prisma.exchangeRate.findMany({
+        where: { organizationId: context.organizationId, isActive: true },
+        select: {
+          fromCurrency: true,
+          toCurrency: true,
+          rate: true,
+          isActive: true,
+          isSelected: true,
+        },
+      }),
+      prisma.teacherPayslip.findMany({
+        where: {
+          branchId: context.branchId,
+          year: input.year,
+          month: input.month,
+          ...(schoolYearId ? { schoolYearId } : {}),
+          status: { in: ["DRAFT", "VALIDATED"] },
+        },
+        select: { net: true, gross: true, deductions: true, status: true },
+      }),
+    ]);
+
+    const incomeTotal = Number(incomeAgg._sum.amount ?? 0);
+    const expenseTotal = Number(expenseAgg._sum.amount ?? 0);
+    const cashNet = incomeTotal - expenseTotal;
+    const payrollConsume = payrollRows.reduce((sum, row) => sum + row.net, 0);
+    const payrollGross = payrollRows.reduce((sum, row) => sum + row.gross, 0);
+    const payrollDeductions = payrollRows.reduce(
+      (sum, row) => sum + row.deductions,
+      0,
+    );
+
+    return {
+      currency: getBaseCurrency(rates),
+      incomeTotal,
+      expenseTotal,
+      cashNet,
+      payrollConsume,
+      payrollGross,
+      payrollDeductions,
+      remainingAfterPayroll: cashNet - payrollConsume,
+      unpaidCount: payrollRows.length,
+    };
+  });
 
 export const getTeacherPayslipsAction = action
   .input(periodSchema)
@@ -167,6 +367,7 @@ export const getTeacherPayslipsAction = action
       },
       orderBy: { updatedAt: "desc" },
       include: {
+        branch: { select: { name: true } },
         teacher: {
           select: {
             employmentKind: true,
@@ -179,14 +380,32 @@ export const getTeacherPayslipsAction = action
             },
           },
         },
-        lines: { select: { sessions: true } },
+        lines: {
+          select: {
+            sessions: true,
+            label: true,
+            detail: true,
+            cycle: true,
+            minutes: true,
+            kind: true,
+          },
+        },
       },
     });
-    return rows.map(toListItem);
+
+    return rows
+      .map(toListItem)
+      .sort((a, b) => {
+        const cycleDiff =
+          (CYCLE_SORT_ORDER[a.cycleGroup] ?? 99) -
+          (CYCLE_SORT_ORDER[b.cycleGroup] ?? 99);
+        if (cycleDiff !== 0) return cycleDiff;
+        return a.teacherName.localeCompare(b.teacherName, "fr");
+      });
   });
 
 export const recalculateTeacherPayslipsAction = action
-  .input(periodSchema)
+  .input(recalculateSchema)
   .handler(async ({ input }) => {
     const context = await getContext();
     if (!canComputePayroll(context.session)) {
@@ -197,16 +416,52 @@ export const recalculateTeacherPayslipsAction = action
       context.branchId,
       input.schoolYearId,
     );
+    const teacherFilter =
+      input.teacherIds && input.teacherIds.length > 0
+        ? { id: { in: input.teacherIds } }
+        : {};
     const teachers = await prisma.teacher.findMany({
       where: {
         branchMember: { branchId: context.branchId },
         isActive: true,
+        ...teacherFilter,
       },
       select: { id: true },
     });
+    if (input.teacherIds?.length && teachers.length === 0) {
+      throw new Error("Aucun enseignant sélectionné introuvable");
+    }
+
     const results = [];
     let missingExchangeRate = false;
+    let skippedPaid = 0;
     for (const teacher of teachers) {
+      const paid = await prisma.teacherPayslip.findFirst({
+        where: {
+          branchId: context.branchId,
+          teacherId: teacher.id,
+          year: input.year,
+          month: input.month,
+          status: "PAID",
+        },
+        select: { id: true },
+      });
+      if (paid) {
+        skippedPaid += 1;
+        continue;
+      }
+
+      // Remplace brouillons et validés pour permettre une régénération propre.
+      await prisma.teacherPayslip.deleteMany({
+        where: {
+          branchId: context.branchId,
+          teacherId: teacher.id,
+          year: input.year,
+          month: input.month,
+          status: { in: [...DELETABLE_STATUSES] },
+        },
+      });
+
       const result = await calculateTeacherPayroll({
         branchId: context.branchId,
         organizationId: context.organizationId,
@@ -226,21 +481,59 @@ export const recalculateTeacherPayslipsAction = action
       results.push(payslip.id);
     }
 
-    await prisma.appNotification.create({
-      data: {
-        branchId: context.branchId,
-        organizationId: context.organizationId,
-        userId: context.userId,
-        type: "PAYROLL",
-        title: "Paie enseignants générée",
-        body: `${results.length} bulletin(s) brouillon(s) généré(s) pour ${input.month}/${input.year}.`,
-        href: `/admin/organizations/${context.organizationId}/branches/${context.branchId}/paie-enseignants?year=${input.year}&month=${input.month}`,
-      },
-    });
+    if (results.length > 0) {
+      await prisma.appNotification.create({
+        data: {
+          branchId: context.branchId,
+          organizationId: context.organizationId,
+          userId: context.userId,
+          type: "PAYROLL",
+          title: "Paie enseignants générée",
+          body: `${results.length} bulletin(s) brouillon(s) généré(s) pour ${input.month}/${input.year}.`,
+          href: `/admin/organizations/${context.organizationId}/branches/${context.branchId}/paie-enseignants?year=${input.year}&month=${input.month}`,
+        },
+      });
+    }
     revalidatePath(
       `/admin/organizations/${context.organizationId}/branches/${context.branchId}/paie-enseignants`,
     );
-    return { count: results.length, missingExchangeRate };
+    return {
+      count: results.length,
+      missingExchangeRate,
+      skippedPaid,
+    };
+  });
+
+export const deleteTeacherPayslipsAction = action
+  .input(deletePayslipsSchema)
+  .handler(async ({ input }) => {
+    const context = await getContext();
+    if (!canComputePayroll(context.session)) {
+      throw new Error("Vous n'avez pas le droit de supprimer les bulletins");
+    }
+
+    const schoolYearId = await resolveSchoolYearId(
+      context.branchId,
+      input.schoolYearId,
+    );
+
+    const result = await prisma.teacherPayslip.deleteMany({
+      where: {
+        branchId: context.branchId,
+        year: input.year,
+        month: input.month,
+        status: { in: [...DELETABLE_STATUSES] },
+        ...(schoolYearId ? { schoolYearId } : {}),
+        ...(input.payslipIds && input.payslipIds.length > 0
+          ? { id: { in: input.payslipIds } }
+          : {}),
+      },
+    });
+
+    revalidatePath(
+      `/admin/organizations/${context.organizationId}/branches/${context.branchId}/paie-enseignants`,
+    );
+    return { count: result.count };
   });
 
 export const getTeacherPayslipAction = action

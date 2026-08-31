@@ -101,7 +101,7 @@ export const BRANCH_ROUTE_RULES: BranchRouteRule[] = [
   },
 ];
 
-const FINANCE_ROUTE_SUFFIXES = ["/frais", "/paiement"];
+const FINANCE_ROUTE_SUFFIXES = ["/frais", "/paiement", "/transactions"];
 
 export function normalizeBranchRouteSuffix(pathname: string): string | null {
   const match = pathname.match(

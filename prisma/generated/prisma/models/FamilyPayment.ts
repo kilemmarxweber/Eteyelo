@@ -52,6 +52,9 @@ export type FamilyPaymentMinAggregateOutputType = {
   transactionRef: string | null
   notes: string | null
   status: $Enums.PaymentStatus | null
+  isArchived: boolean | null
+  archivedAt: Date | null
+  archivedById: string | null
   createdAt: Date | null
   updatedAt: Date | null
   fraisId: string | null
@@ -72,6 +75,9 @@ export type FamilyPaymentMaxAggregateOutputType = {
   transactionRef: string | null
   notes: string | null
   status: $Enums.PaymentStatus | null
+  isArchived: boolean | null
+  archivedAt: Date | null
+  archivedById: string | null
   createdAt: Date | null
   updatedAt: Date | null
   fraisId: string | null
@@ -92,6 +98,9 @@ export type FamilyPaymentCountAggregateOutputType = {
   transactionRef: number
   notes: number
   status: number
+  isArchived: number
+  archivedAt: number
+  archivedById: number
   createdAt: number
   updatedAt: number
   fraisId: number
@@ -128,6 +137,9 @@ export type FamilyPaymentMinAggregateInputType = {
   transactionRef?: true
   notes?: true
   status?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
   createdAt?: true
   updatedAt?: true
   fraisId?: true
@@ -148,6 +160,9 @@ export type FamilyPaymentMaxAggregateInputType = {
   transactionRef?: true
   notes?: true
   status?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
   createdAt?: true
   updatedAt?: true
   fraisId?: true
@@ -168,6 +183,9 @@ export type FamilyPaymentCountAggregateInputType = {
   transactionRef?: true
   notes?: true
   status?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
   createdAt?: true
   updatedAt?: true
   fraisId?: true
@@ -275,6 +293,9 @@ export type FamilyPaymentGroupByOutputType = {
   transactionRef: string
   notes: string | null
   status: $Enums.PaymentStatus
+  isArchived: boolean
+  archivedAt: Date | null
+  archivedById: string | null
   createdAt: Date
   updatedAt: Date
   fraisId: string
@@ -318,6 +339,9 @@ export type FamilyPaymentWhereInput = {
   transactionRef?: Prisma.StringFilter<"FamilyPayment"> | string
   notes?: Prisma.StringNullableFilter<"FamilyPayment"> | string | null
   status?: Prisma.EnumPaymentStatusFilter<"FamilyPayment"> | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFilter<"FamilyPayment"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"FamilyPayment"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"FamilyPayment"> | string | null
   createdAt?: Prisma.DateTimeFilter<"FamilyPayment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"FamilyPayment"> | Date | string
   fraisId?: Prisma.StringFilter<"FamilyPayment"> | string
@@ -347,6 +371,9 @@ export type FamilyPaymentOrderByWithRelationInput = {
   transactionRef?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   fraisId?: Prisma.SortOrder
@@ -380,6 +407,9 @@ export type FamilyPaymentWhereUniqueInput = Prisma.AtLeast<{
   transactionRef?: Prisma.StringFilter<"FamilyPayment"> | string
   notes?: Prisma.StringNullableFilter<"FamilyPayment"> | string | null
   status?: Prisma.EnumPaymentStatusFilter<"FamilyPayment"> | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFilter<"FamilyPayment"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"FamilyPayment"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"FamilyPayment"> | string | null
   createdAt?: Prisma.DateTimeFilter<"FamilyPayment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"FamilyPayment"> | Date | string
   fraisId?: Prisma.StringFilter<"FamilyPayment"> | string
@@ -409,6 +439,9 @@ export type FamilyPaymentOrderByWithAggregationInput = {
   transactionRef?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   fraisId?: Prisma.SortOrder
@@ -437,6 +470,9 @@ export type FamilyPaymentScalarWhereWithAggregatesInput = {
   transactionRef?: Prisma.StringWithAggregatesFilter<"FamilyPayment"> | string
   notes?: Prisma.StringNullableWithAggregatesFilter<"FamilyPayment"> | string | null
   status?: Prisma.EnumPaymentStatusWithAggregatesFilter<"FamilyPayment"> | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolWithAggregatesFilter<"FamilyPayment"> | boolean
+  archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"FamilyPayment"> | Date | string | null
+  archivedById?: Prisma.StringNullableWithAggregatesFilter<"FamilyPayment"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"FamilyPayment"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"FamilyPayment"> | Date | string
   fraisId?: Prisma.StringWithAggregatesFilter<"FamilyPayment"> | string
@@ -455,6 +491,9 @@ export type FamilyPaymentCreateInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   parent: Prisma.ParentCreateNestedOneWithoutFamilyPaymentsInput
@@ -480,6 +519,9 @@ export type FamilyPaymentUncheckedCreateInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -501,6 +543,9 @@ export type FamilyPaymentUpdateInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.ParentUpdateOneRequiredWithoutFamilyPaymentsNestedInput
@@ -526,6 +571,9 @@ export type FamilyPaymentUncheckedUpdateInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -549,6 +597,9 @@ export type FamilyPaymentCreateManyInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -567,6 +618,9 @@ export type FamilyPaymentUpdateManyMutationInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -583,6 +637,9 @@ export type FamilyPaymentUncheckedUpdateManyInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -618,6 +675,9 @@ export type FamilyPaymentCountOrderByAggregateInput = {
   transactionRef?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   fraisId?: Prisma.SortOrder
@@ -645,6 +705,9 @@ export type FamilyPaymentMaxOrderByAggregateInput = {
   transactionRef?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   fraisId?: Prisma.SortOrder
@@ -665,6 +728,9 @@ export type FamilyPaymentMinOrderByAggregateInput = {
   transactionRef?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   fraisId?: Prisma.SortOrder
@@ -997,6 +1063,9 @@ export type FamilyPaymentCreateWithoutCreatedByUserInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   parent: Prisma.ParentCreateNestedOneWithoutFamilyPaymentsInput
@@ -1021,6 +1090,9 @@ export type FamilyPaymentUncheckedCreateWithoutCreatedByUserInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -1072,6 +1144,9 @@ export type FamilyPaymentScalarWhereInput = {
   transactionRef?: Prisma.StringFilter<"FamilyPayment"> | string
   notes?: Prisma.StringNullableFilter<"FamilyPayment"> | string | null
   status?: Prisma.EnumPaymentStatusFilter<"FamilyPayment"> | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFilter<"FamilyPayment"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"FamilyPayment"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"FamilyPayment"> | string | null
   createdAt?: Prisma.DateTimeFilter<"FamilyPayment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"FamilyPayment"> | Date | string
   fraisId?: Prisma.StringFilter<"FamilyPayment"> | string
@@ -1090,6 +1165,9 @@ export type FamilyPaymentCreateWithoutParentInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   batch?: Prisma.PaymentBatchCreateNestedOneWithoutPaymentsInput
@@ -1113,6 +1191,9 @@ export type FamilyPaymentUncheckedCreateWithoutParentInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -1160,6 +1241,9 @@ export type FamilyPaymentCreateWithoutFraisInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   parent: Prisma.ParentCreateNestedOneWithoutFamilyPaymentsInput
@@ -1184,6 +1268,9 @@ export type FamilyPaymentUncheckedCreateWithoutFraisInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollmentId: string
@@ -1230,6 +1317,9 @@ export type FamilyPaymentCreateWithoutClassEnrollmentInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   parent: Prisma.ParentCreateNestedOneWithoutFamilyPaymentsInput
@@ -1254,6 +1344,9 @@ export type FamilyPaymentUncheckedCreateWithoutClassEnrollmentInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -1300,6 +1393,9 @@ export type FamilyPaymentCreateWithoutBatchInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   parent: Prisma.ParentCreateNestedOneWithoutFamilyPaymentsInput
@@ -1323,6 +1419,9 @@ export type FamilyPaymentUncheckedCreateWithoutBatchInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -1370,6 +1469,9 @@ export type FamilyPaymentCreateWithoutAllocationsInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   parent: Prisma.ParentCreateNestedOneWithoutFamilyPaymentsInput
@@ -1394,6 +1496,9 @@ export type FamilyPaymentUncheckedCreateWithoutAllocationsInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -1430,6 +1535,9 @@ export type FamilyPaymentUpdateWithoutAllocationsInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.ParentUpdateOneRequiredWithoutFamilyPaymentsNestedInput
@@ -1454,6 +1562,9 @@ export type FamilyPaymentUncheckedUpdateWithoutAllocationsInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1474,6 +1585,9 @@ export type FamilyPaymentCreateWithoutMobileTxInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   parent: Prisma.ParentCreateNestedOneWithoutFamilyPaymentsInput
@@ -1498,6 +1612,9 @@ export type FamilyPaymentUncheckedCreateWithoutMobileTxInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -1534,6 +1651,9 @@ export type FamilyPaymentUpdateWithoutMobileTxInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.ParentUpdateOneRequiredWithoutFamilyPaymentsNestedInput
@@ -1558,6 +1678,9 @@ export type FamilyPaymentUncheckedUpdateWithoutMobileTxInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1578,6 +1701,9 @@ export type FamilyPaymentCreateWithoutEventsInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   parent: Prisma.ParentCreateNestedOneWithoutFamilyPaymentsInput
@@ -1602,6 +1728,9 @@ export type FamilyPaymentUncheckedCreateWithoutEventsInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -1638,6 +1767,9 @@ export type FamilyPaymentUpdateWithoutEventsInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.ParentUpdateOneRequiredWithoutFamilyPaymentsNestedInput
@@ -1662,6 +1794,9 @@ export type FamilyPaymentUncheckedUpdateWithoutEventsInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1682,6 +1817,9 @@ export type FamilyPaymentCreateWithoutBranchInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   parent: Prisma.ParentCreateNestedOneWithoutFamilyPaymentsInput
@@ -1706,6 +1844,9 @@ export type FamilyPaymentUncheckedCreateWithoutBranchInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -1754,6 +1895,9 @@ export type FamilyPaymentCreateManyCreatedByUserInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -1771,6 +1915,9 @@ export type FamilyPaymentUpdateWithoutCreatedByUserInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.ParentUpdateOneRequiredWithoutFamilyPaymentsNestedInput
@@ -1795,6 +1942,9 @@ export type FamilyPaymentUncheckedUpdateWithoutCreatedByUserInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1817,6 +1967,9 @@ export type FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1835,6 +1988,9 @@ export type FamilyPaymentCreateManyParentInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -1853,6 +2009,9 @@ export type FamilyPaymentUpdateWithoutParentInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   batch?: Prisma.PaymentBatchUpdateOneWithoutPaymentsNestedInput
@@ -1876,6 +2035,9 @@ export type FamilyPaymentUncheckedUpdateWithoutParentInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1898,6 +2060,9 @@ export type FamilyPaymentUncheckedUpdateManyWithoutParentInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1918,6 +2083,9 @@ export type FamilyPaymentCreateManyFraisInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollmentId: string
@@ -1935,6 +2103,9 @@ export type FamilyPaymentUpdateWithoutFraisInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.ParentUpdateOneRequiredWithoutFamilyPaymentsNestedInput
@@ -1959,6 +2130,9 @@ export type FamilyPaymentUncheckedUpdateWithoutFraisInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1981,6 +2155,9 @@ export type FamilyPaymentUncheckedUpdateManyWithoutFraisInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2000,6 +2177,9 @@ export type FamilyPaymentCreateManyClassEnrollmentInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -2017,6 +2197,9 @@ export type FamilyPaymentUpdateWithoutClassEnrollmentInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.ParentUpdateOneRequiredWithoutFamilyPaymentsNestedInput
@@ -2041,6 +2224,9 @@ export type FamilyPaymentUncheckedUpdateWithoutClassEnrollmentInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2063,6 +2249,9 @@ export type FamilyPaymentUncheckedUpdateManyWithoutClassEnrollmentInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2081,6 +2270,9 @@ export type FamilyPaymentCreateManyBatchInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -2099,6 +2291,9 @@ export type FamilyPaymentUpdateWithoutBatchInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.ParentUpdateOneRequiredWithoutFamilyPaymentsNestedInput
@@ -2122,6 +2317,9 @@ export type FamilyPaymentUncheckedUpdateWithoutBatchInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2144,6 +2342,9 @@ export type FamilyPaymentUncheckedUpdateManyWithoutBatchInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2164,6 +2365,9 @@ export type FamilyPaymentCreateManyBranchInput = {
   transactionRef: string
   notes?: string | null
   status?: $Enums.PaymentStatus
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fraisId: string
@@ -2181,6 +2385,9 @@ export type FamilyPaymentUpdateWithoutBranchInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.ParentUpdateOneRequiredWithoutFamilyPaymentsNestedInput
@@ -2205,6 +2412,9 @@ export type FamilyPaymentUncheckedUpdateWithoutBranchInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2227,6 +2437,9 @@ export type FamilyPaymentUncheckedUpdateManyWithoutBranchInput = {
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2286,6 +2499,9 @@ export type FamilyPaymentSelect<ExtArgs extends runtime.Types.Extensions.Interna
   transactionRef?: boolean
   notes?: boolean
   status?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   fraisId?: boolean
@@ -2316,6 +2532,9 @@ export type FamilyPaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   transactionRef?: boolean
   notes?: boolean
   status?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   fraisId?: boolean
@@ -2342,6 +2561,9 @@ export type FamilyPaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   transactionRef?: boolean
   notes?: boolean
   status?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   fraisId?: boolean
@@ -2368,6 +2590,9 @@ export type FamilyPaymentSelectScalar = {
   transactionRef?: boolean
   notes?: boolean
   status?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   fraisId?: boolean
@@ -2376,7 +2601,7 @@ export type FamilyPaymentSelectScalar = {
   createdByUserId?: boolean
 }
 
-export type FamilyPaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "parentId" | "batchId" | "amount" | "receivedCurrency" | "receivedAmount" | "exchangeRateUsed" | "method" | "transactionRef" | "notes" | "status" | "createdAt" | "updatedAt" | "fraisId" | "classEnrollmentId" | "branchId" | "createdByUserId", ExtArgs["result"]["familyPayment"]>
+export type FamilyPaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "parentId" | "batchId" | "amount" | "receivedCurrency" | "receivedAmount" | "exchangeRateUsed" | "method" | "transactionRef" | "notes" | "status" | "isArchived" | "archivedAt" | "archivedById" | "createdAt" | "updatedAt" | "fraisId" | "classEnrollmentId" | "branchId" | "createdByUserId", ExtArgs["result"]["familyPayment"]>
 export type FamilyPaymentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   parent?: boolean | Prisma.ParentDefaultArgs<ExtArgs>
   batch?: boolean | Prisma.FamilyPayment$batchArgs<ExtArgs>
@@ -2443,6 +2668,12 @@ export type $FamilyPaymentPayload<ExtArgs extends runtime.Types.Extensions.Inter
     transactionRef: string
     notes: string | null
     status: $Enums.PaymentStatus
+    /**
+     * Masqué de la caisse / listes actives (conservé pour historique)
+     */
+    isArchived: boolean
+    archivedAt: Date | null
+    archivedById: string | null
     createdAt: Date
     updatedAt: Date
     fraisId: string
@@ -2895,6 +3126,9 @@ export interface FamilyPaymentFieldRefs {
   readonly transactionRef: Prisma.FieldRef<"FamilyPayment", 'String'>
   readonly notes: Prisma.FieldRef<"FamilyPayment", 'String'>
   readonly status: Prisma.FieldRef<"FamilyPayment", 'PaymentStatus'>
+  readonly isArchived: Prisma.FieldRef<"FamilyPayment", 'Boolean'>
+  readonly archivedAt: Prisma.FieldRef<"FamilyPayment", 'DateTime'>
+  readonly archivedById: Prisma.FieldRef<"FamilyPayment", 'String'>
   readonly createdAt: Prisma.FieldRef<"FamilyPayment", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"FamilyPayment", 'DateTime'>
   readonly fraisId: Prisma.FieldRef<"FamilyPayment", 'String'>

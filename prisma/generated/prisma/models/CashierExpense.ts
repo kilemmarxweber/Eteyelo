@@ -40,6 +40,9 @@ export type CashierExpenseMinAggregateOutputType = {
   amount: number | null
   description: string | null
   category: string | null
+  isArchived: boolean | null
+  archivedAt: Date | null
+  archivedById: string | null
   createdAt: Date | null
   updatedAt: Date | null
   branchId: string | null
@@ -52,6 +55,9 @@ export type CashierExpenseMaxAggregateOutputType = {
   amount: number | null
   description: string | null
   category: string | null
+  isArchived: boolean | null
+  archivedAt: Date | null
+  archivedById: string | null
   createdAt: Date | null
   updatedAt: Date | null
   branchId: string | null
@@ -64,6 +70,9 @@ export type CashierExpenseCountAggregateOutputType = {
   amount: number
   description: number
   category: number
+  isArchived: number
+  archivedAt: number
+  archivedById: number
   createdAt: number
   updatedAt: number
   branchId: number
@@ -86,6 +95,9 @@ export type CashierExpenseMinAggregateInputType = {
   amount?: true
   description?: true
   category?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -98,6 +110,9 @@ export type CashierExpenseMaxAggregateInputType = {
   amount?: true
   description?: true
   category?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -110,6 +125,9 @@ export type CashierExpenseCountAggregateInputType = {
   amount?: true
   description?: true
   category?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -209,6 +227,9 @@ export type CashierExpenseGroupByOutputType = {
   amount: number
   description: string | null
   category: string | null
+  isArchived: boolean
+  archivedAt: Date | null
+  archivedById: string | null
   createdAt: Date
   updatedAt: Date
   branchId: string
@@ -244,6 +265,9 @@ export type CashierExpenseWhereInput = {
   amount?: Prisma.FloatFilter<"CashierExpense"> | number
   description?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
   category?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
+  isArchived?: Prisma.BoolFilter<"CashierExpense"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"CashierExpense"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
   createdAt?: Prisma.DateTimeFilter<"CashierExpense"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CashierExpense"> | Date | string
   branchId?: Prisma.StringFilter<"CashierExpense"> | string
@@ -258,6 +282,9 @@ export type CashierExpenseOrderByWithRelationInput = {
   amount?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrderInput | Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -276,6 +303,9 @@ export type CashierExpenseWhereUniqueInput = Prisma.AtLeast<{
   amount?: Prisma.FloatFilter<"CashierExpense"> | number
   description?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
   category?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
+  isArchived?: Prisma.BoolFilter<"CashierExpense"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"CashierExpense"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
   createdAt?: Prisma.DateTimeFilter<"CashierExpense"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CashierExpense"> | Date | string
   branchId?: Prisma.StringFilter<"CashierExpense"> | string
@@ -290,6 +320,9 @@ export type CashierExpenseOrderByWithAggregationInput = {
   amount?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrderInput | Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -310,6 +343,9 @@ export type CashierExpenseScalarWhereWithAggregatesInput = {
   amount?: Prisma.FloatWithAggregatesFilter<"CashierExpense"> | number
   description?: Prisma.StringNullableWithAggregatesFilter<"CashierExpense"> | string | null
   category?: Prisma.StringNullableWithAggregatesFilter<"CashierExpense"> | string | null
+  isArchived?: Prisma.BoolWithAggregatesFilter<"CashierExpense"> | boolean
+  archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"CashierExpense"> | Date | string | null
+  archivedById?: Prisma.StringNullableWithAggregatesFilter<"CashierExpense"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"CashierExpense"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"CashierExpense"> | Date | string
   branchId?: Prisma.StringWithAggregatesFilter<"CashierExpense"> | string
@@ -322,6 +358,9 @@ export type CashierExpenseCreateInput = {
   amount: number
   description?: string | null
   category?: string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutCashierExpenseInput
@@ -334,6 +373,9 @@ export type CashierExpenseUncheckedCreateInput = {
   amount: number
   description?: string | null
   category?: string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -346,6 +388,9 @@ export type CashierExpenseUpdateInput = {
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutCashierExpenseNestedInput
@@ -358,6 +403,9 @@ export type CashierExpenseUncheckedUpdateInput = {
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -370,6 +418,9 @@ export type CashierExpenseCreateManyInput = {
   amount: number
   description?: string | null
   category?: string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -382,6 +433,9 @@ export type CashierExpenseUpdateManyMutationInput = {
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -392,6 +446,9 @@ export type CashierExpenseUncheckedUpdateManyInput = {
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -419,6 +476,9 @@ export type CashierExpenseCountOrderByAggregateInput = {
   amount?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -435,6 +495,9 @@ export type CashierExpenseMaxOrderByAggregateInput = {
   amount?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -447,6 +510,9 @@ export type CashierExpenseMinOrderByAggregateInput = {
   amount?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -547,6 +613,9 @@ export type CashierExpenseCreateWithoutCreatedByUserInput = {
   amount: number
   description?: string | null
   category?: string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutCashierExpenseInput
@@ -558,6 +627,9 @@ export type CashierExpenseUncheckedCreateWithoutCreatedByUserInput = {
   amount: number
   description?: string | null
   category?: string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -598,6 +670,9 @@ export type CashierExpenseScalarWhereInput = {
   amount?: Prisma.FloatFilter<"CashierExpense"> | number
   description?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
   category?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
+  isArchived?: Prisma.BoolFilter<"CashierExpense"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"CashierExpense"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
   createdAt?: Prisma.DateTimeFilter<"CashierExpense"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CashierExpense"> | Date | string
   branchId?: Prisma.StringFilter<"CashierExpense"> | string
@@ -610,6 +685,9 @@ export type CashierExpenseCreateWithoutBranchInput = {
   amount: number
   description?: string | null
   category?: string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdByUser?: Prisma.UserCreateNestedOneWithoutCashierExpensesCreatedInput
@@ -621,6 +699,9 @@ export type CashierExpenseUncheckedCreateWithoutBranchInput = {
   amount: number
   description?: string | null
   category?: string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdByUserId?: string | null
@@ -658,6 +739,9 @@ export type CashierExpenseCreateManyCreatedByUserInput = {
   amount: number
   description?: string | null
   category?: string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -669,6 +753,9 @@ export type CashierExpenseUpdateWithoutCreatedByUserInput = {
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutCashierExpenseNestedInput
@@ -680,6 +767,9 @@ export type CashierExpenseUncheckedUpdateWithoutCreatedByUserInput = {
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -691,6 +781,9 @@ export type CashierExpenseUncheckedUpdateManyWithoutCreatedByUserInput = {
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -702,6 +795,9 @@ export type CashierExpenseCreateManyBranchInput = {
   amount: number
   description?: string | null
   category?: string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdByUserId?: string | null
@@ -713,6 +809,9 @@ export type CashierExpenseUpdateWithoutBranchInput = {
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdByUser?: Prisma.UserUpdateOneWithoutCashierExpensesCreatedNestedInput
@@ -724,6 +823,9 @@ export type CashierExpenseUncheckedUpdateWithoutBranchInput = {
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -735,6 +837,9 @@ export type CashierExpenseUncheckedUpdateManyWithoutBranchInput = {
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -748,6 +853,9 @@ export type CashierExpenseSelect<ExtArgs extends runtime.Types.Extensions.Intern
   amount?: boolean
   description?: boolean
   category?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
@@ -762,6 +870,9 @@ export type CashierExpenseSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   amount?: boolean
   description?: boolean
   category?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
@@ -776,6 +887,9 @@ export type CashierExpenseSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   amount?: boolean
   description?: boolean
   category?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
@@ -790,13 +904,16 @@ export type CashierExpenseSelectScalar = {
   amount?: boolean
   description?: boolean
   category?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
   createdByUserId?: boolean
 }
 
-export type CashierExpenseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "transactionRef" | "amount" | "description" | "category" | "createdAt" | "updatedAt" | "branchId" | "createdByUserId", ExtArgs["result"]["cashierExpense"]>
+export type CashierExpenseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "transactionRef" | "amount" | "description" | "category" | "isArchived" | "archivedAt" | "archivedById" | "createdAt" | "updatedAt" | "branchId" | "createdByUserId", ExtArgs["result"]["cashierExpense"]>
 export type CashierExpenseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   createdByUser?: boolean | Prisma.CashierExpense$createdByUserArgs<ExtArgs>
@@ -822,6 +939,12 @@ export type $CashierExpensePayload<ExtArgs extends runtime.Types.Extensions.Inte
     amount: number
     description: string | null
     category: string | null
+    /**
+     * Masqué de la caisse / listes actives
+     */
+    isArchived: boolean
+    archivedAt: Date | null
+    archivedById: string | null
     createdAt: Date
     updatedAt: Date
     branchId: string
@@ -1259,6 +1382,9 @@ export interface CashierExpenseFieldRefs {
   readonly amount: Prisma.FieldRef<"CashierExpense", 'Float'>
   readonly description: Prisma.FieldRef<"CashierExpense", 'String'>
   readonly category: Prisma.FieldRef<"CashierExpense", 'String'>
+  readonly isArchived: Prisma.FieldRef<"CashierExpense", 'Boolean'>
+  readonly archivedAt: Prisma.FieldRef<"CashierExpense", 'DateTime'>
+  readonly archivedById: Prisma.FieldRef<"CashierExpense", 'String'>
   readonly createdAt: Prisma.FieldRef<"CashierExpense", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"CashierExpense", 'DateTime'>
   readonly branchId: Prisma.FieldRef<"CashierExpense", 'String'>

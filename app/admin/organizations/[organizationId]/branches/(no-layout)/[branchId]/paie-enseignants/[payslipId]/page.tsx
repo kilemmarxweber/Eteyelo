@@ -13,7 +13,7 @@ export default async function TeacherPayslipDetailPage({
 }: {
   params: Promise<{ payslipId: string }>;
 }) {
-  const context = await requireBranchContext();
+  const context = await requireBranchContext({ onMissing: "redirect" });
   await assertBranchAreaAccess("payroll", context.session, {
     organizationId: context.organizationId,
     branchId: context.branchId,
