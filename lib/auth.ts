@@ -371,6 +371,21 @@ export const auth = betterAuth({
             },
           },
         });
+
+        if (branch) {
+          const branchMember = await prisma.branchMember.findFirst({
+            where: {
+              branchId: branch.id,
+              member: {
+                userId: user.id,
+                organizationId: organization.id,
+              },
+              isActive: true,
+            },
+            select: { role: true },
+          });
+          branchMemberRole = branchMember?.role ?? null;
+        }
       }
 
       const teacher =
