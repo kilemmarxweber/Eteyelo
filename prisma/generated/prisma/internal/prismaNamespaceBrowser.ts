@@ -342,6 +342,7 @@ export const FraisScalarFieldEnum = {
   echeance: 'echeance',
   schoolYearId: 'schoolYearId',
   priority: 'priority',
+  isOptional: 'isOptional',
   semesterId: 'semesterId',
   fraisGroupKey: 'fraisGroupKey',
   createdAt: 'createdAt',

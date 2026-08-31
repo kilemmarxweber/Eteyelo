@@ -48,6 +48,7 @@ export type FraisMinAggregateOutputType = {
   echeance: Date | null
   schoolYearId: string | null
   priority: number | null
+  isOptional: boolean | null
   semesterId: number | null
   fraisGroupKey: string | null
   createdAt: Date | null
@@ -65,6 +66,7 @@ export type FraisMaxAggregateOutputType = {
   echeance: Date | null
   schoolYearId: string | null
   priority: number | null
+  isOptional: boolean | null
   semesterId: number | null
   fraisGroupKey: string | null
   createdAt: Date | null
@@ -82,6 +84,7 @@ export type FraisCountAggregateOutputType = {
   echeance: number
   schoolYearId: number
   priority: number
+  isOptional: number
   semesterId: number
   fraisGroupKey: number
   createdAt: number
@@ -113,6 +116,7 @@ export type FraisMinAggregateInputType = {
   echeance?: true
   schoolYearId?: true
   priority?: true
+  isOptional?: true
   semesterId?: true
   fraisGroupKey?: true
   createdAt?: true
@@ -130,6 +134,7 @@ export type FraisMaxAggregateInputType = {
   echeance?: true
   schoolYearId?: true
   priority?: true
+  isOptional?: true
   semesterId?: true
   fraisGroupKey?: true
   createdAt?: true
@@ -147,6 +152,7 @@ export type FraisCountAggregateInputType = {
   echeance?: true
   schoolYearId?: true
   priority?: true
+  isOptional?: true
   semesterId?: true
   fraisGroupKey?: true
   createdAt?: true
@@ -251,6 +257,7 @@ export type FraisGroupByOutputType = {
   echeance: Date | null
   schoolYearId: string | null
   priority: number
+  isOptional: boolean
   semesterId: number | null
   fraisGroupKey: string | null
   createdAt: Date
@@ -291,6 +298,7 @@ export type FraisWhereInput = {
   echeance?: Prisma.DateTimeNullableFilter<"Frais"> | Date | string | null
   schoolYearId?: Prisma.StringNullableFilter<"Frais"> | string | null
   priority?: Prisma.IntFilter<"Frais"> | number
+  isOptional?: Prisma.BoolFilter<"Frais"> | boolean
   semesterId?: Prisma.IntNullableFilter<"Frais"> | number | null
   fraisGroupKey?: Prisma.StringNullableFilter<"Frais"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Frais"> | Date | string
@@ -314,6 +322,7 @@ export type FraisOrderByWithRelationInput = {
   echeance?: Prisma.SortOrderInput | Prisma.SortOrder
   schoolYearId?: Prisma.SortOrderInput | Prisma.SortOrder
   priority?: Prisma.SortOrder
+  isOptional?: Prisma.SortOrder
   semesterId?: Prisma.SortOrderInput | Prisma.SortOrder
   fraisGroupKey?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -340,6 +349,7 @@ export type FraisWhereUniqueInput = Prisma.AtLeast<{
   echeance?: Prisma.DateTimeNullableFilter<"Frais"> | Date | string | null
   schoolYearId?: Prisma.StringNullableFilter<"Frais"> | string | null
   priority?: Prisma.IntFilter<"Frais"> | number
+  isOptional?: Prisma.BoolFilter<"Frais"> | boolean
   semesterId?: Prisma.IntNullableFilter<"Frais"> | number | null
   fraisGroupKey?: Prisma.StringNullableFilter<"Frais"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Frais"> | Date | string
@@ -363,6 +373,7 @@ export type FraisOrderByWithAggregationInput = {
   echeance?: Prisma.SortOrderInput | Prisma.SortOrder
   schoolYearId?: Prisma.SortOrderInput | Prisma.SortOrder
   priority?: Prisma.SortOrder
+  isOptional?: Prisma.SortOrder
   semesterId?: Prisma.SortOrderInput | Prisma.SortOrder
   fraisGroupKey?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -388,6 +399,7 @@ export type FraisScalarWhereWithAggregatesInput = {
   echeance?: Prisma.DateTimeNullableWithAggregatesFilter<"Frais"> | Date | string | null
   schoolYearId?: Prisma.StringNullableWithAggregatesFilter<"Frais"> | string | null
   priority?: Prisma.IntWithAggregatesFilter<"Frais"> | number
+  isOptional?: Prisma.BoolWithAggregatesFilter<"Frais"> | boolean
   semesterId?: Prisma.IntNullableWithAggregatesFilter<"Frais"> | number | null
   fraisGroupKey?: Prisma.StringNullableWithAggregatesFilter<"Frais"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Frais"> | Date | string
@@ -402,6 +414,7 @@ export type FraisCreateInput = {
   statusFrais?: boolean
   echeance?: Date | string | null
   priority?: number
+  isOptional?: boolean
   fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -423,6 +436,7 @@ export type FraisUncheckedCreateInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  isOptional?: boolean
   semesterId?: number | null
   fraisGroupKey?: string | null
   createdAt?: Date | string
@@ -438,6 +452,7 @@ export type FraisUpdateInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -459,6 +474,7 @@ export type FraisUncheckedUpdateInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -477,6 +493,7 @@ export type FraisCreateManyInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  isOptional?: boolean
   semesterId?: number | null
   fraisGroupKey?: string | null
   createdAt?: Date | string
@@ -491,6 +508,7 @@ export type FraisUpdateManyMutationInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -506,6 +524,7 @@ export type FraisUncheckedUpdateManyInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -523,6 +542,7 @@ export type FraisCountOrderByAggregateInput = {
   echeance?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  isOptional?: Prisma.SortOrder
   semesterId?: Prisma.SortOrder
   fraisGroupKey?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -546,6 +566,7 @@ export type FraisMaxOrderByAggregateInput = {
   echeance?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  isOptional?: Prisma.SortOrder
   semesterId?: Prisma.SortOrder
   fraisGroupKey?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -563,6 +584,7 @@ export type FraisMinOrderByAggregateInput = {
   echeance?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  isOptional?: Prisma.SortOrder
   semesterId?: Prisma.SortOrder
   fraisGroupKey?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -840,6 +862,7 @@ export type FraisCreateWithoutTypeFraisInput = {
   statusFrais?: boolean
   echeance?: Date | string | null
   priority?: number
+  isOptional?: boolean
   fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -859,6 +882,7 @@ export type FraisUncheckedCreateWithoutTypeFraisInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  isOptional?: boolean
   semesterId?: number | null
   fraisGroupKey?: string | null
   createdAt?: Date | string
@@ -906,6 +930,7 @@ export type FraisScalarWhereInput = {
   echeance?: Prisma.DateTimeNullableFilter<"Frais"> | Date | string | null
   schoolYearId?: Prisma.StringNullableFilter<"Frais"> | string | null
   priority?: Prisma.IntFilter<"Frais"> | number
+  isOptional?: Prisma.BoolFilter<"Frais"> | boolean
   semesterId?: Prisma.IntNullableFilter<"Frais"> | number | null
   fraisGroupKey?: Prisma.StringNullableFilter<"Frais"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Frais"> | Date | string
@@ -920,6 +945,7 @@ export type FraisCreateWithoutClasseInput = {
   statusFrais?: boolean
   echeance?: Date | string | null
   priority?: number
+  isOptional?: boolean
   fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -939,6 +965,7 @@ export type FraisUncheckedCreateWithoutClasseInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  isOptional?: boolean
   semesterId?: number | null
   fraisGroupKey?: string | null
   createdAt?: Date | string
@@ -980,6 +1007,7 @@ export type FraisCreateWithoutSchoolYearInput = {
   statusFrais?: boolean
   echeance?: Date | string | null
   priority?: number
+  isOptional?: boolean
   fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -999,6 +1027,7 @@ export type FraisUncheckedCreateWithoutSchoolYearInput = {
   typeFraisId: string
   echeance?: Date | string | null
   priority?: number
+  isOptional?: boolean
   semesterId?: number | null
   fraisGroupKey?: string | null
   createdAt?: Date | string
@@ -1040,6 +1069,7 @@ export type FraisCreateWithoutSemesterInput = {
   statusFrais?: boolean
   echeance?: Date | string | null
   priority?: number
+  isOptional?: boolean
   fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1060,6 +1090,7 @@ export type FraisUncheckedCreateWithoutSemesterInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  isOptional?: boolean
   fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1100,6 +1131,7 @@ export type FraisCreateWithoutPaiementInput = {
   statusFrais?: boolean
   echeance?: Date | string | null
   priority?: number
+  isOptional?: boolean
   fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1120,6 +1152,7 @@ export type FraisUncheckedCreateWithoutPaiementInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  isOptional?: boolean
   semesterId?: number | null
   fraisGroupKey?: string | null
   createdAt?: Date | string
@@ -1150,6 +1183,7 @@ export type FraisUpdateWithoutPaiementInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1170,6 +1204,7 @@ export type FraisUncheckedUpdateWithoutPaiementInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1184,6 +1219,7 @@ export type FraisCreateWithoutBranchInput = {
   statusFrais?: boolean
   echeance?: Date | string | null
   priority?: number
+  isOptional?: boolean
   fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1204,6 +1240,7 @@ export type FraisUncheckedCreateWithoutBranchInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  isOptional?: boolean
   semesterId?: number | null
   fraisGroupKey?: string | null
   createdAt?: Date | string
@@ -1246,6 +1283,7 @@ export type FraisCreateManyTypeFraisInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  isOptional?: boolean
   semesterId?: number | null
   fraisGroupKey?: string | null
   createdAt?: Date | string
@@ -1260,6 +1298,7 @@ export type FraisUpdateWithoutTypeFraisInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1279,6 +1318,7 @@ export type FraisUncheckedUpdateWithoutTypeFraisInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1296,6 +1336,7 @@ export type FraisUncheckedUpdateManyWithoutTypeFraisInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1312,6 +1353,7 @@ export type FraisCreateManyClasseInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  isOptional?: boolean
   semesterId?: number | null
   fraisGroupKey?: string | null
   createdAt?: Date | string
@@ -1326,6 +1368,7 @@ export type FraisUpdateWithoutClasseInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1345,6 +1388,7 @@ export type FraisUncheckedUpdateWithoutClasseInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1362,6 +1406,7 @@ export type FraisUncheckedUpdateManyWithoutClasseInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1378,6 +1423,7 @@ export type FraisCreateManySchoolYearInput = {
   typeFraisId: string
   echeance?: Date | string | null
   priority?: number
+  isOptional?: boolean
   semesterId?: number | null
   fraisGroupKey?: string | null
   createdAt?: Date | string
@@ -1392,6 +1438,7 @@ export type FraisUpdateWithoutSchoolYearInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1411,6 +1458,7 @@ export type FraisUncheckedUpdateWithoutSchoolYearInput = {
   typeFraisId?: Prisma.StringFieldUpdateOperationsInput | string
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1428,6 +1476,7 @@ export type FraisUncheckedUpdateManyWithoutSchoolYearInput = {
   typeFraisId?: Prisma.StringFieldUpdateOperationsInput | string
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1445,6 +1494,7 @@ export type FraisCreateManySemesterInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  isOptional?: boolean
   fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1458,6 +1508,7 @@ export type FraisUpdateWithoutSemesterInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1478,6 +1529,7 @@ export type FraisUncheckedUpdateWithoutSemesterInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1495,6 +1547,7 @@ export type FraisUncheckedUpdateManyWithoutSemesterInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1511,6 +1564,7 @@ export type FraisCreateManyBranchInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  isOptional?: boolean
   semesterId?: number | null
   fraisGroupKey?: string | null
   createdAt?: Date | string
@@ -1524,6 +1578,7 @@ export type FraisUpdateWithoutBranchInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1544,6 +1599,7 @@ export type FraisUncheckedUpdateWithoutBranchInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1561,6 +1617,7 @@ export type FraisUncheckedUpdateManyWithoutBranchInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  isOptional?: Prisma.BoolFieldUpdateOperationsInput | boolean
   semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1608,6 +1665,7 @@ export type FraisSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   echeance?: boolean
   schoolYearId?: boolean
   priority?: boolean
+  isOptional?: boolean
   semesterId?: boolean
   fraisGroupKey?: boolean
   createdAt?: boolean
@@ -1632,6 +1690,7 @@ export type FraisSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   echeance?: boolean
   schoolYearId?: boolean
   priority?: boolean
+  isOptional?: boolean
   semesterId?: boolean
   fraisGroupKey?: boolean
   createdAt?: boolean
@@ -1654,6 +1713,7 @@ export type FraisSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   echeance?: boolean
   schoolYearId?: boolean
   priority?: boolean
+  isOptional?: boolean
   semesterId?: boolean
   fraisGroupKey?: boolean
   createdAt?: boolean
@@ -1676,6 +1736,7 @@ export type FraisSelectScalar = {
   echeance?: boolean
   schoolYearId?: boolean
   priority?: boolean
+  isOptional?: boolean
   semesterId?: boolean
   fraisGroupKey?: boolean
   createdAt?: boolean
@@ -1683,7 +1744,7 @@ export type FraisSelectScalar = {
   branchId?: boolean
 }
 
-export type FraisOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nameFrais" | "montantFrais" | "statusFrais" | "classeId" | "typeFraisId" | "echeance" | "schoolYearId" | "priority" | "semesterId" | "fraisGroupKey" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["frais"]>
+export type FraisOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nameFrais" | "montantFrais" | "statusFrais" | "classeId" | "typeFraisId" | "echeance" | "schoolYearId" | "priority" | "isOptional" | "semesterId" | "fraisGroupKey" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["frais"]>
 export type FraisInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   paiement?: boolean | Prisma.Frais$paiementArgs<ExtArgs>
   classe?: boolean | Prisma.ClasseDefaultArgs<ExtArgs>
@@ -1728,6 +1789,10 @@ export type $FraisPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     echeance: Date | null
     schoolYearId: string | null
     priority: number
+    /**
+     * Frais non obligatoire (ex. uniforme) : n'entre au compte que s'il est accepté au paiement. Une fois accepté, il est dû avec priorité 0.
+     */
+    isOptional: boolean
     /**
      * Tranche du calendrier (T1 / S1…) — optionnel.
      */
@@ -2177,6 +2242,7 @@ export interface FraisFieldRefs {
   readonly echeance: Prisma.FieldRef<"Frais", 'DateTime'>
   readonly schoolYearId: Prisma.FieldRef<"Frais", 'String'>
   readonly priority: Prisma.FieldRef<"Frais", 'Int'>
+  readonly isOptional: Prisma.FieldRef<"Frais", 'Boolean'>
   readonly semesterId: Prisma.FieldRef<"Frais", 'Int'>
   readonly fraisGroupKey: Prisma.FieldRef<"Frais", 'String'>
   readonly createdAt: Prisma.FieldRef<"Frais", 'DateTime'>

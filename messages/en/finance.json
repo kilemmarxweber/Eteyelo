@@ -33,6 +33,7 @@
   "feesAndSummary": "Fees & summary",
   "loadingFees": "Loading fees…",
   "selectFees": "Select fees",
+  "optionalFee": "Optional",
   "selectStudentFirst": "Select {student} first",
   "selectedFees": "Selected fees ({count})",
   "discountApplicable": "{percent}% discount applicable",

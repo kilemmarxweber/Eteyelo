@@ -33,6 +33,7 @@
   "feesAndSummary": "Frais & récapitulatif",
   "loadingFees": "Chargement des frais…",
   "selectFees": "Sélectionner les frais",
+  "optionalFee": "Optionnel",
   "selectStudentFirst": "Sélectionnez {student} d'abord",
   "selectedFees": "Frais sélectionnés ({count})",
   "discountApplicable": "Remise {percent}% applicable",

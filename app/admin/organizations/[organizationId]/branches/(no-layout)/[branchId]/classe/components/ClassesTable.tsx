@@ -207,11 +207,21 @@ const ClassesList = ({
         ) : null}
         <ResponsiveDataTable
           ToolbarComponent={(props) => (
-            <DataTableToolbar {...props} showOptionFilter={showOption} />
+            <DataTableToolbar
+              {...props}
+              showOptionFilter={showOption}
+              canManage={canManage}
+            />
           )}
           columns={columns}
           data={classes}
           emptyText="Aucune classe enregistree"
+          getRowId={(row) => row.id}
+          enableRowSelection={
+            canManage
+              ? (row) => (row.original.studentsCount ?? 0) === 0
+              : false
+          }
           mobileCardTitle={(row) => row.nameClasse}
           mobileCardSubtitle={(row) => {
             const parts = [row.level, row.parallel].filter(Boolean);

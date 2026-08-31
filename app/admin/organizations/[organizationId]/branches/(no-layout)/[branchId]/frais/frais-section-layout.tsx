@@ -4,7 +4,7 @@ import { Layout, LayoutBody } from "@/components/custom/layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { IconCopy, IconPlus, IconReportMoney, IconSchool } from "@tabler/icons-react";
+import { IconCopy, IconPlus, IconReportMoney, IconSchool, IconTrash } from "@tabler/icons-react";
 import {
   Sheet,
   SheetContent,
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import { FraisUpForm } from "./[classeId]/components/frais-form";
 import { ReplicateFraisDialog } from "./[classeId]/components/replicate-Frais-dialog";
+import { DeleteFraisAcrossClassesDialog } from "./[classeId]/components/delete-Frais-across-classes-dialog";
 import { Button } from "@/components/custom/button";
 import { getClassesByIdAction } from "../classe/classe.action";
 import { useEffect, useState } from "react";
@@ -37,6 +38,7 @@ function FraisLayoutContent({ children }: { children: React.ReactNode }) {
   const { refresh } = useRefresh();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [replicateDialogOpen, setReplicateDialogOpen] = useState(false);
+  const [deleteAcrossDialogOpen, setDeleteAcrossDialogOpen] = useState(false);
   const handleFraisAction = () => {
     refresh();
     setAddDialogOpen(false);
@@ -118,6 +120,14 @@ function FraisLayoutContent({ children }: { children: React.ReactNode }) {
                     >
                       Reconduire
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      leftSection={<IconTrash size={16} />}
+                      onClick={() => setDeleteAcrossDialogOpen(true)}
+                    >
+                      Supprimer
+                    </Button>
                     <Sheet open={addDialogOpen} onOpenChange={setAddDialogOpen}>
                       <SheetTrigger asChild>
                         <Button
@@ -155,6 +165,14 @@ function FraisLayoutContent({ children }: { children: React.ReactNode }) {
                     <ReplicateFraisDialog
                       open={replicateDialogOpen}
                       onOpenChange={setReplicateDialogOpen}
+                      sourceClasseId={classeId}
+                      sourceClassLabel={
+                        classes?.nameClasse || classes?.codeClasse
+                      }
+                    />
+                    <DeleteFraisAcrossClassesDialog
+                      open={deleteAcrossDialogOpen}
+                      onOpenChange={setDeleteAcrossDialogOpen}
                       sourceClasseId={classeId}
                       sourceClassLabel={
                         classes?.nameClasse || classes?.codeClasse

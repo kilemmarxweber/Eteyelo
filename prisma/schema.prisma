@@ -298,6 +298,8 @@ model Frais {
   echeance     DateTime?
   schoolYearId String? // 👈 TEMPORAIRE (optionnel)
   priority     Int             @default(99) // 🔥 AJOUT (1 = haute priorité)
+  /// Frais non obligatoire (ex. uniforme) : n'entre au compte que s'il est accepté au paiement. Une fois accepté, il est dû avec priorité 0.
+  isOptional   Boolean         @default(false)
   /// Tranche du calendrier (T1 / S1…) — optionnel.
   semesterId   Int?
   /// Clé commune pour édition groupée (ciblage cycle / niveau).

@@ -33,6 +33,7 @@
   "feesAndSummary": "Propinas e resumo",
   "loadingFees": "A carregar as propinas…",
   "selectFees": "Seleccionar as propinas",
+  "optionalFee": "Opcional",
   "selectStudentFirst": "Seleccione primeiro o {student}",
   "selectedFees": "Propinas seleccionadas ({count})",
   "discountApplicable": "Desconto de {percent}% aplicável",

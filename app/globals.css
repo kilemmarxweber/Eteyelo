@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+/* next-themes pose `.dark` sur <html> — sans ceci, `dark:` suit le système OS. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* MathML (aperçu formules) — lisible avec le thème */
 .formula-preview math {
   font-family: "Cambria Math", "Latin Modern Math", "STIX Two Math", serif;
@@ -285,8 +288,8 @@
 .animate-scroll:hover {
   animation-play-state: paused;
 }
-@layer base {
-  :root {
+:root {
+    color-scheme: light;
     /* === COULEURS PRINCIPALES === */
     --background: oklch(98% 0.005 264);
     --foreground: oklch(15% 0.015 264);
@@ -341,6 +344,7 @@
   }
 
   .dark {
+    color-scheme: dark;
     /* === COULEURS PRINCIPALES DARK ===
        Hiérarchie lisible : fond < carte < muted, bordures clairement visibles */
     --background: oklch(14% 0.018 264);
@@ -393,7 +397,6 @@
     --kalasa-yellow: #5a4a18;
     --kalasa-yellow-light: #463910;
   }
-}
 
 @layer base {
   * {

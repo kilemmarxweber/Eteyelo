@@ -15,6 +15,7 @@ import {
   getSortedRowModel,
   useReactTable,
   Table as TanstackTable,
+  Row,
 } from "@tanstack/react-table";
 
 import {
@@ -29,6 +30,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   ChevronDown,
   ChevronUp,
@@ -55,6 +57,8 @@ interface ResponsiveDataTableProps<TData, TValue> {
   initialColumnVisibility?: VisibilityState;
   /** Lignes visibles (filtrées + triées, avant pagination). */
   onFilteredRowsChange?: (rows: TData[]) => void;
+  getRowId?: (originalRow: TData, index: number) => string;
+  enableRowSelection?: boolean | ((row: Row<TData>) => boolean);
 }
 
 export function ResponsiveDataTable<TData, TValue>({
@@ -70,6 +74,8 @@ export function ResponsiveDataTable<TData, TValue>({
   className,
   initialColumnVisibility,
   onFilteredRowsChange,
+  getRowId,
+  enableRowSelection = true,
 }: ResponsiveDataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -100,7 +106,8 @@ export function ResponsiveDataTable<TData, TValue>({
       rowSelection,
       columnFilters,
     },
-    enableRowSelection: true,
+    enableRowSelection,
+    getRowId,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -155,6 +162,10 @@ export function ResponsiveDataTable<TData, TValue>({
   }
 
   // Vue mobile - Cards
+  const hasSelectColumn = table
+    .getAllColumns()
+    .some((column) => column.id === "select");
+
   const MobileCardView = () => (
     <div className="space-y-4">
       {table.getRowModel().rows?.length ? (
@@ -166,11 +177,24 @@ export function ResponsiveDataTable<TData, TValue>({
               className={cn(
                 "transition-all hover:shadow-md",
                 onRowClick && "cursor-pointer",
+                row.getIsSelected() && "ring-1 ring-primary/40",
               )}
               onClick={(event) => handleRowNavigate(event, rowData)}
             >
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-2">
+                  {hasSelectColumn ? (
+                    <Checkbox
+                      checked={row.getIsSelected()}
+                      disabled={!row.getCanSelect()}
+                      onCheckedChange={(value) =>
+                        row.toggleSelected(!!value)
+                      }
+                      aria-label="Sélectionner"
+                      className="mt-1"
+                      onClick={(event) => event.stopPropagation()}
+                    />
+                  ) : null}
                   <div className="flex-1 min-w-0">
                     <CardTitle className="text-lg font-semibold truncate">
                       {mobileCardTitle

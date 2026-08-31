@@ -16,6 +16,7 @@ import {
 import { UpdateFraisDialog } from "./edit-Frais-dialog";
 import { DeleteFraissDialog } from "./delete-Frais-dialog";
 import { ReplicateFraisDialog } from "./replicate-Frais-dialog";
+import { DeleteFraisAcrossClassesDialog } from "./delete-Frais-across-classes-dialog";
 import { useSession } from "@/lib/auth-client";
 import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 
@@ -33,7 +34,11 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPurgeDialog, setShowPurgeDialog] = useState(false);
   const [showReplicateDialog, setShowReplicateDialog] = useState(false);
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [showBulkPurgeDialog, setShowBulkPurgeDialog] = useState(false);
+  const [showBulkAcrossDialog, setShowBulkAcrossDialog] = useState(false);
   const [selectedFrais, setSelectedFrais] = useState<IFrais | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
     setHasMounted(true);
@@ -81,6 +86,10 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
   const start = safePage * ITEMS_PER_PAGE;
   const end = start + ITEMS_PER_PAGE;
   const paginatedFraiss = filteredFraiss.slice(start, end);
+  const selectedFraiss = fraiss.filter((frais) => selectedIds.includes(frais.id));
+  const allFilteredSelected =
+    filteredFraiss.length > 0 &&
+    filteredFraiss.every((frais) => selectedIds.includes(frais.id));
 
   const handleEdit = (frais: IFrais) => {
     setSelectedFrais(frais);
@@ -108,7 +117,14 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
       key: "nameFrais",
       header: "Intitulé du frais",
       cell: (frais: IFrais) => (
-        <div className="font-medium">{frais.nameFrais}</div>
+        <div className="font-medium">
+          {frais.nameFrais}
+          {frais.isOptional ? (
+            <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              Optionnel
+            </span>
+          ) : null}
+        </div>
       ),
     },
     {
@@ -181,7 +197,8 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
 
   // Config carte mobile
   const cardConfig = {
-    title: (frais: IFrais) => frais.nameFrais,
+    title: (frais: IFrais) =>
+      frais.isOptional ? `${frais.nameFrais} (optionnel)` : frais.nameFrais,
     subtitle: (frais: IFrais) => frais.typeFrais?.nameType || "-",
     details: (frais: IFrais) => [
       {
@@ -245,6 +262,65 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
           setPage(0);
         }}
       />
+      {selectedIds.length > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/40 px-3 py-2">
+          <p className="text-sm">
+            <span className="font-medium">{selectedIds.length}</span> frais
+            sélectionné{selectedIds.length > 1 ? "s" : ""}
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            {!allFilteredSelected && filteredFraiss.length > selectedIds.length ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  setSelectedIds(filteredFraiss.map((frais) => frais.id))
+                }
+              >
+                Tout sélectionner ({filteredFraiss.length})
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedIds([])}
+            >
+              Annuler
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowBulkDeleteDialog(true)}
+            >
+              <Archive className="mr-2 h-4 w-4" />
+              Désactiver ({selectedIds.length})
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowBulkAcrossDialog(true)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Dans d&apos;autres classes
+            </Button>
+            {canPurgePermanently ? (
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowBulkPurgeDialog(true)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Supprimer ({selectedIds.length})
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
       <div className="min-h-0 flex-1 overflow-auto">
         <ResponsiveDataTable
           data={paginatedFraiss}
@@ -253,6 +329,9 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
           loading={loading}
           emptyMessage="Pas de frais pour cette classe"
           searchTerm={searchTerm}
+          getRowId={(frais) => frais.id}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
           footer={
             fraiss.length > 0
               ? {
@@ -331,6 +410,34 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
           />
         </>
       )}
+      {selectedFraiss.length > 0 ? (
+        <>
+          <DeleteFraissDialog
+            open={showBulkDeleteDialog}
+            onOpenChange={setShowBulkDeleteDialog}
+            Frais={selectedFraiss}
+            showTrigger={false}
+            onSuccess={() => setSelectedIds([])}
+          />
+          {canPurgePermanently ? (
+            <DeleteFraissDialog
+              open={showBulkPurgeDialog}
+              onOpenChange={setShowBulkPurgeDialog}
+              Frais={selectedFraiss}
+              showTrigger={false}
+              permanent
+              onSuccess={() => setSelectedIds([])}
+            />
+          ) : null}
+          <DeleteFraisAcrossClassesDialog
+            open={showBulkAcrossDialog}
+            onOpenChange={setShowBulkAcrossDialog}
+            sourceClasseId={params.classeId}
+            fraisIds={selectedIds}
+            onSuccess={() => setSelectedIds([])}
+          />
+        </>
+      ) : null}
     </div>
   );
 };

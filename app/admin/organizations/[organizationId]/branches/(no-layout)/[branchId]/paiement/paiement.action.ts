@@ -36,6 +36,10 @@ import {
   resolveOverallReceiptSettlementStatus,
   resolveReceiptSettlementStatus,
 } from "@/lib/reports/receipt-settlement";
+import {
+  isFraisChargedOnAccount,
+  resolveFraisPriority,
+} from "@/lib/optional-frais";
 
 async function loadPaidAmountsByEnrollmentAndFrais(
   branchId: string,
@@ -236,6 +240,7 @@ export type SelectableFraisItem = {
   fraisId: string;
   classEnrollmentId: string;
   priority: number;
+  isOptional: boolean;
   typeFraisId: string | null;
   typeFraisName: string | null;
   nameFrais: string;
@@ -257,6 +262,7 @@ export type SelectableFraisAggregate = {
   typeFraisId: string | null;
   typeFraisName: string | null;
   priority: number;
+  isOptional: boolean;
   schoolYearId: string | null;
   resteAffiche: number;
   discountAmount: number;
@@ -286,6 +292,7 @@ export async function getFraisWithBalance(
         fraisId: string;
         classEnrollmentId: string;
         priority: number;
+        isOptional: boolean;
         typeFraisId: string | null;
         typeFraisName: string | null;
         total: number;
@@ -335,7 +342,11 @@ export async function getFraisWithBalance(
       results.push({
         fraisId: frais.id,
         classEnrollmentId: enrollment.id,
-        priority: frais.priority ?? 99,
+        priority: resolveFraisPriority(
+          Boolean(frais.isOptional),
+          frais.priority,
+        ),
+        isOptional: Boolean(frais.isOptional),
         typeFraisId: frais.typeFraisId,
         typeFraisName: frais.typeFrais?.nameType ?? null,
         total,
@@ -440,7 +451,11 @@ export async function getSelectableFraisForEnrollments(input: {
       items.push({
         fraisId: frais.id,
         classEnrollmentId: enrollment.id,
-        priority: frais.priority ?? 99,
+        priority: resolveFraisPriority(
+          Boolean(frais.isOptional),
+          frais.priority,
+        ),
+        isOptional: Boolean(frais.isOptional),
         typeFraisId: frais.typeFraisId,
         typeFraisName: frais.typeFrais?.nameType ?? null,
         nameFrais: frais.nameFrais,
@@ -509,7 +524,11 @@ export async function getSelectableFraisForEnrollments(input: {
       classeId: fraisDef.classeId,
       typeFraisId: fraisDef.typeFraisId,
       typeFraisName: fraisDef.typeFrais?.nameType ?? null,
-      priority: fraisDef.priority ?? 99,
+      priority: resolveFraisPriority(
+        Boolean(fraisDef.isOptional),
+        fraisDef.priority,
+      ),
+      isOptional: Boolean(fraisDef.isOptional),
       schoolYearId: fraisDef.schoolYearId ?? null,
       resteAffiche,
       discountAmount,
@@ -522,7 +541,9 @@ export async function getSelectableFraisForEnrollments(input: {
 
   frais.sort(
     (a, b) =>
-      a.priority - b.priority || a.nameFrais.localeCompare(b.nameFrais, "fr"),
+      Number(a.isOptional) - Number(b.isOptional) ||
+      a.priority - b.priority ||
+      a.nameFrais.localeCompare(b.nameFrais, "fr"),
   );
 
   return {
@@ -1752,6 +1773,11 @@ export const getUnpaidFraisAction = action
       for (const frais of enrollment.classe?.Frais || []) {
         const montantPaye =
           paidMap.get(`${enrollment.id}:${frais.id}`) ?? 0;
+        if (
+          !isFraisChargedOnAccount(Boolean(frais.isOptional), montantPaye)
+        ) {
+          continue;
+        }
         const montantDu = Number(frais.montantFrais);
 
         if (montantDu - montantPaye > 0) {
@@ -1790,11 +1816,22 @@ export const calculateStudentBalanceAction = action
     let totalPaye = 0;
 
     for (const e of enrollments) {
-      totalDu +=
-        e.classe?.Frais?.reduce((sum, f) => sum + Number(f.montantFrais), 0) ||
-        0;
+      const paidByFrais = new Map<string, number>();
+      for (const payment of e.paiement) {
+        paidByFrais.set(
+          payment.fraisId,
+          (paidByFrais.get(payment.fraisId) ?? 0) + Number(payment.amount),
+        );
+      }
 
-      totalPaye += e.paiement.reduce((sum, p) => sum + Number(p.amount), 0);
+      for (const frais of e.classe?.Frais ?? []) {
+        const paid = paidByFrais.get(frais.id) ?? 0;
+        if (!isFraisChargedOnAccount(Boolean(frais.isOptional), paid)) {
+          continue;
+        }
+        totalDu += Number(frais.montantFrais);
+        totalPaye += paid;
+      }
     }
 
     return {
@@ -2143,12 +2180,18 @@ export const getUnpaidReportAction = action
               classeId: true,
               montantFrais: true,
               typeFraisId: true,
+              isOptional: true,
             },
           });
 
     const fraisByClasse = new Map<
       string,
-      Array<{ id: string; montant: number; typeFraisId: string | null }>
+      Array<{
+        id: string;
+        montant: number;
+        typeFraisId: string | null;
+        isOptional: boolean;
+      }>
     >();
     const fraisIds: string[] = [];
     for (const frais of fraisList) {
@@ -2158,16 +2201,17 @@ export const getUnpaidReportAction = action
         id: frais.id,
         montant: Number(frais.montantFrais),
         typeFraisId: frais.typeFraisId,
+        isOptional: Boolean(frais.isOptional),
       });
       fraisByClasse.set(frais.classeId, list);
     }
 
     const enrollmentIds = enrollments.map((e) => e.id);
-    const paidByEnrollment = new Map<string, number>();
+    const paidByEnrollmentFrais = new Map<string, number>();
 
     if (enrollmentIds.length > 0 && fraisIds.length > 0) {
       const aggregates = await prisma.familyPayment.groupBy({
-        by: ["classEnrollmentId"],
+        by: ["classEnrollmentId", "fraisId"],
         where: {
           branchId,
           classEnrollmentId: { in: enrollmentIds },
@@ -2178,8 +2222,8 @@ export const getUnpaidReportAction = action
       });
 
       for (const row of aggregates) {
-        paidByEnrollment.set(
-          row.classEnrollmentId,
+        paidByEnrollmentFrais.set(
+          `${row.classEnrollmentId}:${row.fraisId}`,
           Number(row._sum.amount ?? 0),
         );
       }
@@ -2211,7 +2255,13 @@ export const getUnpaidReportAction = action
           .join(" ")
           .trim() || "Élève";
 
-      const classeFrais = fraisByClasse.get(enrollment.classeId) ?? [];
+      const classeFrais = (fraisByClasse.get(enrollment.classeId) ?? []).filter(
+        (f) =>
+          isFraisChargedOnAccount(
+            f.isOptional,
+            paidByEnrollmentFrais.get(`${enrollment.id}:${f.id}`) ?? 0,
+          ),
+      );
       const montantDuBrut = classeFrais.reduce((sum, f) => sum + f.montant, 0);
 
       const parentId = enrollment.student?.parentId ?? null;
@@ -2228,7 +2278,12 @@ export const getUnpaidReportAction = action
       );
 
       const montantDu = Math.max(0, montantDuBrut - remise);
-      const montantPaye = paidByEnrollment.get(enrollment.id) ?? 0;
+      const montantPaye = classeFrais.reduce(
+        (sum, f) =>
+          sum +
+          (paidByEnrollmentFrais.get(`${enrollment.id}:${f.id}`) ?? 0),
+        0,
+      );
       const reste = Math.max(0, montantDu - montantPaye);
 
       return {

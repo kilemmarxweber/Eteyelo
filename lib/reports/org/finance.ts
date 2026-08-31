@@ -5,6 +5,7 @@ import {
   EMPTY_DISCOUNT,
   getBestDiscountInfo,
 } from "@/lib/payment-discount";
+import { isFraisChargedOnAccount } from "@/lib/optional-frais";
 import {
   buildBranchIdFilter,
   monthKey,
@@ -142,11 +143,13 @@ async function computeBudgetFromFrais(params: {
       classeId: true,
       branchId: true,
       montantFrais: true,
+      isOptional: true,
     },
   });
 
   const dueByClasseBranch = new Map<string, number>();
   for (const frais of fraisList) {
+    if (frais.isOptional) continue;
     const key = `${frais.branchId}:${frais.classeId}`;
     dueByClasseBranch.set(
       key,
@@ -270,6 +273,7 @@ async function loadFinanceStudentDetails(params: {
       typeFraisId: true,
       classeId: true,
       priority: true,
+      isOptional: true,
     },
     orderBy: [{ priority: "asc" }, { nameFrais: "asc" }],
   });
@@ -325,7 +329,13 @@ async function loadFinanceStudentDetails(params: {
 
   const studentDetails: FinanceStudentDetail[] = enrollments.map((enrollment) => {
     const user = enrollment.student?.branchMember?.member?.user;
-    const classFrais = fraisByClasse.get(enrollment.classeId) ?? [];
+    const classFrais = (fraisByClasse.get(enrollment.classeId) ?? []).filter(
+      (f) =>
+        isFraisChargedOnAccount(
+          Boolean(f.isOptional),
+          paidByEnrollmentFrais.get(`${enrollment.id}:${f.id}`) ?? 0,
+        ),
+    );
     const parentId = enrollment.student?.parentId ?? null;
     const discount = parentId
       ? (discountByKey.get(`${parentId}:${enrollment.branchId}`) ?? EMPTY_DISCOUNT)

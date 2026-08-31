@@ -5,14 +5,20 @@ import React from "react";
 import {Moon, SunMedium} from 'lucide-react'
 
 export const ThemeToggle = () => {
-  const { setTheme, theme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   return (
     <Button
       variant="ghost"
       size="icon"
       className="size-9 shrink-0"
       onClick={() => {
-        setTheme(theme === "light" ? "dark" : "light");
+        if (resolvedTheme !== "dark" && resolvedTheme !== "light") return;
+        const next = resolvedTheme === "dark" ? "light" : "dark";
+        const root = document.documentElement;
+        root.classList.remove("light", "dark");
+        root.classList.add(next);
+        root.style.colorScheme = next;
+        setTheme(next);
       }}
     >
       <SunMedium

@@ -62,6 +62,7 @@ export function UpdateFraisDialog({
               typeFraisId: frais.typeFraisId || "",
               echeance: frais.echeance,
               priority: frais.priority,
+              isOptional: frais.isOptional ?? false,
             }}
             onUpdated={handleUpdate}
             onSuccess={onSuccess}

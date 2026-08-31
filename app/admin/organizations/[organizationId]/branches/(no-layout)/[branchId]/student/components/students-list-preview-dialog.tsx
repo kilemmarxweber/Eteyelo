@@ -52,7 +52,10 @@ export function StudentsListPreviewDialog({
       listTitle: tPdf("listTitle", {
         studentsLower: peopleLabels.studentPluralLower,
       }),
-      classTitle: tPdf("classTitle", { className: "{className}" }),
+      classTitle: tPdf("classTitle", {
+        studentsLower: peopleLabels.studentPluralLower,
+        className: "{className}",
+      }),
       boys: tPdf("boys"),
       girls: tPdf("girls"),
       active: tPdf("active"),

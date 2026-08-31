@@ -66,7 +66,7 @@ export default async function AdminLayout({
       key={userId}
       attribute="class"
       defaultTheme={preferredTheme}
-      enableSystem
+      enableSystem={false}
       storageKey={userThemeStorageKey(userId)}
       disableTransitionOnChange
     >

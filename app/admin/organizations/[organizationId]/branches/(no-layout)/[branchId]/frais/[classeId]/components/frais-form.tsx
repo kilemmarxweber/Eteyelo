@@ -10,6 +10,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { MontantInput } from "@/components/ui/montant-input";
@@ -164,10 +165,16 @@ export function FraisUpForm({
       typeFraisId: "",
       echeance: undefined,
       priority: undefined,
+      isOptional: false,
       applyToCycle: false,
       applyToLevel: false,
     },
   });
+
+  const isOptional = form.watch("isOptional");
+  useEffect(() => {
+    if (isOptional) form.setValue("priority", 0);
+  }, [form, isOptional]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -220,6 +227,7 @@ export function FraisUpForm({
           typeFraisId: "",
           echeance: undefined,
           priority: undefined,
+          isOptional: false,
           applyToCycle: false,
           applyToLevel: false,
         });
@@ -333,7 +341,9 @@ export function FraisUpForm({
               <FormField
                 control={form.control}
                 name="priority"
-                render={({ field }) => (
+                render={({ field }) => {
+                  const isOptionalFee = form.watch("isOptional");
+                  return (
                   <FormItem className={isDialog ? "space-y-0.5" : "space-y-1"}>
                     <FormLabel
                       className={
@@ -348,7 +358,7 @@ export function FraisUpForm({
                       <PriorityInput
                         name={field.name}
                         inputRef={field.ref}
-                        value={field.value}
+                        value={isOptionalFee ? 0 : field.value}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
                         className={
@@ -358,9 +368,15 @@ export function FraisUpForm({
                         }
                       />
                     </FormControl>
+                    {isOptionalFee ? (
+                      <p className="text-[11px] text-muted-foreground">
+                        Priorité 0 : payé en premier une fois accepté.
+                      </p>
+                    ) : null}
                     <FormMessage />
                   </FormItem>
-                )}
+                  );
+                }}
               />
 
               <FormField
@@ -562,6 +578,35 @@ export function FraisUpForm({
                     </PopoverContent>
                   </Popover>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isOptional"
+              render={({ field }) => (
+                <FormItem className="flex items-start gap-2 space-y-0 rounded-lg border border-dashed p-3">
+                  <FormControl>
+                    <Checkbox
+                      checked={Boolean(field.value)}
+                      onCheckedChange={(value) => {
+                        const next = Boolean(value);
+                        field.onChange(next);
+                        if (next) form.setValue("priority", 0);
+                      }}
+                    />
+                  </FormControl>
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-sm font-medium leading-none">
+                      Frais non obligatoire
+                    </FormLabel>
+                    <FormDescription className="text-xs">
+                      Ex. uniforme : n&apos;entre pas au compte tant qu&apos;il
+                      n&apos;est pas coché au paiement. Une fois accepté, il
+                      devient obligatoire (priorité 0).
+                    </FormDescription>
+                  </div>
                 </FormItem>
               )}
             />

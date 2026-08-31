@@ -25,6 +25,7 @@ import { buildStudentDocumentsData } from "@/lib/student-documents";
 import { buildStudentScheduleData } from "@/lib/student-schedule";
 import { buildStudentAnnouncementsData } from "@/lib/student-announcements";
 import { getBaseCurrency } from "@/lib/exchange-rate";
+import { isFraisChargedOnAccount } from "@/lib/optional-frais";
 import { getPeopleLabels } from "@/lib/people-labels";
 import { getBranchImage } from "@/lib/utils";
 import { isExamCodesClass } from "@/lib/exam-export-meta";
@@ -389,8 +390,13 @@ const SingleStudentPage = async ({
 
     if (classFrais.length > 0) {
       for (const frais of classFrais) {
-        const amountDue = safeNumber(frais.montantFrais);
         const amountPaid = paymentsByFrais.get(frais.id) ?? 0;
+        if (
+          !isFraisChargedOnAccount(Boolean(frais.isOptional), amountPaid)
+        ) {
+          continue;
+        }
+        const amountDue = safeNumber(frais.montantFrais);
         const remaining = Math.max(amountDue - amountPaid, 0);
 
         formattedFees.push({

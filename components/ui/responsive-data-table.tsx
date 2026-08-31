@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -11,11 +12,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { 
   MoreHorizontal, 
-  Edit, 
-  Trash2
 } from "lucide-react";
 import { TableSkeleton } from "./table-skeleton";
 import { EmptyTableState } from "./empty-table-state";
+import { cn } from "@/lib/utils";
 
 interface ResponsiveDataTableFooterCell {
   content?: React.ReactNode;
@@ -27,7 +27,7 @@ interface ResponsiveDataTableProps<TData> {
   data: TData[];
   columns: {
     key: string;
-    header: string;
+    header: React.ReactNode;
     cell: (item: TData) => React.ReactNode;
   }[];
   cardConfig: {
@@ -51,6 +51,9 @@ interface ResponsiveDataTableProps<TData> {
   loading?: boolean;
   emptyMessage?: string;
   searchTerm?: string;
+  getRowId?: (item: TData) => string;
+  selectedIds?: string[];
+  onSelectionChange?: (ids: string[]) => void;
 }
 
 function TableFooterRow({
@@ -82,9 +85,54 @@ export function ResponsiveDataTable<TData>({
   footer,
   loading = false,
   emptyMessage = "Aucune donnée trouvée",
-  searchTerm = ""
+  searchTerm = "",
+  getRowId,
+  selectedIds,
+  onSelectionChange,
 }: ResponsiveDataTableProps<TData>) {
   const [isMobile, setIsMobile] = React.useState(false);
+  const selectable = Boolean(onSelectionChange);
+
+  const resolveId = React.useCallback(
+    (item: TData, index: number) => getRowId?.(item) ?? String(index),
+    [getRowId],
+  );
+
+  const pageIds = React.useMemo(
+    () => data.map((item, index) => resolveId(item, index)),
+    [data, resolveId],
+  );
+  const selectedSet = React.useMemo(
+    () => new Set(selectedIds ?? []),
+    [selectedIds],
+  );
+  const allPageSelected =
+    pageIds.length > 0 && pageIds.every((id) => selectedSet.has(id));
+  const somePageSelected = pageIds.some((id) => selectedSet.has(id));
+
+  const toggleAllPage = (checked: boolean) => {
+    if (!onSelectionChange) return;
+    if (checked) {
+      onSelectionChange(Array.from(new Set([...(selectedIds ?? []), ...pageIds])));
+      return;
+    }
+    const remove = new Set(pageIds);
+    onSelectionChange((selectedIds ?? []).filter((id) => !remove.has(id)));
+  };
+
+  const toggleOne = (id: string, checked: boolean) => {
+    if (!onSelectionChange) return;
+    if (checked) {
+      onSelectionChange(Array.from(new Set([...(selectedIds ?? []), id])));
+      return;
+    }
+    onSelectionChange((selectedIds ?? []).filter((current) => current !== id));
+  };
+
+  const footerCells =
+    selectable && footer?.cells.length
+      ? [{ content: null as React.ReactNode }, ...footer.cells]
+      : footer?.cells;
 
   // Détection responsive
   React.useEffect(() => {
@@ -105,14 +153,39 @@ export function ResponsiveDataTable<TData>({
     return <EmptyTableState message={emptyMessage} searchTerm={searchTerm} />;
   }
 
+  const selectHeader = (
+    <Checkbox
+      checked={allPageSelected ? true : somePageSelected ? "indeterminate" : false}
+      onCheckedChange={(value) => toggleAllPage(value === true)}
+      aria-label="Tout sélectionner"
+    />
+  );
+
   // Vue mobile - Cards
   if (isMobile) {
     return (
       <div className="space-y-4">
-        {data.map((item, index) => (
-          <Card key={index} className="transition-all hover:shadow-md">
+        {data.map((item, index) => {
+          const rowId = resolveId(item, index);
+          const checked = selectedSet.has(rowId);
+          return (
+          <Card
+            key={rowId}
+            className={cn(
+              "transition-all hover:shadow-md",
+              checked && "ring-1 ring-primary/40",
+            )}
+          >
             <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between gap-2">
+                {selectable ? (
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(value) => toggleOne(rowId, value === true)}
+                    aria-label="Sélectionner"
+                    className="mt-1"
+                  />
+                ) : null}
                 <div className="flex-1 min-w-0">
                   <CardTitle className="text-lg font-semibold truncate">
                     {cardConfig.title(item)}
@@ -173,7 +246,8 @@ export function ResponsiveDataTable<TData>({
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
         {footer?.summary ??
           (footer?.cells.length ? (
             <div className="flex items-center justify-between rounded-md border bg-muted/40 px-4 py-3">
@@ -197,6 +271,11 @@ export function ResponsiveDataTable<TData>({
         <table className="w-full caption-bottom text-sm">
           <thead className="[&_tr]:border-b">
             <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+              {selectable ? (
+                <th className="h-12 w-10 px-4 text-left align-middle [&:has([role=checkbox])]:pr-0">
+                  {selectHeader}
+                </th>
+              ) : null}
               {columns.map((column, index) => (
                 <th key={index} className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
                   {column.header}
@@ -205,17 +284,36 @@ export function ResponsiveDataTable<TData>({
             </tr>
           </thead>
           <tbody className="[&_tr:last-child]:border-0">
-            {data.map((item, index) => (
-              <tr key={index} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+            {data.map((item, index) => {
+              const rowId = resolveId(item, index);
+              const checked = selectedSet.has(rowId);
+              return (
+              <tr
+                key={rowId}
+                data-state={checked ? "selected" : undefined}
+                className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+              >
+                {selectable ? (
+                  <td className="w-10 p-4 align-middle [&:has([role=checkbox])]:pr-0">
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={(value) =>
+                        toggleOne(rowId, value === true)
+                      }
+                      aria-label="Sélectionner la ligne"
+                    />
+                  </td>
+                ) : null}
                 {columns.map((column, columnIndex) => (
                   <td key={columnIndex} className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
                     {column.cell(item)}
                   </td>
                 ))}
               </tr>
-            ))}
+              );
+            })}
           </tbody>
-          {footer?.cells.length ? <TableFooterRow cells={footer.cells} /> : null}
+          {footerCells?.length ? <TableFooterRow cells={footerCells} /> : null}
         </table>
       </div>
     </div>

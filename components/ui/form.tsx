@@ -77,12 +77,15 @@ const FormItem = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
   const fieldContext = React.useContext(FormFieldContext)
+  const parentItem = React.useContext(FormItemContext)
   const reactId = React.useId()
-  // ID stable (nom de champ) pour éviter les mismatches d'hydratation quand
-  // la sidebar / settings changent le nombre de useId() avant ce formulaire.
-  const id = fieldContext?.name
-    ? `field-${String(fieldContext.name)}`
-    : reactId
+  // ID stable par nom de champ (évite les mismatches d'hydratation).
+  // Les FormItem imbriqués (radios d'un même champ) doivent rester uniques.
+  const id = parentItem?.id
+    ? `${parentItem.id}-${reactId}`
+    : fieldContext?.name
+      ? `field-${String(fieldContext.name)}`
+      : reactId
 
   return (
     <FormItemContext.Provider value={{ id }}>

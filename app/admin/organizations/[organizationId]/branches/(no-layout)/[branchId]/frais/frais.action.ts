@@ -12,6 +12,7 @@ import {
   ITypeFrais,
   deleteFraisSchema,
   replicateFraisSchema,
+  deleteFraisAcrossClassesSchema,
 } from "@/src/interfaces/Frais";
 import { z } from "zod";
 import {
@@ -29,6 +30,7 @@ import {
   canPermanentlyDeleteInformation,
   PERMANENT_DELETE_DENIED_MESSAGE,
 } from "@/lib/auth/session-roles";
+import { resolveFraisPriority } from "@/lib/optional-frais";
 
 type FraisWithRelations = Prisma.FraisGetPayload<{
   include: {
@@ -93,6 +95,7 @@ function mapFrais(frais: FraisWithRelations): IFrais {
     createdAt: frais.createdAt,
     updatedAt: frais.updatedAt,
     priority: frais.priority,
+    isOptional: frais.isOptional,
     schoolYearId: frais.schoolYearId ?? "",
     schoolYear: frais.schoolYear
       ? {
@@ -310,6 +313,7 @@ export const createFraisAction = action
       typeFraisId,
       echeance,
       priority,
+      isOptional,
       semesterId,
       applyToCycle,
       applyToLevel,
@@ -362,7 +366,8 @@ export const createFraisAction = action
           montantFrais,
           statusFrais: statusFrais ?? true,
           echeance: echeance ?? null,
-          priority: priority ?? 99,
+          isOptional: Boolean(isOptional),
+          priority: resolveFraisPriority(Boolean(isOptional), priority),
           ...(semesterId != null ? { semesterId } : {}),
           fraisGroupKey: groupKey,
           classeId: target.id,
@@ -462,6 +467,7 @@ export const updateFraisAction = action
       typeFraisId,
       echeance,
       priority,
+      isOptional,
     } = input;
 
     if (!id) {
@@ -494,7 +500,12 @@ export const updateFraisAction = action
         montantFrais,
         statusFrais: statusFrais ?? existingFrais.statusFrais,
         echeance,
-        priority: priority ?? existingFrais.priority,
+        isOptional:
+          isOptional ?? existingFrais.isOptional,
+        priority: resolveFraisPriority(
+          isOptional ?? existingFrais.isOptional,
+          priority ?? existingFrais.priority,
+        ),
         classe: {
           connect: { id: classe.id },
         },
@@ -840,6 +851,7 @@ export const replicateFraisAction = action
           echeance: frais.echeance,
           schoolYearId: currentYear.id,
           priority: frais.priority,
+          isOptional: frais.isOptional,
           branchId,
         })),
     );
@@ -858,5 +870,120 @@ export const replicateFraisAction = action
       skipped,
       classCount: validTargetIds.length,
       feeCount: sourceFrais.length,
+    };
+  });
+
+export const deleteFraisAcrossClassesAction = action
+  .input(deleteFraisAcrossClassesSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, session } =
+      await requireFinanceOversightBranchContext();
+    const {
+      sourceClasseId,
+      fraisIds,
+      targetClasseIds,
+      allOtherClasses,
+      permanent = false,
+    } = input;
+
+    if (permanent && !canPermanentlyDeleteInformation(session)) {
+      throw new Error(PERMANENT_DELETE_DENIED_MESSAGE);
+    }
+
+    const currentYear = await getCurrentBranchSchoolYear(branchId);
+    const sourceClasse = await requireClasseInBranch(sourceClasseId, branchId);
+
+    const sourceFrais = await prisma.frais.findMany({
+      where: {
+        branchId,
+        classeId: sourceClasse.id,
+        schoolYearId: currentYear.id,
+        ...(fraisIds?.length ? { id: { in: fraisIds } } : {}),
+      },
+      select: { nameFrais: true },
+    });
+
+    if (sourceFrais.length === 0) {
+      throw new Error("Aucun frais à supprimer pour cette classe");
+    }
+
+    const names = Array.from(new Set(sourceFrais.map((frais) => frais.nameFrais)));
+
+    const requestedTargetIds = allOtherClasses
+      ? undefined
+      : Array.from(new Set(targetClasseIds ?? []));
+
+    if (!allOtherClasses && (!requestedTargetIds || requestedTargetIds.length === 0)) {
+      throw new Error("Aucune classe sélectionnée");
+    }
+
+    const targetClasses = await prisma.classe.findMany({
+      where: {
+        branchId,
+        ...(allOtherClasses ? {} : { id: { in: requestedTargetIds ?? [] } }),
+      },
+      select: { id: true },
+    });
+
+    const validTargetIds = targetClasses.map((classe) => classe.id);
+
+    if (validTargetIds.length === 0) {
+      throw new Error("Aucune classe sélectionnée");
+    }
+
+    const matching = await prisma.frais.findMany({
+      where: {
+        branchId,
+        schoolYearId: currentYear.id,
+        classeId: { in: validTargetIds },
+        nameFrais: { in: names },
+      },
+      select: {
+        id: true,
+        _count: { select: { paiement: true } },
+      },
+    });
+
+    if (matching.length === 0) {
+      return {
+        processed: 0,
+        skipped: 0,
+        classCount: validTargetIds.length,
+        feeCount: names.length,
+      };
+    }
+
+    if (permanent) {
+      const deletableIds = matching
+        .filter((frais) => frais._count.paiement === 0)
+        .map((frais) => frais.id);
+      const skipped = matching.length - deletableIds.length;
+
+      if (deletableIds.length > 0) {
+        await prisma.frais.deleteMany({
+          where: { id: { in: deletableIds }, branchId },
+        });
+      }
+
+      revalidateFraisPages(organizationId, branchId);
+      return {
+        processed: deletableIds.length,
+        skipped,
+        classCount: validTargetIds.length,
+        feeCount: names.length,
+      };
+    }
+
+    await prisma.frais.updateMany({
+      where: { id: { in: matching.map((frais) => frais.id) }, branchId },
+      data: { statusFrais: false },
+    });
+
+    revalidateFraisPages(organizationId, branchId);
+    return {
+      processed: matching.length,
+      skipped: 0,
+      classCount: validTargetIds.length,
+      feeCount: names.length,
     };
   });

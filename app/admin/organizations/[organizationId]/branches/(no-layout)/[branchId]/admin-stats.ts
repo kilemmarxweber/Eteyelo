@@ -26,6 +26,7 @@ import {
   getBestDiscountInfo,
   type DiscountInfo,
 } from "@/lib/payment-discount";
+import { isFraisChargedOnAccount } from "@/lib/optional-frais";
 import { buildStudentAnnouncementsData } from "@/lib/student-announcements";
 import { getBranchCycles, buildDashboardCycleStats, normalizeCycle } from "@/lib/cycle";
 import {
@@ -994,12 +995,18 @@ async function countUnpaidEnrollments(
       classeId: true,
       montantFrais: true,
       typeFraisId: true,
+      isOptional: true,
     },
   });
 
   const fraisByClasse = new Map<
     string,
-    Array<{ id: string; montant: number; typeFraisId: string | null }>
+    Array<{
+      id: string;
+      montant: number;
+      typeFraisId: string | null;
+      isOptional: boolean;
+    }>
   >();
   const fraisIds: string[] = [];
   for (const frais of fraisList) {
@@ -1009,6 +1016,7 @@ async function countUnpaidEnrollments(
       id: frais.id,
       montant: Number(frais.montantFrais),
       typeFraisId: frais.typeFraisId,
+      isOptional: Boolean(frais.isOptional),
     });
     fraisByClasse.set(frais.classeId, list);
   }
@@ -1016,9 +1024,9 @@ async function countUnpaidEnrollments(
   if (fraisIds.length === 0) return 0;
 
   const enrollmentIds = enrollments.map((e) => e.id);
-  const paidByEnrollment = new Map<string, number>();
+  const paidByEnrollmentFrais = new Map<string, number>();
   const aggregates = await prisma.familyPayment.groupBy({
-    by: ["classEnrollmentId"],
+    by: ["classEnrollmentId", "fraisId"],
     where: {
       branchId,
       classEnrollmentId: { in: enrollmentIds },
@@ -1028,8 +1036,8 @@ async function countUnpaidEnrollments(
     _sum: { amount: true },
   });
   for (const row of aggregates) {
-    paidByEnrollment.set(
-      row.classEnrollmentId,
+    paidByEnrollmentFrais.set(
+      `${row.classEnrollmentId}:${row.fraisId}`,
       Number(row._sum.amount ?? 0),
     );
   }
@@ -1053,7 +1061,13 @@ async function countUnpaidEnrollments(
 
   let unpaidCount = 0;
   for (const enrollment of enrollments) {
-    const classeFrais = fraisByClasse.get(enrollment.classeId) ?? [];
+    const classeFrais = (fraisByClasse.get(enrollment.classeId) ?? []).filter(
+      (f) =>
+        isFraisChargedOnAccount(
+          f.isOptional,
+          paidByEnrollmentFrais.get(`${enrollment.id}:${f.id}`) ?? 0,
+        ),
+    );
     if (classeFrais.length === 0) continue;
 
     const montantDuBrut = classeFrais.reduce((sum, f) => sum + f.montant, 0);
@@ -1069,7 +1083,12 @@ async function countUnpaidEnrollments(
       discount,
     );
     const montantDu = Math.max(0, montantDuBrut - remise);
-    const montantPaye = paidByEnrollment.get(enrollment.id) ?? 0;
+    const montantPaye = classeFrais.reduce(
+      (sum, f) =>
+        sum +
+        (paidByEnrollmentFrais.get(`${enrollment.id}:${f.id}`) ?? 0),
+      0,
+    );
     if (montantDu > 0 && montantPaye < montantDu) {
       unpaidCount += 1;
     }
@@ -1515,6 +1534,7 @@ async function getParentDashboardData(
           classeId: true,
           montantFrais: true,
           typeFraisId: true,
+          isOptional: true,
         },
       }),
       prisma.exchangeRate.findFirst({
@@ -1542,7 +1562,12 @@ async function getParentDashboardData(
 
   const fraisByClasse = new Map<
     string,
-    Array<{ id: string; montant: number; typeFraisId: string | null }>
+    Array<{
+      id: string;
+      montant: number;
+      typeFraisId: string | null;
+      isOptional: boolean;
+    }>
   >();
   const fraisIds: string[] = [];
   for (const frais of fraisList) {
@@ -1552,16 +1577,17 @@ async function getParentDashboardData(
       id: frais.id,
       montant: Number(frais.montantFrais),
       typeFraisId: frais.typeFraisId,
+      isOptional: Boolean(frais.isOptional),
     });
     fraisByClasse.set(frais.classeId, list);
   }
 
   const enrollmentIds = enrollments.map((e) => e.id);
-  const paidByEnrollment = new Map<string, number>();
+  const paidByEnrollmentFrais = new Map<string, number>();
 
   if (enrollmentIds.length > 0 && fraisIds.length > 0) {
     const aggregates = await prisma.familyPayment.groupBy({
-      by: ["classEnrollmentId"],
+      by: ["classEnrollmentId", "fraisId"],
       where: {
         branchId,
         classEnrollmentId: { in: enrollmentIds },
@@ -1572,8 +1598,8 @@ async function getParentDashboardData(
     });
 
     for (const row of aggregates) {
-      paidByEnrollment.set(
-        row.classEnrollmentId,
+      paidByEnrollmentFrais.set(
+        `${row.classEnrollmentId}:${row.fraisId}`,
         Number(row._sum.amount ?? 0),
       );
     }
@@ -1584,7 +1610,13 @@ async function getParentDashboardData(
   let totalRemaining = 0;
 
   for (const enrollment of enrollments) {
-    const classeFrais = fraisByClasse.get(enrollment.classeId) ?? [];
+    const classeFrais = (fraisByClasse.get(enrollment.classeId) ?? []).filter(
+      (f) =>
+        isFraisChargedOnAccount(
+          f.isOptional,
+          paidByEnrollmentFrais.get(`${enrollment.id}:${f.id}`) ?? 0,
+        ),
+    );
     const montantDuBrut = classeFrais.reduce((sum, f) => sum + f.montant, 0);
     const remise = computeScopedDiscountAmount(
       classeFrais.map((f) => ({
@@ -1594,7 +1626,12 @@ async function getParentDashboardData(
       discount,
     );
     const montantDu = Math.max(0, montantDuBrut - remise);
-    const montantPaye = paidByEnrollment.get(enrollment.id) ?? 0;
+    const montantPaye = classeFrais.reduce(
+      (sum, f) =>
+        sum +
+        (paidByEnrollmentFrais.get(`${enrollment.id}:${f.id}`) ?? 0),
+      0,
+    );
     const reste = Math.max(0, montantDu - montantPaye);
 
     totalDue += montantDu;

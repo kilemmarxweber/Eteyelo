@@ -11,10 +11,8 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/components/ui/use-toast";
 import {
   Card,
@@ -33,10 +31,13 @@ import {
 
 import { useTheme } from "next-themes";
 import { LocalePreferenceButtons } from "@/components/locale-preference-buttons";
+import { cn } from "@/lib/utils";
+import { updateUserThemeAction } from "@/lib/user-theme.action";
+import { isUserTheme } from "@/lib/user-theme";
 
 export function AppearanceForm() {
   const t = useTranslations("settings");
-  const { setTheme, theme } = useTheme();
+  const { setTheme, theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   const appearanceFormSchema = z.object({
@@ -65,13 +66,28 @@ export function AppearanceForm() {
 
   useEffect(() => {
     if (!mounted) return;
-    if (theme === "light" || theme === "dark") {
-      form.setValue("theme", theme);
+    const current =
+      theme === "light" || theme === "dark" ? theme : resolvedTheme;
+    if (current === "light" || current === "dark") {
+      form.setValue("theme", current);
     }
-  }, [mounted, theme, form]);
+  }, [mounted, theme, resolvedTheme, form]);
+
+  function applyTheme(value: "light" | "dark") {
+    const root = document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(value);
+    root.style.colorScheme = value;
+    setTheme(value);
+    if (isUserTheme(value)) {
+      void updateUserThemeAction(value).catch((err) => {
+        console.error("[AppearanceForm] échec sauvegarde thème:", err);
+      });
+    }
+  }
 
   function onSubmit(data: AppearanceFormValues) {
-    setTheme(data.theme);
+    applyTheme(data.theme);
     toast({
       title: t("prefsUpdated"),
       description: t("prefsUpdatedDesc"),
@@ -110,65 +126,55 @@ export function AppearanceForm() {
                 render={({ field }) => (
                   <FormItem className="space-y-2">
                     <FormMessage />
-
-                    <RadioGroup
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        if (value === "light" || value === "dark") {
-                          setTheme(value);
-                        }
-                      }}
-                      value={field.value}
-                      className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-                    >
-                      <FormItem className="w-full">
-                        <FormLabel className="w-full cursor-pointer">
-                          <FormControl>
-                            <RadioGroupItem
-                              value="light"
-                              className="sr-only"
-                            />
-                          </FormControl>
-
-                          <div className="rounded-md border-2 border-muted p-2 hover:border-accent">
-                            <div className="space-y-2 rounded-sm bg-[#ecedef] p-2">
-                              <div className="space-y-2 rounded-md bg-white p-2 shadow-sm">
-                                <div className="h-2 w-[80px] bg-[#ecedef] rounded" />
-                                <div className="h-2 w-[100px] bg-[#ecedef] rounded" />
-                              </div>
-                            </div>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          field.onChange("light");
+                          applyTheme("light");
+                        }}
+                        className={cn(
+                          "w-full rounded-md border-2 p-2 text-left transition-colors hover:border-accent",
+                          field.value === "light"
+                            ? "border-primary"
+                            : "border-muted",
+                        )}
+                      >
+                        <div className="space-y-2 rounded-sm bg-[#ecedef] p-2">
+                          <div className="space-y-2 rounded-md bg-white p-2 shadow-sm">
+                            <div className="h-2 w-[80px] rounded bg-[#ecedef]" />
+                            <div className="h-2 w-[100px] rounded bg-[#ecedef]" />
                           </div>
+                        </div>
+                        <span className="mt-2 block text-center text-sm sm:text-base">
+                          {t("themeLight")}
+                        </span>
+                      </button>
 
-                          <span className="block text-center mt-2 text-sm sm:text-base">
-                            {t("themeLight")}
-                          </span>
-                        </FormLabel>
-                      </FormItem>
-
-                      <FormItem className="w-full">
-                        <FormLabel className="w-full cursor-pointer">
-                          <FormControl>
-                            <RadioGroupItem
-                              value="dark"
-                              className="sr-only"
-                            />
-                          </FormControl>
-
-                          <div className="rounded-md border-2 border-muted p-2 hover:bg-accent">
-                            <div className="space-y-2 rounded-sm bg-slate-950 p-2">
-                              <div className="space-y-2 rounded-md bg-slate-800 p-2 shadow-sm">
-                                <div className="h-2 w-[80px] bg-slate-400 rounded" />
-                                <div className="h-2 w-[100px] bg-slate-400 rounded" />
-                              </div>
-                            </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          field.onChange("dark");
+                          applyTheme("dark");
+                        }}
+                        className={cn(
+                          "w-full rounded-md border-2 p-2 text-left transition-colors hover:border-accent",
+                          field.value === "dark"
+                            ? "border-primary"
+                            : "border-muted",
+                        )}
+                      >
+                        <div className="space-y-2 rounded-sm bg-slate-950 p-2">
+                          <div className="space-y-2 rounded-md bg-slate-800 p-2 shadow-sm">
+                            <div className="h-2 w-[80px] rounded bg-slate-400" />
+                            <div className="h-2 w-[100px] rounded bg-slate-400" />
                           </div>
-
-                          <span className="block text-center mt-2 text-sm sm:text-base">
-                            {t("themeDark")}
-                          </span>
-                        </FormLabel>
-                      </FormItem>
-                    </RadioGroup>
+                        </div>
+                        <span className="mt-2 block text-center text-sm sm:text-base">
+                          {t("themeDark")}
+                        </span>
+                      </button>
+                    </div>
                   </FormItem>
                 )}
               />

@@ -16,42 +16,26 @@ type UserThemeSyncProps = {
 };
 
 /**
- * Applique le thème stocké en base pour l'utilisateur connecté,
- * et persiste les changements locaux (toggle / apparence) pour ce compte uniquement.
+ * Persiste le thème choisi (toggle / apparence) pour le compte connecté.
+ * N'écrase pas un choix local : ThemeProvider lit déjà le storage par user.
  */
 export function UserThemeSync({
   userId,
   preferredTheme,
 }: UserThemeSyncProps) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const lastSavedRef = useRef<UserTheme>(normalizeUserTheme(preferredTheme));
   const lastUserRef = useRef(userId);
-  const hydratedRef = useRef(false);
 
-  // Changement de compte : réappliquer la préférence DB de ce user.
   useEffect(() => {
-    if (lastUserRef.current !== userId) {
-      lastUserRef.current = userId;
-      lastSavedRef.current = normalizeUserTheme(preferredTheme);
-      hydratedRef.current = false;
-      setTheme(normalizeUserTheme(preferredTheme));
-    }
+    if (lastUserRef.current === userId) return;
+    lastUserRef.current = userId;
+    const next = normalizeUserTheme(preferredTheme);
+    lastSavedRef.current = next;
+    setTheme(next);
   }, [userId, preferredTheme, setTheme]);
 
-  // Première hydratation : aligner next-themes sur la préférence serveur.
   useEffect(() => {
-    if (hydratedRef.current) return;
-    hydratedRef.current = true;
-    const next = normalizeUserTheme(preferredTheme);
-    if (theme !== next) {
-      setTheme(next);
-    }
-    lastSavedRef.current = next;
-  }, [preferredTheme, setTheme, theme]);
-
-  // Persister les changements faits par l'utilisateur connecté.
-  useEffect(() => {
-    if (!hydratedRef.current) return;
     if (!theme || !isUserTheme(theme)) return;
     if (theme === lastSavedRef.current) return;
 
@@ -66,7 +50,7 @@ export function UserThemeSync({
     }, 250);
 
     return () => window.clearTimeout(handle);
-  }, [theme, resolvedTheme]);
+  }, [theme]);
 
   return null;
 }

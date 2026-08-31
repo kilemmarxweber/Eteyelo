@@ -17,6 +17,7 @@ import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 import { cycleLabel } from "@/lib/cycle";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export type ClasseTableActions = {
   onEdit: (classe: IClasse) => void;
@@ -29,7 +30,42 @@ export function getClasseColumns(
   actions?: ClasseTableActions,
   canManage = false,
 ): ColumnDef<IClasse>[] {
-  const columns: ColumnDef<IClasse>[] = [
+  const columns: ColumnDef<IClasse>[] = [];
+
+  if (canManage) {
+    columns.push({
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) =>
+            table.toggleAllPageRowsSelected(!!value)
+          }
+          aria-label="Tout sélectionner"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          disabled={!row.getCanSelect()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Sélectionner la classe"
+          title={
+            row.getCanSelect()
+              ? undefined
+              : "Impossible : des élèves sont inscrits dans cette classe"
+          }
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    });
+  }
+
+  columns.push(
     {
       accessorKey: "nameClasse",
       header: ({ column }) => (
@@ -83,7 +119,7 @@ export function getClasseColumns(
         );
       },
     },
-  ];
+  );
 
   if (showOption) {
     columns.push({

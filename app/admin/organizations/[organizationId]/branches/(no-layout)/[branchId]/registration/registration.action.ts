@@ -50,6 +50,7 @@ import {
   EMPTY_DISCOUNT,
   getBestDiscountInfo,
 } from "@/lib/payment-discount";
+import { isFraisChargedOnAccount } from "@/lib/optional-frais";
 
 function formatFeeAmount(value: number) {
   return new Intl.NumberFormat("fr-FR", {
@@ -90,6 +91,7 @@ async function getEnrollmentFeeBalance(
       nameFrais: true,
       montantFrais: true,
       typeFraisId: true,
+      isOptional: true,
     },
   });
 
@@ -122,19 +124,26 @@ async function getEnrollmentFeeBalance(
     ? await getBestDiscountInfo(prisma, parentId, branchId)
     : EMPTY_DISCOUNT;
 
-  const totalBrut = fraisList.reduce(
+  const accountable = fraisList.filter((f) =>
+    isFraisChargedOnAccount(
+      Boolean(f.isOptional),
+      paidByFrais.get(f.id) ?? 0,
+    ),
+  );
+
+  const totalBrut = accountable.reduce(
     (sum, f) => sum + Number(f.montantFrais),
     0,
   );
   const remise = computeScopedDiscountAmount(
-    fraisList.map((f) => ({
+    accountable.map((f) => ({
       base: Number(f.montantFrais),
       typeFraisId: f.typeFraisId,
     })),
     discount,
   );
   const totalDue = Math.max(0, totalBrut - remise);
-  const totalPaid = fraisList.reduce(
+  const totalPaid = accountable.reduce(
     (sum, f) => sum + (paidByFrais.get(f.id) ?? 0),
     0,
   );
@@ -797,9 +806,12 @@ export const getActiveFraisForDiscountPreviewAction = action
         nameFrais: true,
         montantFrais: true,
         typeFraisId: true,
+        isOptional: true,
       },
     });
-    return frais.map((item) => ({
+    return frais
+      .filter((item) => !item.isOptional)
+      .map((item) => ({
       id: item.id,
       nameFrais: item.nameFrais,
       montant: Number(item.montantFrais),

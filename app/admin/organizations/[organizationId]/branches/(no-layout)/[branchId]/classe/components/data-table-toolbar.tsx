@@ -6,6 +6,8 @@ import { IconX } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "@/components/data-table-view-options";
+import { DeleteClassesDialog } from "./delete-Classe-dialog";
+import { IClasse } from "@/src/interfaces/Classe";
 
 import { useEffect, useState } from "react";
 import { IOption } from "@/src/interfaces/Option";
@@ -17,13 +19,18 @@ import { getOptionsAction } from "../../option/option.action";
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   showOptionFilter?: boolean;
+  canManage?: boolean;
 }
 
 export function DataTableToolbar<TData>({
   table,
   showOptionFilter = true,
+  canManage = false,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+  const selectedClasses = table
+    .getFilteredSelectedRowModel()
+    .rows.map((row) => row.original as IClasse);
   const [options, setOptions] = useState<IOption[]>([]);
   const [creneaux, setCreneaux] = useState<ICreneau[]>([]);
 
@@ -119,7 +126,16 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <DataTableViewOptions table={table} />
+      <div className="flex items-center gap-2">
+        {canManage && selectedClasses.length > 0 ? (
+          <DeleteClassesDialog
+            Classes={selectedClasses}
+            permanent
+            onSuccess={() => table.resetRowSelection()}
+          />
+        ) : null}
+        <DataTableViewOptions table={table} />
+      </div>
     </div>
   );
 }

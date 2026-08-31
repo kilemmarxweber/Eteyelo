@@ -278,9 +278,15 @@ export default function PaymentsForm({
         return;
       }
 
-      const nextIds = eligibleIds.filter(
-        (id) => !userDeselectedFraisIdsRef.current.has(id),
-      );
+      const nextIds = eligibleIds.filter((id) => {
+        if (userDeselectedFraisIdsRef.current.has(id)) return false;
+        const fee = data.frais.find((item) => item.id === id);
+        if (fee?.isOptional && fee.alreadyPaid <= 0) {
+          // Optionnel non accepté : ne cocher que si l'utilisateur l'a déjà choisi
+          return (watch("fraisIds") || []).includes(id);
+        }
+        return true;
+      });
       setValue("fraisIds", nextIds, { shouldValidate: true });
     },
     [setValue, watch],
@@ -821,7 +827,9 @@ export default function PaymentsForm({
     if (!selection.classEnrollIds.length) return [];
 
     return selectableFrais.map((f) => ({
-      label: `${f.nameFrais} (${fmt(Number(f.montantFrais))} ${baseCurrency})`,
+      label: f.isOptional
+        ? `${f.nameFrais} (${fmt(Number(f.montantFrais))} ${baseCurrency}) · ${t("optionalFee")}`
+        : `${f.nameFrais} (${fmt(Number(f.montantFrais))} ${baseCurrency})`,
       value: f.id,
     }));
   }, [selectableFrais, selection.classEnrollIds.length, baseCurrency]);
@@ -1064,7 +1072,15 @@ export default function PaymentsForm({
                   className="flex items-start justify-between gap-2 px-3 py-2.5 text-sm transition-colors hover:bg-muted/30"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{frais.name}</p>
+                    <p className="truncate font-medium">
+                      {frais.name}
+                      {selectableFrais.find((f) => f.id === frais.id)
+                        ?.isOptional ? (
+                        <span className="ml-1.5 text-[10px] font-medium uppercase text-muted-foreground">
+                          {t("optionalFee")}
+                        </span>
+                      ) : null}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {fmt(frais.unitAmount)}
                       {frais.dueEnrollmentCount > 0 &&

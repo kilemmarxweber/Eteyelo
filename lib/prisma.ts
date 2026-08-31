@@ -14,7 +14,7 @@ const adapter = new PrismaPg({
  * Bump when Prisma schema fields change so the cached client is rebuilt in dev.
  * Also used to bust Turbopack module cache after `prisma generate`.
  */
-const PRISMA_CLIENT_VERSION = "organization-messaging-enabled-1";
+const PRISMA_CLIENT_VERSION = "frais-is-optional-1";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
@@ -142,6 +142,7 @@ function getPrismaClient() {
     modelHasField(existing, "Organization", "whatsappEnabled") &&
     modelHasField(existing, "Organization", "whatsappApiKey") &&
     modelHasField(existing, "Organization", "messagingEnabled") &&
+    modelHasField(existing, "Frais", "isOptional") &&
     typeof (existing as { conversation?: { findFirst?: unknown } })
       ?.conversation?.findFirst === "function" &&
     typeof (existing as { message?: { findFirst?: unknown } })

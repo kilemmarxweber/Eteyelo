@@ -24,6 +24,8 @@ export interface IFrais {
   Classe?: IClasse;
   typeFrais?: ITypeFrais;
   priority?: number;
+  /** Hors compte tant qu'il n'est pas accepté au paiement. */
+  isOptional?: boolean;
   schoolYearId: string;
   schoolYear?: {
     id: string;
@@ -57,6 +59,7 @@ export const fraisSchema = z.object({
   typeFraisId: z.string().min(1, { message: "Type de frais requis" }),
   echeance: z.date().optional(),
   priority: z.number().optional(),
+  isOptional: z.boolean().optional(),
   schoolYearId: z.string().optional(),
   semesterId: z.coerce.number().int().positive().optional().nullable(),
   applyToCycle: z.boolean().optional(),
@@ -73,6 +76,21 @@ export const replicateFraisSchema = z
     fraisIds: z.array(z.string().min(1)).optional(),
     targetClasseIds: z.array(z.string().min(1)).optional(),
     allOtherClasses: z.boolean().optional(),
+  })
+  .refine(
+    (value) =>
+      value.allOtherClasses === true ||
+      (value.targetClasseIds && value.targetClasseIds.length > 0),
+    { message: "Sélectionnez au moins une classe" },
+  );
+
+export const deleteFraisAcrossClassesSchema = z
+  .object({
+    sourceClasseId: z.string().min(1),
+    fraisIds: z.array(z.string().min(1)).optional(),
+    targetClasseIds: z.array(z.string().min(1)).optional(),
+    allOtherClasses: z.boolean().optional(),
+    permanent: z.boolean().optional(),
   })
   .refine(
     (value) =>
