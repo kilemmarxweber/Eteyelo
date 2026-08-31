@@ -196,6 +196,7 @@ const authOptions = {
         const count = await countUserOrganizations(user.id);
         return count >= 1;
       },
+      membershipLimit: 1500,
       invitationExpiresIn: 60 * 60 * 24 * 7,
       cancelPendingInvitationsOnReInvite: true,
       requireEmailVerificationOnInvitation: false,
