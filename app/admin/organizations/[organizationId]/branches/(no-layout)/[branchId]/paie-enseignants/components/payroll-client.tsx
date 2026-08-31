@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { IconRefresh, IconFileInvoice, IconCheck, IconCash, IconSettings } from "@tabler/icons-react";
@@ -17,6 +17,7 @@ import {
 } from "@/lib/auth/session-roles";
 import {
   getTeacherPayslipsAction,
+  getPayrollSchoolYearsAction,
   payTeacherPayslipAction,
   recalculateTeacherPayslipsAction,
   getPayrollPolicyAction,
@@ -51,6 +52,38 @@ type Policy = {
   notifyByEmail: boolean;
 };
 
+type SchoolYearOption = {
+  id: string;
+  nameYear: string;
+  startYear: string;
+  endYear: string;
+  isCurrentYear: boolean;
+};
+
+const MONTHS = [
+  "Janvier",
+  "Février",
+  "Mars",
+  "Avril",
+  "Mai",
+  "Juin",
+  "Juillet",
+  "Août",
+  "Septembre",
+  "Octobre",
+  "Novembre",
+  "Décembre",
+];
+
+function calendarYearForMonth(schoolYear: SchoolYearOption, month: number) {
+  const start = new Date(schoolYear.startYear);
+  const end = new Date(schoolYear.endYear);
+  const startMonth = start.getUTCMonth() + 1;
+  return month >= startMonth
+    ? start.getUTCFullYear()
+    : end.getUTCFullYear();
+}
+
 function formatAmount(value: number, currency: string) {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
@@ -77,26 +110,56 @@ export default function PayrollClient() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
+  const [schoolYears, setSchoolYears] = useState<SchoolYearOption[]>([]);
+  const [schoolYearId, setSchoolYearId] = useState("");
   const [rows, setRows] = useState<PayslipRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
   const [policy, setPolicy] = useState<Policy | null>(null);
+  const loadRequestRef = useRef(0);
 
   const load = useCallback(async () => {
+    const requestId = ++loadRequestRef.current;
     setLoading(true);
-    const [result, error] = await getTeacherPayslipsAction({ year, month });
+    const [result, error] = await getTeacherPayslipsAction({
+      year,
+      month,
+      schoolYearId: schoolYearId || undefined,
+    });
+    if (requestId !== loadRequestRef.current) return;
     if (error) toast.error(error.message);
     else setRows((result ?? []) as PayslipRow[]);
     setLoading(false);
-  }, [month, year]);
+  }, [month, schoolYearId, year]);
 
   useEffect(() => {
+    if (!schoolYearId) return;
     void load();
-  }, [load]);
+  }, [load, schoolYearId]);
 
   useEffect(() => {
     void getPayrollPolicyAction().then(([result, error]) => {
       if (!error && result) setPolicy(result as Policy);
+    });
+  }, []);
+
+  useEffect(() => {
+    void getPayrollSchoolYearsAction().then(([result, error]) => {
+      if (error) {
+        toast.error(error.message);
+        setLoading(false);
+        return;
+      }
+
+      const options = (result ?? []) as SchoolYearOption[];
+      setSchoolYears(options);
+      const current = options.find((schoolYear) => schoolYear.isCurrentYear) ?? options[0];
+      if (current) {
+        setSchoolYearId(current.id);
+        setYear(calendarYearForMonth(current, month));
+      } else {
+        setLoading(false);
+      }
     });
   }, []);
 
@@ -106,7 +169,11 @@ export default function PayrollClient() {
 
   async function recalculate() {
     setWorking(true);
-    const [result, error] = await recalculateTeacherPayslipsAction({ year, month });
+    const [result, error] = await recalculateTeacherPayslipsAction({
+      year,
+      month,
+      schoolYearId: schoolYearId || undefined,
+    });
     if (error) toast.error(error.message);
     else {
       if (result?.missingExchangeRate) {
@@ -118,6 +185,18 @@ export default function PayrollClient() {
       await load();
     }
     setWorking(false);
+  }
+
+  function handleSchoolYearChange(value: string) {
+    const selected = schoolYears.find((schoolYear) => schoolYear.id === value);
+    setSchoolYearId(value);
+    if (selected) setYear(calendarYearForMonth(selected, month));
+  }
+
+  function handleMonthChange(value: number) {
+    setMonth(value);
+    const selected = schoolYears.find((schoolYear) => schoolYear.id === schoolYearId);
+    if (selected) setYear(calendarYearForMonth(selected, value));
   }
 
   async function savePolicy() {
@@ -149,29 +228,40 @@ export default function PayrollClient() {
       <CardHeader className="gap-4">
         <CardTitle>Bulletins mensuels</CardTitle>
         <div className="grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-[9rem_8rem_minmax(0,1fr)] lg:items-end">
-          <label className="space-y-1.5 text-xs font-medium text-muted-foreground" htmlFor="payroll-year">
-            <span>Année</span>
-            <Input
-              id="payroll-year"
-              type="number"
-              inputSize="sm"
-              value={year}
-              min={2000}
-              max={2200}
-              onChange={(event) => setYear(Number(event.target.value))}
-            />
+          <label className="space-y-1.5 text-xs font-medium text-muted-foreground" htmlFor="payroll-school-year">
+            <span>Année scolaire</span>
+            <select
+              id="payroll-school-year"
+              className="flex h-8 w-full rounded-lg border border-input bg-background px-3 py-1.5 text-xs font-normal text-foreground transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+              value={schoolYearId}
+              disabled={schoolYears.length === 0}
+              onChange={(event) => handleSchoolYearChange(event.target.value)}
+            >
+              {schoolYears.length === 0 ? (
+                <option value="">Chargement…</option>
+              ) : null}
+              {schoolYears.map((schoolYear) => (
+                <option key={schoolYear.id} value={schoolYear.id}>
+                  {schoolYear.nameYear}
+                  {schoolYear.isCurrentYear ? " (en cours)" : ""}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="space-y-1.5 text-xs font-medium text-muted-foreground" htmlFor="payroll-month">
             <span>Mois</span>
-            <Input
+            <select
               id="payroll-month"
-              type="number"
-              inputSize="sm"
+              className="flex h-8 w-full rounded-lg border border-input bg-background px-3 py-1.5 text-xs font-normal text-foreground transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
               value={month}
-              min={1}
-              max={12}
-              onChange={(event) => setMonth(Number(event.target.value))}
-            />
+              onChange={(event) => handleMonthChange(Number(event.target.value))}
+            >
+              {MONTHS.map((monthName, index) => (
+                <option key={monthName} value={index + 1}>
+                  {monthName}
+                </option>
+              ))}
+            </select>
           </label>
           <div className="flex flex-wrap items-end gap-2 sm:col-span-2 lg:col-span-1">
             <Button
