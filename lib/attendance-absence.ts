@@ -7,6 +7,7 @@ import {
 } from "@/lib/attendance-teacher-session";
 import { formatExpectedSessionLabel } from "@/lib/attendance-schedule-label";
 import { isBranchClosedOn } from "@/lib/branch-closed-days";
+import { notifyTeacherPayrollImpact } from "@/lib/payroll/teacher-payroll-notifications";
 import {
   getParisWeekday,
   nowLocal,
@@ -363,7 +364,7 @@ export async function syncTeacherAttendanceAbsence(params: {
   }
   if (params.status !== "ABSENT") return null;
 
-  return openAbsenceCase({
+  const result = await openAbsenceCase({
     branchId: params.branchId,
     organizationId: params.organizationId,
     user: params.user,
@@ -375,6 +376,14 @@ export async function syncTeacherAttendanceAbsence(params: {
     sessionId: params.sessionId,
     teacherAttendanceId: params.attendanceId,
   });
+  await notifyTeacherPayrollImpact({
+    branchId: params.branchId,
+    organizationId: params.organizationId,
+    teacherId: params.teacherId,
+    sessionId: params.sessionId,
+    status: "ABSENT",
+  });
+  return result;
 }
 
 export async function syncPersonnelAttendanceAbsence(params: {
@@ -1151,12 +1160,22 @@ export async function afterTeacherAttendanceWrite(params: {
     sessionContextLabel(params.sessionId, params.branchId),
   ]);
   if (!user) return null;
-  return syncTeacherAttendanceAbsence({
+  const result = await syncTeacherAttendanceAbsence({
     ...params,
     contextLabel,
     occurredOn: startOfTodayParis(),
     user,
   });
+  if (params.status === "LATE") {
+    await notifyTeacherPayrollImpact({
+      branchId: params.branchId,
+      organizationId: params.organizationId,
+      teacherId: params.teacherId,
+      sessionId: params.sessionId,
+      status: "LATE",
+    });
+  }
+  return result;
 }
 
 export async function afterPersonnelAttendanceWrite(params: {

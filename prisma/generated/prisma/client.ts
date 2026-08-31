@@ -262,6 +262,21 @@ export type AbsenceCase = Prisma.AbsenceCaseModel
  */
 export type AppNotification = Prisma.AppNotificationModel
 /**
+ * Model BranchPayrollPolicy
+ * Barème de paie configurable par branche, sans devise propre.
+ */
+export type BranchPayrollPolicy = Prisma.BranchPayrollPolicyModel
+/**
+ * Model TeacherPayslip
+ * 
+ */
+export type TeacherPayslip = Prisma.TeacherPayslipModel
+/**
+ * Model TeacherPayslipLine
+ * 
+ */
+export type TeacherPayslipLine = Prisma.TeacherPayslipLineModel
+/**
  * Model Session
  * 
  */

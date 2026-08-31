@@ -257,6 +257,7 @@ export type ExchangeRateWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"ExchangeRate"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ExchangeRate"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+  teacherPayslips?: Prisma.TeacherPayslipListRelationFilter
 }
 
 export type ExchangeRateOrderByWithRelationInput = {
@@ -271,6 +272,7 @@ export type ExchangeRateOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
+  teacherPayslips?: Prisma.TeacherPayslipOrderByRelationAggregateInput
 }
 
 export type ExchangeRateWhereUniqueInput = Prisma.AtLeast<{
@@ -289,6 +291,7 @@ export type ExchangeRateWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"ExchangeRate"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ExchangeRate"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+  teacherPayslips?: Prisma.TeacherPayslipListRelationFilter
 }, "id" | "organizationId_fromCurrency_toCurrency">
 
 export type ExchangeRateOrderByWithAggregationInput = {
@@ -336,6 +339,7 @@ export type ExchangeRateCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutExchangeRatesInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutExchangeRateInput
 }
 
 export type ExchangeRateUncheckedCreateInput = {
@@ -349,6 +353,7 @@ export type ExchangeRateUncheckedCreateInput = {
   createdBy?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutExchangeRateInput
 }
 
 export type ExchangeRateUpdateInput = {
@@ -362,6 +367,7 @@ export type ExchangeRateUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutExchangeRatesNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutExchangeRateNestedInput
 }
 
 export type ExchangeRateUncheckedUpdateInput = {
@@ -375,6 +381,7 @@ export type ExchangeRateUncheckedUpdateInput = {
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutExchangeRateNestedInput
 }
 
 export type ExchangeRateCreateManyInput = {
@@ -468,6 +475,11 @@ export type ExchangeRateSumOrderByAggregateInput = {
   rate?: Prisma.SortOrder
 }
 
+export type ExchangeRateNullableScalarRelationFilter = {
+  is?: Prisma.ExchangeRateWhereInput | null
+  isNot?: Prisma.ExchangeRateWhereInput | null
+}
+
 export type ExchangeRateListRelationFilter = {
   every?: Prisma.ExchangeRateWhereInput
   some?: Prisma.ExchangeRateWhereInput
@@ -476,6 +488,22 @@ export type ExchangeRateListRelationFilter = {
 
 export type ExchangeRateOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type ExchangeRateCreateNestedOneWithoutTeacherPayslipsInput = {
+  create?: Prisma.XOR<Prisma.ExchangeRateCreateWithoutTeacherPayslipsInput, Prisma.ExchangeRateUncheckedCreateWithoutTeacherPayslipsInput>
+  connectOrCreate?: Prisma.ExchangeRateCreateOrConnectWithoutTeacherPayslipsInput
+  connect?: Prisma.ExchangeRateWhereUniqueInput
+}
+
+export type ExchangeRateUpdateOneWithoutTeacherPayslipsNestedInput = {
+  create?: Prisma.XOR<Prisma.ExchangeRateCreateWithoutTeacherPayslipsInput, Prisma.ExchangeRateUncheckedCreateWithoutTeacherPayslipsInput>
+  connectOrCreate?: Prisma.ExchangeRateCreateOrConnectWithoutTeacherPayslipsInput
+  upsert?: Prisma.ExchangeRateUpsertWithoutTeacherPayslipsInput
+  disconnect?: Prisma.ExchangeRateWhereInput | boolean
+  delete?: Prisma.ExchangeRateWhereInput | boolean
+  connect?: Prisma.ExchangeRateWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ExchangeRateUpdateToOneWithWhereWithoutTeacherPayslipsInput, Prisma.ExchangeRateUpdateWithoutTeacherPayslipsInput>, Prisma.ExchangeRateUncheckedUpdateWithoutTeacherPayslipsInput>
 }
 
 export type ExchangeRateCreateNestedManyWithoutOrganizationInput = {
@@ -520,6 +548,74 @@ export type ExchangeRateUncheckedUpdateManyWithoutOrganizationNestedInput = {
   deleteMany?: Prisma.ExchangeRateScalarWhereInput | Prisma.ExchangeRateScalarWhereInput[]
 }
 
+export type ExchangeRateCreateWithoutTeacherPayslipsInput = {
+  id?: string
+  fromCurrency: $Enums.CurrencyCode
+  toCurrency: $Enums.CurrencyCode
+  rate: number
+  isActive?: boolean
+  isSelected?: boolean
+  createdBy?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutExchangeRatesInput
+}
+
+export type ExchangeRateUncheckedCreateWithoutTeacherPayslipsInput = {
+  id?: string
+  fromCurrency: $Enums.CurrencyCode
+  toCurrency: $Enums.CurrencyCode
+  rate: number
+  isActive?: boolean
+  isSelected?: boolean
+  organizationId: string
+  createdBy?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ExchangeRateCreateOrConnectWithoutTeacherPayslipsInput = {
+  where: Prisma.ExchangeRateWhereUniqueInput
+  create: Prisma.XOR<Prisma.ExchangeRateCreateWithoutTeacherPayslipsInput, Prisma.ExchangeRateUncheckedCreateWithoutTeacherPayslipsInput>
+}
+
+export type ExchangeRateUpsertWithoutTeacherPayslipsInput = {
+  update: Prisma.XOR<Prisma.ExchangeRateUpdateWithoutTeacherPayslipsInput, Prisma.ExchangeRateUncheckedUpdateWithoutTeacherPayslipsInput>
+  create: Prisma.XOR<Prisma.ExchangeRateCreateWithoutTeacherPayslipsInput, Prisma.ExchangeRateUncheckedCreateWithoutTeacherPayslipsInput>
+  where?: Prisma.ExchangeRateWhereInput
+}
+
+export type ExchangeRateUpdateToOneWithWhereWithoutTeacherPayslipsInput = {
+  where?: Prisma.ExchangeRateWhereInput
+  data: Prisma.XOR<Prisma.ExchangeRateUpdateWithoutTeacherPayslipsInput, Prisma.ExchangeRateUncheckedUpdateWithoutTeacherPayslipsInput>
+}
+
+export type ExchangeRateUpdateWithoutTeacherPayslipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fromCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  toCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  rate?: Prisma.FloatFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isSelected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutExchangeRatesNestedInput
+}
+
+export type ExchangeRateUncheckedUpdateWithoutTeacherPayslipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fromCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  toCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  rate?: Prisma.FloatFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isSelected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type ExchangeRateCreateWithoutOrganizationInput = {
   id?: string
   fromCurrency: $Enums.CurrencyCode
@@ -530,6 +626,7 @@ export type ExchangeRateCreateWithoutOrganizationInput = {
   createdBy?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutExchangeRateInput
 }
 
 export type ExchangeRateUncheckedCreateWithoutOrganizationInput = {
@@ -542,6 +639,7 @@ export type ExchangeRateUncheckedCreateWithoutOrganizationInput = {
   createdBy?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutExchangeRateInput
 }
 
 export type ExchangeRateCreateOrConnectWithoutOrganizationInput = {
@@ -608,6 +706,7 @@ export type ExchangeRateUpdateWithoutOrganizationInput = {
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutExchangeRateNestedInput
 }
 
 export type ExchangeRateUncheckedUpdateWithoutOrganizationInput = {
@@ -620,6 +719,7 @@ export type ExchangeRateUncheckedUpdateWithoutOrganizationInput = {
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutExchangeRateNestedInput
 }
 
 export type ExchangeRateUncheckedUpdateManyWithoutOrganizationInput = {
@@ -635,6 +735,35 @@ export type ExchangeRateUncheckedUpdateManyWithoutOrganizationInput = {
 }
 
 
+/**
+ * Count Type ExchangeRateCountOutputType
+ */
+
+export type ExchangeRateCountOutputType = {
+  teacherPayslips: number
+}
+
+export type ExchangeRateCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  teacherPayslips?: boolean | ExchangeRateCountOutputTypeCountTeacherPayslipsArgs
+}
+
+/**
+ * ExchangeRateCountOutputType without action
+ */
+export type ExchangeRateCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ExchangeRateCountOutputType
+   */
+  select?: Prisma.ExchangeRateCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ExchangeRateCountOutputType without action
+ */
+export type ExchangeRateCountOutputTypeCountTeacherPayslipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TeacherPayslipWhereInput
+}
+
 
 export type ExchangeRateSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -648,6 +777,8 @@ export type ExchangeRateSelect<ExtArgs extends runtime.Types.Extensions.Internal
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+  teacherPayslips?: boolean | Prisma.ExchangeRate$teacherPayslipsArgs<ExtArgs>
+  _count?: boolean | Prisma.ExchangeRateCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["exchangeRate"]>
 
 export type ExchangeRateSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -694,6 +825,8 @@ export type ExchangeRateSelectScalar = {
 export type ExchangeRateOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "fromCurrency" | "toCurrency" | "rate" | "isActive" | "isSelected" | "organizationId" | "createdBy" | "createdAt" | "updatedAt", ExtArgs["result"]["exchangeRate"]>
 export type ExchangeRateInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+  teacherPayslips?: boolean | Prisma.ExchangeRate$teacherPayslipsArgs<ExtArgs>
+  _count?: boolean | Prisma.ExchangeRateCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ExchangeRateIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -706,6 +839,7 @@ export type $ExchangeRatePayload<ExtArgs extends runtime.Types.Extensions.Intern
   name: "ExchangeRate"
   objects: {
     organization: Prisma.$OrganizationPayload<ExtArgs>
+    teacherPayslips: Prisma.$TeacherPayslipPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1119,6 +1253,7 @@ readonly fields: ExchangeRateFieldRefs;
 export interface Prisma__ExchangeRateClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  teacherPayslips<T extends Prisma.ExchangeRate$teacherPayslipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ExchangeRate$teacherPayslipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeacherPayslipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1556,6 +1691,30 @@ export type ExchangeRateDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many ExchangeRates to delete.
    */
   limit?: number
+}
+
+/**
+ * ExchangeRate.teacherPayslips
+ */
+export type ExchangeRate$teacherPayslipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TeacherPayslip
+   */
+  select?: Prisma.TeacherPayslipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TeacherPayslip
+   */
+  omit?: Prisma.TeacherPayslipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TeacherPayslipInclude<ExtArgs> | null
+  where?: Prisma.TeacherPayslipWhereInput
+  orderBy?: Prisma.TeacherPayslipOrderByWithRelationInput | Prisma.TeacherPayslipOrderByWithRelationInput[]
+  cursor?: Prisma.TeacherPayslipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TeacherPayslipScalarFieldEnum | Prisma.TeacherPayslipScalarFieldEnum[]
 }
 
 /**

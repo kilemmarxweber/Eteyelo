@@ -1000,7 +1000,7 @@ export type $LibraryCatalogSourcePayload<ExtArgs extends runtime.Types.Extension
     url: string
     folderId: string | null
     /**
-     * Clé API Drive optionnelle (sinon GOOGLE_DRIVE_API_KEY)
+     * Clé API Drive optionnelle (repli si pas de compte de service)
      */
     apiKey: string | null
     isEnabled: boolean

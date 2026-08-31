@@ -10,6 +10,7 @@ import {
   isOrganizationManagerMember,
   memberHasImplicitAllBranchAccess,
 } from "@/lib/auth/role-labels";
+import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
 import {
   APP_ROLE,
   ORG_ROLE,
@@ -178,6 +179,13 @@ export async function guardOrganizationOwner(
     context.membership?.organizationId === organizationId
       ? context.membership
       : await getMembershipForOrganization(context.userId, organizationId);
+
+  if (
+    isBranchOwnerSession(context.session) &&
+    context.session.branch?.organizationId === organizationId
+  ) {
+    return { ok: true, context };
+  }
 
   if (splitRoles(membership?.role).includes(ORG_ROLE.OWNER)) {
     return { ok: true, context };

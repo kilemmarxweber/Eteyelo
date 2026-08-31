@@ -441,6 +441,9 @@ export const ModelName = {
   GradeModificationRequest: 'GradeModificationRequest',
   AbsenceCase: 'AbsenceCase',
   AppNotification: 'AppNotification',
+  BranchPayrollPolicy: 'BranchPayrollPolicy',
+  TeacherPayslip: 'TeacherPayslip',
+  TeacherPayslipLine: 'TeacherPayslipLine',
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification',
@@ -492,7 +495,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3752,6 +3755,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BranchPayrollPolicy: {
+      payload: Prisma.$BranchPayrollPolicyPayload<ExtArgs>
+      fields: Prisma.BranchPayrollPolicyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BranchPayrollPolicyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPayrollPolicyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BranchPayrollPolicyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPayrollPolicyPayload>
+        }
+        findFirst: {
+          args: Prisma.BranchPayrollPolicyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPayrollPolicyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BranchPayrollPolicyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPayrollPolicyPayload>
+        }
+        findMany: {
+          args: Prisma.BranchPayrollPolicyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPayrollPolicyPayload>[]
+        }
+        create: {
+          args: Prisma.BranchPayrollPolicyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPayrollPolicyPayload>
+        }
+        createMany: {
+          args: Prisma.BranchPayrollPolicyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BranchPayrollPolicyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPayrollPolicyPayload>[]
+        }
+        delete: {
+          args: Prisma.BranchPayrollPolicyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPayrollPolicyPayload>
+        }
+        update: {
+          args: Prisma.BranchPayrollPolicyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPayrollPolicyPayload>
+        }
+        deleteMany: {
+          args: Prisma.BranchPayrollPolicyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BranchPayrollPolicyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BranchPayrollPolicyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPayrollPolicyPayload>[]
+        }
+        upsert: {
+          args: Prisma.BranchPayrollPolicyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPayrollPolicyPayload>
+        }
+        aggregate: {
+          args: Prisma.BranchPayrollPolicyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBranchPayrollPolicy>
+        }
+        groupBy: {
+          args: Prisma.BranchPayrollPolicyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BranchPayrollPolicyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BranchPayrollPolicyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BranchPayrollPolicyCountAggregateOutputType> | number
+        }
+      }
+    }
+    TeacherPayslip: {
+      payload: Prisma.$TeacherPayslipPayload<ExtArgs>
+      fields: Prisma.TeacherPayslipFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TeacherPayslipFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TeacherPayslipFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipPayload>
+        }
+        findFirst: {
+          args: Prisma.TeacherPayslipFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TeacherPayslipFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipPayload>
+        }
+        findMany: {
+          args: Prisma.TeacherPayslipFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipPayload>[]
+        }
+        create: {
+          args: Prisma.TeacherPayslipCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipPayload>
+        }
+        createMany: {
+          args: Prisma.TeacherPayslipCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TeacherPayslipCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipPayload>[]
+        }
+        delete: {
+          args: Prisma.TeacherPayslipDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipPayload>
+        }
+        update: {
+          args: Prisma.TeacherPayslipUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipPayload>
+        }
+        deleteMany: {
+          args: Prisma.TeacherPayslipDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TeacherPayslipUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TeacherPayslipUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipPayload>[]
+        }
+        upsert: {
+          args: Prisma.TeacherPayslipUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipPayload>
+        }
+        aggregate: {
+          args: Prisma.TeacherPayslipAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTeacherPayslip>
+        }
+        groupBy: {
+          args: Prisma.TeacherPayslipGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeacherPayslipGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TeacherPayslipCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeacherPayslipCountAggregateOutputType> | number
+        }
+      }
+    }
+    TeacherPayslipLine: {
+      payload: Prisma.$TeacherPayslipLinePayload<ExtArgs>
+      fields: Prisma.TeacherPayslipLineFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TeacherPayslipLineFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipLinePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TeacherPayslipLineFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipLinePayload>
+        }
+        findFirst: {
+          args: Prisma.TeacherPayslipLineFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipLinePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TeacherPayslipLineFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipLinePayload>
+        }
+        findMany: {
+          args: Prisma.TeacherPayslipLineFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipLinePayload>[]
+        }
+        create: {
+          args: Prisma.TeacherPayslipLineCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipLinePayload>
+        }
+        createMany: {
+          args: Prisma.TeacherPayslipLineCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TeacherPayslipLineCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipLinePayload>[]
+        }
+        delete: {
+          args: Prisma.TeacherPayslipLineDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipLinePayload>
+        }
+        update: {
+          args: Prisma.TeacherPayslipLineUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipLinePayload>
+        }
+        deleteMany: {
+          args: Prisma.TeacherPayslipLineDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TeacherPayslipLineUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TeacherPayslipLineUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipLinePayload>[]
+        }
+        upsert: {
+          args: Prisma.TeacherPayslipLineUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherPayslipLinePayload>
+        }
+        aggregate: {
+          args: Prisma.TeacherPayslipLineAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTeacherPayslipLine>
+        }
+        groupBy: {
+          args: Prisma.TeacherPayslipLineGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeacherPayslipLineGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TeacherPayslipLineCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeacherPayslipLineCountAggregateOutputType> | number
+        }
+      }
+    }
     Session: {
       payload: Prisma.$SessionPayload<ExtArgs>
       fields: Prisma.SessionFieldRefs
@@ -6783,7 +7008,10 @@ export const TeacherScalarFieldEnum = {
   isActive: 'isActive',
   deactivatedAt: 'deactivatedAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  employmentKind: 'employmentKind',
+  matriculeEtat: 'matriculeEtat',
+  payrollStartedOn: 'payrollStartedOn'
 } as const
 
 export type TeacherScalarFieldEnum = (typeof TeacherScalarFieldEnum)[keyof typeof TeacherScalarFieldEnum]
@@ -7206,6 +7434,72 @@ export const AppNotificationScalarFieldEnum = {
 } as const
 
 export type AppNotificationScalarFieldEnum = (typeof AppNotificationScalarFieldEnum)[keyof typeof AppNotificationScalarFieldEnum]
+
+
+export const BranchPayrollPolicyScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  secondarySessionMinutes: 'secondarySessionMinutes',
+  primarySessionMinutes: 'primarySessionMinutes',
+  secondaryHourlyRate: 'secondaryHourlyRate',
+  secondaryMatriculePrimePercent: 'secondaryMatriculePrimePercent',
+  secondaryNonMatriculeSessionRate: 'secondaryNonMatriculeSessionRate',
+  primaryMatriculeMonthly: 'primaryMatriculeMonthly',
+  primaryNonMatriculeMonthly: 'primaryNonMatriculeMonthly',
+  lateGraceMinutes: 'lateGraceMinutes',
+  notifyByEmail: 'notifyByEmail',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BranchPayrollPolicyScalarFieldEnum = (typeof BranchPayrollPolicyScalarFieldEnum)[keyof typeof BranchPayrollPolicyScalarFieldEnum]
+
+
+export const TeacherPayslipScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  teacherId: 'teacherId',
+  schoolYearId: 'schoolYearId',
+  policyId: 'policyId',
+  year: 'year',
+  month: 'month',
+  status: 'status',
+  currency: 'currency',
+  quoteCurrency: 'quoteCurrency',
+  exchangeRateId: 'exchangeRateId',
+  rateSnapshot: 'rateSnapshot',
+  gross: 'gross',
+  deductions: 'deductions',
+  net: 'net',
+  policySnapshot: 'policySnapshot',
+  generatedAt: 'generatedAt',
+  validatedAt: 'validatedAt',
+  paidAt: 'paidAt',
+  validatedById: 'validatedById',
+  paidById: 'paidById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TeacherPayslipScalarFieldEnum = (typeof TeacherPayslipScalarFieldEnum)[keyof typeof TeacherPayslipScalarFieldEnum]
+
+
+export const TeacherPayslipLineScalarFieldEnum = {
+  id: 'id',
+  payslipId: 'payslipId',
+  cycle: 'cycle',
+  kind: 'kind',
+  occurredOn: 'occurredOn',
+  sessionId: 'sessionId',
+  label: 'label',
+  sessions: 'sessions',
+  minutes: 'minutes',
+  amount: 'amount',
+  createdAt: 'createdAt'
+} as const
+
+export type TeacherPayslipLineScalarFieldEnum = (typeof TeacherPayslipLineScalarFieldEnum)[keyof typeof TeacherPayslipLineScalarFieldEnum]
 
 
 export const SessionScalarFieldEnum = {
@@ -8083,6 +8377,20 @@ export type EnumDayFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'TeacherEmploymentKind'
+ */
+export type EnumTeacherEmploymentKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeacherEmploymentKind'>
+    
+
+
+/**
+ * Reference to a field of type 'TeacherEmploymentKind[]'
+ */
+export type ListEnumTeacherEmploymentKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeacherEmploymentKind[]'>
+    
+
+
+/**
  * Reference to a field of type 'CoursKind'
  */
 export type EnumCoursKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CoursKind'>
@@ -8261,6 +8569,34 @@ export type EnumAppNotificationTypeFieldRefInput<$PrismaModel> = FieldRefInputTy
  * Reference to a field of type 'AppNotificationType[]'
  */
 export type ListEnumAppNotificationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AppNotificationType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TeacherPayslipStatus'
+ */
+export type EnumTeacherPayslipStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeacherPayslipStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'TeacherPayslipStatus[]'
+ */
+export type ListEnumTeacherPayslipStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeacherPayslipStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TeacherPayslipLineKind'
+ */
+export type EnumTeacherPayslipLineKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeacherPayslipLineKind'>
+    
+
+
+/**
+ * Reference to a field of type 'TeacherPayslipLineKind[]'
+ */
+export type ListEnumTeacherPayslipLineKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeacherPayslipLineKind[]'>
     
 
 
@@ -8752,6 +9088,9 @@ export type GlobalOmitConfig = {
   gradeModificationRequest?: Prisma.GradeModificationRequestOmit
   absenceCase?: Prisma.AbsenceCaseOmit
   appNotification?: Prisma.AppNotificationOmit
+  branchPayrollPolicy?: Prisma.BranchPayrollPolicyOmit
+  teacherPayslip?: Prisma.TeacherPayslipOmit
+  teacherPayslipLine?: Prisma.TeacherPayslipLineOmit
   session?: Prisma.SessionOmit
   account?: Prisma.AccountOmit
   verification?: Prisma.VerificationOmit

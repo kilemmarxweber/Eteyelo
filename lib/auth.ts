@@ -308,6 +308,7 @@ export const auth = betterAuth({
       ]);
 
       let branch = null;
+      let branchMemberRole: string | null = null;
 
       if (session.activeBranchId && organization) {
         branch = await prisma.branch.findFirst({
@@ -330,6 +331,19 @@ export const auth = betterAuth({
             },
           },
         });
+
+        const branchMember = await prisma.branchMember.findFirst({
+          where: {
+            branchId: session.activeBranchId,
+            member: {
+              userId: user.id,
+              organizationId: organization.id,
+            },
+            isActive: true,
+          },
+          select: { role: true },
+        });
+        branchMemberRole = branchMember?.role ?? null;
       }
 
       // Fallback 1ʳᵉ branche uniquement s'il n'y a pas de branche active :
@@ -398,6 +412,7 @@ export const auth = betterAuth({
         },
         organization,
         branch,
+        branchMemberRole,
         teacherContext: teacher
           ? {
               teacherId: teacher.id,

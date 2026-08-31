@@ -12,6 +12,7 @@ import type { OrganizationPermissionPayload } from "@/lib/auth/has-organization-
  */
 export type BranchArea =
   | "finance"
+  | "payroll"
   | "fee_catalog"
   | "notes"
   | "schedule"
@@ -53,6 +54,7 @@ export const BRANCH_AREA_PERMISSION: Record<
   OrganizationPermissionPayload
 > = {
   finance: { finance: ["read", "encaisser"] },
+  payroll: { payroll: ["read"] },
   /** Catalogue frais (ex-oversight) : `fees:read`. */
   fee_catalog: { fees: ["read"] },
   notes: { notes: ["read"] },
@@ -107,6 +109,7 @@ export const SIDEBAR_HREF_BRANCH_AREA: Record<string, BranchArea> = {
   "/admin/classe": "classe",
   "/admin/frais": "fee_catalog",
   "/admin/paiement": "finance",
+  "/admin/paie-enseignants": "payroll",
   "/admin/results": "results",
   "/admin/devoirs": "devoirs",
   "/admin/bibliotheque": "library",

@@ -35,6 +35,7 @@ import {
 } from "@/lib/auth/session-roles";
 import { getSidebarPermissionFlagsAction } from "@/lib/auth/sidebar-permission-flags.action";
 import { ORG_ROLE } from "@/lib/permissions";
+import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
 import { getBranchTypeAction } from "../classe/classe.action";
 import SidebarNav from "./components/sidebar-nav";
 import { useTranslations } from "next-intl";
@@ -94,11 +95,15 @@ export default function Settings({ children }: { children: React.ReactNode }) {
     session?.session?.activeOrganizationId,
   ]);
 
-  const canSeeOrgSettings = sessionReady && canAccessBranchOrgSettings(session);
+  const isBranchOwner = sessionReady && isBranchOwnerSession(session);
+  const canSeeOrgSettings =
+    sessionReady && (isBranchOwner || canAccessBranchOrgSettings(session));
   const canSeeOwnerSettings =
-    sessionReady && isOrganizationOwnerSession(session);
-  const canSeeSchoolOps = sessionReady && canAccessSchoolOpsSettings(session);
-  const canSeeSupport = sessionReady && canAccessSupportSettings(session);
+    sessionReady && (isBranchOwner || isOrganizationOwnerSession(session));
+  const canSeeSchoolOps =
+    sessionReady && (isBranchOwner || canAccessSchoolOpsSettings(session));
+  const canSeeSupport =
+    sessionReady && (isBranchOwner || canAccessSupportSettings(session));
   const resolvedBranchType =
     branchType ?? session?.branch?.typebranch ?? null;
   const showPrimaryDomains =
@@ -296,6 +301,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
     canSeeOwnerSettings,
     canSeeSchoolOps,
     canSeeSupport,
+    isBranchOwner,
     showPrimaryDomains,
     isCursusSelfUser,
     settingsReads,

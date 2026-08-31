@@ -95,6 +95,9 @@ export const ModelName = {
   GradeModificationRequest: 'GradeModificationRequest',
   AbsenceCase: 'AbsenceCase',
   AppNotification: 'AppNotification',
+  BranchPayrollPolicy: 'BranchPayrollPolicy',
+  TeacherPayslip: 'TeacherPayslip',
+  TeacherPayslipLine: 'TeacherPayslipLine',
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification',
@@ -477,7 +480,10 @@ export const TeacherScalarFieldEnum = {
   isActive: 'isActive',
   deactivatedAt: 'deactivatedAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  employmentKind: 'employmentKind',
+  matriculeEtat: 'matriculeEtat',
+  payrollStartedOn: 'payrollStartedOn'
 } as const
 
 export type TeacherScalarFieldEnum = (typeof TeacherScalarFieldEnum)[keyof typeof TeacherScalarFieldEnum]
@@ -900,6 +906,72 @@ export const AppNotificationScalarFieldEnum = {
 } as const
 
 export type AppNotificationScalarFieldEnum = (typeof AppNotificationScalarFieldEnum)[keyof typeof AppNotificationScalarFieldEnum]
+
+
+export const BranchPayrollPolicyScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  secondarySessionMinutes: 'secondarySessionMinutes',
+  primarySessionMinutes: 'primarySessionMinutes',
+  secondaryHourlyRate: 'secondaryHourlyRate',
+  secondaryMatriculePrimePercent: 'secondaryMatriculePrimePercent',
+  secondaryNonMatriculeSessionRate: 'secondaryNonMatriculeSessionRate',
+  primaryMatriculeMonthly: 'primaryMatriculeMonthly',
+  primaryNonMatriculeMonthly: 'primaryNonMatriculeMonthly',
+  lateGraceMinutes: 'lateGraceMinutes',
+  notifyByEmail: 'notifyByEmail',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BranchPayrollPolicyScalarFieldEnum = (typeof BranchPayrollPolicyScalarFieldEnum)[keyof typeof BranchPayrollPolicyScalarFieldEnum]
+
+
+export const TeacherPayslipScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  teacherId: 'teacherId',
+  schoolYearId: 'schoolYearId',
+  policyId: 'policyId',
+  year: 'year',
+  month: 'month',
+  status: 'status',
+  currency: 'currency',
+  quoteCurrency: 'quoteCurrency',
+  exchangeRateId: 'exchangeRateId',
+  rateSnapshot: 'rateSnapshot',
+  gross: 'gross',
+  deductions: 'deductions',
+  net: 'net',
+  policySnapshot: 'policySnapshot',
+  generatedAt: 'generatedAt',
+  validatedAt: 'validatedAt',
+  paidAt: 'paidAt',
+  validatedById: 'validatedById',
+  paidById: 'paidById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TeacherPayslipScalarFieldEnum = (typeof TeacherPayslipScalarFieldEnum)[keyof typeof TeacherPayslipScalarFieldEnum]
+
+
+export const TeacherPayslipLineScalarFieldEnum = {
+  id: 'id',
+  payslipId: 'payslipId',
+  cycle: 'cycle',
+  kind: 'kind',
+  occurredOn: 'occurredOn',
+  sessionId: 'sessionId',
+  label: 'label',
+  sessions: 'sessions',
+  minutes: 'minutes',
+  amount: 'amount',
+  createdAt: 'createdAt'
+} as const
+
+export type TeacherPayslipLineScalarFieldEnum = (typeof TeacherPayslipLineScalarFieldEnum)[keyof typeof TeacherPayslipLineScalarFieldEnum]
 
 
 export const SessionScalarFieldEnum = {

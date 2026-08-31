@@ -3,7 +3,10 @@
  * Utilisé quand `PERMISSIONS_FROM_DAC` n’est pas désactivé.
  */
 
-import { getSessionRoles } from "@/lib/auth/session-roles";
+import {
+  getSessionRoles,
+  isOrganizationOwnerSession,
+} from "@/lib/auth/session-roles";
 import {
   BRANCH_AREA_PERMISSION,
   isPermissionsFromDacEnabled,
@@ -17,6 +20,7 @@ import {
 import {
   hasPlatformSupportPrivileges,
 } from "@/lib/permissions";
+import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
 
 /** Au moins une action requise présente. */
 export function roleAllowsAny(
@@ -52,6 +56,9 @@ export function canAccessBranchAreaFromPermissions(
   session: unknown,
   roleStatements?: Map<string, RoleStatements> | null,
 ): boolean {
+  if (isBranchOwnerSession(session)) return true;
+  if (area === "payroll") return isOrganizationOwnerSession(session);
+
   const roles = getSessionRoles(session);
   const appRole = [...roles].find((r) =>
     ["owner", "admin", "platform_support", "user"].includes(r),

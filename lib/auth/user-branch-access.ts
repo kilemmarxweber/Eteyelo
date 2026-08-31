@@ -1,14 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { ORG_ROLE } from "@/lib/permissions";
-import { BranchRole, TypeBrache } from "@/prisma/generated/prisma/enums";
-
-/** Rôles BranchMember qui doivent atterrir sur une branche. */
-const BRANCH_USER_ROLES = [
-  BranchRole.TEACHER,
-  BranchRole.PARENT,
-  BranchRole.STUDENT,
-  BranchRole.CAISSIER,
-] as const;
+import { TypeBrache } from "@/prisma/generated/prisma/enums";
 
 /** Rôles Member (org) qui doivent toujours aller vers leur branche. */
 export const BRANCH_LOGIN_ORG_ROLES = new Set<string>([
@@ -97,7 +89,7 @@ function mapBranchMemberships(
   });
 }
 
-/** Branches liées via BranchRole enseignant / parent / élève / caissier. */
+/** Toutes les branches actives rattachées à l'utilisateur. */
 export async function getUserBranchMemberships(
   userId: string,
   organizationId: string,
@@ -105,7 +97,6 @@ export async function getUserBranchMemberships(
   const memberships = await prisma.branchMember.findMany({
     where: {
       isActive: true,
-      role: { in: [...BRANCH_USER_ROLES] },
       member: {
         userId,
         organizationId,

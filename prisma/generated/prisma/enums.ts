@@ -176,6 +176,8 @@ export const AppNotificationType = {
   JUSTIFICATION_DECISION: 'JUSTIFICATION_DECISION',
   RETURN: 'RETURN',
   PAYMENT: 'PAYMENT',
+  PAYROLL_DEDUCTION: 'PAYROLL_DEDUCTION',
+  PAYROLL: 'PAYROLL',
   GRADE_MODIFICATION_SUBMITTED: 'GRADE_MODIFICATION_SUBMITTED',
   GRADE_MODIFICATION_DECISION: 'GRADE_MODIFICATION_DECISION',
   MESSAGE: 'MESSAGE'
@@ -191,6 +193,35 @@ export const GradeModificationStatus = {
 } as const
 
 export type GradeModificationStatus = (typeof GradeModificationStatus)[keyof typeof GradeModificationStatus]
+
+
+export const TeacherEmploymentKind = {
+  MATRICULE: 'MATRICULE',
+  NON_MATRICULE: 'NON_MATRICULE'
+} as const
+
+export type TeacherEmploymentKind = (typeof TeacherEmploymentKind)[keyof typeof TeacherEmploymentKind]
+
+
+export const TeacherPayslipStatus = {
+  DRAFT: 'DRAFT',
+  VALIDATED: 'VALIDATED',
+  PAID: 'PAID',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type TeacherPayslipStatus = (typeof TeacherPayslipStatus)[keyof typeof TeacherPayslipStatus]
+
+
+export const TeacherPayslipLineKind = {
+  GROSS: 'GROSS',
+  ABSENCE: 'ABSENCE',
+  LATE: 'LATE',
+  EARLY_EXIT: 'EARLY_EXIT',
+  ADJUSTMENT: 'ADJUSTMENT'
+} as const
+
+export type TeacherPayslipLineKind = (typeof TeacherPayslipLineKind)[keyof typeof TeacherPayslipLineKind]
 
 
 export const StudentCategory = {

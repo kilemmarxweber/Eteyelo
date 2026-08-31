@@ -464,6 +464,7 @@ model SchoolYear {
   issuedDocuments   IssuedDocument[]
   registrationInfos BranchRegistrationInfo[]
   onlineAssignments OnlineAssignment[]
+  teacherPayslips    TeacherPayslip[]
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   @@index([branchId, startYear, endYear])
@@ -519,6 +520,10 @@ model Teacher {
   attendanceSession AttendanceSession[]
   onlineAssignments OnlineAssignment[]
   profileDocuments TeacherProfileDocument[]
+  employmentKind   TeacherEmploymentKind @default(NON_MATRICULE)
+  matriculeEtat    String?
+  payrollStartedOn DateTime?
+  payslips         TeacherPayslip[]
 
   @@unique([branchMemberId])
   @@index([isActive])
@@ -988,6 +993,7 @@ model ExchangeRate {
   createdBy      String?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  teacherPayslips TeacherPayslip[]
 
   @@unique([organizationId, fromCurrency, toCurrency])
   @@index([organizationId, isActive])
@@ -1162,6 +1168,8 @@ enum AppNotificationType {
   JUSTIFICATION_DECISION
   RETURN
   PAYMENT
+  PAYROLL_DEDUCTION
+  PAYROLL
   GRADE_MODIFICATION_SUBMITTED
   GRADE_MODIFICATION_DECISION
   MESSAGE
@@ -1274,6 +1282,101 @@ model AppNotification {
   @@index([gradeModificationRequestId])
   @@index([conversationId])
   @@index([messageId, userId])
+}
+
+enum TeacherEmploymentKind {
+  MATRICULE
+  NON_MATRICULE
+}
+
+enum TeacherPayslipStatus {
+  DRAFT
+  VALIDATED
+  PAID
+  CANCELLED
+}
+
+enum TeacherPayslipLineKind {
+  GROSS
+  ABSENCE
+  LATE
+  EARLY_EXIT
+  ADJUSTMENT
+}
+
+/// Barème de paie configurable par branche, sans devise propre.
+model BranchPayrollPolicy {
+  id                                  String   @id @default(cuid())
+  branchId                            String   @unique
+  branch                              Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  secondarySessionMinutes             Int      @default(45)
+  primarySessionMinutes               Int      @default(30)
+  secondaryHourlyRate                 Float    @default(1500)
+  secondaryMatriculePrimePercent      Float    @default(30)
+  secondaryNonMatriculeSessionRate    Float    @default(1500)
+  primaryMatriculeMonthly             Float    @default(15000)
+  primaryNonMatriculeMonthly          Float    @default(70000)
+  lateGraceMinutes                    Int      @default(10)
+  notifyByEmail                       Boolean  @default(true)
+  isActive                            Boolean  @default(true)
+  createdAt                           DateTime @default(now())
+  updatedAt                           DateTime @updatedAt
+  payslips                            TeacherPayslip[]
+}
+
+model TeacherPayslip {
+  id                String              @id @default(cuid())
+  branchId          String
+  branch            Branch              @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  teacherId         String
+  teacher           Teacher             @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  schoolYearId      String?
+  schoolYear        SchoolYear?         @relation(fields: [schoolYearId], references: [id], onDelete: SetNull)
+  policyId          String?
+  policy            BranchPayrollPolicy? @relation(fields: [policyId], references: [id], onDelete: SetNull)
+  year              Int
+  month             Int
+  status            TeacherPayslipStatus @default(DRAFT)
+  currency          CurrencyCode
+  quoteCurrency     CurrencyCode?
+  exchangeRateId    String?
+  exchangeRate      ExchangeRate?       @relation(fields: [exchangeRateId], references: [id], onDelete: SetNull)
+  rateSnapshot      Float?
+  gross             Float               @default(0)
+  deductions       Float               @default(0)
+  net               Float               @default(0)
+  policySnapshot    Json
+  generatedAt       DateTime            @default(now())
+  validatedAt       DateTime?
+  paidAt            DateTime?
+  validatedById     String?
+  paidById          String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  lines             TeacherPayslipLine[]
+
+  @@unique([branchId, teacherId, year, month])
+  @@index([branchId, year, month])
+  @@index([branchId, status])
+  @@index([teacherId, year, month])
+}
+
+model TeacherPayslipLine {
+  id          String                 @id @default(cuid())
+  payslipId   String
+  payslip     TeacherPayslip         @relation(fields: [payslipId], references: [id], onDelete: Cascade)
+  cycle       Cycle?
+  kind        TeacherPayslipLineKind
+  occurredOn  DateTime?
+  sessionId   String?
+  label       String
+  sessions    Int                    @default(0)
+  minutes     Float                  @default(0)
+  amount      Float                  @default(0)
+  createdAt   DateTime               @default(now())
+
+  @@index([payslipId])
+  @@index([sessionId])
 }
 
 enum StudentCategory {
@@ -1523,6 +1626,8 @@ model Branch {
   issuedDocuments      IssuedDocument[]
   libraryBooks         LibraryBook[]
   libraryCatalogSources LibraryCatalogSource[]
+  payrollPolicy        BranchPayrollPolicy?
+  teacherPayslips      TeacherPayslip[]
   supportTickets       PlatformSupportEscalation[]
   onlineAssignments    OnlineAssignment[]
   primaryDomains       BranchPrimaryDomain[]

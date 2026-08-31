@@ -27,6 +27,8 @@ export interface ITeacher
   cycles?: string[];
   /** Profil personnel actif en plus du profil enseignant. */
   alsoPersonnel?: boolean;
+  employmentKind?: "MATRICULE" | "NON_MATRICULE";
+  matriculeEtat?: string;
 }
 
 export const teacherSchema = z
@@ -56,8 +58,17 @@ export const teacherSchema = z
   classeId: z.string().optional(),
   coursId: z.string().optional(),
   weeklyHours: z.coerce.number().positive().optional(),
+  employmentKind: z.enum(["MATRICULE", "NON_MATRICULE"]).optional(),
+  matriculeEtat: z.string().trim().max(80).optional(),
 })
   .superRefine((data, ctx) => {
+    if (data.employmentKind === "MATRICULE" && !data.matriculeEtat?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Le matricule de l'État est requis",
+        path: ["matriculeEtat"],
+      });
+    }
     if (!data.estTitulaire) return;
 
     if (!data.classeId?.trim()) {

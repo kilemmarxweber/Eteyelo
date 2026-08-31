@@ -241,6 +241,7 @@ export type SchoolYearWhereInput = {
   issuedDocuments?: Prisma.IssuedDocumentListRelationFilter
   registrationInfos?: Prisma.BranchRegistrationInfoListRelationFilter
   onlineAssignments?: Prisma.OnlineAssignmentListRelationFilter
+  teacherPayslips?: Prisma.TeacherPayslipListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
 }
 
@@ -267,6 +268,7 @@ export type SchoolYearOrderByWithRelationInput = {
   issuedDocuments?: Prisma.IssuedDocumentOrderByRelationAggregateInput
   registrationInfos?: Prisma.BranchRegistrationInfoOrderByRelationAggregateInput
   onlineAssignments?: Prisma.OnlineAssignmentOrderByRelationAggregateInput
+  teacherPayslips?: Prisma.TeacherPayslipOrderByRelationAggregateInput
   branch?: Prisma.BranchOrderByWithRelationInput
 }
 
@@ -298,6 +300,7 @@ export type SchoolYearWhereUniqueInput = Prisma.AtLeast<{
   issuedDocuments?: Prisma.IssuedDocumentListRelationFilter
   registrationInfos?: Prisma.BranchRegistrationInfoListRelationFilter
   onlineAssignments?: Prisma.OnlineAssignmentListRelationFilter
+  teacherPayslips?: Prisma.TeacherPayslipListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
 }, "id" | "branchId_startYear_endYear" | "branchId_nameYear">
 
@@ -357,6 +360,7 @@ export type SchoolYearCreateInput = {
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -383,6 +387,7 @@ export type SchoolYearUncheckedCreateInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearUpdateInput = {
@@ -407,6 +412,7 @@ export type SchoolYearUpdateInput = {
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -433,6 +439,7 @@ export type SchoolYearUncheckedUpdateInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateManyInput = {
@@ -669,6 +676,22 @@ export type SchoolYearUpdateOneRequiredWithoutInvoicesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolYearUpdateToOneWithWhereWithoutInvoicesInput, Prisma.SchoolYearUpdateWithoutInvoicesInput>, Prisma.SchoolYearUncheckedUpdateWithoutInvoicesInput>
 }
 
+export type SchoolYearCreateNestedOneWithoutTeacherPayslipsInput = {
+  create?: Prisma.XOR<Prisma.SchoolYearCreateWithoutTeacherPayslipsInput, Prisma.SchoolYearUncheckedCreateWithoutTeacherPayslipsInput>
+  connectOrCreate?: Prisma.SchoolYearCreateOrConnectWithoutTeacherPayslipsInput
+  connect?: Prisma.SchoolYearWhereUniqueInput
+}
+
+export type SchoolYearUpdateOneWithoutTeacherPayslipsNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolYearCreateWithoutTeacherPayslipsInput, Prisma.SchoolYearUncheckedCreateWithoutTeacherPayslipsInput>
+  connectOrCreate?: Prisma.SchoolYearCreateOrConnectWithoutTeacherPayslipsInput
+  upsert?: Prisma.SchoolYearUpsertWithoutTeacherPayslipsInput
+  disconnect?: Prisma.SchoolYearWhereInput | boolean
+  delete?: Prisma.SchoolYearWhereInput | boolean
+  connect?: Prisma.SchoolYearWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolYearUpdateToOneWithWhereWithoutTeacherPayslipsInput, Prisma.SchoolYearUpdateWithoutTeacherPayslipsInput>, Prisma.SchoolYearUncheckedUpdateWithoutTeacherPayslipsInput>
+}
+
 export type SchoolYearCreateNestedManyWithoutBranchInput = {
   create?: Prisma.XOR<Prisma.SchoolYearCreateWithoutBranchInput, Prisma.SchoolYearUncheckedCreateWithoutBranchInput> | Prisma.SchoolYearCreateWithoutBranchInput[] | Prisma.SchoolYearUncheckedCreateWithoutBranchInput[]
   connectOrCreate?: Prisma.SchoolYearCreateOrConnectWithoutBranchInput | Prisma.SchoolYearCreateOrConnectWithoutBranchInput[]
@@ -778,6 +801,7 @@ export type SchoolYearCreateWithoutAttendanceSessionInput = {
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -803,6 +827,7 @@ export type SchoolYearUncheckedCreateWithoutAttendanceSessionInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutAttendanceSessionInput = {
@@ -842,6 +867,7 @@ export type SchoolYearUpdateWithoutAttendanceSessionInput = {
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -867,6 +893,7 @@ export type SchoolYearUncheckedUpdateWithoutAttendanceSessionInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutParentFeedbackInput = {
@@ -890,6 +917,7 @@ export type SchoolYearCreateWithoutParentFeedbackInput = {
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -915,6 +943,7 @@ export type SchoolYearUncheckedCreateWithoutParentFeedbackInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutParentFeedbackInput = {
@@ -954,6 +983,7 @@ export type SchoolYearUpdateWithoutParentFeedbackInput = {
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -979,6 +1009,7 @@ export type SchoolYearUncheckedUpdateWithoutParentFeedbackInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutGradesInput = {
@@ -1002,6 +1033,7 @@ export type SchoolYearCreateWithoutGradesInput = {
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -1027,6 +1059,7 @@ export type SchoolYearUncheckedCreateWithoutGradesInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutGradesInput = {
@@ -1066,6 +1099,7 @@ export type SchoolYearUpdateWithoutGradesInput = {
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -1091,6 +1125,7 @@ export type SchoolYearUncheckedUpdateWithoutGradesInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutFraisInput = {
@@ -1114,6 +1149,7 @@ export type SchoolYearCreateWithoutFraisInput = {
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -1139,6 +1175,7 @@ export type SchoolYearUncheckedCreateWithoutFraisInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutFraisInput = {
@@ -1178,6 +1215,7 @@ export type SchoolYearUpdateWithoutFraisInput = {
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -1203,6 +1241,7 @@ export type SchoolYearUncheckedUpdateWithoutFraisInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutClassEnrollmentInput = {
@@ -1226,6 +1265,7 @@ export type SchoolYearCreateWithoutClassEnrollmentInput = {
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -1251,6 +1291,7 @@ export type SchoolYearUncheckedCreateWithoutClassEnrollmentInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutClassEnrollmentInput = {
@@ -1290,6 +1331,7 @@ export type SchoolYearUpdateWithoutClassEnrollmentInput = {
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -1315,6 +1357,7 @@ export type SchoolYearUncheckedUpdateWithoutClassEnrollmentInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutTeachingInput = {
@@ -1338,6 +1381,7 @@ export type SchoolYearCreateWithoutTeachingInput = {
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -1363,6 +1407,7 @@ export type SchoolYearUncheckedCreateWithoutTeachingInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutTeachingInput = {
@@ -1402,6 +1447,7 @@ export type SchoolYearUpdateWithoutTeachingInput = {
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -1427,6 +1473,7 @@ export type SchoolYearUncheckedUpdateWithoutTeachingInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutCalendarEventInput = {
@@ -1450,6 +1497,7 @@ export type SchoolYearCreateWithoutCalendarEventInput = {
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -1475,6 +1523,7 @@ export type SchoolYearUncheckedCreateWithoutCalendarEventInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutCalendarEventInput = {
@@ -1514,6 +1563,7 @@ export type SchoolYearUpdateWithoutCalendarEventInput = {
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -1539,6 +1589,7 @@ export type SchoolYearUncheckedUpdateWithoutCalendarEventInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutInvoicesInput = {
@@ -1562,6 +1613,7 @@ export type SchoolYearCreateWithoutInvoicesInput = {
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -1587,6 +1639,7 @@ export type SchoolYearUncheckedCreateWithoutInvoicesInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutInvoicesInput = {
@@ -1626,6 +1679,7 @@ export type SchoolYearUpdateWithoutInvoicesInput = {
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -1645,6 +1699,123 @@ export type SchoolYearUncheckedUpdateWithoutInvoicesInput = {
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutSchoolYearNestedInput
   frais?: Prisma.FraisUncheckedUpdateManyWithoutSchoolYearNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutSchoolYearNestedInput
+  grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutSchoolYearNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutSchoolYearNestedInput
+  attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutSchoolYearNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutSchoolYearNestedInput
+}
+
+export type SchoolYearCreateWithoutTeacherPayslipsInput = {
+  id?: string
+  nameYear: string
+  startYear: Date | string
+  endYear: Date | string
+  isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutSchoolYearInput
+  teaching?: Prisma.TeachingCreateNestedManyWithoutSchoolYearInput
+  frais?: Prisma.FraisCreateNestedManyWithoutSchoolYearInput
+  CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutSchoolYearInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutSchoolYearInput
+  grades?: Prisma.StudentGradeCreateNestedManyWithoutSchoolYearInput
+  parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutSchoolYearInput
+  attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutSchoolYearInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutSchoolYearInput
+  branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
+}
+
+export type SchoolYearUncheckedCreateWithoutTeacherPayslipsInput = {
+  id?: string
+  nameYear: string
+  startYear: Date | string
+  endYear: Date | string
+  isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchId: string
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutSchoolYearInput
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutSchoolYearInput
+  frais?: Prisma.FraisUncheckedCreateNestedManyWithoutSchoolYearInput
+  CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutSchoolYearInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutSchoolYearInput
+  grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutSchoolYearInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutSchoolYearInput
+  attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutSchoolYearInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutSchoolYearInput
+}
+
+export type SchoolYearCreateOrConnectWithoutTeacherPayslipsInput = {
+  where: Prisma.SchoolYearWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolYearCreateWithoutTeacherPayslipsInput, Prisma.SchoolYearUncheckedCreateWithoutTeacherPayslipsInput>
+}
+
+export type SchoolYearUpsertWithoutTeacherPayslipsInput = {
+  update: Prisma.XOR<Prisma.SchoolYearUpdateWithoutTeacherPayslipsInput, Prisma.SchoolYearUncheckedUpdateWithoutTeacherPayslipsInput>
+  create: Prisma.XOR<Prisma.SchoolYearCreateWithoutTeacherPayslipsInput, Prisma.SchoolYearUncheckedCreateWithoutTeacherPayslipsInput>
+  where?: Prisma.SchoolYearWhereInput
+}
+
+export type SchoolYearUpdateToOneWithWhereWithoutTeacherPayslipsInput = {
+  where?: Prisma.SchoolYearWhereInput
+  data: Prisma.XOR<Prisma.SchoolYearUpdateWithoutTeacherPayslipsInput, Prisma.SchoolYearUncheckedUpdateWithoutTeacherPayslipsInput>
+}
+
+export type SchoolYearUpdateWithoutTeacherPayslipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nameYear?: Prisma.StringFieldUpdateOperationsInput | string
+  startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutSchoolYearNestedInput
+  teaching?: Prisma.TeachingUpdateManyWithoutSchoolYearNestedInput
+  frais?: Prisma.FraisUpdateManyWithoutSchoolYearNestedInput
+  CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutSchoolYearNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutSchoolYearNestedInput
+  grades?: Prisma.StudentGradeUpdateManyWithoutSchoolYearNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutSchoolYearNestedInput
+  attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutSchoolYearNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutSchoolYearNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
+}
+
+export type SchoolYearUncheckedUpdateWithoutTeacherPayslipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nameYear?: Prisma.StringFieldUpdateOperationsInput | string
+  startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutSchoolYearNestedInput
+  frais?: Prisma.FraisUncheckedUpdateManyWithoutSchoolYearNestedInput
+  CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutSchoolYearNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutSchoolYearNestedInput
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
@@ -1675,6 +1846,7 @@ export type SchoolYearCreateWithoutBranchInput = {
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearUncheckedCreateWithoutBranchInput = {
@@ -1699,6 +1871,7 @@ export type SchoolYearUncheckedCreateWithoutBranchInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutBranchInput = {
@@ -1765,6 +1938,7 @@ export type SchoolYearCreateWithoutRegistrationInfosInput = {
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutSchoolYearInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -1790,6 +1964,7 @@ export type SchoolYearUncheckedCreateWithoutRegistrationInfosInput = {
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutSchoolYearInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutRegistrationInfosInput = {
@@ -1829,6 +2004,7 @@ export type SchoolYearUpdateWithoutRegistrationInfosInput = {
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutSchoolYearNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -1854,6 +2030,7 @@ export type SchoolYearUncheckedUpdateWithoutRegistrationInfosInput = {
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutIssuedDocumentsInput = {
@@ -1877,6 +2054,7 @@ export type SchoolYearCreateWithoutIssuedDocumentsInput = {
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -1902,6 +2080,7 @@ export type SchoolYearUncheckedCreateWithoutIssuedDocumentsInput = {
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutSchoolYearInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutIssuedDocumentsInput = {
@@ -1941,6 +2120,7 @@ export type SchoolYearUpdateWithoutIssuedDocumentsInput = {
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -1966,6 +2146,7 @@ export type SchoolYearUncheckedUpdateWithoutIssuedDocumentsInput = {
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutOnlineAssignmentsInput = {
@@ -1989,6 +2170,7 @@ export type SchoolYearCreateWithoutOnlineAssignmentsInput = {
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutSchoolYearInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -2014,6 +2196,7 @@ export type SchoolYearUncheckedCreateWithoutOnlineAssignmentsInput = {
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutSchoolYearInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutSchoolYearInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutOnlineAssignmentsInput = {
@@ -2053,6 +2236,7 @@ export type SchoolYearUpdateWithoutOnlineAssignmentsInput = {
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutSchoolYearNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -2078,6 +2262,7 @@ export type SchoolYearUncheckedUpdateWithoutOnlineAssignmentsInput = {
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateManyBranchInput = {
@@ -2115,6 +2300,7 @@ export type SchoolYearUpdateWithoutBranchInput = {
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearUncheckedUpdateWithoutBranchInput = {
@@ -2139,6 +2325,7 @@ export type SchoolYearUncheckedUpdateWithoutBranchInput = {
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
   registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutSchoolYearNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearUncheckedUpdateManyWithoutBranchInput = {
@@ -2171,6 +2358,7 @@ export type SchoolYearCountOutputType = {
   issuedDocuments: number
   registrationInfos: number
   onlineAssignments: number
+  teacherPayslips: number
 }
 
 export type SchoolYearCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2185,6 +2373,7 @@ export type SchoolYearCountOutputTypeSelect<ExtArgs extends runtime.Types.Extens
   issuedDocuments?: boolean | SchoolYearCountOutputTypeCountIssuedDocumentsArgs
   registrationInfos?: boolean | SchoolYearCountOutputTypeCountRegistrationInfosArgs
   onlineAssignments?: boolean | SchoolYearCountOutputTypeCountOnlineAssignmentsArgs
+  teacherPayslips?: boolean | SchoolYearCountOutputTypeCountTeacherPayslipsArgs
 }
 
 /**
@@ -2274,6 +2463,13 @@ export type SchoolYearCountOutputTypeCountOnlineAssignmentsArgs<ExtArgs extends 
   where?: Prisma.OnlineAssignmentWhereInput
 }
 
+/**
+ * SchoolYearCountOutputType without action
+ */
+export type SchoolYearCountOutputTypeCountTeacherPayslipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TeacherPayslipWhereInput
+}
+
 
 export type SchoolYearSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2298,6 +2494,7 @@ export type SchoolYearSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   issuedDocuments?: boolean | Prisma.SchoolYear$issuedDocumentsArgs<ExtArgs>
   registrationInfos?: boolean | Prisma.SchoolYear$registrationInfosArgs<ExtArgs>
   onlineAssignments?: boolean | Prisma.SchoolYear$onlineAssignmentsArgs<ExtArgs>
+  teacherPayslips?: boolean | Prisma.SchoolYear$teacherPayslipsArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.SchoolYearCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["schoolYear"]>
@@ -2359,6 +2556,7 @@ export type SchoolYearInclude<ExtArgs extends runtime.Types.Extensions.InternalA
   issuedDocuments?: boolean | Prisma.SchoolYear$issuedDocumentsArgs<ExtArgs>
   registrationInfos?: boolean | Prisma.SchoolYear$registrationInfosArgs<ExtArgs>
   onlineAssignments?: boolean | Prisma.SchoolYear$onlineAssignmentsArgs<ExtArgs>
+  teacherPayslips?: boolean | Prisma.SchoolYear$teacherPayslipsArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.SchoolYearCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -2383,6 +2581,7 @@ export type $SchoolYearPayload<ExtArgs extends runtime.Types.Extensions.Internal
     issuedDocuments: Prisma.$IssuedDocumentPayload<ExtArgs>[]
     registrationInfos: Prisma.$BranchRegistrationInfoPayload<ExtArgs>[]
     onlineAssignments: Prisma.$OnlineAssignmentPayload<ExtArgs>[]
+    teacherPayslips: Prisma.$TeacherPayslipPayload<ExtArgs>[]
     branch: Prisma.$BranchPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -2802,6 +3001,7 @@ export interface Prisma__SchoolYearClient<T, Null = never, ExtArgs extends runti
   issuedDocuments<T extends Prisma.SchoolYear$issuedDocumentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolYear$issuedDocumentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IssuedDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   registrationInfos<T extends Prisma.SchoolYear$registrationInfosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolYear$registrationInfosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BranchRegistrationInfoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   onlineAssignments<T extends Prisma.SchoolYear$onlineAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolYear$onlineAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OnlineAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  teacherPayslips<T extends Prisma.SchoolYear$teacherPayslipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolYear$teacherPayslipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeacherPayslipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -3505,6 +3705,30 @@ export type SchoolYear$onlineAssignmentsArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.OnlineAssignmentScalarFieldEnum | Prisma.OnlineAssignmentScalarFieldEnum[]
+}
+
+/**
+ * SchoolYear.teacherPayslips
+ */
+export type SchoolYear$teacherPayslipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TeacherPayslip
+   */
+  select?: Prisma.TeacherPayslipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TeacherPayslip
+   */
+  omit?: Prisma.TeacherPayslipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TeacherPayslipInclude<ExtArgs> | null
+  where?: Prisma.TeacherPayslipWhereInput
+  orderBy?: Prisma.TeacherPayslipOrderByWithRelationInput | Prisma.TeacherPayslipOrderByWithRelationInput[]
+  cursor?: Prisma.TeacherPayslipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TeacherPayslipScalarFieldEnum | Prisma.TeacherPayslipScalarFieldEnum[]
 }
 
 /**

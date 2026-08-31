@@ -342,6 +342,12 @@ export const createTeacherAction = action
         teacher = await prisma.teacher.create({
           data: {
             branchMemberId,
+            employmentKind: input.employmentKind ?? "NON_MATRICULE",
+            matriculeEtat:
+              input.employmentKind === "MATRICULE"
+                ? input.matriculeEtat?.trim()
+                : null,
+            payrollStartedOn: new Date(),
           },
         });
       }
@@ -718,6 +724,8 @@ export const getTeachersAction = action.handler(
         updatedAt: teacher.updatedAt,
         address: user?.address || "",
         image: user?.image || "",
+        employmentKind: teacher.employmentKind,
+        matriculeEtat: teacher.matriculeEtat || "",
         assignmentStatus:
           teacher.teaching.length > 0
             ? ("assigned" as const)
@@ -955,6 +963,18 @@ export const updateTeacherAction = action
     });
 
     if (canManageTeachers) {
+      await prisma.teacher.update({
+        where: { id: teacher.id },
+        data: {
+          employmentKind: input.employmentKind ?? "NON_MATRICULE",
+          matriculeEtat:
+            input.employmentKind === "MATRICULE"
+              ? input.matriculeEtat?.trim()
+              : null,
+          payrollStartedOn:
+            teacher.payrollStartedOn ?? new Date(),
+        },
+      });
       await syncTeacherTitulaire({
         branchId,
         teacherId: teacher.id,

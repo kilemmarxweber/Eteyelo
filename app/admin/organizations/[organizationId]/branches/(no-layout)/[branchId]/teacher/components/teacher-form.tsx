@@ -114,6 +114,8 @@ export function TeacherUpForm({
           coursId: initialData.coursId ?? "",
           image: initialData.image ?? "",
           cycles: initialData.cycles ?? [],
+          employmentKind: initialData.employmentKind ?? "NON_MATRICULE",
+          matriculeEtat: initialData.matriculeEtat ?? "",
         }
       : {
           username: "",
@@ -130,6 +132,8 @@ export function TeacherUpForm({
           coursId: "",
           image: "",
           cycles: [],
+          employmentKind: "NON_MATRICULE",
+          matriculeEtat: "",
         },
   });
 
@@ -478,6 +482,55 @@ export function TeacherUpForm({
                 fullName={fullName}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="employmentKind"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>Statut paie</FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      if (value !== "MATRICULE") form.setValue("matriculeEtat", "");
+                    }}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className={controlClass}>
+                        <SelectValue placeholder="Statut paie" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent position="popper">
+                      <SelectItem value="MATRICULE">Matriculé État</SelectItem>
+                      <SelectItem value="NON_MATRICULE">Non matriculé</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {form.watch("employmentKind") === "MATRICULE" ? (
+              <FormField
+                control={form.control}
+                name="matriculeEtat"
+                render={({ field }) => (
+                  <FormItem className={fieldClass}>
+                    <FormLabel className={labelClass}>Matricule de l'État</FormLabel>
+                    <FormControl>
+                      <Input
+                        inputSize="sm"
+                        placeholder="Numéro de matricule"
+                        className={controlClass}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : null}
 
             {isMultiCycle ? (
               <div className="sm:col-span-2">

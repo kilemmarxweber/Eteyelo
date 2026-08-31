@@ -14,6 +14,7 @@ import {
 } from "@/lib/people-variant";
 import { usesTrainingLabels } from "@/lib/training-labels";
 import { normalizeBranchType } from "@/lib/academic-structure";
+import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
 import type { SideLink } from "@/src/data/sidelinks";
 
 export type NavigationContext = "platform" | "organization" | "branch";
@@ -77,6 +78,10 @@ const FINANCE_OVERSIGHT_ROLES = [
 ];
 
 const TEACHER_ROLES = [ORG_ROLE.TEACHER, "TEACHER", "teacher"];
+
+/** Paie : menu et gestion des mises à jour réservés au propriétaire. */
+const PAYROLL_ROLES = OWNER_ONLY_MENU_ROLES;
+
 const TEACHER_TITULAIRE_ROLE = "TEACHER_TITULAIRE";
 
 const CAISSIER_ROLES = [
@@ -310,6 +315,12 @@ const staticSidebarMenu: StaticMenuItem[] = [
         icon: "paiement",
         roles: FINANCE_ROLES,
       },
+      {
+        title: "teacherPayroll",
+        href: "/admin/paie-enseignants",
+        icon: "finance",
+        roles: PAYROLL_ROLES,
+      },
     ],
   },
   {
@@ -451,13 +462,18 @@ function mapMenuItem(
   hideHrefs?: Set<string>,
   /** true = hideHrefs vient de la matrice DAC (OrganizationRole). */
   dacReady?: boolean,
+  /** Le rôle élevé est limité à la branche active. */
+  branchOwner?: boolean,
 ): SideLink | null {
   const dacGated = Object.prototype.hasOwnProperty.call(
     SIDEBAR_HREF_BRANCH_AREA,
     item.href,
   );
 
-  if (dacGated && dacReady && hideHrefs) {
+  if (branchOwner) {
+    // Le propriétaire de branche garde les menus de sa branche même si son
+    // rôle d'organisation est simplement `user`.
+  } else if (dacGated && dacReady && hideHrefs) {
     // Privilège catalogue (Voir) = source de vérité pour ces menus.
     if (hideHrefs.has(item.href)) return null;
   } else {
@@ -479,6 +495,7 @@ function mapMenuItem(
         cycles,
         hideHrefs,
         dacReady,
+        branchOwner,
       ),
     )
     .filter(Boolean) as SideLink[] | undefined;
@@ -555,6 +572,7 @@ export function buildStaticSideLinks(
   },
 ): SideLink[] {
   const context = resolveNavigationContext(pathname);
+  const branchOwner = isBranchOwnerSession(session);
   const roles = filterRolesForContext(
     getBetterAuthMenuRoles(session),
     context,
@@ -572,7 +590,11 @@ export function buildStaticSideLinks(
         SIDEBAR_HREF_BRANCH_AREA,
         item.href,
       );
-      if (hide.has(item.href) && !(dacReady && dacTop)) {
+      if (
+        hide.has(item.href) &&
+        !branchOwner &&
+        !(dacReady && dacTop)
+      ) {
         return null;
       }
       return mapMenuItem(
@@ -583,6 +605,7 @@ export function buildStaticSideLinks(
         resolvedCycles,
         hide,
         dacReady,
+        branchOwner,
       );
     })
     .filter(Boolean) as SideLink[];

@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { notifyTeacherPayrollImpact } from "@/lib/payroll/teacher-payroll-notifications";
 import { action } from "@/lib/zsa";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
@@ -128,7 +129,7 @@ export const recordTeacherEarlyExitAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, session, userId } = await requireBranchContext();
+    const { branchId, organizationId, session, userId } = await requireBranchContext();
     const now = nowLocal();
 
     const attendance = await prisma.teacherAttendance.findFirst({
@@ -156,7 +157,7 @@ export const recordTeacherEarlyExitAction = action
       input.reasonNote,
     );
 
-    return prisma.teacherAttendance.update({
+    const updated = await prisma.teacherAttendance.update({
       where: { id: attendance.id },
       data: {
         checkOut: now,
@@ -170,6 +171,16 @@ export const recordTeacherEarlyExitAction = action
             : attendance.status,
       },
     });
+    if (updated.status !== "EXCUSED") {
+      await notifyTeacherPayrollImpact({
+        branchId,
+        organizationId,
+        teacherId: updated.teacherId,
+        sessionId: updated.sessionId,
+        status: "EARLY_EXIT",
+      });
+    }
+    return updated;
   });
 
 /** Sortie anticipée personnel avec motif. */
@@ -225,7 +236,7 @@ export const closeStudentDayByVacationAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, session, userId } = await requireBranchContext();
+    const { branchId, organizationId, session, userId } = await requireBranchContext();
 
     const attendance = await prisma.studentAttendance.findFirst({
       where: { id: input.attendanceId, branchId },

@@ -1,4 +1,5 @@
 import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
+import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
 
 export function splitSessionRoles(value: unknown): string[] {
   if (Array.isArray(value)) {
@@ -89,6 +90,7 @@ export function canManageOrganization(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
+  if (isBranchOwnerSession(session, ...extraRoles)) return true;
   return hasSessionRole(
     session,
     [...APP_MANAGER_ROLES, ...ORG_MANAGER_ROLES],
@@ -127,6 +129,7 @@ export function canAccessFinanceArea(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
+  if (isBranchOwnerSession(session, ...extraRoles)) return true;
   return hasSessionRole(
     session,
     [
@@ -147,11 +150,38 @@ export function canAccessFinanceOversight(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
+  if (isBranchOwnerSession(session, ...extraRoles)) return true;
   return hasSessionRole(
     session,
     [...APP_MANAGER_ROLES, ORG_ROLE.OWNER, ORG_ROLE.GESTIONNAIRE],
     ...extraRoles,
   );
+}
+
+/** Paie enseignants : lecture pour direction, caisse et enseignant. */
+export function canAccessPayrollArea(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return isOrganizationOwnerSession(session, ...extraRoles);
+}
+
+export function canComputePayroll(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return isOrganizationOwnerSession(session, ...extraRoles);
+}
+
+export function canValidatePayroll(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return isOrganizationOwnerSession(session, ...extraRoles);
+}
+
+export function canPayPayroll(session: any, ...extraRoles: unknown[]): boolean {
+  return isOrganizationOwnerSession(session, ...extraRoles);
 }
 
 /**
@@ -276,6 +306,7 @@ export function isOrganizationOwnerSession(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
+  if (isBranchOwnerSession(session, ...extraRoles)) return true;
   return hasSessionRole(
     session,
     [APP_ROLE.OWNER, ORG_ROLE.OWNER, "proprietaire"],
@@ -319,6 +350,7 @@ export function canAccessBranchOrgSettings(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
+  if (isBranchOwnerSession(session, ...extraRoles)) return true;
   return hasSessionRole(
     session,
     [
@@ -580,6 +612,7 @@ export function canAccessLibraryArea(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
+  if (isBranchOwnerSession(session, ...extraRoles)) return true;
   return (
     isPlatformOwnerSession(session, ...extraRoles) ||
     hasSessionRole(

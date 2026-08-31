@@ -52,6 +52,11 @@ const sessionDirecteur = sessionWithOrgRole(ORG_ROLE.DIRECTEUR);
 const sessionPrefet = sessionWithOrgRole(ORG_ROLE.PREFET);
 const sessionEtudes = sessionWithOrgRole(ORG_ROLE.DIRECTEUR_ETUDES);
 const sessionGestionnaire = sessionWithOrgRole(ORG_ROLE.GESTIONNAIRE);
+const sessionBranchOwner = {
+  user: { role: "user" },
+  organization: { role: "user" },
+  branchMemberRole: "ADMIN",
+};
 
 function assertAreas(
   session: unknown,
@@ -173,6 +178,63 @@ test("Settings org avancés → refusés pour chef école / études ; ops/suppor
     canAccessBranchArea("branch_org_settings", sessionGestionnaire),
     true,
   );
+});
+
+test("propriétaire de branche → accès complet malgré user organisation", () => {
+  assertAreas(
+    sessionBranchOwner,
+    [
+      "finance",
+      "school_admin",
+      "teaching",
+      "results",
+      "branch_org_settings",
+      "school_ops_settings",
+      "support_settings",
+    ],
+    [],
+  );
+});
+
+test("paie → propriétaire uniquement", () => {
+  assert.equal(canAccessBranchArea("payroll", sessionBranchOwner), true);
+  assert.equal(canAccessBranchArea("payroll", sessionWithOrgRole(ORG_ROLE.OWNER)), true);
+  for (const role of [
+    ORG_ROLE.GESTIONNAIRE,
+    ORG_ROLE.DIRECTEUR,
+    ORG_ROLE.DIRECTEUR_ETUDES,
+    ORG_ROLE.CAISSIER,
+    ORG_ROLE.TEACHER,
+  ]) {
+    assert.equal(
+      canAccessBranchArea("payroll", sessionWithOrgRole(role)),
+      false,
+      `${role} ne doit pas accéder à la paie`,
+    );
+  }
+});
+
+test("paie avec DAC → un privilège payroll ne suffit pas sans propriétaire", () => {
+  process.env.PERMISSIONS_FROM_DAC = "true";
+  const delegatedPayroll = {
+    organization: {
+      role: ORG_ROLE.GESTIONNAIRE,
+      rolePermissions: {
+        [ORG_ROLE.GESTIONNAIRE]: {
+          payroll: ["read", "compute", "validate", "pay"],
+        },
+      },
+    },
+  };
+
+  assert.equal(canAccessBranchArea("payroll", delegatedPayroll), false);
+  assert.equal(
+    canAccessBranchArea("payroll", {
+      organization: { role: ORG_ROLE.OWNER, rolePermissions: {} },
+    }),
+    true,
+  );
+  process.env.PERMISSIONS_FROM_DAC = "false";
 });
 
 test("Org hub : caissier/teacher/student/parent exclus ; chef + études OK", () => {

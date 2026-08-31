@@ -30,6 +30,11 @@ function usesFinalistesForBranch(typebranch: unknown): boolean {
 
 export const BRANCH_ROUTE_RULES: BranchRouteRule[] = [
   {
+    suffix: "/paie-enseignants",
+    isAllowed: isSchoolBranch,
+    redirectTo: "/attendance",
+  },
+  {
     suffix: "/section",
     isAllowed: usesSectionOptionForBranch,
     redirectTo: "/classe",

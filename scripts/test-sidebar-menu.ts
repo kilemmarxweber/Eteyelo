@@ -209,6 +209,37 @@ test("owner : large accès — sans Ma présence / pointage perso", () => {
   assertExcludes(titles, ["myPresence", "messaging"], "owner");
 });
 
+test("propriétaire de branche : tous les menus malgré le rôle organisation user", () => {
+  const session = sessionWithOrgRole("user", {
+    user: { role: "user" },
+    branchMemberRole: "ADMIN",
+  });
+  const titles = menuTitles(session);
+  const finance = buildStaticSideLinks(session, BRANCH_PATH, "PRIMAIRE").find(
+    (item) => item.title === "finance",
+  );
+  const financeSubs = (finance?.sub ?? []).map((item) => item.title);
+
+  assertIncludes(
+    titles,
+    [
+      "dashboard",
+      "registration",
+      "attendance",
+      "candidatures",
+      "users",
+      "teaching",
+      "classes",
+      "finance",
+      "cursus",
+      "settings",
+      "help",
+    ],
+    "propriétaire de branche",
+  );
+  assertIncludes(financeSubs, ["teacherPayroll"], "paie propriétaire de branche");
+});
+
 test("gestionnaire garde le large (y compris Ma présence)", () => {
   const titles = menuTitles(sessionWithOrgRole(ORG_ROLE.GESTIONNAIRE));
   assertIncludes(

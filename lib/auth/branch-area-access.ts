@@ -3,6 +3,7 @@ import {
   canAccessDevoirsArea,
   canAccessFinanceArea,
   canAccessFinanceOversight,
+  canAccessPayrollArea,
   canAccessLibraryArea,
   canAccessNotesReadArea,
   canAccessPedagogyArea,
@@ -20,6 +21,7 @@ import {
   canAccessBranchAreaFromPermissions,
   isPermissionsFromDacEnabled,
 } from "@/lib/auth/resolve-branch-area-permission";
+import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
 import type { BranchArea } from "@/lib/auth/branch-area-permissions";
 
 export type { BranchArea };
@@ -36,6 +38,8 @@ export function canAccessBranchArea(
   area: BranchArea,
   session: unknown,
 ): boolean {
+  if (isBranchOwnerSession(session)) return true;
+
   if (isPermissionsFromDacEnabled()) {
     return canAccessBranchAreaFromPermissions(area, session);
   }
@@ -43,6 +47,8 @@ export function canAccessBranchArea(
   switch (area) {
     case "finance":
       return canAccessFinanceArea(session);
+    case "payroll":
+      return canAccessPayrollArea(session);
     case "fee_catalog":
     case "fee_types":
     case "exchange_rates":
