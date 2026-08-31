@@ -7,12 +7,14 @@ import { Building2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
 import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import { cn } from "@/lib/utils";
 
 /**
- * Lien vers la liste des branches — visible pour le propriétaire
- * afin de changer d'établissement depuis le header.
+ * Lien pour changer d’établissement depuis le header.
+ * - Propriétaire d’organisation → liste des branches
+ * - Propriétaire de branche (ADMIN) → sélecteur de ses branches
  *
  * Rendu différé après montage : useSession() peut différer SSR vs client
  * (hydratation).
@@ -32,7 +34,10 @@ export function OwnerBranchesLink({
   }, []);
 
   if (!mounted || isPending) return null;
-  if (!isOrganizationOwnerSession(session)) return null;
+
+  const isOrgOwner = isOrganizationOwnerSession(session);
+  const isBranchOwner = isBranchOwnerSession(session);
+  if (!isOrgOwner && !isBranchOwner) return null;
 
   const organizationId =
     (typeof params.organizationId === "string"
@@ -41,6 +46,10 @@ export function OwnerBranchesLink({
     pathname.match(/^\/admin\/organizations\/([^/]+)/)?.[1];
 
   if (!organizationId) return null;
+
+  const href = isOrgOwner
+    ? `/admin/organizations/${organizationId}/branches`
+    : `/admin/organizations/${organizationId}/branch-picker`;
 
   return (
     <Button
@@ -52,11 +61,7 @@ export function OwnerBranchesLink({
         className,
       )}
     >
-      <Link
-        href={`/admin/organizations/${organizationId}/branches`}
-        aria-label="Changer de branche"
-        title="Branches"
-      >
+      <Link href={href} aria-label="Changer de branche" title="Branches">
         <Building2 className="size-4 shrink-0" />
         <span className="hidden text-sm font-medium sm:inline">Branches</span>
       </Link>

@@ -271,10 +271,110 @@ export const getTeacherPayslipAction = action
           },
         },
         lines: { orderBy: [{ occurredOn: "asc" }, { createdAt: "asc" }] },
+        policy: { select: { lateGraceMinutes: true } },
       },
     });
     if (!row) throw new Error("Bulletin introuvable");
-    return row;
+
+    const sessionIds = row.lines
+      .map((line) => line.sessionId)
+      .filter((id): id is string => Boolean(id));
+    const sessions =
+      sessionIds.length > 0
+        ? await prisma.attendanceSession.findMany({
+            where: { id: { in: sessionIds }, branchId: context.branchId },
+            select: {
+              id: true,
+              startTime: true,
+              endTime: true,
+              teaching: {
+                select: {
+                  classe: {
+                    select: {
+                      nameClasse: true,
+                      creneau: { select: { durationCourse: true } },
+                    },
+                  },
+                  cours: { select: { nameCours: true } },
+                },
+              },
+              teacherAttendance: {
+                where: { teacherId: row.teacherId },
+                select: {
+                  status: true,
+                  checkIn: true,
+                  checkOut: true,
+                  earlyExit: true,
+                },
+              },
+            },
+          })
+        : [];
+    const sessionById = new Map(sessions.map((session) => [session.id, session]));
+    const grace =
+      row.policy?.lateGraceMinutes ??
+      (typeof row.policySnapshot === "object" &&
+      row.policySnapshot &&
+      "lateGraceMinutes" in row.policySnapshot
+        ? Number((row.policySnapshot as { lateGraceMinutes?: number }).lateGraceMinutes)
+        : 10);
+
+    return {
+      ...row,
+      lines: row.lines.map((line) => {
+        if (line.detail || !line.sessionId) return line;
+        const session = sessionById.get(line.sessionId);
+        if (!session) return line;
+        const attendance = session.teacherAttendance[0];
+        const plannedMinutes = Math.max(
+          0,
+          (session.endTime.getTime() - session.startTime.getTime()) / 60000 ||
+            session.teaching.classe?.creneau?.durationCourse ||
+            0,
+        );
+        const status = (attendance?.status ?? "ABSENT") as
+          | "PRESENT"
+          | "LATE"
+          | "ABSENT"
+          | "EXCUSED";
+        const lateMinutes =
+          attendance?.checkIn && status === "LATE"
+            ? Math.max(
+                0,
+                (attendance.checkIn.getTime() - session.startTime.getTime()) / 60000 -
+                  grace,
+              )
+            : 0;
+        const earlyExitMinutes =
+          attendance?.earlyExit && attendance.checkOut
+            ? Math.max(
+                0,
+                (session.endTime.getTime() - attendance.checkOut.getTime()) / 60000,
+              )
+            : 0;
+        return {
+          ...line,
+          detail: {
+            startTime: session.startTime.toISOString(),
+            endTime: session.endTime.toISOString(),
+            plannedMinutes: Math.round(plannedMinutes * 10) / 10,
+            lateMinutes: Math.round(lateMinutes * 10) / 10,
+            earlyExitMinutes: Math.round(earlyExitMinutes * 10) / 10,
+            lostMinutes: line.minutes,
+            checkIn: attendance?.checkIn?.toISOString() ?? null,
+            checkOut: attendance?.checkOut?.toISOString() ?? null,
+            status,
+            className: session.teaching.classe?.nameClasse ?? "Classe",
+            courseName: session.teaching.cours.nameCours,
+            graceMinutes: grace,
+            reason:
+              line.kind === "ABSENCE" || line.kind === "LATE" || line.kind === "EARLY_EXIT"
+                ? line.kind
+                : null,
+          },
+        };
+      }),
+    };
   });
 
 export const validateTeacherPayslipAction = action

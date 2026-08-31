@@ -8,6 +8,9 @@ import {
   getQuoteCurrency,
   roundCurrency,
 } from "@/lib/exchange-rate";
+import type { TeacherPayslipLineDetailSnapshot } from "@/lib/payroll/teacher-payslip-line-detail";
+
+export type { TeacherPayslipLineDetailSnapshot } from "@/lib/payroll/teacher-payslip-line-detail";
 
 const SCHOOL_CYCLES = new Set(["PRIMAIRE", "SECONDAIRE"]);
 
@@ -37,8 +40,15 @@ type SessionDetail = {
   className: string;
   courseName: string;
   status: "PRESENT" | "LATE" | "ABSENT" | "EXCUSED";
+  startTime: Date;
+  endTime: Date;
   durationMinutes: number;
+  lateMinutes: number;
+  earlyExitMinutes: number;
   lostMinutes: number;
+  checkIn: Date | null;
+  checkOut: Date | null;
+  graceMinutes: number;
   deduction: number;
   gross: number;
   reason: "ABSENCE" | "LATE" | "EARLY_EXIT" | null;
@@ -68,6 +78,10 @@ export type TeacherPayrollResult = {
   unjustifiedAbsences: number;
   plannedMinutes: number;
   lostMinutes: number;
+  /** Minutes prévues / semaine (volume forfait primaire, dérivé du mois). */
+  weeklyPlannedMinutes: number;
+  /** Taux de retenue par minute (forfait ÷ minutes prévues du mois). */
+  ratePerMinute: number;
   details: SessionDetail[];
 };
 
@@ -85,6 +99,20 @@ function roundInternal(value: number) {
 function sessionMinutes(start: Date, end: Date, fallback: number) {
   const actual = (end.getTime() - start.getTime()) / 60000;
   return actual > 0 ? actual : fallback;
+}
+
+/** Primaire forfait : durée contractuelle = créneau (30 min), pas l’écart horloge. */
+function primaryPlannedSessionMinutes(
+  creneauDuration: number | null | undefined,
+  policyMinutes: number,
+) {
+  if (creneauDuration != null && creneauDuration > 0) return creneauDuration;
+  return policyMinutes > 0 ? policyMinutes : 30;
+}
+
+function weeksInCalendarMonth(year: number, month: number) {
+  const days = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return Math.max(1, days / 7);
 }
 
 function teacherDisplayName(teacher: {
@@ -226,15 +254,15 @@ export async function calculateTeacherPayroll(input: {
     const cycle = session.teaching.classe?.cycle;
     if (!cycle || !SCHOOL_CYCLES.has(cycle)) continue;
     const payrollCycle = cycle as "PRIMAIRE" | "SECONDAIRE";
-    const fallbackDuration =
+    const creneauDuration = session.teaching.classe?.creneau?.durationCourse;
+    const duration =
       payrollCycle === "PRIMAIRE"
-        ? policy.primarySessionMinutes
-        : policy.secondarySessionMinutes;
-    const duration = sessionMinutes(
-      session.startTime,
-      session.endTime,
-      session.teaching.classe?.creneau?.durationCourse ?? fallbackDuration,
-    );
+        ? primaryPlannedSessionMinutes(creneauDuration, policy.primarySessionMinutes)
+        : sessionMinutes(
+            session.startTime,
+            session.endTime,
+            creneauDuration ?? policy.secondarySessionMinutes,
+          );
     const attendance = session.teacherAttendance[0];
     const status = (attendance?.status ?? "ABSENT") as SessionDetail["status"];
     const justified =
@@ -277,7 +305,7 @@ export async function calculateTeacherPayroll(input: {
           : policy.secondaryNonMatriculeSessionRate
         : 0;
     const sessionDeduction =
-      payrollCycle === "SECONDAIRE"
+      payrollCycle === "SECONDAIRE" && duration > 0
         ? sessionGross * (lost / duration)
         : 0;
 
@@ -306,29 +334,57 @@ export async function calculateTeacherPayroll(input: {
       className: session.teaching.classe?.nameClasse ?? "Classe",
       courseName: session.teaching.cours.nameCours,
       status,
+      startTime: session.startTime,
+      endTime: session.endTime,
       durationMinutes: roundInternal(duration),
+      lateMinutes: roundInternal(lateMinutes),
+      earlyExitMinutes: roundInternal(earlyExitMinutes),
       lostMinutes: roundInternal(lost),
+      checkIn: attendance?.checkIn ?? null,
+      checkOut: attendance?.checkOut ?? null,
+      graceMinutes: policy.lateGraceMinutes,
       deduction: roundCurrency(sessionDeduction, currencySnapshot.currency),
       gross: roundCurrency(sessionGross, currencySnapshot.currency),
       reason,
     });
   }
 
+  // Forfait primaire (MATRICULE 15 000 / NON_MATRICULE 70 000) :
+  // minutes_semaine ≈ minutes_mois ÷ semaines du calendrier
+  // taux_minute = forfait ÷ minutes_prévues_mois
+  // retenue_s = minutes_perdues_s × taux_minute
   const primaryGross =
     primarySessions > 0
       ? teacher.employmentKind === "MATRICULE"
         ? policy.primaryMatriculeMonthly
         : policy.primaryNonMatriculeMonthly
       : 0;
-  const primaryDeductions =
+  const primaryRatePerMinute =
+    primaryPlannedMinutes > 0 ? primaryGross / primaryPlannedMinutes : 0;
+  let primaryDeductions = 0;
+  for (const detail of details) {
+    if (detail.cycle !== "PRIMAIRE") continue;
+    const deduction = detail.lostMinutes * primaryRatePerMinute;
+    detail.deduction = roundCurrency(deduction, currencySnapshot.currency);
+    primaryDeductions += deduction;
+  }
+  const weeklyPlannedMinutes =
     primaryPlannedMinutes > 0
-      ? primaryGross * (primaryLostMinutes / primaryPlannedMinutes)
+      ? primaryPlannedMinutes /
+        weeksInCalendarMonth(input.period.year, input.period.month)
       : 0;
+
   const gross = roundCurrency(primaryGross + secondaryGross, currencySnapshot.currency);
   const deductions = roundCurrency(
     Math.min(gross, primaryDeductions + secondaryDeductions),
     currencySnapshot.currency,
   );
+  const secondaryPlanned = details
+    .filter((d) => d.cycle === "SECONDAIRE")
+    .reduce((sum, d) => sum + d.durationMinutes, 0);
+  const secondaryLost = details
+    .filter((d) => d.cycle === "SECONDAIRE")
+    .reduce((sum, d) => sum + d.lostMinutes, 0);
 
   return {
     teacherId: teacher.id,
@@ -352,8 +408,10 @@ export async function calculateTeacherPayroll(input: {
     lateSessions: primaryLateSessions + secondaryLateSessions,
     justifiedAbsences: primaryJustifiedAbsences + secondaryJustifiedAbsences,
     unjustifiedAbsences: primaryUnjustifiedAbsences + secondaryUnjustifiedAbsences,
-    plannedMinutes: roundInternal(primaryPlannedMinutes + details.filter((d) => d.cycle === "SECONDAIRE").reduce((sum, d) => sum + d.durationMinutes, 0)),
-    lostMinutes: roundInternal(primaryLostMinutes + details.reduce((sum, d) => sum + (d.cycle === "SECONDAIRE" ? d.lostMinutes : 0), 0)),
+    plannedMinutes: roundInternal(primaryPlannedMinutes + secondaryPlanned),
+    lostMinutes: roundInternal(primaryLostMinutes + secondaryLost),
+    weeklyPlannedMinutes: roundInternal(weeklyPlannedMinutes),
+    ratePerMinute: roundInternal(primaryRatePerMinute * 1000) / 1000,
     details,
   };
 }
@@ -407,38 +465,64 @@ export async function persistTeacherPayroll(
       : await tx.teacherPayslip.create({ data });
     await tx.teacherPayslipLine.deleteMany({ where: { payslipId: payslip.id } });
 
-    const lines: Prisma.TeacherPayslipLineCreateManyInput[] = result.details.map((detail) => ({
-      payslipId: payslip.id,
-      cycle: detail.cycle,
-      kind: (detail.reason === "ABSENCE"
-        ? "ABSENCE"
-        : detail.reason === "LATE"
-          ? "LATE"
-          : detail.reason === "EARLY_EXIT"
-            ? "EARLY_EXIT"
-            : "GROSS") as Prisma.TeacherPayslipLineCreateManyInput["kind"],
-      occurredOn: detail.occurredOn,
-      sessionId: detail.sessionId,
-      label: `${detail.className} · ${detail.courseName} · ${detail.status}`,
-      sessions: 1,
-      minutes: detail.lostMinutes,
-      amount: detail.reason ? detail.deduction : detail.gross,
-    }));
+    const lines: Prisma.TeacherPayslipLineCreateManyInput[] = result.details.map((detail) => {
+      const snapshot: TeacherPayslipLineDetailSnapshot = {
+        startTime: detail.startTime.toISOString(),
+        endTime: detail.endTime.toISOString(),
+        plannedMinutes: detail.durationMinutes,
+        lateMinutes: detail.lateMinutes,
+        earlyExitMinutes: detail.earlyExitMinutes,
+        lostMinutes: detail.lostMinutes,
+        checkIn: detail.checkIn?.toISOString() ?? null,
+        checkOut: detail.checkOut?.toISOString() ?? null,
+        status: detail.status,
+        className: detail.className,
+        courseName: detail.courseName,
+        graceMinutes: detail.graceMinutes,
+        reason: detail.reason,
+      };
+      return {
+        payslipId: payslip.id,
+        cycle: detail.cycle,
+        kind: (detail.reason === "ABSENCE"
+          ? "ABSENCE"
+          : detail.reason === "LATE"
+            ? "LATE"
+            : detail.reason === "EARLY_EXIT"
+              ? "EARLY_EXIT"
+              : "GROSS") as Prisma.TeacherPayslipLineCreateManyInput["kind"],
+        occurredOn: detail.occurredOn,
+        sessionId: detail.sessionId,
+        label: `${detail.className} · ${detail.courseName}`,
+        sessions: 1,
+        minutes: detail.lostMinutes,
+        amount: detail.reason ? detail.deduction : detail.gross,
+        detail: snapshot,
+      };
+    });
     if (result.details.some((detail) => detail.cycle === "PRIMAIRE")) {
+      const primaryMinutes = result.details
+        .filter((detail) => detail.cycle === "PRIMAIRE")
+        .reduce((sum, detail) => sum + detail.durationMinutes, 0);
+      const primaryGrossAmount =
+        result.gross -
+        result.details
+          .filter((detail) => detail.cycle === "SECONDAIRE")
+          .reduce((sum, detail) => sum + detail.gross, 0);
+      const rateLabel =
+        result.ratePerMinute > 0
+          ? ` · ${roundInternal(result.weeklyPlannedMinutes)} min/sem · ${roundInternal(primaryMinutes)} min/mois · ${result.ratePerMinute.toFixed(3)} /min`
+          : "";
       lines.unshift({
         payslipId: payslip.id,
         cycle: "PRIMAIRE",
         kind: "GROSS",
         occurredOn: undefined,
         sessionId: undefined,
-        label: "Forfait mensuel primaire",
+        label: `Forfait mensuel primaire${rateLabel}`,
         sessions: result.details.filter((detail) => detail.cycle === "PRIMAIRE").length,
-        minutes: result.details.filter((detail) => detail.cycle === "PRIMAIRE").reduce((sum, detail) => sum + detail.durationMinutes, 0),
-        amount:
-          result.gross -
-          result.details
-            .filter((detail) => detail.cycle === "SECONDAIRE")
-            .reduce((sum, detail) => sum + detail.gross, 0),
+        minutes: primaryMinutes,
+        amount: primaryGrossAmount,
       });
     }
     if (lines.length > 0) await tx.teacherPayslipLine.createMany({ data: lines });

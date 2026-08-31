@@ -15,6 +15,7 @@ import {
   canPayPayroll,
   canValidatePayroll,
 } from "@/lib/auth/session-roles";
+import { calendarYearForSchoolMonth } from "@/lib/payroll/calendar-year";
 import {
   getTeacherPayslipsAction,
   getPayrollSchoolYearsAction,
@@ -74,15 +75,6 @@ const MONTHS = [
   "Novembre",
   "Décembre",
 ];
-
-function calendarYearForMonth(schoolYear: SchoolYearOption, month: number) {
-  const start = new Date(schoolYear.startYear);
-  const end = new Date(schoolYear.endYear);
-  const startMonth = start.getUTCMonth() + 1;
-  return month >= startMonth
-    ? start.getUTCFullYear()
-    : end.getUTCFullYear();
-}
 
 function formatAmount(value: number, currency: string) {
   return new Intl.NumberFormat("fr-FR", {
@@ -161,7 +153,7 @@ export default function PayrollClient() {
       const current = options.find((schoolYear) => schoolYear.isCurrentYear) ?? options[0];
       if (current) {
         setSchoolYearId(current.id);
-        setYear(calendarYearForMonth(current, month));
+        setYear(calendarYearForSchoolMonth(current, month));
       } else {
         setLoading(false);
       }
@@ -204,13 +196,13 @@ export default function PayrollClient() {
   function handleSchoolYearChange(value: string) {
     const selected = schoolYears.find((schoolYear) => schoolYear.id === value);
     setSchoolYearId(value);
-    if (selected) setYear(calendarYearForMonth(selected, month));
+    if (selected) setYear(calendarYearForSchoolMonth(selected, month));
   }
 
   function handleMonthChange(value: number) {
     setMonth(value);
     const selected = schoolYears.find((schoolYear) => schoolYear.id === schoolYearId);
-    if (selected) setYear(calendarYearForMonth(selected, value));
+    if (selected) setYear(calendarYearForSchoolMonth(selected, value));
   }
 
   async function savePolicy() {

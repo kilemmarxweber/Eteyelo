@@ -1,13 +1,12 @@
 /**
- * Accès élevés propres à la branche active.
+ * Accès complets propres à la branche active (menus + zones).
  *
- * Les anciennes données utilisent `ADMIN` ou `DIRECTOR` pour représenter
- * l'administrateur / propriétaire d'une branche. Les alias OWNER sont aussi
- * acceptés pour les données ou migrations futures.
+ * Réservé au **propriétaire** de branche (`ADMIN` / alias owner).
+ * Le rôle `DIRECTOR` (Directeur) n’a pas ce bypass : il reste limité
+ * à ses privilèges d’organisation / pédagogie.
  */
 const FULL_BRANCH_ACCESS_ROLES = new Set([
   "admin",
-  "director",
   "owner",
   "proprietaire",
   "branch_admin",

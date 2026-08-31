@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import type { TeacherPayslipLineDetailSnapshot } from "@/lib/payroll/teacher-payslip-line-detail";
 
 type PayslipForPdf = {
   id: string;
@@ -25,7 +26,15 @@ type PayslipForPdf = {
     sessions: number;
     minutes: number;
     amount: number;
+    detail?: TeacherPayslipLineDetailSnapshot | null;
   }>;
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  PRESENT: "Présent",
+  LATE: "Retard",
+  ABSENT: "Absent",
+  EXCUSED: "Excusé",
 };
 
 function amount(value: number, currency: string) {
@@ -36,25 +45,48 @@ function amount(value: number, currency: string) {
   }).format(value);
 }
 
+function clock(iso: string | null | undefined) {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Africa/Kinshasa",
+    });
+  } catch {
+    return "—";
+  }
+}
+
+function minutes(value: number | null | undefined) {
+  if (value == null || Number.isNaN(value)) return "—";
+  return `${value.toFixed(value % 1 === 0 ? 0 : 1)}`;
+}
+
+function parseDetail(value: unknown): TeacherPayslipLineDetailSnapshot | null {
+  if (!value || typeof value !== "object") return null;
+  return value as TeacherPayslipLineDetailSnapshot;
+}
+
 export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const user = payslip.teacher.branchMember?.member.user;
   const teacherName = [user?.name, user?.postnom, user?.prenom].filter(Boolean).join(" ");
 
   doc.setFontSize(16);
-  doc.text("BULLETIN DE PAIE — ENSEIGNANT", 105, 18, { align: "center" });
+  doc.text("BULLETIN DE PAIE — ENSEIGNANT", 148, 14, { align: "center" });
   doc.setFontSize(10);
-  doc.text(`Période : ${String(payslip.month).padStart(2, "0")}/${payslip.year}`, 14, 30);
-  doc.text(`Enseignant : ${teacherName || "Enseignant"}`, 14, 37);
+  doc.text(`Période : ${String(payslip.month).padStart(2, "0")}/${payslip.year}`, 14, 24);
+  doc.text(`Enseignant : ${teacherName || "Enseignant"}`, 14, 30);
   doc.text(
     `Statut : ${payslip.teacher.employmentKind === "MATRICULE" ? "Matriculé État" : "Non matriculé"}${payslip.teacher.matriculeEtat ? ` (${payslip.teacher.matriculeEtat})` : ""}`,
     14,
-    44,
+    36,
   );
-  doc.text(`Devise de base : ${payslip.currency}`, 14, 51);
+  doc.text(`Devise de base : ${payslip.currency}`, 14, 42);
 
   autoTable(doc, {
-    startY: 59,
+    startY: 48,
     head: [["Brut", "Retenues", "Net à payer", "Statut"]],
     body: [[
       amount(payslip.gross, payslip.currency),
@@ -63,28 +95,66 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
       payslip.status,
     ]],
     theme: "grid",
-    styles: { fontSize: 10 },
+    styles: { fontSize: 9 },
     headStyles: { fillColor: [30, 64, 175] },
   });
 
+  const detailRows = payslip.lines
+    .map((line) => {
+      const detail = parseDetail(line.detail);
+      if (line.kind === "GROSS" && !line.occurredOn && !detail) {
+        return [
+          "—",
+          "—",
+          "—",
+          minutes(line.minutes),
+          "—",
+          "—",
+          "—",
+          minutes(line.minutes),
+          "Forfait",
+          line.label,
+          amount(line.amount, payslip.currency),
+        ];
+      }
+      return [
+        line.occurredOn ? new Date(line.occurredOn).toLocaleDateString("fr-FR") : "",
+        clock(detail?.startTime),
+        clock(detail?.endTime),
+        minutes(detail?.plannedMinutes),
+        `${clock(detail?.checkIn)} / ${clock(detail?.checkOut)}`,
+        minutes(detail?.lateMinutes ?? (line.kind === "LATE" ? line.minutes : 0)),
+        minutes(detail?.earlyExitMinutes),
+        minutes(detail?.lostMinutes ?? line.minutes),
+        STATUS_LABELS[detail?.status ?? ""] ?? detail?.status ?? line.kind,
+        `${line.label}${line.cycle ? ` (${line.cycle})` : ""}`,
+        amount(line.amount, payslip.currency),
+      ];
+    });
+
   autoTable(doc, {
-    startY: 82,
-    head: [["Date", "Cycle", "Motif / séance", "Séances", "Minutes", "Montant"]],
-    body: payslip.lines.map((line) => [
-      line.occurredOn ? new Date(line.occurredOn).toLocaleDateString("fr-FR") : "",
-      line.cycle ?? "",
-      line.label,
-      String(line.sessions),
-      line.minutes.toFixed(1),
-      amount(line.amount, payslip.currency),
-    ]),
+    startY: 70,
+    head: [[
+      "Date",
+      "Début",
+      "Fin",
+      "Durée",
+      "Pointage",
+      "Retard",
+      "Sortie ant.",
+      "Perdues",
+      "Statut",
+      "Séance",
+      "Montant",
+    ]],
+    body: detailRows,
     theme: "striped",
-    styles: { fontSize: 8 },
+    styles: { fontSize: 7 },
     headStyles: { fillColor: [30, 64, 175] },
   });
 
   doc.setFontSize(8);
-  doc.text("Document généré par Eteyelo / KlamboCore", 105, 287, { align: "center" });
+  doc.text("Document généré par Eteyelo / KlamboCore", 148, 200, { align: "center" });
   const safeName = (teacherName || "enseignant").replace(/[^\p{L}\p{N}]+/gu, "-");
   doc.save(`bulletin-paie-${safeName}-${payslip.year}-${String(payslip.month).padStart(2, "0")}.pdf`);
 }

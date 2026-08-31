@@ -67,10 +67,23 @@ export async function notifyTeacherPayrollImpact(input: {
   if (!branch || !session || !attendance) return;
   if (attendance.absenceCase?.status === "ACCEPTED") return;
 
-  const duration = Math.max(
-    1,
-    (session.endTime.getTime() - session.startTime.getTime()) / 60000,
-  );
+  const cycle = session.teaching.classe?.cycle === "PRIMAIRE" ? "PRIMAIRE" : "SECONDAIRE";
+  const creneauDuration = session.teaching.classe?.creneau?.durationCourse;
+  const duration =
+    cycle === "PRIMAIRE"
+      ? Math.max(
+          1,
+          creneauDuration && creneauDuration > 0
+            ? creneauDuration
+            : (policy?.primarySessionMinutes ?? 30),
+        )
+      : Math.max(
+          1,
+          (session.endTime.getTime() - session.startTime.getTime()) / 60000 ||
+            creneauDuration ||
+            policy?.secondarySessionMinutes ||
+            45,
+        );
   const grace = policy?.lateGraceMinutes ?? 10;
   const lost =
     input.status === "ABSENT"
@@ -111,17 +124,53 @@ export async function notifyTeacherPayrollImpact(input: {
   const user = teacher?.branchMember?.member?.user;
   if (!user) return;
 
-  const cycle = session.teaching.classe?.cycle === "PRIMAIRE" ? "PRIMAIRE" : "SECONDAIRE";
-  let estimate =
-    cycle === "SECONDAIRE"
-      ? teacher.employmentKind === "MATRICULE"
+  let estimate: number;
+  if (cycle === "SECONDAIRE") {
+    estimate =
+      teacher.employmentKind === "MATRICULE"
         ? (policy?.secondaryHourlyRate ?? 1500) *
           ((policy?.secondaryMatriculePrimePercent ?? 30) / 100) *
           (lost / 60)
-        : (policy?.secondaryNonMatriculeSessionRate ?? 1500) * (lost / duration)
-      : teacher.employmentKind === "MATRICULE"
-        ? policy?.primaryMatriculeMonthly ?? 15000
-        : policy?.primaryNonMatriculeMonthly ?? 70000;
+        : (policy?.secondaryNonMatriculeSessionRate ?? 1500) * (lost / duration);
+  } else {
+    // Forfait primaire : taux/min = forfait ÷ minutes prévues du mois (créneau 30 min)
+    const monthStart = new Date(
+      Date.UTC(session.date.getUTCFullYear(), session.date.getUTCMonth(), 1),
+    );
+    const monthEnd = new Date(
+      Date.UTC(session.date.getUTCFullYear(), session.date.getUTCMonth() + 1, 1),
+    );
+    const monthSessions = await prisma.attendanceSession.findMany({
+      where: {
+        branchId: input.branchId,
+        date: { gte: monthStart, lt: monthEnd },
+        teaching: {
+          teacherId: input.teacherId,
+          branchId: input.branchId,
+          classe: { cycle: "PRIMAIRE" },
+        },
+      },
+      select: {
+        teaching: {
+          select: { classe: { select: { creneau: { select: { durationCourse: true } } } } },
+        },
+      },
+    });
+    const primaryMinutes = monthSessions.reduce((sum, row) => {
+      const minutes =
+        row.teaching.classe?.creneau?.durationCourse &&
+        row.teaching.classe.creneau.durationCourse > 0
+          ? row.teaching.classe.creneau.durationCourse
+          : (policy?.primarySessionMinutes ?? 30);
+      return sum + minutes;
+    }, 0);
+    const forfait =
+      teacher.employmentKind === "MATRICULE"
+        ? (policy?.primaryMatriculeMonthly ?? 15000)
+        : (policy?.primaryNonMatriculeMonthly ?? 70000);
+    const ratePerMinute = primaryMinutes > 0 ? forfait / primaryMinutes : 0;
+    estimate = ratePerMinute * lost;
+  }
   estimate = roundCurrency(estimate, currency);
 
   const contextLabel = `${session.teaching.classe?.nameClasse ?? "Classe"} · ${session.teaching.cours.nameCours}`;
@@ -195,7 +244,9 @@ export async function notifyTeacherPayrollImpact(input: {
         currency: currency as CurrencyCode,
         rule:
           input.status === "ABSENT"
-            ? "absence non justifiée : retenue de la séance"
+            ? cycle === "PRIMAIRE"
+              ? "absence non justifiée : retenue au prorata du forfait mensuel (taux à la minute)"
+              : "absence non justifiée : retenue de la séance"
             : input.status === "EARLY_EXIT"
               ? "minutes non effectuées jusqu'à la fin de la séance"
               : `minutes au-delà de la franchise de ${grace} min`,

@@ -295,6 +295,8 @@ function AbsenceNotificationRow({
   const createdAt =
     item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt);
   const isPayment = item.type === "PAYMENT";
+  const isPayroll =
+    item.type === "PAYROLL" || item.type === "PAYROLL_DEDUCTION";
   const canReplyDirect =
     Boolean(onReply) &&
     (item.type === "JUSTIFICATION_SUBMITTED" ||
@@ -316,14 +318,14 @@ function AbsenceNotificationRow({
     <div className="group flex items-start gap-3 border-b border-border/50 px-4 py-3 last:border-0 transition-colors hover:bg-accent/50">
       <div
         className={
-          isPayment
+          isPayment || isPayroll
             ? "flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600"
             : item.type.startsWith("GRADE_MODIFICATION")
               ? "flex size-9 shrink-0 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-600"
               : "flex size-9 shrink-0 items-center justify-center rounded-full bg-rose-500/10 text-rose-600"
         }
       >
-        {isPayment ? (
+        {isPayment || isPayroll ? (
           <Banknote className="size-4" />
         ) : item.type.startsWith("GRADE_MODIFICATION") ? (
           <FilePenLine className="size-4" />
@@ -640,6 +642,23 @@ export function NotificationBell() {
     [loadCount],
   );
 
+  const dismissAppNotification = useCallback(
+    (notificationId: string, href?: string | null) => {
+      setItems((current) =>
+        current.filter(
+          (row) => !(row.kind === "absence" && row.id === notificationId),
+        ),
+      );
+      setPendingCount((count) => Math.max(0, count - 1));
+      setOpen(false);
+      void markAbsenceNotificationReadAction({ notificationId }).then(() => {
+        void loadCount();
+      });
+      if (href) router.push(href);
+    },
+    [loadCount, router],
+  );
+
   if (!params.branchId) return null;
 
   return (
@@ -775,9 +794,7 @@ export function NotificationBell() {
                       item={item}
                       onOpen={(row) => {
                         if (row.type === "PAYMENT") {
-                          void markAbsenceNotificationReadAction({
-                            notificationId: row.id,
-                          }).then(() => void loadRequests());
+                          dismissAppNotification(row.id);
                           return;
                         }
                         if (row.type === "GRADE_MODIFICATION_SUBMITTED") {
@@ -786,10 +803,7 @@ export function NotificationBell() {
                               row.gradeModificationRequestId,
                             );
                           }
-                          void markAbsenceNotificationReadAction({
-                            notificationId: row.id,
-                          }).then(() => void loadRequests());
-                          setOpen(false);
+                          dismissAppNotification(row.id);
                           return;
                         }
                         if (row.type === "GRADE_MODIFICATION_DECISION") {
@@ -798,13 +812,22 @@ export function NotificationBell() {
                               row.gradeModificationRequestId,
                             );
                           }
-                          void markAbsenceNotificationReadAction({
-                            notificationId: row.id,
-                          }).then(() => void loadRequests());
-                          setOpen(false);
+                          dismissAppNotification(row.id);
                           return;
                         }
-                        if (!row.case) return;
+                        // Paie / liens directs : pas de dossier d'absence.
+                        if (
+                          row.type === "PAYROLL" ||
+                          row.type === "PAYROLL_DEDUCTION" ||
+                          (!row.case && row.href)
+                        ) {
+                          dismissAppNotification(row.id, row.href);
+                          return;
+                        }
+                        if (!row.case) {
+                          dismissAppNotification(row.id, row.href);
+                          return;
+                        }
                         const mode =
                           row.type === "ABSENCE" &&
                           (row.case.status === "OPEN" ||
@@ -821,6 +844,17 @@ export function NotificationBell() {
                         if (!row.case || !params.organizationId) return;
                         void markAbsenceNotificationReadAction({
                           notificationId: row.id,
+                        }).then(() => {
+                          setItems((current) =>
+                            current.filter(
+                              (item) =>
+                                !(
+                                  item.kind === "absence" &&
+                                  item.id === row.id
+                                ),
+                            ),
+                          );
+                          void loadCount();
                         });
                         openMessagingDrawer({
                           contextType: "ABSENCE_CASE",

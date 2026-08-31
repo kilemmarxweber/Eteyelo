@@ -93,6 +93,8 @@ export default function Settings({ children }: { children: React.ReactNode }) {
     session?.user?.id,
     session?.organization?.id,
     session?.session?.activeOrganizationId,
+    session?.session?.activeBranchId,
+    session?.branchMemberRole,
   ]);
 
   const isBranchOwner = sessionReady && isBranchOwnerSession(session);
@@ -288,6 +290,9 @@ export default function Settings({ children }: { children: React.ReactNode }) {
       .filter((item) => {
         if (!canAccess(item.access)) return false;
         if (item.primaryOnly && !showPrimaryDomains) return false;
+        // Propriétaire de branche : les flags DAC org (`user`) ne doivent
+        // pas masquer les paramètres déjà autorisés via isBranchOwner.
+        if (isBranchOwner) return true;
         if (item.dacKey && Object.keys(settingsReads).length > 0) {
           return settingsReads[item.dacKey] === true;
         }

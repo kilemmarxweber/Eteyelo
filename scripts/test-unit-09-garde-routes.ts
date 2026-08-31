@@ -196,6 +196,27 @@ test("propriétaire de branche → accès complet malgré user organisation", ()
   );
 });
 
+test("directeur de branche → pas d’accès complet (contrairement au propriétaire ADMIN)", () => {
+  const sessionBranchDirector = {
+    user: { role: "user" },
+    organization: { role: "user" },
+    branchMemberRole: "DIRECTOR",
+  };
+  assertAreas(
+    sessionBranchDirector,
+    [],
+    [
+      "finance",
+      "school_admin",
+      "teaching",
+      "branch_org_settings",
+      "school_ops_settings",
+      "support_settings",
+      "payroll",
+    ],
+  );
+});
+
 test("paie → propriétaire uniquement", () => {
   assert.equal(canAccessBranchArea("payroll", sessionBranchOwner), true);
   assert.equal(canAccessBranchArea("payroll", sessionWithOrgRole(ORG_ROLE.OWNER)), true);

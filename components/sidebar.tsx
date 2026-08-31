@@ -84,7 +84,14 @@ export default function Sidebar({
     return () => {
       ignore = true;
     };
-  }, [menuReady, session?.user?.id, session?.organization?.id, session?.session?.activeOrganizationId]);
+  }, [
+    menuReady,
+    session?.user?.id,
+    session?.organization?.id,
+    session?.session?.activeOrganizationId,
+    session?.session?.activeBranchId,
+    session?.branchMemberRole,
+  ]);
 
   const sessionForLinks = menuReady ? session : null;
   const rawLinks = buildStaticSideLinks(

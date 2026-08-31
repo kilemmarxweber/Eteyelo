@@ -7496,6 +7496,7 @@ export const TeacherPayslipLineScalarFieldEnum = {
   sessions: 'sessions',
   minutes: 'minutes',
   amount: 'amount',
+  detail: 'detail',
   createdAt: 'createdAt'
 } as const
 

@@ -16,6 +16,7 @@ import {
   canAccessSupportSettings,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
+import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
 import { prisma } from "@/lib/prisma";
 
 export type SidebarPermissionFlags = {
@@ -54,6 +55,16 @@ export async function getSidebarPermissionFlagsAction(): Promise<SidebarPermissi
 
   if (!organizationId) {
     return empty;
+  }
+
+  // Propriétaire de branche (ADMIN) : tous les menus / params de sa branche,
+  // même si le rôle d’organisation est `user` (matrice DAC vide).
+  if (isBranchOwnerSession(session)) {
+    return {
+      hideHrefs: await hideMessagingIfDisabled(organizationId, []),
+      settingsReads: defaultSettingsReads(true),
+      inscriptionRead: true,
+    };
   }
 
   if (isPermissionsFromDacEnabled()) {

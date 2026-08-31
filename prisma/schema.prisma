@@ -1371,8 +1371,11 @@ model TeacherPayslipLine {
   sessionId   String?
   label       String
   sessions    Int                    @default(0)
+  /// Minutes perdues (retenue) — détail séance dans `detail`
   minutes     Float                  @default(0)
   amount      Float                  @default(0)
+  /// Snapshot séance : début/fin, durée prévue, retard, pointage…
+  detail      Json?
   createdAt   DateTime               @default(now())
 
   @@index([payslipId])

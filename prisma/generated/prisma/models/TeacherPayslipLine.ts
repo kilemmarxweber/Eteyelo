@@ -77,6 +77,7 @@ export type TeacherPayslipLineCountAggregateOutputType = {
   sessions: number
   minutes: number
   amount: number
+  detail: number
   createdAt: number
   _all: number
 }
@@ -133,6 +134,7 @@ export type TeacherPayslipLineCountAggregateInputType = {
   sessions?: true
   minutes?: true
   amount?: true
+  detail?: true
   createdAt?: true
   _all?: true
 }
@@ -234,6 +236,7 @@ export type TeacherPayslipLineGroupByOutputType = {
   sessions: number
   minutes: number
   amount: number
+  detail: runtime.JsonValue | null
   createdAt: Date
   _count: TeacherPayslipLineCountAggregateOutputType | null
   _avg: TeacherPayslipLineAvgAggregateOutputType | null
@@ -271,6 +274,7 @@ export type TeacherPayslipLineWhereInput = {
   sessions?: Prisma.IntFilter<"TeacherPayslipLine"> | number
   minutes?: Prisma.FloatFilter<"TeacherPayslipLine"> | number
   amount?: Prisma.FloatFilter<"TeacherPayslipLine"> | number
+  detail?: Prisma.JsonNullableFilter<"TeacherPayslipLine">
   createdAt?: Prisma.DateTimeFilter<"TeacherPayslipLine"> | Date | string
   payslip?: Prisma.XOR<Prisma.TeacherPayslipScalarRelationFilter, Prisma.TeacherPayslipWhereInput>
 }
@@ -286,6 +290,7 @@ export type TeacherPayslipLineOrderByWithRelationInput = {
   sessions?: Prisma.SortOrder
   minutes?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  detail?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   payslip?: Prisma.TeacherPayslipOrderByWithRelationInput
 }
@@ -304,6 +309,7 @@ export type TeacherPayslipLineWhereUniqueInput = Prisma.AtLeast<{
   sessions?: Prisma.IntFilter<"TeacherPayslipLine"> | number
   minutes?: Prisma.FloatFilter<"TeacherPayslipLine"> | number
   amount?: Prisma.FloatFilter<"TeacherPayslipLine"> | number
+  detail?: Prisma.JsonNullableFilter<"TeacherPayslipLine">
   createdAt?: Prisma.DateTimeFilter<"TeacherPayslipLine"> | Date | string
   payslip?: Prisma.XOR<Prisma.TeacherPayslipScalarRelationFilter, Prisma.TeacherPayslipWhereInput>
 }, "id">
@@ -319,6 +325,7 @@ export type TeacherPayslipLineOrderByWithAggregationInput = {
   sessions?: Prisma.SortOrder
   minutes?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  detail?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.TeacherPayslipLineCountOrderByAggregateInput
   _avg?: Prisma.TeacherPayslipLineAvgOrderByAggregateInput
@@ -341,6 +348,7 @@ export type TeacherPayslipLineScalarWhereWithAggregatesInput = {
   sessions?: Prisma.IntWithAggregatesFilter<"TeacherPayslipLine"> | number
   minutes?: Prisma.FloatWithAggregatesFilter<"TeacherPayslipLine"> | number
   amount?: Prisma.FloatWithAggregatesFilter<"TeacherPayslipLine"> | number
+  detail?: Prisma.JsonNullableWithAggregatesFilter<"TeacherPayslipLine">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"TeacherPayslipLine"> | Date | string
 }
 
@@ -354,6 +362,7 @@ export type TeacherPayslipLineCreateInput = {
   sessions?: number
   minutes?: number
   amount?: number
+  detail?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   payslip: Prisma.TeacherPayslipCreateNestedOneWithoutLinesInput
 }
@@ -369,6 +378,7 @@ export type TeacherPayslipLineUncheckedCreateInput = {
   sessions?: number
   minutes?: number
   amount?: number
+  detail?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -382,6 +392,7 @@ export type TeacherPayslipLineUpdateInput = {
   sessions?: Prisma.IntFieldUpdateOperationsInput | number
   minutes?: Prisma.FloatFieldUpdateOperationsInput | number
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  detail?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   payslip?: Prisma.TeacherPayslipUpdateOneRequiredWithoutLinesNestedInput
 }
@@ -397,6 +408,7 @@ export type TeacherPayslipLineUncheckedUpdateInput = {
   sessions?: Prisma.IntFieldUpdateOperationsInput | number
   minutes?: Prisma.FloatFieldUpdateOperationsInput | number
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  detail?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -411,6 +423,7 @@ export type TeacherPayslipLineCreateManyInput = {
   sessions?: number
   minutes?: number
   amount?: number
+  detail?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -424,6 +437,7 @@ export type TeacherPayslipLineUpdateManyMutationInput = {
   sessions?: Prisma.IntFieldUpdateOperationsInput | number
   minutes?: Prisma.FloatFieldUpdateOperationsInput | number
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  detail?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -438,6 +452,7 @@ export type TeacherPayslipLineUncheckedUpdateManyInput = {
   sessions?: Prisma.IntFieldUpdateOperationsInput | number
   minutes?: Prisma.FloatFieldUpdateOperationsInput | number
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  detail?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -462,6 +477,7 @@ export type TeacherPayslipLineCountOrderByAggregateInput = {
   sessions?: Prisma.SortOrder
   minutes?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  detail?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -561,6 +577,7 @@ export type TeacherPayslipLineCreateWithoutPayslipInput = {
   sessions?: number
   minutes?: number
   amount?: number
+  detail?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -574,6 +591,7 @@ export type TeacherPayslipLineUncheckedCreateWithoutPayslipInput = {
   sessions?: number
   minutes?: number
   amount?: number
+  detail?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -617,6 +635,7 @@ export type TeacherPayslipLineScalarWhereInput = {
   sessions?: Prisma.IntFilter<"TeacherPayslipLine"> | number
   minutes?: Prisma.FloatFilter<"TeacherPayslipLine"> | number
   amount?: Prisma.FloatFilter<"TeacherPayslipLine"> | number
+  detail?: Prisma.JsonNullableFilter<"TeacherPayslipLine">
   createdAt?: Prisma.DateTimeFilter<"TeacherPayslipLine"> | Date | string
 }
 
@@ -630,6 +649,7 @@ export type TeacherPayslipLineCreateManyPayslipInput = {
   sessions?: number
   minutes?: number
   amount?: number
+  detail?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -643,6 +663,7 @@ export type TeacherPayslipLineUpdateWithoutPayslipInput = {
   sessions?: Prisma.IntFieldUpdateOperationsInput | number
   minutes?: Prisma.FloatFieldUpdateOperationsInput | number
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  detail?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -656,6 +677,7 @@ export type TeacherPayslipLineUncheckedUpdateWithoutPayslipInput = {
   sessions?: Prisma.IntFieldUpdateOperationsInput | number
   minutes?: Prisma.FloatFieldUpdateOperationsInput | number
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  detail?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -669,6 +691,7 @@ export type TeacherPayslipLineUncheckedUpdateManyWithoutPayslipInput = {
   sessions?: Prisma.IntFieldUpdateOperationsInput | number
   minutes?: Prisma.FloatFieldUpdateOperationsInput | number
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  detail?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -685,6 +708,7 @@ export type TeacherPayslipLineSelect<ExtArgs extends runtime.Types.Extensions.In
   sessions?: boolean
   minutes?: boolean
   amount?: boolean
+  detail?: boolean
   createdAt?: boolean
   payslip?: boolean | Prisma.TeacherPayslipDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["teacherPayslipLine"]>
@@ -700,6 +724,7 @@ export type TeacherPayslipLineSelectCreateManyAndReturn<ExtArgs extends runtime.
   sessions?: boolean
   minutes?: boolean
   amount?: boolean
+  detail?: boolean
   createdAt?: boolean
   payslip?: boolean | Prisma.TeacherPayslipDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["teacherPayslipLine"]>
@@ -715,6 +740,7 @@ export type TeacherPayslipLineSelectUpdateManyAndReturn<ExtArgs extends runtime.
   sessions?: boolean
   minutes?: boolean
   amount?: boolean
+  detail?: boolean
   createdAt?: boolean
   payslip?: boolean | Prisma.TeacherPayslipDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["teacherPayslipLine"]>
@@ -730,10 +756,11 @@ export type TeacherPayslipLineSelectScalar = {
   sessions?: boolean
   minutes?: boolean
   amount?: boolean
+  detail?: boolean
   createdAt?: boolean
 }
 
-export type TeacherPayslipLineOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "payslipId" | "cycle" | "kind" | "occurredOn" | "sessionId" | "label" | "sessions" | "minutes" | "amount" | "createdAt", ExtArgs["result"]["teacherPayslipLine"]>
+export type TeacherPayslipLineOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "payslipId" | "cycle" | "kind" | "occurredOn" | "sessionId" | "label" | "sessions" | "minutes" | "amount" | "detail" | "createdAt", ExtArgs["result"]["teacherPayslipLine"]>
 export type TeacherPayslipLineInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   payslip?: boolean | Prisma.TeacherPayslipDefaultArgs<ExtArgs>
 }
@@ -758,8 +785,15 @@ export type $TeacherPayslipLinePayload<ExtArgs extends runtime.Types.Extensions.
     sessionId: string | null
     label: string
     sessions: number
+    /**
+     * Minutes perdues (retenue) — détail séance dans `detail`
+     */
     minutes: number
     amount: number
+    /**
+     * Snapshot séance : début/fin, durée prévue, retard, pointage…
+     */
+    detail: runtime.JsonValue | null
     createdAt: Date
   }, ExtArgs["result"]["teacherPayslipLine"]>
   composites: {}
@@ -1195,6 +1229,7 @@ export interface TeacherPayslipLineFieldRefs {
   readonly sessions: Prisma.FieldRef<"TeacherPayslipLine", 'Int'>
   readonly minutes: Prisma.FieldRef<"TeacherPayslipLine", 'Float'>
   readonly amount: Prisma.FieldRef<"TeacherPayslipLine", 'Float'>
+  readonly detail: Prisma.FieldRef<"TeacherPayslipLine", 'Json'>
   readonly createdAt: Prisma.FieldRef<"TeacherPayslipLine", 'DateTime'>
 }
     

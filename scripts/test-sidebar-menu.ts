@@ -240,6 +240,19 @@ test("propriétaire de branche : tous les menus malgré le rôle organisation us
   assertIncludes(financeSubs, ["teacherPayroll"], "paie propriétaire de branche");
 });
 
+test("directeur de branche : pas le bypass propriétaire (menus limités au rôle org)", () => {
+  const session = sessionWithOrgRole("user", {
+    user: { role: "user" },
+    branchMemberRole: "DIRECTOR",
+  });
+  const titles = menuTitles(session);
+  assertExcludes(
+    titles,
+    ["finance", "attendance", "candidatures", "teaching", "classes"],
+    "directeur de branche",
+  );
+});
+
 test("gestionnaire garde le large (y compris Ma présence)", () => {
   const titles = menuTitles(sessionWithOrgRole(ORG_ROLE.GESTIONNAIRE));
   assertIncludes(
