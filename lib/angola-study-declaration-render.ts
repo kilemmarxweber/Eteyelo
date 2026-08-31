@@ -334,21 +334,11 @@ function drawSubjectTable(
     words: string,
     header: boolean,
   ) => {
-    doc.setDrawColor(...INK);
-    doc.setLineWidth(0.28);
-    doc.rect(x, top, width, height);
-    doc.line(x + colDisciplina, top, x + colDisciplina, top + height);
-    doc.line(
-      x + colDisciplina + colMedia,
-      top,
-      x + colDisciplina + colMedia,
-      top + height,
-    );
     doc.setFont("helvetica", header ? "bold" : "normal");
     doc.setFontSize(header ? 8.2 : 8);
     doc.setTextColor(...INK);
     const textY = top + height * 0.68;
-    doc.text(disciplina, x + 1.6, textY);
+    doc.text(disciplina, x, textY);
     doc.setTextColor(...(header ? INK : HIGHLIGHT));
     doc.text(media, x + colDisciplina + colMedia / 2, textY, {
       align: "center",

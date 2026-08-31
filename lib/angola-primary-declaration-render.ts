@@ -350,15 +350,6 @@ function drawGradeTable(
   const rowH = 8;
   const rows = 3;
 
-  doc.setDrawColor(...INK);
-  doc.setLineWidth(0.25);
-  for (let row = 0; row <= rows; row += 1) {
-    doc.line(x, y + row * rowH, x + width, y + row * rowH);
-  }
-  for (let col = 0; col <= cells.length; col += 1) {
-    doc.line(x + col * colW, y, x + col * colW, y + rows * rowH);
-  }
-
   cells.forEach((cell, index) => {
     const cx = x + index * colW + colW / 2;
     const isAverage = cell.header === "MÉDIA";
