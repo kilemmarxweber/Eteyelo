@@ -1,11 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { guardOrganizationManager, getOrganizationAuthContext } from "@/lib/auth/require-organization-permission";
+import { guardOrganizationManager } from "@/lib/auth/require-organization-permission";
 import {
   grantTemporaryPrivilege,
   revokeTemporaryPrivilege,
-  getUserActiveTemporaryGrants,
   expireOutdatedGrants,
 } from "@/lib/auth/temporary-privilege";
 import { prisma } from "@/lib/prisma";
@@ -181,21 +180,6 @@ export async function getOrganizationTemporaryGrantsAction(organizationId: strin
   } catch (error) {
     console.error("Erreur lors de la récupération des privilèges:", error);
     return { ok: false, message: "Erreur lors du chargement des privilèges.", grants: [] };
-  }
-}
-
-export async function getMyActiveTemporaryGrantsAction(organizationId?: string) {
-  const context = await getOrganizationAuthContext();
-  if (!context) {
-    return { ok: false, grants: [] };
-  }
-
-  try {
-    const grants = await getUserActiveTemporaryGrants(context.userId, organizationId);
-    return { ok: true, grants };
-  } catch (error) {
-    console.error("Erreur chargement mes privilèges temporaires:", error);
-    return { ok: false, grants: [] };
   }
 }
 

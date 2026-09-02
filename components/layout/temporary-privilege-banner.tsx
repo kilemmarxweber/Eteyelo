@@ -1,8 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ShieldAlert, Clock, KeyRound, X } from "lucide-react";
-import { getMyActiveTemporaryGrantsAction } from "@/app/admin/organizations/[organizationId]/settings/temporary-grants/actions";
+import { useEffect, useRef, useState } from "react";
+import { Clock, KeyRound, X } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
+import {
+  getMyActiveTemporaryGrantsAction,
+  shouldLeavePageAfterGrantExpiryAction,
+} from "@/lib/auth/temporary-grants.action";
 
 type TemporaryGrantItem = {
   id: string;
@@ -12,28 +18,50 @@ type TemporaryGrantItem = {
   expiresAt: Date | string;
 };
 
+const SESSION_ENDED_MESSAGE = "Votre session a pris fin.";
+
+function dropExpiredGrants(items: TemporaryGrantItem[]) {
+  const now = Date.now();
+  return items.filter((grant) => new Date(grant.expiresAt).getTime() > now);
+}
+
 export function TemporaryPrivilegeBanner({ organizationId }: { organizationId?: string }) {
+  const router = useRouter();
   const [grants, setGrants] = useState<TemporaryGrantItem[]>([]);
   const [dismissed, setDismissed] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<string>("");
+  const previousGrantIdsRef = useRef<Set<string>>(new Set());
+  const grantsHydratedRef = useRef(false);
+  const redirectingRef = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
+    grantsHydratedRef.current = false;
+    redirectingRef.current = false;
+    previousGrantIdsRef.current = new Set();
+    setGrants([]);
 
     async function loadActiveGrants() {
       const res = await getMyActiveTemporaryGrantsAction(organizationId);
       if (!isMounted) return;
       if (res.ok) {
-        setGrants(res.grants);
+        grantsHydratedRef.current = true;
+        setGrants(dropExpiredGrants(res.grants));
       }
     }
 
     loadActiveGrants();
 
-    const interval = setInterval(loadActiveGrants, 10000); // rafraîchir toutes les 10s
+    const interval = setInterval(loadActiveGrants, 10000);
+    const onFocus = () => {
+      void loadActiveGrants();
+    };
+    window.addEventListener("focus", onFocus);
+
     return () => {
       isMounted = false;
       clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
     };
   }, [organizationId]);
 
@@ -43,12 +71,12 @@ export function TemporaryPrivilegeBanner({ organizationId }: { organizationId?: 
     const earliestExpire = new Date(grants[0].expiresAt).getTime();
 
     const updateTimer = () => {
-      const now = new Date().getTime();
+      const now = Date.now();
       const diff = earliestExpire - now;
 
       if (diff <= 0) {
         setTimeLeft("Expiré");
-        setGrants([]);
+        setGrants((current) => dropExpiredGrants(current));
         return;
       }
 
@@ -70,6 +98,46 @@ export function TemporaryPrivilegeBanner({ organizationId }: { organizationId?: 
     return () => clearInterval(timerInterval);
   }, [grants]);
 
+  useEffect(() => {
+    const currentIds = new Set(grants.map((grant) => grant.id));
+
+    if (!grantsHydratedRef.current) {
+      previousGrantIdsRef.current = currentIds;
+      return;
+    }
+
+    const previousIds = previousGrantIdsRef.current;
+    previousGrantIdsRef.current = currentIds;
+
+    const lostGrant = [...previousIds].some((id) => !currentIds.has(id));
+    if (!lostGrant || redirectingRef.current) return;
+
+    const allGrantsGone = currentIds.size === 0;
+
+    const notifyAndMaybeRedirect = async () => {
+      const pathname =
+        typeof window !== "undefined" ? window.location.pathname : "";
+
+      try {
+        const result = await shouldLeavePageAfterGrantExpiryAction(pathname);
+        if (!result.leave) {
+          if (allGrantsGone) toast.warning(SESSION_ENDED_MESSAGE);
+          return;
+        }
+
+        redirectingRef.current = true;
+        toast.warning(SESSION_ENDED_MESSAGE);
+        if (result.dashboardHref) {
+          router.replace(result.dashboardHref);
+        }
+      } catch {
+        if (allGrantsGone) toast.warning(SESSION_ENDED_MESSAGE);
+      }
+    };
+
+    void notifyAndMaybeRedirect();
+  }, [grants, router]);
+
   if (grants.length === 0 || dismissed) {
     return null;
   }
@@ -83,7 +151,11 @@ export function TemporaryPrivilegeBanner({ organizationId }: { organizationId?: 
           <KeyRound className="h-3.5 w-3.5" /> Privilège Temporaire Actif
         </span>
         <span>
-          Accès accordé à <strong className="font-mono">{primaryGrant.resource}:{primaryGrant.action}</strong> ({primaryGrant.reason})
+          Accès accordé à{" "}
+          <strong className="font-mono">
+            {primaryGrant.resource}:{primaryGrant.action}
+          </strong>{" "}
+          ({primaryGrant.reason})
         </span>
       </div>
 

@@ -23,16 +23,31 @@ import {
 import {
   findStudentCheckInSession,
   getExpectedStudentSessionLabel,
+  listClassScheduleCandidates,
 } from "@/lib/attendance-student-session";
 import {
   findTeacherCheckInSession,
+  getBranchCourseDurationMinutes,
   getExpectedTeacherSessionLabel,
   listTeacherScheduleCandidates,
 } from "@/lib/attendance-teacher-session";
+import { compareClassesByLevel } from "@/lib/class-structure";
+import {
+  CYCLE_SORT_ORDER,
+  cycleLabel,
+  isCycle,
+  type Cycle,
+} from "@/lib/cycle";
 import { ORG_ROLE } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
-import type { AttendanceStatus, Prisma } from "@/prisma/generated/prisma/client";
 import {
+  Day,
+  type AttendanceStatus,
+  type Prisma,
+} from "@/prisma/generated/prisma/client";
+import {
+  getParisWeekday,
+  isTeacherCheckInWindow,
   nowLocal,
   scheduleHourToMinutes,
   startOfTodayParis,
@@ -43,9 +58,12 @@ import {
   resolveAbsenceIfPresent,
 } from "@/lib/attendance-absence";
 import type {
+  AttendanceCheckInClass,
+  AttendanceCheckInCycleGroup,
   AttendanceCheckInResult,
   AttendancePersonLookup,
   AttendancePersonType,
+  AttendanceQuickCheckInBootstrap,
 } from "./attendance-scan-types";
 
 const scanSchema = z.object({
@@ -1335,4 +1353,586 @@ export async function findOpenCheckoutForPersonAction(
     "Presence journaliere",
     open.checkIn,
   );
+}
+
+const DAY_BY_WEEKDAY = {
+  0: Day.Dimanche,
+  1: Day.Lundi,
+  2: Day.Mardi,
+  3: Day.Mercredi,
+  4: Day.Jeudi,
+  5: Day.Vendredi,
+  6: Day.Samedi,
+} as const;
+
+function teachingBranchWhere(branchId: string) {
+  return {
+    OR: [{ branchId }, { branchId: null, classe: { branchId } }],
+    schoolYear: {
+      branchId,
+      isCurrentYear: true,
+    },
+  };
+}
+
+function attendanceOpenState(row?: {
+  id: string;
+  checkIn: Date | null;
+  checkOut: Date | null;
+  earlyExit: boolean;
+} | null) {
+  if (!row?.checkIn) {
+    return {
+      alreadyCheckedIn: false,
+      canCheckOut: false,
+      attendanceId: null as string | null,
+    };
+  }
+
+  const canCheckOut = !row.checkOut && !row.earlyExit;
+  return {
+    alreadyCheckedIn: true,
+    canCheckOut,
+    attendanceId: canCheckOut ? row.id : null,
+  };
+}
+
+function rankWindowStart(
+  startMinutes: number,
+  currentMinutes: number,
+  existingStart: number | null,
+) {
+  if (existingStart == null) return true;
+  const nextDistance = Math.abs(startMinutes - currentMinutes);
+  const existingDistance = Math.abs(existingStart - currentMinutes);
+  const nextUpcoming = startMinutes >= currentMinutes;
+  const existingUpcoming = existingStart >= currentMinutes;
+  if (nextUpcoming !== existingUpcoming) return nextUpcoming;
+  if (nextDistance !== existingDistance) return nextDistance < existingDistance;
+  return startMinutes < existingStart;
+}
+
+type WindowSchedule = {
+  startMinutes: number;
+  hour: Date;
+  teachingId: string;
+  teacherId: string | null;
+  classeId: string | null;
+  sessionLabel: string;
+  teacher: NonNullable<Awaited<ReturnType<typeof findTeacherByScan>>> | null;
+};
+
+async function listTodayWindowSchedules(branchId: string) {
+  const now = nowLocal();
+  if (await isBranchClosedOn(branchId, now)) {
+    return {
+      currentMinutes: toMinutes(now),
+      startOfDay: startOfTodayParis(now),
+      items: [] as WindowSchedule[],
+    };
+  }
+
+  const currentMinutes = toMinutes(now);
+  const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
+  const today = DAY_BY_WEEKDAY[getParisWeekday(now) as keyof typeof DAY_BY_WEEKDAY];
+
+  const schedules = await prisma.schedule.findMany({
+    where: {
+      day: today,
+      isArchived: false,
+      teaching: teachingBranchWhere(branchId),
+    },
+    include: {
+      teaching: {
+        include: {
+          teacher: { include: userInclude() },
+          cours: { select: { nameCours: true } },
+          classe: {
+            select: {
+              id: true,
+              codeClasse: true,
+              nameClasse: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const items: WindowSchedule[] = [];
+
+  for (const schedule of schedules) {
+    if (!schedule.hour || !schedule.teaching) continue;
+    const startMinutes = scheduleHourToMinutes(schedule.hour);
+    if (
+      !isTeacherCheckInWindow(
+        currentMinutes,
+        startMinutes,
+        courseDurationMinutes,
+      )
+    ) {
+      continue;
+    }
+
+    const teacher = schedule.teaching.teacher;
+    if (teacher?.branchMember?.branchId && teacher.branchMember.branchId !== branchId) {
+      continue;
+    }
+
+    items.push({
+      startMinutes,
+      hour: schedule.hour,
+      teachingId: schedule.teaching.id,
+      teacherId: schedule.teaching.teacherId,
+      classeId: schedule.teaching.classeId,
+      sessionLabel: formatExpectedSessionLabel(schedule.hour, schedule.teaching),
+      teacher: teacher ?? null,
+    });
+  }
+
+  return {
+    currentMinutes,
+    startOfDay: startOfTodayParis(now),
+    items,
+  };
+}
+
+export async function getQuickCheckInBootstrapAction(): Promise<AttendanceQuickCheckInBootstrap> {
+  const { branchId, session, userId } = await requireBranchContext();
+  const teacherScope = await getTeacherAttendanceReadScope({
+    session,
+    userId,
+    branchId,
+  });
+
+  const { currentMinutes, startOfDay, items } = await listTodayWindowSchedules(
+    branchId,
+  );
+
+  const teacherBest = new Map<
+    string,
+    { startMinutes: number; sessionLabel: string; teachingId: string; hour: Date; teacher: NonNullable<WindowSchedule["teacher"]> }
+  >();
+
+  const classBest = new Map<
+    string,
+    { startMinutes: number; sessionLabel: string }
+  >();
+
+  for (const item of items) {
+    if (
+      item.teacherId &&
+      item.teacher &&
+      (!teacherScope || teacherScope.teacherId === item.teacherId)
+    ) {
+      const existing = teacherBest.get(item.teacherId);
+      if (
+        rankWindowStart(
+          item.startMinutes,
+          currentMinutes,
+          existing?.startMinutes ?? null,
+        )
+      ) {
+        teacherBest.set(item.teacherId, {
+          startMinutes: item.startMinutes,
+          sessionLabel: item.sessionLabel,
+          teachingId: item.teachingId,
+          hour: item.hour,
+          teacher: item.teacher,
+        });
+      }
+    }
+
+    if (
+      item.classeId &&
+      (!teacherScope || teacherScope.classIds.includes(item.classeId))
+    ) {
+      const existing = classBest.get(item.classeId);
+      if (
+        rankWindowStart(
+          item.startMinutes,
+          currentMinutes,
+          existing?.startMinutes ?? null,
+        )
+      ) {
+        classBest.set(item.classeId, {
+          startMinutes: item.startMinutes,
+          sessionLabel: item.sessionLabel,
+        });
+      }
+    }
+  }
+
+  const teacherIds = [...teacherBest.keys()];
+  const teachingIds = [...teacherBest.values()].map((row) => row.teachingId);
+
+  const teacherSessions =
+    teachingIds.length === 0
+      ? []
+      : await prisma.attendanceSession.findMany({
+          where: {
+            date: startOfDay,
+            teachingId: { in: teachingIds },
+            OR: [{ branchId }, { branchId: null }],
+          },
+          select: { id: true, teachingId: true, startTime: true },
+        });
+
+  const sessionByTeachingHour = new Map<string, string>();
+  for (const row of teacherSessions) {
+    sessionByTeachingHour.set(
+      `${row.teachingId}:${row.startTime.toISOString()}`,
+      row.id,
+    );
+  }
+
+  const matchedSessionIds = [...teacherBest.values()]
+    .map((row) =>
+      sessionByTeachingHour.get(`${row.teachingId}:${row.hour.toISOString()}`),
+    )
+    .filter((id): id is string => Boolean(id));
+
+  const teacherAttendances =
+    matchedSessionIds.length === 0
+      ? []
+      : await prisma.teacherAttendance.findMany({
+          where: {
+            branchId,
+            teacherId: { in: teacherIds },
+            sessionId: { in: matchedSessionIds },
+          },
+          select: {
+            id: true,
+            teacherId: true,
+            sessionId: true,
+            checkIn: true,
+            checkOut: true,
+            earlyExit: true,
+          },
+        });
+
+  const attendanceByTeacher = new Map(
+    teacherAttendances.map((row) => [row.teacherId, row]),
+  );
+
+  const teachers = [...teacherBest.entries()]
+    .sort((a, b) => a[1].startMinutes - b[1].startMinutes)
+    .map(([teacherId, row]) => {
+      const state = attendanceOpenState(attendanceByTeacher.get(teacherId));
+      return {
+        ...mapTeacherLookup(row.teacher),
+        expectedSessionLabel: row.sessionLabel,
+        ...state,
+      };
+    });
+
+  const classWhere = {
+    branchId,
+    OR: [{ statusClasse: true }, { statusClasse: null }],
+    ...(teacherScope
+      ? { id: { in: teacherScope.classIds.length ? teacherScope.classIds : ["__none__"] } }
+      : {}),
+  };
+
+  const classes = await prisma.classe.findMany({
+    where: classWhere,
+    select: {
+      id: true,
+      nameClasse: true,
+      codeClasse: true,
+      level: true,
+      cycle: true,
+      parallel: true,
+      _count: {
+        select: {
+          classEnrollment: {
+            where: {
+              branchId,
+              schoolYear: { isCurrentYear: true, branchId },
+              OR: [{ statusEnrollment: true }, { statusEnrollment: null }],
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const sortedClasses = [...classes].sort(compareClassesByLevel);
+
+  const classRows: AttendanceCheckInClass[] = sortedClasses.map((classe) => {
+    const upcoming = classBest.get(classe.id);
+    return {
+      id: classe.id,
+      name: classe.nameClasse,
+      code: classe.codeClasse,
+      level: classe.level,
+      cycle: classe.cycle,
+      studentCount: classe._count.classEnrollment,
+      hasUpcomingSession: Boolean(upcoming),
+      expectedSessionLabel: upcoming?.sessionLabel ?? null,
+    };
+  });
+
+  const cycleMap = new Map<string, AttendanceCheckInCycleGroup>();
+
+  for (const classe of classRows) {
+    const cycleKey = isCycle(classe.cycle) ? classe.cycle : "AUTRE";
+    const levelKey = classe.level?.trim() || "__none__";
+    const groupKey = `${cycleKey}::${levelKey}`;
+
+    let cycleGroup = cycleMap.get(cycleKey);
+    if (!cycleGroup) {
+      cycleGroup = {
+        key: cycleKey,
+        label: isCycle(cycleKey) ? cycleLabel(cycleKey as Cycle) : "Autres",
+        levels: [],
+      };
+      cycleMap.set(cycleKey, cycleGroup);
+    }
+
+    let level = cycleGroup.levels.find((item) => item.key === groupKey);
+    if (!level) {
+      const levelLabel = classe.level?.trim() || "Autres";
+      level = {
+        key: groupKey,
+        label: levelLabel,
+        cycle: classe.cycle,
+        level: classe.level,
+        classes: [],
+      };
+      cycleGroup.levels.push(level);
+    }
+    level.classes.push(classe);
+  }
+
+  const cycles = [...cycleMap.values()].sort((left, right) => {
+    const leftOrder =
+      CYCLE_SORT_ORDER[left.key as Cycle] ?? Number.MAX_SAFE_INTEGER;
+    const rightOrder =
+      CYCLE_SORT_ORDER[right.key as Cycle] ?? Number.MAX_SAFE_INTEGER;
+    return leftOrder - rightOrder;
+  });
+
+  for (const cycle of cycles) {
+    cycle.levels.sort((left, right) =>
+      compareClassesByLevel(
+        {
+          cycle: left.cycle,
+          level: left.level,
+          nameClasse: left.classes[0]?.name,
+        },
+        {
+          cycle: right.cycle,
+          level: right.level,
+          nameClasse: right.classes[0]?.name,
+        },
+      ),
+    );
+    for (const level of cycle.levels) {
+      level.classes.sort((left, right) => {
+        if (left.hasUpcomingSession !== right.hasUpcomingSession) {
+          return left.hasUpcomingSession ? -1 : 1;
+        }
+        return compareClassesByLevel(
+          {
+            cycle: left.cycle,
+            level: left.level,
+            nameClasse: left.name,
+            codeClasse: left.code,
+          },
+          {
+            cycle: right.cycle,
+            level: right.level,
+            nameClasse: right.name,
+            codeClasse: right.code,
+          },
+        );
+      });
+    }
+  }
+
+  return {
+    teachers,
+    cycles,
+    canViewPersonnel: !teacherScope,
+  };
+}
+
+export async function listStudentsForClassCheckInAction(
+  classeId: string,
+): Promise<AttendancePersonLookup[]> {
+  const { branchId, session, userId } =
+    await requireBranchContext();
+  const { classeId: parsedClasseId } = z
+    .object({ classeId: z.string().min(1) })
+    .parse({ classeId });
+
+  const teacherScope = await getTeacherAttendanceReadScope({
+    session,
+    userId,
+    branchId,
+  });
+  if (teacherScope && !teacherScope.classIds.includes(parsedClasseId)) {
+    return [];
+  }
+
+  const classe = await prisma.classe.findFirst({
+    where: { id: parsedClasseId, branchId },
+    select: { id: true, nameClasse: true, codeClasse: true },
+  });
+  if (!classe) return [];
+
+  const enrollments = await prisma.classEnrollment.findMany({
+    where: {
+      classeId: parsedClasseId,
+      branchId,
+      schoolYear: { isCurrentYear: true, branchId },
+      OR: [{ statusEnrollment: true }, { statusEnrollment: null }],
+    },
+    include: {
+      student: {
+        include: {
+          branchMember: {
+            include: {
+              member: { include: { user: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const candidates = await listClassScheduleCandidates(
+    parsedClasseId,
+    branchId,
+  );
+  const best = candidates[0];
+  let sessionLabel: string | null = null;
+  let sessionId: string | null = null;
+
+  if (best) {
+    const schedule = await prisma.schedule.findFirst({
+      where: { id: best.scheduleId },
+      include: {
+        teaching: {
+          include: {
+            cours: { select: { nameCours: true } },
+            classe: { select: { codeClasse: true, nameClasse: true } },
+          },
+        },
+      },
+    });
+    if (schedule?.hour && schedule.teaching) {
+      sessionLabel = formatExpectedSessionLabel(schedule.hour, schedule.teaching);
+      const existingSession = await prisma.attendanceSession.findFirst({
+        where: {
+          teachingId: best.teachingId,
+          date: startOfTodayParis(),
+          startTime: schedule.hour,
+          OR: [{ branchId }, { branchId: null }],
+        },
+        select: { id: true },
+      });
+      sessionId = existingSession?.id ?? null;
+    }
+  }
+
+  const studentIds = enrollments
+    .map((row) => row.student?.id)
+    .filter((id): id is string => Boolean(id));
+
+  const attendances =
+    sessionId && studentIds.length
+      ? await prisma.studentAttendance.findMany({
+          where: {
+            branchId,
+            sessionId,
+            studentId: { in: studentIds },
+          },
+          select: {
+            id: true,
+            studentId: true,
+            checkIn: true,
+            checkOut: true,
+            earlyExit: true,
+          },
+        })
+      : [];
+
+  const attendanceByStudent = new Map(
+    attendances.map((row) => [row.studentId, row]),
+  );
+
+  const classLabel = classe.nameClasse || classe.codeClasse;
+
+  return enrollments
+    .flatMap((row) => {
+      const student = row.student;
+      if (!student) return [];
+      const user = student.branchMember?.member?.user;
+      const state = attendanceOpenState(attendanceByStudent.get(student.id));
+      return [
+        {
+          id: student.id,
+          name: user ? getPersonName(user) : "Eleve",
+          matricule: user?.username ?? student.id.slice(-8).toUpperCase(),
+          roleLabel: classLabel,
+          personType: "student" as const,
+          image: user?.image ?? null,
+          expectedSessionLabel: sessionLabel,
+          classeId: parsedClasseId,
+          ...state,
+        },
+      ];
+    })
+    .sort((left, right) => left.name.localeCompare(right.name, "fr"));
+}
+
+export async function listPersonnelForCheckInAction(): Promise<
+  AttendancePersonLookup[]
+> {
+  const { branchId, organizationId, session, userId } =
+    await requireBranchContext();
+  const teacherScope = await getTeacherAttendanceReadScope({
+    session,
+    userId,
+    branchId,
+  });
+  if (teacherScope) return [];
+
+  const today = startOfTodayParis();
+  const personnels = await prisma.personnel.findMany({
+    where: {
+      branchMember: { branchId, branch: { organizationId } },
+    },
+    include: userInclude(),
+    orderBy: { createdAt: "desc" },
+    take: 80,
+  });
+
+  const attendances = await prisma.personnelAttendance.findMany({
+    where: {
+      branchId,
+      date: today,
+      personnelId: { in: personnels.map((row) => row.id) },
+    },
+    select: {
+      id: true,
+      personnelId: true,
+      checkIn: true,
+      checkOut: true,
+      earlyExit: true,
+    },
+  });
+
+  const attendanceByPersonnel = new Map(
+    attendances.map((row) => [row.personnelId, row]),
+  );
+
+  return personnels
+    .map((personnel) => ({
+      ...mapPersonnelLookup(personnel),
+      ...attendanceOpenState(attendanceByPersonnel.get(personnel.id)),
+    }))
+    .sort((left, right) => left.name.localeCompare(right.name, "fr"));
 }

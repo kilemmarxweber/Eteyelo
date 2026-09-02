@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import z from "zod";
 import { paiementSchema, StatusPaiement } from "@/src/interfaces/Paiement";
-import { requireFinanceBranchContext, requireFinanceOversightBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  requireFinanceBranchContext,
+  requireFinanceCollectBranchContext,
+  requireFinanceOversightBranchContext,
+  requireFinanceReadBranchContext,
+} from "@/lib/auth/require-branch-context";
 import { resolveCashierSelfScope, isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import { cycleLabel } from "@/lib/cycle";
 import { randomUUID } from "node:crypto";
@@ -587,7 +592,7 @@ export const createPaiementAction = action
     }
 
     const { branchId, organizationId, userId } =
-      await requireFinanceBranchContext();
+      await requireFinanceCollectBranchContext();
     const {
       rates: exchangeRates,
       baseCurrency,
@@ -1196,7 +1201,7 @@ export const createCashierExpenseAction = action
   .handler(async ({ input }) => {
     const { amount, description, category } = input;
     const { branchId, organizationId, userId } =
-      await requireFinanceBranchContext();
+      await requireFinanceCollectBranchContext();
 
     const result = await prisma.$transaction(async (tx) => {
       const reference = buildUniqueReference("EXP");
@@ -1246,7 +1251,7 @@ export const getCashierReportAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, userId, session } = await requireFinanceBranchContext();
+    const { branchId, userId, session } = await requireFinanceReadBranchContext();
     const cashierScope = resolveCashierSelfScope(session, userId);
     
     const start = input.startDate ? new Date(input.startDate) : new Date();
@@ -1401,7 +1406,7 @@ export const getCashierReportAction = action
   });
 
 export const getCashierReportContextAction = action.handler(async () => {
-  const { branchId, organizationId } = await requireFinanceBranchContext();
+  const { branchId, organizationId } = await requireFinanceReadBranchContext();
 
   const [branch, { rates, baseCurrency, quoteCurrency, selectedRate }] =
     await Promise.all([
@@ -1428,7 +1433,7 @@ export const getCashierReportContextAction = action.handler(async () => {
 
 /** Branding reçu / aperçu HTML — même source que le PDF post-paiement. */
 export const getPaymentReportContextAction = action.handler(async () => {
-  const { branchId, organizationId } = await requireFinanceBranchContext();
+  const { branchId, organizationId } = await requireFinanceReadBranchContext();
 
   const [branch, { rates, baseCurrency, quoteCurrency, selectedRate, showReceiptConversion, receiptPrintFormat }] =
     await Promise.all([
@@ -1570,7 +1575,7 @@ export const statusPaiementAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireFinanceBranchContext();
+    const { branchId, organizationId } = await requireFinanceCollectBranchContext();
     const existing = await prisma.familyPayment.findFirst({
       where: { id: input.id, branchId },
       select: { id: true },
@@ -1596,7 +1601,7 @@ export const updatePaiementAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireFinanceBranchContext();
+    const { branchId, organizationId } = await requireFinanceCollectBranchContext();
     const { id, amount, modePaiement, status } = input;
 
     const existing = await prisma.familyPayment.findFirst({

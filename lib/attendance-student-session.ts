@@ -69,8 +69,8 @@ function rankScheduleCandidates(
   });
 }
 
-export async function listStudentScheduleCandidates(
-  studentId: string,
+export async function listClassScheduleCandidates(
+  classeId: string,
   branchId: string,
   now = nowLocal(),
 ) {
@@ -80,23 +80,11 @@ export async function listStudentScheduleCandidates(
   const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
   const today = getTodayDay(now);
 
-  const enrollment = await prisma.classEnrollment.findFirst({
-    where: {
-      studentId,
-      branchId,
-      OR: [{ statusEnrollment: true }, { statusEnrollment: null }],
-    },
-    orderBy: { createdAt: "desc" },
-    select: { classeId: true },
-  });
-
-  if (!enrollment) return [];
-
   const schedules = await prisma.schedule.findMany({
     where: {
       day: today,
       isArchived: false,
-      teaching: teachingBranchWhere(branchId, enrollment.classeId),
+      teaching: teachingBranchWhere(branchId, classeId),
     },
     include: {
       teaching: {
@@ -136,6 +124,26 @@ export async function listStudentScheduleCandidates(
     currentMinutes,
     courseDurationMinutes,
   );
+}
+
+export async function listStudentScheduleCandidates(
+  studentId: string,
+  branchId: string,
+  now = nowLocal(),
+) {
+  const enrollment = await prisma.classEnrollment.findFirst({
+    where: {
+      studentId,
+      branchId,
+      OR: [{ statusEnrollment: true }, { statusEnrollment: null }],
+    },
+    orderBy: { createdAt: "desc" },
+    select: { classeId: true },
+  });
+
+  if (!enrollment) return [];
+
+  return listClassScheduleCandidates(enrollment.classeId, branchId, now);
 }
 
 export async function getOrCreateStudentAttendanceSession(

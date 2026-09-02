@@ -89,8 +89,8 @@
     "hourChartTitle": "Marcações por hora"
   },
   "checkInUi": {
-    "title": "Marcação",
-    "description": "Procure uma pessoa ou introduza uma matrícula para registar a chegada ou a saída. A leitura por câmara abre numa janela dedicada.",
+    "title": "Marcação rápida",
+    "description": "Os professores com aula próxima aparecem abaixo da pesquisa. Para os alunos, escolha um nível e depois uma turma. A leitura do cartão continua disponível.",
     "scanCard": "Ler um cartão",
     "manualTab": "Manual",
     "scanTab": "Leitura",
@@ -104,7 +104,7 @@
     "selected": "Selecionado",
     "noPersonFound": "Nenhuma pessoa encontrada.",
     "checkInArrival": "Marcar chegada",
-    "checkOutDeparture": "Marcar saída",
+    "checkOutDeparture": "Saída",
     "cameraTitle": "Leitura por câmara",
     "cameraDescription": "A câmara abre num popup. Coloque o QR ou o código de barras do cartão no quadro. Uma segunda leitura propõe a saída se a pessoa já tiver chegado.",
     "openCamera": "Abrir câmara",
@@ -115,7 +115,17 @@
     "noInfoFound": "Nenhuma informação encontrada.",
     "checkInFailed": "Marcação impossível. Active a geolocalização.",
     "noOpenPresence": "Nenhuma presença aberta encontrada.",
-    "checkoutPrepareFailed": "Impossível preparar a saída."
+    "checkoutPrepareFailed": "Impossível preparar a saída.",
+    "tabTeachers": "Professores",
+    "tabStudents": "Alunos",
+    "tabPersonnel": "Pessoal",
+    "noUpcomingTeachers": "Nenhum professor a marcar neste momento. Pesquise um nome ou leia um cartão.",
+    "noClasses": "Nenhuma turma a mostrar.",
+    "noStudents": "Nenhum aluno nesta turma.",
+    "noPersonnel": "Nenhum pessoal a mostrar.",
+    "checkedIn": "Marcado",
+    "studentsCount": "{count}",
+    "searching": "A pesquisar…"
   },
   "checkout": {
     "title": "Registar saída",

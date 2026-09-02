@@ -3,9 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
 import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
-import { requireFinanceBranchContext } from "@/lib/auth/require-branch-context";
+import { requireBranchAreaContext } from "@/lib/auth/require-branch-context";
 import { getBaseCurrency } from "@/lib/exchange-rate";
 import { prisma } from "@/lib/prisma";
 import { action } from "@/lib/zsa";
@@ -76,11 +75,7 @@ export const getBranchTransactionsAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const context = await requireFinanceBranchContext();
-    await assertBranchAreaAccess("payroll", context.session, {
-      organizationId: context.organizationId,
-      branchId: context.branchId,
-    });
+    const context = await requireBranchAreaContext("payroll");
 
     const search = input.search?.trim();
     const mode = input.mode ?? "day";
@@ -377,11 +372,7 @@ export const archiveBranchTransactionAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const context = await requireFinanceBranchContext();
-    await assertBranchAreaAccess("payroll", context.session, {
-      organizationId: context.organizationId,
-      branchId: context.branchId,
-    });
+    const context = await requireBranchAreaContext("payroll");
 
     if (input.kind === "PAYMENT") {
       const row = await prisma.familyPayment.findFirst({
@@ -433,11 +424,7 @@ export const unarchiveBranchTransactionAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const context = await requireFinanceBranchContext();
-    await assertBranchAreaAccess("payroll", context.session, {
-      organizationId: context.organizationId,
-      branchId: context.branchId,
-    });
+    const context = await requireBranchAreaContext("payroll");
 
     if (input.kind === "PAYMENT") {
       const row = await prisma.familyPayment.findFirst({
@@ -489,11 +476,7 @@ export const deleteBranchTransactionAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const context = await requireFinanceBranchContext();
-    await assertBranchAreaAccess("payroll", context.session, {
-      organizationId: context.organizationId,
-      branchId: context.branchId,
-    });
+    const context = await requireBranchAreaContext("payroll");
     if (!isOrganizationOwnerSession(context.session)) {
       throw new Error(
         "Seul le propriétaire peut supprimer définitivement une transaction.",

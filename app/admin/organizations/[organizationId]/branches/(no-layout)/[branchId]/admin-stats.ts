@@ -13,8 +13,9 @@ import {
 import { getBaseCurrency } from "@/lib/exchange-rate";
 import { prisma } from "@/lib/prisma";
 import { getCachedSession } from "@/lib/auth/get-session-cached";
+import { canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canAccessFinanceArea, isOrganizationOwnerSession, resolveCashierSelfScope } from "@/lib/auth/session-roles";
+import { isOrganizationOwnerSession, resolveCashierSelfScope } from "@/lib/auth/session-roles";
 import { switchActiveBranch } from "@/lib/auth/switch-branch";
 import { action } from "@/lib/zsa";
 import { Day } from "@/prisma/generated/prisma/client";
@@ -274,7 +275,14 @@ export async function getAdminStats({
     ]);
 
     // Chef école (préfet/directeur) : stats sans revenus ; gestionnaire conserve la finance.
-    const includeRevenue = blocks.revenue && canAccessFinanceArea(session);
+    const includeRevenue =
+      blocks.revenue &&
+      (await canAccessBranchAreaAsync(
+        "finance",
+        session,
+        organizationId,
+        branchId,
+      ));
     const now = new Date();
 
     const { end: endCurrent } = getMonthRange(now);
@@ -1103,7 +1111,14 @@ async function getCashierDashboardData(
   userId: string,
   session: any,
 ) {
-  if (!canAccessFinanceArea(session)) {
+  if (
+    !(await canAccessBranchAreaAsync(
+      "finance",
+      session,
+      organizationId,
+      branchId,
+    ))
+  ) {
     throw new Error("Action non autorisée");
   }
 
@@ -1728,6 +1743,12 @@ export async function getBranchDashboardData(params: {
     cycles = [normalizeCycle(typebranch)];
   }
 
+  const canAccessFinance = await canAccessBranchAreaAsync(
+    "finance",
+    session,
+    organizationId,
+    branchId,
+  );
   const variant: DashboardVariant = resolveDashboardVariant(session);
   const blocks = getDashboardDataBlocks(variant);
 
@@ -1784,7 +1805,7 @@ export async function getBranchDashboardData(params: {
 
   return {
     variant,
-    canAccessFinance: canAccessFinanceArea(session),
+    canAccessFinance,
     showMyPresence: !isOrganizationOwnerSession(session),
     typebranch:
       (statsRecord.typebranch as string | null | undefined) ?? typebranch,

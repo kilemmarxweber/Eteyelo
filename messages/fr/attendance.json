@@ -89,8 +89,8 @@
     "hourChartTitle": "Pointages par heure"
   },
   "checkInUi": {
-    "title": "Pointage",
-    "description": "Recherchez une personne ou saisissez un matricule pour pointer l'arrivée ou la sortie. Le scan caméra s'ouvre dans une fenêtre dédiée.",
+    "title": "Pointage rapide",
+    "description": "Les enseignants dont la séance est proche apparaissent sous la recherche. Pour les élèves, choisissez un niveau puis une classe. Le scan de carte reste disponible.",
     "scanCard": "Scanner une carte",
     "manualTab": "Manuel",
     "scanTab": "Scan",
@@ -104,7 +104,7 @@
     "selected": "Sélectionné",
     "noPersonFound": "Aucune personne trouvée.",
     "checkInArrival": "Pointer arrivée",
-    "checkOutDeparture": "Pointer sortie",
+    "checkOutDeparture": "Sortie",
     "cameraTitle": "Scan caméra",
     "cameraDescription": "L'appareil photo s'ouvre dans une popup. Placez le QR ou le code-barres de la carte dans le cadre. Un second scan propose la sortie si la personne est déjà arrivée.",
     "openCamera": "Ouvrir l'appareil",
@@ -115,7 +115,17 @@
     "noInfoFound": "Aucune information trouvée.",
     "checkInFailed": "Pointage impossible. Activez la géolocalisation.",
     "noOpenPresence": "Aucune présence ouverte trouvée.",
-    "checkoutPrepareFailed": "Impossible de préparer la sortie."
+    "checkoutPrepareFailed": "Impossible de préparer la sortie.",
+    "tabTeachers": "Enseignants",
+    "tabStudents": "Élèves",
+    "tabPersonnel": "Personnel",
+    "noUpcomingTeachers": "Aucun enseignant à pointer pour le moment. Recherchez un nom ou scannez une carte.",
+    "noClasses": "Aucune classe à afficher.",
+    "noStudents": "Aucun élève dans cette classe.",
+    "noPersonnel": "Aucun personnel à afficher.",
+    "checkedIn": "Pointé",
+    "studentsCount": "{count}",
+    "searching": "Recherche…"
   },
   "checkout": {
     "title": "Encoder la sortie",

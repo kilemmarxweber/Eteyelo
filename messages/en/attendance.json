@@ -89,8 +89,8 @@
     "hourChartTitle": "Check-ins by hour"
   },
   "checkInUi": {
-    "title": "Check-in",
-    "description": "Search for a person or enter an ID to record arrival or departure. Camera scan opens in a dedicated window.",
+    "title": "Quick check-in",
+    "description": "Teachers with a nearby session appear under the search. For students, pick a level then a class. Card scan remains available.",
     "scanCard": "Scan a card",
     "manualTab": "Manual",
     "scanTab": "Scan",
@@ -104,7 +104,7 @@
     "selected": "Selected",
     "noPersonFound": "No person found.",
     "checkInArrival": "Check in arrival",
-    "checkOutDeparture": "Check out departure",
+    "checkOutDeparture": "Check out",
     "cameraTitle": "Camera scan",
     "cameraDescription": "The camera opens in a popup. Place the card QR or barcode in the frame. A second scan offers check-out if the person is already checked in.",
     "openCamera": "Open camera",
@@ -115,7 +115,17 @@
     "noInfoFound": "No information found.",
     "checkInFailed": "Check-in failed. Enable geolocation.",
     "noOpenPresence": "No open attendance found.",
-    "checkoutPrepareFailed": "Unable to prepare check-out."
+    "checkoutPrepareFailed": "Unable to prepare check-out.",
+    "tabTeachers": "Teachers",
+    "tabStudents": "Students",
+    "tabPersonnel": "Staff",
+    "noUpcomingTeachers": "No teacher to check in right now. Search a name or scan a card.",
+    "noClasses": "No class to display.",
+    "noStudents": "No students in this class.",
+    "noPersonnel": "No staff to display.",
+    "checkedIn": "Checked in",
+    "studentsCount": "{count}",
+    "searching": "Searching…"
   },
   "checkout": {
     "title": "Record departure",

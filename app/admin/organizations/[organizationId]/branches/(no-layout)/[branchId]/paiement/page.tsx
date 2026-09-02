@@ -3,9 +3,8 @@ import { getFraisAction } from "../frais/frais.action";
 import { notFound } from "next/navigation";
 
 import PaymentClient from "./components/PaymentClient";
-import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
+import { assertBranchAreaAccess, canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canAccessFinanceOversight } from "@/lib/auth/session-roles";
 import { getPeopleLabels } from "@/lib/people-labels";
 import { Badge } from "@/components/ui/badge";
 import { IconWallet } from "@tabler/icons-react";
@@ -19,9 +18,19 @@ export default async function PaymentPage({
   searchParams: Promise<{ q?: string; enrollmentId?: string }>;
 }) {
   const query = await searchParams;
-  const { typebranch, session } = await requireBranchContext();
-  await assertBranchAreaAccess("finance", session);
+  const { typebranch, session, organizationId, branchId } =
+    await requireBranchContext();
+  await assertBranchAreaAccess("finance", session, {
+    organizationId,
+    branchId,
+  });
   const t = await getServerTranslator("finance");
+  const showUnpaidReport = await canAccessBranchAreaAsync(
+    "fee_catalog",
+    session,
+    organizationId,
+    branchId,
+  );
 
   const peopleLabels = getPeopleLabels(typebranch);
 
@@ -51,7 +60,7 @@ export default async function PaymentPage({
         fraisList={fraisListResult}
         initialSearch={initialSearch}
         initialEnrollmentId={initialEnrollmentId}
-        showUnpaidReport={canAccessFinanceOversight(session)}
+        showUnpaidReport={showUnpaidReport}
       />
     </BranchPageShell>
   );

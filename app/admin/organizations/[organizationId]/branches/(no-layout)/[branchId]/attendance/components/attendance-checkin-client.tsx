@@ -3,13 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
-  IconBarcode,
   IconCamera,
-  IconKeyboard,
-  IconLogout,
-  IconScan,
   IconSearch,
   IconUserCheck,
+  IconUsers,
+  IconSchool,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
@@ -23,20 +21,27 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import {
   checkInByScanAction,
   checkInPersonByIdAction,
   findOpenCheckoutForPersonAction,
+  getQuickCheckInBootstrapAction,
+  listPersonnelForCheckInAction,
+  listStudentsForClassCheckInAction,
   searchPeopleForCheckInAction,
 } from "../attendance-scan.action";
 import type {
+  AttendanceCheckInCycleGroup,
   AttendanceCheckInResult,
   AttendancePersonLookup,
   AttendancePersonType,
 } from "../attendance-scan-types";
 import { getCurrentPosition } from "../component/attendance.client";
 import { AttendanceCheckoutDialog } from "./attendance-checkout-dialog";
+import { AttendanceQuickPersonRow } from "./attendance-quick-person-row";
 import { AttendanceScanDialog } from "./attendance-scanner";
 
 async function resolveCheckInCoords() {
@@ -48,14 +53,27 @@ async function resolveCheckInCoords() {
 }
 
 type RecentCheckIn = AttendanceCheckInResult & { id: string };
-type PointageMode = "scan" | "manual";
+type PointageTab = AttendancePersonType;
 
 type CheckoutTarget = {
   personType: AttendancePersonType;
+  personId: string;
   attendanceId: string;
   personName: string;
   sessionLabel?: string | null;
 };
+
+function looksLikeScanCode(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith("{")) return true;
+  if (/^(ENS|ELV|PRS)-/i.test(trimmed)) return true;
+  return /^[A-Z0-9-]{4,}$/i.test(trimmed) && !trimmed.includes(" ");
+}
+
+function personKey(person: Pick<AttendancePersonLookup, "id" | "personType">) {
+  return `${person.personType}-${person.id}`;
+}
 
 export function AttendanceCheckInClient() {
   const t = useTranslations("attendance");
@@ -67,39 +85,103 @@ export function AttendanceCheckInClient() {
     }),
     [t],
   );
-  const [mode, setMode] = useState<PointageMode>("manual");
+
+  const [tab, setTab] = useState<PointageTab>("teacher");
   const [scanOpen, setScanOpen] = useState(false);
-  const [manualCode, setManualCode] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [results, setResults] = useState<AttendancePersonLookup[]>([]);
-  const [selected, setSelected] = useState<AttendancePersonLookup | null>(null);
+  const [searchResults, setSearchResults] = useState<AttendancePersonLookup[]>(
+    [],
+  );
+  const [teachers, setTeachers] = useState<AttendancePersonLookup[]>([]);
+  const [cycles, setCycles] = useState<AttendanceCheckInCycleGroup[]>([]);
+  const [canViewPersonnel, setCanViewPersonnel] = useState(true);
+  const [students, setStudents] = useState<AttendancePersonLookup[]>([]);
+  const [personnel, setPersonnel] = useState<AttendancePersonLookup[]>([]);
+  const [cycleKey, setCycleKey] = useState<string>("");
+  const [levelKey, setLevelKey] = useState<string>("");
+  const [classeId, setClasseId] = useState<string>("");
+  const [bootstrapLoading, setBootstrapLoading] = useState(true);
+  const [studentsLoading, setStudentsLoading] = useState(false);
+  const [personnelLoaded, setPersonnelLoaded] = useState(false);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
   const [recent, setRecent] = useState<RecentCheckIn[]>([]);
   const [checkout, setCheckout] = useState<CheckoutTarget | null>(null);
   const [pending, startTransition] = useTransition();
   const lastScanRef = useRef<string>("");
   const lastScanAtRef = useRef(0);
 
-  const fetchResults = useCallback(async (query: string) => {
+  const searching = searchQuery.trim().length >= 2;
+
+  const loadBootstrap = useCallback(async () => {
+    const data = await getQuickCheckInBootstrapAction();
+    setTeachers(data.teachers);
+    setCycles(data.cycles);
+    setCanViewPersonnel(data.canViewPersonnel);
+    return data;
+  }, []);
+
+  const fetchSearchResults = useCallback(async (query: string) => {
     const trimmed = query.trim();
     if (trimmed.length < 2) {
-      setResults([]);
+      setSearchResults([]);
       return;
     }
-
     const items = await searchPeopleForCheckInAction(trimmed);
-    setResults(items);
+    setSearchResults(items);
+  }, []);
+
+  const loadStudents = useCallback(async (nextClasseId: string) => {
+    if (!nextClasseId) {
+      setStudents([]);
+      return;
+    }
+    setStudentsLoading(true);
+    try {
+      const items = await listStudentsForClassCheckInAction(nextClasseId);
+      setStudents(items);
+    } finally {
+      setStudentsLoading(false);
+    }
+  }, []);
+
+  const loadPersonnel = useCallback(async () => {
+    const items = await listPersonnelForCheckInAction();
+    setPersonnel(items);
+    setPersonnelLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (searchQuery.trim().length < 2) {
-      setResults([]);
+    startTransition(async () => {
+      try {
+        const data = await loadBootstrap();
+        const firstCycle = data.cycles[0];
+        const firstLevel = firstCycle?.levels[0];
+        const firstClass =
+          firstLevel?.classes.find((item) => item.hasUpcomingSession) ??
+          firstLevel?.classes[0];
+        if (firstCycle) setCycleKey(firstCycle.key);
+        if (firstLevel) setLevelKey(firstLevel.key);
+        if (firstClass) setClasseId(firstClass.id);
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : t("checkInUi.searchFailed"),
+        );
+      } finally {
+        setBootstrapLoading(false);
+      }
+    });
+  }, [loadBootstrap, t]);
+
+  useEffect(() => {
+    if (!searching) {
+      setSearchResults([]);
       return;
     }
 
     const timeout = window.setTimeout(() => {
       startTransition(async () => {
         try {
-          await fetchResults(searchQuery);
+          await fetchSearchResults(searchQuery);
         } catch (error) {
           toast.error(
             error instanceof Error ? error.message : t("checkInUi.searchFailed"),
@@ -109,38 +191,69 @@ export function AttendanceCheckInClient() {
     }, 300);
 
     return () => window.clearTimeout(timeout);
-  }, [fetchResults, searchQuery]);
+  }, [fetchSearchResults, searchQuery, searching, t]);
 
   useEffect(() => {
-    if (searchQuery.trim().length < 2) {
-      return;
-    }
+    if (tab !== "student" || !classeId || searching) return;
+    startTransition(async () => {
+      try {
+        await loadStudents(classeId);
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : t("checkInUi.searchFailed"),
+        );
+      }
+    });
+  }, [classeId, loadStudents, searching, t, tab]);
 
+  useEffect(() => {
+    if (tab !== "personnel" || personnelLoaded || searching) return;
+    startTransition(async () => {
+      try {
+        await loadPersonnel();
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : t("checkInUi.searchFailed"),
+        );
+      }
+    });
+  }, [loadPersonnel, personnelLoaded, searching, t, tab]);
+
+  useEffect(() => {
     const interval = window.setInterval(() => {
-      startTransition(async () => {
-        try {
-          await fetchResults(searchQuery);
-        } catch {
-          // Ignore background refresh errors.
-        }
-      });
+      void loadBootstrap().catch(() => undefined);
+      if (tab === "student" && classeId && !searching) {
+        void loadStudents(classeId).catch(() => undefined);
+      }
+      if (tab === "personnel" && personnelLoaded && !searching) {
+        void loadPersonnel().catch(() => undefined);
+      }
     }, 60_000);
-
     return () => window.clearInterval(interval);
-  }, [fetchResults, searchQuery]);
+  }, [classeId, loadBootstrap, loadPersonnel, loadStudents, personnelLoaded, searching, tab]);
+
+  const selectedCycle = cycles.find((item) => item.key === cycleKey) ?? cycles[0];
+  const selectedLevel =
+    selectedCycle?.levels.find((item) => item.key === levelKey) ??
+    selectedCycle?.levels[0];
+  const selectedClass =
+    selectedLevel?.classes.find((item) => item.id === classeId) ??
+    selectedLevel?.classes[0];
 
   useEffect(() => {
-    if (!selected) return;
+    if (!selectedCycle) return;
+    if (selectedCycle.key !== cycleKey) setCycleKey(selectedCycle.key);
+  }, [cycleKey, selectedCycle]);
 
-    const updated = results.find(
-      (person) =>
-        person.id === selected.id && person.personType === selected.personType,
-    );
+  useEffect(() => {
+    if (!selectedLevel) return;
+    if (selectedLevel.key !== levelKey) setLevelKey(selectedLevel.key);
+  }, [levelKey, selectedLevel]);
 
-    if (updated) {
-      setSelected(updated);
-    }
-  }, [results, selected]);
+  useEffect(() => {
+    if (!selectedClass) return;
+    if (selectedClass.id !== classeId) setClasseId(selectedClass.id);
+  }, [classeId, selectedClass]);
 
   const pushRecent = useCallback((result: AttendanceCheckInResult) => {
     setRecent((items) =>
@@ -154,6 +267,25 @@ export function AttendanceCheckInClient() {
     );
   }, []);
 
+  const markPersonState = useCallback(
+    (
+      person: Pick<AttendancePersonLookup, "id" | "personType">,
+      patch: Partial<AttendancePersonLookup>,
+    ) => {
+      const update = (items: AttendancePersonLookup[]) =>
+        items.map((item) =>
+          item.id === person.id && item.personType === person.personType
+            ? { ...item, ...patch }
+            : item,
+        );
+      setTeachers(update);
+      setStudents(update);
+      setPersonnel(update);
+      setSearchResults(update);
+    },
+    [],
+  );
+
   const openCheckoutFromResult = useCallback(
     (result: AttendanceCheckInResult) => {
       if (
@@ -166,6 +298,7 @@ export function AttendanceCheckInClient() {
       }
       setCheckout({
         personType: result.personType,
+        personId: result.person.id,
         attendanceId: result.attendanceId,
         personName: result.person.name,
         sessionLabel: result.sessionLabel,
@@ -186,16 +319,27 @@ export function AttendanceCheckInClient() {
       pushRecent(result);
       if (result.ok) {
         toast.success(result.message);
-        setManualCode("");
-        setSelected(null);
-        setSearchQuery("");
-        setResults([]);
+        if (result.person) {
+          markPersonState(result.person, {
+            alreadyCheckedIn: true,
+            canCheckOut: true,
+            attendanceId: result.attendanceId ?? null,
+            expectedSessionLabel:
+              result.sessionLabel ?? result.person.expectedSessionLabel,
+          });
+        }
         setScanOpen(false);
       } else {
         toast.error(result.message);
+        if (result.person && result.statusLabel) {
+          markPersonState(result.person, {
+            alreadyCheckedIn: true,
+            canCheckOut: false,
+          });
+        }
       }
     },
-    [openCheckoutFromResult, pushRecent],
+    [markPersonState, openCheckoutFromResult, pushRecent],
   );
 
   const runScan = useCallback(
@@ -229,18 +373,18 @@ export function AttendanceCheckInClient() {
         }
       });
     },
-    [handleCheckInResult, pending],
+    [handleCheckInResult, pending, t],
   );
 
-  function checkInSelected() {
-    if (!selected) return;
-
+  function checkInPerson(person: AttendancePersonLookup) {
+    const key = personKey(person);
+    setBusyKey(key);
     startTransition(async () => {
       try {
         const coords = await resolveCheckInCoords();
         const result = await checkInPersonByIdAction(
-          selected.personType,
-          selected.id,
+          person.personType,
+          person.id,
           coords,
         );
         handleCheckInResult(result);
@@ -250,18 +394,20 @@ export function AttendanceCheckInClient() {
             ? error.message
             : t("checkInUi.checkInFailed"),
         );
+      } finally {
+        setBusyKey(null);
       }
     });
   }
 
-  function checkOutSelected() {
-    if (!selected) return;
-
+  function checkOutPerson(person: AttendancePersonLookup) {
+    const key = personKey(person);
+    setBusyKey(key);
     startTransition(async () => {
       try {
         const result = await findOpenCheckoutForPersonAction(
-          selected.personType,
-          selected.id,
+          person.personType,
+          person.id,
         );
         if (!result) {
           toast.error(t("checkInUi.noOpenPresence"));
@@ -274,22 +420,64 @@ export function AttendanceCheckInClient() {
             ? error.message
             : t("checkInUi.checkoutPrepareFailed"),
         );
+      } finally {
+        setBusyKey(null);
       }
     });
   }
 
+  function renderPersonList(people: AttendancePersonLookup[], emptyLabel: string) {
+    if (people.length === 0) {
+      return (
+        <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+          {emptyLabel}
+        </p>
+      );
+    }
+
+    return (
+      <div className="max-h-[min(62vh,36rem)] space-y-2 overflow-y-auto pr-1">
+        {people.map((person) => (
+          <AttendanceQuickPersonRow
+            key={personKey(person)}
+            person={person}
+            pointerLabel={t("checkIn")}
+            checkoutLabel={t("checkInUi.checkOutDeparture")}
+            doneLabel={t("checkInUi.checkedIn")}
+            sessionLabel={
+              person.expectedSessionLabel
+                ? t("checkInUi.expectedSession", {
+                    session: person.expectedSessionLabel,
+                  })
+                : null
+            }
+            busy={pending && busyKey === personKey(person)}
+            onPointer={() => checkInPerson(person)}
+            onCheckout={() => checkOutPerson(person)}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  const visibleTabs = canViewPersonnel
+    ? (["teacher", "student", "personnel"] as const)
+    : (["teacher", "student"] as const);
+
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-5">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div className="mx-auto w-full max-w-7xl space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0 flex-1">
-          <h2 className="text-xl font-semibold tracking-tight">{t("checkInUi.title")}</h2>
-          <p className="mt-1 w-full max-w-7xl text-sm leading-relaxed text-muted-foreground">
+          <h2 className="text-xl font-semibold tracking-tight">
+            {t("checkInUi.title")}
+          </h2>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
             {t("checkInUi.description")}
           </p>
         </div>
         <Button
           type="button"
-          className="w-full shrink-0 lg:w-auto"
+          className="w-full shrink-0 sm:w-auto"
           onClick={() => setScanOpen(true)}
         >
           <IconCamera className="mr-2 size-4" />
@@ -297,181 +485,214 @@ export function AttendanceCheckInClient() {
         </Button>
       </div>
 
-      <Tabs
-        value={mode}
-        onValueChange={(value) => setMode(value as PointageMode)}
-        className="space-y-4"
-      >
-        <div className="sticky top-0 z-10 rounded-xl border bg-card/95 p-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80">
-          <TabsList className="grid h-auto min-h-11 w-full grid-cols-2 border border-primary/20 bg-primary/10">
-            <TabsTrigger
-              value="manual"
-              className="gap-1.5 py-2.5 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-            >
-              <IconKeyboard size={16} className="shrink-0" />
-              {t("checkInUi.manualTab")}
-            </TabsTrigger>
-            <TabsTrigger
-              value="scan"
-              className="gap-1.5 py-2.5 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-            >
-              <IconScan size={16} className="shrink-0" />
-              {t("checkInUi.scanTab")}
-            </TabsTrigger>
-          </TabsList>
+      <div className="sticky top-0 z-10 space-y-3 rounded-xl border bg-card/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80">
+        <div className="relative">
+          <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="h-11 pl-9"
+            placeholder={t("checkInUi.searchPlaceholder")}
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && looksLikeScanCode(searchQuery)) {
+                event.preventDefault();
+                runScan(searchQuery);
+              }
+            }}
+          />
         </div>
 
-        <TabsContent value="manual" className="mt-0">
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base">{t("checkInUi.manualTitle")}</CardTitle>
-              <CardDescription className="w-full max-w-7xl text-pretty">
-                {t("checkInUi.manualDescription")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="grid gap-4 lg:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    {t("checkInUi.matriculeLabel")}
-                  </label>
-                  <div className="flex flex-col gap-2 sm:flex-row">
-                    <Input
-                      placeholder={t("checkInUi.matriculePlaceholder")}
-                      value={manualCode}
-                      onChange={(event) => setManualCode(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") runScan(manualCode);
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      onClick={() => runScan(manualCode)}
-                      disabled={pending || !manualCode.trim()}
-                    >
-                      <IconBarcode className="mr-2 size-4" />
-                      {t("checkIn")}
-                    </Button>
-                  </div>
-                </div>
+        <Tabs
+          value={tab}
+          onValueChange={(value) => setTab(value as PointageTab)}
+        >
+          <TabsList
+            className={cn(
+              "grid h-auto min-h-11 w-full border border-primary/20 bg-primary/10",
+              visibleTabs.length === 3 ? "grid-cols-3" : "grid-cols-2",
+            )}
+          >
+            <TabsTrigger
+              value="teacher"
+              className="gap-1.5 py-2.5 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+            >
+              <IconUserCheck size={16} className="shrink-0" />
+              {t("checkInUi.tabTeachers")}
+            </TabsTrigger>
+            <TabsTrigger
+              value="student"
+              className="gap-1.5 py-2.5 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+            >
+              <IconSchool size={16} className="shrink-0" />
+              {t("checkInUi.tabStudents")}
+            </TabsTrigger>
+            {canViewPersonnel ? (
+              <TabsTrigger
+                value="personnel"
+                className="gap-1.5 py-2.5 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+              >
+                <IconUsers size={16} className="shrink-0" />
+                {t("checkInUi.tabPersonnel")}
+              </TabsTrigger>
+            ) : null}
+          </TabsList>
+        </Tabs>
+      </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    {t("checkInUi.searchLabel")}
-                  </label>
-                  <div className="relative">
-                    <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      className="pl-9"
-                      placeholder={t("checkInUi.searchPlaceholder")}
-                      value={searchQuery}
-                      onChange={(event) => setSearchQuery(event.target.value)}
-                    />
-                  </div>
-                </div>
+      {searching ? (
+        renderPersonList(
+          searchResults,
+          pending ? t("checkInUi.searching") : t("checkInUi.noPersonFound"),
+        )
+      ) : (
+        <>
+          {tab === "teacher" ? (
+            bootstrapLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3, 4].map((item) => (
+                  <Skeleton key={item} className="h-16 w-full rounded-xl" />
+                ))}
               </div>
+            ) : (
+              renderPersonList(teachers, t("checkInUi.noUpcomingTeachers"))
+            )
+          ) : null}
 
-              {results.length > 0 ? (
-                <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
-                  {results.map((person) => {
-                    const isSelected =
-                      selected?.id === person.id &&
-                      selected?.personType === person.personType;
-                    return (
-                      <button
-                        key={`${person.personType}-${person.id}`}
-                        type="button"
-                        onClick={() => setSelected(person)}
-                        className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
-                          isSelected
-                            ? "border-primary bg-primary/5 shadow-sm"
-                            : "hover:bg-muted/40"
-                        }`}
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate font-medium">{person.name}</p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {person.matricule} • {person.roleLabel}
-                          </p>
-                          {person.expectedSessionLabel ? (
-                            <p className="mt-0.5 truncate text-xs text-primary">
-                              {t("checkInUi.expectedSession", {
-                                session: person.expectedSessionLabel,
-                              })}
-                            </p>
-                          ) : null}
-                        </div>
-                        <div className="ml-3 flex shrink-0 items-center gap-2">
-                          <Badge variant="outline">
-                            {personTypeLabels[person.personType]}
-                          </Badge>
-                          {isSelected ? (
-                            <Badge variant="outline-primary">{t("checkInUi.selected")}</Badge>
-                          ) : null}
-                        </div>
-                      </button>
-                    );
-                  })}
+          {tab === "student" ? (
+            bootstrapLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-9 w-full rounded-lg" />
+                <Skeleton className="h-9 w-2/3 rounded-lg" />
+                {[1, 2, 3, 4].map((item) => (
+                  <Skeleton key={item} className="h-16 w-full rounded-xl" />
+                ))}
+              </div>
+            ) : (
+            <div className="space-y-3">
+              {cycles.length > 1 ? (
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {cycles.map((cycle) => (
+                    <Button
+                      key={cycle.key}
+                      type="button"
+                      size="sm"
+                      variant={cycle.key === selectedCycle?.key ? "default" : "outline"}
+                      onClick={() => {
+                        setCycleKey(cycle.key);
+                        const nextLevel = cycle.levels[0];
+                        setLevelKey(nextLevel?.key ?? "");
+                        const nextClass =
+                          nextLevel?.classes.find((item) => item.hasUpcomingSession) ??
+                          nextLevel?.classes[0];
+                        setClasseId(nextClass?.id ?? "");
+                      }}
+                    >
+                      {cycle.label}
+                    </Button>
+                  ))}
                 </div>
-              ) : searchQuery.trim().length >= 2 && !pending ? (
-                <p className="rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
-                  {t("checkInUi.noPersonFound")}
-                </p>
               ) : null}
 
-              <div className="flex flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-end">
-                <Button
-                  type="button"
-                  className="w-full sm:w-auto"
-                  onClick={checkInSelected}
-                  disabled={pending || !selected}
-                >
-                  <IconUserCheck className="mr-2 size-4" />
-                  {t("checkInUi.checkInArrival")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full sm:w-auto"
-                  onClick={checkOutSelected}
-                  disabled={pending || !selected}
-                >
-                  <IconLogout className="mr-2 size-4" />
-                  {t("checkInUi.checkOutDeparture")}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              {selectedCycle?.levels.length ? (
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {selectedCycle.levels.map((level) => (
+                    <Button
+                      key={level.key}
+                      type="button"
+                      size="sm"
+                      variant={level.key === selectedLevel?.key ? "default" : "outline"}
+                      onClick={() => {
+                        setLevelKey(level.key);
+                        const nextClass =
+                          level.classes.find((item) => item.hasUpcomingSession) ??
+                          level.classes[0];
+                        setClasseId(nextClass?.id ?? "");
+                      }}
+                    >
+                      {level.label}
+                    </Button>
+                  ))}
+                </div>
+              ) : null}
 
-        <TabsContent value="scan" className="mt-0">
-          <Card className="overflow-hidden">
-            <CardContent className="flex flex-col items-start gap-4 px-6 py-10 sm:px-8">
-              <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <IconCamera className="size-8" />
-              </div>
-              <div className="w-full space-y-1">
-                <h3 className="text-base font-semibold">{t("checkInUi.cameraTitle")}</h3>
-                <p className="w-full max-w-7xl text-sm leading-relaxed text-muted-foreground">
-                  {t("checkInUi.cameraDescription")}
+              {selectedLevel?.classes.length ? (
+                <div className="flex flex-wrap gap-2">
+                  {selectedLevel.classes.map((classe) => (
+                    <button
+                      key={classe.id}
+                      type="button"
+                      onClick={() => setClasseId(classe.id)}
+                      className={cn(
+                        "rounded-full border px-3 py-1.5 text-left text-sm transition",
+                        classe.id === selectedClass?.id
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "hover:bg-muted/60",
+                      )}
+                    >
+                      <span className="font-medium">{classe.name}</span>
+                      <span
+                        className={cn(
+                          "ml-1.5 text-xs",
+                          classe.id === selectedClass?.id
+                            ? "text-primary-foreground/80"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {t("checkInUi.studentsCount", { count: classe.studentCount })}
+                      </span>
+                      {classe.hasUpcomingSession ? (
+                        <span
+                          className={cn(
+                            "ml-1.5 inline-block size-1.5 rounded-full",
+                            classe.id === selectedClass?.id
+                              ? "bg-primary-foreground"
+                              : "bg-primary",
+                          )}
+                        />
+                      ) : null}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+                  {t("checkInUi.noClasses")}
                 </p>
+              )}
+
+              {selectedClass ? (
+                studentsLoading || (pending && students.length === 0) ? (
+                  <div className="space-y-2">
+                    {[1, 2, 3, 4, 5].map((item) => (
+                      <Skeleton key={item} className="h-16 w-full rounded-xl" />
+                    ))}
+                  </div>
+                ) : (
+                  renderPersonList(students, t("checkInUi.noStudents"))
+                )
+              ) : null}
+            </div>
+            )
+          ) : null}
+
+          {tab === "personnel" && canViewPersonnel ? (
+            !personnelLoaded && pending ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((item) => (
+                  <Skeleton key={item} className="h-16 w-full rounded-xl" />
+                ))}
               </div>
-              <Button type="button" onClick={() => setScanOpen(true)}>
-                <IconScan className="mr-2 size-4" />
-                {t("checkInUi.openCamera")}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            ) : (
+              renderPersonList(personnel, t("checkInUi.noPersonnel"))
+            )
+          ) : null}
+        </>
+      )}
 
       {recent.length > 0 ? (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">{t("checkInUi.recentTitle")}</CardTitle>
-            <CardDescription className="w-full max-w-7xl">
-              {t("checkInUi.recentDescription")}
-            </CardDescription>
+            <CardDescription>{t("checkInUi.recentDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {recent.map((item) => (
@@ -532,7 +753,7 @@ export function AttendanceCheckInClient() {
               message,
               personType: checkout.personType,
               person: {
-                id: checkout.attendanceId,
+                id: checkout.personId,
                 name: checkout.personName,
                 matricule: "",
                 roleLabel: personTypeLabels[checkout.personType],
@@ -541,11 +762,14 @@ export function AttendanceCheckInClient() {
               statusLabel: t("status.checkout"),
               sessionLabel: checkout.sessionLabel ?? undefined,
             });
+            markPersonState(
+              {
+                id: checkout.personId,
+                personType: checkout.personType,
+              },
+              { alreadyCheckedIn: true, canCheckOut: false, attendanceId: null },
+            );
             setCheckout(null);
-            setSelected(null);
-            setSearchQuery("");
-            setResults([]);
-            setManualCode("");
           }}
         />
       ) : null}

@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
 
-import { getCachedSession } from "@/lib/auth/get-session-cached";
 import {
-  canAccessFinanceArea,
-  canAccessFinanceOversight,
-  canManageHrDirectory,
-} from "@/lib/auth/session-roles";
+  canAccessBranchAreaAsync,
+  type BranchArea,
+} from "@/lib/auth/assert-branch-area-access";
+import { getCachedSession } from "@/lib/auth/get-session-cached";
+import { checkOrganizationPermission } from "@/lib/auth/has-organization-permission";
+import { canAccessFinanceArea } from "@/lib/auth/session-roles";
 import { prisma } from "@/lib/prisma";
 
 import { getBranchCycles } from "@/lib/cycle";
@@ -106,29 +107,75 @@ export async function requireBranchContext(
   };
 }
 
-/** Branche active + droit finance (paiement / caisse). */
-export async function requireFinanceBranchContext() {
-  const ctx = await requireBranchContext();
-  if (!canAccessFinanceArea(ctx.session)) {
+type BranchContext = Awaited<ReturnType<typeof requireBranchContext>>;
+
+async function assertBranchAreaOrThrow(area: BranchArea, ctx: BranchContext) {
+  const allowed = await canAccessBranchAreaAsync(
+    area,
+    ctx.session,
+    ctx.organizationId,
+    ctx.branchId,
+  );
+  if (!allowed) {
     throw new Error("Action non autorisée");
   }
+}
+
+/** Branche active + accès DAC / octroi temporaire à une zone. */
+export async function requireBranchAreaContext(area: BranchArea) {
+  const ctx = await requireBranchContext();
+  await assertBranchAreaOrThrow(area, ctx);
   return ctx;
 }
 
-/** Catalogue des frais + situation impayés — sans caissier. */
-export async function requireFinanceOversightBranchContext() {
+async function hasFinanceAction(
+  ctx: BranchContext,
+  action: "read" | "encaisser",
+) {
+  if (canAccessFinanceArea(ctx.session)) return true;
+  const permission = await checkOrganizationPermission(
+    ctx.organizationId,
+    { finance: [action] },
+    { branchId: ctx.branchId },
+  );
+  return permission.ok;
+}
+
+/** Branche active + droit finance (paiement / caisse), y compris octroi temporaire. */
+export async function requireFinanceBranchContext() {
+  return requireBranchAreaContext("finance");
+}
+
+/**
+ * Encaissement / écriture caisse : rôle finance legacy, DAC `encaisser`,
+ * ou octroi temporaire `finance:encaisser`.
+ */
+export async function requireFinanceCollectBranchContext() {
   const ctx = await requireFinanceBranchContext();
-  if (!canAccessFinanceOversight(ctx.session)) {
-    throw new Error("Action non autorisée");
+  if (await hasFinanceAction(ctx, "encaisser")) {
+    return ctx;
   }
-  return ctx;
+  throw new Error("Action non autorisée");
+}
+
+/**
+ * Rapports / exports caisse qui exigent `finance:read`
+ * (un octroi `encaisser` seul ne suffit pas).
+ */
+export async function requireFinanceReadBranchContext() {
+  const ctx = await requireFinanceBranchContext();
+  if (await hasFinanceAction(ctx, "read")) {
+    return ctx;
+  }
+  throw new Error("Action non autorisée");
+}
+
+/** Catalogue des frais + situation impayés — DAC `fees:read` ou octroi. */
+export async function requireFinanceOversightBranchContext() {
+  return requireBranchAreaContext("fee_catalog");
 }
 
 /** Branche active + droit CRUD personnel / parents (préfet exclu). */
 export async function requireHrWriteBranchContext() {
-  const ctx = await requireBranchContext();
-  if (!canManageHrDirectory(ctx.session)) {
-    throw new Error("Action non autorisée");
-  }
-  return ctx;
+  return requireBranchAreaContext("hr_write");
 }
