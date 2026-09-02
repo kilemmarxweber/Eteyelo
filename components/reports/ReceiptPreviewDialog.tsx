@@ -272,10 +272,33 @@ export function ReceiptPreviewDialog({
         };
 
         const pageCss = isPos
-          ? `@page { size: 80mm auto; margin: 2mm; }`
+          ? `@page { size: 80mm auto; margin: 0; }`
           : `@page { size: A4; margin: 10mm; }`;
+        const copyCss = isPos
+          ? `.copy {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        width: 100%;
+        margin: 0 auto;
+        padding: 2mm 0;
+        page-break-after: always;
+        break-after: page;
+      }`
+          : `.copy {
+        display: block;
+        padding: 4mm;
+        page-break-after: always;
+        break-after: page;
+      }`;
         const imgCss = isPos
-          ? `img { display: block; width: 76mm; height: auto; max-width: 100%; }`
+          ? `img {
+        display: block;
+        margin: 0 auto;
+        width: 76mm;
+        max-width: 76mm;
+        height: auto;
+      }`
           : `img { display: block; width: 100%; height: auto; max-width: 100%; }`;
 
         frameWindow.document.open();
@@ -292,15 +315,12 @@ export function ReceiptPreviewDialog({
       html, body {
         margin: 0;
         padding: 0;
+        width: 100%;
         background: #ffffff;
         overflow: visible;
+        ${isPos ? "text-align: center;" : ""}
       }
-      .copy {
-        display: block;
-        padding: ${isPos ? "0" : "4mm"};
-        page-break-after: always;
-        break-after: page;
-      }
+      ${copyCss}
       .copy:last-child {
         page-break-after: auto;
         break-after: auto;
@@ -309,9 +329,11 @@ export function ReceiptPreviewDialog({
       @media print {
         html, body {
           overflow: visible !important;
+          ${isPos ? "width: 100%; text-align: center;" : ""}
         }
         .copy {
-          padding: 0;
+          padding: ${isPos ? "2mm 0" : "0"};
+          ${isPos ? "display: flex; justify-content: center; width: 100%;" : ""}
         }
       }
     </style>

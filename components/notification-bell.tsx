@@ -114,6 +114,8 @@ function relativeTime(value: Date | string) {
   if (Number.isNaN(date.getTime())) return "";
   return formatDistanceToNow(date, { addSuffix: true, locale: fr });
 }
+
+function CountBadge({ count }: { count: number }) {
   if (count === 0) return null;
   return (
     <span className="absolute -right-1 -top-1 flex h-4 min-w-4">
@@ -206,9 +208,6 @@ function NotificationRow({
         ? `Enseignant · ${item.desiredSubjects || "—"}`
         : `Personnel · ${item.desiredOrgRole || "—"}`;
 
-  const createdAt =
-    item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt);
-
   const isBusy = busyId === item.id;
   const statusLabel =
     item.kind === "job" && item.status === "REVIEWED"
@@ -251,7 +250,7 @@ function NotificationRow({
         ) : null}
         <p className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground/70">
           <Clock className="size-3" />
-          {formatDistanceToNow(createdAt, { addSuffix: true, locale: fr })}
+          {relativeTime(item.createdAt)}
         </p>
       </div>
 
@@ -306,8 +305,6 @@ function AbsenceNotificationRow({
   onOpen: (item: AbsenceRow) => void;
   onReply?: (item: AbsenceRow) => void;
 }) {
-  const createdAt =
-    item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt);
   const isPayment = item.type === "PAYMENT";
   const isPayroll =
     item.type === "PAYROLL" || item.type === "PAYROLL_DEDUCTION";
@@ -358,7 +355,7 @@ function AbsenceNotificationRow({
         </p>
         <p className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground/70">
           <Clock className="size-3" />
-          {formatDistanceToNow(createdAt, { addSuffix: true, locale: fr })}
+          {relativeTime(item.createdAt)}
         </p>
       </div>
       <div className="flex shrink-0 flex-col gap-1">
@@ -461,7 +458,10 @@ export function NotificationBell() {
       const [inbox, inboxError] = await getNotificationInboxAction();
       if (inboxError) {
         setError(
-          inboxError.message || "Impossible de charger les notifications.",
+          zsaErrorMessage(
+            inboxError,
+            "Impossible de charger les notifications.",
+          ),
         );
         return;
       }
