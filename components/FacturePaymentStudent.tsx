@@ -4,11 +4,13 @@ import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import {
   formatReceiptCurrency,
   formatModePaiementLabel,
+  parseReceiptPrintFormat,
   resolveItemSecondaryAmount,
   resolveReceiptSecondaryCurrency,
   sumReceiptBase,
   sumReceiptSecondary,
   type ReceiptCurrency,
+  type ReceiptPrintFormat,
 } from "@/components/reports/receipt-format";
 import {
   formatReceiptSettlementStatus,
@@ -60,6 +62,8 @@ export type FacturePaymentStudentData = {
   selectedRate?: number | null;
   /** Si false, pas de colonne de conversion (2e devise) sur le reçu. */
   showConversion?: boolean;
+  /** Modèle d'impression : A4 (tableau) ou ticket POS 80 mm. */
+  receiptPrintFormat?: "A4" | "POS_80MM";
 };
 
 export function formatReceiptClasseCode(
@@ -100,9 +104,9 @@ function formatBaseCell(amount: number, currency: ReceiptCurrency): string {
   )}`;
 }
 
-export function generateFacturePaymentStudentPDF(
+function generateFacturePaymentStudentPosPDF(
   data: FacturePaymentStudentData,
-  options?: { copies?: number },
+  copies: number,
 ) {
   const {
     invoiceNumber,
@@ -119,7 +123,199 @@ export function generateFacturePaymentStudentPDF(
     showConversion = true,
     settlementStatus,
   } = data;
+  const pageWidth = 80;
+  const margin = 4;
+  const contentWidth = pageWidth - margin * 2;
+  const lineH = 4.2;
+  const itemBlock = 14;
+  const headerH = 42;
+  const pageHeight = Math.max(120, headerH + items.length * itemBlock + 36);
+  const doc = new jsPDF({
+    unit: "mm",
+    format: [pageWidth, pageHeight],
+  });
+  const base = baseCurrency;
+  const secondary = showConversion
+    ? resolveReceiptSecondaryCurrency(receivedCurrency, base, quoteCurrency)
+    : null;
+  const showSecondary = secondary != null && secondary !== base;
+  const secondaryOpts = {
+    exchangeRateUsdCdf,
+    receivedCurrency,
+    baseCurrency: base,
+    selectedRate,
+  };
+  const totalBase = sumReceiptBase(items);
+  const totalSecondary =
+    showSecondary && secondary
+      ? sumReceiptSecondary(items, secondary, secondaryOpts)
+      : 0;
+  const dateLabel = new Date().toLocaleDateString("fr-FR");
+  const schoolName = sender.name || "Établissement";
+  const overallStatus =
+    settlementStatus ?? resolveOverallReceiptSettlementStatus(items);
+  const statusLabel = formatReceiptSettlementStatus(overallStatus);
+
+  const drawCopy = () => {
+    let y = 6;
+    if (logoUrl) {
+      try {
+        doc.addImage(logoUrl, pageWidth / 2 - 8, y, 16, 16);
+        y += 18;
+      } catch {
+        // logo invalide : continuer sans image
+      }
+    }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    const nameLines = doc.splitTextToSize(schoolName, contentWidth);
+    doc.text(nameLines, pageWidth / 2, y, { align: "center" });
+    y += nameLines.length * 4 + 2;
+
+    if (sender.address?.trim()) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      const addrLines = doc.splitTextToSize(sender.address.trim(), contentWidth);
+      doc.text(addrLines, pageWidth / 2, y, { align: "center" });
+      y += addrLines.length * 3.2 + 2;
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.text("REÇU DE PAIEMENT", pageWidth / 2, y, { align: "center" });
+    y += 5;
+    doc.setFontSize(9);
+    doc.text(`N° ${invoiceNumber}`, pageWidth / 2, y, { align: "center" });
+    y += 5;
+    if (statusLabel) {
+      doc.text(statusLabel, pageWidth / 2, y, { align: "center" });
+      y += 4;
+    }
+
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.2);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 5;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text(`Parent : ${recipient.name || "-"}`, margin, y);
+    y += lineH;
+    const issuedLine = issuedPlace?.trim()
+      ? `Fait à ${issuedPlace.trim()}, le ${dateLabel}`
+      : `Fait le ${dateLabel}`;
+    const issuedLines = doc.splitTextToSize(issuedLine, contentWidth);
+    doc.text(issuedLines, margin, y);
+    y += issuedLines.length * 3.5 + 2;
+
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 4;
+
+    for (const item of items) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      const desc = doc.splitTextToSize(item.description, contentWidth - 28);
+      doc.text(desc, margin, y);
+      doc.text(
+        formatReceiptCurrency(Number(item.montant), base),
+        pageWidth - margin,
+        y,
+        { align: "right" },
+      );
+      y += desc.length * 3.4 + 0.5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      const meta = `${formatModePaiementLabel(item.mode ?? item.statut)} · ${formatReceiptClasseCode(item)} · ${receiptItemStatusLabel(item)}`;
+      const metaLines = doc.splitTextToSize(meta, contentWidth);
+      doc.text(metaLines, margin, y);
+      y += metaLines.length * 3.1;
+      doc.text(
+        `À payer ${formatReceiptCurrency(Number(item.price), base)}`,
+        margin,
+        y,
+      );
+      y += 3.2;
+      if (showSecondary && secondary) {
+        doc.text(
+          formatReceiptCurrency(
+            resolveItemSecondaryAmount(item, secondary, secondaryOpts),
+            secondary,
+          ),
+          margin,
+          y,
+        );
+        y += 3.2;
+      }
+      y += 1.5;
+    }
+
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 5;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text(`Total ${base}`, margin, y);
+    doc.text(formatReceiptCurrency(totalBase, base), pageWidth - margin, y, {
+      align: "right",
+    });
+    y += 5;
+    if (showSecondary && secondary) {
+      doc.text(`Total ${secondary}`, margin, y);
+      doc.text(
+        formatReceiptCurrency(totalSecondary, secondary),
+        pageWidth - margin,
+        y,
+        { align: "right" },
+      );
+      y += 5;
+    }
+
+    y += 6;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    doc.text("Signature", pageWidth / 2, y, { align: "center" });
+    y += 8;
+    doc.text("Merci · Conservez ce reçu", pageWidth / 2, y, {
+      align: "center",
+    });
+  };
+
+  for (let copy = 0; copy < copies; copy++) {
+    if (copy > 0) doc.addPage([pageWidth, pageHeight], "portrait");
+    drawCopy();
+  }
+
+  doc.save(`facture-${invoiceNumber}-pos80.pdf`);
+}
+
+export function generateFacturePaymentStudentPDF(
+  data: FacturePaymentStudentData,
+  options?: { copies?: number; format?: ReceiptPrintFormat },
+) {
   const copies = Math.max(1, Math.round(options?.copies ?? 1));
+  const format = parseReceiptPrintFormat(
+    options?.format ?? data.receiptPrintFormat,
+  );
+  if (format === "POS_80MM") {
+    generateFacturePaymentStudentPosPDF(data, copies);
+    return;
+  }
+
+  const {
+    invoiceNumber,
+    sender,
+    recipient,
+    items,
+    logoUrl = "",
+    exchangeRateUsdCdf = DEFAULT_EXCHANGE_RATE_USD_CDF,
+    issuedPlace,
+    receivedCurrency = "USD",
+    baseCurrency = "USD",
+    quoteCurrency,
+    selectedRate,
+    showConversion = true,
+    settlementStatus,
+  } = data;
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const primaryColor = "#000000";

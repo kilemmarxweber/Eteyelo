@@ -24,4 +24,6 @@ export type SchoolReportContext = {
   selectedRate?: number | null;
   /** Si false, le reçu / PDF n'affiche pas la 2e devise. */
   showConversion?: boolean;
+  /** Modèle d'impression du reçu (A4 ou ticket POS 80 mm). */
+  receiptPrintFormat?: "A4" | "POS_80MM";
 };

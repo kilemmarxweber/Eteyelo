@@ -111,6 +111,14 @@ export const CurrencyCode = {
 export type CurrencyCode = (typeof CurrencyCode)[keyof typeof CurrencyCode]
 
 
+export const ReceiptPrintFormat = {
+  A4: 'A4',
+  POS_80MM: 'POS_80MM'
+} as const
+
+export type ReceiptPrintFormat = (typeof ReceiptPrintFormat)[keyof typeof ReceiptPrintFormat]
+
+
 export const PaymentStatus = {
   VALIDE: 'VALIDE',
   ANNULE: 'ANNULE',

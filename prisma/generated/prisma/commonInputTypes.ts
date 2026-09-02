@@ -806,6 +806,23 @@ export type EnumTeacherPayslipLineKindWithAggregatesFilter<$PrismaModel = never>
   _max?: Prisma.NestedEnumTeacherPayslipLineKindFilter<$PrismaModel>
 }
 
+export type EnumReceiptPrintFormatFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReceiptPrintFormat | Prisma.EnumReceiptPrintFormatFieldRefInput<$PrismaModel>
+  in?: $Enums.ReceiptPrintFormat[] | Prisma.ListEnumReceiptPrintFormatFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ReceiptPrintFormat[] | Prisma.ListEnumReceiptPrintFormatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumReceiptPrintFormatFilter<$PrismaModel> | $Enums.ReceiptPrintFormat
+}
+
+export type EnumReceiptPrintFormatWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReceiptPrintFormat | Prisma.EnumReceiptPrintFormatFieldRefInput<$PrismaModel>
+  in?: $Enums.ReceiptPrintFormat[] | Prisma.ListEnumReceiptPrintFormatFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ReceiptPrintFormat[] | Prisma.ListEnumReceiptPrintFormatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumReceiptPrintFormatWithAggregatesFilter<$PrismaModel> | $Enums.ReceiptPrintFormat
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumReceiptPrintFormatFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumReceiptPrintFormatFilter<$PrismaModel>
+}
+
 export type EnumTypeBracheFilter<$PrismaModel = never> = {
   equals?: $Enums.TypeBrache | Prisma.EnumTypeBracheFieldRefInput<$PrismaModel>
   in?: $Enums.TypeBrache[] | Prisma.ListEnumTypeBracheFieldRefInput<$PrismaModel>
@@ -1934,6 +1951,23 @@ export type NestedEnumTeacherPayslipLineKindWithAggregatesFilter<$PrismaModel = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumTeacherPayslipLineKindFilter<$PrismaModel>
   _max?: Prisma.NestedEnumTeacherPayslipLineKindFilter<$PrismaModel>
+}
+
+export type NestedEnumReceiptPrintFormatFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReceiptPrintFormat | Prisma.EnumReceiptPrintFormatFieldRefInput<$PrismaModel>
+  in?: $Enums.ReceiptPrintFormat[] | Prisma.ListEnumReceiptPrintFormatFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ReceiptPrintFormat[] | Prisma.ListEnumReceiptPrintFormatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumReceiptPrintFormatFilter<$PrismaModel> | $Enums.ReceiptPrintFormat
+}
+
+export type NestedEnumReceiptPrintFormatWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReceiptPrintFormat | Prisma.EnumReceiptPrintFormatFieldRefInput<$PrismaModel>
+  in?: $Enums.ReceiptPrintFormat[] | Prisma.ListEnumReceiptPrintFormatFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ReceiptPrintFormat[] | Prisma.ListEnumReceiptPrintFormatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumReceiptPrintFormatWithAggregatesFilter<$PrismaModel> | $Enums.ReceiptPrintFormat
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumReceiptPrintFormatFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumReceiptPrintFormatFilter<$PrismaModel>
 }
 
 export type NestedEnumTypeBracheFilter<$PrismaModel = never> = {

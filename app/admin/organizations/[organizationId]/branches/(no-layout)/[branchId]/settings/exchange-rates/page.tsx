@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { RequireBranchOrgSettingsAccess } from "../components/require-branch-org-settings-access";
 import {
@@ -18,6 +20,10 @@ import {
 } from "../exchange-rate.action";
 import { CURRENCY_LABELS, getBaseCurrency } from "@/lib/exchange-rate";
 import type { CurrencyCode } from "@/prisma/generated/prisma/enums";
+import {
+  parseReceiptPrintFormat,
+  type ReceiptPrintFormat,
+} from "@/components/reports/receipt-format";
 
 type RateRow = {
   id: string;
@@ -43,6 +49,8 @@ export default function ExchangeRatesSettingsPage() {
   const [selectingId, setSelectingId] = useState<string | null>(null);
   const [showReceiptConversion, setShowReceiptConversion] = useState(true);
   const [notifyParentOnPayment, setNotifyParentOnPayment] = useState(true);
+  const [receiptPrintFormat, setReceiptPrintFormat] =
+    useState<ReceiptPrintFormat>("A4");
   const [savingDisplay, setSavingDisplay] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -67,6 +75,7 @@ export default function ExchangeRatesSettingsPage() {
       if (!displayErr && display) {
         setShowReceiptConversion(display.showReceiptConversion);
         setNotifyParentOnPayment(display.notifyParentOnPayment);
+        setReceiptPrintFormat(parseReceiptPrintFormat(display.receiptPrintFormat));
       }
       const list = data ?? [];
       setRows(list);
@@ -170,14 +179,17 @@ export default function ExchangeRatesSettingsPage() {
   async function saveDisplaySettings(patch: {
     showReceiptConversion?: boolean;
     notifyParentOnPayment?: boolean;
+    receiptPrintFormat?: ReceiptPrintFormat;
   }) {
     const nextConversion = patch.showReceiptConversion ?? showReceiptConversion;
     const nextNotify = patch.notifyParentOnPayment ?? notifyParentOnPayment;
+    const nextFormat = patch.receiptPrintFormat ?? receiptPrintFormat;
     setSavingDisplay(true);
     try {
       const [saved, err] = await updateFinanceDisplaySettingsAction({
         showReceiptConversion: nextConversion,
         notifyParentOnPayment: nextNotify,
+        receiptPrintFormat: nextFormat,
       });
       if (err) {
         toast.error(err.message);
@@ -186,6 +198,7 @@ export default function ExchangeRatesSettingsPage() {
       if (saved) {
         setShowReceiptConversion(saved.showReceiptConversion);
         setNotifyParentOnPayment(saved.notifyParentOnPayment);
+        setReceiptPrintFormat(parseReceiptPrintFormat(saved.receiptPrintFormat));
       }
       toast.success("Option enregistrée.");
     } catch (error) {
@@ -252,6 +265,54 @@ export default function ExchangeRatesSettingsPage() {
                 void saveDisplaySettings({ notifyParentOnPayment: checked });
               }}
             />
+          </div>
+          <div className="space-y-3 border-t pt-3">
+            <div className="space-y-1">
+              <p className="font-medium">Modèle de reçu</p>
+              <p className="text-sm text-muted-foreground">
+                Choisir le format d’impression par défaut. Vous pouvez encore
+                changer de modèle dans l’aperçu avant d’imprimer.
+              </p>
+            </div>
+            <RadioGroup
+              className="grid gap-2 sm:grid-cols-2"
+              value={receiptPrintFormat}
+              disabled={savingDisplay}
+              onValueChange={(value) => {
+                const next = parseReceiptPrintFormat(value);
+                setReceiptPrintFormat(next);
+                void saveDisplaySettings({ receiptPrintFormat: next });
+              }}
+            >
+              <Label
+                htmlFor="org-receipt-a4"
+                className="flex cursor-pointer items-start gap-2 rounded-lg border px-3 py-2.5 font-normal"
+              >
+                <RadioGroupItem id="org-receipt-a4" value="A4" className="mt-0.5" />
+                <span>
+                  <span className="block font-medium">A4 — tableau</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Reçu actuel, imprimante feuille A4
+                  </span>
+                </span>
+              </Label>
+              <Label
+                htmlFor="org-receipt-pos"
+                className="flex cursor-pointer items-start gap-2 rounded-lg border px-3 py-2.5 font-normal"
+              >
+                <RadioGroupItem
+                  id="org-receipt-pos"
+                  value="POS_80MM"
+                  className="mt-0.5"
+                />
+                <span>
+                  <span className="block font-medium">POS 80 mm</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Ticket thermique caisse (80 mm)
+                  </span>
+                </span>
+              </Label>
+            </RadioGroup>
           </div>
         </div>
 

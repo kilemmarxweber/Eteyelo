@@ -1135,6 +1135,12 @@ enum CurrencyCode {
   AOA
 }
 
+/// Format d'impression des reçus de paiement.
+enum ReceiptPrintFormat {
+  A4
+  POS_80MM
+}
+
 enum PaymentStatus {
   VALIDE
   ANNULE
@@ -1487,6 +1493,8 @@ model Organization {
   temporaryGrants   TemporaryGrant[]
   /// Afficher la 2e devise (conversion) sur les reçus. Désactiver pour AOA sans conversion.
   showReceiptConversion Boolean @default(true)
+  /// Modèle de reçu : A4 (tableau) ou ticket thermique POS 80 mm.
+  receiptPrintFormat ReceiptPrintFormat @default(A4)
   /// Notifier le parent (e-mail + WhatsApp + compte) à l'encaissement / modification / suppression.
   notifyParentOnPayment Boolean @default(true)
   /// Envoi WhatsApp (Zindua). Désactiver si le fournisseur n'est pas actif pour éviter les jobs en erreur.

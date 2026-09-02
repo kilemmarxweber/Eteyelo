@@ -147,6 +147,7 @@ function mapGroupedToReceipt(
     quoteCurrency: branding.quoteCurrency,
     selectedRate: branding.selectedRate,
     showConversion: branding.showConversion !== false,
+    receiptPrintFormat: branding.receiptPrintFormat,
   };
 }
 

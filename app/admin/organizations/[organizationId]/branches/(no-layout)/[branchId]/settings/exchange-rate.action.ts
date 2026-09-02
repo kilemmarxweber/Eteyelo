@@ -12,6 +12,7 @@ import {
   getBaseCurrency,
   type ExchangeRatePair,
 } from "@/lib/exchange-rate";
+import { parseReceiptPrintFormat } from "@/components/reports/receipt-format";
 
 const currencySchema = z.nativeEnum(CurrencyCode);
 
@@ -240,6 +241,7 @@ export const selectExchangeRateAction = action
 const financeDisplaySchema = z.object({
   showReceiptConversion: z.boolean(),
   notifyParentOnPayment: z.boolean(),
+  receiptPrintFormat: z.enum(["A4", "POS_80MM"]),
 });
 
 export const getFinanceDisplaySettingsAction = action.handler(async () => {
@@ -250,11 +252,13 @@ export const getFinanceDisplaySettingsAction = action.handler(async () => {
     select: {
       showReceiptConversion: true,
       notifyParentOnPayment: true,
+      receiptPrintFormat: true,
     },
   });
   return {
     showReceiptConversion: org?.showReceiptConversion ?? true,
     notifyParentOnPayment: org?.notifyParentOnPayment ?? true,
+    receiptPrintFormat: parseReceiptPrintFormat(org?.receiptPrintFormat),
   };
 });
 
@@ -268,12 +272,17 @@ export const updateFinanceDisplaySettingsAction = action
       data: {
         showReceiptConversion: input.showReceiptConversion,
         notifyParentOnPayment: input.notifyParentOnPayment,
+        receiptPrintFormat: input.receiptPrintFormat,
       },
       select: {
         showReceiptConversion: true,
         notifyParentOnPayment: true,
+        receiptPrintFormat: true,
       },
     });
     revalidateRatePaths(organizationId, branchId);
-    return org;
+    return {
+      ...org,
+      receiptPrintFormat: parseReceiptPrintFormat(org.receiptPrintFormat),
+    };
   });

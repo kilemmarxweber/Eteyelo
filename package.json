@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "node -e \"const fs=require('fs');const p='prisma/generated/prisma';try{fs.rmSync(p,{recursive:true,force:true})}catch(e){}\" && prisma generate",
+    "postinstall": "prisma generate",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "i18n:check": "tsx scripts/i18n-check.ts",
     "seed": "tsx prisma/seeds/seedData.ts",

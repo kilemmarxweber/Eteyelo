@@ -1042,6 +1042,7 @@ export const OrganizationScalarFieldEnum = {
   archivedAt: 'archivedAt',
   archivedById: 'archivedById',
   showReceiptConversion: 'showReceiptConversion',
+  receiptPrintFormat: 'receiptPrintFormat',
   notifyParentOnPayment: 'notifyParentOnPayment',
   whatsappEnabled: 'whatsappEnabled',
   whatsappApiKey: 'whatsappApiKey',

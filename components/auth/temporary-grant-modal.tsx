@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Clock, ShieldAlert, KeyRound, User, Loader2 } from "lucide-react";
 import {
   Dialog,
@@ -21,21 +21,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchCombobox, type SearchComboboxOption } from "@/components/ui/search-combobox";
 import { toast } from "sonner";
-import { grantTemporaryPrivilegeAction } from "@/app/admin/organizations/[organizationId]/settings/temporary-grants/actions";
-
-type MemberOption = {
-  userId: string;
-  name: string;
-  email?: string | null;
-  role?: string | null;
-};
+import {
+  grantTemporaryPrivilegeAction,
+  listTemporaryGrantMembersAction,
+} from "@/app/admin/organizations/[organizationId]/settings/temporary-grants/actions";
 
 type TemporaryGrantModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   organizationId: string;
-  members: MemberOption[];
   onSuccess?: () => void;
 };
 
@@ -70,20 +66,86 @@ const DURATION_PRESETS = [
   { label: "7 jours", value: 10080 },
 ];
 
+function formatMemberLabel(name: string, email?: string | null, role?: string | null) {
+  const details = [email, role].filter(Boolean).join(" · ");
+  return details ? `${name} (${details})` : name;
+}
+
+function toMemberOption(member: {
+  userId: string;
+  name: string;
+  email?: string | null;
+  role?: string | null;
+}): SearchComboboxOption {
+  return {
+    value: member.userId,
+    label: formatMemberLabel(member.name, member.email, member.role),
+    search: [member.name, member.email, member.role].filter(Boolean).join(" "),
+  };
+}
+
 export function TemporaryGrantModal({
   open,
   onOpenChange,
   organizationId,
-  members,
   onSuccess,
 }: TemporaryGrantModalProps) {
   const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [memberItems, setMemberItems] = useState<SearchComboboxOption[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
   const [resource, setResource] = useState<string>("finance");
   const [action, setAction] = useState<string>("read");
   const [durationMinutes, setDurationMinutes] = useState<number>(60);
   const [customDuration, setCustomDuration] = useState<string>("");
   const [reason, setReason] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const searchTimerRef = useRef<number | null>(null);
+
+  const loadMembers = useCallback(
+    async (query?: string) => {
+      setLoadingMembers(true);
+      try {
+        const res = await listTemporaryGrantMembersAction(organizationId, query);
+        if (res.ok) {
+          setMemberItems(res.members.map(toMemberOption));
+        } else {
+          toast.error(res.message);
+          setMemberItems([]);
+        }
+      } catch {
+        toast.error("Impossible de charger la liste des membres.");
+        setMemberItems([]);
+      } finally {
+        setLoadingMembers(false);
+      }
+    },
+    [organizationId],
+  );
+
+  useEffect(() => {
+    if (!open) {
+      setSelectedUserId("");
+      return;
+    }
+    void loadMembers();
+  }, [open, loadMembers]);
+
+  useEffect(() => {
+    return () => {
+      if (searchTimerRef.current != null) {
+        window.clearTimeout(searchTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleMemberSearch = (query: string) => {
+    if (searchTimerRef.current != null) {
+      window.clearTimeout(searchTimerRef.current);
+    }
+    searchTimerRef.current = window.setTimeout(() => {
+      void loadMembers(query);
+    }, 250);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,26 +208,33 @@ export function TemporaryGrantModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
-          {/* Utilisateur cible */}
           <div className="space-y-1.5">
             <Label htmlFor="user-select" className="flex items-center gap-1.5">
               <User className="h-4 w-4 text-muted-foreground" /> Utilisateur Bénéficiaire
             </Label>
-            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-              <SelectTrigger id="user-select">
-                <SelectValue placeholder="Sélectionnez un membre..." />
-              </SelectTrigger>
-              <SelectContent>
-                {members.map((m) => (
-                  <SelectItem key={m.userId} value={m.userId}>
-                    {m.name} {m.email ? `(${m.email})` : ""} {m.role ? `- ${m.role}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchCombobox
+              id="user-select"
+              items={memberItems}
+              value={selectedUserId}
+              onValueChange={setSelectedUserId}
+              onQueryChange={handleMemberSearch}
+              filterItems={false}
+              placeholder="Rechercher ou sélectionner un membre..."
+              emptyText={
+                loadingMembers
+                  ? "Chargement des membres..."
+                  : "Aucun membre trouvé."
+              }
+              showClear
+            />
+            {!loadingMembers && memberItems.length > 0 ? (
+              <p className="text-xs text-muted-foreground">
+                {memberItems.length} membre{memberItems.length > 1 ? "s" : ""} affiché
+                {memberItems.length > 1 ? "s" : ""}. Cliquez sur le champ pour voir la liste ou tapez pour rechercher.
+              </p>
+            ) : null}
           </div>
 
-          {/* Ressource & Action */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Ressource Cible</Label>
@@ -200,7 +269,6 @@ export function TemporaryGrantModal({
             </div>
           </div>
 
-          {/* Durée */}
           <div className="space-y-2">
             <Label className="flex items-center gap-1.5">
               <Clock className="h-4 w-4 text-muted-foreground" /> Durée de Validité
@@ -232,7 +300,6 @@ export function TemporaryGrantModal({
             </div>
           </div>
 
-          {/* Motif / Raison */}
           <div className="space-y-1.5">
             <Label htmlFor="reason" className="flex items-center gap-1.5">
               <ShieldAlert className="h-4 w-4 text-muted-foreground" /> Motif de l'Octroi (Requis)

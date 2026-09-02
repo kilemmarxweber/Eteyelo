@@ -14,7 +14,17 @@ const nextConfig = {
     "unzipper",
     "fstream",
     "rimraf",
+    "@prisma/client",
+    "pg",
   ],
+  turbopack: {
+    resolveAlias: {
+      "@/prisma/generated/prisma/client": "./prisma/generated/prisma/client.ts",
+      "@/prisma/generated/prisma/enums": "./prisma/generated/prisma/enums.ts",
+      "./prisma/generated/prisma/client": "./prisma/generated/prisma/client.ts",
+      "./prisma/generated/prisma/enums": "./prisma/generated/prisma/enums.ts",
+    },
+  },
   async rewrites() {
     return [
       {

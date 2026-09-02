@@ -7644,6 +7644,7 @@ export const OrganizationScalarFieldEnum = {
   archivedAt: 'archivedAt',
   archivedById: 'archivedById',
   showReceiptConversion: 'showReceiptConversion',
+  receiptPrintFormat: 'receiptPrintFormat',
   notifyParentOnPayment: 'notifyParentOnPayment',
   whatsappEnabled: 'whatsappEnabled',
   whatsappApiKey: 'whatsappApiKey',
@@ -8703,6 +8704,20 @@ export type EnumTeacherPayslipLineKindFieldRefInput<$PrismaModel> = FieldRefInpu
  * Reference to a field of type 'TeacherPayslipLineKind[]'
  */
 export type ListEnumTeacherPayslipLineKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeacherPayslipLineKind[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ReceiptPrintFormat'
+ */
+export type EnumReceiptPrintFormatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReceiptPrintFormat'>
+    
+
+
+/**
+ * Reference to a field of type 'ReceiptPrintFormat[]'
+ */
+export type ListEnumReceiptPrintFormatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReceiptPrintFormat[]'>
     
 
 

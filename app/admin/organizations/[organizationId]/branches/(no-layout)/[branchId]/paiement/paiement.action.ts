@@ -76,6 +76,7 @@ async function loadOrgExchangeRates(organizationId: string): Promise<{
   selectedRate: number | null;
   showReceiptConversion: boolean;
   notifyParentOnPayment: boolean;
+  receiptPrintFormat: "A4" | "POS_80MM";
 }> {
   const [rows, org] = await Promise.all([
     prisma.exchangeRate.findMany({
@@ -87,6 +88,7 @@ async function loadOrgExchangeRates(organizationId: string): Promise<{
       select: {
         showReceiptConversion: true,
         notifyParentOnPayment: true,
+        receiptPrintFormat: true,
       },
     }),
   ]);
@@ -105,6 +107,7 @@ async function loadOrgExchangeRates(organizationId: string): Promise<{
     selectedRate: selected?.rate ?? null,
     showReceiptConversion: org?.showReceiptConversion ?? true,
     notifyParentOnPayment: org?.notifyParentOnPayment ?? true,
+    receiptPrintFormat: org?.receiptPrintFormat === "POS_80MM" ? "POS_80MM" : "A4",
   };
 }
 
@@ -232,6 +235,7 @@ type ReceiptPayload = {
   selectedRate?: number | null;
   /** Si false, le PDF / aperçu n'affiche pas la 2e devise. */
   showConversion?: boolean;
+  receiptPrintFormat?: "A4" | "POS_80MM";
 };
 
 /* ======================================================
@@ -590,6 +594,7 @@ export const createPaiementAction = action
       quoteCurrency,
       selectedRate,
       showReceiptConversion,
+      receiptPrintFormat,
     } = await loadOrgExchangeRates(organizationId);
     const usdCdfRate = resolveUsdCdfRate(exchangeRates);
 
@@ -1026,6 +1031,7 @@ export const createPaiementAction = action
         baseCurrency,
         quoteCurrency: quoteCurrency ?? undefined,
         showConversion: showReceiptConversion,
+        receiptPrintFormat,
       });
 
       const receiptCurrency =
@@ -1106,6 +1112,7 @@ export const createPaiementAction = action
         quoteCurrency: showReceiptConversion ? quoteCurrency : undefined,
         selectedRate,
         showConversion: showReceiptConversion,
+        receiptPrintFormat,
       };
 
       /* ======================================================
@@ -1423,7 +1430,7 @@ export const getCashierReportContextAction = action.handler(async () => {
 export const getPaymentReportContextAction = action.handler(async () => {
   const { branchId, organizationId } = await requireFinanceBranchContext();
 
-  const [branch, { rates, baseCurrency, quoteCurrency, selectedRate, showReceiptConversion }] =
+  const [branch, { rates, baseCurrency, quoteCurrency, selectedRate, showReceiptConversion, receiptPrintFormat }] =
     await Promise.all([
       prisma.branch.findFirst({
         where: { id: branchId, organizationId },
@@ -1442,9 +1449,11 @@ export const getPaymentReportContextAction = action.handler(async () => {
       baseCurrency,
       quoteCurrency: quoteCurrency ?? undefined,
       showConversion: showReceiptConversion,
+      receiptPrintFormat,
     }),
     selectedRate,
     showConversion: showReceiptConversion,
+    receiptPrintFormat,
   };
 });
 

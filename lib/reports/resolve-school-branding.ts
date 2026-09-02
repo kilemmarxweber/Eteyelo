@@ -80,6 +80,7 @@ export type BuildSchoolReportContextOptions = {
   baseCurrency?: SchoolReportContext["baseCurrency"];
   quoteCurrency?: SchoolReportContext["quoteCurrency"];
   showConversion?: boolean;
+  receiptPrintFormat?: SchoolReportContext["receiptPrintFormat"];
   /** Si fourni, remplace le libellé année scolaire dérivé de la branche. */
   academicYearLabel?: string;
 };
@@ -112,6 +113,7 @@ export function buildSchoolReportContext(
     baseCurrency: options.baseCurrency,
     quoteCurrency: options.quoteCurrency,
     showConversion: options.showConversion,
+    receiptPrintFormat: options.receiptPrintFormat,
   };
 }
 

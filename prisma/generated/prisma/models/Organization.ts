@@ -35,6 +35,7 @@ export type OrganizationMinAggregateOutputType = {
   archivedAt: Date | null
   archivedById: string | null
   showReceiptConversion: boolean | null
+  receiptPrintFormat: $Enums.ReceiptPrintFormat | null
   notifyParentOnPayment: boolean | null
   whatsappEnabled: boolean | null
   whatsappApiKey: string | null
@@ -54,6 +55,7 @@ export type OrganizationMaxAggregateOutputType = {
   archivedAt: Date | null
   archivedById: string | null
   showReceiptConversion: boolean | null
+  receiptPrintFormat: $Enums.ReceiptPrintFormat | null
   notifyParentOnPayment: boolean | null
   whatsappEnabled: boolean | null
   whatsappApiKey: string | null
@@ -73,6 +75,7 @@ export type OrganizationCountAggregateOutputType = {
   archivedAt: number
   archivedById: number
   showReceiptConversion: number
+  receiptPrintFormat: number
   notifyParentOnPayment: number
   whatsappEnabled: number
   whatsappApiKey: number
@@ -94,6 +97,7 @@ export type OrganizationMinAggregateInputType = {
   archivedAt?: true
   archivedById?: true
   showReceiptConversion?: true
+  receiptPrintFormat?: true
   notifyParentOnPayment?: true
   whatsappEnabled?: true
   whatsappApiKey?: true
@@ -113,6 +117,7 @@ export type OrganizationMaxAggregateInputType = {
   archivedAt?: true
   archivedById?: true
   showReceiptConversion?: true
+  receiptPrintFormat?: true
   notifyParentOnPayment?: true
   whatsappEnabled?: true
   whatsappApiKey?: true
@@ -132,6 +137,7 @@ export type OrganizationCountAggregateInputType = {
   archivedAt?: true
   archivedById?: true
   showReceiptConversion?: true
+  receiptPrintFormat?: true
   notifyParentOnPayment?: true
   whatsappEnabled?: true
   whatsappApiKey?: true
@@ -224,6 +230,7 @@ export type OrganizationGroupByOutputType = {
   archivedAt: Date | null
   archivedById: string | null
   showReceiptConversion: boolean
+  receiptPrintFormat: $Enums.ReceiptPrintFormat
   notifyParentOnPayment: boolean
   whatsappEnabled: boolean
   whatsappApiKey: string | null
@@ -264,6 +271,7 @@ export type OrganizationWhereInput = {
   archivedAt?: Prisma.DateTimeNullableFilter<"Organization"> | Date | string | null
   archivedById?: Prisma.StringNullableFilter<"Organization"> | string | null
   showReceiptConversion?: Prisma.BoolFilter<"Organization"> | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFilter<"Organization"> | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFilter<"Organization"> | boolean
   whatsappEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   whatsappApiKey?: Prisma.StringNullableFilter<"Organization"> | string | null
@@ -293,6 +301,7 @@ export type OrganizationOrderByWithRelationInput = {
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
   showReceiptConversion?: Prisma.SortOrder
+  receiptPrintFormat?: Prisma.SortOrder
   notifyParentOnPayment?: Prisma.SortOrder
   whatsappEnabled?: Prisma.SortOrder
   whatsappApiKey?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -325,6 +334,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   archivedAt?: Prisma.DateTimeNullableFilter<"Organization"> | Date | string | null
   archivedById?: Prisma.StringNullableFilter<"Organization"> | string | null
   showReceiptConversion?: Prisma.BoolFilter<"Organization"> | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFilter<"Organization"> | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFilter<"Organization"> | boolean
   whatsappEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   whatsappApiKey?: Prisma.StringNullableFilter<"Organization"> | string | null
@@ -354,6 +364,7 @@ export type OrganizationOrderByWithAggregationInput = {
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
   showReceiptConversion?: Prisma.SortOrder
+  receiptPrintFormat?: Prisma.SortOrder
   notifyParentOnPayment?: Prisma.SortOrder
   whatsappEnabled?: Prisma.SortOrder
   whatsappApiKey?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -379,6 +390,7 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Organization"> | Date | string | null
   archivedById?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
   showReceiptConversion?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatWithAggregatesFilter<"Organization"> | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   whatsappEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   whatsappApiKey?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
@@ -398,6 +410,7 @@ export type OrganizationCreateInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -427,6 +440,7 @@ export type OrganizationUncheckedCreateInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -456,6 +470,7 @@ export type OrganizationUpdateInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -485,6 +500,7 @@ export type OrganizationUncheckedUpdateInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -514,6 +530,7 @@ export type OrganizationCreateManyInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -533,6 +550,7 @@ export type OrganizationUpdateManyMutationInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -552,6 +570,7 @@ export type OrganizationUncheckedUpdateManyInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -576,6 +595,7 @@ export type OrganizationCountOrderByAggregateInput = {
   archivedAt?: Prisma.SortOrder
   archivedById?: Prisma.SortOrder
   showReceiptConversion?: Prisma.SortOrder
+  receiptPrintFormat?: Prisma.SortOrder
   notifyParentOnPayment?: Prisma.SortOrder
   whatsappEnabled?: Prisma.SortOrder
   whatsappApiKey?: Prisma.SortOrder
@@ -595,6 +615,7 @@ export type OrganizationMaxOrderByAggregateInput = {
   archivedAt?: Prisma.SortOrder
   archivedById?: Prisma.SortOrder
   showReceiptConversion?: Prisma.SortOrder
+  receiptPrintFormat?: Prisma.SortOrder
   notifyParentOnPayment?: Prisma.SortOrder
   whatsappEnabled?: Prisma.SortOrder
   whatsappApiKey?: Prisma.SortOrder
@@ -614,6 +635,7 @@ export type OrganizationMinOrderByAggregateInput = {
   archivedAt?: Prisma.SortOrder
   archivedById?: Prisma.SortOrder
   showReceiptConversion?: Prisma.SortOrder
+  receiptPrintFormat?: Prisma.SortOrder
   notifyParentOnPayment?: Prisma.SortOrder
   whatsappEnabled?: Prisma.SortOrder
   whatsappApiKey?: Prisma.SortOrder
@@ -639,6 +661,10 @@ export type OrganizationUpdateOneRequiredWithoutExchangeRatesNestedInput = {
   upsert?: Prisma.OrganizationUpsertWithoutExchangeRatesInput
   connect?: Prisma.OrganizationWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutExchangeRatesInput, Prisma.OrganizationUpdateWithoutExchangeRatesInput>, Prisma.OrganizationUncheckedUpdateWithoutExchangeRatesInput>
+}
+
+export type EnumReceiptPrintFormatFieldUpdateOperationsInput = {
+  set?: $Enums.ReceiptPrintFormat
 }
 
 export type OrganizationCreateNestedOneWithoutOrganizationrolesInput = {
@@ -780,6 +806,7 @@ export type OrganizationCreateWithoutExchangeRatesInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -808,6 +835,7 @@ export type OrganizationUncheckedCreateWithoutExchangeRatesInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -852,6 +880,7 @@ export type OrganizationUpdateWithoutExchangeRatesInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -880,6 +909,7 @@ export type OrganizationUncheckedUpdateWithoutExchangeRatesInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -908,6 +938,7 @@ export type OrganizationCreateWithoutOrganizationrolesInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -936,6 +967,7 @@ export type OrganizationUncheckedCreateWithoutOrganizationrolesInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -980,6 +1012,7 @@ export type OrganizationUpdateWithoutOrganizationrolesInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1008,6 +1041,7 @@ export type OrganizationUncheckedUpdateWithoutOrganizationrolesInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1036,6 +1070,7 @@ export type OrganizationCreateWithoutMembersInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1064,6 +1099,7 @@ export type OrganizationUncheckedCreateWithoutMembersInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1108,6 +1144,7 @@ export type OrganizationUpdateWithoutMembersInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1136,6 +1173,7 @@ export type OrganizationUncheckedUpdateWithoutMembersInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1164,6 +1202,7 @@ export type OrganizationCreateWithoutInvitationsInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1192,6 +1231,7 @@ export type OrganizationUncheckedCreateWithoutInvitationsInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1236,6 +1276,7 @@ export type OrganizationUpdateWithoutInvitationsInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1264,6 +1305,7 @@ export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1292,6 +1334,7 @@ export type OrganizationCreateWithoutBranchesInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1320,6 +1363,7 @@ export type OrganizationUncheckedCreateWithoutBranchesInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1364,6 +1408,7 @@ export type OrganizationUpdateWithoutBranchesInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1392,6 +1437,7 @@ export type OrganizationUncheckedUpdateWithoutBranchesInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1420,6 +1466,7 @@ export type OrganizationCreateWithoutOrganizationSupportAgentsInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1448,6 +1495,7 @@ export type OrganizationUncheckedCreateWithoutOrganizationSupportAgentsInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1492,6 +1540,7 @@ export type OrganizationUpdateWithoutOrganizationSupportAgentsInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1520,6 +1569,7 @@ export type OrganizationUncheckedUpdateWithoutOrganizationSupportAgentsInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1548,6 +1598,7 @@ export type OrganizationCreateWithoutPlatformSupportEscalationsInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1576,6 +1627,7 @@ export type OrganizationUncheckedCreateWithoutPlatformSupportEscalationsInput = 
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1620,6 +1672,7 @@ export type OrganizationUpdateWithoutPlatformSupportEscalationsInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1648,6 +1701,7 @@ export type OrganizationUncheckedUpdateWithoutPlatformSupportEscalationsInput = 
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1676,6 +1730,7 @@ export type OrganizationCreateWithoutConversationsInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1704,6 +1759,7 @@ export type OrganizationUncheckedCreateWithoutConversationsInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1748,6 +1804,7 @@ export type OrganizationUpdateWithoutConversationsInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1776,6 +1833,7 @@ export type OrganizationUncheckedUpdateWithoutConversationsInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1804,6 +1862,7 @@ export type OrganizationCreateWithoutMessagingAuditLogsInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1832,6 +1891,7 @@ export type OrganizationUncheckedCreateWithoutMessagingAuditLogsInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1876,6 +1936,7 @@ export type OrganizationUpdateWithoutMessagingAuditLogsInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1904,6 +1965,7 @@ export type OrganizationUncheckedUpdateWithoutMessagingAuditLogsInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1932,6 +1994,7 @@ export type OrganizationCreateWithoutTemporaryGrantsInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -1960,6 +2023,7 @@ export type OrganizationUncheckedCreateWithoutTemporaryGrantsInput = {
   archivedAt?: Date | string | null
   archivedById?: string | null
   showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: string | null
@@ -2004,6 +2068,7 @@ export type OrganizationUpdateWithoutTemporaryGrantsInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2032,6 +2097,7 @@ export type OrganizationUncheckedUpdateWithoutTemporaryGrantsInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
   notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2172,6 +2238,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   archivedAt?: boolean
   archivedById?: boolean
   showReceiptConversion?: boolean
+  receiptPrintFormat?: boolean
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: boolean
@@ -2202,6 +2269,7 @@ export type OrganizationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   archivedAt?: boolean
   archivedById?: boolean
   showReceiptConversion?: boolean
+  receiptPrintFormat?: boolean
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: boolean
@@ -2221,6 +2289,7 @@ export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   archivedAt?: boolean
   archivedById?: boolean
   showReceiptConversion?: boolean
+  receiptPrintFormat?: boolean
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: boolean
@@ -2240,6 +2309,7 @@ export type OrganizationSelectScalar = {
   archivedAt?: boolean
   archivedById?: boolean
   showReceiptConversion?: boolean
+  receiptPrintFormat?: boolean
   notifyParentOnPayment?: boolean
   whatsappEnabled?: boolean
   whatsappApiKey?: boolean
@@ -2248,7 +2318,7 @@ export type OrganizationSelectScalar = {
   messagingEnabled?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "logo" | "createdAt" | "metadata" | "isArchived" | "archivedAt" | "archivedById" | "showReceiptConversion" | "notifyParentOnPayment" | "whatsappEnabled" | "whatsappApiKey" | "whatsappTemplate" | "whatsappSiteUrl" | "messagingEnabled", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "logo" | "createdAt" | "metadata" | "isArchived" | "archivedAt" | "archivedById" | "showReceiptConversion" | "receiptPrintFormat" | "notifyParentOnPayment" | "whatsappEnabled" | "whatsappApiKey" | "whatsappTemplate" | "whatsappSiteUrl" | "messagingEnabled", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organizationroles?: boolean | Prisma.Organization$organizationrolesArgs<ExtArgs>
   members?: boolean | Prisma.Organization$membersArgs<ExtArgs>
@@ -2293,6 +2363,10 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
      * Afficher la 2e devise (conversion) sur les reçus. Désactiver pour AOA sans conversion.
      */
     showReceiptConversion: boolean
+    /**
+     * Modèle de reçu : A4 (tableau) ou ticket thermique POS 80 mm.
+     */
+    receiptPrintFormat: $Enums.ReceiptPrintFormat
     /**
      * Notifier le parent (e-mail + WhatsApp + compte) à l'encaissement / modification / suppression.
      */
@@ -2760,6 +2834,7 @@ export interface OrganizationFieldRefs {
   readonly archivedAt: Prisma.FieldRef<"Organization", 'DateTime'>
   readonly archivedById: Prisma.FieldRef<"Organization", 'String'>
   readonly showReceiptConversion: Prisma.FieldRef<"Organization", 'Boolean'>
+  readonly receiptPrintFormat: Prisma.FieldRef<"Organization", 'ReceiptPrintFormat'>
   readonly notifyParentOnPayment: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly whatsappEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly whatsappApiKey: Prisma.FieldRef<"Organization", 'String'>

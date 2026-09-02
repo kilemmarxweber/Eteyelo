@@ -199,14 +199,31 @@ export async function getMyActiveTemporaryGrantsAction(organizationId?: string) 
   }
 }
 
-export async function listTemporaryGrantMembersAction(organizationId: string) {
+export async function listTemporaryGrantMembersAction(
+  organizationId: string,
+  query?: string,
+) {
   const guard = await guardOrganizationManager(organizationId);
   if (!guard.ok) return { ok: false, message: guard.message, members: [] };
 
+  const trimmedQuery = query?.trim();
   const members = await prisma.member.findMany({
-    where: { organizationId, isArchived: false },
+    where: {
+      organizationId,
+      isArchived: false,
+      ...(trimmedQuery
+        ? {
+            OR: [
+              { user: { name: { contains: trimmedQuery, mode: "insensitive" } } },
+              { user: { email: { contains: trimmedQuery, mode: "insensitive" } } },
+              { role: { contains: trimmedQuery, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    },
     select: { userId: true, role: true, user: { select: { name: true, email: true } } },
-    orderBy: { createdAt: "asc" },
+    orderBy: { user: { name: "asc" } },
+    take: trimmedQuery ? 50 : 200,
   });
   return {
     ok: true,

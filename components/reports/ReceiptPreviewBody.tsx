@@ -92,52 +92,63 @@ export function ReceiptPreviewBody({
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-md border">
-        <table className="w-full min-w-[32rem] text-left text-xs">
+      <div className="overflow-visible rounded-md border">
+        <table className="w-full table-fixed text-left text-[10px] leading-snug sm:text-xs">
+          <colgroup>
+            <col className="w-[22%]" />
+            <col className="w-[12%]" />
+            <col className="w-[16%]" />
+            <col className="w-[14%]" />
+            <col className="w-[14%]" />
+            {showSecondaryColumn ? <col className="w-[12%]" /> : null}
+            <col className="w-[10%]" />
+          </colgroup>
           <thead className="bg-foreground text-background">
             <tr>
-              <th className="px-2 py-2 font-semibold">Description</th>
-              <th className="px-2 py-2 text-right font-semibold">Mode</th>
-              <th className="px-2 py-2 font-semibold">Classe</th>
-              <th className="px-2 py-2 text-right font-semibold">
+              <th className="px-1.5 py-2 font-semibold">Description</th>
+              <th className="px-1.5 py-2 text-right font-semibold">Mode</th>
+              <th className="px-1.5 py-2 font-semibold">Classe</th>
+              <th className="px-1.5 py-2 text-right font-semibold">
                 Mnt a payer {baseCurrency}
               </th>
-              <th className="px-2 py-2 text-right font-semibold">
+              <th className="px-1.5 py-2 text-right font-semibold">
                 Mnt payer {baseCurrency}
               </th>
               {showSecondaryColumn && secondary ? (
-                <th className="px-2 py-2 text-right font-semibold">
+                <th className="px-1.5 py-2 text-right font-semibold">
                   Mnt {secondary}
                 </th>
               ) : null}
-              <th className="px-2 py-2 font-semibold">Statut</th>
+              <th className="px-1.5 py-2 font-semibold">Statut</th>
             </tr>
           </thead>
           <tbody>
             {data.items.map((item, index) => (
               <tr key={`${item.description}-${index}`} className="border-t">
-                <td className="px-2 py-2">{item.description}</td>
-                <td className="px-2 py-2 text-right">
+                <td className="px-1.5 py-2 break-words whitespace-normal">
+                  {item.description}
+                </td>
+                <td className="px-1.5 py-2 break-words text-right whitespace-normal">
                   {formatModePaiementLabel(item.mode ?? item.statut)}
                 </td>
-                <td className="px-2 py-2">
-                  {formatReceiptClasseCode(item.codeClasse)}
+                <td className="px-1.5 py-2 break-words whitespace-normal">
+                  {formatReceiptClasseCode(item)}
                 </td>
-                <td className="px-2 py-2 text-right">
+                <td className="px-1.5 py-2 break-words text-right tabular-nums whitespace-normal">
                   {formatBaseCell(Number(item.price), baseCurrency)}
                 </td>
-                <td className="px-2 py-2 text-right">
+                <td className="px-1.5 py-2 break-words text-right tabular-nums whitespace-normal">
                   {formatBaseCell(Number(item.montant), baseCurrency)}
                 </td>
                 {showSecondaryColumn && secondary ? (
-                  <td className="px-2 py-2 text-right">
+                  <td className="px-1.5 py-2 break-words text-right tabular-nums whitespace-normal">
                     {formatReceiptCurrency(
                       resolveItemSecondaryAmount(item, secondary, secondaryOpts),
                       secondary,
                     )}
                   </td>
                 ) : null}
-                <td className="px-2 py-2 font-medium">
+                <td className="px-1.5 py-2 break-words font-medium whitespace-normal">
                   {receiptItemStatusLabel(item)}
                 </td>
               </tr>

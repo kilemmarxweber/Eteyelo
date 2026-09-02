@@ -6,14 +6,22 @@ import { toPng } from "html-to-image";
 import { Download, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ReportPreviewDialog } from "@/components/reports/ReportPreviewDialog";
 import { ReceiptPreviewBody } from "@/components/reports/ReceiptPreviewBody";
+import { ReceiptPos80Body } from "@/components/reports/ReceiptPos80Body";
 import { SchoolBrandHeader } from "@/components/reports/SchoolBrandHeader";
+import {
+  parseReceiptPrintFormat,
+  type ReceiptPrintFormat,
+} from "@/components/reports/receipt-format";
 import {
   type FacturePaymentStudentData,
   generateFacturePaymentStudentPDF,
 } from "@/components/FacturePaymentStudent";
 import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
+import { cn } from "@/lib/utils";
 
 const TRANSPARENT_IMAGE_PLACEHOLDER =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
@@ -28,6 +36,7 @@ const CAPTURE_OPTIONS = {
   style: {
     transform: "none",
     boxShadow: "none",
+    overflow: "visible",
   },
 } as const;
 
@@ -51,6 +60,8 @@ export type ReceiptPreviewDialogProps = {
 
 const DEFAULT_PRINT_COPIES = 1;
 const DEFAULT_AUTO_PRINT_COPIES = 2;
+const A4_CAPTURE_WIDTH = 720;
+const POS_CAPTURE_WIDTH = 302;
 
 async function waitForImages(root: HTMLElement) {
   const images = Array.from(root.querySelectorAll("img"));
@@ -98,15 +109,45 @@ async function inlineImages(root: HTMLElement) {
   );
 }
 
+function ReceiptPosHeader({ data }: { data: FacturePaymentStudentData }) {
+  const logoSrc = data.logoUrl?.trim() || undefined;
+  return (
+    <header className="flex flex-col items-center gap-1.5 text-center text-black">
+      {logoSrc ? (
+        <img src={logoSrc} alt="" className="h-12 w-12 object-contain" />
+      ) : null}
+      <p className="text-sm font-bold leading-tight">
+        {data.sender.name || "Établissement"}
+      </p>
+      {data.sender.address?.trim() ? (
+        <p className="text-[10px] leading-snug text-black/65">
+          {data.sender.address.trim()}
+        </p>
+      ) : null}
+    </header>
+  );
+}
+
 function ReceiptSheet({
   data,
   issuedAt,
+  format,
 }: {
   data: FacturePaymentStudentData;
   issuedAt?: Date;
+  format: ReceiptPrintFormat;
 }) {
+  if (format === "POS_80MM") {
+    return (
+      <div className="space-y-2 bg-white text-black">
+        <ReceiptPosHeader data={data} />
+        <ReceiptPos80Body data={data} issuedAt={issuedAt} />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4 bg-white text-black">
+    <div className="space-y-4 overflow-visible bg-white text-black">
       <SchoolBrandHeader
         context={{
           schoolName: data.sender.name || "Établissement",
@@ -138,14 +179,23 @@ export function ReceiptPreviewDialog({
   const [mounted, setMounted] = React.useState(false);
   const [downloading, setDownloading] = React.useState(false);
   const [printing, setPrinting] = React.useState(false);
+  const [format, setFormat] = React.useState<ReceiptPrintFormat>(
+    parseReceiptPrintFormat(data?.receiptPrintFormat),
+  );
   const captureRef = React.useRef<HTMLDivElement>(null);
   const autoPrintedRef = React.useRef<string | null>(null);
   const buttonCopies = Math.max(1, Math.round(printCopies));
   const automaticCopies = Math.max(1, Math.round(autoPrintCopies));
+  const isPos = format === "POS_80MM";
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    setFormat(parseReceiptPrintFormat(data?.receiptPrintFormat));
+  }, [open, data?.invoiceNumber, data?.receiptPrintFormat]);
 
   async function captureReceiptImage() {
     if (!captureRef.current) return null;
@@ -154,13 +204,24 @@ export function ReceiptPreviewDialog({
     await inlineImages(captureRef.current);
     await new Promise((resolve) => setTimeout(resolve, 220));
 
-    const width = captureRef.current.offsetWidth || 640;
-    const height = captureRef.current.offsetHeight || 900;
+    const node = captureRef.current;
+    const width = Math.ceil(
+      Math.max(node.scrollWidth, node.offsetWidth, isPos ? POS_CAPTURE_WIDTH : A4_CAPTURE_WIDTH),
+    );
+    const height = Math.ceil(
+      Math.max(node.scrollHeight, node.offsetHeight, 1),
+    );
 
-    const dataUrl = await toPng(captureRef.current, {
+    const dataUrl = await toPng(node, {
       ...CAPTURE_OPTIONS,
       width,
       height,
+      style: {
+        ...CAPTURE_OPTIONS.style,
+        width: `${width}px`,
+        height: `${height}px`,
+        overflow: "visible",
+      },
     });
 
     return { dataUrl, width, height };
@@ -182,7 +243,7 @@ export function ReceiptPreviewDialog({
         const capture = await captureReceiptImage();
         if (!capture) return;
 
-        const { dataUrl, width, height } = capture;
+        const { dataUrl } = capture;
         const copiesHtml = Array.from({ length: count }, (_, index) => `
         <section class="copy">
           <img src="${dataUrl}" alt="Reçu de paiement ${index + 1}/${count}" />
@@ -210,6 +271,13 @@ export function ReceiptPreviewDialog({
           iframe.remove();
         };
 
+        const pageCss = isPos
+          ? `@page { size: 80mm auto; margin: 2mm; }`
+          : `@page { size: A4; margin: 10mm; }`;
+        const imgCss = isPos
+          ? `img { display: block; width: 76mm; height: auto; max-width: 100%; }`
+          : `img { display: block; width: 100%; height: auto; max-width: 100%; }`;
+
         frameWindow.document.open();
         frameWindow.document.write(`<!DOCTYPE html>
 <html lang="fr">
@@ -217,10 +285,7 @@ export function ReceiptPreviewDialog({
     <meta charset="utf-8" />
     <title>Reçu ${data.invoiceNumber}</title>
     <style>
-      @page {
-        size: auto;
-        margin: 10mm;
-      }
+      ${pageCss}
       * {
         box-sizing: border-box;
       }
@@ -228,12 +293,11 @@ export function ReceiptPreviewDialog({
         margin: 0;
         padding: 0;
         background: #ffffff;
+        overflow: visible;
       }
       .copy {
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-        padding: 8mm;
+        display: block;
+        padding: ${isPos ? "0" : "4mm"};
         page-break-after: always;
         break-after: page;
       }
@@ -241,19 +305,13 @@ export function ReceiptPreviewDialog({
         page-break-after: auto;
         break-after: auto;
       }
-      img {
-        display: block;
-        width: ${width}px;
-        height: ${height}px;
-        max-width: 100%;
-        object-fit: contain;
-      }
+      ${imgCss}
       @media print {
+        html, body {
+          overflow: visible !important;
+        }
         .copy {
           padding: 0;
-        }
-        img {
-          page-break-inside: avoid;
         }
       }
     </style>
@@ -301,7 +359,7 @@ export function ReceiptPreviewDialog({
         setPrinting(false);
       }
     },
-    [data],
+    [data, isPos],
   );
 
   React.useEffect(() => {
@@ -326,8 +384,9 @@ export function ReceiptPreviewDialog({
         {
           ...data,
           logoUrl: logoDataUrl ?? "",
+          receiptPrintFormat: format,
         },
-        { copies: buttonCopies },
+        { copies: buttonCopies, format },
       );
       toast.success("Reçu PDF généré avec succès");
     } catch {
@@ -351,7 +410,7 @@ export function ReceiptPreviewDialog({
             ? `Reçu ${data.invoiceNumber} — aperçu avant impression`
             : undefined)
         }
-        size="lg"
+        size={isPos ? "md" : "lg"}
         actions={
           data ? (
             <>
@@ -378,8 +437,58 @@ export function ReceiptPreviewDialog({
       >
         {banner ? <div>{banner}</div> : null}
         {data ? (
-          <div className="rounded-md border bg-white p-4 shadow-sm">
-            <ReceiptSheet data={data} issuedAt={issuedAt} />
+          <div className="space-y-3">
+            <div className="rounded-md border bg-muted/40 px-3 py-2.5">
+              <p className="mb-2 text-xs font-medium text-muted-foreground">
+                Modèle de reçu
+              </p>
+              <RadioGroup
+                className="grid gap-2 sm:grid-cols-2"
+                value={format}
+                onValueChange={(value) =>
+                  setFormat(parseReceiptPrintFormat(value))
+                }
+              >
+                <Label
+                  htmlFor="receipt-format-a4"
+                  className={cn(
+                    "flex cursor-pointer items-start gap-2 rounded-md border bg-background px-3 py-2 text-sm font-normal",
+                    format === "A4" && "border-primary",
+                  )}
+                >
+                  <RadioGroupItem id="receipt-format-a4" value="A4" />
+                  <span>
+                    <span className="block font-medium">A4 — tableau</span>
+                    <span className="block text-xs text-muted-foreground">
+                      Format actuel, imprimante feuille
+                    </span>
+                  </span>
+                </Label>
+                <Label
+                  htmlFor="receipt-format-pos"
+                  className={cn(
+                    "flex cursor-pointer items-start gap-2 rounded-md border bg-background px-3 py-2 text-sm font-normal",
+                    format === "POS_80MM" && "border-primary",
+                  )}
+                >
+                  <RadioGroupItem id="receipt-format-pos" value="POS_80MM" />
+                  <span>
+                    <span className="block font-medium">POS 80 mm</span>
+                    <span className="block text-xs text-muted-foreground">
+                      Ticket thermique caisse
+                    </span>
+                  </span>
+                </Label>
+              </RadioGroup>
+            </div>
+            <div
+              className={cn(
+                "rounded-md border bg-white p-4 shadow-sm",
+                isPos && "mx-auto w-[80mm] p-2",
+              )}
+            >
+              <ReceiptSheet data={data} issuedAt={issuedAt} format={format} />
+            </div>
           </div>
         ) : null}
       </ReportPreviewDialog>
@@ -388,13 +497,16 @@ export function ReceiptPreviewDialog({
         ? createPortal(
             <div
               aria-hidden
-              className="pointer-events-none fixed left-[-10000px] top-0 z-[-1] opacity-0"
+              className="pointer-events-none fixed left-[-10000px] top-0 z-[-1] overflow-visible opacity-0"
             >
               <div
                 ref={captureRef}
-                className="w-[640px] bg-white p-6 text-black"
+                className={cn(
+                  "overflow-visible bg-white text-black",
+                  isPos ? "w-[80mm] p-2" : "w-[720px] p-6",
+                )}
               >
-                <ReceiptSheet data={data} issuedAt={issuedAt} />
+                <ReceiptSheet data={data} issuedAt={issuedAt} format={format} />
               </div>
             </div>,
             document.body,

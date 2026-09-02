@@ -6,6 +6,17 @@ import type { InvoiceProps } from "@/src/interfaces/Paiement";
 
 export type ReceiptCurrency = "USD" | "CDF" | "AOA";
 
+/** A4 = reçu tableau actuel ; POS_80MM = ticket thermique 80 mm. */
+export const RECEIPT_PRINT_FORMATS = ["A4", "POS_80MM"] as const;
+export type ReceiptPrintFormat = (typeof RECEIPT_PRINT_FORMATS)[number];
+export const DEFAULT_RECEIPT_PRINT_FORMAT: ReceiptPrintFormat = "A4";
+
+export function parseReceiptPrintFormat(
+  value: unknown,
+): ReceiptPrintFormat {
+  return value === "POS_80MM" ? "POS_80MM" : DEFAULT_RECEIPT_PRINT_FORMAT;
+}
+
 /** Libellé affiché pour ModePaiement sur reçu / PDF. */
 export function formatModePaiementLabel(mode?: string | null): string {
   switch (mode) {
