@@ -1190,6 +1190,23 @@ export type EnumConversationContextTypeNullableWithAggregatesFilter<$PrismaModel
   _max?: Prisma.NestedEnumConversationContextTypeNullableFilter<$PrismaModel>
 }
 
+export type EnumTemporaryGrantStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.TemporaryGrantStatus | Prisma.EnumTemporaryGrantStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TemporaryGrantStatus[] | Prisma.ListEnumTemporaryGrantStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TemporaryGrantStatus[] | Prisma.ListEnumTemporaryGrantStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTemporaryGrantStatusFilter<$PrismaModel> | $Enums.TemporaryGrantStatus
+}
+
+export type EnumTemporaryGrantStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TemporaryGrantStatus | Prisma.EnumTemporaryGrantStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TemporaryGrantStatus[] | Prisma.ListEnumTemporaryGrantStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TemporaryGrantStatus[] | Prisma.ListEnumTemporaryGrantStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTemporaryGrantStatusWithAggregatesFilter<$PrismaModel> | $Enums.TemporaryGrantStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTemporaryGrantStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTemporaryGrantStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -2301,6 +2318,23 @@ export type NestedEnumConversationContextTypeNullableWithAggregatesFilter<$Prism
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumConversationContextTypeNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumConversationContextTypeNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumTemporaryGrantStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.TemporaryGrantStatus | Prisma.EnumTemporaryGrantStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TemporaryGrantStatus[] | Prisma.ListEnumTemporaryGrantStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TemporaryGrantStatus[] | Prisma.ListEnumTemporaryGrantStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTemporaryGrantStatusFilter<$PrismaModel> | $Enums.TemporaryGrantStatus
+}
+
+export type NestedEnumTemporaryGrantStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TemporaryGrantStatus | Prisma.EnumTemporaryGrantStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TemporaryGrantStatus[] | Prisma.ListEnumTemporaryGrantStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TemporaryGrantStatus[] | Prisma.ListEnumTemporaryGrantStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTemporaryGrantStatusWithAggregatesFilter<$PrismaModel> | $Enums.TemporaryGrantStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTemporaryGrantStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTemporaryGrantStatusFilter<$PrismaModel>
 }
 
 

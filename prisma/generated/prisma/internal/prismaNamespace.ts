@@ -479,7 +479,8 @@ export const ModelName = {
   ConversationParticipant: 'ConversationParticipant',
   Message: 'Message',
   UserMessageArchive: 'UserMessageArchive',
-  MessagingAuditLog: 'MessagingAuditLog'
+  MessagingAuditLog: 'MessagingAuditLog',
+  TemporaryGrant: 'TemporaryGrant'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -495,7 +496,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog" | "temporaryGrant"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -6641,6 +6642,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TemporaryGrant: {
+      payload: Prisma.$TemporaryGrantPayload<ExtArgs>
+      fields: Prisma.TemporaryGrantFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TemporaryGrantFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TemporaryGrantPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TemporaryGrantFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TemporaryGrantPayload>
+        }
+        findFirst: {
+          args: Prisma.TemporaryGrantFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TemporaryGrantPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TemporaryGrantFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TemporaryGrantPayload>
+        }
+        findMany: {
+          args: Prisma.TemporaryGrantFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TemporaryGrantPayload>[]
+        }
+        create: {
+          args: Prisma.TemporaryGrantCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TemporaryGrantPayload>
+        }
+        createMany: {
+          args: Prisma.TemporaryGrantCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TemporaryGrantCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TemporaryGrantPayload>[]
+        }
+        delete: {
+          args: Prisma.TemporaryGrantDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TemporaryGrantPayload>
+        }
+        update: {
+          args: Prisma.TemporaryGrantUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TemporaryGrantPayload>
+        }
+        deleteMany: {
+          args: Prisma.TemporaryGrantDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TemporaryGrantUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TemporaryGrantUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TemporaryGrantPayload>[]
+        }
+        upsert: {
+          args: Prisma.TemporaryGrantUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TemporaryGrantPayload>
+        }
+        aggregate: {
+          args: Prisma.TemporaryGrantAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTemporaryGrant>
+        }
+        groupBy: {
+          args: Prisma.TemporaryGrantGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TemporaryGrantGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TemporaryGrantCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TemporaryGrantCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -6684,6 +6759,7 @@ export const UserScalarFieldEnum = {
   id: 'id',
   username: 'username',
   email: 'email',
+  archivedEmail: 'archivedEmail',
   telephone: 'telephone',
   postnom: 'postnom',
   prenom: 'prenom',
@@ -8168,6 +8244,29 @@ export const MessagingAuditLogScalarFieldEnum = {
 export type MessagingAuditLogScalarFieldEnum = (typeof MessagingAuditLogScalarFieldEnum)[keyof typeof MessagingAuditLogScalarFieldEnum]
 
 
+export const TemporaryGrantScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  branchId: 'branchId',
+  resource: 'resource',
+  action: 'action',
+  temporaryRole: 'temporaryRole',
+  reason: 'reason',
+  grantedById: 'grantedById',
+  startsAt: 'startsAt',
+  expiresAt: 'expiresAt',
+  status: 'status',
+  revokedAt: 'revokedAt',
+  revokedById: 'revokedById',
+  revocationReason: 'revocationReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TemporaryGrantScalarFieldEnum = (typeof TemporaryGrantScalarFieldEnum)[keyof typeof TemporaryGrantScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -8900,6 +8999,20 @@ export type EnumConversationContextTypeFieldRefInput<$PrismaModel> = FieldRefInp
 export type ListEnumConversationContextTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConversationContextType[]'>
     
 
+
+/**
+ * Reference to a field of type 'TemporaryGrantStatus'
+ */
+export type EnumTemporaryGrantStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TemporaryGrantStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'TemporaryGrantStatus[]'
+ */
+export type ListEnumTemporaryGrantStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TemporaryGrantStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -9134,6 +9247,7 @@ export type GlobalOmitConfig = {
   message?: Prisma.MessageOmit
   userMessageArchive?: Prisma.UserMessageArchiveOmit
   messagingAuditLog?: Prisma.MessagingAuditLogOmit
+  temporaryGrant?: Prisma.TemporaryGrantOmit
 }
 
 /* Types for Logging */

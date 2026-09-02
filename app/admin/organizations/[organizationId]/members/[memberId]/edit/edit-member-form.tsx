@@ -126,7 +126,12 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
       setDobError(undefined);
       setPhotoFile(null);
       setPhotoPreview(found.user.image);
-      setEmail(found.user.email ?? "");
+      const initialEmail =
+        found.user.archivedEmail ||
+        (found.user.email?.startsWith("archived.")
+          ? found.user.email.replace(/^archived\./, "")
+          : found.user.email ?? "");
+      setEmail(initialEmail);
       setEmailError(undefined);
       setNameError(undefined);
       if (assignedRes.ok) {

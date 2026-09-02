@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { UserLocaleSync } from "@/components/user-locale-sync";
 import { UserThemeSync } from "@/components/user-theme-sync";
 import { AdminShell } from "@/components/layout/admin-shell";
+import { TemporaryPrivilegeBanner } from "@/components/layout/temporary-privilege-banner";
 import { auth } from "@/lib/auth";
 import { enforceAdminRouteAccess } from "@/lib/auth/enforce-admin-route-access";
 import { loadMessages } from "@/lib/i18n";
@@ -46,6 +47,7 @@ export default async function AdminLayout({
   }
 
   const pathname = requestHeaders.get("x-pathname") ?? "/admin";
+  const organizationId = pathname.match(/^\/admin\/organizations\/([^/]+)/)?.[1];
   await enforceAdminRouteAccess(pathname);
 
   const isChangePasswordRoute =
@@ -80,7 +82,12 @@ export default async function AdminLayout({
         {isChangePasswordRoute ? (
           children
         ) : (
-          <AdminShell>{children}</AdminShell>
+          <AdminShell>
+            {organizationId ? (
+              <TemporaryPrivilegeBanner organizationId={organizationId} />
+            ) : null}
+            {children}
+          </AdminShell>
         )}
       </AppIntlProvider>
     </ThemeProvider>

@@ -133,7 +133,8 @@ export const ModelName = {
   ConversationParticipant: 'ConversationParticipant',
   Message: 'Message',
   UserMessageArchive: 'UserMessageArchive',
-  MessagingAuditLog: 'MessagingAuditLog'
+  MessagingAuditLog: 'MessagingAuditLog',
+  TemporaryGrant: 'TemporaryGrant'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -156,6 +157,7 @@ export const UserScalarFieldEnum = {
   id: 'id',
   username: 'username',
   email: 'email',
+  archivedEmail: 'archivedEmail',
   telephone: 'telephone',
   postnom: 'postnom',
   prenom: 'prenom',
@@ -1638,6 +1640,29 @@ export const MessagingAuditLogScalarFieldEnum = {
 } as const
 
 export type MessagingAuditLogScalarFieldEnum = (typeof MessagingAuditLogScalarFieldEnum)[keyof typeof MessagingAuditLogScalarFieldEnum]
+
+
+export const TemporaryGrantScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  branchId: 'branchId',
+  resource: 'resource',
+  action: 'action',
+  temporaryRole: 'temporaryRole',
+  reason: 'reason',
+  grantedById: 'grantedById',
+  startsAt: 'startsAt',
+  expiresAt: 'expiresAt',
+  status: 'status',
+  revokedAt: 'revokedAt',
+  revokedById: 'revokedById',
+  revocationReason: 'revocationReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TemporaryGrantScalarFieldEnum = (typeof TemporaryGrantScalarFieldEnum)[keyof typeof TemporaryGrantScalarFieldEnum]
 
 
 export const SortOrder = {

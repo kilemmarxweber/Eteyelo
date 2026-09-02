@@ -10,6 +10,7 @@ import { isPermissionsFromDacEnabled } from "@/lib/auth/branch-area-permissions"
 import { getCachedSession } from "@/lib/auth/get-session-cached";
 import { loadOrganizationRoleStatements } from "@/lib/auth/org-role-permissions";
 import { canAccessBranchAreaFromPermissions } from "@/lib/auth/resolve-branch-area-permission";
+import { canAccessBranchAreaViaTemporaryGrants } from "@/lib/auth/temporary-privilege";
 
 export type { BranchArea };
 export { canAccessBranchArea };
@@ -72,6 +73,13 @@ export async function assertBranchAreaAccess(
   }
 
   const orgId = resolveOrganizationId(resolved, options?.organizationId);
+  const userId = (resolved as { user?: { id?: string } }).user?.id;
+  const branchId =
+    options?.branchId ??
+    (resolved as { branch?: { id?: string }; session?: { activeBranchId?: string } })
+      .branch?.id ??
+    (resolved as { session?: { activeBranchId?: string } }).session?.activeBranchId ??
+    null;
   let allowed = false;
 
   if (isPermissionsFromDacEnabled() && orgId) {
@@ -83,6 +91,15 @@ export async function assertBranchAreaAccess(
     );
   } else {
     allowed = canAccessBranchArea(area, resolved);
+  }
+
+  if (!allowed && orgId && userId) {
+    allowed = await canAccessBranchAreaViaTemporaryGrants(
+      userId,
+      orgId,
+      area,
+      branchId,
+    );
   }
 
   if (allowed) {
@@ -116,16 +133,41 @@ export async function canAccessBranchAreaAsync(
   area: BranchArea,
   session: unknown,
   organizationId?: string | null,
+  branchId?: string | null,
 ): Promise<boolean> {
-  if (!isPermissionsFromDacEnabled()) {
-    return canAccessBranchArea(area, session);
-  }
-
   const orgId = resolveOrganizationId(session, organizationId);
-  if (!orgId) {
-    return canAccessBranchAreaFromPermissions(area, session);
+  const userId = (session as { user?: { id?: string } } | null)?.user?.id;
+  const resolvedBranchId =
+    branchId ??
+    (session as { branch?: { id?: string }; session?: { activeBranchId?: string } } | null)
+      ?.branch?.id ??
+    (session as { session?: { activeBranchId?: string } } | null)?.session
+      ?.activeBranchId ??
+    null;
+
+  let allowed = false;
+
+  if (!isPermissionsFromDacEnabled()) {
+    allowed = canAccessBranchArea(area, session);
+  } else if (!orgId) {
+    allowed = canAccessBranchAreaFromPermissions(area, session);
+  } else {
+    const roleStatements = await loadOrganizationRoleStatements(orgId);
+    allowed = canAccessBranchAreaFromPermissions(
+      area,
+      session,
+      roleStatements,
+    );
   }
 
-  const roleStatements = await loadOrganizationRoleStatements(orgId);
-  return canAccessBranchAreaFromPermissions(area, session, roleStatements);
+  if (!allowed && orgId && userId) {
+    allowed = await canAccessBranchAreaViaTemporaryGrants(
+      userId,
+      orgId,
+      area,
+      resolvedBranchId,
+    );
+  }
+
+  return allowed;
 }

@@ -454,3 +454,12 @@ export const ConversationContextType = {
 } as const
 
 export type ConversationContextType = (typeof ConversationContextType)[keyof typeof ConversationContextType]
+
+
+export const TemporaryGrantStatus = {
+  ACTIVE: 'ACTIVE',
+  EXPIRED: 'EXPIRED',
+  REVOKED: 'REVOKED'
+} as const
+
+export type TemporaryGrantStatus = (typeof TemporaryGrantStatus)[keyof typeof TemporaryGrantStatus]

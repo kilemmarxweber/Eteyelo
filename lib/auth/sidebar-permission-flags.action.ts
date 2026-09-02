@@ -17,6 +17,10 @@ import {
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
+import {
+  grantsCoverBranchArea,
+  loadActiveTemporaryGrants,
+} from "@/lib/auth/temporary-privilege";
 import { prisma } from "@/lib/prisma";
 
 export type SidebarPermissionFlags = {
@@ -69,27 +73,38 @@ export async function getSidebarPermissionFlagsAction(): Promise<SidebarPermissi
 
   if (isPermissionsFromDacEnabled()) {
     const roleStatements = await loadOrganizationRoleStatements(organizationId);
+    const branchId =
+      session.branch?.id ?? session.session?.activeBranchId ?? null;
+    const temporaryGrants = await loadActiveTemporaryGrants(
+      session.user.id,
+      organizationId,
+      branchId,
+    );
+
     const hideHrefs: string[] = [];
     for (const [href, area] of Object.entries(SIDEBAR_HREF_BRANCH_AREA) as Array<
       [string, BranchArea]
     >) {
-      const allowed = canAccessBranchAreaFromPermissions(
+      const allowedByRole = canAccessBranchAreaFromPermissions(
         area,
         session,
         roleStatements,
       );
-      if (!allowed) hideHrefs.push(href);
+      const allowedByGrant = grantsCoverBranchArea(temporaryGrants, area);
+      if (!allowedByRole && !allowedByGrant) hideHrefs.push(href);
     }
 
     const settingsReads: Record<string, boolean> = {};
     for (const [segment, area] of Object.entries(SETTINGS_HREF_BRANCH_AREA) as Array<
       [string, BranchArea]
     >) {
-      settingsReads[segment] = canAccessBranchAreaFromPermissions(
+      const allowedByRole = canAccessBranchAreaFromPermissions(
         area,
         session,
         roleStatements,
       );
+      settingsReads[segment] =
+        allowedByRole || grantsCoverBranchArea(temporaryGrants, area);
     }
 
     return {

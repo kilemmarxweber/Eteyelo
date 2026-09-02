@@ -28,6 +28,7 @@ export type UserMinAggregateOutputType = {
   id: string | null
   username: string | null
   email: string | null
+  archivedEmail: string | null
   telephone: string | null
   postnom: string | null
   prenom: string | null
@@ -53,6 +54,7 @@ export type UserMaxAggregateOutputType = {
   id: string | null
   username: string | null
   email: string | null
+  archivedEmail: string | null
   telephone: string | null
   postnom: string | null
   prenom: string | null
@@ -78,6 +80,7 @@ export type UserCountAggregateOutputType = {
   id: number
   username: number
   email: number
+  archivedEmail: number
   telephone: number
   postnom: number
   prenom: number
@@ -105,6 +108,7 @@ export type UserMinAggregateInputType = {
   id?: true
   username?: true
   email?: true
+  archivedEmail?: true
   telephone?: true
   postnom?: true
   prenom?: true
@@ -130,6 +134,7 @@ export type UserMaxAggregateInputType = {
   id?: true
   username?: true
   email?: true
+  archivedEmail?: true
   telephone?: true
   postnom?: true
   prenom?: true
@@ -155,6 +160,7 @@ export type UserCountAggregateInputType = {
   id?: true
   username?: true
   email?: true
+  archivedEmail?: true
   telephone?: true
   postnom?: true
   prenom?: true
@@ -253,6 +259,7 @@ export type UserGroupByOutputType = {
   id: string
   username: string | null
   email: string | null
+  archivedEmail: string | null
   telephone: string | null
   postnom: string | null
   prenom: string | null
@@ -299,6 +306,7 @@ export type UserWhereInput = {
   id?: Prisma.StringFilter<"User"> | string
   username?: Prisma.StringNullableFilter<"User"> | string | null
   email?: Prisma.StringNullableFilter<"User"> | string | null
+  archivedEmail?: Prisma.StringNullableFilter<"User"> | string | null
   telephone?: Prisma.StringNullableFilter<"User"> | string | null
   postnom?: Prisma.StringNullableFilter<"User"> | string | null
   prenom?: Prisma.StringNullableFilter<"User"> | string | null
@@ -336,12 +344,16 @@ export type UserWhereInput = {
   sentMessages?: Prisma.MessageListRelationFilter
   messageArchives?: Prisma.UserMessageArchiveListRelationFilter
   messagingAuditLogs?: Prisma.MessagingAuditLogListRelationFilter
+  temporaryGrants?: Prisma.TemporaryGrantListRelationFilter
+  grantsGiven?: Prisma.TemporaryGrantListRelationFilter
+  grantsRevoked?: Prisma.TemporaryGrantListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   username?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   telephone?: Prisma.SortOrderInput | Prisma.SortOrder
   postnom?: Prisma.SortOrderInput | Prisma.SortOrder
   prenom?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -379,6 +391,9 @@ export type UserOrderByWithRelationInput = {
   sentMessages?: Prisma.MessageOrderByRelationAggregateInput
   messageArchives?: Prisma.UserMessageArchiveOrderByRelationAggregateInput
   messagingAuditLogs?: Prisma.MessagingAuditLogOrderByRelationAggregateInput
+  temporaryGrants?: Prisma.TemporaryGrantOrderByRelationAggregateInput
+  grantsGiven?: Prisma.TemporaryGrantOrderByRelationAggregateInput
+  grantsRevoked?: Prisma.TemporaryGrantOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -388,6 +403,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
+  archivedEmail?: Prisma.StringNullableFilter<"User"> | string | null
   telephone?: Prisma.StringNullableFilter<"User"> | string | null
   postnom?: Prisma.StringNullableFilter<"User"> | string | null
   prenom?: Prisma.StringNullableFilter<"User"> | string | null
@@ -425,12 +441,16 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   sentMessages?: Prisma.MessageListRelationFilter
   messageArchives?: Prisma.UserMessageArchiveListRelationFilter
   messagingAuditLogs?: Prisma.MessagingAuditLogListRelationFilter
+  temporaryGrants?: Prisma.TemporaryGrantListRelationFilter
+  grantsGiven?: Prisma.TemporaryGrantListRelationFilter
+  grantsRevoked?: Prisma.TemporaryGrantListRelationFilter
 }, "id" | "username" | "email">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   username?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   telephone?: Prisma.SortOrderInput | Prisma.SortOrder
   postnom?: Prisma.SortOrderInput | Prisma.SortOrder
   prenom?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -462,6 +482,7 @@ export type UserScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"User"> | string
   username?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   email?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  archivedEmail?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   telephone?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   postnom?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   prenom?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -487,6 +508,7 @@ export type UserCreateInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -524,12 +546,16 @@ export type UserCreateInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -567,12 +593,16 @@ export type UserUncheckedCreateInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -610,12 +640,16 @@ export type UserUpdateInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -653,12 +687,16 @@ export type UserUncheckedUpdateInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateManyInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -684,6 +722,7 @@ export type UserUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -709,6 +748,7 @@ export type UserUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -734,6 +774,7 @@ export type UserCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  archivedEmail?: Prisma.SortOrder
   telephone?: Prisma.SortOrder
   postnom?: Prisma.SortOrder
   prenom?: Prisma.SortOrder
@@ -759,6 +800,7 @@ export type UserMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  archivedEmail?: Prisma.SortOrder
   telephone?: Prisma.SortOrder
   postnom?: Prisma.SortOrder
   prenom?: Prisma.SortOrder
@@ -784,6 +826,7 @@ export type UserMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  archivedEmail?: Prisma.SortOrder
   telephone?: Prisma.SortOrder
   postnom?: Prisma.SortOrder
   prenom?: Prisma.SortOrder
@@ -1099,10 +1142,55 @@ export type UserUpdateOneRequiredWithoutMessagingAuditLogsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutMessagingAuditLogsInput, Prisma.UserUpdateWithoutMessagingAuditLogsInput>, Prisma.UserUncheckedUpdateWithoutMessagingAuditLogsInput>
 }
 
+export type UserCreateNestedOneWithoutTemporaryGrantsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTemporaryGrantsInput, Prisma.UserUncheckedCreateWithoutTemporaryGrantsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTemporaryGrantsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutGrantsGivenInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutGrantsGivenInput, Prisma.UserUncheckedCreateWithoutGrantsGivenInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutGrantsGivenInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutGrantsRevokedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutGrantsRevokedInput, Prisma.UserUncheckedCreateWithoutGrantsRevokedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutGrantsRevokedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutTemporaryGrantsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTemporaryGrantsInput, Prisma.UserUncheckedCreateWithoutTemporaryGrantsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTemporaryGrantsInput
+  upsert?: Prisma.UserUpsertWithoutTemporaryGrantsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTemporaryGrantsInput, Prisma.UserUpdateWithoutTemporaryGrantsInput>, Prisma.UserUncheckedUpdateWithoutTemporaryGrantsInput>
+}
+
+export type UserUpdateOneRequiredWithoutGrantsGivenNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutGrantsGivenInput, Prisma.UserUncheckedCreateWithoutGrantsGivenInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutGrantsGivenInput
+  upsert?: Prisma.UserUpsertWithoutGrantsGivenInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutGrantsGivenInput, Prisma.UserUpdateWithoutGrantsGivenInput>, Prisma.UserUncheckedUpdateWithoutGrantsGivenInput>
+}
+
+export type UserUpdateOneWithoutGrantsRevokedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutGrantsRevokedInput, Prisma.UserUncheckedCreateWithoutGrantsRevokedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutGrantsRevokedInput
+  upsert?: Prisma.UserUpsertWithoutGrantsRevokedInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutGrantsRevokedInput, Prisma.UserUpdateWithoutGrantsRevokedInput>, Prisma.UserUncheckedUpdateWithoutGrantsRevokedInput>
+}
+
 export type UserCreateWithoutFamilyPaymentsCreatedInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -1139,12 +1227,16 @@ export type UserCreateWithoutFamilyPaymentsCreatedInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutFamilyPaymentsCreatedInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -1181,6 +1273,9 @@ export type UserUncheckedCreateWithoutFamilyPaymentsCreatedInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutFamilyPaymentsCreatedInput = {
@@ -1203,6 +1298,7 @@ export type UserUpdateWithoutFamilyPaymentsCreatedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1239,12 +1335,16 @@ export type UserUpdateWithoutFamilyPaymentsCreatedInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFamilyPaymentsCreatedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1281,12 +1381,16 @@ export type UserUncheckedUpdateWithoutFamilyPaymentsCreatedInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutCashierExpensesCreatedInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -1323,12 +1427,16 @@ export type UserCreateWithoutCashierExpensesCreatedInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutCashierExpensesCreatedInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -1365,6 +1473,9 @@ export type UserUncheckedCreateWithoutCashierExpensesCreatedInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutCashierExpensesCreatedInput = {
@@ -1387,6 +1498,7 @@ export type UserUpdateWithoutCashierExpensesCreatedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1423,12 +1535,16 @@ export type UserUpdateWithoutCashierExpensesCreatedInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCashierExpensesCreatedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1465,12 +1581,16 @@ export type UserUncheckedUpdateWithoutCashierExpensesCreatedInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutGradeModificationRequestsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -1507,12 +1627,16 @@ export type UserCreateWithoutGradeModificationRequestsInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutGradeModificationRequestsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -1549,6 +1673,9 @@ export type UserUncheckedCreateWithoutGradeModificationRequestsInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutGradeModificationRequestsInput = {
@@ -1560,6 +1687,7 @@ export type UserCreateWithoutReviewedGradeModificationsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -1596,12 +1724,16 @@ export type UserCreateWithoutReviewedGradeModificationsInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutReviewedGradeModificationsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -1638,6 +1770,9 @@ export type UserUncheckedCreateWithoutReviewedGradeModificationsInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutReviewedGradeModificationsInput = {
@@ -1660,6 +1795,7 @@ export type UserUpdateWithoutGradeModificationRequestsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1696,12 +1832,16 @@ export type UserUpdateWithoutGradeModificationRequestsInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGradeModificationRequestsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1738,6 +1878,9 @@ export type UserUncheckedUpdateWithoutGradeModificationRequestsInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUpsertWithoutReviewedGradeModificationsInput = {
@@ -1755,6 +1898,7 @@ export type UserUpdateWithoutReviewedGradeModificationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1791,12 +1935,16 @@ export type UserUpdateWithoutReviewedGradeModificationsInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewedGradeModificationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1833,12 +1981,16 @@ export type UserUncheckedUpdateWithoutReviewedGradeModificationsInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutAbsenceCasesInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -1875,12 +2027,16 @@ export type UserCreateWithoutAbsenceCasesInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutAbsenceCasesInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -1917,6 +2073,9 @@ export type UserUncheckedCreateWithoutAbsenceCasesInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutAbsenceCasesInput = {
@@ -1928,6 +2087,7 @@ export type UserCreateWithoutReviewedAbsenceCasesInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -1964,12 +2124,16 @@ export type UserCreateWithoutReviewedAbsenceCasesInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutReviewedAbsenceCasesInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -2006,6 +2170,9 @@ export type UserUncheckedCreateWithoutReviewedAbsenceCasesInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutReviewedAbsenceCasesInput = {
@@ -2028,6 +2195,7 @@ export type UserUpdateWithoutAbsenceCasesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2064,12 +2232,16 @@ export type UserUpdateWithoutAbsenceCasesInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAbsenceCasesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2106,6 +2278,9 @@ export type UserUncheckedUpdateWithoutAbsenceCasesInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUpsertWithoutReviewedAbsenceCasesInput = {
@@ -2123,6 +2298,7 @@ export type UserUpdateWithoutReviewedAbsenceCasesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2159,12 +2335,16 @@ export type UserUpdateWithoutReviewedAbsenceCasesInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewedAbsenceCasesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2201,12 +2381,16 @@ export type UserUncheckedUpdateWithoutReviewedAbsenceCasesInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutAppNotificationsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -2243,12 +2427,16 @@ export type UserCreateWithoutAppNotificationsInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutAppNotificationsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -2285,6 +2473,9 @@ export type UserUncheckedCreateWithoutAppNotificationsInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutAppNotificationsInput = {
@@ -2307,6 +2498,7 @@ export type UserUpdateWithoutAppNotificationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2343,12 +2535,16 @@ export type UserUpdateWithoutAppNotificationsInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAppNotificationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2385,12 +2581,16 @@ export type UserUncheckedUpdateWithoutAppNotificationsInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -2427,12 +2627,16 @@ export type UserCreateWithoutSessionsInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -2469,6 +2673,9 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -2491,6 +2698,7 @@ export type UserUpdateWithoutSessionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2527,12 +2735,16 @@ export type UserUpdateWithoutSessionsInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2569,12 +2781,16 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -2611,12 +2827,16 @@ export type UserCreateWithoutAccountsInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -2653,6 +2873,9 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -2675,6 +2898,7 @@ export type UserUpdateWithoutAccountsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2711,12 +2935,16 @@ export type UserUpdateWithoutAccountsInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2753,12 +2981,16 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutMembersInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -2795,12 +3027,16 @@ export type UserCreateWithoutMembersInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutMembersInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -2837,6 +3073,9 @@ export type UserUncheckedCreateWithoutMembersInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutMembersInput = {
@@ -2859,6 +3098,7 @@ export type UserUpdateWithoutMembersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2895,12 +3135,16 @@ export type UserUpdateWithoutMembersInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2937,12 +3181,16 @@ export type UserUncheckedUpdateWithoutMembersInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutInvitationsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -2979,12 +3227,16 @@ export type UserCreateWithoutInvitationsInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutInvitationsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -3021,6 +3273,9 @@ export type UserUncheckedCreateWithoutInvitationsInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutInvitationsInput = {
@@ -3043,6 +3298,7 @@ export type UserUpdateWithoutInvitationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3079,12 +3335,16 @@ export type UserUpdateWithoutInvitationsInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutInvitationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3121,12 +3381,16 @@ export type UserUncheckedUpdateWithoutInvitationsInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutPlatformSupportAgentInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -3163,12 +3427,16 @@ export type UserCreateWithoutPlatformSupportAgentInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutPlatformSupportAgentInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -3205,6 +3473,9 @@ export type UserUncheckedCreateWithoutPlatformSupportAgentInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutPlatformSupportAgentInput = {
@@ -3227,6 +3498,7 @@ export type UserUpdateWithoutPlatformSupportAgentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3263,12 +3535,16 @@ export type UserUpdateWithoutPlatformSupportAgentInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlatformSupportAgentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3305,12 +3581,16 @@ export type UserUncheckedUpdateWithoutPlatformSupportAgentInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutPlatformEscalationsRequestedInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -3347,12 +3627,16 @@ export type UserCreateWithoutPlatformEscalationsRequestedInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutPlatformEscalationsRequestedInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -3389,6 +3673,9 @@ export type UserUncheckedCreateWithoutPlatformEscalationsRequestedInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutPlatformEscalationsRequestedInput = {
@@ -3411,6 +3698,7 @@ export type UserUpdateWithoutPlatformEscalationsRequestedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3447,12 +3735,16 @@ export type UserUpdateWithoutPlatformEscalationsRequestedInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlatformEscalationsRequestedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3489,12 +3781,16 @@ export type UserUncheckedUpdateWithoutPlatformEscalationsRequestedInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutConversationsCreatedInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -3531,12 +3827,16 @@ export type UserCreateWithoutConversationsCreatedInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutConversationsCreatedInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -3573,6 +3873,9 @@ export type UserUncheckedCreateWithoutConversationsCreatedInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutConversationsCreatedInput = {
@@ -3595,6 +3898,7 @@ export type UserUpdateWithoutConversationsCreatedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3631,12 +3935,16 @@ export type UserUpdateWithoutConversationsCreatedInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutConversationsCreatedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3673,12 +3981,16 @@ export type UserUncheckedUpdateWithoutConversationsCreatedInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutConversationParticipantsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -3715,12 +4027,16 @@ export type UserCreateWithoutConversationParticipantsInput = {
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutConversationParticipantsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -3757,6 +4073,9 @@ export type UserUncheckedCreateWithoutConversationParticipantsInput = {
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutConversationParticipantsInput = {
@@ -3779,6 +4098,7 @@ export type UserUpdateWithoutConversationParticipantsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3815,12 +4135,16 @@ export type UserUpdateWithoutConversationParticipantsInput = {
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutConversationParticipantsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3857,12 +4181,16 @@ export type UserUncheckedUpdateWithoutConversationParticipantsInput = {
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutSentMessagesInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -3899,12 +4227,16 @@ export type UserCreateWithoutSentMessagesInput = {
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutSentMessagesInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -3941,6 +4273,9 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutSentMessagesInput = {
@@ -3963,6 +4298,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3999,12 +4335,16 @@ export type UserUpdateWithoutSentMessagesInput = {
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentMessagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4041,12 +4381,16 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutMessageArchivesInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -4083,12 +4427,16 @@ export type UserCreateWithoutMessageArchivesInput = {
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutMessageArchivesInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -4125,6 +4473,9 @@ export type UserUncheckedCreateWithoutMessageArchivesInput = {
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutMessageArchivesInput = {
@@ -4147,6 +4498,7 @@ export type UserUpdateWithoutMessageArchivesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4183,12 +4535,16 @@ export type UserUpdateWithoutMessageArchivesInput = {
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMessageArchivesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4225,12 +4581,16 @@ export type UserUncheckedUpdateWithoutMessageArchivesInput = {
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserCreateWithoutMessagingAuditLogsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -4267,12 +4627,16 @@ export type UserCreateWithoutMessagingAuditLogsInput = {
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserUncheckedCreateWithoutMessagingAuditLogsInput = {
   id?: string
   username?: string | null
   email?: string | null
+  archivedEmail?: string | null
   telephone?: string | null
   postnom?: string | null
   prenom?: string | null
@@ -4309,6 +4673,9 @@ export type UserUncheckedCreateWithoutMessagingAuditLogsInput = {
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
 }
 
 export type UserCreateOrConnectWithoutMessagingAuditLogsInput = {
@@ -4331,6 +4698,7 @@ export type UserUpdateWithoutMessagingAuditLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4367,12 +4735,16 @@ export type UserUpdateWithoutMessagingAuditLogsInput = {
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMessagingAuditLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4409,6 +4781,609 @@ export type UserUncheckedUpdateWithoutMessagingAuditLogsInput = {
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+}
+
+export type UserCreateWithoutTemporaryGrantsInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  archivedEmail?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+}
+
+export type UserUncheckedCreateWithoutTemporaryGrantsInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  archivedEmail?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+}
+
+export type UserCreateOrConnectWithoutTemporaryGrantsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTemporaryGrantsInput, Prisma.UserUncheckedCreateWithoutTemporaryGrantsInput>
+}
+
+export type UserCreateWithoutGrantsGivenInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  archivedEmail?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+}
+
+export type UserUncheckedCreateWithoutGrantsGivenInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  archivedEmail?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+}
+
+export type UserCreateOrConnectWithoutGrantsGivenInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutGrantsGivenInput, Prisma.UserUncheckedCreateWithoutGrantsGivenInput>
+}
+
+export type UserCreateWithoutGrantsRevokedInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  archivedEmail?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+}
+
+export type UserUncheckedCreateWithoutGrantsRevokedInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  archivedEmail?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+}
+
+export type UserCreateOrConnectWithoutGrantsRevokedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutGrantsRevokedInput, Prisma.UserUncheckedCreateWithoutGrantsRevokedInput>
+}
+
+export type UserUpsertWithoutTemporaryGrantsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTemporaryGrantsInput, Prisma.UserUncheckedUpdateWithoutTemporaryGrantsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTemporaryGrantsInput, Prisma.UserUncheckedCreateWithoutTemporaryGrantsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTemporaryGrantsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTemporaryGrantsInput, Prisma.UserUncheckedUpdateWithoutTemporaryGrantsInput>
+}
+
+export type UserUpdateWithoutTemporaryGrantsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTemporaryGrantsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+}
+
+export type UserUpsertWithoutGrantsGivenInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutGrantsGivenInput, Prisma.UserUncheckedUpdateWithoutGrantsGivenInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutGrantsGivenInput, Prisma.UserUncheckedCreateWithoutGrantsGivenInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutGrantsGivenInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutGrantsGivenInput, Prisma.UserUncheckedUpdateWithoutGrantsGivenInput>
+}
+
+export type UserUpdateWithoutGrantsGivenInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutGrantsGivenInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+}
+
+export type UserUpsertWithoutGrantsRevokedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutGrantsRevokedInput, Prisma.UserUncheckedUpdateWithoutGrantsRevokedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutGrantsRevokedInput, Prisma.UserUncheckedCreateWithoutGrantsRevokedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutGrantsRevokedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutGrantsRevokedInput, Prisma.UserUncheckedUpdateWithoutGrantsRevokedInput>
+}
+
+export type UserUpdateWithoutGrantsRevokedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutGrantsRevokedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
 }
 
 
@@ -4434,6 +5409,9 @@ export type UserCountOutputType = {
   sentMessages: number
   messageArchives: number
   messagingAuditLogs: number
+  temporaryGrants: number
+  grantsGiven: number
+  grantsRevoked: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4454,6 +5432,9 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   sentMessages?: boolean | UserCountOutputTypeCountSentMessagesArgs
   messageArchives?: boolean | UserCountOutputTypeCountMessageArchivesArgs
   messagingAuditLogs?: boolean | UserCountOutputTypeCountMessagingAuditLogsArgs
+  temporaryGrants?: boolean | UserCountOutputTypeCountTemporaryGrantsArgs
+  grantsGiven?: boolean | UserCountOutputTypeCountGrantsGivenArgs
+  grantsRevoked?: boolean | UserCountOutputTypeCountGrantsRevokedArgs
 }
 
 /**
@@ -4585,11 +5566,33 @@ export type UserCountOutputTypeCountMessagingAuditLogsArgs<ExtArgs extends runti
   where?: Prisma.MessagingAuditLogWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTemporaryGrantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TemporaryGrantWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountGrantsGivenArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TemporaryGrantWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountGrantsRevokedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TemporaryGrantWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   username?: boolean
   email?: boolean
+  archivedEmail?: boolean
   telephone?: boolean
   postnom?: boolean
   prenom?: boolean
@@ -4627,6 +5630,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   sentMessages?: boolean | Prisma.User$sentMessagesArgs<ExtArgs>
   messageArchives?: boolean | Prisma.User$messageArchivesArgs<ExtArgs>
   messagingAuditLogs?: boolean | Prisma.User$messagingAuditLogsArgs<ExtArgs>
+  temporaryGrants?: boolean | Prisma.User$temporaryGrantsArgs<ExtArgs>
+  grantsGiven?: boolean | Prisma.User$grantsGivenArgs<ExtArgs>
+  grantsRevoked?: boolean | Prisma.User$grantsRevokedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -4634,6 +5640,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   username?: boolean
   email?: boolean
+  archivedEmail?: boolean
   telephone?: boolean
   postnom?: boolean
   prenom?: boolean
@@ -4659,6 +5666,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   username?: boolean
   email?: boolean
+  archivedEmail?: boolean
   telephone?: boolean
   postnom?: boolean
   prenom?: boolean
@@ -4684,6 +5692,7 @@ export type UserSelectScalar = {
   id?: boolean
   username?: boolean
   email?: boolean
+  archivedEmail?: boolean
   telephone?: boolean
   postnom?: boolean
   prenom?: boolean
@@ -4705,7 +5714,7 @@ export type UserSelectScalar = {
   banExpires?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "email" | "telephone" | "postnom" | "prenom" | "dateOfBirth" | "sexe" | "emailVerified" | "image" | "address" | "statusUser" | "mustChangePassword" | "theme" | "locale" | "createdAt" | "updatedAt" | "name" | "role" | "banned" | "banReason" | "banExpires", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "email" | "archivedEmail" | "telephone" | "postnom" | "prenom" | "dateOfBirth" | "sexe" | "emailVerified" | "image" | "address" | "statusUser" | "mustChangePassword" | "theme" | "locale" | "createdAt" | "updatedAt" | "name" | "role" | "banned" | "banReason" | "banExpires", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
@@ -4725,6 +5734,9 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   sentMessages?: boolean | Prisma.User$sentMessagesArgs<ExtArgs>
   messageArchives?: boolean | Prisma.User$messageArchivesArgs<ExtArgs>
   messagingAuditLogs?: boolean | Prisma.User$messagingAuditLogsArgs<ExtArgs>
+  temporaryGrants?: boolean | Prisma.User$temporaryGrantsArgs<ExtArgs>
+  grantsGiven?: boolean | Prisma.User$grantsGivenArgs<ExtArgs>
+  grantsRevoked?: boolean | Prisma.User$grantsRevokedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -4751,11 +5763,15 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     sentMessages: Prisma.$MessagePayload<ExtArgs>[]
     messageArchives: Prisma.$UserMessageArchivePayload<ExtArgs>[]
     messagingAuditLogs: Prisma.$MessagingAuditLogPayload<ExtArgs>[]
+    temporaryGrants: Prisma.$TemporaryGrantPayload<ExtArgs>[]
+    grantsGiven: Prisma.$TemporaryGrantPayload<ExtArgs>[]
+    grantsRevoked: Prisma.$TemporaryGrantPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     username: string | null
     email: string | null
+    archivedEmail: string | null
     telephone: string | null
     postnom: string | null
     prenom: string | null
@@ -4773,9 +5789,6 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      * Préférence d'apparence propre à l'utilisateur (light | dark | system)
      */
     theme: string | null
-    /**
-     * Langue d'interface (fr | en | pt)
-     */
     locale: string | null
     createdAt: Date
     updatedAt: Date
@@ -5196,6 +6209,9 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   sentMessages<T extends Prisma.User$sentMessagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sentMessagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   messageArchives<T extends Prisma.User$messageArchivesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$messageArchivesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserMessageArchivePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   messagingAuditLogs<T extends Prisma.User$messagingAuditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$messagingAuditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagingAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  temporaryGrants<T extends Prisma.User$temporaryGrantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$temporaryGrantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TemporaryGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  grantsGiven<T extends Prisma.User$grantsGivenArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$grantsGivenArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TemporaryGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  grantsRevoked<T extends Prisma.User$grantsRevokedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$grantsRevokedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TemporaryGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5228,6 +6244,7 @@ export interface UserFieldRefs {
   readonly id: Prisma.FieldRef<"User", 'String'>
   readonly username: Prisma.FieldRef<"User", 'String'>
   readonly email: Prisma.FieldRef<"User", 'String'>
+  readonly archivedEmail: Prisma.FieldRef<"User", 'String'>
   readonly telephone: Prisma.FieldRef<"User", 'String'>
   readonly postnom: Prisma.FieldRef<"User", 'String'>
   readonly prenom: Prisma.FieldRef<"User", 'String'>
@@ -6064,6 +7081,78 @@ export type User$messagingAuditLogsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.MessagingAuditLogScalarFieldEnum | Prisma.MessagingAuditLogScalarFieldEnum[]
+}
+
+/**
+ * User.temporaryGrants
+ */
+export type User$temporaryGrantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TemporaryGrant
+   */
+  select?: Prisma.TemporaryGrantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TemporaryGrant
+   */
+  omit?: Prisma.TemporaryGrantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TemporaryGrantInclude<ExtArgs> | null
+  where?: Prisma.TemporaryGrantWhereInput
+  orderBy?: Prisma.TemporaryGrantOrderByWithRelationInput | Prisma.TemporaryGrantOrderByWithRelationInput[]
+  cursor?: Prisma.TemporaryGrantWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TemporaryGrantScalarFieldEnum | Prisma.TemporaryGrantScalarFieldEnum[]
+}
+
+/**
+ * User.grantsGiven
+ */
+export type User$grantsGivenArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TemporaryGrant
+   */
+  select?: Prisma.TemporaryGrantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TemporaryGrant
+   */
+  omit?: Prisma.TemporaryGrantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TemporaryGrantInclude<ExtArgs> | null
+  where?: Prisma.TemporaryGrantWhereInput
+  orderBy?: Prisma.TemporaryGrantOrderByWithRelationInput | Prisma.TemporaryGrantOrderByWithRelationInput[]
+  cursor?: Prisma.TemporaryGrantWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TemporaryGrantScalarFieldEnum | Prisma.TemporaryGrantScalarFieldEnum[]
+}
+
+/**
+ * User.grantsRevoked
+ */
+export type User$grantsRevokedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TemporaryGrant
+   */
+  select?: Prisma.TemporaryGrantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TemporaryGrant
+   */
+  omit?: Prisma.TemporaryGrantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TemporaryGrantInclude<ExtArgs> | null
+  where?: Prisma.TemporaryGrantWhereInput
+  orderBy?: Prisma.TemporaryGrantOrderByWithRelationInput | Prisma.TemporaryGrantOrderByWithRelationInput[]
+  cursor?: Prisma.TemporaryGrantWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TemporaryGrantScalarFieldEnum | Prisma.TemporaryGrantScalarFieldEnum[]
 }
 
 /**

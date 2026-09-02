@@ -39,7 +39,10 @@ import { ensureBranchMemberRoleProfiles } from "@/lib/auth/ensure-branch-member-
 import { memberHasImplicitAllBranchAccess } from "@/lib/auth/role-labels";
 import { ORG_ROLE } from "@/lib/permissions";
 import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
-import { purgeOrganizationMemberProfiles } from "@/lib/purge-branch-person";
+import {
+  archiveUserEmailIfNoBranch,
+  purgeOrganizationMemberProfiles,
+} from "@/lib/purge-branch-person";
 import type { BranchRole } from "@/prisma/generated/prisma/enums";
 import {
   assignBranchMemberCycles,
@@ -183,6 +186,13 @@ async function syncMemberBranches(params: {
       .map((row) => row.id);
     if (toDeleteIds.length > 0) {
       await tx.branchMember.deleteMany({ where: { id: { in: toDeleteIds } } });
+      const memberRow = await tx.member.findUnique({
+        where: { id: memberId },
+        select: { userId: true },
+      });
+      if (memberRow?.userId) {
+        await archiveUserEmailIfNoBranch(tx, memberRow.userId);
+      }
     }
 
     for (const branchId of branchIds) {
@@ -572,6 +582,7 @@ export async function updateOrganizationMemberAction(
       where: { id: memberRow.userId },
       data: {
         email: emailLower,
+        archivedEmail: null,
         ...(nom ? { name: nom.trim() } : {}),
         ...(postnom ? { postnom: postnom.trim() } : {}),
         ...(prenom ? { prenom: prenom.trim() } : {}),
@@ -634,6 +645,16 @@ export async function updateUserAction(
       feminin: "F",
     };
 
+    const emailLower = email.trim().toLowerCase();
+    const taken = await prisma.user.findFirst({
+      where: { email: emailLower, id: { not: id } },
+      select: { id: true },
+    });
+    if (taken) {
+      return { ok: false, message: "Cet email est deja utilise par un autre compte." };
+    }
+
+    const previousEmail = existUser.email?.trim().toLowerCase() ?? "";
     await prisma.user.update({
       where: {
         id: id,
@@ -643,12 +664,19 @@ export async function updateUserAction(
         postnom,
         prenom,
         dateOfBirth,
-        email,
+        email: emailLower,
+        archivedEmail: null,
         sexe: sexe ? sexeMap[sexe] : undefined,
         telephone,
         address,
       },
     });
+    if (previousEmail && previousEmail !== emailLower) {
+      await prisma.account.updateMany({
+        where: { userId: id, providerId: "credential", accountId: previousEmail },
+        data: { accountId: emailLower },
+      });
+    }
     return { ok: true };
   } catch (e) {
     return { ok: false, message: errMessage(e) };
@@ -900,6 +928,7 @@ export type OrganizationMemberListItem = {
   user: {
     id: string;
     email: string | null;
+    archivedEmail?: string | null;
     name: string;
     postnom: string | null;
     prenom: string | null;
@@ -915,6 +944,7 @@ export type OrganizationMemberDetail = {
   user: {
     id: string;
     email: string | null;
+    archivedEmail?: string | null;
     name: string;
     postnom: string | null;
     prenom: string | null;
@@ -948,6 +978,7 @@ export async function getOrganizationMemberAction(
           select: {
             id: true,
             email: true,
+            archivedEmail: true,
             name: true,
             postnom: true,
             prenom: true,
@@ -1124,6 +1155,7 @@ export async function listOrganizationMembersAction(
           select: {
             id: true,
             email: true,
+            archivedEmail: true,
             name: true,
             postnom: true,
             prenom: true,

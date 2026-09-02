@@ -365,6 +365,7 @@ export type BranchWhereInput = {
   studentAttendance?: Prisma.StudentAttendanceListRelationFilter
   branchemembers?: Prisma.BranchMemberListRelationFilter
   classes?: Prisma.ClasseListRelationFilter
+  temporaryGrants?: Prisma.TemporaryGrantListRelationFilter
   paymentBatch?: Prisma.PaymentBatchListRelationFilter
   familyPayment?: Prisma.FamilyPaymentListRelationFilter
   fiche?: Prisma.FicheListRelationFilter
@@ -448,6 +449,7 @@ export type BranchOrderByWithRelationInput = {
   studentAttendance?: Prisma.StudentAttendanceOrderByRelationAggregateInput
   branchemembers?: Prisma.BranchMemberOrderByRelationAggregateInput
   classes?: Prisma.ClasseOrderByRelationAggregateInput
+  temporaryGrants?: Prisma.TemporaryGrantOrderByRelationAggregateInput
   paymentBatch?: Prisma.PaymentBatchOrderByRelationAggregateInput
   familyPayment?: Prisma.FamilyPaymentOrderByRelationAggregateInput
   fiche?: Prisma.ficheOrderByRelationAggregateInput
@@ -535,6 +537,7 @@ export type BranchWhereUniqueInput = Prisma.AtLeast<{
   studentAttendance?: Prisma.StudentAttendanceListRelationFilter
   branchemembers?: Prisma.BranchMemberListRelationFilter
   classes?: Prisma.ClasseListRelationFilter
+  temporaryGrants?: Prisma.TemporaryGrantListRelationFilter
   paymentBatch?: Prisma.PaymentBatchListRelationFilter
   familyPayment?: Prisma.FamilyPaymentListRelationFilter
   fiche?: Prisma.FicheListRelationFilter
@@ -677,6 +680,7 @@ export type BranchCreateInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -759,6 +763,7 @@ export type BranchUncheckedCreateInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -841,6 +846,7 @@ export type BranchUpdateInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -923,6 +929,7 @@ export type BranchUncheckedUpdateInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -2013,6 +2020,22 @@ export type BranchUpdateOneWithoutSourceConversationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.BranchUpdateToOneWithWhereWithoutSourceConversationsInput, Prisma.BranchUpdateWithoutSourceConversationsInput>, Prisma.BranchUncheckedUpdateWithoutSourceConversationsInput>
 }
 
+export type BranchCreateNestedOneWithoutTemporaryGrantsInput = {
+  create?: Prisma.XOR<Prisma.BranchCreateWithoutTemporaryGrantsInput, Prisma.BranchUncheckedCreateWithoutTemporaryGrantsInput>
+  connectOrCreate?: Prisma.BranchCreateOrConnectWithoutTemporaryGrantsInput
+  connect?: Prisma.BranchWhereUniqueInput
+}
+
+export type BranchUpdateOneWithoutTemporaryGrantsNestedInput = {
+  create?: Prisma.XOR<Prisma.BranchCreateWithoutTemporaryGrantsInput, Prisma.BranchUncheckedCreateWithoutTemporaryGrantsInput>
+  connectOrCreate?: Prisma.BranchCreateOrConnectWithoutTemporaryGrantsInput
+  upsert?: Prisma.BranchUpsertWithoutTemporaryGrantsInput
+  disconnect?: Prisma.BranchWhereInput | boolean
+  delete?: Prisma.BranchWhereInput | boolean
+  connect?: Prisma.BranchWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BranchUpdateToOneWithWhereWithoutTemporaryGrantsInput, Prisma.BranchUpdateWithoutTemporaryGrantsInput>, Prisma.BranchUncheckedUpdateWithoutTemporaryGrantsInput>
+}
+
 export type BranchCreateWithoutAttendanceSessionsInput = {
   id?: string
   name: string
@@ -2041,6 +2064,7 @@ export type BranchCreateWithoutAttendanceSessionsInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -2122,6 +2146,7 @@ export type BranchUncheckedCreateWithoutAttendanceSessionsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -2219,6 +2244,7 @@ export type BranchUpdateWithoutAttendanceSessionsInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -2300,6 +2326,7 @@ export type BranchUncheckedUpdateWithoutAttendanceSessionsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -2380,6 +2407,7 @@ export type BranchCreateWithoutStudentAttendanceInput = {
   cycles?: Prisma.BranchCycleCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -2461,6 +2489,7 @@ export type BranchUncheckedCreateWithoutStudentAttendanceInput = {
   cycles?: Prisma.BranchCycleUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -2558,6 +2587,7 @@ export type BranchUpdateWithoutStudentAttendanceInput = {
   cycles?: Prisma.BranchCycleUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -2639,6 +2669,7 @@ export type BranchUncheckedUpdateWithoutStudentAttendanceInput = {
   cycles?: Prisma.BranchCycleUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -2721,6 +2752,7 @@ export type BranchCreateWithoutTeacherAttendanceInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -2802,6 +2834,7 @@ export type BranchUncheckedCreateWithoutTeacherAttendanceInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -2899,6 +2932,7 @@ export type BranchUpdateWithoutTeacherAttendanceInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -2980,6 +3014,7 @@ export type BranchUncheckedUpdateWithoutTeacherAttendanceInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -3061,6 +3096,7 @@ export type BranchCreateWithoutPersonnelAttendanceInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -3142,6 +3178,7 @@ export type BranchUncheckedCreateWithoutPersonnelAttendanceInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -3239,6 +3276,7 @@ export type BranchUpdateWithoutPersonnelAttendanceInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -3320,6 +3358,7 @@ export type BranchUncheckedUpdateWithoutPersonnelAttendanceInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -3401,6 +3440,7 @@ export type BranchCreateWithoutParentFeedbackInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -3482,6 +3522,7 @@ export type BranchUncheckedCreateWithoutParentFeedbackInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -3579,6 +3620,7 @@ export type BranchUpdateWithoutParentFeedbackInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -3660,6 +3702,7 @@ export type BranchUncheckedUpdateWithoutParentFeedbackInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -3741,6 +3784,7 @@ export type BranchCreateWithoutStudentGradeInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -3822,6 +3866,7 @@ export type BranchUncheckedCreateWithoutStudentGradeInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -3919,6 +3964,7 @@ export type BranchUpdateWithoutStudentGradeInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -4000,6 +4046,7 @@ export type BranchUncheckedUpdateWithoutStudentGradeInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -4081,6 +4128,7 @@ export type BranchCreateWithoutFraisInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -4162,6 +4210,7 @@ export type BranchUncheckedCreateWithoutFraisInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -4259,6 +4308,7 @@ export type BranchUpdateWithoutFraisInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -4340,6 +4390,7 @@ export type BranchUncheckedUpdateWithoutFraisInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -4421,6 +4472,7 @@ export type BranchCreateWithoutTypeFraisInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -4502,6 +4554,7 @@ export type BranchUncheckedCreateWithoutTypeFraisInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -4599,6 +4652,7 @@ export type BranchUpdateWithoutTypeFraisInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -4680,6 +4734,7 @@ export type BranchUncheckedUpdateWithoutTypeFraisInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -4760,6 +4815,7 @@ export type BranchCreateWithoutClassesInput = {
   cycles?: Prisma.BranchCycleCreateNestedManyWithoutBranchInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -4841,6 +4897,7 @@ export type BranchUncheckedCreateWithoutClassesInput = {
   cycles?: Prisma.BranchCycleUncheckedCreateNestedManyWithoutBranchInput
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -4938,6 +4995,7 @@ export type BranchUpdateWithoutClassesInput = {
   cycles?: Prisma.BranchCycleUpdateManyWithoutBranchNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -5019,6 +5077,7 @@ export type BranchUncheckedUpdateWithoutClassesInput = {
   cycles?: Prisma.BranchCycleUncheckedUpdateManyWithoutBranchNestedInput
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -5101,6 +5160,7 @@ export type BranchCreateWithoutCreneauInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -5182,6 +5242,7 @@ export type BranchUncheckedCreateWithoutCreneauInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -5279,6 +5340,7 @@ export type BranchUpdateWithoutCreneauInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -5360,6 +5422,7 @@ export type BranchUncheckedUpdateWithoutCreneauInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -5441,6 +5504,7 @@ export type BranchCreateWithoutOptionInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -5522,6 +5586,7 @@ export type BranchUncheckedCreateWithoutOptionInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -5619,6 +5684,7 @@ export type BranchUpdateWithoutOptionInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -5700,6 +5766,7 @@ export type BranchUncheckedUpdateWithoutOptionInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -5781,6 +5848,7 @@ export type BranchCreateWithoutSectionInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -5862,6 +5930,7 @@ export type BranchUncheckedCreateWithoutSectionInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -5959,6 +6028,7 @@ export type BranchUpdateWithoutSectionInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -6040,6 +6110,7 @@ export type BranchUncheckedUpdateWithoutSectionInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -6121,6 +6192,7 @@ export type BranchCreateWithoutSchoolYearInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -6202,6 +6274,7 @@ export type BranchUncheckedCreateWithoutSchoolYearInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -6299,6 +6372,7 @@ export type BranchUpdateWithoutSchoolYearInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -6380,6 +6454,7 @@ export type BranchUncheckedUpdateWithoutSchoolYearInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -6461,6 +6536,7 @@ export type BranchCreateWithoutClassEnrollmentInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -6542,6 +6618,7 @@ export type BranchUncheckedCreateWithoutClassEnrollmentInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -6639,6 +6716,7 @@ export type BranchUpdateWithoutClassEnrollmentInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -6720,6 +6798,7 @@ export type BranchUncheckedUpdateWithoutClassEnrollmentInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -6801,6 +6880,7 @@ export type BranchCreateWithoutTeacherProfileDocumentsInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -6882,6 +6962,7 @@ export type BranchUncheckedCreateWithoutTeacherProfileDocumentsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -6979,6 +7060,7 @@ export type BranchUpdateWithoutTeacherProfileDocumentsInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -7060,6 +7142,7 @@ export type BranchUncheckedUpdateWithoutTeacherProfileDocumentsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -7141,6 +7224,7 @@ export type BranchCreateWithoutTeachingInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -7222,6 +7306,7 @@ export type BranchUncheckedCreateWithoutTeachingInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -7319,6 +7404,7 @@ export type BranchUpdateWithoutTeachingInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -7400,6 +7486,7 @@ export type BranchUncheckedUpdateWithoutTeachingInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -7481,6 +7568,7 @@ export type BranchCreateWithoutCoursInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -7562,6 +7650,7 @@ export type BranchUncheckedCreateWithoutCoursInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -7659,6 +7748,7 @@ export type BranchUpdateWithoutCoursInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -7740,6 +7830,7 @@ export type BranchUncheckedUpdateWithoutCoursInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -7821,6 +7912,7 @@ export type BranchCreateWithoutCoursPonderationsInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -7902,6 +7994,7 @@ export type BranchUncheckedCreateWithoutCoursPonderationsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -7999,6 +8092,7 @@ export type BranchUpdateWithoutCoursPonderationsInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -8080,6 +8174,7 @@ export type BranchUncheckedUpdateWithoutCoursPonderationsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -8161,6 +8256,7 @@ export type BranchCreateWithoutCalendarEventInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -8242,6 +8338,7 @@ export type BranchUncheckedCreateWithoutCalendarEventInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -8339,6 +8436,7 @@ export type BranchUpdateWithoutCalendarEventInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -8420,6 +8518,7 @@ export type BranchUncheckedUpdateWithoutCalendarEventInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -8501,6 +8600,7 @@ export type BranchCreateWithoutEventTypeInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -8582,6 +8682,7 @@ export type BranchUncheckedCreateWithoutEventTypeInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -8679,6 +8780,7 @@ export type BranchUpdateWithoutEventTypeInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -8760,6 +8862,7 @@ export type BranchUncheckedUpdateWithoutEventTypeInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -8841,6 +8944,7 @@ export type BranchCreateWithoutSemesterInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -8922,6 +9026,7 @@ export type BranchUncheckedCreateWithoutSemesterInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -9019,6 +9124,7 @@ export type BranchUpdateWithoutSemesterInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -9100,6 +9206,7 @@ export type BranchUncheckedUpdateWithoutSemesterInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -9181,6 +9288,7 @@ export type BranchCreateWithoutPeriodInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -9262,6 +9370,7 @@ export type BranchUncheckedCreateWithoutPeriodInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -9359,6 +9468,7 @@ export type BranchUpdateWithoutPeriodInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -9440,6 +9550,7 @@ export type BranchUncheckedUpdateWithoutPeriodInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -9521,6 +9632,7 @@ export type BranchCreateWithoutPeriodResultLockInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -9602,6 +9714,7 @@ export type BranchUncheckedCreateWithoutPeriodResultLockInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -9699,6 +9812,7 @@ export type BranchUpdateWithoutPeriodResultLockInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -9780,6 +9894,7 @@ export type BranchUncheckedUpdateWithoutPeriodResultLockInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -9861,6 +9976,7 @@ export type BranchCreateWithoutFicheInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   eventType?: Prisma.EventTypeCreateNestedManyWithoutBranchInput
@@ -9942,6 +10058,7 @@ export type BranchUncheckedCreateWithoutFicheInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   eventType?: Prisma.EventTypeUncheckedCreateNestedManyWithoutBranchInput
@@ -10039,6 +10156,7 @@ export type BranchUpdateWithoutFicheInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   eventType?: Prisma.EventTypeUpdateManyWithoutBranchNestedInput
@@ -10120,6 +10238,7 @@ export type BranchUncheckedUpdateWithoutFicheInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   eventType?: Prisma.EventTypeUncheckedUpdateManyWithoutBranchNestedInput
@@ -10201,6 +10320,7 @@ export type BranchCreateWithoutInvoiceInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -10282,6 +10402,7 @@ export type BranchUncheckedCreateWithoutInvoiceInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -10379,6 +10500,7 @@ export type BranchUpdateWithoutInvoiceInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -10460,6 +10582,7 @@ export type BranchUncheckedUpdateWithoutInvoiceInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -10541,6 +10664,7 @@ export type BranchCreateWithoutPaymentBatchInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
   eventType?: Prisma.EventTypeCreateNestedManyWithoutBranchInput
@@ -10622,6 +10746,7 @@ export type BranchUncheckedCreateWithoutPaymentBatchInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
   eventType?: Prisma.EventTypeUncheckedCreateNestedManyWithoutBranchInput
@@ -10719,6 +10844,7 @@ export type BranchUpdateWithoutPaymentBatchInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
   eventType?: Prisma.EventTypeUpdateManyWithoutBranchNestedInput
@@ -10800,6 +10926,7 @@ export type BranchUncheckedUpdateWithoutPaymentBatchInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
   eventType?: Prisma.EventTypeUncheckedUpdateManyWithoutBranchNestedInput
@@ -10881,6 +11008,7 @@ export type BranchCreateWithoutFamilyPaymentInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
   eventType?: Prisma.EventTypeCreateNestedManyWithoutBranchInput
@@ -10962,6 +11090,7 @@ export type BranchUncheckedCreateWithoutFamilyPaymentInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
   eventType?: Prisma.EventTypeUncheckedCreateNestedManyWithoutBranchInput
@@ -11059,6 +11188,7 @@ export type BranchUpdateWithoutFamilyPaymentInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
   eventType?: Prisma.EventTypeUpdateManyWithoutBranchNestedInput
@@ -11140,6 +11270,7 @@ export type BranchUncheckedUpdateWithoutFamilyPaymentInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
   eventType?: Prisma.EventTypeUncheckedUpdateManyWithoutBranchNestedInput
@@ -11221,6 +11352,7 @@ export type BranchCreateWithoutCashierExpenseInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -11302,6 +11434,7 @@ export type BranchUncheckedCreateWithoutCashierExpenseInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -11399,6 +11532,7 @@ export type BranchUpdateWithoutCashierExpenseInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -11480,6 +11614,7 @@ export type BranchUncheckedUpdateWithoutCashierExpenseInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -11561,6 +11696,7 @@ export type BranchCreateWithoutCashierOpeningBalanceInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -11642,6 +11778,7 @@ export type BranchUncheckedCreateWithoutCashierOpeningBalanceInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -11739,6 +11876,7 @@ export type BranchUpdateWithoutCashierOpeningBalanceInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -11820,6 +11958,7 @@ export type BranchUncheckedUpdateWithoutCashierOpeningBalanceInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -11901,6 +12040,7 @@ export type BranchCreateWithoutPaymentAllocationInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -11982,6 +12122,7 @@ export type BranchUncheckedCreateWithoutPaymentAllocationInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -12079,6 +12220,7 @@ export type BranchUpdateWithoutPaymentAllocationInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -12160,6 +12302,7 @@ export type BranchUncheckedUpdateWithoutPaymentAllocationInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -12241,6 +12384,7 @@ export type BranchCreateWithoutMobileMoneyTransactionInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -12322,6 +12466,7 @@ export type BranchUncheckedCreateWithoutMobileMoneyTransactionInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -12419,6 +12564,7 @@ export type BranchUpdateWithoutMobileMoneyTransactionInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -12500,6 +12646,7 @@ export type BranchUncheckedUpdateWithoutMobileMoneyTransactionInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -12581,6 +12728,7 @@ export type BranchCreateWithoutPaymentEventInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -12662,6 +12810,7 @@ export type BranchUncheckedCreateWithoutPaymentEventInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -12759,6 +12908,7 @@ export type BranchUpdateWithoutPaymentEventInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -12840,6 +12990,7 @@ export type BranchUncheckedUpdateWithoutPaymentEventInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -12921,6 +13072,7 @@ export type BranchCreateWithoutDiscountRuleInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -13002,6 +13154,7 @@ export type BranchUncheckedCreateWithoutDiscountRuleInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -13099,6 +13252,7 @@ export type BranchUpdateWithoutDiscountRuleInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -13180,6 +13334,7 @@ export type BranchUncheckedUpdateWithoutDiscountRuleInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -13261,6 +13416,7 @@ export type BranchCreateWithoutTransactionInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -13342,6 +13498,7 @@ export type BranchUncheckedCreateWithoutTransactionInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -13439,6 +13596,7 @@ export type BranchUpdateWithoutTransactionInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -13520,6 +13678,7 @@ export type BranchUncheckedUpdateWithoutTransactionInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -13601,6 +13760,7 @@ export type BranchCreateWithoutGradeModificationRequestsInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -13682,6 +13842,7 @@ export type BranchUncheckedCreateWithoutGradeModificationRequestsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -13779,6 +13940,7 @@ export type BranchUpdateWithoutGradeModificationRequestsInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -13860,6 +14022,7 @@ export type BranchUncheckedUpdateWithoutGradeModificationRequestsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -13941,6 +14104,7 @@ export type BranchCreateWithoutAbsenceCasesInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -14022,6 +14186,7 @@ export type BranchUncheckedCreateWithoutAbsenceCasesInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -14119,6 +14284,7 @@ export type BranchUpdateWithoutAbsenceCasesInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -14200,6 +14366,7 @@ export type BranchUncheckedUpdateWithoutAbsenceCasesInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -14281,6 +14448,7 @@ export type BranchCreateWithoutAppNotificationsInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -14362,6 +14530,7 @@ export type BranchUncheckedCreateWithoutAppNotificationsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -14459,6 +14628,7 @@ export type BranchUpdateWithoutAppNotificationsInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -14540,6 +14710,7 @@ export type BranchUncheckedUpdateWithoutAppNotificationsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -14621,6 +14792,7 @@ export type BranchCreateWithoutPayrollPolicyInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -14702,6 +14874,7 @@ export type BranchUncheckedCreateWithoutPayrollPolicyInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -14799,6 +14972,7 @@ export type BranchUpdateWithoutPayrollPolicyInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -14880,6 +15054,7 @@ export type BranchUncheckedUpdateWithoutPayrollPolicyInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -14961,6 +15136,7 @@ export type BranchCreateWithoutTeacherPayslipsInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -15042,6 +15218,7 @@ export type BranchUncheckedCreateWithoutTeacherPayslipsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -15139,6 +15316,7 @@ export type BranchUpdateWithoutTeacherPayslipsInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -15220,6 +15398,7 @@ export type BranchUncheckedUpdateWithoutTeacherPayslipsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -15300,6 +15479,7 @@ export type BranchCreateWithoutOrganizationInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -15381,6 +15561,7 @@ export type BranchUncheckedCreateWithoutOrganizationInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -15517,6 +15698,7 @@ export type BranchCreateWithoutCyclesInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -15598,6 +15780,7 @@ export type BranchUncheckedCreateWithoutCyclesInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -15695,6 +15878,7 @@ export type BranchUpdateWithoutCyclesInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -15776,6 +15960,7 @@ export type BranchUncheckedUpdateWithoutCyclesInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -15858,6 +16043,7 @@ export type BranchCreateWithoutPrimaryDomainsInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -15939,6 +16125,7 @@ export type BranchUncheckedCreateWithoutPrimaryDomainsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -16036,6 +16223,7 @@ export type BranchUpdateWithoutPrimaryDomainsInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -16117,6 +16305,7 @@ export type BranchUncheckedUpdateWithoutPrimaryDomainsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -16198,6 +16387,7 @@ export type BranchCreateWithoutRegistrationInfosInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -16279,6 +16469,7 @@ export type BranchUncheckedCreateWithoutRegistrationInfosInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -16376,6 +16567,7 @@ export type BranchUpdateWithoutRegistrationInfosInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -16457,6 +16649,7 @@ export type BranchUncheckedUpdateWithoutRegistrationInfosInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -16538,6 +16731,7 @@ export type BranchCreateWithoutRegistrationRequestsInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -16619,6 +16813,7 @@ export type BranchUncheckedCreateWithoutRegistrationRequestsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -16716,6 +16911,7 @@ export type BranchUpdateWithoutRegistrationRequestsInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -16797,6 +16993,7 @@ export type BranchUncheckedUpdateWithoutRegistrationRequestsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -16878,6 +17075,7 @@ export type BranchCreateWithoutJobApplicationsInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -16959,6 +17157,7 @@ export type BranchUncheckedCreateWithoutJobApplicationsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -17056,6 +17255,7 @@ export type BranchUpdateWithoutJobApplicationsInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -17137,6 +17337,7 @@ export type BranchUncheckedUpdateWithoutJobApplicationsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -17218,6 +17419,7 @@ export type BranchCreateWithoutPartnairesInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -17299,6 +17501,7 @@ export type BranchUncheckedCreateWithoutPartnairesInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -17396,6 +17599,7 @@ export type BranchUpdateWithoutPartnairesInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -17477,6 +17681,7 @@ export type BranchUncheckedUpdateWithoutPartnairesInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -17557,6 +17762,7 @@ export type BranchCreateWithoutBranchemembersInput = {
   cycles?: Prisma.BranchCycleCreateNestedManyWithoutBranchInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -17638,6 +17844,7 @@ export type BranchUncheckedCreateWithoutBranchemembersInput = {
   cycles?: Prisma.BranchCycleUncheckedCreateNestedManyWithoutBranchInput
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -17735,6 +17942,7 @@ export type BranchUpdateWithoutBranchemembersInput = {
   cycles?: Prisma.BranchCycleUpdateManyWithoutBranchNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -17816,6 +18024,7 @@ export type BranchUncheckedUpdateWithoutBranchemembersInput = {
   cycles?: Prisma.BranchCycleUncheckedUpdateManyWithoutBranchNestedInput
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -17898,6 +18107,7 @@ export type BranchCreateWithoutTargetStudentLinksInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -17979,6 +18189,7 @@ export type BranchUncheckedCreateWithoutTargetStudentLinksInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -18065,6 +18276,7 @@ export type BranchCreateWithoutSourceStudentLinksInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -18146,6 +18358,7 @@ export type BranchUncheckedCreateWithoutSourceStudentLinksInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -18243,6 +18456,7 @@ export type BranchUpdateWithoutTargetStudentLinksInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -18324,6 +18538,7 @@ export type BranchUncheckedUpdateWithoutTargetStudentLinksInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -18416,6 +18631,7 @@ export type BranchUpdateWithoutSourceStudentLinksInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -18497,6 +18713,7 @@ export type BranchUncheckedUpdateWithoutSourceStudentLinksInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -18578,6 +18795,7 @@ export type BranchCreateWithoutIssuedDocumentsInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -18659,6 +18877,7 @@ export type BranchUncheckedCreateWithoutIssuedDocumentsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -18756,6 +18975,7 @@ export type BranchUpdateWithoutIssuedDocumentsInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -18837,6 +19057,7 @@ export type BranchUncheckedUpdateWithoutIssuedDocumentsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -18918,6 +19139,7 @@ export type BranchCreateWithoutBranchInvitationInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -18999,6 +19221,7 @@ export type BranchUncheckedCreateWithoutBranchInvitationInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -19096,6 +19319,7 @@ export type BranchUpdateWithoutBranchInvitationInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -19177,6 +19401,7 @@ export type BranchUncheckedUpdateWithoutBranchInvitationInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -19258,6 +19483,7 @@ export type BranchCreateWithoutLibraryCatalogSourcesInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -19339,6 +19565,7 @@ export type BranchUncheckedCreateWithoutLibraryCatalogSourcesInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -19436,6 +19663,7 @@ export type BranchUpdateWithoutLibraryCatalogSourcesInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -19517,6 +19745,7 @@ export type BranchUncheckedUpdateWithoutLibraryCatalogSourcesInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -19598,6 +19827,7 @@ export type BranchCreateWithoutLibraryBooksInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -19679,6 +19909,7 @@ export type BranchUncheckedCreateWithoutLibraryBooksInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -19776,6 +20007,7 @@ export type BranchUpdateWithoutLibraryBooksInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -19857,6 +20089,7 @@ export type BranchUncheckedUpdateWithoutLibraryBooksInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -19938,6 +20171,7 @@ export type BranchCreateWithoutOrganizationSupportBranchScopesInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -20019,6 +20253,7 @@ export type BranchUncheckedCreateWithoutOrganizationSupportBranchScopesInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -20116,6 +20351,7 @@ export type BranchUpdateWithoutOrganizationSupportBranchScopesInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -20197,6 +20433,7 @@ export type BranchUncheckedUpdateWithoutOrganizationSupportBranchScopesInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -20278,6 +20515,7 @@ export type BranchCreateWithoutSupportTicketsInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -20359,6 +20597,7 @@ export type BranchUncheckedCreateWithoutSupportTicketsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -20456,6 +20695,7 @@ export type BranchUpdateWithoutSupportTicketsInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -20537,6 +20777,7 @@ export type BranchUncheckedUpdateWithoutSupportTicketsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -20618,6 +20859,7 @@ export type BranchCreateWithoutOnlineAssignmentsInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -20699,6 +20941,7 @@ export type BranchUncheckedCreateWithoutOnlineAssignmentsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -20796,6 +21039,7 @@ export type BranchUpdateWithoutOnlineAssignmentsInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -20877,6 +21121,7 @@ export type BranchUncheckedUpdateWithoutOnlineAssignmentsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -20958,6 +21203,7 @@ export type BranchCreateWithoutSourceConversationsInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
@@ -21039,6 +21285,7 @@ export type BranchUncheckedCreateWithoutSourceConversationsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
   familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
@@ -21136,6 +21383,7 @@ export type BranchUpdateWithoutSourceConversationsInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -21217,6 +21465,7 @@ export type BranchUncheckedUpdateWithoutSourceConversationsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -21267,6 +21516,350 @@ export type BranchUncheckedUpdateWithoutSourceConversationsInput = {
   primaryDomains?: Prisma.BranchPrimaryDomainUncheckedUpdateManyWithoutBranchNestedInput
   absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutBranchNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutBranchNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutBranchNestedInput
+}
+
+export type BranchCreateWithoutTemporaryGrantsInput = {
+  id?: string
+  name: string
+  code?: string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  description?: string | null
+  note?: string | null
+  adresse?: string | null
+  province?: string | null
+  ville?: string | null
+  commune?: string | null
+  pays?: string | null
+  idnat?: string | null
+  tel?: string | null
+  latitude: number
+  longitude: number
+  attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
+  educationSystem?: $Enums.EducationSystem
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
+  cycles?: Prisma.BranchCycleCreateNestedManyWithoutBranchInput
+  studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
+  branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
+  classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
+  familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
+  fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
+  eventType?: Prisma.EventTypeCreateNestedManyWithoutBranchInput
+  period?: Prisma.periodCreateNestedManyWithoutBranchInput
+  cours?: Prisma.CoursCreateNestedManyWithoutBranchInput
+  schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
+  typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
+  option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
+  section?: Prisma.SectionCreateNestedManyWithoutBranchInput
+  semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
+  frais?: Prisma.FraisCreateNestedManyWithoutBranchInput
+  calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
+  periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
+  cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
+  invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
+  creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
+  paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
+  teaching?: Prisma.TeachingCreateNestedManyWithoutBranchInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionCreateNestedManyWithoutBranchInput
+  branchInvitation?: Prisma.BranchInvitationCreateNestedManyWithoutBranchInput
+  attendanceSessions?: Prisma.AttendanceSessionCreateNestedManyWithoutBranchInput
+  teacherAttendance?: Prisma.TeacherAttendanceCreateNestedManyWithoutBranchInput
+  personnelAttendance?: Prisma.PersonnelAttendanceCreateNestedManyWithoutBranchInput
+  studentGrade?: Prisma.StudentGradeCreateNestedManyWithoutBranchInput
+  parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutBranchInput
+  transaction?: Prisma.TransactionCreateNestedManyWithoutBranchInput
+  discountRule?: Prisma.DiscountRuleCreateNestedManyWithoutBranchInput
+  paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
+  partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
+  jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
+  teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
+  targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
+  libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
+  libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
+  payrollPolicy?: Prisma.BranchPayrollPolicyCreateNestedOneWithoutBranchInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutBranchInput
+  supportTickets?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutBranchInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutBranchInput
+  primaryDomains?: Prisma.BranchPrimaryDomainCreateNestedManyWithoutBranchInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutBranchInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutBranchInput
+  sourceConversations?: Prisma.ConversationCreateNestedManyWithoutSourceBranchInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutBranchInput
+}
+
+export type BranchUncheckedCreateWithoutTemporaryGrantsInput = {
+  id?: string
+  name: string
+  code?: string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  description?: string | null
+  note?: string | null
+  adresse?: string | null
+  province?: string | null
+  ville?: string | null
+  commune?: string | null
+  pays?: string | null
+  idnat?: string | null
+  tel?: string | null
+  latitude: number
+  longitude: number
+  attendanceRadius?: number
+  organizationId: string
+  typebranch: $Enums.TypeBrache
+  educationSystem?: $Enums.EducationSystem
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  cycles?: Prisma.BranchCycleUncheckedCreateNestedManyWithoutBranchInput
+  studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
+  classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
+  familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
+  fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
+  eventType?: Prisma.EventTypeUncheckedCreateNestedManyWithoutBranchInput
+  period?: Prisma.periodUncheckedCreateNestedManyWithoutBranchInput
+  cours?: Prisma.CoursUncheckedCreateNestedManyWithoutBranchInput
+  schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
+  typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
+  option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
+  section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
+  semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
+  frais?: Prisma.FraisUncheckedCreateNestedManyWithoutBranchInput
+  calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
+  periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
+  cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
+  invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
+  creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
+  paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutBranchInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUncheckedCreateNestedManyWithoutBranchInput
+  branchInvitation?: Prisma.BranchInvitationUncheckedCreateNestedManyWithoutBranchInput
+  attendanceSessions?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutBranchInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  studentGrade?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutBranchInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutBranchInput
+  transaction?: Prisma.TransactionUncheckedCreateNestedManyWithoutBranchInput
+  discountRule?: Prisma.DiscountRuleUncheckedCreateNestedManyWithoutBranchInput
+  paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
+  partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
+  jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
+  teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
+  targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
+  libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
+  libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
+  payrollPolicy?: Prisma.BranchPayrollPolicyUncheckedCreateNestedOneWithoutBranchInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutBranchInput
+  supportTickets?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutBranchInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutBranchInput
+  primaryDomains?: Prisma.BranchPrimaryDomainUncheckedCreateNestedManyWithoutBranchInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutBranchInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutBranchInput
+  sourceConversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutSourceBranchInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutBranchInput
+}
+
+export type BranchCreateOrConnectWithoutTemporaryGrantsInput = {
+  where: Prisma.BranchWhereUniqueInput
+  create: Prisma.XOR<Prisma.BranchCreateWithoutTemporaryGrantsInput, Prisma.BranchUncheckedCreateWithoutTemporaryGrantsInput>
+}
+
+export type BranchUpsertWithoutTemporaryGrantsInput = {
+  update: Prisma.XOR<Prisma.BranchUpdateWithoutTemporaryGrantsInput, Prisma.BranchUncheckedUpdateWithoutTemporaryGrantsInput>
+  create: Prisma.XOR<Prisma.BranchCreateWithoutTemporaryGrantsInput, Prisma.BranchUncheckedCreateWithoutTemporaryGrantsInput>
+  where?: Prisma.BranchWhereInput
+}
+
+export type BranchUpdateToOneWithWhereWithoutTemporaryGrantsInput = {
+  where?: Prisma.BranchWhereInput
+  data: Prisma.XOR<Prisma.BranchUpdateWithoutTemporaryGrantsInput, Prisma.BranchUncheckedUpdateWithoutTemporaryGrantsInput>
+}
+
+export type BranchUpdateWithoutTemporaryGrantsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commune?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  idnat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  longitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
+  educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
+  cycles?: Prisma.BranchCycleUpdateManyWithoutBranchNestedInput
+  studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
+  branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
+  classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
+  familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
+  fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
+  eventType?: Prisma.EventTypeUpdateManyWithoutBranchNestedInput
+  period?: Prisma.periodUpdateManyWithoutBranchNestedInput
+  cours?: Prisma.CoursUpdateManyWithoutBranchNestedInput
+  schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
+  typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
+  option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
+  section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
+  semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
+  frais?: Prisma.FraisUpdateManyWithoutBranchNestedInput
+  calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
+  periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
+  cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
+  invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
+  creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
+  paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
+  teaching?: Prisma.TeachingUpdateManyWithoutBranchNestedInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUpdateManyWithoutBranchNestedInput
+  branchInvitation?: Prisma.BranchInvitationUpdateManyWithoutBranchNestedInput
+  attendanceSessions?: Prisma.AttendanceSessionUpdateManyWithoutBranchNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUpdateManyWithoutBranchNestedInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUpdateManyWithoutBranchNestedInput
+  studentGrade?: Prisma.StudentGradeUpdateManyWithoutBranchNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutBranchNestedInput
+  transaction?: Prisma.TransactionUpdateManyWithoutBranchNestedInput
+  discountRule?: Prisma.DiscountRuleUpdateManyWithoutBranchNestedInput
+  paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
+  partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
+  jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
+  teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
+  targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
+  libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
+  libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
+  payrollPolicy?: Prisma.BranchPayrollPolicyUpdateOneWithoutBranchNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutBranchNestedInput
+  supportTickets?: Prisma.PlatformSupportEscalationUpdateManyWithoutBranchNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutBranchNestedInput
+  primaryDomains?: Prisma.BranchPrimaryDomainUpdateManyWithoutBranchNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutBranchNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutBranchNestedInput
+  sourceConversations?: Prisma.ConversationUpdateManyWithoutSourceBranchNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutBranchNestedInput
+}
+
+export type BranchUncheckedUpdateWithoutTemporaryGrantsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commune?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  idnat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  longitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
+  educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  cycles?: Prisma.BranchCycleUncheckedUpdateManyWithoutBranchNestedInput
+  studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
+  classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
+  familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
+  fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
+  eventType?: Prisma.EventTypeUncheckedUpdateManyWithoutBranchNestedInput
+  period?: Prisma.periodUncheckedUpdateManyWithoutBranchNestedInput
+  cours?: Prisma.CoursUncheckedUpdateManyWithoutBranchNestedInput
+  schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
+  typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
+  option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
+  section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
+  semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
+  frais?: Prisma.FraisUncheckedUpdateManyWithoutBranchNestedInput
+  calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
+  periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
+  cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
+  invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
+  creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
+  paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutBranchNestedInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUncheckedUpdateManyWithoutBranchNestedInput
+  branchInvitation?: Prisma.BranchInvitationUncheckedUpdateManyWithoutBranchNestedInput
+  attendanceSessions?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutBranchNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  studentGrade?: Prisma.StudentGradeUncheckedUpdateManyWithoutBranchNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutBranchNestedInput
+  transaction?: Prisma.TransactionUncheckedUpdateManyWithoutBranchNestedInput
+  discountRule?: Prisma.DiscountRuleUncheckedUpdateManyWithoutBranchNestedInput
+  paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
+  partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
+  jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
+  teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
+  targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
+  libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
+  libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
+  payrollPolicy?: Prisma.BranchPayrollPolicyUncheckedUpdateOneWithoutBranchNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutBranchNestedInput
+  supportTickets?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutBranchNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutBranchNestedInput
+  primaryDomains?: Prisma.BranchPrimaryDomainUncheckedUpdateManyWithoutBranchNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutBranchNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutBranchNestedInput
+  sourceConversations?: Prisma.ConversationUncheckedUpdateManyWithoutSourceBranchNestedInput
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
@@ -21322,6 +21915,7 @@ export type BranchUpdateWithoutOrganizationInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
@@ -21403,6 +21997,7 @@ export type BranchUncheckedUpdateWithoutOrganizationInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
   familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
@@ -21492,6 +22087,7 @@ export type BranchCountOutputType = {
   studentAttendance: number
   branchemembers: number
   classes: number
+  temporaryGrants: number
   paymentBatch: number
   familyPayment: number
   fiche: number
@@ -21550,6 +22146,7 @@ export type BranchCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   studentAttendance?: boolean | BranchCountOutputTypeCountStudentAttendanceArgs
   branchemembers?: boolean | BranchCountOutputTypeCountBranchemembersArgs
   classes?: boolean | BranchCountOutputTypeCountClassesArgs
+  temporaryGrants?: boolean | BranchCountOutputTypeCountTemporaryGrantsArgs
   paymentBatch?: boolean | BranchCountOutputTypeCountPaymentBatchArgs
   familyPayment?: boolean | BranchCountOutputTypeCountFamilyPaymentArgs
   fiche?: boolean | BranchCountOutputTypeCountFicheArgs
@@ -21639,6 +22236,13 @@ export type BranchCountOutputTypeCountBranchemembersArgs<ExtArgs extends runtime
  */
 export type BranchCountOutputTypeCountClassesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ClasseWhereInput
+}
+
+/**
+ * BranchCountOutputType without action
+ */
+export type BranchCountOutputTypeCountTemporaryGrantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TemporaryGrantWhereInput
 }
 
 /**
@@ -22028,6 +22632,7 @@ export type BranchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   studentAttendance?: boolean | Prisma.Branch$studentAttendanceArgs<ExtArgs>
   branchemembers?: boolean | Prisma.Branch$branchemembersArgs<ExtArgs>
   classes?: boolean | Prisma.Branch$classesArgs<ExtArgs>
+  temporaryGrants?: boolean | Prisma.Branch$temporaryGrantsArgs<ExtArgs>
   paymentBatch?: boolean | Prisma.Branch$paymentBatchArgs<ExtArgs>
   familyPayment?: boolean | Prisma.Branch$familyPaymentArgs<ExtArgs>
   fiche?: boolean | Prisma.Branch$ficheArgs<ExtArgs>
@@ -22170,6 +22775,7 @@ export type BranchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   studentAttendance?: boolean | Prisma.Branch$studentAttendanceArgs<ExtArgs>
   branchemembers?: boolean | Prisma.Branch$branchemembersArgs<ExtArgs>
   classes?: boolean | Prisma.Branch$classesArgs<ExtArgs>
+  temporaryGrants?: boolean | Prisma.Branch$temporaryGrantsArgs<ExtArgs>
   paymentBatch?: boolean | Prisma.Branch$paymentBatchArgs<ExtArgs>
   familyPayment?: boolean | Prisma.Branch$familyPaymentArgs<ExtArgs>
   fiche?: boolean | Prisma.Branch$ficheArgs<ExtArgs>
@@ -22239,6 +22845,7 @@ export type $BranchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     studentAttendance: Prisma.$StudentAttendancePayload<ExtArgs>[]
     branchemembers: Prisma.$BranchMemberPayload<ExtArgs>[]
     classes: Prisma.$ClassePayload<ExtArgs>[]
+    temporaryGrants: Prisma.$TemporaryGrantPayload<ExtArgs>[]
     paymentBatch: Prisma.$PaymentBatchPayload<ExtArgs>[]
     familyPayment: Prisma.$FamilyPaymentPayload<ExtArgs>[]
     fiche: Prisma.$fichePayload<ExtArgs>[]
@@ -22724,6 +23331,7 @@ export interface Prisma__BranchClient<T, Null = never, ExtArgs extends runtime.T
   studentAttendance<T extends Prisma.Branch$studentAttendanceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$studentAttendanceArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StudentAttendancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   branchemembers<T extends Prisma.Branch$branchemembersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$branchemembersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BranchMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   classes<T extends Prisma.Branch$classesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$classesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  temporaryGrants<T extends Prisma.Branch$temporaryGrantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$temporaryGrantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TemporaryGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   paymentBatch<T extends Prisma.Branch$paymentBatchArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$paymentBatchArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentBatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   familyPayment<T extends Prisma.Branch$familyPaymentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$familyPaymentArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FamilyPaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   fiche<T extends Prisma.Branch$ficheArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$ficheArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$fichePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -23322,6 +23930,30 @@ export type Branch$classesArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.ClasseScalarFieldEnum | Prisma.ClasseScalarFieldEnum[]
+}
+
+/**
+ * Branch.temporaryGrants
+ */
+export type Branch$temporaryGrantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TemporaryGrant
+   */
+  select?: Prisma.TemporaryGrantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TemporaryGrant
+   */
+  omit?: Prisma.TemporaryGrantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TemporaryGrantInclude<ExtArgs> | null
+  where?: Prisma.TemporaryGrantWhereInput
+  orderBy?: Prisma.TemporaryGrantOrderByWithRelationInput | Prisma.TemporaryGrantOrderByWithRelationInput[]
+  cursor?: Prisma.TemporaryGrantWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TemporaryGrantScalarFieldEnum | Prisma.TemporaryGrantScalarFieldEnum[]
 }
 
 /**

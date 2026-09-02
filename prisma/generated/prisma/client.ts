@@ -456,3 +456,8 @@ export type UserMessageArchive = Prisma.UserMessageArchiveModel
  * 
  */
 export type MessagingAuditLog = Prisma.MessagingAuditLogModel
+/**
+ * Model TemporaryGrant
+ * 
+ */
+export type TemporaryGrant = Prisma.TemporaryGrantModel

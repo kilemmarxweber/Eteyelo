@@ -17,6 +17,7 @@ model User {
   id            String      @id @default(cuid())
   username      String?     @unique
   email         String?     @unique
+  archivedEmail String?
   telephone     String?
   postnom       String?
   prenom        String?
@@ -30,7 +31,6 @@ model User {
   mustChangePassword Boolean @default(false)
   /// Préférence d'apparence propre à l'utilisateur (light | dark | system)
   theme       String?      @default("light")
-  /// Langue d'interface (fr | en | pt)
   locale      String?      @default("fr")
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -57,11 +57,15 @@ model User {
   sentMessages             Message[]         @relation("SentMessages")
   messageArchives          UserMessageArchive[]
   messagingAuditLogs       MessagingAuditLog[]
+  temporaryGrants          TemporaryGrant[]  @relation("TemporaryGrantSubject")
+  grantsGiven              TemporaryGrant[]  @relation("TemporaryGrantGiven")
+  grantsRevoked            TemporaryGrant[]  @relation("TemporaryGrantRevoked")
 
   @@index([telephone])
   @@index([role])
   @@index([statusUser])
   @@index([mustChangePassword])
+  @@index([archivedEmail])
   @@map("user")
 }
 
@@ -1480,6 +1484,7 @@ model Organization {
   conversations      Conversation[]
   messagingAuditLogs MessagingAuditLog[]
   exchangeRates     ExchangeRate[]
+  temporaryGrants   TemporaryGrant[]
   /// Afficher la 2e devise (conversion) sur les reçus. Désactiver pour AOA sans conversion.
   showReceiptConversion Boolean @default(true)
   /// Notifier le parent (e-mail + WhatsApp + compte) à l'encaissement / modification / suppression.
@@ -1597,6 +1602,7 @@ model Branch {
   studentAttendance StudentAttendance[]
   branchemembers            BranchMember[]
   classes            Classe[]
+  temporaryGrants   TemporaryGrant[]
   paymentBatch PaymentBatch[]
   familyPayment FamilyPayment[]
   fiche fiche[]
@@ -2503,3 +2509,44 @@ model MessagingAuditLog {
   @@index([organizationId, createdAt])
   @@index([actorUserId, createdAt])
 }
+
+enum TemporaryGrantStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+}
+
+model TemporaryGrant {
+  id               String               @id @default(cuid())
+  userId           String
+  user             User                 @relation("TemporaryGrantSubject", fields: [userId], references: [id], onDelete: Cascade)
+  organizationId   String?
+  organization     Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branchId         String?
+  branch           Branch?              @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  resource         String
+  action           String               @default("*")
+  temporaryRole    String?
+
+  reason           String
+  grantedById      String
+  grantedBy        User                 @relation("TemporaryGrantGiven", fields: [grantedById], references: [id], onDelete: Cascade)
+
+  startsAt         DateTime             @default(now())
+  expiresAt        DateTime
+  status           TemporaryGrantStatus @default(ACTIVE)
+
+  revokedAt        DateTime?
+  revokedById      String?
+  revokedBy        User?                @relation("TemporaryGrantRevoked", fields: [revokedById], references: [id], onDelete: SetNull)
+  revocationReason String?
+
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  @@index([userId, status, expiresAt])
+  @@index([organizationId, status])
+  @@map("temporary_grant")
+}
+

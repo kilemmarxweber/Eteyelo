@@ -125,8 +125,104 @@ async function finishProfileRemoval(tx: Tx, branchMemberId: string) {
 }
 
 /**
+ * Archive l'email d'un utilisateur sous la forme archived.email@domain.com
+ * et sauvegarde son email d'origine dans le champ archivedEmail s'il n'a plus de branche.
+ */
+export async function archiveUserEmailIfNoBranch(tx: Tx, userId: string) {
+  const remainingCount = await tx.branchMember.count({
+    where: { member: { userId } },
+  });
+  if (remainingCount > 0) return;
+
+  const user = await tx.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, archivedEmail: true },
+  });
+
+  if (!user || !user.email) return;
+
+  if (!user.email.startsWith("archived.")) {
+    const originalEmail = user.archivedEmail || user.email;
+    const defaultArchivedAddress = `archived.${originalEmail}`;
+    const collision = await tx.user.findFirst({
+      where: { email: defaultArchivedAddress, id: { not: user.id } },
+      select: { id: true },
+    });
+    // The first archived address follows the documented format. A suffix keeps
+    // it unique if the same email has since been assigned and archived again.
+    const archivedAddress = collision
+      ? `archived.${user.id}.${originalEmail}`
+      : defaultArchivedAddress;
+
+    await tx.user.update({
+      where: { id: user.id },
+      data: {
+        email: archivedAddress,
+        archivedEmail: originalEmail,
+      },
+    });
+
+    await tx.account.updateMany({
+      where: {
+        userId: user.id,
+        providerId: "credential",
+        accountId: user.email,
+      },
+      data: { accountId: archivedAddress },
+    });
+  }
+}
+
+/**
+ * Restaure l'email d'origine d'un utilisateur archivé.
+ */
+export async function restoreUserEmailIfArchived(
+  tx: Tx,
+  userId: string,
+  newEmailInput?: string,
+) {
+  const user = await tx.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, archivedEmail: true },
+  });
+
+  if (!user) return;
+
+  let targetEmail = newEmailInput?.trim().toLowerCase();
+  if (!targetEmail) {
+    if (user.archivedEmail) {
+      targetEmail = user.archivedEmail.trim().toLowerCase();
+    } else if (user.email && user.email.startsWith("archived.")) {
+      targetEmail = user.email.replace(/^archived\./, "").trim().toLowerCase();
+    }
+  }
+
+  if (targetEmail) {
+    const previousEmail = user.email;
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        email: targetEmail,
+        archivedEmail: null,
+      },
+    });
+
+    if (previousEmail && previousEmail !== targetEmail) {
+      await tx.account.updateMany({
+        where: {
+          userId,
+          providerId: "credential",
+          accountId: previousEmail,
+        },
+        data: { accountId: targetEmail },
+      });
+    }
+  }
+}
+
+/**
  * Retire uniquement le rattachement à la branche.
- * Conserve Member (organisation) et User.
+ * Conserve Member (organisation) et User, et archive l'email si l'utilisateur n'a plus de branche.
  */
 export async function removeBranchMemberKeepOrg(
   tx: Tx,
@@ -134,7 +230,10 @@ export async function removeBranchMemberKeepOrg(
 ) {
   const branchMember = await tx.branchMember.findUnique({
     where: { id: branchMemberId },
-    select: { id: true },
+    select: {
+      id: true,
+      member: { select: { userId: true } },
+    },
   });
 
   if (!branchMember) return;
@@ -144,7 +243,13 @@ export async function removeBranchMemberKeepOrg(
     data: { createdBy: null },
   });
 
+  const userId = branchMember.member?.userId;
+
   await tx.branchMember.delete({ where: { id: branchMember.id } });
+
+  if (userId) {
+    await archiveUserEmailIfNoBranch(tx, userId);
+  }
 }
 
 /**

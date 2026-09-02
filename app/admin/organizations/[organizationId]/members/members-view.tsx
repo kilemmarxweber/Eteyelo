@@ -357,13 +357,31 @@ export function OrganizationMembersView({
               const photoSrc = member.user.image
                 ? normalizeImageSrc(member.user.image)
                 : null;
+              const isOwner =
+                role === ORG_ROLE.OWNER ||
+                memberHasImplicitAllBranchAccess(role);
+              const hasNoBranch = member.branches.length === 0;
+              const shouldGrayOut = hasNoBranch && !isOwner;
+              const isEmailArchived =
+                !!member.user.archivedEmail ||
+                !!(
+                  member.user.email &&
+                  member.user.email.startsWith("archived.")
+                );
+              const displayEmail =
+                member.user.archivedEmail ||
+                (member.user.email?.startsWith("archived.")
+                  ? member.user.email.replace(/^archived\./, "")
+                  : member.user.email);
               return (
                 <li
                   key={member.id}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3.5 sm:gap-4 sm:px-5",
+                    "flex items-center gap-3 px-4 py-3.5 sm:gap-4 sm:px-5 transition-colors",
                     index > 0 && "border-t border-border",
                     member.isArchived && "opacity-70",
+                    shouldGrayOut &&
+                      "bg-muted/40 text-muted-foreground opacity-60 grayscale",
                   )}
                 >
                   <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-sm font-semibold text-primary">
@@ -375,7 +393,7 @@ export function OrganizationMembersView({
                         className="size-full rounded-full object-cover"
                       />
                     ) : (
-                      initials(fullName || member.user.email || "?")
+                      initials(fullName || displayEmail || "?")
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -391,6 +409,14 @@ export function OrganizationMembersView({
                           Archivé
                         </Badge>
                       ) : null}
+                      {isEmailArchived ? (
+                        <Badge
+                          variant="outline"
+                          className="border-rose-500/30 bg-rose-500/10 text-rose-800 dark:text-rose-300 text-xs"
+                        >
+                          E-mail archivé
+                        </Badge>
+                      ) : null}
                       <Badge
                         variant="outline"
                         className={cn("font-medium", roleBadgeClass(role))}
@@ -399,7 +425,12 @@ export function OrganizationMembersView({
                       </Badge>
                     </div>
                     <p className="mt-0.5 truncate text-sm text-muted-foreground">
-                      {member.user.email}
+                      {displayEmail}
+                      {isEmailArchived && member.user.email ? (
+                        <span className="ml-1.5 text-xs opacity-75 font-mono">
+                          ({member.user.email})
+                        </span>
+                      ) : null}
                     </p>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                       {memberHasImplicitAllBranchAccess(role) ? (
