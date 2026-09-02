@@ -7,6 +7,23 @@ import { prisma } from "@/lib/prisma";
 import { startOfTodayParis } from "@/lib/timezone";
 import type { CurrencyCode } from "@/prisma/generated/prisma/client";
 
+/** Notifications paie destinées aux propriétaires (pas aux chefs d’établissement). */
+export function isPayrollManagerAppNotification(row: {
+  type: string;
+  title: string;
+}): boolean {
+  if (row.type === "PAYROLL") {
+    return row.title === "Paie enseignants générée";
+  }
+  if (row.type === "PAYROLL_DEDUCTION") {
+    return (
+      row.title === "Impact paie enseignant" ||
+      row.title === "Impacts paie enseignants"
+    );
+  }
+  return false;
+}
+
 export async function notifyTeacherPayrollImpact(input: {
   branchId: string;
   organizationId: string;

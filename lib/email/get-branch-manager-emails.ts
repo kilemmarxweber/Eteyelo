@@ -31,7 +31,21 @@ const ABSENCE_NOTIFY_ROLES = new Set([
 ]);
 
 /** Impacts paie : propriétaires seulement — pas préfet, directeur ni études. */
-const PAYROLL_NOTIFY_ORG_ROLES = new Set([ORG_ROLE.OWNER]);
+const PAYROLL_NOTIFY_ORG_ROLES = new Set([ORG_ROLE.OWNER, "proprietaire"]);
+
+/** Chef d’établissement / études : jamais destinataires paie, même avec ADMIN branche. */
+const PAYROLL_EXCLUDED_ORG_ROLES = new Set([
+  ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.DIRECTEUR_ETUDES,
+  ORG_ROLE.GESTIONNAIRE,
+  ORG_ROLE.AGENT_BUREAU,
+  ORG_ROLE.CAISSIER,
+]);
+
+function isSchoolLeadershipOrgMember(memberRole: string) {
+  return memberHasRole(memberRole, PAYROLL_EXCLUDED_ORG_ROLES);
+}
 
 export type BranchAbsenceReviewer = {
   userId: string;
@@ -303,9 +317,13 @@ export async function getBranchPayrollOwners(params: {
   }
 
   for (const row of branchLinked) {
+    if (memberHasRole(row.member.role, PAYROLL_NOTIFY_ORG_ROLES)) {
+      addOwner(row.member.user);
+      continue;
+    }
     if (
-      memberHasRole(row.member.role, PAYROLL_NOTIFY_ORG_ROLES) ||
-      isFullBranchAccessRole(row.role)
+      isFullBranchAccessRole(row.role) &&
+      !isSchoolLeadershipOrgMember(row.member.role)
     ) {
       addOwner(row.member.user);
     }

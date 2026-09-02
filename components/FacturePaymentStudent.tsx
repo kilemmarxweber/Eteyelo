@@ -83,14 +83,7 @@ export function formatReceiptClasseCode(
   if (typeof item === "string" || item == null) {
     return item?.trim() || "-";
   }
-  const parts = [
-    item.cycle,
-    item.classe || item.codeClasse,
-    item.section,
-    item.option,
-    item.tranche,
-  ].filter((part) => Boolean(part && String(part).trim()));
-  return parts.length ? parts.join(" · ") : "-";
+  return item.codeClasse?.trim() || "-";
 }
 
 function formatBaseCell(amount: number, currency: ReceiptCurrency): string {
@@ -385,7 +378,7 @@ export function generateFacturePaymentStudentPDF(
           [
             "Description",
             "Mode",
-            "Cycle / Classe",
+            "Classe",
             `Mnt a payer ${base}`,
             `Mnt payer ${base}`,
             `Mnt ${secondary}`,
@@ -396,7 +389,7 @@ export function generateFacturePaymentStudentPDF(
           [
             "Description",
             "Mode",
-            "Cycle / Classe",
+            "Classe",
             `Mnt a payer ${base}`,
             `Mnt payer ${base}`,
             "Statut",

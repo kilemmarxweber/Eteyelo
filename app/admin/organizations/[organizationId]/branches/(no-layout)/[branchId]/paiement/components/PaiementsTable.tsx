@@ -58,6 +58,16 @@ type GroupedPaiement = {
   items: IPaiement[];
 };
 
+/** TRNS-260902-ABC12345-01 → TRNS-260902-ABC12345 */
+function paymentDisplayReference(
+  transactionRef: string | undefined,
+  fallbackId: string,
+): string {
+  const ref = transactionRef?.trim();
+  if (!ref) return `NO_REF_${fallbackId}`;
+  return ref.replace(/-\d{2,}$/, "");
+}
+
 function mapPaiement(p: any): IPaiement {
   return {
     id: p.id,
@@ -133,7 +143,7 @@ function mapGroupedToReceipt(
         i.receivedAmount != null
           ? Number(i.receivedAmount)
           : Number(i.montantPaye),
-      classe: i.classEnrollment?.nameClasse ?? "",
+      classe: i.classEnrollment?.codeClasse ?? "",
       codeClasse: i.classEnrollment?.codeClasse ?? "",
       settlementStatus: i.settlementStatus,
     })),
@@ -271,17 +281,19 @@ const PaiementsTable = ({
     const map = new Map<string, IPaiement[]>();
 
     for (const p of paiements) {
-      const ref =
-        p.transactionRef && p.transactionRef.trim() !== ""
-          ? p.transactionRef
-          : `NO_REF_${p.id}`;
-
-      if (!map.has(ref)) map.set(ref, []);
-      map.get(ref)!.push(p);
+      const ref = paymentDisplayReference(p.transactionRef, p.id);
+      const list = map.get(ref);
+      if (list) {
+        list.push(p);
+      } else {
+        map.set(ref, [p]);
+      }
     }
 
     return Array.from(map.entries()).map(([ref, items]) => {
-      const first = items[0];
+      const newest = items.reduce((a, b) =>
+        a.datePaiement >= b.datePaiement ? a : b,
+      );
 
       const students = Array.from(
         new Set(
@@ -294,20 +306,18 @@ const PaiementsTable = ({
       return {
         reference: ref,
         parentName: [
-          first.classEnrollment?.parentPrenom,
-          first.classEnrollment?.parentName,
-          first.classEnrollment?.parentPostnom,
+          newest.classEnrollment?.parentPrenom,
+          newest.classEnrollment?.parentName,
+          newest.classEnrollment?.parentPostnom,
         ]
           .filter(Boolean)
           .join(" ")
           .trim(),
-
         students,
-
-        total: items.reduce((sum, i) => sum + i.montantPaye, 0),
-        status: first.status,
-        mode: first.modePaiement,
-        date: first.datePaiement,
+        total: items.reduce((sum, i) => sum + Number(i.montantPaye || 0), 0),
+        status: newest.status,
+        mode: newest.modePaiement,
+        date: newest.datePaiement,
         items,
       };
     });

@@ -951,6 +951,17 @@ export async function reviewAbsenceJustification(params: {
   return updated;
 }
 
+function toIsoDate(value: Date | string | null | undefined) {
+  if (!value) return null;
+  try {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toISOString();
+  } catch {
+    return null;
+  }
+}
+
 function toView(
   row: AbsenceCase & { user?: UserContact | null },
 ): AbsenceCaseView {
@@ -959,12 +970,12 @@ function toView(
     status: row.status,
     subjectType: row.subjectType,
     contextLabel: row.contextLabel,
-    occurredOn: row.occurredOn.toISOString(),
+    occurredOn: toIsoDate(row.occurredOn) ?? new Date(0).toISOString(),
     personName: formatPersonName(row.user),
     justification: row.justification,
     reviewComment: row.reviewComment,
-    justifiedAt: row.justifiedAt?.toISOString() ?? null,
-    reviewedAt: row.reviewedAt?.toISOString() ?? null,
+    justifiedAt: toIsoDate(row.justifiedAt),
+    reviewedAt: toIsoDate(row.reviewedAt),
   };
 }
 
@@ -1051,10 +1062,12 @@ export async function listUnreadAppNotifications(params: {
   });
 
   // L'enseignant ne voit pas sa propre « demande envoyée », seulement la décision.
-  return rows.filter((row) => {
-    if (row.type !== "GRADE_MODIFICATION_SUBMITTED") return true;
-    return row.gradeModificationRequest?.requestedById !== params.userId;
-  }).slice(0, 30);
+  return rows
+    .filter((row) => {
+      if (row.type !== "GRADE_MODIFICATION_SUBMITTED") return true;
+      return row.gradeModificationRequest?.requestedById !== params.userId;
+    })
+    .slice(0, 30);
 }
 
 export async function countUnreadAppNotifications(params: {

@@ -11,7 +11,6 @@ import {
   requireFinanceReadBranchContext,
 } from "@/lib/auth/require-branch-context";
 import { resolveCashierSelfScope, isOrganizationOwnerSession } from "@/lib/auth/session-roles";
-import { cycleLabel } from "@/lib/cycle";
 import { randomUUID } from "node:crypto";
 import { Prisma, CurrencyCode } from "@/prisma/generated/prisma/client";
 import {
@@ -1070,28 +1069,13 @@ export const createPaiementAction = action
               ? Number(payment.receivedAmount)
               : Number(payment.amount),
           classe:
-            payment.classEnrollment?.classe?.nameClasse ??
-            payment.frais?.classe?.nameClasse ??
+            payment.classEnrollment?.classe?.codeClasse ??
+            payment.frais?.classe?.codeClasse ??
             "",
           codeClasse:
             payment.classEnrollment?.classe?.codeClasse ??
             payment.frais?.classe?.codeClasse ??
             "",
-          cycle: (() => {
-            const raw =
-              payment.classEnrollment?.classe?.cycle ??
-              payment.frais?.classe?.cycle;
-            return raw ? cycleLabel(raw) : "";
-          })(),
-          section:
-            payment.classEnrollment?.classe?.option?.section?.nameSection ??
-            payment.frais?.classe?.option?.section?.nameSection ??
-            "",
-          option:
-            payment.classEnrollment?.classe?.option?.nameOption ??
-            payment.frais?.classe?.option?.nameOption ??
-            "",
-          tranche: payment.frais?.semester?.label ?? "",
           settlementStatus,
         };
       });

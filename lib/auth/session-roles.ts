@@ -131,17 +131,32 @@ export function canManageTeachers(
   return canManageOrganization(session, ...extraRoles);
 }
 
-/** Notifications d'impact paie enseignant — propriétaire org uniquement. */
+/** Notifications d'impact paie enseignant — propriétaires uniquement (pas chefs d’établissement). */
 export function canSeePayrollImpactNotifications(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
-  if (isOrganizationOwnerSession(session, ...extraRoles)) return true;
-  return hasSessionRole(
-    session,
-    [APP_ROLE.OWNER, APP_ROLE.ADMIN, ORG_ROLE.OWNER],
-    ...extraRoles,
-  );
+  const roles = getSessionRoles(session, ...extraRoles);
+
+  if (
+    roles.has(APP_ROLE.OWNER) ||
+    roles.has(ORG_ROLE.OWNER) ||
+    roles.has("proprietaire") ||
+    roles.has(APP_ROLE.ADMIN)
+  ) {
+    return true;
+  }
+
+  const isSchoolLead =
+    roles.has(ORG_ROLE.PREFET) ||
+    roles.has(ORG_ROLE.DIRECTEUR) ||
+    roles.has(ORG_ROLE.DIRECTEUR_ETUDES);
+
+  if (isBranchOwnerSession(session, ...extraRoles) && !isSchoolLead) {
+    return true;
+  }
+
+  return false;
 }
 
 /**

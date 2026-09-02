@@ -39,14 +39,11 @@ import {
 import { NOTIFICATIONS_REFRESH_EVENT, openMessagingDrawer, refreshMessagingBell } from "@/lib/notification-events";
 import {
   confirmNotificationRequestAction,
-  getNotificationRequestsAction,
+  getNotificationInboxAction,
   rejectNotificationRequestAction,
 } from "@/lib/actions/notification.actions";
 import { reviewJobApplicationAction } from "@/app/components/depot-candidature/job-application.actions";
-import {
-  getAbsenceInboxAction,
-  markAbsenceNotificationReadAction,
-} from "@/lib/actions/absence.actions";
+import { markAbsenceNotificationReadAction } from "@/lib/actions/absence.actions";
 import {
   AbsenceCaseDialog,
   type AbsenceCaseDialogData,
@@ -99,7 +96,24 @@ type AbsenceRow = {
 
 type NotificationItem = RegistrationRow | JobRow | AbsenceRow;
 
-function CountBadge({ count }: { count: number }) {
+function zsaErrorMessage(error: unknown, fallback: string) {
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof (error as { message: unknown }).message === "string" &&
+    (error as { message: string }).message.trim()
+  ) {
+    return (error as { message: string }).message;
+  }
+  return fallback;
+}
+
+function relativeTime(value: Date | string) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return formatDistanceToNow(date, { addSuffix: true, locale: fr });
+}
   if (count === 0) return null;
   return (
     <span className="absolute -right-1 -top-1 flex h-4 min-w-4">
@@ -444,17 +458,17 @@ export function NotificationBell() {
     if (isInitial) setLoading(true);
     else setRefreshing(true);
     try {
-      const [absenceResult, legacyResult] = await Promise.all([
-        getAbsenceInboxAction(),
-        getNotificationRequestsAction(),
-      ]);
-      const [absenceData] = absenceResult;
-      const [legacyData] = legacyResult;
+      const [inbox, inboxError] = await getNotificationInboxAction();
+      if (inboxError) {
+        setError(
+          inboxError.message || "Impossible de charger les notifications.",
+        );
+        return;
+      }
 
-      const absenceItems: AbsenceRow[] = (absenceData?.notifications ?? [])
+      const absenceItems: AbsenceRow[] = (inbox?.notifications ?? [])
         .filter((row) => row.type !== "MESSAGE")
-        .map(
-        (row) => ({
+        .map((row) => ({
           id: row.id,
           type: row.type,
           title: row.title,
@@ -465,11 +479,10 @@ export function NotificationBell() {
           gradeModificationRequestId: row.gradeModificationRequestId,
           conversationId: row.conversationId,
           href: row.href,
-        }),
-      );
+        }));
 
       const registrationItems: RegistrationRow[] = (
-        legacyData?.registrations ?? []
+        inbox?.registrations ?? []
       )
         .filter(
           (row) => row.status === "PENDING" || row.status === "CONFIRMED",
@@ -483,7 +496,7 @@ export function NotificationBell() {
           kind: "registration" as const,
         }));
 
-      const jobItems: JobRow[] = (legacyData?.jobApplications ?? [])
+      const jobItems: JobRow[] = (inbox?.jobApplications ?? [])
         .filter((row) => ["PENDING", "REVIEWED"].includes(row.status))
         .map((row) => ({ ...row, kind: "job" as const }));
 

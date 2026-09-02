@@ -3,10 +3,7 @@
 import { z } from "zod";
 import { action } from "@/lib/zsa";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import {
-  canReviewAbsenceJustifications,
-  canSeePayrollImpactNotifications,
-} from "@/lib/auth/session-roles";
+import { canReviewAbsenceJustifications } from "@/lib/auth/session-roles";
 import { prisma } from "@/lib/prisma";
 import {
   getAbsenceCaseForUser,
@@ -32,6 +29,17 @@ function formatPersonName(user: {
   );
 }
 
+function toIso(value: Date | string | null | undefined) {
+  if (!value) return null;
+  try {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toISOString();
+  } catch {
+    return null;
+  }
+}
+
 export const getAbsenceInboxAction = action.handler(async () => {
   const { branchId, userId, session, organizationId } = await requireBranchContext();
   void signalEndedAbsencesForBranchDebounced(branchId).catch((error) => {
@@ -39,48 +47,57 @@ export const getAbsenceInboxAction = action.handler(async () => {
   });
 
   const canReview = canReviewAbsenceJustifications(session);
-  const canSeePayroll = canSeePayrollImpactNotifications(session);
   const [mine, pending, notifications] = await Promise.all([
-    listMyAbsenceCases({ branchId, userId }),
-    canReview ? listPendingAbsenceReviews({ branchId }) : Promise.resolve([]),
-    listUnreadAppNotifications({ branchId, userId, organizationId }),
+    listMyAbsenceCases({ branchId, userId }).catch((error) => {
+      console.error("[getAbsenceInboxAction] mine", error);
+      return [];
+    }),
+    canReview
+      ? listPendingAbsenceReviews({ branchId }).catch((error) => {
+          console.error("[getAbsenceInboxAction] pending", error);
+          return [];
+        })
+      : Promise.resolve([]),
+    listUnreadAppNotifications({
+      branchId,
+      userId,
+      organizationId,
+    }),
   ]);
 
   return {
     canReview,
     mine,
     pending,
-    notifications: notifications
-      .filter(
-        (row) =>
-          canSeePayroll ||
-          (row.type !== "PAYROLL" && row.type !== "PAYROLL_DEDUCTION"),
-      )
-      .map((row) => ({
-      id: row.id,
-      type: row.type,
-      title: row.title,
-      body: row.body,
-      createdAt: row.createdAt,
-      absenceCaseId: row.absenceCaseId,
-      gradeModificationRequestId: row.gradeModificationRequestId,
-      conversationId: row.conversationId,
-      href: row.href,
-      case: row.absenceCase
-        ? {
-            id: row.absenceCase.id,
-            status: row.absenceCase.status,
-            subjectType: row.absenceCase.subjectType,
-            contextLabel: row.absenceCase.contextLabel,
-            occurredOn: row.absenceCase.occurredOn.toISOString(),
-            personName: formatPersonName(row.absenceCase.user),
-            justification: row.absenceCase.justification,
-            reviewComment: row.absenceCase.reviewComment,
-            justifiedAt: row.absenceCase.justifiedAt?.toISOString() ?? null,
-            reviewedAt: row.absenceCase.reviewedAt?.toISOString() ?? null,
-          }
-        : null,
-    })),
+    notifications: notifications.map((row) => {
+      const occurredOn = toIso(row.absenceCase?.occurredOn);
+      return {
+        id: row.id,
+        type: row.type,
+        title: row.title,
+        body: row.body,
+        createdAt: row.createdAt,
+        absenceCaseId: row.absenceCaseId,
+        gradeModificationRequestId: row.gradeModificationRequestId,
+        conversationId: row.conversationId,
+        href: row.href,
+        case:
+          row.absenceCase && occurredOn
+            ? {
+                id: row.absenceCase.id,
+                status: row.absenceCase.status,
+                subjectType: row.absenceCase.subjectType,
+                contextLabel: row.absenceCase.contextLabel,
+                occurredOn,
+                personName: formatPersonName(row.absenceCase.user),
+                justification: row.absenceCase.justification,
+                reviewComment: row.absenceCase.reviewComment,
+                justifiedAt: toIso(row.absenceCase.justifiedAt),
+                reviewedAt: toIso(row.absenceCase.reviewedAt),
+              }
+            : null,
+      };
+    }),
   };
 });
 

@@ -262,7 +262,7 @@ export function mapInvoicePropsToReceipt(
       mode: "ESPECES",
       montant: Number(fee.amountPaid),
       classe: fee.className || "",
-      codeClasse: "",
+      codeClasse: fee.className || "",
     })),
     logoUrl: extras?.logoUrl ?? "",
     exchangeRateUsdCdf:

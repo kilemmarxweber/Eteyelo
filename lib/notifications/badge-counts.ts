@@ -64,7 +64,11 @@ export async function getNotificationBadgeCounts() {
             },
           })
         : Promise.resolve(0),
-      countUnreadAppNotifications({ branchId, userId, organizationId }),
+      countUnreadAppNotifications({
+        branchId,
+        userId,
+        organizationId,
+      }),
       countUnreadMessageNotifications({ userId, organizationId }),
     ]);
 
