@@ -33,6 +33,7 @@ const DialogContent = React.forwardRef<
     title?: string;
     hideTitle?: boolean;
     size?: "sm" | "md" | "lg" | "xl" | "full";
+    overlayClassName?: string;
   }
 >(
   (
@@ -42,6 +43,7 @@ const DialogContent = React.forwardRef<
       title,
       hideTitle = false,
       size = "md",
+      overlayClassName,
       onPointerDownOutside,
       onInteractOutside,
       onFocusOutside,
@@ -52,7 +54,7 @@ const DialogContent = React.forwardRef<
     ref,
   ) => (
     <DialogPortal>
-      <DialogOverlay />
+      <DialogOverlay className={overlayClassName} />
 
       <DialogPrimitive.Content
         ref={ref}
@@ -112,7 +114,7 @@ const DialogContent = React.forwardRef<
           className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring"
         >
           <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
+          <span className="sr-only">Fermer</span>
         </DialogClose>
       </DialogPrimitive.Content>
     </DialogPortal>

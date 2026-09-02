@@ -15,6 +15,12 @@ import {
   calculateTeacherPayroll,
   persistTeacherPayroll,
 } from "@/lib/payroll/teacher-payroll";
+import {
+  parsePayslipLineDetail,
+  waivedSessionIdsFromLines,
+} from "@/lib/payroll/teacher-payslip-line-detail";
+import { recordPayslipSalaryExpense } from "@/lib/payroll/payslip-salary-expense";
+import { settlePayrollTotals } from "@/lib/payroll/session-rate";
 import { prisma } from "@/lib/prisma";
 import { action } from "@/lib/zsa";
 import { StatusPaiement } from "@/src/interfaces/Paiement";
@@ -56,7 +62,127 @@ const deletePayslipsSchema = periodSchema.extend({
   payslipIds: z.array(z.string().min(1)).optional(),
 });
 
+const bulkPayslipsSchema = periodSchema.extend({
+  payslipIds: z.array(z.string().min(1)).optional(),
+});
+
 const payslipSchema = z.object({ payslipId: z.string().min(1) });
+
+const PAYSLIP_PAY_TEACHER_SELECT = {
+  branchMember: {
+    select: {
+      member: {
+        select: {
+          userId: true,
+          user: {
+            select: { name: true, postnom: true, prenom: true },
+          },
+        },
+      },
+    },
+  },
+} as const;
+
+type PayslipPayTeacher = {
+  branchMember?: {
+    member?: {
+      userId?: string | null;
+      user?: {
+        name?: string | null;
+        postnom?: string | null;
+        prenom?: string | null;
+      } | null;
+    } | null;
+  } | null;
+};
+
+function formatTeacherName(user?: {
+  name?: string | null;
+  postnom?: string | null;
+  prenom?: string | null;
+} | null) {
+  return [user?.name, user?.postnom, user?.prenom].filter(Boolean).join(" ");
+}
+
+function revalidatePayrollFinancePages(
+  organizationId: string,
+  branchId: string,
+  payslipId?: string,
+) {
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/paie-enseignants`,
+  );
+  if (payslipId) {
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/paie-enseignants/${payslipId}`,
+    );
+  }
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/paiement`,
+  );
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/transactions`,
+  );
+}
+
+async function markPayslipPaidInTx(
+  tx: {
+    teacherPayslip: typeof prisma.teacherPayslip;
+    appNotification: typeof prisma.appNotification;
+    transaction: typeof prisma.transaction;
+    cashierExpense: typeof prisma.cashierExpense;
+  },
+  params: {
+    payslip: {
+      id: string;
+      net: number;
+      month: number;
+      year: number;
+      currency: string;
+      teacher: PayslipPayTeacher;
+    };
+    branchId: string;
+    organizationId: string;
+    userId: string;
+    paidAt: Date;
+  },
+) {
+  await tx.teacherPayslip.update({
+    where: { id: params.payslip.id },
+    data: {
+      status: "PAID",
+      paidAt: params.paidAt,
+      paidById: params.userId,
+    },
+  });
+
+  await recordPayslipSalaryExpense(tx, {
+    branchId: params.branchId,
+    userId: params.userId,
+    payslipId: params.payslip.id,
+    amount: params.payslip.net,
+    teacherName: formatTeacherName(
+      params.payslip.teacher.branchMember?.member?.user,
+    ),
+    year: params.payslip.year,
+    month: params.payslip.month,
+  });
+
+  const teacherUserId = params.payslip.teacher.branchMember?.member?.userId;
+  if (teacherUserId) {
+    await tx.appNotification.create({
+      data: {
+        branchId: params.branchId,
+        organizationId: params.organizationId,
+        userId: teacherUserId,
+        type: "PAYROLL",
+        title: "Bulletin de paie payé",
+        body: `Votre bulletin de ${params.payslip.month}/${params.payslip.year} est payé. Net : ${params.payslip.net} ${params.payslip.currency}.`,
+        href: `/admin/organizations/${params.organizationId}/branches/${params.branchId}/paie-enseignants/${params.payslip.id}`,
+      },
+    });
+  }
+}
 const policySchema = z.object({
   secondarySessionMinutes: z.coerce.number().int().min(1).max(240),
   primarySessionMinutes: z.coerce.number().int().min(1).max(240),
@@ -451,6 +577,18 @@ export const recalculateTeacherPayslipsAction = action
         continue;
       }
 
+      const previous = await prisma.teacherPayslip.findFirst({
+        where: {
+          branchId: context.branchId,
+          teacherId: teacher.id,
+          year: input.year,
+          month: input.month,
+          status: { in: [...DELETABLE_STATUSES] },
+        },
+        select: { lines: { select: { sessionId: true, detail: true } } },
+      });
+      const waivedSessionIds = waivedSessionIdsFromLines(previous?.lines ?? []);
+
       // Remplace brouillons et validés pour permettre une régénération propre.
       await prisma.teacherPayslip.deleteMany({
         where: {
@@ -475,6 +613,7 @@ export const recalculateTeacherPayslipsAction = action
           organizationId: context.organizationId,
           teacherId: teacher.id,
           period: { ...input, schoolYearId },
+          waivedSessionIds,
         },
         result,
       );
@@ -694,10 +833,57 @@ export const validateTeacherPayslipAction = action
         validatedById: context.userId,
       },
     });
-    revalidatePath(
-      `/admin/organizations/${context.organizationId}/branches/${context.branchId}/paie-enseignants`,
-    );
+    revalidatePayrollFinancePages(context.organizationId, context.branchId, row.id);
     return { ok: true };
+  });
+
+export const validateAllTeacherPayslipsAction = action
+  .input(bulkPayslipsSchema)
+  .handler(async ({ input }) => {
+    const context = await getContext();
+    if (!canValidatePayroll(context.session)) {
+      throw new Error("Vous n'avez pas le droit de valider la paie");
+    }
+    const schoolYearId = await resolveSchoolYearId(
+      context.branchId,
+      input.schoolYearId,
+    );
+    const drafts = await prisma.teacherPayslip.findMany({
+      where: {
+        branchId: context.branchId,
+        year: input.year,
+        month: input.month,
+        status: "DRAFT",
+        ...(schoolYearId ? { schoolYearId } : {}),
+        ...(input.payslipIds?.length ? { id: { in: input.payslipIds } } : {}),
+      },
+      select: { id: true, exchangeRateId: true },
+    });
+    const ready = drafts.filter((row) => row.exchangeRateId);
+    const skippedNoRate = drafts.length - ready.length;
+    if (ready.length === 0) {
+      if (skippedNoRate > 0) {
+        throw new Error(
+          "Aucun taux de change sélectionné. Configurez la devise de base avant de valider la paie.",
+        );
+      }
+      throw new Error("Aucun bulletin brouillon à valider");
+    }
+
+    await prisma.teacherPayslip.updateMany({
+      where: {
+        id: { in: ready.map((row) => row.id) },
+        branchId: context.branchId,
+        status: "DRAFT",
+      },
+      data: {
+        status: "VALIDATED",
+        validatedAt: new Date(),
+        validatedById: context.userId,
+      },
+    });
+    revalidatePayrollFinancePages(context.organizationId, context.branchId);
+    return { count: ready.length, skippedNoRate };
   });
 
 export const payTeacherPayslipAction = action
@@ -708,38 +894,178 @@ export const payTeacherPayslipAction = action
       throw new Error("Vous n'avez pas le droit de marquer la paie payée");
     }
     const row = await prisma.teacherPayslip.findFirst({
-      where: { id: input.payslipId, branchId: context.branchId, status: "VALIDATED" },
-      include: {
-        teacher: {
-          select: {
-            branchMember: {
-              select: { member: { select: { userId: true } } },
-            },
-          },
-        },
+      where: {
+        id: input.payslipId,
+        branchId: context.branchId,
+        status: "VALIDATED",
       },
+      include: { teacher: { select: PAYSLIP_PAY_TEACHER_SELECT } },
     });
     if (!row) throw new Error("Bulletin validé introuvable");
-    await prisma.teacherPayslip.update({
-      where: { id: row.id },
-      data: { status: "PAID", paidAt: new Date(), paidById: context.userId },
+
+    await prisma.$transaction(async (tx) => {
+      await markPayslipPaidInTx(tx, {
+        payslip: row,
+        branchId: context.branchId,
+        organizationId: context.organizationId,
+        userId: context.userId,
+        paidAt: new Date(),
+      });
     });
-    const teacherUserId = row.teacher.branchMember?.member?.userId;
-    if (teacherUserId) {
-      await prisma.appNotification.create({
+
+    revalidatePayrollFinancePages(
+      context.organizationId,
+      context.branchId,
+      row.id,
+    );
+    return { ok: true };
+  });
+
+export const payAllTeacherPayslipsAction = action
+  .input(bulkPayslipsSchema)
+  .handler(async ({ input }) => {
+    const context = await getContext();
+    if (!canPayPayroll(context.session)) {
+      throw new Error("Vous n'avez pas le droit de marquer la paie payée");
+    }
+    const schoolYearId = await resolveSchoolYearId(
+      context.branchId,
+      input.schoolYearId,
+    );
+    const rows = await prisma.teacherPayslip.findMany({
+      where: {
+        branchId: context.branchId,
+        year: input.year,
+        month: input.month,
+        status: "VALIDATED",
+        ...(schoolYearId ? { schoolYearId } : {}),
+        ...(input.payslipIds?.length ? { id: { in: input.payslipIds } } : {}),
+      },
+      include: { teacher: { select: PAYSLIP_PAY_TEACHER_SELECT } },
+    });
+    if (rows.length === 0) {
+      throw new Error("Aucun bulletin validé à payer");
+    }
+
+    const paidAt = new Date();
+    await prisma.$transaction(
+      async (tx) => {
+        for (const row of rows) {
+          await markPayslipPaidInTx(tx, {
+            payslip: row,
+            branchId: context.branchId,
+            organizationId: context.organizationId,
+            userId: context.userId,
+            paidAt,
+          });
+        }
+      },
+      { timeout: 60_000 },
+    );
+
+    revalidatePayrollFinancePages(context.organizationId, context.branchId);
+    return { count: rows.length };
+  });
+
+const LOSS_LINE_KINDS = new Set(["ABSENCE", "LATE", "EARLY_EXIT"]);
+
+export const waiveTeacherPayslipDeductionAction = action
+  .input(
+    z.object({
+      payslipId: z.string().min(1),
+      lineId: z.string().min(1),
+      waive: z.boolean(),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const context = await getContext();
+    if (!canComputePayroll(context.session)) {
+      throw new Error("Vous n'avez pas le droit de modifier une retenue");
+    }
+
+    const payslip = await prisma.teacherPayslip.findFirst({
+      where: { id: input.payslipId, branchId: context.branchId },
+      include: { lines: true },
+    });
+    if (!payslip) throw new Error("Bulletin introuvable");
+    if (payslip.status === "PAID" || payslip.status === "CANCELLED") {
+      throw new Error("Ce bulletin ne peut plus être modifié");
+    }
+
+    const line = payslip.lines.find((row) => row.id === input.lineId);
+    if (!line) throw new Error("Ligne introuvable");
+    if (!LOSS_LINE_KINDS.has(line.kind)) {
+      throw new Error("Seule une retenue (absence, retard, sortie) peut être retirée");
+    }
+
+    const currentDetail = parsePayslipLineDetail(line.detail);
+    const baseDetail =
+      currentDetail ??
+      (typeof line.detail === "object" && line.detail ? line.detail : {});
+
+    if (input.waive) {
+      if (line.amount <= 0 && currentDetail?.waived) {
+        throw new Error("Cette retenue est déjà retirée");
+      }
+      await prisma.teacherPayslipLine.update({
+        where: { id: line.id },
         data: {
-          branchId: context.branchId,
-          organizationId: context.organizationId,
-          userId: teacherUserId,
-          type: "PAYROLL",
-          title: "Bulletin de paie payé",
-          body: `Votre bulletin de ${row.month}/${row.year} est payé. Net : ${row.net} ${row.currency}.`,
-          href: `/admin/organizations/${context.organizationId}/branches/${context.branchId}/paie-enseignants/${row.id}`,
+          amount: 0,
+          detail: {
+            ...baseDetail,
+            waived: true,
+            waivedAmount: line.amount > 0 ? line.amount : currentDetail?.waivedAmount,
+          },
+        },
+      });
+    } else {
+      if (!currentDetail?.waived) {
+        throw new Error("Cette retenue n'est pas retirée");
+      }
+      await prisma.teacherPayslipLine.update({
+        where: { id: line.id },
+        data: {
+          amount: currentDetail.waivedAmount ?? 0,
+          detail: {
+            ...baseDetail,
+            waived: false,
+          },
         },
       });
     }
+
+    const lines = await prisma.teacherPayslipLine.findMany({
+      where: { payslipId: payslip.id },
+      select: { kind: true, amount: true },
+    });
+    const deductions = lines
+      .filter((row) => LOSS_LINE_KINDS.has(row.kind))
+      .reduce((sum, row) => sum + row.amount, 0);
+    const settled = settlePayrollTotals(
+      payslip.gross,
+      deductions,
+      payslip.currency,
+    );
+
+    await prisma.teacherPayslip.update({
+      where: { id: payslip.id },
+      data: {
+        deductions: settled.deductions,
+        net: settled.net,
+        ...(payslip.status === "VALIDATED"
+          ? { status: "DRAFT", validatedAt: null, validatedById: null }
+          : {}),
+      },
+    });
+
     revalidatePath(
       `/admin/organizations/${context.organizationId}/branches/${context.branchId}/paie-enseignants`,
     );
-    return { ok: true };
+    revalidatePath(
+      `/admin/organizations/${context.organizationId}/branches/${context.branchId}/paie-enseignants/${payslip.id}`,
+    );
+    return {
+      ...settled,
+      status: payslip.status === "VALIDATED" ? "DRAFT" : payslip.status,
+    };
   });

@@ -2,15 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { IconCamera, IconCameraOff } from "@tabler/icons-react";
-import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
-  DialogOverlay,
-  DialogPortal,
+  DialogContent,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 type AttendanceScannerProps = {
@@ -213,54 +210,25 @@ export function AttendanceScanDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogPortal>
-        <DialogOverlay className="z-[110]" />
-        <DialogPrimitive.Content
-          aria-describedby="attendance-scan-desc"
-          onOpenAutoFocus={(event) => event.preventDefault()}
-          onPointerDown={(event) => {
-            if (event.target === event.currentTarget) {
-              onOpenChange(false);
-            }
-          }}
-          className="fixed inset-0 z-[110] flex items-center justify-center p-4 outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
-        >
-          <div
-            className="relative w-full max-w-md max-h-[min(90dvh,40rem)] overflow-y-auto rounded-2xl border bg-background p-5 shadow-xl"
-            onPointerDown={(event) => event.stopPropagation()}
-          >
-            <DialogPrimitive.Title className="pr-8 text-lg font-semibold leading-tight">
-              Scanner une carte
-            </DialogPrimitive.Title>
-            <DialogPrimitive.Description
-              id="attendance-scan-desc"
-              className="mt-1.5 text-sm leading-relaxed text-muted-foreground"
-            >
-              Autorisez la caméra, puis alignez le QR ou le code-barres dans le
-              cadre.
-            </DialogPrimitive.Description>
-
-            <div className="mt-4">
-              {open ? (
-                <AttendanceScanner
-                  autoStart
-                  hideToggle
-                  onScan={onScan}
-                  disabled={disabled}
-                />
-              ) : null}
-            </div>
-
-            <DialogClose
-              type="button"
-              className="absolute right-3 top-3 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Fermer</span>
-            </DialogClose>
-          </div>
-        </DialogPrimitive.Content>
-      </DialogPortal>
+      <DialogContent
+        title="Scanner une carte"
+        size="sm"
+        overlayClassName="z-[110]"
+        className="z-[110] gap-3 p-5"
+        onOpenAutoFocus={(event) => event.preventDefault()}
+      >
+        <DialogDescription className="text-sm leading-relaxed text-foreground">
+          Autorisez la caméra, puis alignez le QR ou le code-barres dans le cadre.
+        </DialogDescription>
+        {open ? (
+          <AttendanceScanner
+            autoStart
+            hideToggle
+            onScan={onScan}
+            disabled={disabled}
+          />
+        ) : null}
+      </DialogContent>
     </Dialog>
   );
 }

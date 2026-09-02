@@ -14,6 +14,7 @@ import {
   settlePayrollTotals,
 } from "@/lib/payroll/session-rate";
 import type { TeacherPayslipLineDetailSnapshot } from "@/lib/payroll/teacher-payslip-line-detail";
+import { waivedSessionIdsFromLines } from "@/lib/payroll/teacher-payslip-line-detail";
 
 export type { TeacherPayslipLineDetailSnapshot } from "@/lib/payroll/teacher-payslip-line-detail";
 
@@ -57,6 +58,8 @@ type SessionDetail = {
   deduction: number;
   gross: number;
   reason: "ABSENCE" | "LATE" | "EARLY_EXIT" | null;
+  waived?: boolean;
+  waivedAmount?: number;
 };
 
 export type TeacherPayrollResult = {
@@ -452,6 +455,7 @@ export async function persistTeacherPayroll(
     organizationId: string;
     period: PayrollPeriod;
     teacherId: string;
+    waivedSessionIds?: string[];
   },
   result: Awaited<ReturnType<typeof calculateTeacherPayroll>>,
 ) {
@@ -464,10 +468,38 @@ export async function persistTeacherPayroll(
         month: input.period.month,
       },
     },
-    select: { id: true, status: true },
+    select: {
+      id: true,
+      status: true,
+      lines: { select: { sessionId: true, detail: true } },
+    },
   });
   if (existing && existing.status !== "DRAFT") {
     throw new Error("Ce bulletin est déjà validé ou payé");
+  }
+
+  const waivedSessionIds = new Set([
+    ...(input.waivedSessionIds ?? []),
+    ...waivedSessionIdsFromLines(existing?.lines ?? []),
+  ]);
+  if (waivedSessionIds.size > 0) {
+    let waivedDeductions = 0;
+    for (const detail of result.details) {
+      if (!waivedSessionIds.has(detail.sessionId) || detail.deduction <= 0) continue;
+      detail.waived = true;
+      detail.waivedAmount = detail.deduction;
+      waivedDeductions += detail.deduction;
+      detail.deduction = 0;
+    }
+    if (waivedDeductions > 0) {
+      const settled = settlePayrollTotals(
+        result.gross,
+        result.deductions - waivedDeductions,
+        result.currency,
+      );
+      result.deductions = settled.deductions;
+      result.net = settled.net;
+    }
   }
 
   const data = {
@@ -511,6 +543,9 @@ export async function persistTeacherPayroll(
         graceMinutes: detail.graceMinutes,
         reason: detail.reason,
         sessionGross: detail.gross,
+        ...(detail.waived
+          ? { waived: true, waivedAmount: detail.waivedAmount }
+          : {}),
       };
       return {
         payslipId: payslip.id,

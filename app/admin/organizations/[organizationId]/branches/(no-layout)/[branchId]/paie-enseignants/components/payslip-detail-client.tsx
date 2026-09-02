@@ -1,12 +1,31 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/custom/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/lib/auth-client";
+import { canComputePayroll } from "@/lib/auth/session-roles";
 import { exportTeacherPayslipPdf } from "./export-teacher-payslip-pdf";
-import type { TeacherPayslipLineDetailSnapshot } from "@/lib/payroll/teacher-payslip-line-detail";
+import {
+  parsePayslipLineDetail,
+  type TeacherPayslipLineDetailSnapshot,
+} from "@/lib/payroll/teacher-payslip-line-detail";
+import { waiveTeacherPayslipDeductionAction } from "../payroll.action";
 
 type Payslip = {
   id: string;
@@ -25,6 +44,7 @@ type Payslip = {
     } | null;
   };
   lines: Array<{
+    id: string;
     occurredOn: string | null;
     cycle: string | null;
     kind: string;
@@ -121,9 +141,10 @@ function formatMinutes(value: number | null | undefined) {
 function parseDetail(
   value: unknown,
 ): TeacherPayslipLineDetailSnapshot | null {
-  if (!value || typeof value !== "object") return null;
-  return value as TeacherPayslipLineDetailSnapshot;
+  return parsePayslipLineDetail(value);
 }
+
+const LOSS_KINDS = new Set(["ABSENCE", "LATE", "EARLY_EXIT"]);
 
 export default function PayslipDetailClient({
   payslip,
@@ -132,6 +153,17 @@ export default function PayslipDetailClient({
   payslip: Payslip;
   backHref: string;
 }) {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const canEdit = useMemo(() => canComputePayroll(session), [session]);
+  const [pendingWaiver, setPendingWaiver] = useState<{
+    lineId: string;
+    waive: boolean;
+    label: string;
+    amount: number;
+  } | null>(null);
+  const [working, setWorking] = useState(false);
+
   const user = payslip.teacher.branchMember?.member.user;
   const name = [user?.name, user?.postnom, user?.prenom].filter(Boolean).join(" ");
   const sessionLines = payslip.lines.filter((line) => line.kind !== "GROSS" || line.detail || line.occurredOn);
@@ -144,6 +176,30 @@ export default function PayslipDetailClient({
     className: "border-border bg-muted text-foreground",
   };
   const periodLabel = `${MONTHS[payslip.month - 1] ?? payslip.month} ${payslip.year}`;
+  const editable =
+    canEdit && (payslip.status === "DRAFT" || payslip.status === "VALIDATED");
+
+  async function applyWaiver() {
+    if (!pendingWaiver) return;
+    setWorking(true);
+    const [, error] = await waiveTeacherPayslipDeductionAction({
+      payslipId: payslip.id,
+      lineId: pendingWaiver.lineId,
+      waive: pendingWaiver.waive,
+    });
+    setWorking(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(
+      pendingWaiver.waive
+        ? "Retenue retirée. Le net a été recalculé."
+        : "Retenue rétablie.",
+    );
+    setPendingWaiver(null);
+    router.refresh();
+  }
 
   return (
     <div className="space-y-4">
@@ -233,10 +289,19 @@ export default function PayslipDetailClient({
         </CardContent>
       </Card>
       <Card>
-        <CardHeader><CardTitle>Détail des séances</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Détail des séances</CardTitle>
+          {editable ? (
+            <p className="text-sm font-normal text-muted-foreground">
+              Vous pouvez retirer une retenue (excuse ou jugement) : le montant
+              revient dans le net. Rétablissez-la tant que le bulletin n’est pas
+              payé.
+            </p>
+          ) : null}
+        </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1100px] text-sm">
+            <table className="w-full min-w-[1180px] text-sm">
               <thead>
                 <tr className="border-b text-left text-muted-foreground">
                   <th className="p-2">Date</th>
@@ -252,22 +317,30 @@ export default function PayslipDetailClient({
                   <th className="p-2">Motif</th>
                   <th className="p-2">Valeur séance</th>
                   <th className="p-2">Perte</th>
+                  {editable ? <th className="p-2">Action</th> : null}
                 </tr>
               </thead>
               <tbody>
                 {sessionLines.length === 0 ? (
                   <tr>
-                    <td className="p-3 text-muted-foreground" colSpan={13}>
+                    <td className="p-3 text-muted-foreground" colSpan={editable ? 14 : 13}>
                       Aucune séance sur cette période.
                     </td>
                   </tr>
                 ) : (
-                  sessionLines.map((line, index) => {
+                  sessionLines.map((line) => {
                     const detail = parseDetail(line.detail);
                     const isForfait = line.kind === "GROSS" && !line.occurredOn && !detail;
                     if (isForfait) return null;
+                    const waived = Boolean(detail?.waived);
+                    const isLoss = LOSS_KINDS.has(line.kind);
+                    const displayedLoss = waived
+                      ? (detail?.waivedAmount ?? 0)
+                      : isLoss
+                        ? line.amount
+                        : 0;
                     return (
-                      <tr key={`${line.occurredOn}-${index}`} className="border-b last:border-0 align-top">
+                      <tr key={line.id} className="border-b last:border-0 align-top">
                         <td className="p-2 whitespace-nowrap">
                           {line.occurredOn
                             ? new Date(line.occurredOn).toLocaleDateString("fr-FR")
@@ -317,6 +390,11 @@ export default function PayslipDetailClient({
                         </td>
                         <td className="p-2 whitespace-nowrap">
                           {KIND_LABELS[line.kind] ?? line.kind}
+                          {waived ? (
+                            <div className="text-[10px] font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
+                              Retenue retirée
+                            </div>
+                          ) : null}
                         </td>
                         <td className="p-2 whitespace-nowrap">
                           {formatAmount(
@@ -325,13 +403,43 @@ export default function PayslipDetailClient({
                             payslip.currency,
                           )}
                         </td>
-                        <td className="p-2 whitespace-nowrap text-destructive">
-                          {line.kind === "ABSENCE" ||
-                          line.kind === "LATE" ||
-                          line.kind === "EARLY_EXIT"
-                            ? formatAmount(line.amount, payslip.currency)
+                        <td
+                          className={cn(
+                            "p-2 whitespace-nowrap",
+                            waived
+                              ? "text-muted-foreground line-through"
+                              : isLoss
+                                ? "text-destructive"
+                                : "",
+                          )}
+                        >
+                          {isLoss || waived
+                            ? formatAmount(displayedLoss, payslip.currency)
                             : "—"}
                         </td>
+                        {editable ? (
+                          <td className="p-2 whitespace-nowrap">
+                            {isLoss ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={working}
+                                onClick={() =>
+                                  setPendingWaiver({
+                                    lineId: line.id,
+                                    waive: !waived,
+                                    label: line.label,
+                                    amount: displayedLoss,
+                                  })
+                                }
+                              >
+                                {waived ? "Rétablir" : "Retirer"}
+                              </Button>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                        ) : null}
                       </tr>
                     );
                   })
@@ -341,6 +449,56 @@ export default function PayslipDetailClient({
           </div>
         </CardContent>
       </Card>
+      <AlertDialog
+        open={pendingWaiver != null}
+        onOpenChange={(open) => {
+          if (!open && !working) setPendingWaiver(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingWaiver?.waive ? "Retirer cette retenue ?" : "Rétablir cette retenue ?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm leading-relaxed text-foreground">
+              {pendingWaiver?.waive ? (
+                <>
+                  La perte de{" "}
+                  <span className="font-medium">
+                    {formatAmount(pendingWaiver.amount, payslip.currency)}
+                  </span>{" "}
+                  sur {pendingWaiver.label} sera annulée et réintégrée au net.
+                  Un bulletin validé repassera en brouillon.
+                </>
+              ) : (
+                <>
+                  La retenue de{" "}
+                  <span className="font-medium">
+                    {formatAmount(pendingWaiver?.amount ?? 0, payslip.currency)}
+                  </span>{" "}
+                  sur {pendingWaiver?.label} sera de nouveau appliquée.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={working}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={working}
+              onClick={(event) => {
+                event.preventDefault();
+                void applyWaiver();
+              }}
+            >
+              {working
+                ? "Enregistrement…"
+                : pendingWaiver?.waive
+                  ? "Retirer la retenue"
+                  : "Rétablir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

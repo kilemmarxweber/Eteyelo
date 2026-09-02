@@ -15,4 +15,26 @@ export type TeacherPayslipLineDetailSnapshot = {
   reason: "ABSENCE" | "LATE" | "EARLY_EXIT" | null;
   /** Valeur réelle de la séance (part du brut mensuel ou tarif secondaire). */
   sessionGross?: number;
+  /** Retenue volontairement retirée par le propriétaire. */
+  waived?: boolean;
+  waivedAmount?: number;
 };
+
+export function parsePayslipLineDetail(
+  value: unknown,
+): TeacherPayslipLineDetailSnapshot | null {
+  if (!value || typeof value !== "object") return null;
+  return value as TeacherPayslipLineDetailSnapshot;
+}
+
+export function isPayslipLineWaived(detail: unknown): boolean {
+  return parsePayslipLineDetail(detail)?.waived === true;
+}
+
+export function waivedSessionIdsFromLines(
+  lines: Array<{ sessionId: string | null; detail: unknown }>,
+): string[] {
+  return lines
+    .filter((line) => line.sessionId && isPayslipLineWaived(line.detail))
+    .map((line) => line.sessionId as string);
+}

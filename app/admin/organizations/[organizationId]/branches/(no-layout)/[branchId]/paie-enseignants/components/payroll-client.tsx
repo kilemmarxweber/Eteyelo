@@ -41,11 +41,13 @@ import {
   getPayrollSchoolYearsAction,
   getPayrollCashSnapshotAction,
   payTeacherPayslipAction,
+  payAllTeacherPayslipsAction,
   recalculateTeacherPayslipsAction,
   deleteTeacherPayslipsAction,
   getPayrollPolicyAction,
   updatePayrollPolicyAction,
   validateTeacherPayslipAction,
+  validateAllTeacherPayslipsAction,
 } from "../payroll.action";
 
 type PayslipRow = {
@@ -267,6 +269,22 @@ export default function PayrollClient() {
     () => selectedRows.filter((row) => isDeletable(row.status)),
     [selectedRows],
   );
+  const draftRows = useMemo(
+    () => rows.filter((row) => row.status === "DRAFT"),
+    [rows],
+  );
+  const validatedRows = useMemo(
+    () => rows.filter((row) => row.status === "VALIDATED"),
+    [rows],
+  );
+  const selectedDrafts = useMemo(
+    () => selectedRows.filter((row) => row.status === "DRAFT"),
+    [selectedRows],
+  );
+  const selectedValidated = useMemo(
+    () => selectedRows.filter((row) => row.status === "VALIDATED"),
+    [selectedRows],
+  );
   const allDeletableSelected =
     deletableRows.length > 0 &&
     deletableRows.every((row) => selectedIds.has(row.id));
@@ -355,6 +373,13 @@ export default function PayrollClient() {
     payslipIds?: string[];
     scopeLabel: string;
   } | null>(null);
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [pendingBulk, setPendingBulk] = useState<{
+    kind: "validate" | "pay";
+    payslipIds?: string[];
+    count: number;
+    netTotal: number;
+  } | null>(null);
 
   function requestDeletePayslips(payslipIds?: string[]) {
     const count = payslipIds?.length ?? 0;
@@ -386,6 +411,79 @@ export default function PayrollClient() {
       await load();
     }
     setPendingDeleteTarget(null);
+    setWorking(false);
+  }
+
+  function requestBulkValidate(payslipIds?: string[]) {
+    const targets = payslipIds?.length
+      ? draftRows.filter((row) => payslipIds.includes(row.id))
+      : draftRows;
+    if (targets.length === 0) {
+      toast.error("Aucun bulletin brouillon à valider");
+      return;
+    }
+    setPendingBulk({
+      kind: "validate",
+      payslipIds,
+      count: targets.length,
+      netTotal: targets.reduce((sum, row) => sum + row.net, 0),
+    });
+    setBulkConfirmOpen(true);
+  }
+
+  function requestBulkPay(payslipIds?: string[]) {
+    const targets = payslipIds?.length
+      ? validatedRows.filter((row) => payslipIds.includes(row.id))
+      : validatedRows;
+    if (targets.length === 0) {
+      toast.error("Aucun bulletin validé à payer");
+      return;
+    }
+    setPendingBulk({
+      kind: "pay",
+      payslipIds,
+      count: targets.length,
+      netTotal: targets.reduce((sum, row) => sum + row.net, 0),
+    });
+    setBulkConfirmOpen(true);
+  }
+
+  async function executePendingBulk() {
+    if (!pendingBulk) return;
+    const { kind, payslipIds } = pendingBulk;
+    setBulkConfirmOpen(false);
+    setWorking(true);
+    const payload = {
+      year,
+      month,
+      schoolYearId: schoolYearId || undefined,
+      ...(payslipIds && payslipIds.length > 0 ? { payslipIds } : {}),
+    };
+    if (kind === "validate") {
+      const [result, error] = await validateAllTeacherPayslipsAction(payload);
+      if (error) toast.error(error.message);
+      else {
+        if (result?.skippedNoRate) {
+          toast.warning(
+            `${result.skippedNoRate} bulletin(s) non validé(s) : taux de change manquant.`,
+          );
+        }
+        toast.success(`${result?.count ?? 0} bulletin(s) validé(s)`);
+        setSelectedIds(new Set());
+        await load();
+      }
+    } else {
+      const [result, error] = await payAllTeacherPayslipsAction(payload);
+      if (error) toast.error(error.message);
+      else {
+        toast.success(
+          `${result?.count ?? 0} bulletin(s) payé(s) · dépenses « Paiement salaire » enregistrées`,
+        );
+        setSelectedIds(new Set());
+        await load();
+      }
+    }
+    setPendingBulk(null);
     setWorking(false);
   }
 
@@ -489,6 +587,29 @@ export default function PayrollClient() {
                   <IconRefresh size={16} />
                   Régénérer tous
                 </Button>
+                {canValidate ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 sm:flex-none"
+                    onClick={() => requestBulkValidate()}
+                    disabled={working || draftRows.length === 0}
+                  >
+                    <IconCheck size={16} />
+                    Valider tous
+                  </Button>
+                ) : null}
+                {canPay ? (
+                  <Button
+                    size="sm"
+                    className="flex-1 sm:flex-none"
+                    onClick={() => requestBulkPay()}
+                    disabled={working || validatedRows.length === 0}
+                  >
+                    <IconCash size={16} />
+                    Payer tous
+                  </Button>
+                ) : null}
                 <Button
                   variant="outline"
                   size="sm"
@@ -519,6 +640,31 @@ export default function PayrollClient() {
               <IconCalculator size={15} />
               Recalculer la sélection
             </Button>
+            {canValidate ? (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={working || selectedDrafts.length === 0}
+                onClick={() =>
+                  requestBulkValidate(selectedDrafts.map((row) => row.id))
+                }
+              >
+                <IconCheck size={15} />
+                Valider la sélection
+              </Button>
+            ) : null}
+            {canPay ? (
+              <Button
+                size="sm"
+                disabled={working || selectedValidated.length === 0}
+                onClick={() =>
+                  requestBulkPay(selectedValidated.map((row) => row.id))
+                }
+              >
+                <IconCash size={15} />
+                Payer la sélection
+              </Button>
+            ) : null}
             <Button
               size="sm"
               variant="outline"
@@ -595,7 +741,7 @@ export default function PayrollClient() {
                   <th className="p-2">Net</th>
                   <th className="p-2">Différence</th>
                   <th className="p-2">Bulletin</th>
-                  <th className="p-2">Actions</th>
+                  <th className="whitespace-nowrap p-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -723,11 +869,12 @@ export default function PayrollClient() {
                         <td className="p-2">
                           <Badge variant="outline">{statusLabel(row.status)}</Badge>
                         </td>
-                        <td className="flex flex-wrap gap-1 p-2">
+                        <td className="p-2 whitespace-nowrap">
+                          <div className="flex flex-nowrap items-center gap-1">
                           <Button
                             variant="outline"
                             size="icon"
-                            className="size-8"
+                            className="size-8 shrink-0"
                             onClick={() =>
                               router.push(
                                 `/admin/organizations/${params.organizationId}/branches/${params.branchId}/paie-enseignants/${row.id}`,
@@ -742,7 +889,7 @@ export default function PayrollClient() {
                             <Button
                               variant="outline"
                               size="icon"
-                              className="size-8"
+                              className="size-8 shrink-0"
                               disabled={working}
                               onClick={() =>
                                 void mutate(
@@ -760,12 +907,12 @@ export default function PayrollClient() {
                           {canPay && row.status === "VALIDATED" ? (
                             <Button
                               size="icon"
-                              className="size-8"
+                              className="size-8 shrink-0"
                               disabled={working}
                               onClick={() =>
                                 void mutate(
                                   payTeacherPayslipAction,
-                                  "Bulletin marqué payé",
+                                  "Bulletin payé · dépense enregistrée",
                                   row.id,
                                 )
                               }
@@ -779,7 +926,7 @@ export default function PayrollClient() {
                             <Button
                               variant="outline"
                               size="icon"
-                              className="size-8"
+                              className="size-8 shrink-0"
                               disabled={working}
                               onClick={() => void recalculate([row.teacherId])}
                               title="Recalculer"
@@ -792,7 +939,7 @@ export default function PayrollClient() {
                             <Button
                               variant="outline"
                               size="icon"
-                              className="size-8 text-destructive hover:text-destructive"
+                              className="size-8 shrink-0 text-destructive hover:text-destructive"
                               disabled={working}
                               onClick={() => requestDeletePayslips([row.id])}
                               title="Supprimer"
@@ -801,6 +948,7 @@ export default function PayrollClient() {
                               <IconTrash size={15} />
                             </Button>
                           ) : null}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -900,6 +1048,54 @@ export default function PayrollClient() {
               }}
             >
               Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={bulkConfirmOpen}
+        onOpenChange={(open) => {
+          setBulkConfirmOpen(open);
+          if (!open) setPendingBulk(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingBulk?.kind === "pay"
+                ? "Confirmer le paiement"
+                : "Confirmer la validation"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm leading-relaxed text-foreground">
+              {pendingBulk?.kind === "pay" ? (
+                <>
+                  Payer {pendingBulk.count} bulletin
+                  {pendingBulk.count > 1 ? "s" : ""} et enregistrer{" "}
+                  {pendingBulk.count > 1 ? "les dépenses" : "la dépense"} «
+                  Paiement salaire » pour un total de{" "}
+                  {formatAmount(pendingBulk.netTotal, listCurrency)} ? Cette
+                  action est irréversible.
+                </>
+              ) : (
+                <>
+                  Valider {pendingBulk?.count ?? 0} bulletin
+                  {(pendingBulk?.count ?? 0) > 1 ? "s" : ""} brouillon
+                  {(pendingBulk?.count ?? 0) > 1 ? "s" : ""} ?
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={working}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={working}
+              onClick={(e) => {
+                e.preventDefault();
+                void executePendingBulk();
+              }}
+            >
+              {pendingBulk?.kind === "pay" ? "Payer" : "Valider"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

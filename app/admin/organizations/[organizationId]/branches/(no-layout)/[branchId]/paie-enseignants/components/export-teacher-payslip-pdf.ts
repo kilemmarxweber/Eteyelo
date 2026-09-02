@@ -1,6 +1,9 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import type { TeacherPayslipLineDetailSnapshot } from "@/lib/payroll/teacher-payslip-line-detail";
+import {
+  parsePayslipLineDetail,
+  type TeacherPayslipLineDetailSnapshot,
+} from "@/lib/payroll/teacher-payslip-line-detail";
 
 type PayslipForPdf = {
   id: string;
@@ -64,8 +67,7 @@ function minutes(value: number | null | undefined) {
 }
 
 function parseDetail(value: unknown): TeacherPayslipLineDetailSnapshot | null {
-  if (!value || typeof value !== "object") return null;
-  return value as TeacherPayslipLineDetailSnapshot;
+  return parsePayslipLineDetail(value);
 }
 
 export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
@@ -132,12 +134,16 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
         minutes(detail?.earlyExitMinutes),
         minutes(detail?.lostMinutes ?? line.minutes),
         STATUS_LABELS[detail?.status ?? ""] ?? detail?.status ?? line.kind,
-        `${line.label}${line.cycle ? ` (${line.cycle})` : ""}`,
+        `${line.label}${line.cycle ? ` (${line.cycle})` : ""}${detail?.waived ? " · retenue retirée" : ""}`,
         amount(
           detail?.sessionGross ?? (line.kind === "GROSS" ? line.amount : 0),
           payslip.currency,
         ),
-        isLoss ? amount(line.amount, payslip.currency) : "—",
+        isLoss || detail?.waived
+          ? detail?.waived
+            ? `${amount(detail.waivedAmount ?? 0, payslip.currency)} (retirée)`
+            : amount(line.amount, payslip.currency)
+          : "—",
       ];
     });
 
