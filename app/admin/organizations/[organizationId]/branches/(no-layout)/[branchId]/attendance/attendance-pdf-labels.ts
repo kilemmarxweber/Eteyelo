@@ -60,9 +60,17 @@ export type AttendancePdfLabels = {
   };
 };
 
-type TranslateFn = (key: string, values?: Record<string, string | number>) => string;
+type AttendanceTranslateFn = {
+  (key: string, values?: Record<string, string | number>): string;
+  raw: (key: string) => unknown;
+};
 
-export function buildAttendancePdfLabels(t: TranslateFn): AttendancePdfLabels {
+/** Modèles PDF remplis plus tard via `fill()` — pas d’interpolation ICU au chargement. */
+function pdfTemplate(t: AttendanceTranslateFn, key: string): string {
+  return String(t.raw(key));
+}
+
+export function buildAttendancePdfLabels(t: AttendanceTranslateFn): AttendancePdfLabels {
   return {
     teacherSessionsTitle: t("pdf.teacherSessionsTitle"),
     dailyJournalTitle: t("pdf.dailyJournalTitle"),
@@ -71,26 +79,26 @@ export function buildAttendancePdfLabels(t: TranslateFn): AttendancePdfLabels {
     teacherAttendanceTitle: t("pdf.teacherAttendanceTitle"),
     studentAttendanceTitle: t("pdf.studentAttendanceTitle"),
     personnelAttendanceTitle: t("pdf.personnelAttendanceTitle"),
-    period: t("pdf.period"),
-    teacherFilter: t("pdf.teacherFilter"),
-    classFilter: t("pdf.classFilter"),
-    sessionsSummary: t("pdf.sessionsSummary"),
-    dateLabel: t("pdf.dateLabel"),
-    dailyStats: t("pdf.dailyStats"),
-    earlyExitsStats: t("pdf.earlyExitsStats"),
-    rosterSummary: t("pdf.rosterSummary"),
+    period: pdfTemplate(t, "pdf.period"),
+    teacherFilter: pdfTemplate(t, "pdf.teacherFilter"),
+    classFilter: pdfTemplate(t, "pdf.classFilter"),
+    sessionsSummary: pdfTemplate(t, "pdf.sessionsSummary"),
+    dateLabel: pdfTemplate(t, "pdf.dateLabel"),
+    dailyStats: pdfTemplate(t, "pdf.dailyStats"),
+    earlyExitsStats: pdfTemplate(t, "pdf.earlyExitsStats"),
+    rosterSummary: pdfTemplate(t, "pdf.rosterSummary"),
     noSessionPeriod: t("pdf.noSessionPeriod"),
     noTeacherSessionToday: t("pdf.noTeacherSessionToday"),
     noEarlyExit: t("pdf.noEarlyExit"),
     noDataPeriod: t("pdf.noDataPeriod"),
     earlyExitShort: t("pdf.earlyExitShort"),
-    exitPrefix: t("pdf.exitPrefix"),
+    exitPrefix: pdfTemplate(t, "pdf.exitPrefix"),
     yes: t("pdf.yes"),
     no: t("pdf.no"),
     emptyTeachers: t("pdf.emptyTeachers"),
     emptyStudents: t("pdf.emptyStudents"),
     emptyPersonnel: t("pdf.emptyPersonnel"),
-    summaryPresent: t("pdf.summaryPresent"),
+    summaryPresent: pdfTemplate(t, "pdf.summaryPresent"),
     earlyExitLabel: t("reports.earlyExitLabel"),
     personType: {
       student: t("personType.student"),

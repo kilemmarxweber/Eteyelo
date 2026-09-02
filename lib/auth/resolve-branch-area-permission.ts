@@ -17,10 +17,7 @@ import {
   statementsMapFromSession,
   type RoleStatements,
 } from "@/lib/auth/org-role-permission-shared";
-import {
-  hasPlatformSupportPrivileges,
-} from "@/lib/permissions";
-import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
+import { hasPlatformSupportPrivileges } from "@/lib/permissions";
 
 /** Au moins une action requise présente. */
 export function roleAllowsAny(
@@ -46,7 +43,9 @@ export function roleAllowsAll(
 
 /**
  * True si un des rôles session couvre la permission de la zone.
- * Bypass owner plateforme / support.
+ *
+ * - Propriétaire org / plateforme / branche : accès complet (tous les menus).
+ * - Directeur, gestionnaire, enseignant, etc. : matrice OrganizationRole (DB) uniquement.
  *
  * @param roleStatements Map DB (OrganizationRole). Si absente, lecture depuis
  *   `session.organization.rolePermissions`, sinon repli seed (tests).
@@ -56,8 +55,7 @@ export function canAccessBranchAreaFromPermissions(
   session: unknown,
   roleStatements?: Map<string, RoleStatements> | null,
 ): boolean {
-  if (isBranchOwnerSession(session)) return true;
-  if (area === "payroll") return isOrganizationOwnerSession(session);
+  if (isOrganizationOwnerSession(session)) return true;
 
   const roles = getSessionRoles(session);
   const appRole = [...roles].find((r) =>

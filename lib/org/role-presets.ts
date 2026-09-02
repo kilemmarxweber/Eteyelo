@@ -45,21 +45,24 @@ const PRESET_META: Record<string, Omit<OrgRolePresetMeta, "slug">> = {
   },
   [ORG_ROLE.PREFET]: {
     label: "Préfet",
-    description: "Chef d'établissement (secondaire/humanités) — pédagogie + RH.",
+    description:
+      "Chef d'établissement — pédagogie et RH ; paramètres par défaut : calendrier, communication publique, périodes.",
     isSystem: true,
     sortOrder: 20,
     locked: false,
   },
   [ORG_ROLE.DIRECTEUR]: {
     label: "Directeur",
-    description: "Chef d'établissement (primaire) — même matrice que préfet.",
+    description:
+      "Chef d'établissement (primaire) — pédagogie et RH ; paramètres par défaut : calendrier, communication publique, périodes.",
     isSystem: true,
     sortOrder: 21,
     locked: false,
   },
   [ORG_ROLE.DIRECTEUR_ETUDES]: {
     label: "Directeur des études",
-    description: "Pilotage pédagogique sans finance ; RH en lecture.",
+    description:
+      "Pilotage pédagogique ; RH lecture ; paramètres par défaut : calendrier, communication publique, périodes.",
     isSystem: true,
     sortOrder: 30,
     locked: false,

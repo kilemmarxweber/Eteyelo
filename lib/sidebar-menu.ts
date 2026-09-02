@@ -14,10 +14,23 @@ import {
 } from "@/lib/people-variant";
 import { usesTrainingLabels } from "@/lib/training-labels";
 import { normalizeBranchType } from "@/lib/academic-structure";
-import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
+import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import type { SideLink } from "@/src/data/sidelinks";
 
 export type NavigationContext = "platform" | "organization" | "branch";
+
+const BRANCH_BASE_PATH_RE =
+  /^\/admin\/organizations\/[^/]+\/branches\/[^/]+/;
+
+export function resolveBranchBasePath(pathname: string) {
+  return pathname.match(BRANCH_BASE_PATH_RE)?.[0];
+}
+
+export function resolveNavigationContext(pathname: string): NavigationContext {
+  if (resolveBranchBasePath(pathname)) return "branch";
+  if (pathname.match(/^\/admin\/organizations\/[^/]+/)) return "organization";
+  return "platform";
+}
 
 type StaticMenuItem = {
   title: string;
@@ -423,19 +436,20 @@ function unique(values: Array<string | null | undefined>) {
   return Array.from(new Set(values.flatMap(splitRoleValues)));
 }
 
+const ALWAYS_VISIBLE_BRANCH_HREFS = new Set([
+  "/admin",
+  "/admin/help",
+  "/admin/ma-presence",
+  "/admin/settings",
+]);
+
 function canSeeMenu(menu: StaticMenuItem, roles: string[]) {
   if (menu.roles.includes("*")) return true;
   return menu.roles.some((role) => roles.includes(role));
 }
 
-function resolveBranchBasePath(pathname: string) {
-  return pathname.match(/^\/admin\/organizations\/[^/]+\/branches\/[^/]+/)?.[0];
-}
-
-export function resolveNavigationContext(pathname: string): NavigationContext {
-  if (resolveBranchBasePath(pathname)) return "branch";
-  if (pathname.match(/^\/admin\/organizations\/[^/]+/)) return "organization";
-  return "platform";
+function isDacMappedHref(href: string) {
+  return Object.prototype.hasOwnProperty.call(SIDEBAR_HREF_BRANCH_AREA, href);
 }
 
 function filterRolesForContext(roles: string[], context: NavigationContext) {
@@ -468,28 +482,13 @@ function mapMenuItem(
   hideHrefs?: Set<string>,
   /** true = hideHrefs vient de la matrice DAC (OrganizationRole). */
   dacReady?: boolean,
-  /** Le rôle élevé est limité à la branche active. */
-  branchOwner?: boolean,
+  /** Propriétaire org/branche : menus branche complets. */
+  fullBranchAccess?: boolean,
+  dacStrictMenu?: boolean,
 ): SideLink | null {
-  const dacGated = Object.prototype.hasOwnProperty.call(
-    SIDEBAR_HREF_BRANCH_AREA,
-    item.href,
+  const dacStrict = Boolean(
+    dacReady && dacStrictMenu && branchBasePath && !fullBranchAccess,
   );
-
-  if (branchOwner) {
-    // Le propriétaire de branche garde les menus de sa branche même si son
-    // rôle d'organisation est simplement `user`.
-  } else if (dacGated && dacReady && hideHrefs) {
-    // Privilège catalogue (Voir) = source de vérité pour ces menus.
-    if (hideHrefs.has(item.href)) return null;
-  } else {
-    if (!canSeeMenu(item, roles)) return null;
-    if (hideHrefs?.has(item.href)) return null;
-  }
-
-  if (shouldHideSidebarHref(item.href, cycles ?? typebranch)) {
-    return null;
-  }
 
   const sub = item.sub
     ?.map((child) =>
@@ -501,12 +500,42 @@ function mapMenuItem(
         cycles,
         hideHrefs,
         dacReady,
-        branchOwner,
+        fullBranchAccess,
+        dacStrictMenu,
       ),
     )
     .filter(Boolean) as SideLink[] | undefined;
 
   if (item.sub?.length && !sub?.length) return null;
+
+  if (dacStrict) {
+    if (item.href === "#") {
+      if (!sub?.length) return null;
+    } else if (item.sub?.length) {
+      // Groupe avec href réel (ex. /admin/settings) : visible si au moins un enfant l'est.
+    } else if (ALWAYS_VISIBLE_BRANCH_HREFS.has(item.href)) {
+      // Toujours visible (dashboard, aide, ma présence).
+    } else if (!isDacMappedHref(item.href)) {
+      return null;
+    } else if (hideHrefs?.has(item.href)) {
+      return null;
+    }
+  } else {
+    const dacGated = isDacMappedHref(item.href);
+
+    if (fullBranchAccess) {
+      // Propriétaire org / branche : tous les menus de la branche active.
+    } else if (dacGated && dacReady && hideHrefs) {
+      if (hideHrefs.has(item.href)) return null;
+    } else {
+      if (!canSeeMenu(item, roles)) return null;
+      if (hideHrefs?.has(item.href)) return null;
+    }
+  }
+
+  if (shouldHideSidebarHref(item.href, cycles ?? typebranch)) {
+    return null;
+  }
 
   const resolvedTypebranch = normalizeBranchType(typebranch);
   let title = item.title;
@@ -575,10 +604,12 @@ export function buildStaticSideLinks(
     hideHrefs?: string[];
     /** true quand hideHrefs est issu de la matrice OrganizationRole. */
     dacReady?: boolean;
+    /** true = menu branche piloté uniquement par hideHrefs (DAC + octrois), sans rôles statiques. */
+    dacStrictMenu?: boolean;
   },
 ): SideLink[] {
   const context = resolveNavigationContext(pathname);
-  const branchOwner = isBranchOwnerSession(session);
+  const fullBranchAccess = isOrganizationOwnerSession(session);
   const roles = filterRolesForContext(
     getBetterAuthMenuRoles(session),
     context,
@@ -588,18 +619,15 @@ export function buildStaticSideLinks(
   const resolvedCycles = cycles ?? resolvedTypebranch;
   const hide = new Set(options?.hideHrefs ?? []);
   const dacReady = Boolean(options?.dacReady);
+  const dacStrictMenu = Boolean(options?.dacStrictMenu);
 
   return staticSidebarMenu
     .map((item) => {
-      // Top-level DAC (ex. Inscription) : laissé à mapMenuItem + hideHrefs.
-      const dacTop = Object.prototype.hasOwnProperty.call(
-        SIDEBAR_HREF_BRANCH_AREA,
-        item.href,
-      );
+      const dacTop = isDacMappedHref(item.href);
       if (
         hide.has(item.href) &&
-        !branchOwner &&
-        !(dacReady && dacTop)
+        !fullBranchAccess &&
+        !(dacReady && branchBasePath && dacTop)
       ) {
         return null;
       }
@@ -611,7 +639,8 @@ export function buildStaticSideLinks(
         resolvedCycles,
         hide,
         dacReady,
-        branchOwner,
+        fullBranchAccess,
+        dacStrictMenu,
       );
     })
     .filter(Boolean) as SideLink[];

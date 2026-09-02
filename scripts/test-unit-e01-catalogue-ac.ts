@@ -69,15 +69,27 @@ test("chef d'établissement sans finance ; avec notes", () => {
     assert.equal(s.finance, undefined);
     assert.ok(s.notes?.includes("update"));
     assert.ok(s.attendance?.includes("create"));
+    assert.equal(s.settings, undefined);
+    assert.equal(s.schoolYear, undefined);
+    assert.equal(s.structureCopy, undefined);
+    assert.ok(s.schoolCalendar?.includes("read"));
+    assert.ok(s.publicCommunication?.includes("read"));
+    assert.ok(s.periods?.includes("read"));
   }
 });
 
-test("directeur des études sans finance ; personnel read", () => {
+test("directeur des études sans finance ; personnel read ; enseignants read", () => {
   const d = organizationRoleStatements[ORG_ROLE.DIRECTEUR_ETUDES];
   assert.equal(d.finance, undefined);
   assert.deepEqual(d.personnel, ["read"]);
+  assert.deepEqual(d.teacher, ["read"]);
   assert.ok(d.notes?.includes("create"));
-  assert.deepEqual(d.settings, ["read", "update"]);
+  assert.equal(d.settings, undefined);
+  assert.equal(d.schoolYear, undefined);
+  assert.equal(d.structureCopy, undefined);
+  assert.ok(d.schoolCalendar?.includes("read"));
+  assert.ok(d.publicCommunication?.includes("read"));
+  assert.ok(d.periods?.includes("read"));
 });
 
 test("caissier finance+encaisser + inscription ; pas notes", () => {

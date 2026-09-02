@@ -10,7 +10,7 @@ import {
   guardOrganizationAccess,
   guardOrganizationOwner,
 } from "@/lib/auth/require-organization-permission";
-import { seedOrganizationRolePresets } from "@/lib/auth/seed-organization-roles";
+import { seedOrganizationRolePresets, syncStaleLeadershipRolePresets } from "@/lib/auth/seed-organization-roles";
 import { listAssignableOrganizationRoles } from "@/lib/org/assignable-org-roles";
 import {
   getOrgRolePresetPermissionJson,
@@ -86,6 +86,7 @@ export const ensureOrganizationRolesSeededAction = action
       organizationId: input.organizationId,
       resetPermissions: false,
     });
+    await syncStaleLeadershipRolePresets(input.organizationId);
     return report;
   });
 
@@ -98,6 +99,7 @@ export const listOrganizationRolesAction = action
       organizationId: input.organizationId,
       resetPermissions: false,
     });
+    await syncStaleLeadershipRolePresets(input.organizationId);
 
     const [rows, members] = await Promise.all([
       prisma.organizationRole.findMany({

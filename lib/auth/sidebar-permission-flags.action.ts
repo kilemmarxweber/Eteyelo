@@ -13,15 +13,21 @@ import {
   canAccessBranchOrgSettings,
   canAccessRegistrationArea,
   canAccessSchoolOpsSettings,
+  canAccessSchoolStructureSettings,
   canAccessSupportSettings,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
-import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
 import {
   grantsCoverBranchArea,
   loadActiveTemporaryGrants,
+  expireOutdatedGrants,
 } from "@/lib/auth/temporary-privilege";
 import { prisma } from "@/lib/prisma";
+
+export type SidebarPermissionFlagsInput = {
+  organizationId?: string | null;
+  branchId?: string | null;
+};
 
 export type SidebarPermissionFlags = {
   /** Hrefs logiques `/admin/...` à masquer (sans `resource:read`). */
@@ -29,6 +35,8 @@ export type SidebarPermissionFlags = {
   /** Segments settings (`typeFrais`, `roles`, …) autorisés via Voir. */
   settingsReads: Record<string, boolean>;
   inscriptionRead: boolean;
+  /** true = ne pas utiliser les rôles statiques legacy pour filtrer le menu branche. */
+  dacStrictMenu: boolean;
 };
 
 function defaultSettingsReads(allAllowed: boolean): Record<string, boolean> {
@@ -40,13 +48,17 @@ function defaultSettingsReads(allAllowed: boolean): Record<string, boolean> {
 }
 
 /**
- * Flags menu sidebar / settings pilotés par OrganizationRole (Voir = entrée).
+ * Flags menu sidebar / settings pilotés par OrganizationRole (Voir = entrée)
+ * + octrois temporaires actifs uniquement.
  */
-export async function getSidebarPermissionFlagsAction(): Promise<SidebarPermissionFlags> {
+export async function getSidebarPermissionFlagsAction(
+  input?: SidebarPermissionFlagsInput,
+): Promise<SidebarPermissionFlags> {
   const empty: SidebarPermissionFlags = {
     hideHrefs: Object.keys(SIDEBAR_HREF_BRANCH_AREA),
     settingsReads: defaultSettingsReads(false),
     inscriptionRead: false,
+    dacStrictMenu: isPermissionsFromDacEnabled(),
   };
 
   const session = await getCachedSession();
@@ -55,26 +67,35 @@ export async function getSidebarPermissionFlagsAction(): Promise<SidebarPermissi
   }
 
   const organizationId =
-    session.organization?.id ?? session.session?.activeOrganizationId ?? null;
+    input?.organizationId ??
+    session.organization?.id ??
+    session.session?.activeOrganizationId ??
+    null;
 
   if (!organizationId) {
     return empty;
   }
 
-  // Propriétaire de branche (ADMIN) : tous les menus / params de sa branche,
-  // même si le rôle d’organisation est `user` (matrice DAC vide).
-  if (isBranchOwnerSession(session)) {
+  const branchId =
+    input?.branchId ??
+    session.branch?.id ??
+    session.session?.activeBranchId ??
+    null;
+
+  await expireOutdatedGrants();
+
+  // Propriétaire org / plateforme / branche : tous les menus (hors directeur etc.).
+  if (isOrganizationOwnerSession(session)) {
     return {
       hideHrefs: await hideMessagingIfDisabled(organizationId, []),
       settingsReads: defaultSettingsReads(true),
       inscriptionRead: true,
+      dacStrictMenu: false,
     };
   }
 
   if (isPermissionsFromDacEnabled()) {
     const roleStatements = await loadOrganizationRoleStatements(organizationId);
-    const branchId =
-      session.branch?.id ?? session.session?.activeBranchId ?? null;
     const temporaryGrants = await loadActiveTemporaryGrants(
       session.user.id,
       organizationId,
@@ -111,10 +132,10 @@ export async function getSidebarPermissionFlagsAction(): Promise<SidebarPermissi
       hideHrefs: await hideMessagingIfDisabled(organizationId, hideHrefs),
       settingsReads,
       inscriptionRead: !hideHrefs.includes("/admin/registration"),
+      dacStrictMenu: true,
     };
   }
 
-  // Legacy session-roles : ne masque pas les menus fins (comportement historique).
   const settingsReads = defaultSettingsReads(false);
   settingsReads.roles = isOrganizationOwnerSession(session);
   settingsReads.typeFrais = canAccessBranchOrgSettings(session);
@@ -124,9 +145,10 @@ export async function getSidebarPermissionFlagsAction(): Promise<SidebarPermissi
   settingsReads.attendance = canAccessBranchOrgSettings(session);
   settingsReads["inscription-publique"] = canAccessSchoolOpsSettings(session);
   settingsReads.calendar = canAccessSchoolOpsSettings(session);
-  settingsReads["annee-scolaire"] = canAccessSchoolOpsSettings(session);
   settingsReads.periodes = canAccessSchoolOpsSettings(session);
-  settingsReads["structure-merge"] = canAccessSchoolOpsSettings(session);
+  settingsReads["annee-scolaire"] = canAccessSchoolStructureSettings(session);
+  settingsReads["structure-merge"] = canAccessSchoolStructureSettings(session);
+  settingsReads["primary-domains"] = canAccessSchoolStructureSettings(session);
   settingsReads.support = canAccessSupportSettings(session);
 
   return {
@@ -136,6 +158,7 @@ export async function getSidebarPermissionFlagsAction(): Promise<SidebarPermissi
     ),
     settingsReads,
     inscriptionRead: canAccessRegistrationArea(session),
+    dacStrictMenu: false,
   };
 }
 

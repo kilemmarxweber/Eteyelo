@@ -1,5 +1,6 @@
 ﻿import assert from "node:assert/strict";
 
+import { SIDEBAR_HREF_BRANCH_AREA } from "../lib/auth/branch-area-permissions";
 import { ORG_ROLE } from "../lib/permissions";
 import { buildStaticSideLinks } from "../lib/sidebar-menu";
 
@@ -155,37 +156,60 @@ test("enseignant : pas teaching / users ; cursus grades/results/library ; dossie
   assertExcludes(cursus, ["schedule"], "enseignant cursus");
 });
 
-test("préfet / directeur : pédagogie complète — pas finance", () => {
+test("préfet / directeur DAC : pédagogie — pas finance / inscription / candidatures", () => {
+  const leadershipHide = [
+    "/admin/registration",
+    "/admin/candidatures",
+    "/admin/frais",
+    "/admin/paiement",
+    "/admin/paie-enseignants",
+    "/admin/transactions",
+  ];
+
   for (const role of [ORG_ROLE.PREFET, ORG_ROLE.DIRECTEUR] as const) {
-    const titles = menuTitles(sessionWithOrgRole(role));
+    const titles = buildStaticSideLinks(
+      sessionWithOrgRole(role),
+      BRANCH_PATH,
+      "PRIMAIRE",
+      undefined,
+      { hideHrefs: leadershipHide, dacReady: true, dacStrictMenu: true },
+    ).map((item) => item.title);
+
     assertIncludes(
       titles,
-      [
-        "dashboard",
-        "myPresence",
-        "registration",
-        "users",
-        "teaching",
-        "classes",
-        "cursus",
-        "help",
-      ],
+      ["dashboard", "myPresence", "users", "teaching", "classes", "cursus", "help"],
       role,
     );
-    assertExcludes(titles, ["finance"], role);
+    assertExcludes(titles, ["finance", "registration", "candidatures"], role);
   }
 });
 
-test("directeur des études : pédagogie — pas finance", () => {
+test("directeur des études DAC : pédagogie — pas finance / inscription / candidatures", () => {
+  const leadershipHide = [
+    "/admin/registration",
+    "/admin/candidatures",
+    "/admin/frais",
+    "/admin/paiement",
+    "/admin/paie-enseignants",
+    "/admin/transactions",
+  ];
   const session = sessionWithOrgRole(ORG_ROLE.DIRECTEUR_ETUDES);
-  const titles = menuTitles(session);
+  const titles = buildStaticSideLinks(session, BRANCH_PATH, "PRIMAIRE", undefined, {
+    hideHrefs: leadershipHide,
+    dacReady: true,
+    dacStrictMenu: true,
+  }).map((item) => item.title);
 
   assertIncludes(
     titles,
-    ["dashboard", "myPresence", "registration", "users", "teaching", "classes", "cursus", "help"],
+    ["dashboard", "myPresence", "users", "teaching", "classes", "cursus", "help"],
     "directeur des études",
   );
-  assertExcludes(titles, ["finance"], "directeur des études");
+  assertExcludes(
+    titles,
+    ["finance", "registration", "candidatures"],
+    "directeur des études",
+  );
 });
 
 test("owner : large accès — sans Ma présence / pointage perso", () => {
@@ -250,6 +274,25 @@ test("directeur de branche : pas le bypass propriétaire (menus limités au rôl
     titles,
     ["finance", "attendance", "candidatures", "teaching", "classes"],
     "directeur de branche",
+  );
+});
+
+test("dacStrict : paramètres toujours visible (profil / apparence / mot de passe)", () => {
+  const session = sessionWithOrgRole(ORG_ROLE.DIRECTEUR_ETUDES);
+  const titles = buildStaticSideLinks(
+    session,
+    BRANCH_PATH,
+    "PRIMAIRE",
+    "PRIMAIRE",
+    {
+      hideHrefs: Object.keys(SIDEBAR_HREF_BRANCH_AREA),
+      dacReady: true,
+      dacStrictMenu: true,
+    },
+  ).map((item) => item.title);
+  assert.ok(
+    titles.includes("settings"),
+    "settings reste visible en mode DAC strict",
   );
 });
 

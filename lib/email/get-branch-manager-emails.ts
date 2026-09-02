@@ -1,3 +1,4 @@
+import { isFullBranchAccessRole } from "@/lib/auth/branch-role-access";
 import { ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
@@ -28,6 +29,9 @@ const ABSENCE_NOTIFY_ROLES = new Set([
   ORG_ROLE.DIRECTEUR,
   ORG_ROLE.DIRECTEUR_ETUDES,
 ]);
+
+/** Impacts paie : propriétaires seulement — pas préfet, directeur ni études. */
+const PAYROLL_NOTIFY_ORG_ROLES = new Set([ORG_ROLE.OWNER]);
 
 export type BranchAbsenceReviewer = {
   userId: string;
@@ -209,6 +213,107 @@ export async function getBranchAbsenceReviewers(params: {
   for (const row of orgWide) {
     if (memberHasRole(row.role, ABSENCE_NOTIFY_ROLES)) {
       addReviewer(row.user);
+    }
+  }
+
+  return [...byUserId.values()];
+}
+
+/**
+ * Destinataires des notifications d’impact paie enseignant :
+ * propriétaires d’organisation + propriétaires/admins de la branche.
+ * Jamais préfet, directeur, directeur des études, gestionnaire ni caissier.
+ */
+export async function getBranchPayrollOwners(params: {
+  branchId: string;
+  organizationId: string;
+}): Promise<BranchAbsenceReviewer[]> {
+  const [branchLinked, orgWide] = await Promise.all([
+    prisma.branchMember.findMany({
+      where: {
+        branchId: params.branchId,
+        member: {
+          organizationId: params.organizationId,
+          isArchived: false,
+        },
+      },
+      select: {
+        role: true,
+        member: {
+          select: {
+            role: true,
+            user: {
+              select: {
+                id: true,
+                email: true,
+                telephone: true,
+                name: true,
+                prenom: true,
+                postnom: true,
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.member.findMany({
+      where: {
+        organizationId: params.organizationId,
+        isArchived: false,
+      },
+      select: {
+        role: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            telephone: true,
+            name: true,
+            prenom: true,
+            postnom: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  const byUserId = new Map<string, BranchAbsenceReviewer>();
+
+  function addOwner(
+    user: {
+      id: string;
+      email: string | null;
+      telephone: string | null;
+      name: string;
+      prenom: string | null;
+      postnom: string | null;
+    },
+  ) {
+    if (byUserId.has(user.id)) return;
+    const name = [user.prenom, user.name, user.postnom]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+    byUserId.set(user.id, {
+      userId: user.id,
+      email: user.email?.trim().toLowerCase() || null,
+      name: name || user.name,
+      telephone: user.telephone,
+    });
+  }
+
+  for (const row of branchLinked) {
+    if (
+      memberHasRole(row.member.role, PAYROLL_NOTIFY_ORG_ROLES) ||
+      isFullBranchAccessRole(row.role)
+    ) {
+      addOwner(row.member.user);
+    }
+  }
+
+  for (const row of orgWide) {
+    if (memberHasRole(row.role, PAYROLL_NOTIFY_ORG_ROLES)) {
+      addOwner(row.user);
     }
   }
 

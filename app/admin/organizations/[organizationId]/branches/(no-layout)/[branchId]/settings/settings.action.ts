@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
   canAccessBranchOrgSettings,
-  canAccessSchoolOpsSettings,
+  canAccessSchoolStructureSettings,
 } from "@/lib/auth/session-roles";
 import {
   buildPrimaryDomainCode,
@@ -30,7 +30,7 @@ function assertCanManage(session: Awaited<ReturnType<typeof requireBranchContext
 function assertCanManageSchoolOps(
   session: Awaited<ReturnType<typeof requireBranchContext>>["session"],
 ) {
-  if (!canAccessSchoolOpsSettings(session)) {
+  if (!canAccessSchoolStructureSettings(session)) {
     throw new Error("Action non autorisée.");
   }
 }

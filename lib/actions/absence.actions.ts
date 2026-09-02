@@ -3,7 +3,10 @@
 import { z } from "zod";
 import { action } from "@/lib/zsa";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canReviewAbsenceJustifications } from "@/lib/auth/session-roles";
+import {
+  canReviewAbsenceJustifications,
+  canSeePayrollImpactNotifications,
+} from "@/lib/auth/session-roles";
 import { prisma } from "@/lib/prisma";
 import {
   getAbsenceCaseForUser,
@@ -36,6 +39,7 @@ export const getAbsenceInboxAction = action.handler(async () => {
   });
 
   const canReview = canReviewAbsenceJustifications(session);
+  const canSeePayroll = canSeePayrollImpactNotifications(session);
   const [mine, pending, notifications] = await Promise.all([
     listMyAbsenceCases({ branchId, userId }),
     canReview ? listPendingAbsenceReviews({ branchId }) : Promise.resolve([]),
@@ -46,7 +50,13 @@ export const getAbsenceInboxAction = action.handler(async () => {
     canReview,
     mine,
     pending,
-    notifications: notifications.map((row) => ({
+    notifications: notifications
+      .filter(
+        (row) =>
+          canSeePayroll ||
+          (row.type !== "PAYROLL" && row.type !== "PAYROLL_DEDUCTION"),
+      )
+      .map((row) => ({
       id: row.id,
       type: row.type,
       title: row.title,

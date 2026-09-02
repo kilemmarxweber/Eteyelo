@@ -8,9 +8,11 @@ import {
   canAccessNotesReadArea,
   canAccessPedagogyArea,
   canAccessRegistrationArea,
+  canAccessCandidaturesArea,
   canAccessResultsArea,
   canAccessScheduleReadArea,
   canAccessSchoolOpsSettings,
+  canAccessSchoolStructureSettings,
   canAccessStudentDirectory,
   canAccessSupportSettings,
   canAccessTeachingArea,
@@ -21,7 +23,7 @@ import {
   canAccessBranchAreaFromPermissions,
   isPermissionsFromDacEnabled,
 } from "@/lib/auth/resolve-branch-area-permission";
-import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
+import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import type { BranchArea } from "@/lib/auth/branch-area-permissions";
 
 export type { BranchArea };
@@ -38,7 +40,7 @@ export function canAccessBranchArea(
   area: BranchArea,
   session: unknown,
 ): boolean {
-  if (isBranchOwnerSession(session)) return true;
+  if (isOrganizationOwnerSession(session)) return true;
 
   if (isPermissionsFromDacEnabled()) {
     return canAccessBranchAreaFromPermissions(area, session);
@@ -73,6 +75,8 @@ export function canAccessBranchArea(
       return canAccessTeachingArea(session) || canAccessPedagogyArea(session);
     case "registration":
       return canAccessRegistrationArea(session);
+    case "candidatures":
+      return canAccessCandidaturesArea(session);
     case "students":
       return canAccessStudentDirectory(session);
     case "results":
@@ -90,10 +94,11 @@ export function canAccessBranchArea(
     case "school_ops_settings":
     case "public_communication":
     case "school_calendar":
-    case "school_year":
     case "periods":
-    case "structure_copy":
       return canAccessSchoolOpsSettings(session);
+    case "school_year":
+    case "structure_copy":
+      return canAccessSchoolStructureSettings(session);
     case "support_settings":
       return canAccessSupportSettings(session);
     case "fiches":

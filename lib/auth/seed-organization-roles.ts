@@ -6,6 +6,108 @@
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getOrgRolePresetSeedRows } from "@/lib/org/role-presets";
+import { ORG_ROLE } from "@/lib/permissions";
+
+const LEADERSHIP_ROLE_SLUGS = [
+  ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.DIRECTEUR_ETUDES,
+] as const;
+
+function parsePermissionJson(raw: string | null | undefined): Record<string, string[]> {
+  if (!raw?.trim()) return {};
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    const out: Record<string, string[]> = {};
+    for (const [key, value] of Object.entries(parsed)) {
+      if (Array.isArray(value)) out[key] = value.map(String);
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+/** Ancien preset leadership : finance / inscription, ou trop de paramètres établissement. */
+function isStaleLeadershipPermission(permission: Record<string, string[]>): boolean {
+  return (
+    (permission.inscription?.length ?? 0) > 0 ||
+    (permission.candidatures?.length ?? 0) > 0 ||
+    (permission.finance?.length ?? 0) > 0 ||
+    (permission.fees?.length ?? 0) > 0 ||
+    (permission.schoolYear?.length ?? 0) > 0 ||
+    (permission.structureCopy?.length ?? 0) > 0 ||
+    (permission.settings?.length ?? 0) > 0
+  );
+}
+
+/** Ancien preset directeur des études : CRUD enseignants, ou trop de paramètres établissement. */
+function isStaleDirecteurEtudesPermission(
+  permission: Record<string, string[]>,
+): boolean {
+  const teacher = permission.teacher ?? [];
+  if (
+    teacher.includes("create") ||
+    teacher.includes("update") ||
+    teacher.includes("delete")
+  ) {
+    return true;
+  }
+  return isStaleLeadershipPermission(permission);
+}
+
+function isStaleLeadershipRolePermission(
+  role: string,
+  permission: Record<string, string[]>,
+): boolean {
+  if (role === ORG_ROLE.DIRECTEUR_ETUDES) {
+    return isStaleDirecteurEtudesPermission(permission);
+  }
+  return isStaleLeadershipPermission(permission);
+}
+
+/**
+ * Réaligne les presets système chef d'établissement si la base contient encore
+ * l'ancienne matrice (finance / inscription, ou trop de paramètres établissement).
+ */
+export async function syncStaleLeadershipRolePresets(
+  organizationId: string,
+): Promise<number> {
+  const seedBySlug = new Map(
+    getOrgRolePresetSeedRows()
+      .filter((row) =>
+        LEADERSHIP_ROLE_SLUGS.includes(
+          row.slug as (typeof LEADERSHIP_ROLE_SLUGS)[number],
+        ),
+      )
+      .map((row) => [row.slug, row.permission] as const),
+  );
+
+  const rows = await prisma.organizationRole.findMany({
+    where: {
+      organizationId,
+      role: { in: [...LEADERSHIP_ROLE_SLUGS] },
+      isSystem: true,
+    },
+    select: { id: true, role: true, permission: true },
+  });
+
+  let updated = 0;
+  for (const row of rows) {
+    const permission = parsePermissionJson(row.permission);
+    const next = seedBySlug.get(row.role);
+    if (!next || !isStaleLeadershipRolePermission(row.role, permission)) continue;
+
+    await prisma.organizationRole.update({
+      where: { id: row.id },
+      data: { permission: next },
+    });
+    updated += 1;
+  }
+
+  return updated;
+}
 
 export type SeedOrganizationRolesOptions = {
   organizationId?: string;

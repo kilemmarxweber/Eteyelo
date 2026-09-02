@@ -11,6 +11,7 @@ import {
   canAccessScheduleReadArea,
   canAccessBranchOrgSettings,
   canAccessSchoolOpsSettings,
+  canAccessSchoolStructureSettings,
   canAccessSupportSettings,
   canAccessTeachingArea,
   canManageHrDirectory,
@@ -105,9 +106,9 @@ test("isSchoolLeadershipRole = prefet + directeur + superviseur", () => {
   assert.equal(isSchoolLeadershipRole(sessionCaissier), false);
 });
 
-test("canAccessRegistrationArea : caissier et school admin oui, teacher non", () => {
+test("canAccessRegistrationArea : caissier oui, directeur non, teacher non", () => {
   assert.equal(canAccessRegistrationArea(sessionCaissier), true);
-  assert.equal(canAccessRegistrationArea(sessionDirecteur), true);
+  assert.equal(canAccessRegistrationArea(sessionDirecteur), false);
   assert.equal(canAccessRegistrationArea(sessionTeacher), false);
 });
 
@@ -186,21 +187,35 @@ test("settings : propriétaire (owner) a org + school_ops (périodes, année, do
   );
 });
 
-test("settings : chef école ops + support ; caissier/enseignant support seulement", () => {
+test("settings : chef école ops (calendrier/périodes) ; pas support ; caissier/enseignant support seulement", () => {
   assert.equal(canAccessSchoolOpsSettings(sessionDirecteur), true);
   assert.equal(canAccessSchoolOpsSettings(sessionPrefet), true);
+  assert.equal(
+    canAccessSchoolOpsSettings(sessionWithOrgRole(ORG_ROLE.DIRECTEUR_ETUDES)),
+    true,
+  );
   assert.equal(canAccessSchoolOpsSettings(sessionCaissier), false);
   assert.equal(canAccessSchoolOpsSettings(sessionTeacher), false);
-  assert.equal(canAccessSupportSettings(sessionDirecteur), true);
+  assert.equal(canAccessSchoolStructureSettings(sessionDirecteur), false);
+  assert.equal(
+    canAccessSchoolStructureSettings(sessionWithOrgRole(ORG_ROLE.DIRECTEUR_ETUDES)),
+    false,
+  );
+  assert.equal(
+    canAccessSchoolStructureSettings(sessionWithOrgRole(ORG_ROLE.GESTIONNAIRE)),
+    true,
+  );
+  assert.equal(canAccessSupportSettings(sessionDirecteur), false);
   assert.equal(canAccessSupportSettings(sessionCaissier), true);
   assert.equal(canAccessSupportSettings(sessionTeacher), true);
   assert.equal(canAccessSupportSettings(sessionStudent), false);
 });
 
-test("notifications : caissier inscription oui, candidature non", () => {
+test("notifications : caissier inscription oui, candidature non ; prefet candidature non", () => {
   assert.equal(canSeeInscriptionNotifications(sessionCaissier), true);
   assert.equal(canSeeCandidatureNotifications(sessionCaissier), false);
-  assert.equal(canSeeCandidatureNotifications(sessionPrefet), true);
+  assert.equal(canSeeCandidatureNotifications(sessionPrefet), false);
+  assert.equal(canSeeInscriptionNotifications(sessionPrefet), false);
 });
 
 test("absences : pref / directeur / propriétaire examinent, pas élève ni caissier", () => {

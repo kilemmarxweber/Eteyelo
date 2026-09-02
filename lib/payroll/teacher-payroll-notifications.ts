@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getBranchAbsenceReviewers } from "@/lib/email/get-branch-manager-emails";
+import { getBranchPayrollOwners } from "@/lib/email/get-branch-manager-emails";
 import { sendPayrollDeductionEmail } from "@/lib/email/send-payroll-notification-email";
 import { CURRENCY_LABELS, getBaseCurrency, roundCurrency } from "@/lib/exchange-rate";
 import { prisma } from "@/lib/prisma";
@@ -206,15 +206,15 @@ export async function notifyTeacherPayrollImpact(input: {
     },
   });
 
-  const reviewers = await getBranchAbsenceReviewers({
+  const owners = await getBranchPayrollOwners({
     branchId: input.branchId,
     organizationId: input.organizationId,
   });
   const todayStart = startOfTodayParis();
-  for (const reviewer of reviewers.filter((r) => r.userId !== user.id)) {
+  for (const owner of owners.filter((r) => r.userId !== user.id)) {
     const existing = await prisma.appNotification.findFirst({
       where: {
-        userId: reviewer.userId,
+        userId: owner.userId,
         branchId: input.branchId,
         type: "PAYROLL_DEDUCTION",
         readAt: null,
@@ -225,7 +225,6 @@ export async function notifyTeacherPayrollImpact(input: {
     });
 
     if (existing) {
-      // Incrémenter le compteur dans la notification existante
       const countMatch = existing.body.match(/^(\d+) impact/);
       const currentCount = countMatch ? parseInt(countMatch[1], 10) : 1;
       await prisma.appNotification.update({
@@ -240,7 +239,7 @@ export async function notifyTeacherPayrollImpact(input: {
         data: {
           branchId: input.branchId,
           organizationId: input.organizationId,
-          userId: reviewer.userId,
+          userId: owner.userId,
           type: "PAYROLL_DEDUCTION",
           title: "Impact paie enseignant",
           body: `${user.name} · ${body}`,

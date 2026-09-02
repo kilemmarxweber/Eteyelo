@@ -46,7 +46,8 @@ export type BranchArea =
   | "school_year"
   | "periods"
   | "structure_copy"
-  | "roles_privileges";
+  | "roles_privileges"
+  | "candidatures";
 
 /** Permission minimale pour ENTRER dans une zone (souvent `read`). */
 export const BRANCH_AREA_PERMISSION: Record<
@@ -90,6 +91,7 @@ export const BRANCH_AREA_PERMISSION: Record<
   periods: { periods: ["read"] },
   structure_copy: { structureCopy: ["read"] },
   roles_privileges: { ac: ["read"] },
+  candidatures: { candidatures: ["read"] },
 };
 
 /**
@@ -98,6 +100,7 @@ export const BRANCH_AREA_PERMISSION: Record<
  */
 export const SIDEBAR_HREF_BRANCH_AREA: Record<string, BranchArea> = {
   "/admin/registration": "registration",
+  "/admin/candidatures": "candidatures",
   "/admin/attendance": "attendance",
   "/admin/cours": "courses",
   "/admin/coursPonderationOption": "ponderations",
@@ -131,13 +134,14 @@ export const SETTINGS_HREF_BRANCH_AREA: Record<string, BranchArea> = {
   "exchange-rates": "exchange_rates",
   whatsapp: "branch_org_settings",
   messagerie: "branch_org_settings",
-  bibliotheque: "library",
+  bibliotheque: "branch_org_settings",
   "inscription-publique": "public_communication",
   calendar: "school_calendar",
   "annee-scolaire": "school_year",
   periodes: "periods",
-  attendance: "attendance",
+  attendance: "branch_org_settings",
   "structure-merge": "structure_copy",
+  "primary-domains": "school_year",
   support: "support_settings",
 };
 

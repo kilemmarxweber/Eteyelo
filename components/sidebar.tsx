@@ -36,6 +36,10 @@ export default function Sidebar({
 }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const organizationIdFromPath = pathname.match(
+    /^\/admin\/organizations\/([^/]+)/,
+  )?.[1];
+  const branchIdFromPath = pathname.match(/\/branches\/([^/]+)/)?.[1];
   const [navOpened, setNavOpened] = useState(false);
   const [branchName, setBranchName] = useState<string | null>(null);
   const [branchLogo, setBranchLogo] = useState<string | null>(null);
@@ -46,6 +50,7 @@ export default function Sidebar({
   const [branchLoaded, setBranchLoaded] = useState(false);
   /** false tant que la matrice DAC n'a pas répondu (évite un flash faux). */
   const [dacReady, setDacReady] = useState(false);
+  const [dacStrictMenu, setDacStrictMenu] = useState(false);
   // Masquer les menus DAC jusqu'à la réponse serveur : ils ne doivent jamais
   // apparaître brièvement avant l'application du privilège « Voir ».
   const [hideHrefs, setHideHrefs] = useState<string[]>(
@@ -64,25 +69,56 @@ export default function Sidebar({
   useEffect(() => {
     if (!menuReady || !session?.user?.id) {
       setDacReady(false);
+      setDacStrictMenu(false);
       setHideHrefs(Object.keys(SIDEBAR_HREF_BRANCH_AREA));
       return;
     }
+
+    const organizationId =
+      organizationIdFromPath ??
+      session.organization?.id ??
+      session.session?.activeOrganizationId ??
+      null;
+    const branchId =
+      branchIdFromPath ??
+      session.branch?.id ??
+      session.session?.activeBranchId ??
+      null;
+
+    if (!organizationId) {
+      setDacReady(false);
+      setDacStrictMenu(false);
+      setHideHrefs(Object.keys(SIDEBAR_HREF_BRANCH_AREA));
+      return;
+    }
+
     let ignore = false;
-    void getSidebarPermissionFlagsAction()
-      .then((flags) => {
-        if (ignore) return;
-        setHideHrefs(flags.hideHrefs);
-        setDacReady(true);
-      })
-      .catch(() => {
-        if (ignore) return;
-        // En cas d'échec de résolution, ne pas afficher par erreur un menu
-        // protégé par un privilège non vérifié.
-        setHideHrefs(Object.keys(SIDEBAR_HREF_BRANCH_AREA));
-        setDacReady(true);
-      });
+
+    const loadFlags = () => {
+      void getSidebarPermissionFlagsAction({ organizationId, branchId })
+        .then((flags) => {
+          if (ignore) return;
+          setHideHrefs(flags.hideHrefs);
+          setDacStrictMenu(flags.dacStrictMenu);
+          setDacReady(true);
+        })
+        .catch(() => {
+          if (ignore) return;
+          setHideHrefs(Object.keys(SIDEBAR_HREF_BRANCH_AREA));
+          setDacStrictMenu(false);
+          setDacReady(true);
+        });
+    };
+
+    loadFlags();
+    const interval = setInterval(loadFlags, 10000);
+    const onFocus = () => loadFlags();
+    window.addEventListener("focus", onFocus);
+
     return () => {
       ignore = true;
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
     };
   }, [
     menuReady,
@@ -91,6 +127,8 @@ export default function Sidebar({
     session?.session?.activeOrganizationId,
     session?.session?.activeBranchId,
     session?.branchMemberRole,
+    organizationIdFromPath,
+    branchIdFromPath,
   ]);
 
   const sessionForLinks = menuReady ? session : null;
@@ -102,6 +140,7 @@ export default function Sidebar({
     {
       hideHrefs,
       dacReady,
+      dacStrictMenu,
     },
   );
   const links = useMemo(() => {

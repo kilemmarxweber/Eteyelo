@@ -31,11 +31,11 @@ import {
   canAccessSchoolOpsSettings,
   canAccessSupportSettings,
   hasSessionRole,
+  isDirecteurEtudesRole,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 import { getSidebarPermissionFlagsAction } from "@/lib/auth/sidebar-permission-flags.action";
 import { ORG_ROLE } from "@/lib/permissions";
-import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
 import { getBranchTypeAction } from "../classe/classe.action";
 import SidebarNav from "./components/sidebar-nav";
 import { useTranslations } from "next-intl";
@@ -51,6 +51,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
   const [settingsReads, setSettingsReads] = useState<Record<string, boolean>>(
     {},
   );
+  const [settingsFlagsReady, setSettingsFlagsReady] = useState(false);
   const sessionReady = hasMounted && !isPending;
 
   useEffect(() => {
@@ -75,18 +76,54 @@ export default function Settings({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!sessionReady || !session?.user?.id) {
       setSettingsReads({});
+      setSettingsFlagsReady(false);
       return;
     }
+
+    const organizationId =
+      pathname.match(/^\/admin\/organizations\/([^/]+)/)?.[1] ??
+      session.organization?.id ??
+      session.session?.activeOrganizationId ??
+      null;
+    const branchId =
+      pathname.match(/\/branches\/([^/]+)/)?.[1] ??
+      session.branch?.id ??
+      session.session?.activeBranchId ??
+      null;
+
+    if (!organizationId) {
+      setSettingsReads({});
+      setSettingsFlagsReady(false);
+      return;
+    }
+
     let ignore = false;
-    void getSidebarPermissionFlagsAction()
-      .then((flags) => {
-        if (!ignore) setSettingsReads(flags.settingsReads);
-      })
-      .catch(() => {
-        if (!ignore) setSettingsReads({});
-      });
+
+    const loadFlags = () => {
+      void getSidebarPermissionFlagsAction({ organizationId, branchId })
+        .then((flags) => {
+          if (!ignore) {
+            setSettingsReads(flags.settingsReads);
+            setSettingsFlagsReady(true);
+          }
+        })
+        .catch(() => {
+          if (!ignore) {
+            setSettingsReads({});
+            setSettingsFlagsReady(true);
+          }
+        });
+    };
+
+    loadFlags();
+    const interval = setInterval(loadFlags, 10000);
+    const onFocus = () => loadFlags();
+    window.addEventListener("focus", onFocus);
+
     return () => {
       ignore = true;
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
     };
   }, [
     sessionReady,
@@ -95,17 +132,18 @@ export default function Settings({ children }: { children: React.ReactNode }) {
     session?.session?.activeOrganizationId,
     session?.session?.activeBranchId,
     session?.branchMemberRole,
+    pathname,
   ]);
 
-  const isBranchOwner = sessionReady && isBranchOwnerSession(session);
+  const hasFullBranchAccess = sessionReady && isOrganizationOwnerSession(session);
   const canSeeOrgSettings =
-    sessionReady && (isBranchOwner || canAccessBranchOrgSettings(session));
+    sessionReady && (hasFullBranchAccess || canAccessBranchOrgSettings(session));
   const canSeeOwnerSettings =
-    sessionReady && (isBranchOwner || isOrganizationOwnerSession(session));
+    sessionReady && hasFullBranchAccess;
   const canSeeSchoolOps =
-    sessionReady && (isBranchOwner || canAccessSchoolOpsSettings(session));
+    sessionReady && (hasFullBranchAccess || canAccessSchoolOpsSettings(session));
   const canSeeSupport =
-    sessionReady && (isBranchOwner || canAccessSupportSettings(session));
+    sessionReady && (hasFullBranchAccess || canAccessSupportSettings(session));
   const resolvedBranchType =
     branchType ?? session?.branch?.typebranch ?? null;
   const showPrimaryDomains =
@@ -120,6 +158,10 @@ export default function Settings({ children }: { children: React.ReactNode }) {
       "PARENT",
       "parent",
     ]);
+  const isMinimalSettingsUser =
+    sessionReady &&
+    !hasFullBranchAccess &&
+    (isCursusSelfUser || isDirecteurEtudesRole(session));
 
   const branchBasePath =
     pathname?.match(/^\/admin\/organizations\/[^/]+\/branches\/[^/]+/)?.[0] ??
@@ -127,13 +169,24 @@ export default function Settings({ children }: { children: React.ReactNode }) {
   const settingsBasePath = `${branchBasePath}/settings`;
 
   const sidebarNavItems = useMemo(() => {
-    // Élève / parent : profil + mot de passe uniquement (unit-05).
-    if (isCursusSelfUser && !canSeeOrgSettings && !canSeeSchoolOps) {
+    const hasAnySettingsAccess = Object.values(settingsReads).some(Boolean);
+
+    // Élève / parent / directeur des études : profil, apparence, mot de passe
+    // (sauf octroi temporaire explicite sur un sous-menu, une fois les flags chargés).
+    if (
+      isMinimalSettingsUser &&
+      (!settingsFlagsReady || !hasAnySettingsAccess)
+    ) {
       return [
         {
           title: t("profile"),
           icon: <IconUser size={18} />,
           href: settingsBasePath,
+        },
+        {
+          title: t("appearance"),
+          icon: <IconPalette size={18} />,
+          href: `${settingsBasePath}/appearance`,
         },
         {
           title: t("password"),
@@ -258,6 +311,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         icon: <IconBooks size={18} />,
         href: `${settingsBasePath}/primary-domains`,
         access: "school_ops",
+        dacKey: "primary-domains",
         primaryOnly: true,
       },
       {
@@ -288,14 +342,13 @@ export default function Settings({ children }: { children: React.ReactNode }) {
 
     return items
       .filter((item) => {
-        if (!canAccess(item.access)) return false;
         if (item.primaryOnly && !showPrimaryDomains) return false;
-        // Propriétaire de branche : les flags DAC org (`user`) ne doivent
-        // pas masquer les paramètres déjà autorisés via isBranchOwner.
-        if (isBranchOwner) return true;
-        if (item.dacKey && Object.keys(settingsReads).length > 0) {
+        if (hasFullBranchAccess) return true;
+        if (item.dacKey) {
+          if (Object.keys(settingsReads).length === 0) return false;
           return settingsReads[item.dacKey] === true;
         }
+        if (!canAccess(item.access)) return false;
         return true;
       })
       .map(({ access: _, primaryOnly: __, dacKey: ___, ...item }) => item);
@@ -306,9 +359,10 @@ export default function Settings({ children }: { children: React.ReactNode }) {
     canSeeOwnerSettings,
     canSeeSchoolOps,
     canSeeSupport,
-    isBranchOwner,
+    hasFullBranchAccess,
     showPrimaryDomains,
-    isCursusSelfUser,
+    isMinimalSettingsUser,
+    settingsFlagsReady,
     settingsReads,
   ]);
 

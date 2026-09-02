@@ -220,7 +220,10 @@ const SCHOOL_MODULE_RESOURCES = [
  * Actions métier (membres, branches, pédagogie, inscription) sans droits
  * d’administration org Better Auth (organization / invitation / team / ac).
  */
-function withBusinessActions(actions: readonly CrudAction[]): StatementShape {
+function withBusinessActions(
+  actions: readonly CrudAction[],
+  options?: { omitInscription?: boolean },
+): StatementShape {
   const actionSet = new Set(actions);
   const shape: Record<string, readonly string[]> = {};
 
@@ -228,18 +231,20 @@ function withBusinessActions(actions: readonly CrudAction[]): StatementShape {
     shape[resource] = actions;
   }
 
-  const inscriptionActions: Array<
-    "create" | "read" | "share" | "update" | "delete"
-  > = [];
-  if (actionSet.has("create")) inscriptionActions.push("create");
-  if (actionSet.has("read") || actionSet.has("create")) {
-    inscriptionActions.push("read");
-  }
-  if (actionSet.has("read")) inscriptionActions.push("share");
-  if (actionSet.has("update")) inscriptionActions.push("update");
-  if (actionSet.has("delete")) inscriptionActions.push("delete");
-  if (inscriptionActions.length > 0) {
-    shape.inscription = [...new Set(inscriptionActions)];
+  if (!options?.omitInscription) {
+    const inscriptionActions: Array<
+      "create" | "read" | "share" | "update" | "delete"
+    > = [];
+    if (actionSet.has("create")) inscriptionActions.push("create");
+    if (actionSet.has("read") || actionSet.has("create")) {
+      inscriptionActions.push("read");
+    }
+    if (actionSet.has("read")) inscriptionActions.push("share");
+    if (actionSet.has("update")) inscriptionActions.push("update");
+    if (actionSet.has("delete")) inscriptionActions.push("delete");
+    if (inscriptionActions.length > 0) {
+      shape.inscription = [...new Set(inscriptionActions)];
+    }
   }
 
   return shape as StatementShape;
@@ -273,6 +278,33 @@ function withSchoolModuleActions(
   }
 
   return shape as StatementShape;
+}
+
+/** Finance + paramètres établissement hors calendrier / communication / périodes. */
+const LEADERSHIP_DEFAULT_OMIT = [
+  "candidatures",
+  "fees",
+  "feeTypes",
+  "exchangeRates",
+  "schoolYear",
+  "structureCopy",
+  "settings",
+] as const satisfies ReadonlyArray<
+  (typeof SCHOOL_MODULE_RESOURCES)[number]
+>;
+
+function leadershipSchoolPreset(
+  options?: Parameters<typeof withSchoolModuleActions>[1],
+) {
+  return withSchoolModuleActions(CRU_ACTIONS, {
+    includeTeachingAssign: true,
+    omit: [...LEADERSHIP_DEFAULT_OMIT],
+    ...options,
+  });
+}
+
+function leadershipBusinessPreset() {
+  return withBusinessActions(CRU_ACTIONS, { omitInscription: true });
 }
 
 function withFinanceActions(
@@ -419,33 +451,31 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     ...MESSAGING_STAFF,
   },
   /**
-   * Préfet / Directeur (chef d’établissement) : CRU métier branche + RH + pédagogie.
-   * Sans droits d’admin org (archive / invitations / AC dynamique).
-   * Sans finance (aligné `canAccessFinanceArea` — enforcement session jusqu’à P8).
+   * Préfet / Directeur (chef d’établissement) : CRU pédagogie + RH.
+   * Sans finance, inscription ni candidatures (octroi temporaire possible).
+   * Paramètres par défaut : calendrier, communication publique, périodes.
    */
   [ORG_ROLE.PREFET]: {
-    ...withBusinessActions(CRU_ACTIONS),
-    ...withSchoolModuleActions(CRU_ACTIONS, { includeTeachingAssign: true }),
+    ...leadershipBusinessPreset(),
+    ...leadershipSchoolPreset(),
     ...MESSAGING_STAFF,
   },
   [ORG_ROLE.DIRECTEUR]: {
-    ...withBusinessActions(CRU_ACTIONS),
-    ...withSchoolModuleActions(CRU_ACTIONS, { includeTeachingAssign: true }),
+    ...leadershipBusinessPreset(),
+    ...leadershipSchoolPreset(),
     ...MESSAGING_STAFF,
   },
   /**
-   * Directeur des études : CRU pédagogique (teacher / schedule / inscription / notes…).
-   * `personnel` / `parent` en lecture seule — pas finance.
-   * Settings partiel (ops scolaires lecture/update).
+   * Directeur des études : CRU pédagogique, RH lecture seule, enseignants lecture.
+   * Sans finance, inscription ni candidatures (octroi temporaire possible).
+   * Paramètres par défaut : calendrier, communication publique, périodes.
    */
   [ORG_ROLE.DIRECTEUR_ETUDES]: {
-    ...withBusinessActions(CRU_ACTIONS),
-    ...withSchoolModuleActions(CRU_ACTIONS, {
-      includeTeachingAssign: true,
-      settingsActions: ["read", "update"],
-    }),
+    ...leadershipBusinessPreset(),
+    ...leadershipSchoolPreset(),
     personnel: ["read"],
     parent: ["read"],
+    teacher: ["read"],
     ...MESSAGING_STAFF,
   },
   [ORG_ROLE.TEACHER]: {

@@ -342,11 +342,9 @@ test("nouveaux roles org exposes avec actions 1A / unit-02", () => {
   assert.deepEqual(organizationRoleStatements[ORG_ROLE.DIRECTEUR_ETUDES].parent, [
     "read",
   ]);
-  assert.ok(
-    organizationRoleStatements[ORG_ROLE.DIRECTEUR_ETUDES].teacher?.includes(
-      "create",
-    ),
-  );
+  assert.deepEqual(organizationRoleStatements[ORG_ROLE.DIRECTEUR_ETUDES].teacher, [
+    "read",
+  ]);
   assert.deepEqual(
     organizationRoleStatements[ORG_ROLE.SUPERVISEUR].member,
     ["create", "read", "update", "delete"],
@@ -412,11 +410,13 @@ test("caissier n'a plus CRU pedagogique (unit-02)", () => {
   );
 });
 
-test("prefet / directeur restent operationnels inscription / classes", () => {
+test("prefet / directeur : pédagogie — pas inscription / candidatures / finance", () => {
   for (const role of [ORG_ROLE.PREFET, ORG_ROLE.DIRECTEUR] as const) {
     const statements = organizationRoleStatements[role];
-    assert.ok(statements.inscription?.includes("create"), `${role} inscription:create`);
-    assert.ok(statements.inscription?.includes("update"), `${role} inscription:update`);
+    assert.equal(statements.inscription, undefined, `${role} inscription`);
+    assert.equal(statements.candidatures, undefined, `${role} candidatures`);
+    assert.equal(statements.finance, undefined, `${role} finance`);
+    assert.equal(statements.fees, undefined, `${role} fees`);
     assert.ok(statements.schedule?.includes("create"), `${role} schedule:create`);
     assert.ok(statements.teacher?.includes("update"), `${role} teacher:update`);
     assert.ok(statements.member?.includes("create"), `${role} member:create`);
@@ -425,12 +425,19 @@ test("prefet / directeur restent operationnels inscription / classes", () => {
       `${role} personnel:create (chef établissement)`,
     );
   }
+  const etudes = organizationRoleStatements[ORG_ROLE.DIRECTEUR_ETUDES];
+  assert.equal(etudes.inscription, undefined);
+  assert.equal(etudes.candidatures, undefined);
+  assert.equal(etudes.finance, undefined);
   assert.equal(
-    organizationRoleStatements[ORG_ROLE.DIRECTEUR_ETUDES].personnel?.includes(
-      "create",
-    ) ?? false,
+    etudes.personnel?.includes("create") ?? false,
     false,
   );
+  assert.ok(etudes.publicCommunication?.includes("read"));
+  assert.ok(etudes.schoolCalendar?.includes("read"));
+  assert.ok(etudes.periods?.includes("read"));
+  assert.equal(etudes.schoolYear, undefined);
+  assert.equal(etudes.settings, undefined);
 });
 
 test("groupe Acces branche coherent avec statements caissier/teacher/student/parent", () => {

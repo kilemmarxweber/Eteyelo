@@ -214,7 +214,7 @@ test("directeur_etudes : pédagogie OK ; /paiement refusé ; HR lecture seule", 
   assertAreas(
     ORG_ROLE.DIRECTEUR_ETUDES,
     ["school_admin", "pedagogy", "notes", "hr_directory"],
-    ["finance", "hr_write", "branch_org_settings"],
+    ["finance", "hr_write", "branch_org_settings", "school_year", "support_settings"],
   );
 });
 
@@ -227,8 +227,8 @@ test("directeur/préfet : pédagogie sans finance ; pas owner org", () => {
     assert.ok(titles.includes("Classes"));
     assertAreas(
       role,
-      ["school_admin", "hr_write", "school_ops_settings", "support_settings"],
-      ["finance", "branch_org_settings"],
+      ["school_admin", "hr_write", "school_ops_settings", "public_communication", "school_calendar", "periods"],
+      ["finance", "branch_org_settings", "school_year", "structure_copy", "support_settings"],
     );
 
     const session = sessionWithOrgRole(role);

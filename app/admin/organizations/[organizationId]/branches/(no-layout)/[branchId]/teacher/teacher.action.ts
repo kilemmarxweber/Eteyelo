@@ -15,8 +15,10 @@ import {
   resolveAccessibleCycles,
   sessionCanViewAllDirectoryUsers,
 } from "@/lib/auth/cycle-scope";
+import { isPermissionsFromDacEnabled } from "@/lib/auth/branch-area-permissions";
+import { checkOrganizationPermission } from "@/lib/auth/has-organization-permission";
 import {
-  canManageOrganization,
+  canManageTeachers as sessionCanManageTeachers,
   getSessionRoles,
   hasSessionRole,
   isOrganizationOwnerSession,
@@ -184,13 +186,27 @@ export async function getCurrentBranch() {
   });
   const roles = getSessionRoles(session, branchMember?.role);
 
+  let canManageTeachers = false;
+  if (isOrganizationOwnerSession(session, branchMember?.role)) {
+    canManageTeachers = true;
+  } else if (isPermissionsFromDacEnabled()) {
+    const permission = await checkOrganizationPermission(
+      organizationId,
+      { teacher: ["create"] },
+      { branchId },
+    );
+    canManageTeachers = permission.ok;
+  } else {
+    canManageTeachers = sessionCanManageTeachers(session, branchMember?.role);
+  }
+
   return {
     branchId,
     organizationId,
     userId: session.user.id,
     roles,
     branchMemberId: branchMember?.id ?? null,
-    canManageTeachers: canManageOrganization(session, branchMember?.role),
+    canManageTeachers,
     canPurgePermanently: isOrganizationOwnerSession(session, branchMember?.role),
     isTeacher: hasSessionRole(
       session,

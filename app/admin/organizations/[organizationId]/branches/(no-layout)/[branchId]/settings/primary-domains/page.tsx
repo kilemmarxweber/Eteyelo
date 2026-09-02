@@ -254,7 +254,7 @@ export default function PrimaryDomainsSettingsPage() {
 
   if (loaded && !isPrimary) {
     return (
-      <RequireBranchOrgSettingsAccess level="school_ops">
+      <RequireBranchOrgSettingsAccess>
         <div className="space-y-2">
           <h2 className="text-xl font-semibold">Domaines primaire</h2>
           <p className="text-sm text-muted-foreground">
@@ -266,7 +266,7 @@ export default function PrimaryDomainsSettingsPage() {
   }
 
   return (
-    <RequireBranchOrgSettingsAccess level="school_ops">
+    <RequireBranchOrgSettingsAccess>
       <div className="space-y-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">

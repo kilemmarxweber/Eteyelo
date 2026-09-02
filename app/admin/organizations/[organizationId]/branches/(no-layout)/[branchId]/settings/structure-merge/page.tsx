@@ -24,7 +24,7 @@ export default async function StructureMergeSettingsPage({
   const result = await listOrganizationBranchesForMergeAction(organizationId);
 
   return (
-    <RequireBranchOrgSettingsAccess level="school_ops">
+    <RequireBranchOrgSettingsAccess>
       <div className="space-y-6">
         <div>
           <div className="flex flex-wrap items-center gap-2">

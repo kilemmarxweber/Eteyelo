@@ -1,3 +1,3 @@
-﻿import AssertSchoolOpsSettingsLayout from "../components/assert-school-ops-settings-layout";
+﻿import { createSettingsAreaLayout } from "../components/assert-settings-area-layout";
 
-export default AssertSchoolOpsSettingsLayout;
+export default createSettingsAreaLayout("school_calendar");

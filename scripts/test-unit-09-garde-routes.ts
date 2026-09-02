@@ -130,8 +130,26 @@ test("Enseignant → /paiement refusé ; /notes /library OK", () => {
 test("Directeur des études → /paiement refusé ; /classe /teaching OK", () => {
   assertAreas(
     sessionEtudes,
-    ["school_admin", "pedagogy", "notes", "schedule", "results", "hr_directory"],
-    ["finance", "hr_write", "branch_org_settings"],
+    [
+      "school_admin",
+      "pedagogy",
+      "notes",
+      "schedule",
+      "results",
+      "hr_directory",
+      "public_communication",
+      "school_calendar",
+      "periods",
+      "school_ops_settings",
+    ],
+    [
+      "finance",
+      "hr_write",
+      "branch_org_settings",
+      "school_year",
+      "structure_copy",
+      "support_settings",
+    ],
   );
 });
 
@@ -146,14 +164,22 @@ test("Chef établissement (directeur ou préfet) → pédagogie OK ; /paiement r
         "hr_directory",
         "hr_write",
         "school_ops_settings",
+        "public_communication",
+        "school_calendar",
+        "periods",
+      ],
+      [
+        "finance",
+        "branch_org_settings",
+        "school_year",
+        "structure_copy",
         "support_settings",
       ],
-      ["finance", "branch_org_settings"],
     );
   }
 });
 
-test("Settings org avancés → refusés pour chef école / études ; ops/support OK chef", () => {
+test("Settings org avancés → refusés pour chef école / études ; calendrier/périodes OK", () => {
   assert.equal(
     canAccessBranchArea("branch_org_settings", sessionDirecteur),
     false,
@@ -162,6 +188,15 @@ test("Settings org avancés → refusés pour chef école / études ; ops/suppor
     canAccessBranchArea("school_ops_settings", sessionDirecteur),
     true,
   );
+  assert.equal(canAccessBranchArea("school_year", sessionDirecteur), false);
+  assert.equal(canAccessBranchArea("structure_copy", sessionDirecteur), false);
+  assert.equal(canAccessBranchArea("school_calendar", sessionDirecteur), true);
+  assert.equal(canAccessBranchArea("periods", sessionDirecteur), true);
+  assert.equal(
+    canAccessBranchArea("public_communication", sessionDirecteur),
+    true,
+  );
+  assert.equal(canAccessBranchArea("support_settings", sessionDirecteur), false);
   assert.equal(
     canAccessBranchArea("support_settings", sessionCaissier),
     true,
@@ -174,6 +209,8 @@ test("Settings org avancés → refusés pour chef école / études ; ops/suppor
     canAccessBranchArea("branch_org_settings", sessionEtudes),
     false,
   );
+  assert.equal(canAccessBranchArea("school_calendar", sessionEtudes), true);
+  assert.equal(canAccessBranchArea("school_year", sessionEtudes), false);
   assert.equal(
     canAccessBranchArea("branch_org_settings", sessionGestionnaire),
     true,
@@ -233,6 +270,38 @@ test("paie → propriétaire uniquement", () => {
       `${role} ne doit pas accéder à la paie`,
     );
   }
+});
+
+test("DAC seed : direction voit calendrier/périodes/communication, pas année ni settings génériques", () => {
+  process.env.PERMISSIONS_FROM_DAC = "true";
+  for (const role of [
+    ORG_ROLE.DIRECTEUR,
+    ORG_ROLE.PREFET,
+    ORG_ROLE.DIRECTEUR_ETUDES,
+  ] as const) {
+    const session = sessionWithOrgRole(role);
+    assert.equal(canAccessBranchArea("school_calendar", session), true, role);
+    assert.equal(canAccessBranchArea("periods", session), true, role);
+    assert.equal(
+      canAccessBranchArea("public_communication", session),
+      true,
+      role,
+    );
+    assert.equal(canAccessBranchArea("school_year", session), false, role);
+    assert.equal(canAccessBranchArea("structure_copy", session), false, role);
+    assert.equal(
+      canAccessBranchArea("branch_org_settings", session),
+      false,
+      role,
+    );
+    assert.equal(
+      canAccessBranchArea("school_ops_settings", session),
+      false,
+      `${role} n'a plus settings:read générique`,
+    );
+    assert.equal(canAccessBranchArea("support_settings", session), false, role);
+  }
+  process.env.PERMISSIONS_FROM_DAC = "false";
 });
 
 test("paie avec DAC → un privilège payroll ne suffit pas sans propriétaire", () => {

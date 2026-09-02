@@ -121,6 +121,29 @@ export function isDirecteurEtudesRole(
   return hasSessionRole(session, [ORG_ROLE.DIRECTEUR_ETUDES], ...extraRoles);
 }
 
+/** CRUD enseignants (ajout / édition / archivage) — pas le directeur des études. */
+export function canManageTeachers(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  if (isBranchOwnerSession(session, ...extraRoles)) return true;
+  if (isDirecteurEtudesRole(session, ...extraRoles)) return false;
+  return canManageOrganization(session, ...extraRoles);
+}
+
+/** Notifications d'impact paie enseignant — propriétaire org uniquement. */
+export function canSeePayrollImpactNotifications(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  if (isOrganizationOwnerSession(session, ...extraRoles)) return true;
+  return hasSessionRole(
+    session,
+    [APP_ROLE.OWNER, APP_ROLE.ADMIN, ORG_ROLE.OWNER],
+    ...extraRoles,
+  );
+}
+
 /**
  * Finance (paiement, rapports caisse).
  * Gestion org + caissier. Chef d’établissement (préfet/directeur) exclu.
@@ -229,20 +252,51 @@ export function canAccessPedagogyArea(
 }
 
 /**
- * Inscription élèves : school admin (pédagogie) + caissier.
- * Ne donne pas accès aux autres zones school_admin (classes, candidatures…).
+ * Inscription élèves : gestionnaire, agent bureau, superviseur, caissier, owner.
+ * Préfet / directeur / directeur des études exclus (octroi temporaire ou matrice explicite).
  */
 export function canAccessRegistrationArea(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
-  return (
-    canAccessPedagogyArea(session, ...extraRoles) ||
-    hasSessionRole(
-      session,
-      [ORG_ROLE.CAISSIER, "CAISSIER", "ACCOUNTANT", "accountant"],
-      ...extraRoles,
-    )
+  if (isOrganizationOwnerSession(session, ...extraRoles)) return true;
+
+  return hasSessionRole(
+    session,
+    [
+      ...APP_MANAGER_ROLES,
+      ORG_ROLE.OWNER,
+      ORG_ROLE.GESTIONNAIRE,
+      ORG_ROLE.AGENT_BUREAU,
+      ORG_ROLE.SUPERVISEUR,
+      ORG_ROLE.CAISSIER,
+      "CAISSIER",
+      "ACCOUNTANT",
+      "accountant",
+    ],
+    ...extraRoles,
+  );
+}
+
+/**
+ * Candidatures (recrutement) : gestionnaire, superviseur, owner.
+ * Préfet / directeur / directeur des études exclus par défaut.
+ */
+export function canAccessCandidaturesArea(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  if (isOrganizationOwnerSession(session, ...extraRoles)) return true;
+
+  return hasSessionRole(
+    session,
+    [
+      ...APP_MANAGER_ROLES,
+      ORG_ROLE.OWNER,
+      ORG_ROLE.GESTIONNAIRE,
+      ORG_ROLE.SUPERVISEUR,
+    ],
+    ...extraRoles,
   );
 }
 
@@ -301,7 +355,7 @@ export function canDeleteOrganizationResource(
   return hasSessionRole(session, [APP_ROLE.OWNER], ...extraRoles);
 }
 
-/** Propriétaire plateforme (`APP_ROLE.OWNER`) ou propriétaire d'organisation (`ORG_ROLE.OWNER`). */
+/** Propriétaire plateforme, propriétaire d'organisation ou admin de branche — accès complet menus/zones branche. */
 export function isOrganizationOwnerSession(
   session: any,
   ...extraRoles: unknown[]
@@ -365,9 +419,9 @@ export function canAccessBranchOrgSettings(
 }
 
 /**
- * Structure scolaire (périodes, année scolaire, domaines primaire) +
- * communication publique / calendrier :
- * managers org (dont propriétaire) + chef d’établissement (préfet/directeur).
+ * Paramètres direction par défaut : calendrier scolaire, communication
+ * publique, périodes. Propriétaire / gestionnaire + préfet / directeur /
+ * directeur des études.
  */
 export function canAccessSchoolOpsSettings(
   session: any,
@@ -383,6 +437,7 @@ export function canAccessSchoolOpsSettings(
         "proprietaire",
         ORG_ROLE.PREFET,
         ORG_ROLE.DIRECTEUR,
+        ORG_ROLE.DIRECTEUR_ETUDES,
         "DIRECTOR",
         "director",
       ],
@@ -392,14 +447,26 @@ export function canAccessSchoolOpsSettings(
 }
 
 /**
- * Support établissement : ops école + caissier + enseignant + agents support.
+ * Structure scolaire avancée (année, fusion, domaines primaire) :
+ * propriétaire / gestionnaire uniquement — pas le directeur par défaut.
+ */
+export function canAccessSchoolStructureSettings(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return canAccessBranchOrgSettings(session, ...extraRoles);
+}
+
+/**
+ * Support établissement : propriétaire / gestionnaire + caissier +
+ * enseignant + agents support. Directeur / études exclus par défaut.
  */
 export function canAccessSupportSettings(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
   return (
-    canAccessSchoolOpsSettings(session, ...extraRoles) ||
+    canAccessBranchOrgSettings(session, ...extraRoles) ||
     hasSessionRole(
       session,
       [
@@ -418,7 +485,7 @@ export function canAccessSupportSettings(
   );
 }
 
-/** Notifications dépôt-candidature : owner, propriétaire, gestionnaire, chef école, études. */
+/** Notifications dépôt-candidature : owner, gestionnaire (pas chef école / études par défaut). */
 export function canSeeCandidatureNotifications(
   session: any,
   ...extraRoles: unknown[]
@@ -430,15 +497,12 @@ export function canSeeCandidatureNotifications(
       APP_ROLE.ADMIN,
       ORG_ROLE.OWNER,
       ORG_ROLE.GESTIONNAIRE,
-      ORG_ROLE.PREFET,
-      ORG_ROLE.DIRECTEUR,
-      ORG_ROLE.DIRECTEUR_ETUDES,
     ],
     ...extraRoles,
   );
 }
 
-/** Notifications inscription-élève : owner, propriétaire, gestionnaire, caissier, chef école. */
+/** Notifications inscription-élève : owner, gestionnaire, caissier (pas chef école par défaut). */
 export function canSeeInscriptionNotifications(
   session: any,
   ...extraRoles: unknown[]
@@ -451,8 +515,6 @@ export function canSeeInscriptionNotifications(
       ORG_ROLE.OWNER,
       ORG_ROLE.GESTIONNAIRE,
       ORG_ROLE.CAISSIER,
-      ORG_ROLE.PREFET,
-      ORG_ROLE.DIRECTEUR,
     ],
     ...extraRoles,
   );
