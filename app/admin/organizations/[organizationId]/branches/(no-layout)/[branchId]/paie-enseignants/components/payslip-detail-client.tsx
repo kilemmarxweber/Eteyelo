@@ -250,13 +250,14 @@ export default function PayslipDetailClient({
                   <th className="p-2">Statut</th>
                   <th className="p-2">Séance</th>
                   <th className="p-2">Motif</th>
-                  <th className="p-2">Montant</th>
+                  <th className="p-2">Valeur séance</th>
+                  <th className="p-2">Perte</th>
                 </tr>
               </thead>
               <tbody>
                 {sessionLines.length === 0 ? (
                   <tr>
-                    <td className="p-3 text-muted-foreground" colSpan={12}>
+                    <td className="p-3 text-muted-foreground" colSpan={13}>
                       Aucune séance sur cette période.
                     </td>
                   </tr>
@@ -318,7 +319,18 @@ export default function PayslipDetailClient({
                           {KIND_LABELS[line.kind] ?? line.kind}
                         </td>
                         <td className="p-2 whitespace-nowrap">
-                          {formatAmount(line.amount, payslip.currency)}
+                          {formatAmount(
+                            detail?.sessionGross ??
+                              (line.kind === "GROSS" ? line.amount : 0),
+                            payslip.currency,
+                          )}
+                        </td>
+                        <td className="p-2 whitespace-nowrap text-destructive">
+                          {line.kind === "ABSENCE" ||
+                          line.kind === "LATE" ||
+                          line.kind === "EARLY_EXIT"
+                            ? formatAmount(line.amount, payslip.currency)
+                            : "—"}
                         </td>
                       </tr>
                     );

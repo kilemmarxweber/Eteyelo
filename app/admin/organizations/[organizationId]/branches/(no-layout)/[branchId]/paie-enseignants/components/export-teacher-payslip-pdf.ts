@@ -115,8 +115,13 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
           "Forfait",
           line.label,
           amount(line.amount, payslip.currency),
+          "—",
         ];
       }
+      const isLoss =
+        line.kind === "ABSENCE" ||
+        line.kind === "LATE" ||
+        line.kind === "EARLY_EXIT";
       return [
         line.occurredOn ? new Date(line.occurredOn).toLocaleDateString("fr-FR") : "",
         clock(detail?.startTime),
@@ -128,7 +133,11 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
         minutes(detail?.lostMinutes ?? line.minutes),
         STATUS_LABELS[detail?.status ?? ""] ?? detail?.status ?? line.kind,
         `${line.label}${line.cycle ? ` (${line.cycle})` : ""}`,
-        amount(line.amount, payslip.currency),
+        amount(
+          detail?.sessionGross ?? (line.kind === "GROSS" ? line.amount : 0),
+          payslip.currency,
+        ),
+        isLoss ? amount(line.amount, payslip.currency) : "—",
       ];
     });
 
@@ -145,7 +154,8 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
       "Perdues",
       "Statut",
       "Séance",
-      "Montant",
+      "Valeur séance",
+      "Perte",
     ]],
     body: detailRows,
     theme: "striped",

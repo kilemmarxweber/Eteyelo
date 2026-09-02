@@ -8,6 +8,11 @@ import {
   getQuoteCurrency,
   roundCurrency,
 } from "@/lib/exchange-rate";
+import {
+  allocateSessionGross,
+  sessionLossAmount,
+  settlePayrollTotals,
+} from "@/lib/payroll/session-rate";
 import type { TeacherPayslipLineDetailSnapshot } from "@/lib/payroll/teacher-payslip-line-detail";
 
 export type { TeacherPayslipLineDetailSnapshot } from "@/lib/payroll/teacher-payslip-line-detail";
@@ -82,6 +87,8 @@ export type TeacherPayrollResult = {
   weeklyPlannedMinutes: number;
   /** Taux de retenue par minute (forfait ÷ minutes prévues du mois). */
   ratePerMinute: number;
+  /** Valeur réelle d’une séance primaire (forfait ÷ séances, pondéré par la durée). */
+  ratePerSession: number;
   details: SessionDetail[];
 };
 
@@ -296,7 +303,7 @@ export async function calculateTeacherPayroll(input: {
             ? "EARLY_EXIT"
             : "LATE";
     const isHeld = status !== "ABSENT" || justified;
-    const sessionGross =
+    const secondarySessionGross =
       payrollCycle === "SECONDAIRE"
         ? teacher.employmentKind === "MATRICULE"
           ? policy.secondaryHourlyRate *
@@ -304,9 +311,18 @@ export async function calculateTeacherPayroll(input: {
             (duration / 60)
           : policy.secondaryNonMatriculeSessionRate
         : 0;
-    const sessionDeduction =
-      payrollCycle === "SECONDAIRE" && duration > 0
-        ? sessionGross * (lost / duration)
+    const roundedSecondaryGross =
+      payrollCycle === "SECONDAIRE"
+        ? roundCurrency(secondarySessionGross, currencySnapshot.currency)
+        : 0;
+    const secondaryDeduction =
+      payrollCycle === "SECONDAIRE"
+        ? sessionLossAmount(
+            roundedSecondaryGross,
+            lost,
+            duration,
+            currencySnapshot.currency,
+          )
         : 0;
 
     if (payrollCycle === "PRIMAIRE") {
@@ -319,8 +335,8 @@ export async function calculateTeacherPayroll(input: {
       if (!justified && status === "ABSENT") primaryUnjustifiedAbsences += 1;
     } else {
       secondarySessions += 1;
-      secondaryGross += sessionGross;
-      secondaryDeductions += sessionDeduction;
+      secondaryGross += roundedSecondaryGross;
+      secondaryDeductions += secondaryDeduction;
       if (isHeld) secondaryHeldSessions += 1;
       if (status === "LATE") secondaryLateSessions += 1;
       if (justified && status === "ABSENT") secondaryJustifiedAbsences += 1;
@@ -343,40 +359,53 @@ export async function calculateTeacherPayroll(input: {
       checkIn: attendance?.checkIn ?? null,
       checkOut: attendance?.checkOut ?? null,
       graceMinutes: policy.lateGraceMinutes,
-      deduction: roundCurrency(sessionDeduction, currencySnapshot.currency),
-      gross: roundCurrency(sessionGross, currencySnapshot.currency),
+      deduction: secondaryDeduction,
+      gross: roundedSecondaryGross,
       reason,
     });
   }
 
-  // Forfait primaire (MATRICULE 15 000 / NON_MATRICULE 70 000) :
-  // minutes_semaine ≈ minutes_mois ÷ semaines du calendrier
-  // taux_minute = forfait ÷ minutes_prévues_mois
-  // retenue_s = minutes_perdues_s × taux_minute
+  // Forfait primaire : brut connu (15 000 / 70 000) → valeur réelle par séance.
+  // Absence d’une séance = on coupe cette valeur. Totaux pertes = brut → net 0.
   const primaryGross =
     primarySessions > 0
       ? teacher.employmentKind === "MATRICULE"
         ? policy.primaryMatriculeMonthly
         : policy.primaryNonMatriculeMonthly
       : 0;
+  const primaryDetails = details.filter((detail) => detail.cycle === "PRIMAIRE");
+  const primarySessionGross = allocateSessionGross(
+    primaryGross,
+    primaryDetails.map((detail) => detail.durationMinutes),
+    currencySnapshot.currency,
+  );
+  let primaryDeductions = 0;
+  primaryDetails.forEach((detail, index) => {
+    const sessionGross = primarySessionGross[index] ?? 0;
+    detail.gross = sessionGross;
+    detail.deduction = sessionLossAmount(
+      sessionGross,
+      detail.lostMinutes,
+      detail.durationMinutes,
+      currencySnapshot.currency,
+    );
+    primaryDeductions += detail.deduction;
+  });
   const primaryRatePerMinute =
     primaryPlannedMinutes > 0 ? primaryGross / primaryPlannedMinutes : 0;
-  let primaryDeductions = 0;
-  for (const detail of details) {
-    if (detail.cycle !== "PRIMAIRE") continue;
-    const deduction = detail.lostMinutes * primaryRatePerMinute;
-    detail.deduction = roundCurrency(deduction, currencySnapshot.currency);
-    primaryDeductions += deduction;
-  }
+  const ratePerSession =
+    primarySessions > 0
+      ? roundCurrency(primaryGross / primarySessions, currencySnapshot.currency)
+      : 0;
   const weeklyPlannedMinutes =
     primaryPlannedMinutes > 0
       ? primaryPlannedMinutes /
         weeksInCalendarMonth(input.period.year, input.period.month)
       : 0;
 
-  const gross = roundCurrency(primaryGross + secondaryGross, currencySnapshot.currency);
-  const deductions = roundCurrency(
-    Math.min(gross, primaryDeductions + secondaryDeductions),
+  const settled = settlePayrollTotals(
+    primaryGross + secondaryGross,
+    primaryDeductions + secondaryDeductions,
     currencySnapshot.currency,
   );
   const secondaryPlanned = details
@@ -400,9 +429,9 @@ export async function calculateTeacherPayroll(input: {
     exchangeRateId: currencySnapshot.exchangeRateId,
     missingExchangeRate: currencySnapshot.missingExchangeRate,
     policy,
-    gross,
-    deductions,
-    net: roundCurrency(Math.max(0, gross - deductions), currencySnapshot.currency),
+    gross: settled.gross,
+    deductions: settled.deductions,
+    net: settled.net,
     sessions: primarySessions + secondarySessions,
     heldSessions: primaryHeldSessions + secondaryHeldSessions,
     lateSessions: primaryLateSessions + secondaryLateSessions,
@@ -412,6 +441,7 @@ export async function calculateTeacherPayroll(input: {
     lostMinutes: roundInternal(primaryLostMinutes + secondaryLost),
     weeklyPlannedMinutes: roundInternal(weeklyPlannedMinutes),
     ratePerMinute: roundInternal(primaryRatePerMinute * 1000) / 1000,
+    ratePerSession,
     details,
   };
 }
@@ -480,6 +510,7 @@ export async function persistTeacherPayroll(
         courseName: detail.courseName,
         graceMinutes: detail.graceMinutes,
         reason: detail.reason,
+        sessionGross: detail.gross,
       };
       return {
         payslipId: payslip.id,
@@ -496,7 +527,11 @@ export async function persistTeacherPayroll(
         label: `${detail.className} · ${detail.courseName}`,
         sessions: 1,
         minutes: detail.lostMinutes,
-        amount: detail.reason ? detail.deduction : detail.gross,
+        amount: detail.reason
+          ? detail.deduction
+          : detail.cycle === "PRIMAIRE"
+            ? 0
+            : detail.gross,
         detail: snapshot,
       };
     });
@@ -510,9 +545,11 @@ export async function persistTeacherPayroll(
           .filter((detail) => detail.cycle === "SECONDAIRE")
           .reduce((sum, detail) => sum + detail.gross, 0);
       const rateLabel =
-        result.ratePerMinute > 0
-          ? ` · ${roundInternal(result.weeklyPlannedMinutes)} min/sem · ${roundInternal(primaryMinutes)} min/mois · ${result.ratePerMinute.toFixed(3)} /min`
-          : "";
+        result.ratePerSession > 0
+          ? ` · ${result.details.filter((detail) => detail.cycle === "PRIMAIRE").length} séances · ${result.ratePerSession} /séance`
+          : result.ratePerMinute > 0
+            ? ` · ${roundInternal(result.weeklyPlannedMinutes)} min/sem · ${roundInternal(primaryMinutes)} min/mois · ${result.ratePerMinute.toFixed(3)} /min`
+            : "";
       lines.unshift({
         payslipId: payslip.id,
         cycle: "PRIMAIRE",

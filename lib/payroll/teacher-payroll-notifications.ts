@@ -3,6 +3,10 @@ import "server-only";
 import { getBranchPayrollOwners } from "@/lib/email/get-branch-manager-emails";
 import { sendPayrollDeductionEmail } from "@/lib/email/send-payroll-notification-email";
 import { CURRENCY_LABELS, getBaseCurrency, roundCurrency } from "@/lib/exchange-rate";
+import {
+  allocateSessionGross,
+  sessionLossAmount,
+} from "@/lib/payroll/session-rate";
 import { prisma } from "@/lib/prisma";
 import { startOfTodayParis } from "@/lib/timezone";
 import type { CurrencyCode } from "@/prisma/generated/prisma/client";
@@ -144,14 +148,14 @@ export async function notifyTeacherPayrollImpact(input: {
 
   let estimate: number;
   if (cycle === "SECONDAIRE") {
-    estimate =
+    const sessionGross =
       teacher.employmentKind === "MATRICULE"
         ? (policy?.secondaryHourlyRate ?? 1500) *
           ((policy?.secondaryMatriculePrimePercent ?? 30) / 100) *
-          (lost / 60)
-        : (policy?.secondaryNonMatriculeSessionRate ?? 1500) * (lost / duration);
+          (duration / 60)
+        : (policy?.secondaryNonMatriculeSessionRate ?? 1500);
+    estimate = sessionLossAmount(sessionGross, lost, duration, currency);
   } else {
-    // Forfait primaire : taux/min = forfait ÷ minutes prévues du mois (créneau 30 min)
     const monthStart = new Date(
       Date.UTC(session.date.getUTCFullYear(), session.date.getUTCMonth(), 1),
     );
@@ -168,26 +172,31 @@ export async function notifyTeacherPayrollImpact(input: {
           classe: { cycle: "PRIMAIRE" },
         },
       },
+      orderBy: [{ date: "asc" }, { startTime: "asc" }],
       select: {
+        id: true,
         teaching: {
           select: { classe: { select: { creneau: { select: { durationCourse: true } } } } },
         },
       },
     });
-    const primaryMinutes = monthSessions.reduce((sum, row) => {
-      const minutes =
-        row.teaching.classe?.creneau?.durationCourse &&
-        row.teaching.classe.creneau.durationCourse > 0
-          ? row.teaching.classe.creneau.durationCourse
-          : (policy?.primarySessionMinutes ?? 30);
-      return sum + minutes;
-    }, 0);
     const forfait =
       teacher.employmentKind === "MATRICULE"
         ? (policy?.primaryMatriculeMonthly ?? 15000)
         : (policy?.primaryNonMatriculeMonthly ?? 70000);
-    const ratePerMinute = primaryMinutes > 0 ? forfait / primaryMinutes : 0;
-    estimate = ratePerMinute * lost;
+    const fallbackMinutes = policy?.primarySessionMinutes ?? 30;
+    const durations = monthSessions.map((row) => {
+      const minutes = row.teaching.classe?.creneau?.durationCourse;
+      return minutes && minutes > 0 ? minutes : fallbackMinutes;
+    });
+    const sessionGrosses = allocateSessionGross(forfait, durations, currency);
+    const thisIndex = monthSessions.findIndex((row) => row.id === input.sessionId);
+    const sessionGross =
+      (thisIndex >= 0 ? sessionGrosses[thisIndex] : undefined) ??
+      (durations.length > 0
+        ? roundCurrency(forfait / durations.length, currency)
+        : roundCurrency(forfait, currency));
+    estimate = sessionLossAmount(sessionGross, lost, duration, currency);
   }
   estimate = roundCurrency(estimate, currency);
 
@@ -284,7 +293,7 @@ export async function notifyTeacherPayrollImpact(input: {
         rule:
           input.status === "ABSENT"
             ? cycle === "PRIMAIRE"
-              ? "absence non justifiée : retenue au prorata du forfait mensuel (taux à la minute)"
+              ? "absence non justifiée : retenue de la valeur réelle de la séance (brut ÷ séances du mois)"
               : "absence non justifiée : retenue de la séance"
             : input.status === "EARLY_EXIT"
               ? "minutes non effectuées jusqu'à la fin de la séance"

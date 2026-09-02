@@ -357,9 +357,12 @@ export default function PayrollClient() {
   } | null>(null);
 
   function requestDeletePayslips(payslipIds?: string[]) {
+    const count = payslipIds?.length ?? 0;
     const scope =
-      payslipIds && payslipIds.length > 0
-        ? `${payslipIds.length} bulletin(s) sélectionné(s)`
+      count > 0
+        ? count === 1
+          ? "le bulletin sélectionné"
+          : `les ${count} bulletins sélectionnés`
         : "tous les brouillons et validés du mois";
     setPendingDeleteTarget({ payslipIds, scopeLabel: scope });
     setDeleteConfirmOpen(true);
@@ -880,9 +883,10 @@ export default function PayrollClient() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-            <AlertDialogDescription>
-              Voulez-vous vraiment supprimer {pendingDeleteTarget?.scopeLabel ?? "les bulletins"} ?
-              Les bulletins payés sont conservés. Cette action est irréversible.
+            <AlertDialogDescription className="text-sm leading-relaxed text-foreground">
+              Voulez-vous vraiment supprimer{" "}
+              {pendingDeleteTarget?.scopeLabel ?? "les bulletins"} ? Les
+              bulletins payés sont conservés. Cette action est irréversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -13,4 +13,6 @@ export type TeacherPayslipLineDetailSnapshot = {
   courseName: string;
   graceMinutes: number;
   reason: "ABSENCE" | "LATE" | "EARLY_EXIT" | null;
+  /** Valeur réelle de la séance (part du brut mensuel ou tarif secondaire). */
+  sessionGross?: number;
 };
