@@ -29,7 +29,7 @@ function parsePermissionJson(raw: string | null | undefined): Record<string, str
   }
 }
 
-/** Ancien preset leadership : finance / inscription, ou trop de paramètres établissement. */
+/** Ancien preset leadership : finance / inscription, ou trop / trop peu de paramètres établissement. */
 function isStaleLeadershipPermission(permission: Record<string, string[]>): boolean {
   return (
     (permission.inscription?.length ?? 0) > 0 ||
@@ -38,11 +38,22 @@ function isStaleLeadershipPermission(permission: Record<string, string[]>): bool
     (permission.fees?.length ?? 0) > 0 ||
     (permission.schoolYear?.length ?? 0) > 0 ||
     (permission.structureCopy?.length ?? 0) > 0 ||
-    (permission.settings?.length ?? 0) > 0
+    (permission.settings?.length ?? 0) > 0 ||
+    lacksLeadershipDefaultSettings(permission)
   );
 }
 
-/** Ancien preset directeur des études : CRUD enseignants, ou trop de paramètres établissement. */
+function lacksLeadershipDefaultSettings(
+  permission: Record<string, string[]>,
+): boolean {
+  return (
+    (permission.schoolCalendar?.length ?? 0) === 0 ||
+    (permission.publicCommunication?.length ?? 0) === 0 ||
+    (permission.periods?.length ?? 0) === 0
+  );
+}
+
+/** Ancien preset directeur des études : CRUD enseignants, ou trop / trop peu de paramètres. */
 function isStaleDirecteurEtudesPermission(
   permission: Record<string, string[]>,
 ): boolean {

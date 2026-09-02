@@ -28,13 +28,14 @@ import {
 import { useSession } from "@/lib/auth-client";
 import {
   canAccessPedagogyArea,
-  canManageOrganization,
-  isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 
 import UserList from "./components/TeachersTable";
 import { TeacherUpForm } from "./components/teacher-form";
-import { getTeacherDashboardStatsAction } from "./teacher.action";
+import {
+  getTeacherDashboardStatsAction,
+  getTeacherPagePermissionsAction,
+} from "./teacher.action";
 import { ImportStaffDialog } from "../components/import-staff-dialog";
 import { getStaffPageContextAction } from "../staff-import.action";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
@@ -72,12 +73,11 @@ export default function Teachers() {
   const [cycleFilter, setCycleFilter] = useState<TeacherCycleFilter>("all");
   const [assignmentFilter, setAssignmentFilter] =
     useState<TeacherAssignmentFilter>("all");
+  const [canManageTeachers, setCanManageTeachers] = useState(false);
+  const [canPurgePermanently, setCanPurgePermanently] = useState(false);
   const { data: session, isPending } = useSession();
   const [hasMounted, setHasMounted] = useState(false);
   const sessionReady = hasMounted && !isPending;
-  const canManage = sessionReady && canManageOrganization(session);
-  const canPurgePermanently =
-    sessionReady && isOrganizationOwnerSession(session);
 
   const handleUserAction = () => {
     setRefreshKey((prev) => prev + 1);
@@ -95,6 +95,19 @@ export default function Teachers() {
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!sessionReady || !session) {
+      setCanManageTeachers(false);
+      setCanPurgePermanently(false);
+      return;
+    }
+
+    void getTeacherPagePermissionsAction().then((permissions) => {
+      setCanManageTeachers(permissions.canManageTeachers);
+      setCanPurgePermanently(permissions.canPurgePermanently);
+    });
+  }, [refreshKey, session, sessionReady]);
 
   useEffect(() => {
     async function loadStats() {
@@ -134,7 +147,7 @@ export default function Teachers() {
             </Badge>
           }
           actions={
-            canManage ? (
+            canManageTeachers ? (
               <div className="flex flex-wrap items-center gap-2">
                 {supportsStaffImport ? (
                   <Button
@@ -273,7 +286,7 @@ export default function Teachers() {
             key={refreshKey}
             refreshKey={refreshKey}
             onRefresh={handleUserAction}
-            canManageTeachers={canManage}
+            canManageTeachers={canManageTeachers}
             canPurgePermanently={canPurgePermanently}
             assignmentFilter={assignmentFilter}
             cycleFilter={cycleFilter}

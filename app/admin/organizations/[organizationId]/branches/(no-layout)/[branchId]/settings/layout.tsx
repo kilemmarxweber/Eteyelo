@@ -31,7 +31,6 @@ import {
   canAccessSchoolOpsSettings,
   canAccessSupportSettings,
   hasSessionRole,
-  isDirecteurEtudesRole,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 import { getSidebarPermissionFlagsAction } from "@/lib/auth/sidebar-permission-flags.action";
@@ -41,6 +40,12 @@ import SidebarNav from "./components/sidebar-nav";
 import { useTranslations } from "next-intl";
 
 type SettingsNavAccess = "always" | "org" | "owner" | "school_ops" | "support";
+
+const LEADERSHIP_DEFAULT_SETTINGS_KEYS = new Set([
+  "inscription-publique",
+  "calendar",
+  "periodes",
+]);
 
 export default function Settings({ children }: { children: React.ReactNode }) {
   const t = useTranslations("settings");
@@ -159,9 +164,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
       "parent",
     ]);
   const isMinimalSettingsUser =
-    sessionReady &&
-    !hasFullBranchAccess &&
-    (isCursusSelfUser || isDirecteurEtudesRole(session));
+    sessionReady && !hasFullBranchAccess && isCursusSelfUser;
 
   const branchBasePath =
     pathname?.match(/^\/admin\/organizations\/[^/]+\/branches\/[^/]+/)?.[0] ??
@@ -171,7 +174,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
   const sidebarNavItems = useMemo(() => {
     const hasAnySettingsAccess = Object.values(settingsReads).some(Boolean);
 
-    // Élève / parent / directeur des études : profil, apparence, mot de passe
+    // Élève / parent : profil, apparence, mot de passe
     // (sauf octroi temporaire explicite sur un sous-menu, une fois les flags chargés).
     if (
       isMinimalSettingsUser &&
@@ -344,6 +347,12 @@ export default function Settings({ children }: { children: React.ReactNode }) {
       .filter((item) => {
         if (item.primaryOnly && !showPrimaryDomains) return false;
         if (hasFullBranchAccess) return true;
+        if (
+          item.dacKey &&
+          LEADERSHIP_DEFAULT_SETTINGS_KEYS.has(item.dacKey)
+        ) {
+          return canSeeSchoolOps || settingsReads[item.dacKey] === true;
+        }
         if (item.dacKey) {
           if (Object.keys(settingsReads).length === 0) return false;
           return settingsReads[item.dacKey] === true;

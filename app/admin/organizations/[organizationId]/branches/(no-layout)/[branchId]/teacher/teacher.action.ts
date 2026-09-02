@@ -1103,3 +1103,9 @@ export const getTeacherReportContextAction = action.handler(async () => {
 
   return buildSchoolReportContext(branch);
 });
+
+/** Droits page liste (bouton ajouter / import / actions tableau). */
+export async function getTeacherPagePermissionsAction() {
+  const { canManageTeachers, canPurgePermanently } = await getCurrentBranch();
+  return { canManageTeachers, canPurgePermanently };
+}
