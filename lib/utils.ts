@@ -120,6 +120,16 @@ export type BranchImages = {
   gallery: string[];
 };
 
+function normalizeStoredImageList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (typeof item !== "string") return [];
+    const trimmed = item.trim();
+    if (!trimmed) return [];
+    return [normalizeImageSrc(trimmed)];
+  });
+}
+
 export function getBranchImage(value: unknown): BranchImages {
   const empty: BranchImages = {
     logo: undefined,
@@ -145,21 +155,49 @@ export function getBranchImage(value: unknown): BranchImages {
   }
 
   const data = images as Record<string, unknown>;
+  const logo =
+    typeof data.logo === "string" && data.logo.trim()
+      ? normalizeImageSrc(data.logo)
+      : undefined;
 
   return {
-    logo:
-      typeof data.logo === "string" ? normalizeImageSrc(data.logo) : undefined,
-
-    ecole: Array.isArray(data.ecole)
-      ? data.ecole.map((x) => normalizeImageSrc(String(x)))
-      : [],
-
-    event: Array.isArray(data.event)
-      ? data.event.map((x) => normalizeImageSrc(String(x)))
-      : [],
-
-    gallery: Array.isArray(data.gallery)
-      ? data.gallery.map((x) => normalizeImageSrc(String(x)))
-      : [],
+    logo,
+    ecole: normalizeStoredImageList(data.ecole),
+    event: normalizeStoredImageList(data.event),
+    gallery: normalizeStoredImageList(data.gallery),
   };
+}
+
+/** Photos d’établissement pour les pages publiques — jamais le logo. */
+export function getPublicBranchPhotos(images: BranchImages): string[] {
+  const seen = new Set<string>();
+  const photos: string[] = [];
+
+  for (const src of [...images.ecole, ...images.gallery, ...images.event]) {
+    const url = src?.trim();
+    if (!url) continue;
+    if (images.logo && url === images.logo) continue;
+    if (url === KLAMBOCORE_DEFAULT_IMAGE_PATH) continue;
+    if (seen.has(url)) continue;
+    seen.add(url);
+    photos.push(url);
+  }
+
+  return photos;
+}
+
+export function firstPublicBranchPhoto(images: BranchImages): string | undefined {
+  return getPublicBranchPhotos(images)[0];
+}
+
+export function firstPublicSchoolPhoto(school: {
+  ecole: string[];
+  gallery: string[];
+  event: string[];
+}): string | undefined {
+  return (
+    school.ecole.find(Boolean) ||
+    school.gallery.find(Boolean) ||
+    school.event.find(Boolean)
+  );
 }

@@ -34,7 +34,7 @@ import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { KlambocoreLogoMark } from "@/components/brand/klambocore-logo-mark";
 import { galleryImages, getHomeData } from "@/lib/home/home-data";
-import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
+import { firstPublicSchoolPhoto } from "@/lib/utils";
 import {
   JsonLd,
   organizationJsonLd,
@@ -87,20 +87,17 @@ export default async function HomePage() {
     stats,
   } = await getHomeData();
 
-  const defaultSchoolImage = KLAMBOCORE_DEFAULT_IMAGE_PATH;
-
   const schoolImageSlides = schools
     .map((school) => ({
       ...school,
-      slideImage:
-        school.ecole.find(Boolean) ||
-        school.event.find(Boolean) ||
-        school.logo ||
-        defaultSchoolImage,
+      slideImage: firstPublicSchoolPhoto(school),
     }))
-    .filter((school) => Boolean(school.slideImage));
+    .filter(
+      (school): school is typeof school & { slideImage: string } =>
+        Boolean(school.slideImage),
+    );
 
-  /** Images d'événements réelles uniquement (pas de placeholder). */
+  /** Images d'événements réelles uniquement (pas de logo ni de placeholder). */
   const eventSliderImages = Array.from(
     new Set(
       events
@@ -113,9 +110,9 @@ export default async function HomePage() {
     new Set(
       schools
         .flatMap((school) => [
-          school.event.find(Boolean),
-          school.ecole.find(Boolean),
-          school.logo,
+          ...school.ecole,
+          ...school.gallery,
+          ...school.event,
         ])
         .filter((src): src is string => Boolean(src)),
     ),
@@ -124,9 +121,7 @@ export default async function HomePage() {
   const rightSliderImages =
     eventSliderImages.length > 0
       ? eventSliderImages
-      : schoolFallbackImages.length > 0
-        ? schoolFallbackImages
-        : [defaultSchoolImage];
+      : schoolFallbackImages;
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
@@ -251,53 +246,55 @@ export default async function HomePage() {
           {/* Ecole images schools*/}
           <div className="mx-auto w-full rounded-[1.5rem] bg-white/15 p-2 shadow-2xl backdrop-blur sm:w-[36rem] sm:rounded-[2rem] sm:p-3 lg:w-full">
             <div className="relative min-h-[260px] overflow-hidden rounded-[1.25rem] bg-blue-950 sm:min-h-[340px] sm:rounded-[1.5rem] lg:min-h-[400px]">
-              {schoolImageSlides.map((school, index) => {
-                const image = school.slideImage;
+              {schoolImageSlides.length > 0 ? (
+                schoolImageSlides.map((school, index) => {
+                  const image = school.slideImage;
 
-                return (
-                  <div
-                    key={`${school.id}-hero-${index}`}
-                    className="absolute inset-0 opacity-0 motion-reduce:animate-none"
-                    style={{
-                      animation: `hero-school-slide ${
-                        Math.max(schoolImageSlides.length, 1) * 5
-                      }s infinite`,
-                      animationDelay: `${index * 5}s`,
-                      opacity: index === 0 ? 1 : 0,
-                    }}
-                  >
+                  return (
                     <div
-                      className="absolute inset-0 bg-cover bg-center"
+                      key={`${school.id}-hero-${index}`}
+                      className="absolute inset-0 opacity-0 motion-reduce:animate-none"
                       style={{
-                        backgroundImage: `url("${image}")`,
+                        animation: `hero-school-slide ${
+                          Math.max(schoolImageSlides.length, 1) * 5
+                        }s infinite`,
+                        animationDelay: `${index * 5}s`,
+                        opacity: index === 0 ? 1 : 0,
                       }}
-                    />
+                    >
+                      <div
+                        className="absolute inset-0 bg-cover bg-center"
+                        style={{
+                          backgroundImage: `url("${image}")`,
+                        }}
+                      />
 
-                    <div className="relative z-10 flex min-h-[260px] items-end rounded-[1.25rem] bg-blue-950/45 p-4 sm:min-h-[340px] sm:rounded-[1.5rem] sm:p-5 lg:min-h-[400px]">
-                      <div className="w-full rounded-2xl bg-white p-4 text-slate-900 shadow-xl sm:w-[26rem] sm:p-5">
-                        <p className="text-sm font-bold text-blue-600">
-                          {school.heroLabel}
-                        </p>
+                      <div className="relative z-10 flex min-h-[260px] items-end rounded-[1.25rem] bg-blue-950/45 p-4 sm:min-h-[340px] sm:rounded-[1.5rem] sm:p-5 lg:min-h-[400px]">
+                        <div className="w-full rounded-2xl bg-white p-4 text-slate-900 shadow-xl sm:w-[26rem] sm:p-5">
+                          <p className="text-sm font-bold text-blue-600">
+                            {school.heroLabel}
+                          </p>
 
-                        <h3 className="mt-1 text-lg font-black sm:text-xl">
-                          {school.heroTitle}
-                        </h3>
+                          <h3 className="mt-1 text-lg font-black sm:text-xl">
+                            {school.heroTitle}
+                          </h3>
+                        </div>
                       </div>
                     </div>
+                  );
+                })
+              ) : (
+                <div className="relative z-10 flex min-h-[260px] items-end rounded-[1.25rem] bg-blue-950/45 p-4 sm:min-h-[340px] sm:rounded-[1.5rem] sm:p-5 lg:min-h-[400px]">
+                  <div className="w-full rounded-2xl bg-white p-4 text-slate-900 shadow-xl sm:w-[26rem] sm:p-5">
+                    <p className="text-sm font-bold text-blue-600">
+                      Établissement partenaire vérifié
+                    </p>
+                    <h3 className="mt-1 text-lg font-black sm:text-xl">
+                      Donnez plus de visibilité à votre établissement
+                    </h3>
                   </div>
-                );
-              })}
-
-              <div className="hidden">
-                <div className="w-full rounded-2xl bg-white p-4 text-slate-900 shadow-xl sm:w-[26rem] sm:p-5">
-                  <p className="text-sm font-bold text-blue-600">
-                    École partenaire vérifiée
-                  </p>
-                  <h3 className="mt-1 text-lg font-black sm:text-xl">
-                    Donnez plus de visibilité à votre établissement
-                  </h3>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -397,39 +394,45 @@ export default async function HomePage() {
             <HomeFeaturedEventsFooter />
           </div>
 
-          {/* BLOC IMAGE DROITE — events avec image, sinon fallback école */}
+          {/* BLOC IMAGE DROITE — photos d’événements, sinon photos d’établissement */}
           <div className="relative h-[500px] self-start overflow-hidden rounded-3xl bg-slate-100 shadow-2xl shadow-blue-950/15">
-            {rightSliderImages.map((sliderImage, index) => {
-              const shouldRotate = rightSliderImages.length > 1;
+            {rightSliderImages.length > 0 ? (
+              rightSliderImages.map((sliderImage, index) => {
+                const shouldRotate = rightSliderImages.length > 1;
 
-              return (
-                <div
-                  key={`event-slider-${sliderImage}-${index}`}
-                  className="absolute inset-0 motion-reduce:animate-none"
-                  style={
-                    shouldRotate
-                      ? {
-                          animation: `hero-school-slide ${
-                            rightSliderImages.length * 60
-                          }s infinite`,
-                          animationDelay: `${index * 60}s`,
-                          opacity: index === 0 ? 1 : 0,
-                        }
-                      : { opacity: 1 }
-                  }
-                >
-                  <Image
-                    src={sliderImage}
-                    alt=""
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 1024px) 100vw, 40vw"
-                    unoptimized
-                    priority={index === 0}
-                  />
-                </div>
-              );
-            })}
+                return (
+                  <div
+                    key={`event-slider-${sliderImage}-${index}`}
+                    className="absolute inset-0 motion-reduce:animate-none"
+                    style={
+                      shouldRotate
+                        ? {
+                            animation: `hero-school-slide ${
+                              rightSliderImages.length * 60
+                            }s infinite`,
+                            animationDelay: `${index * 60}s`,
+                            opacity: index === 0 ? 1 : 0,
+                          }
+                        : { opacity: 1 }
+                    }
+                  >
+                    <Image
+                      src={sliderImage}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 1024px) 100vw, 40vw"
+                      unoptimized
+                      priority={index === 0}
+                    />
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-950 to-cyan-700 p-6 text-center text-sm font-semibold text-white/80">
+                Photos des établissements et événements à venir
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -551,7 +554,7 @@ export default async function HomePage() {
           <div className="min-w-0 rounded-3xl bg-white p-5 text-slate-900 shadow-lg sm:p-8">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-lg font-black sm:text-xl">
-                Nouvelles écoles inscrites
+                Nouveaux établissements inscrits
               </h3>
 
               <Button
@@ -576,7 +579,9 @@ export default async function HomePage() {
                       <p className="truncate text-sm font-semibold text-slate-900">
                         {school.name}
                       </p>
-                      <p className="text-xs text-slate-500">{school.city}</p>
+                      <p className="text-xs text-slate-500">
+                        {school.kindLabel} · {school.city}
+                      </p>
                     </div>
                   </div>
 

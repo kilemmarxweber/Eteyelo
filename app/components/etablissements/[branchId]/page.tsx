@@ -21,7 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { prisma } from "@/lib/prisma";
-import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import {
   buildEstablishmentMetadata,
   getEstablishmentSeoBranch,
@@ -31,7 +30,7 @@ import {
   educationalOrganizationJsonLd,
 } from "@/lib/seo/json-ld";
 import { SITE_NAME } from "@/lib/seo/site";
-import { getBranchImage } from "@/lib/utils";
+import { firstPublicBranchPhoto, getBranchImage, getPublicBranchPhotos } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -138,12 +137,8 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
   const libraryBooksCount = branch._count.libraryBooks;
   const hasLibrary = libraryBooksCount > 0;
   const images = getBranchImage(branch.image);
-  const cover =
-    images.ecole[0] ||
-    images.event[0] ||
-    images.gallery[0] ||
-    images.logo ||
-    KLAMBOCORE_DEFAULT_IMAGE_PATH;
+  const cover = firstPublicBranchPhoto(images);
+  const gallery = getPublicBranchPhotos(images).slice(0, 8);
 
   const students = branch.branchemembers.flatMap((member) => member.student);
 
@@ -182,10 +177,6 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
     },
     {},
   );
-
-  const gallery = Array.from(
-    new Set([...images.ecole, ...images.gallery, ...images.event]),
-  ).slice(0, 8);
 
   const references = [
     {
@@ -227,10 +218,12 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
       <HomeNavbar />
 
       <section className="relative overflow-hidden bg-primary text-primary-foreground">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-30"
-          style={{ backgroundImage: `url('${cover}')` }}
-        />
+        {cover ? (
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-30"
+            style={{ backgroundImage: `url('${cover}')` }}
+          />
+        ) : null}
 
         <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary/30" />
 

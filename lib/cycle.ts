@@ -201,10 +201,11 @@ function coerceBranchCycleRecord(item: BranchCycleInput): BranchCycleRecord {
 export function getBranchCycles(branch: {
   typebranch?: unknown;
   cycles?: BranchCycleInput[] | null;
+  includeInactive?: boolean;
 }): Cycle[] {
   const rows = (branch.cycles ?? [])
     .map(coerceBranchCycleRecord)
-    .filter((row) => row.isActive !== false);
+    .filter((row) => branch.includeInactive || row.isActive !== false);
   if (rows.length > 0) {
     return [...rows]
       .sort(
@@ -215,6 +216,34 @@ export function getBranchCycles(branch: {
       .map((row) => normalizeCycle(row.cycle));
   }
   return [normalizeCycle(branch.typebranch)];
+}
+
+export function sameCycleSet(
+  left: readonly Cycle[],
+  right: readonly Cycle[],
+): boolean {
+  if (left.length !== right.length) return false;
+  const set = new Set(left);
+  return right.every((cycle) => set.has(cycle));
+}
+
+/** Cycles scolaires à préremplir en édition : BranchCycle ∪ classes, y compris inactifs. */
+export function schoolCyclesForBranchForm(input: {
+  typebranch?: unknown;
+  branchCycles?: BranchCycleInput[] | null;
+  classCycles?: unknown[] | null;
+}): SchoolCycle[] {
+  if (isExtendedBranch(input.typebranch)) return [];
+
+  const fromBranch = getBranchCycles({
+    typebranch: input.typebranch,
+    cycles: input.branchCycles,
+    includeInactive: true,
+  }).filter(isSchoolCycle);
+  const fromClasses = [...(input.classCycles ?? [])].filter(isSchoolCycle);
+  const merged = sortSchoolCycles([...fromBranch, ...fromClasses]);
+  if (merged.length > 0) return merged;
+  return isSchoolCycle(input.typebranch) ? [input.typebranch] : [];
 }
 
 export function isMultiCycleBranch(branch: {
@@ -377,11 +406,19 @@ export function resolveActivatedCycles(input: {
       isSchoolCycle,
     ),
   );
-  if (school.length > 0) return school;
+  const extra = [
+    ...new Set(
+      [...(input.extraCycles ?? [])]
+        .map(normalizeCycle)
+        .filter((cycle) => !isSchoolCycle(cycle)),
+    ),
+  ].sort((a, b) => CYCLE_SORT_ORDER[a] - CYCLE_SORT_ORDER[b]);
 
-  if (input.typebranch === "MATERNELLE") return ["MATERNELLE"];
+  if (school.length > 0) return [...school, ...extra];
+
+  if (input.typebranch === "MATERNELLE") return ["MATERNELLE", ...extra];
   if (isSchoolBranchType(input.typebranch)) {
-    return [normalizeCycle(input.typebranch)];
+    return [normalizeCycle(input.typebranch), ...extra];
   }
-  return [normalizeCycle(input.typebranch)];
+  return [normalizeCycle(input.typebranch), ...extra];
 }

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ArrowRight, Camera, MapPin, Users } from "lucide-react";
 
 import type { HomeSchool } from "@/lib/home/home-data";
-import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { cn } from "@/lib/utils";
 
 export type HomeGalleryItem = {
@@ -14,6 +13,7 @@ export type HomeGalleryItem = {
   schoolId: string;
   city: string;
   students: number;
+  peopleLabel: string;
 };
 
 type HomeGallerySectionProps = {
@@ -33,12 +33,7 @@ function buildGalleryPool(
   const items: HomeGalleryItem[] = [];
 
   for (const school of schools) {
-    const urls = [
-      ...school.gallery,
-      ...school.ecole,
-      ...school.event,
-      school.logo,
-    ].filter(
+    const urls = [...school.gallery, ...school.ecole, ...school.event].filter(
       (url): url is string =>
         typeof url === "string" && url.trim().length > 0,
     );
@@ -52,6 +47,7 @@ function buildGalleryPool(
         schoolId: school.id,
         city: school.city,
         students: school.students,
+        peopleLabel: school.peopleLabelPlural,
       });
     }
   }
@@ -65,6 +61,7 @@ function buildGalleryPool(
       schoolId: "",
       city: "",
       students: 0,
+      peopleLabel: "",
     });
   }
 
@@ -80,7 +77,7 @@ function GalleryTile({
   fading: boolean;
   onHoverChange: (hovered: boolean) => void;
 }) {
-  const src = item?.src || KLAMBOCORE_DEFAULT_IMAGE_PATH;
+  const src = item?.src?.trim() || "";
   const href = item?.schoolId ? `/etablissements/${item.schoolId}` : "/galerie";
 
   const content = (
@@ -90,8 +87,9 @@ function GalleryTile({
           "absolute inset-0 bg-cover bg-center transition-all duration-500 ease-out will-change-transform",
           fading ? "scale-105 opacity-0" : "scale-100 opacity-100",
           "group-hover:scale-125",
+          !src && "bg-gradient-to-br from-blue-950 to-cyan-700",
         )}
-        style={{ backgroundImage: `url('${src}')` }}
+        style={src ? { backgroundImage: `url('${src}')` } : undefined}
       />
 
       {/* Overlay détail au hover */}
@@ -117,7 +115,8 @@ function GalleryTile({
         {item && item.students > 0 ? (
           <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-cyan-200">
             <Users className="size-3 shrink-0" />
-            {item.students.toLocaleString("fr-FR")} élèves
+            {item.students.toLocaleString("fr-FR")}{" "}
+            {item.peopleLabel.toLowerCase() || "élèves"}
           </p>
         ) : null}
 

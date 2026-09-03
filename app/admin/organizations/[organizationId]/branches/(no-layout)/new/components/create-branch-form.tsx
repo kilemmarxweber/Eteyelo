@@ -57,6 +57,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   createBranchFormSchema,
+  updateBranchFormSchema,
   type CreateBranchFormValues,
 } from "../../schema";
 import { schoolRegistrationRequestSchema } from "@/app/components/inscription-ecole/schema";
@@ -67,6 +68,11 @@ import {
 import type { BranchFormActionResult } from "@/app/components/inscription-ecole/ecole.action";
 import { uploadFile, uploadFiles } from "@/lib/upload-file";
 import { cn } from "@/lib/utils";
+import {
+  DEFAULT_BRANCH_ATTENDANCE_RADIUS,
+  DEFAULT_BRANCH_LATITUDE,
+  DEFAULT_BRANCH_LONGITUDE,
+} from "@/lib/branch-form-values";
 import { useEffect, useState } from "react";
 import { writeLocaleCookie } from "@/lib/user-locale";
 
@@ -173,7 +179,11 @@ export function CreateBranchForm({
     useState<PendingBranchFiles>(emptyPendingFiles);
   const form = useForm<BranchFormValues>({
     resolver: zodResolver(
-      isRequestMode ? schoolRegistrationRequestSchema : createBranchFormSchema,
+      isRequestMode
+        ? schoolRegistrationRequestSchema
+        : mode === "update"
+          ? updateBranchFormSchema
+          : createBranchFormSchema,
     ),
     defaultValues: {
       name: defaultValues?.name ?? "",
@@ -194,15 +204,20 @@ export function CreateBranchForm({
       pays: defaultValues?.pays ?? "RDC",
       idnat: defaultValues?.idnat ?? "",
       tel: defaultValues?.tel ?? "",
-      latitude: defaultValues?.latitude ?? -4.4419,
-      longitude: defaultValues?.longitude ?? 15.2663,
-      attendanceRadius: defaultValues?.attendanceRadius ?? 10,
+      latitude: defaultValues?.latitude ?? DEFAULT_BRANCH_LATITUDE,
+      longitude: defaultValues?.longitude ?? DEFAULT_BRANCH_LONGITUDE,
+      attendanceRadius:
+        defaultValues?.attendanceRadius ?? DEFAULT_BRANCH_ATTENDANCE_RADIUS,
       typebranch: defaultValues?.typebranch ?? "SECONDAIRE",
-      schoolCycles: defaultValues?.schoolCycles ??
-        (defaultValues?.typebranch === "PRIMAIRE" ||
-        defaultValues?.typebranch === "SECONDAIRE"
-          ? [defaultValues.typebranch]
-          : ["SECONDAIRE"]),
+      schoolCycles:
+        defaultValues?.schoolCycles !== undefined
+          ? defaultValues.schoolCycles
+          : isExtendedBranch(defaultValues?.typebranch)
+            ? []
+            : defaultValues?.typebranch === "PRIMAIRE" ||
+                defaultValues?.typebranch === "SECONDAIRE"
+              ? [defaultValues.typebranch]
+              : ["SECONDAIRE"],
       educationSystem: defaultValues?.educationSystem ?? "CONGOLAIS",
     },
     mode: "onSubmit",
@@ -217,6 +232,7 @@ export function CreateBranchForm({
   );
 
   useEffect(() => {
+    if (mode !== "create") return;
     if (selectedEducationSystem === "ANGOLAIS") {
       const currentCycles = (form.getValues("schoolCycles") ?? []).filter(
         isSchoolCycle,
@@ -238,9 +254,6 @@ export function CreateBranchForm({
           );
         }
       }
-    }
-    if (mode !== "create") return;
-    if (selectedEducationSystem === "ANGOLAIS") {
       writeLocaleCookie("pt");
       const pays = form.getValues("pays")?.trim() || "RDC";
       if (pays === "RDC" || pays === "RD Congo" || pays === "Congo") {
@@ -368,7 +381,12 @@ export function CreateBranchForm({
       const image = isRequestMode
         ? emptyBranchImages()
         : await buildFinalImages();
-      const schoolCycles = selectedSchoolCycles;
+      const schoolCycles =
+        mode === "update" &&
+        selectedSchoolCycles.length === 0 &&
+        !isExtendedBranch(values.typebranch)
+          ? (defaultValues?.schoolCycles ?? []).filter(isSchoolCycle)
+          : selectedSchoolCycles;
       const payload: CreateBranchFormValues = {
         ...values,
         image,
@@ -495,7 +513,9 @@ export function CreateBranchForm({
   const canCreate = (
     isRequestMode
       ? schoolRegistrationRequestSchema
-      : createBranchFormSchema
+      : mode === "update"
+        ? updateBranchFormSchema
+        : createBranchFormSchema
   ).safeParse(form.getValues()).success;
 
   return (

@@ -13,6 +13,7 @@ const DEFAULT_KLAMBOCORE_REQUEST_EMAIL = "kilem@klambocore.com";
 export type BranchFormActionResult = {
   data: { id?: string; reference?: string } | null;
   error: string | null;
+  warning?: string | null;
 };
 
 function generateRegistrationReference() {

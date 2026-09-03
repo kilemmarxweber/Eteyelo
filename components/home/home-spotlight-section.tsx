@@ -7,13 +7,13 @@ import { Clock } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import type { HomeEvent, HomeSchool } from "@/lib/home/home-data";
-import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
-import { cn } from "@/lib/utils";
+import { cn, firstPublicSchoolPhoto } from "@/lib/utils";
 
 type SpotlightSlide = {
   id: string;
   name: string;
   city: string;
+  kindLabel: string;
   note: string;
   image: string;
   href: string;
@@ -25,14 +25,8 @@ type HomeSpotlightSectionProps = {
   intervalMs?: number;
 };
 
-function schoolSpotlightImage(school: HomeSchool, fallback: string) {
-  return (
-    school.ecole.find(Boolean) ||
-    school.event.find(Boolean) ||
-    school.gallery.find(Boolean) ||
-    school.logo ||
-    fallback
-  );
+function schoolSpotlightImage(school: HomeSchool) {
+  return firstPublicSchoolPhoto(school);
 }
 
 function EventCard({
@@ -50,14 +44,18 @@ function EventCard({
       )}
     >
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
-        <Image
-          src={event.image || KLAMBOCORE_DEFAULT_IMAGE_PATH}
-          alt={event.title}
-          fill
-          className="object-cover"
-          sizes="(max-width: 1024px) 100vw, 360px"
-          unoptimized
-        />
+        {event.image ? (
+          <Image
+            src={event.image}
+            alt={event.title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 1024px) 100vw, 360px"
+            unoptimized
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-950 to-cyan-700" />
+        )}
       </div>
       <div className="flex flex-1 flex-col gap-2.5 p-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -84,14 +82,14 @@ export function HomeSpotlightSection({
   intervalMs = 5000,
 }: HomeSpotlightSectionProps) {
   const slides = useMemo<SpotlightSlide[]>(() => {
-    const fallback = KLAMBOCORE_DEFAULT_IMAGE_PATH;
     return schools
       .map((school) => ({
         id: school.id,
         name: school.name,
         city: school.city,
+        kindLabel: school.kindLabel,
         note: school.note?.trim() || school.heroTitle,
-        image: schoolSpotlightImage(school, fallback),
+        image: schoolSpotlightImage(school) ?? "",
         href: `/etablissements/${school.id}`,
       }))
       .filter((slide) => Boolean(slide.image));
@@ -163,7 +161,7 @@ export function HomeSpotlightSection({
               <div className="flex flex-col gap-2.5 p-5">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge className="rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-semibold text-rose-700 hover:bg-rose-100">
-                    Établissement
+                    {activeSlide.kindLabel}
                   </Badge>
                   <Badge className="rounded-full bg-sky-100 px-2.5 py-0.5 text-[11px] font-semibold text-sky-700 hover:bg-sky-100">
                     {activeSlide.city}

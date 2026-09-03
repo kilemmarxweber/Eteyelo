@@ -10,7 +10,7 @@ export async function persistActivatedBranchCycles(
   branchId: string,
   cycles: unknown[],
 ) {
-  const unique = [
+  let unique = [
     ...new Set(cycles.map((cycle) => normalizeCycle(cycle))),
   ].sort((a, b) => CYCLE_SORT_ORDER[a] - CYCLE_SORT_ORDER[b]);
 
@@ -22,16 +22,22 @@ export async function persistActivatedBranchCycles(
     select: { cycle: true },
   });
   if (toRemove.length > 0) {
-    const used = await db.classe.count({
+    const blocked = await db.classe.findMany({
       where: {
         branchId,
         cycle: { in: toRemove.map((row) => row.cycle) },
       },
+      select: { cycle: true },
+      distinct: ["cycle"],
     });
-    if (used > 0) {
-      throw new Error(
-        "Impossible de désactiver un cycle qui contient encore des classes.",
-      );
+    const blockedCycles = blocked
+      .map((row) => row.cycle)
+      .filter((cycle): cycle is NonNullable<typeof cycle> => cycle != null)
+      .map((cycle) => normalizeCycle(cycle));
+    if (blockedCycles.length > 0) {
+      unique = [
+        ...new Set([...unique, ...blockedCycles]),
+      ].sort((a, b) => CYCLE_SORT_ORDER[a] - CYCLE_SORT_ORDER[b]);
     }
   }
 

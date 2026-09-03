@@ -30,7 +30,10 @@ import {
   resolveCycle,
   resolveRequestedCycle,
   buildDashboardCycleStats,
+  schoolCyclesForBranchForm,
+  sameCycleSet,
 } from "../lib/cycle";
+import { toBranchFormValues } from "../lib/branch-form-values";
 import { matchesClassForLevel } from "../lib/class-enrollment/match-class-for-level";
 import { shouldHideSidebarHref } from "../lib/branch-route-guard";
 import {
@@ -225,6 +228,46 @@ test("resolveActivatedCycles : maternelle seule n'active pas PRIMAIRE", () => {
     resolveActivatedCycles({ typebranch: "ATELIER", schoolCycles: ["PRIMAIRE"] }),
     ["ATELIER"],
   );
+  assert.deepEqual(
+    resolveActivatedCycles({
+      typebranch: "SECONDAIRE",
+      schoolCycles: ["SECONDAIRE"],
+      extraCycles: ["ATELIER"],
+    }),
+    ["SECONDAIRE", "ATELIER"],
+  );
+});
+
+test("schoolCyclesForBranchForm : union BranchCycle + classes, y compris inactif", () => {
+  assert.deepEqual(
+    schoolCyclesForBranchForm({
+      typebranch: "SECONDAIRE",
+      branchCycles: [{ cycle: "SECONDAIRE", isActive: true }],
+      classCycles: ["MATERNELLE", "PRIMAIRE", "SECONDAIRE"],
+    }),
+    ["MATERNELLE", "PRIMAIRE", "SECONDAIRE"],
+  );
+  assert.deepEqual(
+    schoolCyclesForBranchForm({
+      typebranch: "SECONDAIRE",
+      branchCycles: [{ cycle: "MATERNELLE", isActive: false }],
+      classCycles: [],
+    }),
+    ["MATERNELLE"],
+  );
+  assert.deepEqual(
+    schoolCyclesForBranchForm({
+      typebranch: "ATELIER",
+      branchCycles: [{ cycle: "ATELIER", isActive: true }],
+      classCycles: ["PRIMAIRE"],
+    }),
+    [],
+  );
+  assert.equal(
+    sameCycleSet(["MATERNELLE", "SECONDAIRE"], ["SECONDAIRE", "MATERNELLE"]),
+    true,
+  );
+  assert.equal(sameCycleSet(["PRIMAIRE"], ["PRIMAIRE", "SECONDAIRE"]), false);
 });
 
 test("allowsOptionForBranch : maternelle n'expose pas d'option", () => {
@@ -583,6 +626,27 @@ test("classes triées du plus petit niveau au plus grand", () => {
     [...secondary].sort(compareClassesByLevel).map((row) => row.level),
     ["7è", "8è", "1è"],
   );
+});
+
+test("toBranchFormValues : champs obligatoires et cycles issus des classes", () => {
+  const values = toBranchFormValues({
+    name: "École test",
+    typebranch: "SECONDAIRE",
+    educationSystem: "CONGOLAIS",
+    latitude: null,
+    longitude: null,
+    attendanceRadius: 5,
+    cycles: [{ cycle: "SECONDAIRE", isActive: true }],
+    classes: [{ cycle: "MATERNELLE" }, { cycle: "PRIMAIRE" }],
+  });
+  assert.equal(values.latitude, -4.4419);
+  assert.equal(values.attendanceRadius, 10);
+  assert.deepEqual(values.schoolCycles, [
+    "MATERNELLE",
+    "PRIMAIRE",
+    "SECONDAIRE",
+  ]);
+  assert.equal(values.pays, "RDC");
 });
 
 console.log("Cycle tests passed.");

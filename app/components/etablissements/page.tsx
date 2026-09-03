@@ -6,9 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { prisma } from "@/lib/prisma";
-import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { SITE_NAME, SITE_OG_IMAGE } from "@/lib/seo/site";
-import { getBranchImage } from "@/lib/utils";
+import { firstPublicBranchPhoto, getBranchImage } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -79,12 +78,7 @@ export default async function EtablissementsPage() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {branches.map((branch) => {
             const images = getBranchImage(branch.image);
-            const cover =
-              images.ecole[0] ||
-              images.event[0] ||
-              images.gallery[0] ||
-              images.logo ||
-              KLAMBOCORE_DEFAULT_IMAGE_PATH;
+            const cover = firstPublicBranchPhoto(images);
 
             const studentsCount = branch.branchemembers.reduce(
               (total, member) => total + member._count.student,
@@ -94,12 +88,18 @@ export default async function EtablissementsPage() {
             return (
               <Link key={branch.id} href={`/etablissements/${branch.id}`}>
                 <article className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-md">
-                  <div
-                    className="h-52 bg-cover bg-center transition duration-500 group-hover:scale-105"
-                    style={{
-                      backgroundImage: `url('${cover}')`,
-                    }}
-                  />
+                  {cover ? (
+                    <div
+                      className="h-52 bg-cover bg-center transition duration-500 group-hover:scale-105"
+                      style={{
+                        backgroundImage: `url('${cover}')`,
+                      }}
+                    />
+                  ) : (
+                    <div className="flex h-52 items-center justify-center bg-gradient-to-br from-blue-950 to-cyan-700">
+                      <School className="size-10 text-white/70" />
+                    </div>
+                  )}
 
                   <div className="p-5">
                     <div className="mb-3 flex items-center justify-between">

@@ -1,22 +1,31 @@
 import "server-only";
 
-import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { getStudentCountsByBranchId } from "@/lib/branch-student-count";
 import { getBranchCycles, isSchoolCycle } from "@/lib/cycle";
+import { getPeopleLabels, pluralizeStudentLabelLower } from "@/lib/people-labels";
 import { prisma } from "@/lib/prisma";
 import { getHomeResultSlides } from "@/lib/public-results";
-import { getBranchImage, normalizeImageSrc } from "@/lib/utils";
+import {
+  getBranchImage,
+  getPublicBranchPhotos,
+  normalizeImageSrc,
+} from "@/lib/utils";
+
+export type HomeStatsSegmentKey = "schools" | "centres" | "universities";
 
 export type HomeSchool = {
   id: string;
   name: string;
   city: string;
   students: number;
+  kind: HomeStatsSegmentKey;
+  kindLabel: string;
+  peopleLabelSingular: string;
+  peopleLabelPlural: string;
   heroLabel: string;
   heroTitle: string;
   /** Texte optionnel « à la une » (Branch.note) */
   note: string | null;
-  logo: string;
   ecole: string[];
   event: string[];
   gallery: string[];
@@ -47,6 +56,7 @@ export type NewSchool = {
   name: string;
   city: string;
   date: string;
+  kindLabel: string;
 };
 
 /** Branche active avec coordonnées pour la carte d'accueil */
@@ -80,7 +90,7 @@ export type BranchImages = {
 };
 
 export type HomeStatsSegment = {
-  key: "schools" | "centres" | "universities";
+  key: HomeStatsSegmentKey;
   title: string;
   countLabel: string;
   peopleLabelSingular: string;
@@ -143,10 +153,13 @@ export const fallbackSchools: HomeSchool[] = [
     name: "CS La Fortune",
     city: "Lubumbashi",
     students: 1200,
-    heroLabel: "Ecole partenaire verifiee",
-    heroTitle: "CS La Fortune accompagne 1 200 eleves a Lubumbashi",
+    kind: "schools",
+    kindLabel: "École",
+    peopleLabelSingular: "Élève",
+    peopleLabelPlural: "Élèves",
+    heroLabel: "École partenaire vérifiée",
+    heroTitle: "CS La Fortune accueille 1 200 élèves à Lubumbashi",
     note: "Une école engagée pour l'excellence scolaire à Lubumbashi.",
-    logo: "",
     ecole: [],
     event: [],
     gallery: [],
@@ -156,10 +169,13 @@ export const fallbackSchools: HomeSchool[] = [
     name: "Bakhita",
     city: "Cabinda",
     students: 850,
-    heroLabel: "Institut actif a Cabinda",
-    heroTitle: "Bakhita valorise ses filieres, evenements et resultats",
+    kind: "schools",
+    kindLabel: "École",
+    peopleLabelSingular: "Élève",
+    peopleLabelPlural: "Élèves",
+    heroLabel: "École partenaire vérifiée",
+    heroTitle: "Bakhita accueille 850 élèves à Cabinda",
     note: "Formation, innovation et accompagnement des familles.",
-    logo: "",
     ecole: [],
     event: [],
     gallery: [],
@@ -169,10 +185,13 @@ export const fallbackSchools: HomeSchool[] = [
     name: "Complexo Escolar Privado Padre Pitra",
     city: "Cabinda",
     students: 970,
-    heroLabel: "Complexe scolaire partenaire",
-    heroTitle: "Padre Pitra gagne en visibilite aupres des familles",
+    kind: "schools",
+    kindLabel: "École",
+    peopleLabelSingular: "Élève",
+    peopleLabelPlural: "Élèves",
+    heroLabel: "École partenaire vérifiée",
+    heroTitle: "Padre Pitra accueille 970 élèves à Cabinda",
     note: null,
-    logo: "",
     ecole: [],
     event: [],
     gallery: [],
@@ -208,24 +227,73 @@ export const fallbackEvents: HomeEvent[] = [
       "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1200&auto=format&fit=crop",
   },
 ];
-const DEFAULT_SCHOOL_IMAGE = KLAMBOCORE_DEFAULT_IMAGE_PATH;
 
-function normalizeImageList(
-  images: Array<string | null | undefined>,
-): string[] {
-  return images
-    .filter((image): image is string => {
-      return typeof image === "string" && image.trim().length > 0;
-    })
-    .map((image) => normalizeImageSrc(image));
+const HOME_KIND_COPY: Record<
+  HomeStatsSegmentKey,
+  { kindLabel: string; heroLabel: string }
+> = {
+  schools: {
+    kindLabel: "École",
+    heroLabel: "École partenaire vérifiée",
+  },
+  centres: {
+    kindLabel: "Centre de formation",
+    heroLabel: "Centre de formation partenaire",
+  },
+  universities: {
+    kindLabel: "Université",
+    heroLabel: "Université partenaire vérifiée",
+  },
+};
+
+function getHomeSchoolKind(branch: {
+  typebranch: string;
+  cycles?: Array<{ cycle: unknown; isActive?: boolean; sortOrder?: number }>;
+}): HomeStatsSegmentKey {
+  const cycles = getBranchCycles(branch);
+  if (cycles.some((cycle) => isSchoolCycle(cycle))) return "schools";
+  if (branch.typebranch === "UNIVERSITE" || cycles.includes("UNIVERSITE")) {
+    return "universities";
+  }
+  if (
+    branch.typebranch === "CENTRE_FORMATION" ||
+    cycles.includes("CENTRE_FORMATION")
+  ) {
+    return "centres";
+  }
+  return "schools";
 }
 
-function firstImage(
-  images: string[],
-  fallback: string = DEFAULT_SCHOOL_IMAGE,
-): string {
-  return images.find(Boolean) ?? fallback;
+function presentHomeSchool(input: {
+  typebranch: string;
+  cycles?: Array<{ cycle: unknown; isActive?: boolean; sortOrder?: number }>;
+  name: string;
+  city: string;
+  students: number;
+}) {
+  const kind = getHomeSchoolKind(input);
+  const copy = HOME_KIND_COPY[kind];
+  const people = getPeopleLabels(
+    kind === "universities"
+      ? "UNIVERSITE"
+      : kind === "centres"
+        ? "CENTRE_FORMATION"
+        : input.typebranch,
+  );
+  const countText =
+    input.students > 0 ? input.students.toLocaleString("fr-FR") : "plusieurs";
+  const peopleWord = pluralizeStudentLabelLower(people, input.students || 2);
+
+  return {
+    kind,
+    kindLabel: copy.kindLabel,
+    peopleLabelSingular: people.student,
+    peopleLabelPlural: people.studentPlural,
+    heroLabel: copy.heroLabel,
+    heroTitle: `${input.name} accueille ${countText} ${peopleWord} à ${input.city}`,
+  };
 }
+
 export const fallbackPartners: HomePartner[] = [
   {
     name: "CS La Fortune",
@@ -261,25 +329,29 @@ const fallbackNewSchools: NewSchool[] = [
     id: "fallback-new-school-1",
     name: "Groupe Scolaire Sainte Marie",
     city: "Kinshasa",
-    date: "Inscrite recemment",
+    date: "Inscrite récemment",
+    kindLabel: "École",
   },
   {
     id: "fallback-new-school-2",
     name: "Academie Les Genies",
     city: "Lubumbashi",
-    date: "Inscrite recemment",
+    date: "Inscrite récemment",
+    kindLabel: "École",
   },
   {
     id: "fallback-new-school-3",
     name: "Institut Moderne La Reussite",
     city: "Goma",
-    date: "Inscrite recemment",
+    date: "Inscrite récemment",
+    kindLabel: "École",
   },
   {
     id: "fallback-new-school-4",
     name: "Complexe Scolaire Lumiere",
     city: "Kolwezi",
-    date: "Inscrite recemment",
+    date: "Inscrite récemment",
+    kindLabel: "École",
   },
 ];
 
@@ -501,38 +573,25 @@ export async function getHomeData(): Promise<HomeData> {
 
       const city = branch.ville || branch.pays || "RDC";
       const images = getBranchImage(branch.image);
-
-      const logo = images.logo
-        ? normalizeImageSrc(images.logo)
-        : DEFAULT_SCHOOL_IMAGE;
-
-      const schoolImages = normalizeImageList(images.ecole);
-      const eventImages = normalizeImageList(images.event);
-      const galleryImages = normalizeImageList(images.gallery);
+      const publicPhotos = new Set(getPublicBranchPhotos(images));
+      const presentation = presentHomeSchool({
+        typebranch: branch.typebranch,
+        cycles: branch.cycles,
+        name: branch.name,
+        city,
+        students: studentsCount,
+      });
 
       return {
         id: branch.id,
         name: branch.name,
         city,
         students: studentsCount,
-        heroLabel: "École partenaire vérifiée",
-        heroTitle: `${branch.name} accueille ${
-          studentsCount > 0 ? studentsCount : "plusieurs"
-        } élèves à ${city}`,
+        ...presentation,
         note: branch.note?.trim() || null,
-        logo,
-        ecole:
-          schoolImages.length > 0
-            ? schoolImages
-            : [firstImage(eventImages, logo)],
-        event:
-          eventImages.length > 0
-            ? eventImages
-            : [firstImage(schoolImages, logo)],
-        gallery:
-          galleryImages.length > 0
-            ? galleryImages
-            : [...schoolImages, ...eventImages].filter(Boolean),
+        ecole: images.ecole.filter((src) => publicPhotos.has(src)),
+        event: images.event.filter((src) => publicPhotos.has(src)),
+        gallery: images.gallery.filter((src) => publicPhotos.has(src)),
       };
     });
 
@@ -549,12 +608,23 @@ export async function getHomeData(): Promise<HomeData> {
 
     const dynamicNewSchools: NewSchool[] = allBranches
       .slice(0, 4)
-      .map((branch) => ({
-        id: branch.id,
-        name: branch.name,
-        city: branch.ville || branch.pays || "RDC",
-        date: formatRegistrationDate(branch.createdAt),
-      }));
+      .map((branch) => {
+        const presentation = presentHomeSchool({
+          typebranch: branch.typebranch,
+          cycles: branch.cycles,
+          name: branch.name,
+          city: branch.ville || branch.pays || "RDC",
+          students: 0,
+        });
+
+        return {
+          id: branch.id,
+          name: branch.name,
+          city: branch.ville || branch.pays || "RDC",
+          date: formatRegistrationDate(branch.createdAt),
+          kindLabel: presentation.kindLabel,
+        };
+      });
 
     const dynamicPartners: HomePartner[] = partnaires.map((partnaire) => ({
       name: partnaire.name,

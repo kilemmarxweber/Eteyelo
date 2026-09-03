@@ -7,8 +7,7 @@ import { Clock } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import type { HomeEvent, HomeSchool } from "@/lib/home/home-data";
-import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
-import { cn } from "@/lib/utils";
+import { cn, firstPublicSchoolPhoto } from "@/lib/utils";
 
 type HomeFeaturedEventsGridProps = {
   schools: HomeSchool[];
@@ -17,14 +16,8 @@ type HomeFeaturedEventsGridProps = {
   intervalMs?: number;
 };
 
-function schoolImage(school: HomeSchool, fallback: string) {
-  return (
-    school.ecole.find(Boolean) ||
-    school.event.find(Boolean) ||
-    school.gallery.find(Boolean) ||
-    school.logo ||
-    fallback
-  );
+function schoolImage(school: HomeSchool) {
+  return firstPublicSchoolPhoto(school);
 }
 
 export function HomeFeaturedEventsGrid({
@@ -40,11 +33,14 @@ export function HomeFeaturedEventsGrid({
           id: school.id,
           name: school.name,
           city: school.city,
+          kindLabel: school.kindLabel,
           note: school.note?.trim() || school.heroTitle,
-          image: schoolImage(school, KLAMBOCORE_DEFAULT_IMAGE_PATH),
+          image: schoolImage(school),
           href: `/etablissements/${school.id}`,
         }))
-        .filter((slide) => Boolean(slide.image)),
+        .filter((slide): slide is typeof slide & { image: string } =>
+          Boolean(slide.image),
+        ),
     [schools],
   );
 
@@ -98,7 +94,7 @@ export function HomeFeaturedEventsGrid({
             <div className="flex flex-col gap-2 p-4">
               <div className="flex flex-wrap items-center gap-1.5">
                 <Badge className="rounded-full bg-rose-100 px-2 py-0 text-[10px] font-semibold text-rose-700 hover:bg-rose-100">
-                  Établissement
+                  {activeSlide.kindLabel}
                 </Badge>
                 <Badge className="rounded-full bg-sky-100 px-2 py-0 text-[10px] font-semibold text-sky-700 hover:bg-sky-100">
                   {activeSlide.city}
@@ -180,14 +176,18 @@ export function HomeFeaturedEventsGrid({
                 className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-blue-100 transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
-                  <Image
-                    src={event.image || KLAMBOCORE_DEFAULT_IMAGE_PATH}
-                    alt={event.title}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 1024px) 40vw, 200px"
-                    unoptimized
-                  />
+                  {event.image ? (
+                    <Image
+                      src={event.image}
+                      alt={event.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 1024px) 40vw, 200px"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-950 to-cyan-700" />
+                  )}
                 </div>
                 <div className="space-y-1.5 p-2.5">
                   <div className="flex flex-wrap items-center gap-1">

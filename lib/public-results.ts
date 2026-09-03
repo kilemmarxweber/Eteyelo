@@ -1,16 +1,26 @@
 import {
+  getAcademicPeriodAliases,
+  normalizeAcademicPeriodLabel,
+} from "@/lib/academic-structure";
+import {
   calculateBulletinPercentage,
   sumBulletinMaxima,
 } from "@/lib/bulletin-maxima";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
+import { isCycle } from "@/lib/cycle";
 import { prisma } from "@/lib/prisma";
 import { normalizeImageSrc } from "@/lib/utils";
 
 export type PublicResultFilters = {
   branchId?: string;
+  branchIds?: string[];
   classeId?: string;
+  classeName?: string;
   yearId?: string;
+  yearName?: string;
   periodId?: number;
+  periodLabel?: string;
+  cycle?: string;
   q?: string;
 };
 
@@ -32,6 +42,10 @@ type NoteRow = {
   studentId?: string;
   score?: number | null;
   maxScore?: number | null;
+  nom?: string;
+  studentSurname?: string;
+  studentusername?: string;
+  studentSexe?: string;
 };
 
 type PeriodTotals = {
@@ -46,9 +60,31 @@ type Acc = {
   branchCity: string;
   classe: string;
   year: string;
+  noteName: string;
+  noteSexe: string;
   /** Clé = période ; agrège tous les cours de la fiche. */
   periodTotals: Map<string, PeriodTotals>;
 };
+
+function joinNameParts(parts: Array<string | null | undefined>): string {
+  return parts
+    .map((part) => (typeof part === "string" ? part.trim() : ""))
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+}
+
+/** prenom + nom + postnom, tels qu'enregistrés dans la fiche de cote. */
+function nameFromNote(note: NoteRow): string {
+  return joinNameParts([note.studentusername, note.nom, note.studentSurname]);
+}
+
+function periodLabelsForFilter(label: string): string[] {
+  const normalized = normalizeAcademicPeriodLabel(label);
+  return Array.from(
+    new Set([label, normalized, ...getAcademicPeriodAliases(normalized)]),
+  );
+}
 
 function parseNotes(raw: unknown): NoteRow[] {
   try {
@@ -71,13 +107,42 @@ function parseNotes(raw: unknown): NoteRow[] {
 export async function getPublicStudentResults(
   filters: PublicResultFilters = {},
 ): Promise<PublicStudentResult[]> {
+  const branchIds = Array.from(
+    new Set(
+      [filters.branchId, ...(filters.branchIds ?? [])].filter(
+        (id): id is string => Boolean(id),
+      ),
+    ),
+  );
+  const periodNames = filters.periodLabel
+    ? periodLabelsForFilter(filters.periodLabel)
+    : [];
+  const cycle = isCycle(filters.cycle) ? filters.cycle : undefined;
+
   const fiches = await prisma.fiche.findMany({
     where: {
       typeFiche: "ficheCote",
-      ...(filters.branchId ? { branchId: filters.branchId } : {}),
+      ...(branchIds.length ? { branchId: { in: branchIds } } : {}),
       ...(filters.classeId ? { classSectionId: filters.classeId } : {}),
+      ...(filters.classeName && !filters.classeId
+        ? { ClassSection: { nameClasse: filters.classeName } }
+        : {}),
       ...(filters.yearId ? { anneeId: filters.yearId } : {}),
+      ...(filters.yearName && !filters.yearId
+        ? { anneeName: filters.yearName }
+        : {}),
       ...(filters.periodId ? { periodId: filters.periodId } : {}),
+      ...(periodNames.length && !filters.periodId
+        ? { periodeName: { in: periodNames } }
+        : {}),
+      ...(cycle
+        ? {
+            OR: [
+              { period: { cycle } },
+              { ClassSection: { cycle } },
+            ],
+          }
+        : {}),
       branch: {
         isActive: true,
       },
@@ -110,7 +175,9 @@ export async function getPublicStudentResults(
     const notes = parseNotes(fiche.notes);
     if (notes.length === 0) continue;
 
-    const periodKey = fiche.periodeName || "Période";
+    const periodKey = fiche.periodeName
+      ? normalizeAcademicPeriodLabel(fiche.periodeName)
+      : "Période";
 
     // Maxima de période du cours = maxScore enregistré dans la fiche.
     const coursePeriodMax = Math.max(
@@ -138,8 +205,17 @@ export async function getPublicStudentResults(
         branchCity: fiche.branch.ville || fiche.branch.pays || "RDC",
         classe: fiche.ClassSection.nameClasse || "Classe non renseignée",
         year: fiche.anneeName || "Année",
+        noteName: "",
+        noteSexe: "",
         periodTotals: new Map(),
       };
+
+      if (!current.noteName) {
+        current.noteName = nameFromNote(note);
+      }
+      if (!current.noteSexe && note.studentSexe) {
+        current.noteSexe = String(note.studentSexe).trim();
+      }
 
       const period = current.periodTotals.get(periodKey) ?? {
         score: 0,
@@ -184,7 +260,10 @@ export async function getPublicStudentResults(
   });
 
   const userByStudentId = new Map(
-    students.map((student) => [student.id, student.branchMember.member.user]),
+    students.map((student) => [
+      student.id,
+      student.branchMember?.member?.user,
+    ]),
   );
 
   const q = filters.q?.trim().toLowerCase();
@@ -193,14 +272,13 @@ export async function getPublicStudentResults(
 
   for (const acc of byStudent.values()) {
     const user = userByStudentId.get(acc.studentId);
-    const name = [user?.prenom, user?.name, user?.postnom]
-      .filter(Boolean)
-      .join(" ")
-      .trim();
+    const name =
+      joinNameParts([user?.prenom, user?.name, user?.postnom]) ||
+      acc.noteName;
 
     if (q) {
       const haystack =
-        `${name} ${user?.name ?? ""} ${user?.prenom ?? ""} ${user?.postnom ?? ""}`.toLowerCase();
+        `${name} ${user?.name ?? ""} ${user?.prenom ?? ""} ${user?.postnom ?? ""} ${acc.noteName}`.toLowerCase();
       if (!haystack.includes(q)) continue;
     }
 
@@ -223,7 +301,7 @@ export async function getPublicStudentResults(
     results.push({
       studentId: acc.studentId,
       name: name || "Élève",
-      sexe: user?.sexe || "N/A",
+      sexe: user?.sexe || acc.noteSexe || "N/A",
       image: user?.image ? normalizeImageSrc(user.image) : null,
       classe: acc.classe,
       year: acc.year,

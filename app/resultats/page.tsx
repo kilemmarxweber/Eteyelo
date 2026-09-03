@@ -1,36 +1,74 @@
-import Link from "next/link";
 import {
-  ArrowRight,
   BarChart3,
   CalendarDays,
   GraduationCap,
   School,
-  Search,
   Trophy,
   UserRound,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
+import {
+  getAcademicPeriodOrder,
+  normalizeAcademicPeriodLabel,
+} from "@/lib/academic-structure";
+import {
+  CYCLE_SORT_ORDER,
+  cycleLabel,
+  getBranchCycles,
+  isCycle,
+  resolveCycle,
+  type Cycle,
+} from "@/lib/cycle";
 import { prisma } from "@/lib/prisma";
 import { getPublicStudentResults } from "@/lib/public-results";
+
+import { ResultatsFilters } from "./resultats-filters";
 
 export const dynamic = "force-dynamic";
 
 type PageProps = {
   searchParams: Promise<{
-    branchId?: string;
+    branchId?: string | string[];
+    classe?: string;
     classeId?: string;
+    year?: string;
     yearId?: string;
+    period?: string;
     periodId?: string;
+    cycle?: string;
     q?: string;
   }>;
 };
 
+function toList(value?: string | string[]): string[] {
+  if (!value) return [];
+  return (Array.isArray(value) ? value : [value])
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function uniqueInOrder<T>(items: T[], key: (item: T) => string): T[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const value = key(item);
+    if (!value || seen.has(value)) return false;
+    seen.add(value);
+    return true;
+  });
+}
+
 export default async function ResultatsPage({ searchParams }: PageProps) {
   const params = await searchParams;
+  const selectedBranchIds = toList(params.branchId);
+  const selectedClasse = params.classe?.trim() || "";
+  const selectedYear = params.year?.trim() || "";
+  const selectedCycle = isCycle(params.cycle) ? params.cycle : "";
+  const selectedPeriod = params.period?.trim()
+    ? normalizeAcademicPeriodLabel(params.period.trim())
+    : "";
 
   const branches = await prisma.branch.findMany({
     where: {
@@ -45,71 +83,141 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
       ville: true,
       pays: true,
       typebranch: true,
+      cycles: {
+        where: { isActive: true },
+        select: {
+          cycle: true,
+          sortOrder: true,
+          isActive: true,
+        },
+      },
     },
   });
 
-  const selectedBranchId = params.branchId || branches[0]?.id || "";
+  const branchOptions = branches.map((branch) => ({
+    id: branch.id,
+    name: branch.name,
+    cycles: getBranchCycles(branch),
+  }));
 
-  const [classes, years, periods] = selectedBranchId
+  const cycleOptions = uniqueInOrder(
+    branchOptions
+      .flatMap((branch) => branch.cycles)
+      .sort((left, right) => CYCLE_SORT_ORDER[left] - CYCLE_SORT_ORDER[right]),
+    (cycle) => cycle,
+  ).map((cycle) => ({
+    value: cycle,
+    label: cycleLabel(cycle),
+  }));
+
+  const branchIds = branches.map((branch) => branch.id);
+
+  const [classes, years, periods] = branchIds.length
     ? await Promise.all([
         prisma.classe.findMany({
-          where: {
-            branchId: selectedBranchId,
-          },
-          orderBy: {
-            nameClasse: "asc",
-          },
+          where: { branchId: { in: branchIds } },
+          orderBy: { nameClasse: "asc" },
           select: {
-            id: true,
             nameClasse: true,
+            branchId: true,
+            cycle: true,
+            branch: {
+              select: { typebranch: true },
+            },
           },
         }),
-
         prisma.schoolYear.findMany({
           where: {
-            branchId: selectedBranchId,
+            branchId: { in: branchIds },
+            isArchived: false,
           },
-          orderBy: {
-            startYear: "desc",
-          },
+          orderBy: { startYear: "desc" },
           select: {
-            id: true,
             nameYear: true,
-            isCurrentYear: true,
+            startYear: true,
+            branchId: true,
           },
         }),
-
         prisma.period.findMany({
-          where: {
-            branchId: selectedBranchId,
-          },
-          orderBy: {
-            startDate: "asc",
-          },
+          where: { branchId: { in: branchIds } },
+          orderBy: { startDate: "asc" },
           select: {
-            id: true,
             label: true,
+            branchId: true,
+            cycle: true,
           },
         }),
       ])
     : [[], [], []];
 
-  const selectedYearId =
-    params.yearId || years.find((year) => year.isCurrentYear)?.id || "";
+  const classOptions = classes.map((classe) => ({
+    name: classe.nameClasse,
+    branchId: classe.branchId,
+    cycle: resolveCycle(classe, classe.branch),
+  }));
 
-  const selectedPeriodId = params.periodId
-    ? Number(params.periodId)
-    : undefined;
+  const yearOptions = years.map((year) => ({
+    name: year.nameYear,
+    branchId: year.branchId,
+  }));
 
-  const results = selectedBranchId
-    ? await getPublicStudentResults({
-        branchId: selectedBranchId,
-        classeId: params.classeId || undefined,
-        yearId: selectedYearId || undefined,
-        periodId: selectedPeriodId,
-        q: params.q || undefined,
-      })
-    : [];
+  const periodOptions = uniqueInOrder(
+    periods
+      .map((period) => ({
+        label: normalizeAcademicPeriodLabel(period.label),
+        branchId: period.branchId,
+        cycle: period.cycle,
+      }))
+      .sort(
+        (left, right) =>
+          getAcademicPeriodOrder(left.label, left.cycle) -
+          getAcademicPeriodOrder(right.label, right.cycle),
+      ),
+    (period) => `${period.branchId}::${period.cycle}::${period.label}`,
+  ).map(({ label, branchId, cycle }) => ({ label, branchId, cycle }));
+
+  const scopedBranchIds = selectedBranchIds.filter((id) => {
+    const branch = branchOptions.find((item) => item.id === id);
+    if (!branch) return false;
+    if (selectedCycle && !branch.cycles.includes(selectedCycle)) return false;
+    return true;
+  });
+  const inScope = (branchId: string) =>
+    scopedBranchIds.length === 0 || scopedBranchIds.includes(branchId);
+  const inCycle = (cycle: Cycle) =>
+    !selectedCycle || cycle === selectedCycle;
+
+  const uniqueClasses = uniqueInOrder(
+    classOptions.filter(
+      (item) => inScope(item.branchId) && inCycle(item.cycle),
+    ),
+    (item) => item.name,
+  );
+  const uniqueYears = uniqueInOrder(
+    yearOptions.filter((item) => inScope(item.branchId)),
+    (item) => item.name,
+  );
+  const uniquePeriods = uniqueInOrder(
+    periodOptions.filter(
+      (item) => inScope(item.branchId) && inCycle(item.cycle),
+    ),
+    (item) => item.label,
+  );
+
+  const results = await getPublicStudentResults({
+    branchIds: scopedBranchIds,
+    cycle: selectedCycle || undefined,
+    classeName: selectedClasse || undefined,
+    classeId: params.classeId || undefined,
+    yearName: selectedYear || undefined,
+    yearId: params.yearId || undefined,
+    periodLabel: selectedPeriod || undefined,
+    periodId:
+      params.periodId && Number.isFinite(Number(params.periodId))
+        ? Number(params.periodId)
+        : undefined,
+    q: params.q || undefined,
+  });
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -127,124 +235,53 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
           </h1>
 
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-primary-foreground/90 md:text-base">
-            Choisissez une ecole, une classe, une annee scolaire, une periode ou
-            recherchez directement un eleve par nom, prenom ou postnom.
+            Choisissez un cycle, une ou plusieurs ecoles, une classe, une annee
+            scolaire, une periode ou recherchez un eleve par nom, prenom ou
+            postnom.
           </p>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-10">
-        <form className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-          <div className="grid gap-4 md:grid-cols-5">
-            <label className="space-y-2 text-sm font-semibold text-foreground">
-              Ecole
-              <select
-                name="branchId"
-                defaultValue={selectedBranchId}
-                className="h-12 w-full rounded-2xl border border-border bg-muted/40 px-4 outline-none focus:border-primary/40"
-              >
-                {branches.map((branch) => (
-                  <option key={branch.id} value={branch.id}>
-                    {branch.name}
-                    {branch.typebranch === "PRIMAIRE"
-                      ? " (Primaire)"
-                      : " (Secondaire)"}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="space-y-2 text-sm font-semibold text-foreground">
-              Classe
-              <select
-                name="classeId"
-                defaultValue={params.classeId || ""}
-                className="h-12 w-full rounded-2xl border border-border bg-muted/40 px-4 outline-none focus:border-primary/40"
-              >
-                <option value="">Toutes les classes</option>
-                {classes.map((classe) => (
-                  <option key={classe.id} value={classe.id}>
-                    {classe.nameClasse}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="space-y-2 text-sm font-semibold text-foreground">
-              Annee scolaire
-              <select
-                name="yearId"
-                defaultValue={selectedYearId}
-                className="h-12 w-full rounded-2xl border border-border bg-muted/40 px-4 outline-none focus:border-primary/40"
-              >
-                <option value="">Toutes les annees</option>
-                {years.map((year) => (
-                  <option key={year.id} value={year.id}>
-                    {year.nameYear}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="space-y-2 text-sm font-semibold text-foreground">
-              Periode
-              <select
-                name="periodId"
-                defaultValue={params.periodId || ""}
-                className="h-12 w-full rounded-2xl border border-border bg-muted/40 px-4 outline-none focus:border-primary/40"
-              >
-                <option value="">Toutes les periodes</option>
-                {periods.map((period) => (
-                  <option key={period.id} value={period.id}>
-                    {period.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="space-y-2 text-sm font-semibold text-foreground">
-              Recherche eleve
-              <div className="relative">
-                <Search className="absolute left-3 top-4 size-4 text-primary" />
-                <input
-                  name="q"
-                  defaultValue={params.q || ""}
-                  placeholder="Nom, prenom..."
-                  className="h-12 w-full rounded-2xl border border-border bg-muted/40 pl-10 pr-4 outline-none focus:border-primary/40"
-                />
-              </div>
-            </label>
-          </div>
-
-          <div className="mt-5 flex flex-wrap justify-end gap-3">
-            <Button asChild variant="outline" className="rounded-full">
-              <Link href="/resultats">Reinitialiser</Link>
-            </Button>
-
-            <Button className="rounded-full px-6">
-              Afficher les resultats
-              <ArrowRight className="ml-2 size-4" />
-            </Button>
-          </div>
-        </form>
+        <ResultatsFilters
+          cycles={cycleOptions}
+          branches={branchOptions}
+          classes={classOptions}
+          years={yearOptions}
+          periods={periodOptions}
+          selectedCycle={selectedCycle}
+          selectedBranchIds={scopedBranchIds}
+          selectedClasse={selectedClasse}
+          selectedYear={selectedYear}
+          selectedPeriod={selectedPeriod}
+          q={params.q || ""}
+        />
 
         <div className="mt-8 grid gap-4 md:grid-cols-4">
           <StatCard
             icon={School}
             label="Ecoles disponibles"
-            value={branches.length}
+            value={
+              scopedBranchIds.length > 0
+                ? scopedBranchIds.length
+                : selectedCycle
+                  ? branchOptions.filter((branch) =>
+                      branch.cycles.includes(selectedCycle),
+                    ).length
+                  : branches.length
+            }
           />
 
           <StatCard
             icon={GraduationCap}
             label="Classes"
-            value={classes.length}
+            value={uniqueClasses.length}
           />
 
           <StatCard
             icon={CalendarDays}
             label="Periodes"
-            value={periods.length}
+            value={uniquePeriods.length}
           />
 
           <StatCard
@@ -264,16 +301,20 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Classement selon la moyenne des points enregistres.
+              {uniqueYears.length
+                ? ` Annees : ${uniqueYears.map((year) => year.name).join(", ")}.`
+                : ""}
             </p>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left text-sm">
+            <table className="w-full min-w-[980px] text-left text-sm">
               <thead className="bg-primary/5 text-xs uppercase text-foreground">
                 <tr>
                   <th className="px-5 py-4">Rang</th>
                   <th className="px-5 py-4">Eleve</th>
                   <th className="px-5 py-4">Sexe</th>
+                  <th className="px-5 py-4">Ecole</th>
                   <th className="px-5 py-4">Classe</th>
                   <th className="px-5 py-4">Annee</th>
                   <th className="px-5 py-4">Periodes</th>
@@ -284,7 +325,7 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
               <tbody>
                 {results.map((result, index) => (
                   <tr
-                    key={result.studentId}
+                    key={`${result.branchId}-${result.studentId}`}
                     className="border-t border-border transition hover:bg-primary/5"
                   >
                     <td className="px-5 py-4 font-bold text-primary">
@@ -296,7 +337,7 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
                         <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                           <UserRound className="size-5" />
                         </span>
-                        <span className="font-semibold text-foreground">
+                        <span className="font-semibold capitalize text-foreground">
                           {result.name}
                         </span>
                       </div>
@@ -305,6 +346,7 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
                     <td className="px-5 py-4 text-muted-foreground">
                       {result.sexe}
                     </td>
+                    <td className="px-5 py-4">{result.branchName}</td>
                     <td className="px-5 py-4">{result.classe}</td>
                     <td className="px-5 py-4">{result.year}</td>
                     <td className="px-5 py-4 text-muted-foreground">
@@ -324,7 +366,7 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
                 {!results.length ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="px-5 py-12 text-center text-muted-foreground"
                     >
                       Aucun resultat trouve pour cette selection.

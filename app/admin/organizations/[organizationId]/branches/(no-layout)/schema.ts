@@ -76,6 +76,7 @@ export const createBranchFormObjectSchema = z.object({
 export function refineBranchSchoolCycles(
   data: { typebranch: string; schoolCycles?: string[]; educationSystem?: string },
   ctx: z.RefinementCtx,
+  options?: { allowAngolaMaternelle?: boolean },
 ) {
   const isExtended =
     data.typebranch === "ATELIER" ||
@@ -91,6 +92,7 @@ export function refineBranchSchoolCycles(
     });
   }
   if (
+    !options?.allowAngolaMaternelle &&
     data.educationSystem === "ANGOLAIS" &&
     data.schoolCycles?.includes("MATERNELLE")
   ) {
@@ -105,5 +107,9 @@ export function refineBranchSchoolCycles(
 
 export const createBranchFormSchema = createBranchFormObjectSchema.superRefine(
   refineBranchSchoolCycles,
+);
+export const updateBranchFormSchema = createBranchFormObjectSchema.superRefine(
+  (data, ctx) =>
+    refineBranchSchoolCycles(data, ctx, { allowAngolaMaternelle: true }),
 );
 export type CreateBranchFormValues = z.input<typeof createBranchFormObjectSchema>;

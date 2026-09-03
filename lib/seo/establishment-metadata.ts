@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 
-import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { prisma } from "@/lib/prisma";
-import { absoluteUrl, SITE_NAME } from "@/lib/seo/site";
-import { getBranchImage } from "@/lib/utils";
+import { absoluteUrl, SITE_NAME, SITE_OG_IMAGE } from "@/lib/seo/site";
+import { firstPublicBranchPhoto, getBranchImage } from "@/lib/utils";
 
 export type EstablishmentSeoBranch = {
   id: string;
@@ -44,13 +43,7 @@ function locationLabel(branch: EstablishmentSeoBranch): string {
 
 function coverImage(branch: EstablishmentSeoBranch): string {
   const images = getBranchImage(branch.image);
-  return (
-    images.ecole[0] ||
-    images.event[0] ||
-    images.gallery[0] ||
-    images.logo ||
-    KLAMBOCORE_DEFAULT_IMAGE_PATH
-  );
+  return firstPublicBranchPhoto(images) || SITE_OG_IMAGE;
 }
 
 function buildDescription(branch: EstablishmentSeoBranch): string {
