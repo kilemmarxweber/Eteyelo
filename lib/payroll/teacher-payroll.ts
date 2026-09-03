@@ -191,7 +191,7 @@ export async function calculateTeacherPayroll(input: {
   organizationId: string;
   teacherId: string;
   period: PayrollPeriod;
-}) {
+}): Promise<TeacherPayrollResult> {
   if (input.period.month < 1 || input.period.month > 12) {
     throw new Error("Le mois doit être compris entre 1 et 12");
   }
@@ -479,7 +479,7 @@ export async function persistTeacherPayroll(
     personnelRoleLabel?: string | null;
     waivedSessionIds?: string[];
   },
-  result: Awaited<ReturnType<typeof calculateTeacherPayroll>>,
+  result: TeacherPayrollResult,
 ) {
   const branchMemberId = input.branchMemberId || result.branchMemberId;
   if (!branchMemberId) {
@@ -736,7 +736,7 @@ export async function persistTeacherPayroll(
     await tx.teacherPayslipLine.createMany({ data: advanceLines });
 
     const advanceDeductions = advanceLines.reduce(
-      (sum, line) => sum + line.amount,
+      (sum, line) => sum + (line.amount ?? 0),
       0,
     );
     const settled = settlePayrollTotals(
