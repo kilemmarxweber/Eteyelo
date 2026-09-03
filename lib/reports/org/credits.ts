@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import {
   buildBranchIdFilter,
   buildBranchRecordWhere,
+  loadSchoolYearBounds,
   monthKey,
   monthLabelFr,
   periodLabelFr,
@@ -84,25 +85,18 @@ export async function getCreditsReport(params: {
   schoolYearIds: string[];
 }): Promise<CreditsReport> {
   const branchFilter = buildBranchIdFilter(params.scope);
-
-  let dateFilter: { createdAt?: { gte: Date; lte: Date } } = {};
-  if (params.schoolYearIds.length > 0) {
-    const years = await prisma.schoolYear.findMany({
-      where: { id: { in: params.schoolYearIds } },
-      select: { startYear: true, endYear: true },
-    });
-    if (years.length > 0) {
-      const minStart = years.reduce(
-        (min, y) => (y.startYear < min ? y.startYear : min),
-        years[0]!.startYear,
-      );
-      const maxEnd = years.reduce(
-        (max, y) => (y.endYear > max ? y.endYear : max),
-        years[0]!.endYear,
-      );
-      dateFilter = { createdAt: { gte: minStart, lte: maxEnd } };
-    }
-  }
+  const bounds = await loadSchoolYearBounds(prisma, params.schoolYearIds);
+  const dateFilter = bounds
+    ? {
+        OR: [
+          { createdAt: { gte: bounds.minStart, lte: bounds.maxEnd } },
+          ...bounds.months.map((m) => ({
+            firstYear: m.year,
+            firstMonth: m.month,
+          })),
+        ],
+      }
+    : {};
 
   const memberUserSelect = {
     member: {

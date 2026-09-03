@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { MultiSelect } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/[branchId]/paiement/components/MultiSelect";
 import {
@@ -22,13 +23,17 @@ type Props = {
   branches: ReportBranchOption[];
   schoolYears: ReportSchoolYearOption[];
   classes: ReportClassOption[];
-  scope: ReportScope;
-  selectedBranchId: string | null;
   selectedBranchIds: string[];
   schoolYearKey: string;
   classeKey: string;
   tab: ReportTab;
 };
+
+function sameIds(a: string[], b: string[]) {
+  if (a.length !== b.length) return false;
+  const set = new Set(a);
+  return b.every((id) => set.has(id));
+}
 
 function buildHref(
   organizationId: string,
@@ -60,6 +65,14 @@ export function ReportFilters({
   tab,
 }: Props) {
   const router = useRouter();
+  const [pendingBranchIds, setPendingBranchIds] = useState(selectedBranchIds);
+  const pendingRef = useRef(pendingBranchIds);
+  pendingRef.current = pendingBranchIds;
+  const menuOpenRef = useRef(false);
+
+  useEffect(() => {
+    setPendingBranchIds(selectedBranchIds);
+  }, [selectedBranchIds]);
 
   function navigate(
     patch: Partial<{
@@ -84,6 +97,21 @@ export function ReportFilters({
     );
   }
 
+  function commitBranches(ids: string[]) {
+    const unique = [...new Set(ids)];
+    const isAll = unique.length === 0 || unique.length === branches.length;
+    const nextIds = isAll ? [] : unique;
+    if (sameIds(nextIds, selectedBranchIds)) {
+      setPendingBranchIds(selectedBranchIds);
+      return;
+    }
+    navigate({
+      scope: isAll ? "all" : "branch",
+      branchIds: nextIds,
+      classeKey: "all",
+    });
+  }
+
   const triggerClassName =
     "h-9 w-full rounded-full border-border bg-background text-foreground shadow-sm ring-offset-background hover:bg-accent hover:text-accent-foreground focus:ring-ring data-[placeholder]:text-muted-foreground [&>svg]:text-muted-foreground";
 
@@ -95,19 +123,19 @@ export function ReportFilters({
             label: branch.name,
             value: branch.id,
           }))}
-          value={selectedBranchIds}
+          value={pendingBranchIds}
           onValueChange={(ids) => {
-            const unique = [...new Set(ids)];
-            const isAll =
-              unique.length === 0 || unique.length === branches.length;
-            navigate({
-              scope: isAll ? "all" : "branch",
-              branchIds: isAll ? [] : unique,
-              classeKey: "all",
-            });
+            setPendingBranchIds(ids);
+            pendingRef.current = ids;
+            if (!menuOpenRef.current) commitBranches(ids);
+          }}
+          onOpenChange={(open) => {
+            menuOpenRef.current = open;
+            if (!open) commitBranches(pendingRef.current);
           }}
           placeholder="Toutes les branches"
           searchable
+          showSelectAll
           maxCount={1}
           selectedCountLabel={(count) =>
             `${count} établissement${count > 1 ? "s" : ""}`

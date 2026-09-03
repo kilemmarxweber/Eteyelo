@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import {
   buildBranchIdFilter,
   buildBranchRecordWhere,
+  loadSchoolYearBounds,
   periodKey,
   periodLabelFr,
   type BranchScopeInput,
@@ -87,10 +88,25 @@ export async function getPayrollReport(params: {
   schoolYearIds: string[];
 }): Promise<PayrollReport> {
   const branchFilter = buildBranchIdFilter(params.scope);
-  const yearFilter =
-    params.schoolYearIds.length > 0
-      ? { schoolYearId: { in: params.schoolYearIds } }
-      : {};
+  const bounds = await loadSchoolYearBounds(prisma, params.schoolYearIds);
+  const yearFilter = bounds
+    ? {
+        OR: [
+          { schoolYearId: { in: params.schoolYearIds } },
+          ...(bounds.months.length > 0
+            ? [
+                {
+                  schoolYearId: null,
+                  OR: bounds.months.map((m) => ({
+                    year: m.year,
+                    month: m.month,
+                  })),
+                },
+              ]
+            : []),
+        ],
+      }
+    : {};
 
   const memberUserSelect = {
     member: {

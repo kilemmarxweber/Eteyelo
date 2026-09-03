@@ -227,8 +227,6 @@ export function RapportDashboard({ organizationId, data }: Props) {
           branches={meta.branches}
           schoolYears={meta.schoolYears}
           classes={meta.classes}
-          scope={meta.scope}
-          selectedBranchId={meta.selectedBranchId}
           selectedBranchIds={meta.selectedBranchIds}
           schoolYearKey={meta.schoolYearKey}
           classeKey={meta.classeKey}
@@ -284,7 +282,7 @@ export function RapportDashboard({ organizationId, data }: Props) {
         <TabsContent value="overview" className="mt-4 space-y-4">
           {data.overview ? (
             <>
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 <ReportKpiCard
                   title="Élèves"
                   value={String(data.overview.students)}
@@ -988,7 +986,9 @@ export function RapportDashboard({ organizationId, data }: Props) {
                 </ReportSection>
                 <ReportSection title="Par branche">
                   <ReportBarChart
-                    data={data.payroll.byBranch.map((b) => ({
+                    data={data.payroll.byBranch
+                      .filter((b) => b.count > 0)
+                      .map((b) => ({
                       name: b.branchName,
                       brut: b.gross,
                       net: b.net,
@@ -1145,7 +1145,9 @@ export function RapportDashboard({ organizationId, data }: Props) {
                 </ReportSection>
                 <ReportSection title="Par branche">
                   <ReportBarChart
-                    data={data.credits.byBranch.map((b) => ({
+                    data={data.credits.byBranch
+                      .filter((b) => b.count > 0)
+                      .map((b) => ({
                       name: b.branchName,
                       demandé: b.requested,
                       accordé: b.approved,

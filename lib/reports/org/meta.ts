@@ -127,6 +127,12 @@ export async function getReportMeta(params: {
   const selectedBranchIds = wantsAll ? [] : requestedIds;
   const selectedBranchId = selectedBranchIds[0] ?? null;
 
+  const branchOptions = branches
+    .filter(
+      (b) => b.isActive || selectedBranchIds.includes(b.id),
+    )
+    .map((b) => ({ id: b.id, name: b.name }));
+
   const scopeInput: BranchScopeInput = {
     organizationId: params.organizationId,
     scope,
@@ -237,7 +243,7 @@ export async function getReportMeta(params: {
       : "all";
 
   return {
-    branches: branches.map((b) => ({ id: b.id, name: b.name })),
+    branches: branchOptions,
     schoolYears,
     classes,
     scope,

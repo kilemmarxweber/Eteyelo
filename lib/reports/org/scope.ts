@@ -118,6 +118,57 @@ export function periodKey(year: number, month: number) {
   return `${year}-${String(month).padStart(2, "0")}`;
 }
 
+export type YearMonth = { year: number; month: number };
+
+/** Mois inclus dans [start, end] (dates civiles). */
+export function yearMonthsInRange(start: Date, end: Date): YearMonth[] {
+  const out: YearMonth[] = [];
+  if (
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime()) ||
+    start > end
+  ) {
+    return out;
+  }
+  const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+  const last = new Date(end.getFullYear(), end.getMonth(), 1);
+  let guard = 0;
+  while (cursor <= last && guard < 120) {
+    out.push({ year: cursor.getFullYear(), month: cursor.getMonth() + 1 });
+    cursor.setMonth(cursor.getMonth() + 1);
+    guard += 1;
+  }
+  return out;
+}
+
+export async function loadSchoolYearBounds(
+  db: {
+    schoolYear: {
+      findMany: (args: {
+        where: { id: { in: string[] } };
+        select: { startYear: true; endYear: true };
+      }) => Promise<{ startYear: Date; endYear: Date }[]>;
+    };
+  },
+  schoolYearIds: string[],
+): Promise<{ minStart: Date; maxEnd: Date; months: YearMonth[] } | null> {
+  if (schoolYearIds.length === 0) return null;
+  const years = await db.schoolYear.findMany({
+    where: { id: { in: schoolYearIds } },
+    select: { startYear: true, endYear: true },
+  });
+  if (years.length === 0) return null;
+  const minStart = years.reduce(
+    (min, y) => (y.startYear < min ? y.startYear : min),
+    years[0]!.startYear,
+  );
+  const maxEnd = years.reduce(
+    (max, y) => (y.endYear > max ? y.endYear : max),
+    years[0]!.endYear,
+  );
+  return { minStart, maxEnd, months: yearMonthsInRange(minStart, maxEnd) };
+}
+
 export function formatMoney(value: number) {
   return new Intl.NumberFormat("fr-FR", {
     maximumFractionDigits: 0,

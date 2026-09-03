@@ -40,6 +40,9 @@ interface MultiSelectProps {
   hideSelected?: boolean;
   /** Libellé du compteur quand hideSelected est actif (défaut : frais). */
   selectedCountLabel?: (count: number) => string;
+  /** Bouton « tout sélectionner » en bas de liste. */
+  showSelectAll?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function MultiSelect({
@@ -55,9 +58,17 @@ export function MultiSelect({
   hideSelected = false,
   selectedCountLabel = (count) =>
     `${count} frais sélectionné${count > 1 ? "s" : ""}`,
+  showSelectAll = false,
+  onOpenChange,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
+
+  function setOpenState(next: boolean) {
+    setOpen(next);
+    if (!next) setSearch("");
+    onOpenChange?.(next);
+  }
 
   const selected = value || [];
 
@@ -79,15 +90,20 @@ export function MultiSelect({
 
     onValueChange(next);
 
-    if (closeOnSelect) setOpen(false);
+    if (closeOnSelect) setOpenState(false);
   };
 
   const clear = () => {
     onValueChange([]);
   };
 
+  const enabledOptions = options.filter((o) => !o.disabled);
+  const allSelected =
+    enabledOptions.length > 0 &&
+    enabledOptions.every((o) => selected.includes(o.value));
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpenState}>
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -142,8 +158,8 @@ export function MultiSelect({
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[355px] p-0">
-        <Command>
+      <PopoverContent className="w-[355px] p-0" align="start">
+        <Command shouldFilter={false}>
           <div className="flex items-center border-b px-2">
             {searchable && (
               <CommandInput
@@ -173,6 +189,7 @@ export function MultiSelect({
                 return (
                   <CommandItem
                     key={opt.value}
+                    value={opt.value}
                     onSelect={() => toggle(opt.value)}
                     disabled={opt.disabled}
                   >
@@ -191,16 +208,30 @@ export function MultiSelect({
               })}
             </CommandGroup>
 
-            {selected.length > 0 && (
-              <div className="border-t p-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="w-full"
-                  onClick={clear}
-                >
-                  Effacer la sélection
-                </Button>
+            {(selected.length > 0 || showSelectAll) && (
+              <div className="flex flex-col gap-1 border-t p-2">
+                {showSelectAll && enabledOptions.length > 0 && !allSelected && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() =>
+                      onValueChange(enabledOptions.map((o) => o.value))
+                    }
+                  >
+                    Tout sélectionner
+                  </Button>
+                )}
+                {selected.length > 0 && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="w-full"
+                    onClick={clear}
+                  >
+                    Effacer la sélection
+                  </Button>
+                )}
               </div>
             )}
           </CommandList>
