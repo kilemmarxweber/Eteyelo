@@ -15,6 +15,8 @@ import type {
 } from "@/lib/reports/org/effectifs";
 import type { AttendanceReport } from "@/lib/reports/org/attendance";
 import type { FinanceReport } from "@/lib/reports/org/finance";
+import type { PayrollReport } from "@/lib/reports/org/payroll";
+import type { CreditsReport } from "@/lib/reports/org/credits";
 import type { SatisfactionReport } from "@/lib/reports/org/satisfaction";
 import type { ResultsReport } from "@/lib/reports/org/results";
 import type { HiringReport } from "@/lib/reports/org/hiring";
@@ -30,6 +32,8 @@ export type RapportExcelPayload = {
   effectifs: EffectifsReport | null;
   attendance: AttendanceReport | null;
   finance: FinanceReport | null;
+  payroll?: PayrollReport | null;
+  credits?: CreditsReport | null;
   satisfaction: SatisfactionReport | null;
   results: ResultsReport | null;
   hiring: HiringReport | null;
@@ -83,9 +87,13 @@ function money(value: number, currency: CurrencyCode) {
 }
 
 function scopeLabel(meta: ReportMeta) {
-  if (meta.scope === "all") return "Toutes les branches";
-  const branch = meta.branches.find((b) => b.id === meta.selectedBranchId);
-  return branch?.name ?? "Branche sélectionnée";
+  if (meta.selectedBranchIds.length === 0) return "Toutes les branches";
+  const names = meta.selectedBranchIds
+    .map((id) => meta.branches.find((b) => b.id === id)?.name)
+    .filter((name): name is string => Boolean(name));
+  if (names.length === 0) return "Branches sélectionnées";
+  if (names.length <= 3) return names.join(", ");
+  return `${names.slice(0, 2).join(", ")} +${names.length - 2}`;
 }
 
 function yearLabel(meta: ReportMeta) {
@@ -321,11 +329,13 @@ async function buildOverviewSheet(
   row = writeTable(
     ws,
     row,
-    ["Branche", "Élèves", "Récoltes", "Satisfaction", "Réussite %"],
+    ["Branche", "Élèves", "Récoltes", "Paie nette", "Crédits", "Satisfaction", "Réussite %"],
     overview.comparison.map((c) => [
       c.branchName,
       c.students,
       money(c.recoltes, currency),
+      money(c.payrollNet, currency),
+      money(c.creditsApproved, currency),
       c.satisfaction,
       c.successRate,
     ]),
@@ -333,6 +343,8 @@ async function buildOverviewSheet(
       "TOTAUX",
       overview.students,
       money(overview.recoltes, currency),
+      money(overview.payrollNet, currency),
+      money(overview.creditsApproved, currency),
       overview.satisfaction,
       overview.successRate,
     ],
@@ -346,6 +358,8 @@ async function buildOverviewSheet(
     { label: "Personnel", value: overview.personnel },
     { label: "Présence %", value: `${overview.attendanceRate}%` },
     { label: "Récolté", value: money(overview.recoltes, currency) },
+    { label: "Paie nette", value: money(overview.payrollNet, currency) },
+    { label: "Crédits", value: money(overview.creditsApproved, currency) },
     { label: "Réussite %", value: `${overview.successRate}%` },
     { label: "Satisfaction", value: `${overview.satisfaction}/5` },
   ]);
@@ -359,10 +373,12 @@ async function buildOverviewSheet(
       series: [
         { key: "eleves", label: "Élèves", color: REPORT_CHART_COLORS[0] },
         { key: "recoltes", label: "Récoltes", color: REPORT_CHART_COLORS[1] },
+        { key: "paie", label: "Paie nette", color: REPORT_CHART_COLORS[2] },
       ],
       data: overview.comparison.map((c) => ({
         eleves: c.students,
         recoltes: c.recoltes,
+        paie: c.payrollNet,
       })),
       width: 700,
       height: 260,
@@ -1075,6 +1091,169 @@ async function buildInscriptionsSheet(
   );
 }
 
+async function buildPayrollSheet(
+  workbook: Workbook,
+  payload: RapportExcelPayload,
+) {
+  const { meta, payroll, organizationName } = payload;
+  if (!payroll) return;
+  const currency = meta.currency.baseCurrency;
+  const ws = workbook.addWorksheet("Paie personnel", {
+    properties: { tabColor: { argb: "FF7C3AED" } },
+  });
+  styleSheet(ws, 9);
+  writeBanner(ws, "Paie du personnel", meta, 9, organizationName);
+
+  let row = writeSectionTitle(ws, 5, "1. Totaux — Indicateurs", 9);
+  row = writeKpis(ws, row, [
+    { label: "Bulletins", value: payroll.count },
+    { label: "Brut", value: money(payroll.gross, currency) },
+    { label: "Retenues", value: money(payroll.deductions, currency) },
+    { label: "Net", value: money(payroll.net, currency) },
+    { label: "Payé", value: money(payroll.paidNet, currency) },
+    { label: "Payés", value: payroll.paidCount },
+  ]);
+
+  row = writeSectionTitle(ws, row, "2. Totaux — Par mois", 9);
+  row = writeTable(
+    ws,
+    row,
+    ["Mois", "Bulletins", "Brut", "Retenues", "Net"],
+    payroll.byMonth.map((m) => [
+      m.label,
+      m.count,
+      money(m.gross, currency),
+      money(m.deductions, currency),
+      money(m.net, currency),
+    ]),
+    [
+      "TOTAUX",
+      payroll.count,
+      money(payroll.gross, currency),
+      money(payroll.deductions, currency),
+      money(payroll.net, currency),
+    ],
+  );
+
+  row = writeSectionTitle(ws, row, "3. Totaux — Par branche", 9);
+  row = writeTable(
+    ws,
+    row,
+    ["Branche", "Bulletins", "Brut", "Retenues", "Net", "Payé"],
+    payroll.byBranch.map((b) => [
+      b.branchName,
+      b.count,
+      money(b.gross, currency),
+      money(b.deductions, currency),
+      money(b.net, currency),
+      money(b.paidNet, currency),
+    ]),
+  );
+
+  row = writeSectionTitle(ws, row, "4. Détail — Bulletins", 9);
+  row = writeTable(
+    ws,
+    row,
+    [
+      "#",
+      "Agent",
+      "Type",
+      "Branche",
+      "Période",
+      "Statut",
+      "Brut",
+      "Retenues",
+      "Net",
+    ],
+    payroll.payslips.map((p, i) => [
+      i + 1,
+      p.agentName,
+      p.agentKindLabel,
+      p.branchName,
+      p.period,
+      p.statusLabel,
+      money(p.gross, currency),
+      money(p.deductions, currency),
+      money(p.net, currency),
+    ]),
+  );
+}
+
+async function buildCreditsSheet(
+  workbook: Workbook,
+  payload: RapportExcelPayload,
+) {
+  const { meta, credits, organizationName } = payload;
+  if (!credits) return;
+  const currency = meta.currency.baseCurrency;
+  const ws = workbook.addWorksheet("Crédits", {
+    properties: { tabColor: { argb: "FFDB2777" } },
+  });
+  styleSheet(ws, 11);
+  writeBanner(ws, "Crédits / avances sur salaire", meta, 11, organizationName);
+
+  let row = writeSectionTitle(ws, 5, "1. Totaux — Indicateurs", 11);
+  row = writeKpis(ws, row, [
+    { label: "Demandes", value: credits.count },
+    { label: "Demandé", value: money(credits.requestedAmount, currency) },
+    { label: "Accordé", value: money(credits.approvedAmount, currency) },
+    { label: "Reste", value: money(credits.outstandingAmount, currency) },
+  ]);
+
+  row = writeSectionTitle(ws, row, "2. Totaux — Par branche", 11);
+  row = writeTable(
+    ws,
+    row,
+    ["Branche", "Demandes", "Demandé", "Accordé", "Reste"],
+    credits.byBranch.map((b) => [
+      b.branchName,
+      b.count,
+      money(b.requested, currency),
+      money(b.approved, currency),
+      money(b.outstanding, currency),
+    ]),
+    [
+      "TOTAUX",
+      credits.count,
+      money(credits.requestedAmount, currency),
+      money(credits.approvedAmount, currency),
+      money(credits.outstandingAmount, currency),
+    ],
+  );
+
+  row = writeSectionTitle(ws, row, "3. Détail — Crédits", 11);
+  writeTable(
+    ws,
+    row,
+    [
+      "#",
+      "Agent",
+      "Type",
+      "Branche",
+      "Montant",
+      "Séances",
+      "Déduites",
+      "Reste",
+      "Statut",
+      "1re séance",
+      "Motif",
+    ],
+    credits.advances.map((a, i) => [
+      i + 1,
+      a.agentName,
+      a.kindLabel,
+      a.branchName,
+      money(a.amount, currency),
+      a.installmentCount,
+      a.deductedCount,
+      money(a.outstanding, currency),
+      a.statusLabel,
+      a.period,
+      a.reason,
+    ]),
+  );
+}
+
 export async function exportRapportOrganisationExcel(
   payload: RapportExcelPayload,
 ) {
@@ -1092,6 +1271,8 @@ export async function exportRapportOrganisationExcel(
     await buildEffectifsSheet(workbook, payload);
     await buildPresencesSheet(workbook, payload);
     await buildFinanceSheet(workbook, payload);
+    await buildPayrollSheet(workbook, payload);
+    await buildCreditsSheet(workbook, payload);
     await buildSatisfactionSheet(workbook, payload);
     await buildResultsSheet(workbook, payload);
     await buildRhSheet(workbook, payload);
@@ -1102,6 +1283,10 @@ export async function exportRapportOrganisationExcel(
     await buildPresencesSheet(workbook, payload);
   } else if (tab === "finance") {
     await buildFinanceSheet(workbook, payload);
+  } else if (tab === "paie") {
+    await buildPayrollSheet(workbook, payload);
+  } else if (tab === "credits") {
+    await buildCreditsSheet(workbook, payload);
   } else if (tab === "satisfaction") {
     await buildSatisfactionSheet(workbook, payload);
   } else if (tab === "resultats") {

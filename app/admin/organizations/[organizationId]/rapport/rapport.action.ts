@@ -4,9 +4,11 @@ import { guardOrganizationAccess } from "@/lib/auth/require-organization-permiss
 import {
   buildOverviewReport,
   getAttendanceReport,
+  getCreditsReport,
   getEffectifsReport,
   getFinanceReport,
   getHiringReport,
+  getPayrollReport,
   getRegistrationReport,
   getReportMeta,
   getResultsReport,
@@ -19,6 +21,7 @@ import {
   resolveReportLogoUrl,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
+import { parseBranchIdsParam } from "@/lib/reports/org/scope";
 import { prisma } from "@/lib/prisma";
 
 type LoadParams = {
@@ -49,6 +52,8 @@ export async function loadOrganizationReports(params: LoadParams) {
     organizationId: params.organizationId,
     scope: meta.scope,
     branchId: meta.selectedBranchId ?? undefined,
+    branchIds:
+      meta.selectedBranchIds.length > 0 ? meta.selectedBranchIds : undefined,
   };
   const schoolYearIds =
     meta.schoolYearKey === "all"
@@ -59,6 +64,8 @@ export async function loadOrganizationReports(params: LoadParams) {
     effectifs,
     attendance,
     finance,
+    payroll,
+    credits,
     satisfaction,
     results,
     hiring,
@@ -71,6 +78,8 @@ export async function loadOrganizationReports(params: LoadParams) {
       schoolYearIds,
       classeKey: meta.classeKey,
     }),
+    getPayrollReport({ scope: scopeInput, schoolYearIds }),
+    getCreditsReport({ scope: scopeInput, schoolYearIds }),
     getSatisfactionReport({ scope: scopeInput, schoolYearIds }),
     getResultsReport({ scope: scopeInput, schoolYearIds }),
     getHiringReport({ scope: scopeInput }),
@@ -81,6 +90,8 @@ export async function loadOrganizationReports(params: LoadParams) {
     effectifs,
     attendance,
     finance,
+    payroll,
+    credits,
     satisfaction,
     results,
     hiring,
@@ -94,6 +105,8 @@ export async function loadOrganizationReports(params: LoadParams) {
     effectifs,
     attendance,
     finance,
+    payroll,
+    credits,
     satisfaction,
     results,
     hiring,
@@ -125,12 +138,11 @@ export async function getRapportReportContextAction({
     throw new Error(guard.message);
   }
 
-  const selectedBranchId =
-    branchId && branchId.trim() && branchId !== "all" ? branchId.trim() : null;
+  const selectedIds = parseBranchIdsParam(branchId);
 
-  if (selectedBranchId) {
+  if (selectedIds.length === 1) {
     const branch = await prisma.branch.findFirst({
-      where: { id: selectedBranchId, organizationId },
+      where: { id: selectedIds[0], organizationId },
       select: schoolReportBranchSelect,
     });
 
@@ -148,7 +160,10 @@ export async function getRapportReportContextAction({
       name: true,
       logo: true,
       branches: {
-        take: 1,
+        where:
+          selectedIds.length > 0
+            ? { id: { in: selectedIds } }
+            : { isActive: true },
         orderBy: { name: "asc" },
         select: schoolReportBranchSelect,
       },
@@ -160,10 +175,15 @@ export async function getRapportReportContextAction({
   }
 
   const fallbackBranch = organization.branches[0];
+  const branchLabel =
+    selectedIds.length > 1
+      ? `${selectedIds.length} établissements`
+      : "Toutes les branches";
+
   if (fallbackBranch) {
     return {
       ...buildSchoolReportContext(fallbackBranch),
-      branchName: "Toutes les branches",
+      branchName: branchLabel,
       branchId: "",
     };
   }
@@ -172,7 +192,7 @@ export async function getRapportReportContextAction({
     organizationId: organization.id,
     branchId: "",
     schoolName: organization.name,
-    branchName: "Toutes les branches",
+    branchName: branchLabel,
     logoUrl: resolveReportLogoUrl(null, organization.logo),
     generatedAt: new Date().toISOString(),
   };

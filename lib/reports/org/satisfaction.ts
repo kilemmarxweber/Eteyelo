@@ -1,7 +1,12 @@
 import { branchDocumentName } from "@/lib/branch-document-name";
 import { prisma } from "@/lib/prisma";
 import { SATISFACTION_POSITIVE_MIN } from "./definitions";
-import { buildBranchIdFilter, pct, type BranchScopeInput } from "./scope";
+import {
+  buildBranchIdFilter,
+  buildBranchRecordWhere,
+  pct,
+  type BranchScopeInput,
+} from "./scope";
 
 export type SatisfactionReport = {
   averageRating: number;
@@ -55,10 +60,7 @@ export async function getSatisfactionReport(params: {
       where: { branchMember: branchFilter },
     }),
     prisma.branch.findMany({
-      where:
-        params.scope.scope === "branch" && params.scope.branchId
-          ? { id: params.scope.branchId }
-          : { organizationId: params.scope.organizationId, isActive: true },
+      where: buildBranchRecordWhere(params.scope),
       select: { id: true, name: true, description: true },
       orderBy: { name: "asc" },
     }),

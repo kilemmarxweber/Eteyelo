@@ -9,3 +9,5 @@ export * from "./results";
 export * from "./hiring";
 export * from "./registrations";
 export * from "./overview";
+export * from "./payroll";
+export * from "./credits";

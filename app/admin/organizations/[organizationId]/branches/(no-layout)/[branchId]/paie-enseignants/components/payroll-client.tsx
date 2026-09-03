@@ -12,6 +12,7 @@ import {
   IconTrash,
   IconCalculator,
   IconFileTypePdf,
+  IconFileSpreadsheet,
 } from "@tabler/icons-react";
 
 import { Button } from "@/components/custom/button";
@@ -22,6 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SalaryCreditsClient from "../credits/credits-client";
 import { exportPayrollRegisterPdf } from "./export-payroll-register-pdf";
+import { exportPayrollRegisterExcel } from "./export-payroll-register-excel";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import {
   AlertDialog,
@@ -202,7 +204,7 @@ export default function PayrollClient() {
   const [working, setWorking] = useState(false);
   const [policy, setPolicy] = useState<Policy | null>(null);
   const [hydrated, setHydrated] = useState(false);
-  const [exportingPdf, setExportingPdf] = useState(false);
+  const [exporting, setExporting] = useState<"pdf" | "excel" | null>(null);
   const [branding, setBranding] = useState<SchoolReportContext | null>(null);
   const loadRequestRef = useRef(0);
 
@@ -564,36 +566,46 @@ export default function PayrollClient() {
     setWorking(false);
   }
 
-  async function exportRegisterPdf() {
+  async function exportRegister(kind: "pdf" | "excel") {
     if (rows.length === 0) {
       toast.error("Aucun bulletin à exporter pour cette période.");
       return;
     }
-    setExportingPdf(true);
+    setExporting(kind);
     try {
       let context = branding;
       if (!context) {
         const [fresh, err] = await getPayrollReportContextAction();
         if (err || !fresh) {
-          throw new Error(err?.message || "Impossible de préparer l’en-tête du PDF.");
+          throw new Error(err?.message || "Impossible de préparer l’en-tête de l’export.");
         }
         context = fresh;
         setBranding(fresh);
       }
       const schoolYearLabel =
         schoolYears.find((schoolYear) => schoolYear.id === schoolYearId)?.nameYear;
-      await exportPayrollRegisterPdf(rows, cash, context, {
+      const payload = {
         month,
         year,
         schoolYearLabel,
-      });
-      toast.success("PDF des bulletins téléchargé.");
+      };
+      if (kind === "pdf") {
+        await exportPayrollRegisterPdf(rows, cash, context, payload);
+        toast.success("PDF des bulletins téléchargé.");
+      } else {
+        await exportPayrollRegisterExcel(rows, cash, context, payload);
+        toast.success("Excel des bulletins téléchargé.");
+      }
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Échec de l’export PDF.",
+        error instanceof Error
+          ? error.message
+          : kind === "pdf"
+            ? "Échec de l’export PDF."
+            : "Échec de l’export Excel.",
       );
     } finally {
-      setExportingPdf(false);
+      setExporting(null);
     }
   }
 
@@ -696,16 +708,6 @@ export default function PayrollClient() {
               <IconRefresh size={16} />
               Actualiser
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 sm:flex-none"
-              onClick={() => void exportRegisterPdf()}
-              disabled={loading || exportingPdf || rows.length === 0}
-            >
-              <IconFileTypePdf size={16} />
-              {exportingPdf ? "Export…" : "Exporter PDF"}
-            </Button>
             {isManager ? (
               <>
                 <Button
@@ -752,6 +754,26 @@ export default function PayrollClient() {
                 </Button>
               </>
             ) : null}
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 sm:flex-none"
+              onClick={() => void exportRegister("pdf")}
+              disabled={loading || exporting !== null || rows.length === 0}
+            >
+              <IconFileTypePdf size={16} />
+              {exporting === "pdf" ? "Export…" : "Pdf"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 sm:flex-none"
+              onClick={() => void exportRegister("excel")}
+              disabled={loading || exporting !== null || rows.length === 0}
+            >
+              <IconFileSpreadsheet size={16} />
+              {exporting === "excel" ? "Export…" : "Excel"}
+            </Button>
           </div>
         </div>
         {isManager && selectedIds.size > 0 ? (

@@ -17,6 +17,7 @@ import {
   UserCheck,
   Users,
   UserRound,
+  Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -57,6 +58,8 @@ const TAB_ITEMS: Array<{ value: ReportTab; label: string }> = [
   { value: "effectifs", label: "Effectifs" },
   { value: "presences", label: "Présences" },
   { value: "finance", label: "Finance" },
+  { value: "paie", label: "Paie du personnel" },
+  { value: "credits", label: "Crédits" },
   { value: "satisfaction", label: "Satisfaction" },
   { value: "resultats", label: "Résultats" },
   { value: "rh", label: "RH / Candidatures" },
@@ -73,7 +76,9 @@ function buildTabHref(
   params.set("scope", data.meta.scope);
   params.set(
     "branchId",
-    data.meta.scope === "all" ? "all" : (data.meta.selectedBranchId ?? "all"),
+    data.meta.selectedBranchIds.length > 0
+      ? data.meta.selectedBranchIds.join(",")
+      : "all",
   );
   params.set("schoolYearKey", data.meta.schoolYearKey);
   params.set("classeKey", data.meta.classeKey || "all");
@@ -118,6 +123,8 @@ export function RapportDashboard({ organizationId, data }: Props) {
         effectifs: data.effectifs,
         attendance: data.attendance,
         finance: data.finance,
+        payroll: data.payroll,
+        credits: data.credits,
         satisfaction: data.satisfaction,
         results: data.results,
         hiring: data.hiring,
@@ -145,7 +152,10 @@ export function RapportDashboard({ organizationId, data }: Props) {
     try {
       const context = await getRapportReportContextAction({
         organizationId,
-        branchId: meta.selectedBranchId,
+        branchId:
+          meta.selectedBranchIds.length > 0
+            ? meta.selectedBranchIds.join(",")
+            : meta.selectedBranchId,
       });
       await exportRapportCompletPdf(
         {
@@ -155,6 +165,8 @@ export function RapportDashboard({ organizationId, data }: Props) {
           effectifs: data.effectifs,
           attendance: data.attendance,
           finance: data.finance,
+          payroll: data.payroll,
+          credits: data.credits,
           satisfaction: data.satisfaction,
           results: data.results,
           hiring: data.hiring,
@@ -198,9 +210,10 @@ export function RapportDashboard({ organizationId, data }: Props) {
           Hub analytique organisation
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-primary-foreground/90">
-          Effectifs, présences, finance, satisfaction, résultats, RH et
-          inscriptions. L&apos;export PDF / Excel reprend l&apos;onglet actif
-          (détails + totaux) — la vue d&apos;ensemble exporte tout.
+          Effectifs, présences, finance, paie du personnel, crédits,
+          satisfaction, résultats, RH et inscriptions. L&apos;export PDF / Excel
+          reprend l&apos;onglet actif (détails + totaux) — la vue d&apos;ensemble
+          exporte tout.
         </p>
         <p className="mt-2 text-xs font-medium text-primary-foreground/80">
           Devise : {meta.currency.baseCurrency}
@@ -216,6 +229,7 @@ export function RapportDashboard({ organizationId, data }: Props) {
           classes={meta.classes}
           scope={meta.scope}
           selectedBranchId={meta.selectedBranchId}
+          selectedBranchIds={meta.selectedBranchIds}
           schoolYearKey={meta.schoolYearKey}
           classeKey={meta.classeKey}
           tab={tab}
@@ -298,24 +312,43 @@ export function RapportDashboard({ organizationId, data }: Props) {
                   icon={GraduationCap}
                   tone="orange"
                 />
+                <ReportKpiCard
+                  title="Paie nette"
+                  value={money(data.overview.payrollNet)}
+                  description={`${data.overview.payrollCount} bulletin(s) · brut ${money(data.overview.payrollGross)}`}
+                  icon={Wallet}
+                  tone="slate"
+                />
+                <ReportKpiCard
+                  title="Crédits accordés"
+                  value={money(data.overview.creditsApproved)}
+                  description={`${data.overview.creditsCount} demande(s) · reste ${money(data.overview.creditsOutstanding)}`}
+                  icon={Banknote}
+                  tone="rose"
+                />
               </div>
 
               <div className="grid gap-4 xl:grid-cols-2">
                 <ReportSection
                   title="Comparaison inter-branches"
-                  description="Effectifs et encaissements par établissement."
+                  description="Effectifs, encaissements et paie par établissement."
                 >
                   <ReportBarChart
                     data={data.overview.comparison.map((c) => ({
                       name: c.branchName,
                       élèves: c.students,
                       récoltes: c.recoltes,
+                      paie: c.payrollNet,
                     }))}
                     config={{
                       élèves: { label: "Élèves", color: "hsl(221 83% 53%)" },
                       récoltes: {
                         label: "Récoltes",
                         color: "hsl(142 71% 45%)",
+                      },
+                      paie: {
+                        label: "Paie nette",
+                        color: "hsl(25 95% 53%)",
                       },
                     }}
                   />
@@ -358,6 +391,8 @@ export function RapportDashboard({ organizationId, data }: Props) {
                   "Branche",
                   "Élèves",
                   "Récoltes",
+                  "Paie nette",
+                  "Crédits",
                   "Satisfaction",
                   "Réussite %",
                 ]}
@@ -365,6 +400,8 @@ export function RapportDashboard({ organizationId, data }: Props) {
                   c.branchName,
                   c.students,
                   money(c.recoltes),
+                  money(c.payrollNet),
+                  money(c.creditsApproved),
                   c.satisfaction,
                   c.successRate,
                 ])}
@@ -876,6 +913,319 @@ export function RapportDashboard({ organizationId, data }: Props) {
               <FinanceStudentDetailsTable
                 studentDetails={data.finance.studentDetails}
                 money={money}
+              />
+            </>
+          ) : null}
+        </TabsContent>
+
+        <TabsContent value="paie" className="mt-4 space-y-4">
+          {data.payroll ? (
+            <>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <ReportKpiCard
+                  title="Bulletins"
+                  value={String(data.payroll.count)}
+                  description={`${data.payroll.teacherCount} ens. · ${data.payroll.personnelCount} pers. · ${data.payroll.bothCount} double`}
+                  icon={ClipboardList}
+                />
+                <ReportKpiCard
+                  title="Brut"
+                  value={money(data.payroll.gross)}
+                  icon={Banknote}
+                  tone="cyan"
+                />
+                <ReportKpiCard
+                  title="Retenues"
+                  value={money(data.payroll.deductions)}
+                  icon={TrendingDown}
+                  tone="orange"
+                />
+                <ReportKpiCard
+                  title="Net à payer"
+                  value={money(data.payroll.net)}
+                  description={`Payé ${money(data.payroll.paidNet)} · ${data.payroll.paidCount} payé(s)`}
+                  icon={Wallet}
+                  tone="green"
+                />
+              </div>
+              <div className="grid gap-4 xl:grid-cols-2">
+                <ReportSection title="Par mois">
+                  <ReportBarChart
+                    data={data.payroll.byMonth.map((m) => ({
+                      name: m.label,
+                      brut: m.gross,
+                      retenues: m.deductions,
+                      net: m.net,
+                    }))}
+                    config={{
+                      brut: { label: "Brut", color: "hsl(221 83% 53%)" },
+                      retenues: {
+                        label: "Retenues",
+                        color: "hsl(25 95% 53%)",
+                      },
+                      net: { label: "Net", color: "hsl(142 71% 45%)" },
+                    }}
+                  />
+                </ReportSection>
+                <ReportSection title="Statut des bulletins">
+                  <ReportDonutChart
+                    data={data.payroll.byStatus}
+                    config={Object.fromEntries(
+                      data.payroll.byStatus.map((s, i) => [
+                        s.name,
+                        {
+                          label: s.name,
+                          color: [
+                            "hsl(221 83% 53%)",
+                            "hsl(45 93% 47%)",
+                            "hsl(142 71% 45%)",
+                            "hsl(0 72% 51%)",
+                          ][i % 4],
+                        },
+                      ]),
+                    )}
+                  />
+                </ReportSection>
+                <ReportSection title="Par branche">
+                  <ReportBarChart
+                    data={data.payroll.byBranch.map((b) => ({
+                      name: b.branchName,
+                      brut: b.gross,
+                      net: b.net,
+                      payé: b.paidNet,
+                    }))}
+                    config={{
+                      brut: { label: "Brut", color: "hsl(221 83% 53%)" },
+                      net: { label: "Net", color: "hsl(142 71% 45%)" },
+                      payé: { label: "Payé", color: "hsl(189 94% 43%)" },
+                    }}
+                  />
+                </ReportSection>
+                <ReportSection title="Type d'agent">
+                  <ReportDonutChart
+                    data={data.payroll.byKind}
+                    config={{
+                      Enseignant: {
+                        label: "Enseignant",
+                        color: "hsl(221 83% 53%)",
+                      },
+                      Personnel: {
+                        label: "Personnel",
+                        color: "hsl(142 71% 45%)",
+                      },
+                      "Les deux": {
+                        label: "Les deux",
+                        color: "hsl(25 95% 53%)",
+                      },
+                    }}
+                  />
+                </ReportSection>
+              </div>
+              <ReportDataTable
+                title="Totaux — Par mois"
+                columns={["Mois", "Bulletins", "Brut", "Retenues", "Net"]}
+                rows={data.payroll.byMonth.map((m) => [
+                  m.label,
+                  m.count,
+                  money(m.gross),
+                  money(m.deductions),
+                  money(m.net),
+                ])}
+              />
+              <ReportDataTable
+                title="Totaux — Par branche"
+                columns={["Branche", "Bulletins", "Brut", "Retenues", "Net", "Payé"]}
+                rows={data.payroll.byBranch.map((b) => [
+                  b.branchName,
+                  b.count,
+                  money(b.gross),
+                  money(b.deductions),
+                  money(b.net),
+                  money(b.paidNet),
+                ])}
+              />
+              <ReportDataTable
+                title="Détail — Bulletins de paie"
+                columns={[
+                  "#",
+                  "Agent",
+                  "Type",
+                  "Branche",
+                  "Période",
+                  "Statut",
+                  "Brut",
+                  "Retenues",
+                  "Net",
+                ]}
+                rows={data.payroll.payslips.map((p, i) => [
+                  i + 1,
+                  p.agentName,
+                  p.agentKindLabel,
+                  p.branchName,
+                  p.period,
+                  p.statusLabel,
+                  money(p.gross),
+                  money(p.deductions),
+                  money(p.net),
+                ])}
+              />
+            </>
+          ) : null}
+        </TabsContent>
+
+        <TabsContent value="credits" className="mt-4 space-y-4">
+          {data.credits ? (
+            <>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <ReportKpiCard
+                  title="Demandes"
+                  value={String(data.credits.count)}
+                  description={`${data.credits.pendingCount} en attente`}
+                  icon={ClipboardList}
+                />
+                <ReportKpiCard
+                  title="Demandé"
+                  value={money(data.credits.requestedAmount)}
+                  icon={Banknote}
+                />
+                <ReportKpiCard
+                  title="Accordé"
+                  value={money(data.credits.approvedAmount)}
+                  description={`${data.credits.approvedCount} accordé(s) · ${data.credits.settledCount} soldé(s)`}
+                  icon={TrendingUp}
+                  tone="green"
+                />
+                <ReportKpiCard
+                  title="Reste à déduire"
+                  value={money(data.credits.outstandingAmount)}
+                  description={`Déduit ${money(data.credits.deductedAmount)}`}
+                  icon={Wallet}
+                  tone="orange"
+                />
+              </div>
+              <div className="grid gap-4 xl:grid-cols-2">
+                <ReportSection title="Volume mensuel">
+                  <ReportBarChart
+                    data={data.credits.byMonth.map((m) => ({
+                      name: m.label,
+                      demandes: m.count,
+                      montant: m.amount,
+                    }))}
+                    config={{
+                      demandes: {
+                        label: "Demandes",
+                        color: "hsl(221 83% 53%)",
+                      },
+                      montant: {
+                        label: "Montant",
+                        color: "hsl(25 95% 53%)",
+                      },
+                    }}
+                  />
+                </ReportSection>
+                <ReportSection title="Statut des crédits">
+                  <ReportDonutChart
+                    data={data.credits.byStatus}
+                    config={Object.fromEntries(
+                      data.credits.byStatus.map((s, i) => [
+                        s.name,
+                        {
+                          label: s.name,
+                          color: [
+                            "hsl(45 93% 47%)",
+                            "hsl(142 71% 45%)",
+                            "hsl(0 72% 51%)",
+                            "hsl(221 83% 53%)",
+                            "hsl(215 16% 47%)",
+                          ][i % 5],
+                        },
+                      ]),
+                    )}
+                  />
+                </ReportSection>
+                <ReportSection title="Par branche">
+                  <ReportBarChart
+                    data={data.credits.byBranch.map((b) => ({
+                      name: b.branchName,
+                      demandé: b.requested,
+                      accordé: b.approved,
+                      reste: b.outstanding,
+                    }))}
+                    config={{
+                      demandé: {
+                        label: "Demandé",
+                        color: "hsl(221 83% 53%)",
+                      },
+                      accordé: {
+                        label: "Accordé",
+                        color: "hsl(142 71% 45%)",
+                      },
+                      reste: {
+                        label: "Reste",
+                        color: "hsl(25 95% 53%)",
+                      },
+                    }}
+                  />
+                </ReportSection>
+                <ReportSection title="Type d'agent">
+                  <ReportDonutChart
+                    data={data.credits.byKind}
+                    config={{
+                      Enseignant: {
+                        label: "Enseignant",
+                        color: "hsl(221 83% 53%)",
+                      },
+                      Personnel: {
+                        label: "Personnel",
+                        color: "hsl(142 71% 45%)",
+                      },
+                      "Les deux": {
+                        label: "Les deux",
+                        color: "hsl(25 95% 53%)",
+                      },
+                    }}
+                  />
+                </ReportSection>
+              </div>
+              <ReportDataTable
+                title="Totaux — Par branche"
+                columns={["Branche", "Demandes", "Demandé", "Accordé", "Reste"]}
+                rows={data.credits.byBranch.map((b) => [
+                  b.branchName,
+                  b.count,
+                  money(b.requested),
+                  money(b.approved),
+                  money(b.outstanding),
+                ])}
+              />
+              <ReportDataTable
+                title="Détail — Crédits / avances sur salaire"
+                columns={[
+                  "#",
+                  "Agent",
+                  "Type",
+                  "Branche",
+                  "Montant",
+                  "Séances",
+                  "Déduites",
+                  "Reste",
+                  "Statut",
+                  "1re séance",
+                  "Motif",
+                ]}
+                rows={data.credits.advances.map((a, i) => [
+                  i + 1,
+                  a.agentName,
+                  a.kindLabel,
+                  a.branchName,
+                  money(a.amount),
+                  a.installmentCount,
+                  a.deductedCount,
+                  money(a.outstanding),
+                  a.statusLabel,
+                  a.period,
+                  a.reason,
+                ])}
               />
             </>
           ) : null}

@@ -1,6 +1,10 @@
 import { branchDocumentName } from "@/lib/branch-document-name";
 import { prisma } from "@/lib/prisma";
-import { buildBranchIdFilter, type BranchScopeInput } from "./scope";
+import {
+  buildBranchIdFilter,
+  buildBranchRecordWhere,
+  type BranchScopeInput,
+} from "./scope";
 
 export type NamedCount = { name: string; value: number };
 export type ClassCount = {
@@ -207,10 +211,7 @@ export async function getEffectifsReport(params: {
         orderBy: { nameClasse: "asc" },
       }),
       prisma.branch.findMany({
-        where:
-          params.scope.scope === "branch" && params.scope.branchId
-            ? { id: params.scope.branchId }
-            : { organizationId: params.scope.organizationId, isActive: true },
+        where: buildBranchRecordWhere(params.scope),
         select: { id: true, name: true, description: true },
         orderBy: { name: "asc" },
       }),

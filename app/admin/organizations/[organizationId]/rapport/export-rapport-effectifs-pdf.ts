@@ -23,6 +23,8 @@ import type {
 } from "@/lib/reports/org/effectifs";
 import type { AttendanceReport } from "@/lib/reports/org/attendance";
 import type { FinanceReport } from "@/lib/reports/org/finance";
+import type { PayrollReport } from "@/lib/reports/org/payroll";
+import type { CreditsReport } from "@/lib/reports/org/credits";
 import type { SatisfactionReport } from "@/lib/reports/org/satisfaction";
 import type { ResultsReport } from "@/lib/reports/org/results";
 import type { HiringReport } from "@/lib/reports/org/hiring";
@@ -38,6 +40,8 @@ export type RapportCompletPdfPayload = {
   effectifs: EffectifsReport | null;
   attendance: AttendanceReport | null;
   finance: FinanceReport | null;
+  payroll?: PayrollReport | null;
+  credits?: CreditsReport | null;
   satisfaction: SatisfactionReport | null;
   results: ResultsReport | null;
   hiring: HiringReport | null;
@@ -90,9 +94,13 @@ const TABLE_THEME = {
 };
 
 function scopeLabel(meta: ReportMeta) {
-  if (meta.scope === "all") return "Toutes les branches";
-  const branch = meta.branches.find((b) => b.id === meta.selectedBranchId);
-  return branch?.name ?? "Branche";
+  if (meta.selectedBranchIds.length === 0) return "Toutes les branches";
+  const names = meta.selectedBranchIds
+    .map((id) => meta.branches.find((b) => b.id === id)?.name)
+    .filter((name): name is string => Boolean(name));
+  if (names.length === 0) return "Branches sélectionnées";
+  if (names.length <= 3) return names.join(", ");
+  return `${names.slice(0, 2).join(", ")} +${names.length - 2}`;
 }
 
 function yearLabel(meta: ReportMeta) {
@@ -292,11 +300,13 @@ function buildOverview(layout: Layout, data: OverviewReport) {
   sectionTitle(layout, "1. Détails — Comparaison inter-branches");
   drawTable(
     layout,
-    ["Branche", "Élèves", "Récoltes", "Satisfaction", "Réussite %"],
+    ["Branche", "Élèves", "Récoltes", "Paie nette", "Crédits", "Satisfaction", "Réussite %"],
     data.comparison.map((c) => [
       c.branchName,
       c.students,
       layout.money(c.recoltes),
+      layout.money(c.payrollNet),
+      layout.money(c.creditsApproved),
       c.satisfaction,
       c.successRate,
     ]),
@@ -305,6 +315,8 @@ function buildOverview(layout: Layout, data: OverviewReport) {
         "TOTAUX",
         data.students,
         layout.money(data.recoltes),
+        layout.money(data.payrollNet),
+        layout.money(data.creditsApproved),
         data.satisfaction,
         data.successRate,
       ],
@@ -319,6 +331,8 @@ function buildOverview(layout: Layout, data: OverviewReport) {
     { label: "Personnel", value: String(data.personnel) },
     { label: "Présence", value: `${data.attendanceRate}%` },
     { label: "Récolté", value: layout.money(data.recoltes) },
+    { label: "Paie nette", value: layout.money(data.payrollNet) },
+    { label: "Crédits", value: layout.money(data.creditsApproved) },
     { label: "Réussite", value: `${data.successRate}%` },
     { label: "Satisfaction", value: `${data.satisfaction}/5` },
   ]);
@@ -331,10 +345,12 @@ function buildOverview(layout: Layout, data: OverviewReport) {
       series: [
         { key: "eleves", label: "Élèves", color: REPORT_CHART_COLORS[0] },
         { key: "recoltes", label: "Récoltes", color: REPORT_CHART_COLORS[1] },
+        { key: "paie", label: "Paie nette", color: REPORT_CHART_COLORS[2] },
       ],
       data: data.comparison.map((c) => ({
         eleves: c.students,
         recoltes: c.recoltes,
+        paie: c.payrollNet,
       })),
       width: 700,
       height: 260,
@@ -1034,6 +1050,133 @@ function buildInscriptions(
   );
 }
 
+function buildPayroll(
+  layout: Layout,
+  data: PayrollReport,
+  options?: { firstSection?: boolean },
+) {
+  beginSection(
+    layout,
+    "Paie du personnel",
+    [`${data.count} bulletin(s)`, scopeLabel(layout.meta)],
+    options,
+  );
+
+  sectionTitle(layout, "1. Totaux — Indicateurs");
+  drawKpis(layout, [
+    { label: "Bulletins", value: String(data.count) },
+    { label: "Brut", value: layout.money(data.gross) },
+    { label: "Retenues", value: layout.money(data.deductions) },
+    { label: "Net", value: layout.money(data.net) },
+  ]);
+
+  sectionTitle(layout, "2. Totaux — Par mois");
+  drawTable(
+    layout,
+    ["Mois", "Bulletins", "Brut", "Retenues", "Net"],
+    data.byMonth.map((m) => [
+      m.label,
+      m.count,
+      layout.money(m.gross),
+      layout.money(m.deductions),
+      layout.money(m.net),
+    ]),
+    {
+      totalsRow: [
+        "TOTAUX",
+        data.count,
+        layout.money(data.gross),
+        layout.money(data.deductions),
+        layout.money(data.net),
+      ],
+    },
+  );
+
+  sectionTitle(layout, "3. Totaux — Par branche");
+  drawTable(
+    layout,
+    ["Branche", "Bulletins", "Brut", "Net", "Payé"],
+    data.byBranch.map((b) => [
+      b.branchName,
+      b.count,
+      layout.money(b.gross),
+      layout.money(b.net),
+      layout.money(b.paidNet),
+    ]),
+  );
+
+  sectionTitle(layout, "4. Détail — Bulletins");
+  drawTable(
+    layout,
+    ["Agent", "Type", "Branche", "Période", "Statut", "Net"],
+    data.payslips.map((p) => [
+      p.agentName,
+      p.agentKindLabel,
+      p.branchName,
+      p.period,
+      p.statusLabel,
+      layout.money(p.net),
+    ]),
+  );
+}
+
+function buildCredits(
+  layout: Layout,
+  data: CreditsReport,
+  options?: { firstSection?: boolean },
+) {
+  beginSection(
+    layout,
+    "Crédits / avances",
+    [`${data.count} demande(s)`, scopeLabel(layout.meta)],
+    options,
+  );
+
+  sectionTitle(layout, "1. Totaux — Indicateurs");
+  drawKpis(layout, [
+    { label: "Demandes", value: String(data.count) },
+    { label: "Demandé", value: layout.money(data.requestedAmount) },
+    { label: "Accordé", value: layout.money(data.approvedAmount) },
+    { label: "Reste", value: layout.money(data.outstandingAmount) },
+  ]);
+
+  sectionTitle(layout, "2. Totaux — Par branche");
+  drawTable(
+    layout,
+    ["Branche", "Demandes", "Demandé", "Accordé", "Reste"],
+    data.byBranch.map((b) => [
+      b.branchName,
+      b.count,
+      layout.money(b.requested),
+      layout.money(b.approved),
+      layout.money(b.outstanding),
+    ]),
+    {
+      totalsRow: [
+        "TOTAUX",
+        data.count,
+        layout.money(data.requestedAmount),
+        layout.money(data.approvedAmount),
+        layout.money(data.outstandingAmount),
+      ],
+    },
+  );
+
+  sectionTitle(layout, "3. Détail — Crédits");
+  drawTable(
+    layout,
+    ["Agent", "Type", "Branche", "Montant", "Statut", "Reste"],
+    data.advances.map((a) => [
+      a.agentName,
+      a.kindLabel,
+      a.branchName,
+      layout.money(a.amount),
+      a.statusLabel,
+      layout.money(a.outstanding),
+    ]),
+  );
+}
+
 export async function buildRapportCompletPdf(
   payload: RapportCompletPdfPayload,
   context: SchoolReportContext,
@@ -1069,6 +1212,8 @@ export async function buildRapportCompletPdf(
     if (payload.effectifs) buildEffectifs(layout, payload.effectifs);
     if (payload.attendance) buildPresences(layout, payload.attendance);
     if (payload.finance) buildFinance(layout, payload.finance);
+    if (payload.payroll) buildPayroll(layout, payload.payroll);
+    if (payload.credits) buildCredits(layout, payload.credits);
     if (payload.satisfaction) buildSatisfaction(layout, payload.satisfaction);
     if (payload.results) buildResults(layout, payload.results);
     if (payload.hiring) buildRh(layout, payload.hiring);
@@ -1079,6 +1224,10 @@ export async function buildRapportCompletPdf(
     buildPresences(layout, payload.attendance, first);
   } else if (tab === "finance" && payload.finance) {
     buildFinance(layout, payload.finance, first);
+  } else if (tab === "paie" && payload.payroll) {
+    buildPayroll(layout, payload.payroll, first);
+  } else if (tab === "credits" && payload.credits) {
+    buildCredits(layout, payload.credits, first);
   } else if (tab === "satisfaction" && payload.satisfaction) {
     buildSatisfaction(layout, payload.satisfaction, first);
   } else if (tab === "resultats" && payload.results) {

@@ -8,6 +8,7 @@ import {
 import { isFraisChargedOnAccount } from "@/lib/optional-frais";
 import {
   buildBranchIdFilter,
+  buildBranchRecordWhere,
   monthKey,
   monthLabelFr,
   pct,
@@ -450,10 +451,7 @@ export async function getFinanceReport(params: {
     classeKey !== "all" ? { classe: { codeClasse: classeKey } } : {};
 
   const branches = await prisma.branch.findMany({
-    where:
-      params.scope.scope === "branch" && params.scope.branchId
-        ? { id: params.scope.branchId }
-        : { organizationId: params.scope.organizationId, isActive: true },
+    where: buildBranchRecordWhere(params.scope),
     select: { id: true, name: true, description: true },
     orderBy: { name: "asc" },
   });

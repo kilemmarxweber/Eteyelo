@@ -157,12 +157,24 @@ export async function exportPayrollRegisterPdf(
     }
   }
 
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const doc = new jsPDF({
+    orientation: "landscape",
+    unit: "mm",
+    format: "a4",
+    compress: true,
+  });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const pageWidth = doc.internal.pageSize.getWidth();
-  const marginX = 10;
+  const marginX = 8;
   const usableWidth = pageWidth - marginX * 2;
   const colCount = 12;
+  const colWeights = [16, 9, 9, 12, 8, 5, 8, 8, 6, 8, 7, 4];
+  const colWeightTotal = colWeights.reduce((sum, value) => sum + value, 0);
+  const colWidths = colWeights.map(
+    (weight) => Math.floor((weight / colWeightTotal) * usableWidth * 10) / 10,
+  );
+  colWidths[colWidths.length - 1] +=
+    usableWidth - colWidths.reduce((sum, value) => sum + value, 0);
 
   const headerDetails = [
     options.schoolYearLabel ? `Année scolaire : ${options.schoolYearLabel}` : "",
@@ -330,6 +342,7 @@ export async function exportPayrollRegisterPdf(
       left: marginX,
     },
     tableWidth: usableWidth,
+    horizontalPageBreak: false,
     head: [[
       "Agent",
       "Cycle / rôle",
@@ -349,8 +362,8 @@ export async function exportPayrollRegisterPdf(
     showHead: "everyPage",
     styles: {
       font: "helvetica",
-      fontSize: 7,
-      cellPadding: 1.6,
+      fontSize: 6.5,
+      cellPadding: 1.4,
       overflow: "linebreak",
       valign: "middle",
     },
@@ -358,22 +371,23 @@ export async function exportPayrollRegisterPdf(
       fillColor: [30, 64, 175],
       textColor: 255,
       fontStyle: "bold",
-      fontSize: 6.8,
+      fontSize: 6.4,
       halign: "center",
+      overflow: "linebreak",
     },
     columnStyles: {
-      0: { cellWidth: usableWidth * 0.16 },
-      1: { cellWidth: usableWidth * 0.09 },
-      2: { cellWidth: usableWidth * 0.09 },
-      3: { cellWidth: usableWidth * 0.13 },
-      4: { cellWidth: usableWidth * 0.09 },
-      5: { cellWidth: usableWidth * 0.05, halign: "center" },
-      6: { cellWidth: usableWidth * 0.08, halign: "right" },
-      7: { cellWidth: usableWidth * 0.08, halign: "right" },
-      8: { cellWidth: usableWidth * 0.07, halign: "center" },
-      9: { cellWidth: usableWidth * 0.08, halign: "right" },
-      10: { cellWidth: usableWidth * 0.08, halign: "right" },
-      11: { cellWidth: usableWidth * 0.05, halign: "center" },
+      0: { cellWidth: colWidths[0] },
+      1: { cellWidth: colWidths[1] },
+      2: { cellWidth: colWidths[2] },
+      3: { cellWidth: colWidths[3] },
+      4: { cellWidth: colWidths[4] },
+      5: { cellWidth: colWidths[5], halign: "center" },
+      6: { cellWidth: colWidths[6], halign: "right" },
+      7: { cellWidth: colWidths[7], halign: "right" },
+      8: { cellWidth: colWidths[8], halign: "center" },
+      9: { cellWidth: colWidths[9], halign: "right" },
+      10: { cellWidth: colWidths[10], halign: "right" },
+      11: { cellWidth: colWidths[11], halign: "center" },
     },
     didParseCell: (data) => {
       if (data.section !== "body") return;

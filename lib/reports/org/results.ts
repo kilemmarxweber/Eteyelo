@@ -5,7 +5,12 @@ import {
 import { branchDocumentName } from "@/lib/branch-document-name";
 import { prisma } from "@/lib/prisma";
 import { SUCCESS_THRESHOLD_PERCENT } from "./definitions";
-import { buildBranchIdFilter, pct, type BranchScopeInput } from "./scope";
+import {
+  buildBranchIdFilter,
+  buildBranchRecordWhere,
+  pct,
+  type BranchScopeInput,
+} from "./scope";
 
 export type ResultsReport = {
   averageScore: number;
@@ -99,10 +104,7 @@ export async function getResultsReport(params: {
       select: { id: true, nameClasse: true },
     }),
     prisma.branch.findMany({
-      where:
-        params.scope.scope === "branch" && params.scope.branchId
-          ? { id: params.scope.branchId }
-          : { organizationId: params.scope.organizationId, isActive: true },
+      where: buildBranchRecordWhere(params.scope),
       select: { id: true, name: true, description: true },
       orderBy: { name: "asc" },
     }),

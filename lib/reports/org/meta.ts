@@ -9,7 +9,7 @@ import { formatReportNumber } from "@/lib/reports/format-amount";
 import { prisma } from "@/lib/prisma";
 import type { CurrencyCode } from "@/prisma/generated/prisma/enums";
 import type { ReportScope } from "./definitions";
-import { buildBranchIdFilter, type BranchScopeInput } from "./scope";
+import { buildBranchIdFilter, parseBranchIdsParam, type BranchScopeInput } from "./scope";
 
 export type ReportBranchOption = { id: string; name: string };
 
@@ -46,6 +46,8 @@ export type ReportMeta = {
   classes: ReportClassOption[];
   scope: ReportScope;
   selectedBranchId: string | null;
+  /** IDs sélectionnés ; vide = toutes les branches. */
+  selectedBranchIds: string[];
   /** `all` ou codeClasse. */
   classeKey: string;
   schoolYearKey: string;
@@ -115,23 +117,21 @@ export async function getReportMeta(params: {
     })),
   );
 
-  const activeBranches = branches.filter((b) => b.isActive);
-  const scope: ReportScope =
-    params.scope === "all" || params.branchId === "all" ? "all" : "branch";
+  const knownIds = new Set(branches.map((b) => b.id));
+  const requestedIds = parseBranchIdsParam(params.branchId).filter((id) =>
+    knownIds.has(id),
+  );
+  const wantsAll = requestedIds.length === 0;
 
-  let selectedBranchId: string | null = null;
-  if (scope === "branch") {
-    const requested = params.branchId && params.branchId !== "all" ? params.branchId : null;
-    selectedBranchId =
-      requested && branches.some((b) => b.id === requested)
-        ? requested
-        : (activeBranches[0]?.id ?? branches[0]?.id ?? null);
-  }
+  const scope: ReportScope = wantsAll ? "all" : "branch";
+  const selectedBranchIds = wantsAll ? [] : requestedIds;
+  const selectedBranchId = selectedBranchIds[0] ?? null;
 
   const scopeInput: BranchScopeInput = {
     organizationId: params.organizationId,
     scope,
     branchId: selectedBranchId ?? undefined,
+    branchIds: selectedBranchIds.length > 0 ? selectedBranchIds : undefined,
   };
 
   const [years, classeRows] = await Promise.all([
@@ -242,6 +242,7 @@ export async function getReportMeta(params: {
     classes,
     scope,
     selectedBranchId,
+    selectedBranchIds,
     classeKey,
     schoolYearKey,
     schoolYearIds,
