@@ -114,6 +114,7 @@ function ReceiptPosHeader({ data }: { data: FacturePaymentStudentData }) {
   return (
     <header className="flex flex-col items-center gap-1.5 text-center text-black">
       {logoSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element
         <img src={logoSrc} alt="" className="h-12 w-12 object-contain" />
       ) : null}
       <p className="text-sm font-bold leading-tight">
