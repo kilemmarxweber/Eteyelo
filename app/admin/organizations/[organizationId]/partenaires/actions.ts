@@ -1,7 +1,5 @@
 "use server";
 
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import { revalidatePath } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
@@ -11,6 +9,10 @@ import {
   ensureUniqueIdentifier,
   generateSlug,
 } from "@/lib/generated-identifiers";
+import {
+  ensureUploadInSharedDirectory,
+  persistFileInUploadDirectory,
+} from "@/lib/upload-file.server";
 
 async function requirePartenaireOwnerAccess(organizationId: string) {
   const orgId = organizationId.trim();
@@ -30,26 +32,35 @@ async function requirePartenaireOwnerAccess(organizationId: string) {
   };
 }
 
-async function uploadFile(file: FormDataEntryValue | null) {
+async function savePartenaireUpload(
+  file: FormDataEntryValue | null,
+  kind: "image" | "document",
+): Promise<string> {
   if (!(file instanceof File) || file.size === 0) return "";
 
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
+  const saved = await persistFileInUploadDirectory(file, kind);
+  return saved.fileName;
+}
 
-  const ext = path.extname(file.name);
-  const safeName = file.name
-    .replace(ext, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)+/g, "");
+async function persistPartenaireAssets(record: {
+  image?: string | null;
+  logo?: string | null;
+  documentUrl?: string | null;
+}) {
+  await Promise.all([
+    ensureUploadInSharedDirectory(record.image),
+    ensureUploadInSharedDirectory(record.logo),
+    ensureUploadInSharedDirectory(record.documentUrl),
+  ]);
+}
 
-  const fileName = `${Date.now()}-${safeName}${ext}`;
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
+/** Copie les logos / images partenaires encore dans public/uploads vers eteyelo-uploads. */
+export async function migratePartenaireUploadsToSharedDirectory() {
+  const rows = await prisma.partnaire.findMany({
+    select: { image: true, logo: true, documentUrl: true },
+  });
 
-  await mkdir(uploadDir, { recursive: true });
-  await writeFile(path.join(uploadDir, fileName), buffer);
-
-  return fileName;
+  await Promise.all(rows.map(persistPartenaireAssets));
 }
 
 export async function createPartenaireAction(formData: FormData) {
@@ -61,9 +72,26 @@ export async function createPartenaireAction(formData: FormData) {
   }
   const { organizationId } = access;
 
-  const image = await uploadFile(formData.get("imageFile"));
-  const logo = await uploadFile(formData.get("logoFile"));
-  const documentUrl = await uploadFile(formData.get("documentFile"));
+  let image = "";
+  let logo = "";
+  let documentUrl = "";
+
+  try {
+    image = await savePartenaireUpload(formData.get("imageFile"), "image");
+    logo = await savePartenaireUpload(formData.get("logoFile"), "image");
+    documentUrl = await savePartenaireUpload(
+      formData.get("documentFile"),
+      "document",
+    );
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Impossible d’enregistrer le fichier dans eteyelo-uploads.",
+    };
+  }
 
   const parsed = createPartenaireSchema.safeParse({
     organizationId,
@@ -138,6 +166,12 @@ export async function createPartenaireAction(formData: FormData) {
       },
     });
 
+    await persistPartenaireAssets({
+      image: data.image,
+      logo: data.logo,
+      documentUrl: data.documentUrl,
+    });
+
     revalidatePath(`/admin/organizations/${organizationId}/partenaires`);
     revalidatePath("/");
 
@@ -181,9 +215,29 @@ export async function updatePartenaireAction(
     };
   }
 
-  const uploadedImage = await uploadFile(formData.get("imageFile"));
-  const uploadedLogo = await uploadFile(formData.get("logoFile"));
-  const uploadedDocument = await uploadFile(formData.get("documentFile"));
+  let uploadedImage = "";
+  let uploadedLogo = "";
+  let uploadedDocument = "";
+
+  try {
+    uploadedImage = await savePartenaireUpload(
+      formData.get("imageFile"),
+      "image",
+    );
+    uploadedLogo = await savePartenaireUpload(formData.get("logoFile"), "image");
+    uploadedDocument = await savePartenaireUpload(
+      formData.get("documentFile"),
+      "document",
+    );
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Impossible d’enregistrer le fichier dans eteyelo-uploads.",
+    };
+  }
 
   const parsed = createPartenaireSchema.safeParse({
     organizationId,
@@ -262,6 +316,12 @@ export async function updatePartenaireAction(
         isActive: data.isActive,
         isFeatured: data.isFeatured,
       },
+    });
+
+    await persistPartenaireAssets({
+      image: data.image,
+      logo: data.logo,
+      documentUrl: data.documentUrl,
     });
 
     revalidatePath(`/admin/organizations/${organizationId}/partenaires`);

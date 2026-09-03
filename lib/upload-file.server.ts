@@ -35,29 +35,84 @@ const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
 };
 
 /**
- * Retourne le dossier physique utilisé pour enregistrer les uploads.
+ * Dossier physique des uploads (logos branche, photos d’école,
+ * événements, logos partenaires, documents).
  *
- * Développement :
- *   public/uploads
- *
- * Production :
- *   valeur de UPLOAD_DIR
+ * Priorité :
+ * 1. UPLOAD_DIR (ex. C:/eteyelo-uploads)
+ * 2. C:\eteyelo-uploads sous Windows
+ * 3. public/uploads en développement si rien n’est configuré
  */
 export function getUploadDirectory(): string {
-  const isProduction = process.env.NODE_ENV === "production";
+  const configured = process.env.UPLOAD_DIR?.trim();
+  if (configured) {
+    return path.resolve(configured);
+  }
 
-  if (!isProduction) {
+  if (process.platform === "win32") {
+    return path.resolve("C:\\eteyelo-uploads");
+  }
+
+  if (process.env.NODE_ENV !== "production") {
     return path.join(process.cwd(), "public", "uploads");
   }
 
-  const productionUploadDirectory =
-    process.env.UPLOAD_DIR?.trim() ||
-    (process.platform === "win32" ? "C:\\eteyelo-uploads" : "");
+  throw new Error(
+    "La variable d'environnement UPLOAD_DIR est obligatoire en production.",
+  );
+}
 
-  if (!productionUploadDirectory)
-    throw new Error("La variable d'environnement UPLOAD_DIR est obligatoire en production.");
+function publicUploadsDirectory(): string {
+  return path.join(process.cwd(), "public", "uploads");
+}
 
-  return path.resolve(productionUploadDirectory);
+/** Nom de fichier stocké en base → nom sûr, sans préfixe /uploads. */
+export function storedUploadFileName(
+  storedName: string | null | undefined,
+): string {
+  const raw = storedName?.trim() ?? "";
+  if (!raw) return "";
+
+  const withoutQuery = raw.split("?")[0] ?? raw;
+  const normalized = withoutQuery
+    .replace(/\\/g, "/")
+    .replace(/^https?:\/\/[^/]+/i, "");
+  const stripped = normalized
+    .replace(/^\/+/, "")
+    .replace(/^api\/uploads\//, "")
+    .replace(/^uploads\//, "");
+
+  return path.basename(stripped);
+}
+
+/**
+ * Copie un fichier encore présent dans public/uploads vers le dossier partagé
+ * (eteyelo-uploads), s’il n’y est pas déjà.
+ */
+export async function ensureUploadInSharedDirectory(
+  storedName: string | null | undefined,
+): Promise<void> {
+  const fileName = storedUploadFileName(storedName);
+  if (!fileName) return;
+
+  const destDir = getUploadDirectory();
+  const destPath = path.join(destDir, fileName);
+
+  try {
+    await fs.access(destPath);
+    return;
+  } catch {
+    // pas encore dans le dossier partagé
+  }
+
+  const publicPath = path.join(publicUploadsDirectory(), fileName);
+  try {
+    await fs.access(publicPath);
+    await fs.mkdir(destDir, { recursive: true });
+    await fs.copyFile(publicPath, destPath);
+  } catch {
+    // source absente — rien à copier
+  }
 }
 
 /**
@@ -152,7 +207,13 @@ async function saveUploadedFileByKind(
   kind: "image" | "document",
 ): Promise<SavedUpload> {
   validateUploadedFile(file, { kind });
+  return writeUploadedFileToSharedDirectory(file, kind);
+}
 
+async function writeUploadedFileToSharedDirectory(
+  file: File,
+  kind: "image" | "document",
+): Promise<SavedUpload> {
   const uploadDirectory = getUploadDirectory();
 
   await fs.mkdir(uploadDirectory, {
@@ -161,13 +222,9 @@ async function saveUploadedFileByKind(
 
   const safeName = sanitizeFileName(file.name);
   const extension = getFileExtension(file, kind);
-
   const uniquePart = crypto.randomUUID();
-
   const fileName = `${Date.now()}-${uniquePart}-${safeName}${extension}`;
-
   const filePath = path.join(uploadDirectory, fileName);
-
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
@@ -177,4 +234,33 @@ async function saveUploadedFileByKind(
     fileName,
     url: `/api/uploads/${encodeURIComponent(fileName)}`,
   };
+}
+
+/**
+ * Enregistre un fichier (image ou document) dans le même dossier que les
+ * logos de branche / photos d’école — UPLOAD_DIR (eteyelo-uploads).
+ */
+export async function persistFileInUploadDirectory(
+  file: File,
+  kind: "image" | "document" = "image",
+): Promise<SavedUpload> {
+  if (kind === "image" || ALLOWED_IMAGE_TYPES.has(file.type)) {
+    return saveUploadedFile(file);
+  }
+
+  if (ALLOWED_DOCUMENT_TYPES.has(file.type)) {
+    return saveUploadedDocument(file);
+  }
+
+  if (file.size === 0) {
+    throw new Error("Le fichier est vide.");
+  }
+
+  if (file.size > MAX_DOCUMENT_UPLOAD_BYTES) {
+    throw new Error(
+      "Le fichier dépasse la taille maximale autorisée de 10 Mo.",
+    );
+  }
+
+  return writeUploadedFileToSharedDirectory(file, "document");
 }

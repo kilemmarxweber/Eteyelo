@@ -5,6 +5,7 @@ import { getBranchCycles, isSchoolCycle } from "@/lib/cycle";
 import { getPeopleLabels, pluralizeStudentLabelLower } from "@/lib/people-labels";
 import { prisma } from "@/lib/prisma";
 import { getHomeResultSlides } from "@/lib/public-results";
+import { ensureUploadInSharedDirectory } from "@/lib/upload-file.server";
 import {
   getBranchImage,
   getPublicBranchPhotos,
@@ -625,6 +626,13 @@ export async function getHomeData(): Promise<HomeData> {
           kindLabel: presentation.kindLabel,
         };
       });
+
+    await Promise.all(
+      partnaires.flatMap((partnaire) => [
+        ensureUploadInSharedDirectory(partnaire.logo),
+        ensureUploadInSharedDirectory(partnaire.image),
+      ]),
+    );
 
     const dynamicPartners: HomePartner[] = partnaires.map((partnaire) => ({
       name: partnaire.name,

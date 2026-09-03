@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { prisma } from "@/lib/prisma";
 import { normalizeImageSrc } from "@/lib/utils";
 import { PartenaireActions } from "./partenaire-actions";
+import { migratePartenaireUploadsToSharedDirectory } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,8 @@ export default async function OrganizationPartenairesPage({
   const { q } = await searchParams;
 
   const branchesHref = `/admin/organizations/${organizationId}/branches`;
+
+  await migratePartenaireUploadsToSharedDirectory();
 
   const partenaires = await prisma.partnaire.findMany({
     where: {
