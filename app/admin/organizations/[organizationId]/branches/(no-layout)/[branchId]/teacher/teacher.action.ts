@@ -529,6 +529,7 @@ export const makeTeacherAlsoPersonnelAction = action
     z.object({
       teacherId: z.string().min(1),
       orgRole: z.string().min(1),
+      monthlyForfait: z.coerce.number().nonnegative().optional(),
     }),
   )
   .handler(async ({ input }) => {
@@ -574,6 +575,7 @@ export const makeTeacherAlsoPersonnelAction = action
         branchMemberId: teacher.branchMemberId,
         memberId: teacher.branchMember.memberId,
         orgRole: input.orgRole,
+        monthlyForfait: input.monthlyForfait ?? null,
       });
       revalidatePath(
         `/admin/organizations/${organizationId}/branches/${branchId}/teacher`,

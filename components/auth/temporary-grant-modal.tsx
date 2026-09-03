@@ -41,7 +41,7 @@ const RESOURCE_OPTIONS = [
   { value: "student", label: "Annuaire Élèves (student)" },
   { value: "inscription", label: "Inscriptions (inscription)" },
   { value: "candidatures", label: "Candidatures recrutement (candidatures)" },
-  { value: "payroll", label: "Paie des enseignants (payroll)" },
+  { value: "payroll", label: "Paie du personnel (payroll)" },
   { value: "attendance", label: "Présences (attendance)" },
   { value: "devoirs", label: "Devoirs & Cours (devoirs)" },
   { value: "schedule", label: "Horaire & Vacations (schedule)" },

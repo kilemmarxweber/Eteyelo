@@ -8,6 +8,7 @@ import TeacherAttendanceReport from "../attendance/component/TeacherAttendanceRe
 import PersonnelAttendanceReport from "../attendance/component/PersonnelAttendanceReport";
 import { MyPresenceSection } from "../dashboard-presence-section";
 import { getMyDashboardPresenceAction } from "../dashboard-presence.action";
+import SalaryAdvanceRequestCard from "./salary-advance-request-card";
 
 export default function MyPresencePage() {
   const t = useTranslations("dashboard.presence");
@@ -31,6 +32,7 @@ export default function MyPresencePage() {
       contentClassName="space-y-6"
     >
       <MyPresenceSection />
+      <SalaryAdvanceRequestCard />
       {showTeacher ? <TeacherAttendanceReport selfOnly /> : null}
       {showPersonnel ? <PersonnelAttendanceReport selfOnly /> : null}
       {loaded && !showTeacher && !showPersonnel ? (

@@ -226,10 +226,40 @@ export const TeacherPayslipLineKind = {
   ABSENCE: 'ABSENCE',
   LATE: 'LATE',
   EARLY_EXIT: 'EARLY_EXIT',
-  ADJUSTMENT: 'ADJUSTMENT'
+  ADJUSTMENT: 'ADJUSTMENT',
+  ADVANCE: 'ADVANCE'
 } as const
 
 export type TeacherPayslipLineKind = (typeof TeacherPayslipLineKind)[keyof typeof TeacherPayslipLineKind]
+
+
+export const PayrollAgentKind = {
+  TEACHER: 'TEACHER',
+  PERSONNEL: 'PERSONNEL',
+  BOTH: 'BOTH'
+} as const
+
+export type PayrollAgentKind = (typeof PayrollAgentKind)[keyof typeof PayrollAgentKind]
+
+
+export const SalaryAdvanceStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED',
+  SETTLED: 'SETTLED'
+} as const
+
+export type SalaryAdvanceStatus = (typeof SalaryAdvanceStatus)[keyof typeof SalaryAdvanceStatus]
+
+
+export const SalaryAdvanceInstallmentStatus = {
+  PLANNED: 'PLANNED',
+  DEDUCTED: 'DEDUCTED',
+  SKIPPED: 'SKIPPED'
+} as const
+
+export type SalaryAdvanceInstallmentStatus = (typeof SalaryAdvanceInstallmentStatus)[keyof typeof SalaryAdvanceInstallmentStatus]
 
 
 export const StudentCategory = {

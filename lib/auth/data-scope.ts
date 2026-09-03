@@ -55,7 +55,6 @@ export async function getPersonnelIdForUser(
       isActive: true,
       branchMember: {
         branchId,
-        isActive: true,
         member: { userId },
       },
     },

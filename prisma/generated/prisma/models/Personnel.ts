@@ -20,8 +20,18 @@ export type PersonnelModel = runtime.Types.Result.DefaultSelection<Prisma.$Perso
 
 export type AggregatePersonnel = {
   _count: PersonnelCountAggregateOutputType | null
+  _avg: PersonnelAvgAggregateOutputType | null
+  _sum: PersonnelSumAggregateOutputType | null
   _min: PersonnelMinAggregateOutputType | null
   _max: PersonnelMaxAggregateOutputType | null
+}
+
+export type PersonnelAvgAggregateOutputType = {
+  monthlyForfait: number | null
+}
+
+export type PersonnelSumAggregateOutputType = {
+  monthlyForfait: number | null
 }
 
 export type PersonnelMinAggregateOutputType = {
@@ -29,6 +39,9 @@ export type PersonnelMinAggregateOutputType = {
   branchMemberId: string | null
   isActive: boolean | null
   deactivatedAt: Date | null
+  monthlyForfait: number | null
+  payrollStartedOn: Date | null
+  canRequestSalaryAdvance: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -38,6 +51,9 @@ export type PersonnelMaxAggregateOutputType = {
   branchMemberId: string | null
   isActive: boolean | null
   deactivatedAt: Date | null
+  monthlyForfait: number | null
+  payrollStartedOn: Date | null
+  canRequestSalaryAdvance: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -47,17 +63,31 @@ export type PersonnelCountAggregateOutputType = {
   branchMemberId: number
   isActive: number
   deactivatedAt: number
+  monthlyForfait: number
+  payrollStartedOn: number
+  canRequestSalaryAdvance: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
 
+export type PersonnelAvgAggregateInputType = {
+  monthlyForfait?: true
+}
+
+export type PersonnelSumAggregateInputType = {
+  monthlyForfait?: true
+}
+
 export type PersonnelMinAggregateInputType = {
   id?: true
   branchMemberId?: true
   isActive?: true
   deactivatedAt?: true
+  monthlyForfait?: true
+  payrollStartedOn?: true
+  canRequestSalaryAdvance?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -67,6 +97,9 @@ export type PersonnelMaxAggregateInputType = {
   branchMemberId?: true
   isActive?: true
   deactivatedAt?: true
+  monthlyForfait?: true
+  payrollStartedOn?: true
+  canRequestSalaryAdvance?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -76,6 +109,9 @@ export type PersonnelCountAggregateInputType = {
   branchMemberId?: true
   isActive?: true
   deactivatedAt?: true
+  monthlyForfait?: true
+  payrollStartedOn?: true
+  canRequestSalaryAdvance?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -119,6 +155,18 @@ export type PersonnelAggregateArgs<ExtArgs extends runtime.Types.Extensions.Inte
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: PersonnelAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: PersonnelSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: PersonnelMinAggregateInputType
@@ -149,6 +197,8 @@ export type PersonnelGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   _count?: PersonnelCountAggregateInputType | true
+  _avg?: PersonnelAvgAggregateInputType
+  _sum?: PersonnelSumAggregateInputType
   _min?: PersonnelMinAggregateInputType
   _max?: PersonnelMaxAggregateInputType
 }
@@ -158,9 +208,14 @@ export type PersonnelGroupByOutputType = {
   branchMemberId: string
   isActive: boolean
   deactivatedAt: Date | null
+  monthlyForfait: number | null
+  payrollStartedOn: Date | null
+  canRequestSalaryAdvance: boolean
   createdAt: Date
   updatedAt: Date
   _count: PersonnelCountAggregateOutputType | null
+  _avg: PersonnelAvgAggregateOutputType | null
+  _sum: PersonnelSumAggregateOutputType | null
   _min: PersonnelMinAggregateOutputType | null
   _max: PersonnelMaxAggregateOutputType | null
 }
@@ -188,10 +243,15 @@ export type PersonnelWhereInput = {
   branchMemberId?: Prisma.StringFilter<"Personnel"> | string
   isActive?: Prisma.BoolFilter<"Personnel"> | boolean
   deactivatedAt?: Prisma.DateTimeNullableFilter<"Personnel"> | Date | string | null
+  monthlyForfait?: Prisma.FloatNullableFilter<"Personnel"> | number | null
+  payrollStartedOn?: Prisma.DateTimeNullableFilter<"Personnel"> | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFilter<"Personnel"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Personnel"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Personnel"> | Date | string
   branchMember?: Prisma.XOR<Prisma.BranchMemberNullableScalarRelationFilter, Prisma.BranchMemberWhereInput> | null
   personnelAttendance?: Prisma.PersonnelAttendanceListRelationFilter
+  payslips?: Prisma.TeacherPayslipListRelationFilter
+  salaryAdvances?: Prisma.SalaryAdvanceListRelationFilter
 }
 
 export type PersonnelOrderByWithRelationInput = {
@@ -199,10 +259,15 @@ export type PersonnelOrderByWithRelationInput = {
   branchMemberId?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   deactivatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  monthlyForfait?: Prisma.SortOrderInput | Prisma.SortOrder
+  payrollStartedOn?: Prisma.SortOrderInput | Prisma.SortOrder
+  canRequestSalaryAdvance?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchMember?: Prisma.BranchMemberOrderByWithRelationInput
   personnelAttendance?: Prisma.PersonnelAttendanceOrderByRelationAggregateInput
+  payslips?: Prisma.TeacherPayslipOrderByRelationAggregateInput
+  salaryAdvances?: Prisma.SalaryAdvanceOrderByRelationAggregateInput
 }
 
 export type PersonnelWhereUniqueInput = Prisma.AtLeast<{
@@ -213,10 +278,15 @@ export type PersonnelWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.PersonnelWhereInput | Prisma.PersonnelWhereInput[]
   isActive?: Prisma.BoolFilter<"Personnel"> | boolean
   deactivatedAt?: Prisma.DateTimeNullableFilter<"Personnel"> | Date | string | null
+  monthlyForfait?: Prisma.FloatNullableFilter<"Personnel"> | number | null
+  payrollStartedOn?: Prisma.DateTimeNullableFilter<"Personnel"> | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFilter<"Personnel"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Personnel"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Personnel"> | Date | string
   branchMember?: Prisma.XOR<Prisma.BranchMemberNullableScalarRelationFilter, Prisma.BranchMemberWhereInput> | null
   personnelAttendance?: Prisma.PersonnelAttendanceListRelationFilter
+  payslips?: Prisma.TeacherPayslipListRelationFilter
+  salaryAdvances?: Prisma.SalaryAdvanceListRelationFilter
 }, "id" | "branchMemberId">
 
 export type PersonnelOrderByWithAggregationInput = {
@@ -224,11 +294,16 @@ export type PersonnelOrderByWithAggregationInput = {
   branchMemberId?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   deactivatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  monthlyForfait?: Prisma.SortOrderInput | Prisma.SortOrder
+  payrollStartedOn?: Prisma.SortOrderInput | Prisma.SortOrder
+  canRequestSalaryAdvance?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.PersonnelCountOrderByAggregateInput
+  _avg?: Prisma.PersonnelAvgOrderByAggregateInput
   _max?: Prisma.PersonnelMaxOrderByAggregateInput
   _min?: Prisma.PersonnelMinOrderByAggregateInput
+  _sum?: Prisma.PersonnelSumOrderByAggregateInput
 }
 
 export type PersonnelScalarWhereWithAggregatesInput = {
@@ -239,6 +314,9 @@ export type PersonnelScalarWhereWithAggregatesInput = {
   branchMemberId?: Prisma.StringWithAggregatesFilter<"Personnel"> | string
   isActive?: Prisma.BoolWithAggregatesFilter<"Personnel"> | boolean
   deactivatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Personnel"> | Date | string | null
+  monthlyForfait?: Prisma.FloatNullableWithAggregatesFilter<"Personnel"> | number | null
+  payrollStartedOn?: Prisma.DateTimeNullableWithAggregatesFilter<"Personnel"> | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolWithAggregatesFilter<"Personnel"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Personnel"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Personnel"> | Date | string
 }
@@ -247,10 +325,15 @@ export type PersonnelCreateInput = {
   id?: string
   isActive?: boolean
   deactivatedAt?: Date | string | null
+  monthlyForfait?: number | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutPersonelInput
   personnelAttendance?: Prisma.PersonnelAttendanceCreateNestedManyWithoutPersonnelInput
+  payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutPersonnelInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutPersonnelInput
 }
 
 export type PersonnelUncheckedCreateInput = {
@@ -258,19 +341,29 @@ export type PersonnelUncheckedCreateInput = {
   branchMemberId: string
   isActive?: boolean
   deactivatedAt?: Date | string | null
+  monthlyForfait?: number | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   personnelAttendance?: Prisma.PersonnelAttendanceUncheckedCreateNestedManyWithoutPersonnelInput
+  payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutPersonnelInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutPersonnelInput
 }
 
 export type PersonnelUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  monthlyForfait?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutPersonelNestedInput
   personnelAttendance?: Prisma.PersonnelAttendanceUpdateManyWithoutPersonnelNestedInput
+  payslips?: Prisma.TeacherPayslipUpdateManyWithoutPersonnelNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutPersonnelNestedInput
 }
 
 export type PersonnelUncheckedUpdateInput = {
@@ -278,9 +371,14 @@ export type PersonnelUncheckedUpdateInput = {
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  monthlyForfait?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   personnelAttendance?: Prisma.PersonnelAttendanceUncheckedUpdateManyWithoutPersonnelNestedInput
+  payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutPersonnelNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutPersonnelNestedInput
 }
 
 export type PersonnelCreateManyInput = {
@@ -288,6 +386,9 @@ export type PersonnelCreateManyInput = {
   branchMemberId: string
   isActive?: boolean
   deactivatedAt?: Date | string | null
+  monthlyForfait?: number | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -296,6 +397,9 @@ export type PersonnelUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  monthlyForfait?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -305,6 +409,9 @@ export type PersonnelUncheckedUpdateManyInput = {
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  monthlyForfait?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -319,8 +426,15 @@ export type PersonnelCountOrderByAggregateInput = {
   branchMemberId?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   deactivatedAt?: Prisma.SortOrder
+  monthlyForfait?: Prisma.SortOrder
+  payrollStartedOn?: Prisma.SortOrder
+  canRequestSalaryAdvance?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type PersonnelAvgOrderByAggregateInput = {
+  monthlyForfait?: Prisma.SortOrder
 }
 
 export type PersonnelMaxOrderByAggregateInput = {
@@ -328,6 +442,9 @@ export type PersonnelMaxOrderByAggregateInput = {
   branchMemberId?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   deactivatedAt?: Prisma.SortOrder
+  monthlyForfait?: Prisma.SortOrder
+  payrollStartedOn?: Prisma.SortOrder
+  canRequestSalaryAdvance?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -337,8 +454,20 @@ export type PersonnelMinOrderByAggregateInput = {
   branchMemberId?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   deactivatedAt?: Prisma.SortOrder
+  monthlyForfait?: Prisma.SortOrder
+  payrollStartedOn?: Prisma.SortOrder
+  canRequestSalaryAdvance?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type PersonnelSumOrderByAggregateInput = {
+  monthlyForfait?: Prisma.SortOrder
+}
+
+export type PersonnelNullableScalarRelationFilter = {
+  is?: Prisma.PersonnelWhereInput | null
+  isNot?: Prisma.PersonnelWhereInput | null
 }
 
 export type PersonnelListRelationFilter = {
@@ -363,6 +492,46 @@ export type PersonnelUpdateOneRequiredWithoutPersonnelAttendanceNestedInput = {
   upsert?: Prisma.PersonnelUpsertWithoutPersonnelAttendanceInput
   connect?: Prisma.PersonnelWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.PersonnelUpdateToOneWithWhereWithoutPersonnelAttendanceInput, Prisma.PersonnelUpdateWithoutPersonnelAttendanceInput>, Prisma.PersonnelUncheckedUpdateWithoutPersonnelAttendanceInput>
+}
+
+export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type PersonnelCreateNestedOneWithoutPayslipsInput = {
+  create?: Prisma.XOR<Prisma.PersonnelCreateWithoutPayslipsInput, Prisma.PersonnelUncheckedCreateWithoutPayslipsInput>
+  connectOrCreate?: Prisma.PersonnelCreateOrConnectWithoutPayslipsInput
+  connect?: Prisma.PersonnelWhereUniqueInput
+}
+
+export type PersonnelUpdateOneWithoutPayslipsNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonnelCreateWithoutPayslipsInput, Prisma.PersonnelUncheckedCreateWithoutPayslipsInput>
+  connectOrCreate?: Prisma.PersonnelCreateOrConnectWithoutPayslipsInput
+  upsert?: Prisma.PersonnelUpsertWithoutPayslipsInput
+  disconnect?: Prisma.PersonnelWhereInput | boolean
+  delete?: Prisma.PersonnelWhereInput | boolean
+  connect?: Prisma.PersonnelWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonnelUpdateToOneWithWhereWithoutPayslipsInput, Prisma.PersonnelUpdateWithoutPayslipsInput>, Prisma.PersonnelUncheckedUpdateWithoutPayslipsInput>
+}
+
+export type PersonnelCreateNestedOneWithoutSalaryAdvancesInput = {
+  create?: Prisma.XOR<Prisma.PersonnelCreateWithoutSalaryAdvancesInput, Prisma.PersonnelUncheckedCreateWithoutSalaryAdvancesInput>
+  connectOrCreate?: Prisma.PersonnelCreateOrConnectWithoutSalaryAdvancesInput
+  connect?: Prisma.PersonnelWhereUniqueInput
+}
+
+export type PersonnelUpdateOneWithoutSalaryAdvancesNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonnelCreateWithoutSalaryAdvancesInput, Prisma.PersonnelUncheckedCreateWithoutSalaryAdvancesInput>
+  connectOrCreate?: Prisma.PersonnelCreateOrConnectWithoutSalaryAdvancesInput
+  upsert?: Prisma.PersonnelUpsertWithoutSalaryAdvancesInput
+  disconnect?: Prisma.PersonnelWhereInput | boolean
+  delete?: Prisma.PersonnelWhereInput | boolean
+  connect?: Prisma.PersonnelWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonnelUpdateToOneWithWhereWithoutSalaryAdvancesInput, Prisma.PersonnelUpdateWithoutSalaryAdvancesInput>, Prisma.PersonnelUncheckedUpdateWithoutSalaryAdvancesInput>
 }
 
 export type PersonnelCreateNestedManyWithoutBranchMemberInput = {
@@ -411,9 +580,14 @@ export type PersonnelCreateWithoutPersonnelAttendanceInput = {
   id?: string
   isActive?: boolean
   deactivatedAt?: Date | string | null
+  monthlyForfait?: number | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutPersonelInput
+  payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutPersonnelInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutPersonnelInput
 }
 
 export type PersonnelUncheckedCreateWithoutPersonnelAttendanceInput = {
@@ -421,8 +595,13 @@ export type PersonnelUncheckedCreateWithoutPersonnelAttendanceInput = {
   branchMemberId: string
   isActive?: boolean
   deactivatedAt?: Date | string | null
+  monthlyForfait?: number | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutPersonnelInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutPersonnelInput
 }
 
 export type PersonnelCreateOrConnectWithoutPersonnelAttendanceInput = {
@@ -445,9 +624,14 @@ export type PersonnelUpdateWithoutPersonnelAttendanceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  monthlyForfait?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutPersonelNestedInput
+  payslips?: Prisma.TeacherPayslipUpdateManyWithoutPersonnelNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutPersonnelNestedInput
 }
 
 export type PersonnelUncheckedUpdateWithoutPersonnelAttendanceInput = {
@@ -455,26 +639,185 @@ export type PersonnelUncheckedUpdateWithoutPersonnelAttendanceInput = {
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  monthlyForfait?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutPersonnelNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutPersonnelNestedInput
+}
+
+export type PersonnelCreateWithoutPayslipsInput = {
+  id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
+  monthlyForfait?: number | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchMember?: Prisma.BranchMemberCreateNestedOneWithoutPersonelInput
+  personnelAttendance?: Prisma.PersonnelAttendanceCreateNestedManyWithoutPersonnelInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutPersonnelInput
+}
+
+export type PersonnelUncheckedCreateWithoutPayslipsInput = {
+  id?: string
+  branchMemberId: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
+  monthlyForfait?: number | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedCreateNestedManyWithoutPersonnelInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutPersonnelInput
+}
+
+export type PersonnelCreateOrConnectWithoutPayslipsInput = {
+  where: Prisma.PersonnelWhereUniqueInput
+  create: Prisma.XOR<Prisma.PersonnelCreateWithoutPayslipsInput, Prisma.PersonnelUncheckedCreateWithoutPayslipsInput>
+}
+
+export type PersonnelUpsertWithoutPayslipsInput = {
+  update: Prisma.XOR<Prisma.PersonnelUpdateWithoutPayslipsInput, Prisma.PersonnelUncheckedUpdateWithoutPayslipsInput>
+  create: Prisma.XOR<Prisma.PersonnelCreateWithoutPayslipsInput, Prisma.PersonnelUncheckedCreateWithoutPayslipsInput>
+  where?: Prisma.PersonnelWhereInput
+}
+
+export type PersonnelUpdateToOneWithWhereWithoutPayslipsInput = {
+  where?: Prisma.PersonnelWhereInput
+  data: Prisma.XOR<Prisma.PersonnelUpdateWithoutPayslipsInput, Prisma.PersonnelUncheckedUpdateWithoutPayslipsInput>
+}
+
+export type PersonnelUpdateWithoutPayslipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  monthlyForfait?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchMember?: Prisma.BranchMemberUpdateOneWithoutPersonelNestedInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUpdateManyWithoutPersonnelNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutPersonnelNestedInput
+}
+
+export type PersonnelUncheckedUpdateWithoutPayslipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  monthlyForfait?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedUpdateManyWithoutPersonnelNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutPersonnelNestedInput
+}
+
+export type PersonnelCreateWithoutSalaryAdvancesInput = {
+  id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
+  monthlyForfait?: number | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchMember?: Prisma.BranchMemberCreateNestedOneWithoutPersonelInput
+  personnelAttendance?: Prisma.PersonnelAttendanceCreateNestedManyWithoutPersonnelInput
+  payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutPersonnelInput
+}
+
+export type PersonnelUncheckedCreateWithoutSalaryAdvancesInput = {
+  id?: string
+  branchMemberId: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
+  monthlyForfait?: number | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedCreateNestedManyWithoutPersonnelInput
+  payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutPersonnelInput
+}
+
+export type PersonnelCreateOrConnectWithoutSalaryAdvancesInput = {
+  where: Prisma.PersonnelWhereUniqueInput
+  create: Prisma.XOR<Prisma.PersonnelCreateWithoutSalaryAdvancesInput, Prisma.PersonnelUncheckedCreateWithoutSalaryAdvancesInput>
+}
+
+export type PersonnelUpsertWithoutSalaryAdvancesInput = {
+  update: Prisma.XOR<Prisma.PersonnelUpdateWithoutSalaryAdvancesInput, Prisma.PersonnelUncheckedUpdateWithoutSalaryAdvancesInput>
+  create: Prisma.XOR<Prisma.PersonnelCreateWithoutSalaryAdvancesInput, Prisma.PersonnelUncheckedCreateWithoutSalaryAdvancesInput>
+  where?: Prisma.PersonnelWhereInput
+}
+
+export type PersonnelUpdateToOneWithWhereWithoutSalaryAdvancesInput = {
+  where?: Prisma.PersonnelWhereInput
+  data: Prisma.XOR<Prisma.PersonnelUpdateWithoutSalaryAdvancesInput, Prisma.PersonnelUncheckedUpdateWithoutSalaryAdvancesInput>
+}
+
+export type PersonnelUpdateWithoutSalaryAdvancesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  monthlyForfait?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchMember?: Prisma.BranchMemberUpdateOneWithoutPersonelNestedInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUpdateManyWithoutPersonnelNestedInput
+  payslips?: Prisma.TeacherPayslipUpdateManyWithoutPersonnelNestedInput
+}
+
+export type PersonnelUncheckedUpdateWithoutSalaryAdvancesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  monthlyForfait?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedUpdateManyWithoutPersonnelNestedInput
+  payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutPersonnelNestedInput
 }
 
 export type PersonnelCreateWithoutBranchMemberInput = {
   id?: string
   isActive?: boolean
   deactivatedAt?: Date | string | null
+  monthlyForfait?: number | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   personnelAttendance?: Prisma.PersonnelAttendanceCreateNestedManyWithoutPersonnelInput
+  payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutPersonnelInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutPersonnelInput
 }
 
 export type PersonnelUncheckedCreateWithoutBranchMemberInput = {
   id?: string
   isActive?: boolean
   deactivatedAt?: Date | string | null
+  monthlyForfait?: number | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   personnelAttendance?: Prisma.PersonnelAttendanceUncheckedCreateNestedManyWithoutPersonnelInput
+  payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutPersonnelInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutPersonnelInput
 }
 
 export type PersonnelCreateOrConnectWithoutBranchMemberInput = {
@@ -511,6 +854,9 @@ export type PersonnelScalarWhereInput = {
   branchMemberId?: Prisma.StringFilter<"Personnel"> | string
   isActive?: Prisma.BoolFilter<"Personnel"> | boolean
   deactivatedAt?: Prisma.DateTimeNullableFilter<"Personnel"> | Date | string | null
+  monthlyForfait?: Prisma.FloatNullableFilter<"Personnel"> | number | null
+  payrollStartedOn?: Prisma.DateTimeNullableFilter<"Personnel"> | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFilter<"Personnel"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Personnel"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Personnel"> | Date | string
 }
@@ -519,6 +865,9 @@ export type PersonnelCreateManyBranchMemberInput = {
   id?: string
   isActive?: boolean
   deactivatedAt?: Date | string | null
+  monthlyForfait?: number | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -527,24 +876,37 @@ export type PersonnelUpdateWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  monthlyForfait?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   personnelAttendance?: Prisma.PersonnelAttendanceUpdateManyWithoutPersonnelNestedInput
+  payslips?: Prisma.TeacherPayslipUpdateManyWithoutPersonnelNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutPersonnelNestedInput
 }
 
 export type PersonnelUncheckedUpdateWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  monthlyForfait?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   personnelAttendance?: Prisma.PersonnelAttendanceUncheckedUpdateManyWithoutPersonnelNestedInput
+  payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutPersonnelNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutPersonnelNestedInput
 }
 
 export type PersonnelUncheckedUpdateManyWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  monthlyForfait?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -556,10 +918,14 @@ export type PersonnelUncheckedUpdateManyWithoutBranchMemberInput = {
 
 export type PersonnelCountOutputType = {
   personnelAttendance: number
+  payslips: number
+  salaryAdvances: number
 }
 
 export type PersonnelCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   personnelAttendance?: boolean | PersonnelCountOutputTypeCountPersonnelAttendanceArgs
+  payslips?: boolean | PersonnelCountOutputTypeCountPayslipsArgs
+  salaryAdvances?: boolean | PersonnelCountOutputTypeCountSalaryAdvancesArgs
 }
 
 /**
@@ -579,16 +945,35 @@ export type PersonnelCountOutputTypeCountPersonnelAttendanceArgs<ExtArgs extends
   where?: Prisma.PersonnelAttendanceWhereInput
 }
 
+/**
+ * PersonnelCountOutputType without action
+ */
+export type PersonnelCountOutputTypeCountPayslipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TeacherPayslipWhereInput
+}
+
+/**
+ * PersonnelCountOutputType without action
+ */
+export type PersonnelCountOutputTypeCountSalaryAdvancesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SalaryAdvanceWhereInput
+}
+
 
 export type PersonnelSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchMemberId?: boolean
   isActive?: boolean
   deactivatedAt?: boolean
+  monthlyForfait?: boolean
+  payrollStartedOn?: boolean
+  canRequestSalaryAdvance?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchMember?: boolean | Prisma.Personnel$branchMemberArgs<ExtArgs>
   personnelAttendance?: boolean | Prisma.Personnel$personnelAttendanceArgs<ExtArgs>
+  payslips?: boolean | Prisma.Personnel$payslipsArgs<ExtArgs>
+  salaryAdvances?: boolean | Prisma.Personnel$salaryAdvancesArgs<ExtArgs>
   _count?: boolean | Prisma.PersonnelCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["personnel"]>
 
@@ -597,6 +982,9 @@ export type PersonnelSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   branchMemberId?: boolean
   isActive?: boolean
   deactivatedAt?: boolean
+  monthlyForfait?: boolean
+  payrollStartedOn?: boolean
+  canRequestSalaryAdvance?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchMember?: boolean | Prisma.Personnel$branchMemberArgs<ExtArgs>
@@ -607,6 +995,9 @@ export type PersonnelSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   branchMemberId?: boolean
   isActive?: boolean
   deactivatedAt?: boolean
+  monthlyForfait?: boolean
+  payrollStartedOn?: boolean
+  canRequestSalaryAdvance?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchMember?: boolean | Prisma.Personnel$branchMemberArgs<ExtArgs>
@@ -617,14 +1008,19 @@ export type PersonnelSelectScalar = {
   branchMemberId?: boolean
   isActive?: boolean
   deactivatedAt?: boolean
+  monthlyForfait?: boolean
+  payrollStartedOn?: boolean
+  canRequestSalaryAdvance?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type PersonnelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "isActive" | "deactivatedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["personnel"]>
+export type PersonnelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "isActive" | "deactivatedAt" | "monthlyForfait" | "payrollStartedOn" | "canRequestSalaryAdvance" | "createdAt" | "updatedAt", ExtArgs["result"]["personnel"]>
 export type PersonnelInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branchMember?: boolean | Prisma.Personnel$branchMemberArgs<ExtArgs>
   personnelAttendance?: boolean | Prisma.Personnel$personnelAttendanceArgs<ExtArgs>
+  payslips?: boolean | Prisma.Personnel$payslipsArgs<ExtArgs>
+  salaryAdvances?: boolean | Prisma.Personnel$salaryAdvancesArgs<ExtArgs>
   _count?: boolean | Prisma.PersonnelCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PersonnelIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -639,6 +1035,8 @@ export type $PersonnelPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   objects: {
     branchMember: Prisma.$BranchMemberPayload<ExtArgs> | null
     personnelAttendance: Prisma.$PersonnelAttendancePayload<ExtArgs>[]
+    payslips: Prisma.$TeacherPayslipPayload<ExtArgs>[]
+    salaryAdvances: Prisma.$SalaryAdvancePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -648,6 +1046,15 @@ export type $PersonnelPayload<ExtArgs extends runtime.Types.Extensions.InternalA
      */
     isActive: boolean
     deactivatedAt: Date | null
+    /**
+     * Forfait mensuel connu (devise de base org), ex. 50000. Null = pas encore saisi.
+     */
+    monthlyForfait: number | null
+    payrollStartedOn: Date | null
+    /**
+     * Autorisé à déposer une demande d’avance sur salaire.
+     */
+    canRequestSalaryAdvance: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["personnel"]>
@@ -1046,6 +1453,8 @@ export interface Prisma__PersonnelClient<T, Null = never, ExtArgs extends runtim
   readonly [Symbol.toStringTag]: "PrismaPromise"
   branchMember<T extends Prisma.Personnel$branchMemberArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Personnel$branchMemberArgs<ExtArgs>>): Prisma.Prisma__BranchMemberClient<runtime.Types.Result.GetResult<Prisma.$BranchMemberPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   personnelAttendance<T extends Prisma.Personnel$personnelAttendanceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Personnel$personnelAttendanceArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PersonnelAttendancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  payslips<T extends Prisma.Personnel$payslipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Personnel$payslipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeacherPayslipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  salaryAdvances<T extends Prisma.Personnel$salaryAdvancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Personnel$salaryAdvancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalaryAdvancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1079,6 +1488,9 @@ export interface PersonnelFieldRefs {
   readonly branchMemberId: Prisma.FieldRef<"Personnel", 'String'>
   readonly isActive: Prisma.FieldRef<"Personnel", 'Boolean'>
   readonly deactivatedAt: Prisma.FieldRef<"Personnel", 'DateTime'>
+  readonly monthlyForfait: Prisma.FieldRef<"Personnel", 'Float'>
+  readonly payrollStartedOn: Prisma.FieldRef<"Personnel", 'DateTime'>
+  readonly canRequestSalaryAdvance: Prisma.FieldRef<"Personnel", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Personnel", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Personnel", 'DateTime'>
 }
@@ -1522,6 +1934,54 @@ export type Personnel$personnelAttendanceArgs<ExtArgs extends runtime.Types.Exte
   take?: number
   skip?: number
   distinct?: Prisma.PersonnelAttendanceScalarFieldEnum | Prisma.PersonnelAttendanceScalarFieldEnum[]
+}
+
+/**
+ * Personnel.payslips
+ */
+export type Personnel$payslipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TeacherPayslip
+   */
+  select?: Prisma.TeacherPayslipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TeacherPayslip
+   */
+  omit?: Prisma.TeacherPayslipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TeacherPayslipInclude<ExtArgs> | null
+  where?: Prisma.TeacherPayslipWhereInput
+  orderBy?: Prisma.TeacherPayslipOrderByWithRelationInput | Prisma.TeacherPayslipOrderByWithRelationInput[]
+  cursor?: Prisma.TeacherPayslipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TeacherPayslipScalarFieldEnum | Prisma.TeacherPayslipScalarFieldEnum[]
+}
+
+/**
+ * Personnel.salaryAdvances
+ */
+export type Personnel$salaryAdvancesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SalaryAdvance
+   */
+  select?: Prisma.SalaryAdvanceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SalaryAdvance
+   */
+  omit?: Prisma.SalaryAdvanceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SalaryAdvanceInclude<ExtArgs> | null
+  where?: Prisma.SalaryAdvanceWhereInput
+  orderBy?: Prisma.SalaryAdvanceOrderByWithRelationInput | Prisma.SalaryAdvanceOrderByWithRelationInput[]
+  cursor?: Prisma.SalaryAdvanceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SalaryAdvanceScalarFieldEnum | Prisma.SalaryAdvanceScalarFieldEnum[]
 }
 
 /**

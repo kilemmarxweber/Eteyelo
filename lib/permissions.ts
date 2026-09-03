@@ -128,7 +128,7 @@ export const accessControlStatements = {
   student: ["create", "read", "update", "delete"],
   /** Paiement / caisse — `encaisser` = opération caisse. */
   finance: ["create", "read", "update", "delete", "encaisser"],
-  /** Paie des enseignants : consultation, calcul, validation et paiement. */
+  /** Paie du personnel : consultation, calcul, validation et paiement. */
   payroll: ["read", "compute", "validate", "pay"],
   /** Catalogue frais (affectation frais ↔ classe). */
   fees: ["create", "read", "update", "delete"],

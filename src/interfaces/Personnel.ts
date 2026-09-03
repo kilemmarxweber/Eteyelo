@@ -14,6 +14,8 @@ export interface IPersonnel extends Omit<
   cycles?: string[];
   /** Profil enseignant actif en plus du profil personnel. */
   alsoTeacher?: boolean;
+  /** Forfait mensuel connu (devise de base). */
+  monthlyForfait?: number | null;
 }
 
 export const userSchema = z.object({
@@ -35,6 +37,11 @@ export const userSchema = z.object({
   personnelId: z.string().optional(), // 👈 ajouté
   memberId: z.string().optional(), // 👈 ajouté
   cycles: z.array(z.string()),
+  monthlyForfait: z.preprocess((value) => {
+    if (value === "" || value === undefined || value === null) return null;
+    const amount = Number(value);
+    return Number.isFinite(amount) ? amount : null;
+  }, z.number().nonnegative().nullable().optional()),
 });
 
 export const updatePersonnelSchema = userSchema.extend({

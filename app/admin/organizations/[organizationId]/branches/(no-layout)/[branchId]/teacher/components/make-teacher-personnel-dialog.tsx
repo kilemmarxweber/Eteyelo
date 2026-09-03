@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -43,6 +44,7 @@ export function MakeTeacherPersonnelDialog({
   const [orgRole, setOrgRole] = React.useState<
     (typeof PERSONNEL_ORG_ROLE_OPTIONS)[number]
   >(PERSONNEL_ORG_ROLE_OPTIONS[0]);
+  const [monthlyForfait, setMonthlyForfait] = React.useState("");
   const { execute, isPending } = useServerAction(makeTeacherAlsoPersonnelAction);
 
   const fullName =
@@ -53,6 +55,9 @@ export function MakeTeacherPersonnelDialog({
     const [data, error] = await execute({
       teacherId: teacher.teacherId || teacher.id,
       orgRole,
+      ...(monthlyForfait.trim()
+        ? { monthlyForfait: Number(monthlyForfait) }
+        : {}),
     });
     if (error || !data?.ok) {
       toast.error(data?.message || error?.message || "Échec");
@@ -94,6 +99,23 @@ export function MakeTeacherPersonnelDialog({
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2 py-2">
+          <Label htmlFor="dual-forfait">Forfait mensuel</Label>
+          <Input
+            id="dual-forfait"
+            type="number"
+            min={0}
+            step="1"
+            placeholder="50000"
+            value={monthlyForfait}
+            onChange={(event) => setMonthlyForfait(event.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">
+            Salaire connu dans la devise de base (ex. 50 000). Requis pour
+            payer cet agent avec les enseignants.
+          </p>
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">

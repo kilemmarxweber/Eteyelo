@@ -163,6 +163,7 @@ test("préfet / directeur DAC : pédagogie — pas finance / inscription / candi
     "/admin/frais",
     "/admin/paiement",
     "/admin/paie-enseignants",
+    "/admin/paie-enseignants/credits",
     "/admin/transactions",
   ];
 
@@ -191,6 +192,7 @@ test("directeur des études DAC : pédagogie — pas finance / inscription / can
     "/admin/frais",
     "/admin/paiement",
     "/admin/paie-enseignants",
+    "/admin/paie-enseignants/credits",
     "/admin/transactions",
   ];
   const session = sessionWithOrgRole(ORG_ROLE.DIRECTEUR_ETUDES);
@@ -262,6 +264,7 @@ test("propriétaire de branche : tous les menus malgré le rôle organisation us
     "propriétaire de branche",
   );
   assertIncludes(financeSubs, ["teacherPayroll", "transactions"], "paie propriétaire de branche");
+  assertExcludes(financeSubs, ["salaryCredits"], "paie propriétaire de branche");
 });
 
 test("directeur de branche : pas le bypass propriétaire (menus limités au rôle org)", () => {

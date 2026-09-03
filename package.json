@@ -35,6 +35,7 @@
     "test:unit-09-garde-routes": "tsx scripts/test-unit-09-garde-routes.ts",
     "test:temporary-grants": "tsx scripts/test-temporary-grants.ts",
     "test:payroll-session-rate": "tsx scripts/test-payroll-session-rate.ts",
+    "test:salary-advance": "tsx scripts/test-salary-advance.ts",
     "test:unit-10-scoping-donnees": "tsx scripts/test-unit-10-scoping-donnees.ts",
     "test:unit-11-qa-multi-roles": "tsx scripts/test-unit-11-qa-multi-roles.ts",
     "qa:unit-11-prepare": "tsx scripts/qa-unit-11-prepare-accounts.ts",

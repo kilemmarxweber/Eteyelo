@@ -3,17 +3,63 @@ import type { ReportScope } from "./definitions";
 export type BranchScopeInput = {
   organizationId: string;
   scope: ReportScope;
+  /** Une branche (rétrocompat URL `branchId=id`). */
   branchId?: string;
+  /** Plusieurs branches (URL `branchId=id1,id2`). */
+  branchIds?: string[];
 };
 
-/** Filtre `{ branchId }` ou `{ branch: { organizationId, isActive } }` pour modèles avec `branchId`. */
-export function buildBranchIdFilter(input: BranchScopeInput) {
+/** IDs explicitement sélectionnés (vide = toutes les branches actives). */
+export function selectedBranchIds(input: BranchScopeInput): string[] {
+  if (input.branchIds && input.branchIds.length > 0) {
+    return [...new Set(input.branchIds.filter(Boolean))];
+  }
   if (input.scope === "branch" && input.branchId) {
-    return { branchId: input.branchId };
+    return [input.branchId];
+  }
+  return [];
+}
+
+export function parseBranchIdsParam(value?: string | null): string[] {
+  if (!value || value.trim() === "" || value === "all") return [];
+  return [
+    ...new Set(
+      value
+        .split(",")
+        .map((part) => part.trim())
+        .filter((part) => part.length > 0 && part !== "all"),
+    ),
+  ];
+}
+
+export function serializeBranchIdsParam(ids: string[]): string {
+  return ids.length === 0 ? "all" : ids.join(",");
+}
+
+/** Filtre `{ branchId }` / `{ branchId: { in } }` ou org entière. */
+export function buildBranchIdFilter(input: BranchScopeInput) {
+  const ids = selectedBranchIds(input);
+  if (ids.length === 1) {
+    return { branchId: ids[0] };
+  }
+  if (ids.length > 1) {
+    return { branchId: { in: ids } };
   }
   return {
     branch: { organizationId: input.organizationId, isActive: true },
   };
+}
+
+/** `where` Prisma sur le modèle `Branch`. */
+export function buildBranchRecordWhere(input: BranchScopeInput) {
+  const ids = selectedBranchIds(input);
+  if (ids.length === 1) {
+    return { id: ids[0] };
+  }
+  if (ids.length > 1) {
+    return { id: { in: ids } };
+  }
+  return { organizationId: input.organizationId, isActive: true };
 }
 
 /** Liste d'IDs de branches dans la portée (pour queries qui ne supportent pas nested filter). */
@@ -28,9 +74,8 @@ export async function resolveBranchIds(
   },
   input: BranchScopeInput,
 ): Promise<string[]> {
-  if (input.scope === "branch" && input.branchId) {
-    return [input.branchId];
-  }
+  const ids = selectedBranchIds(input);
+  if (ids.length > 0) return ids;
   const branches = await prisma.branch.findMany({
     where: { organizationId: input.organizationId, isActive: true },
     select: { id: true },
@@ -47,6 +92,30 @@ export function monthLabelFr(date: Date) {
     month: "short",
     year: "2-digit",
   }).format(date);
+}
+
+const MONTH_SHORT_FR = [
+  "Jan",
+  "Fév",
+  "Mar",
+  "Avr",
+  "Mai",
+  "Juin",
+  "Juil",
+  "Aoû",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Déc",
+];
+
+export function periodLabelFr(year: number, month: number) {
+  const label = MONTH_SHORT_FR[month - 1] ?? String(month);
+  return `${label} ${String(year).slice(-2)}`;
+}
+
+export function periodKey(year: number, month: number) {
+  return `${year}-${String(month).padStart(2, "0")}`;
 }
 
 export function formatMoney(value: number) {

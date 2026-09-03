@@ -204,6 +204,7 @@ export type BranchMemberWhereInput = {
   personel?: Prisma.PersonnelListRelationFilter
   student?: Prisma.StudentListRelationFilter
   memberCycles?: Prisma.BranchMemberCycleListRelationFilter
+  teacherPayslips?: Prisma.TeacherPayslipListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   member?: Prisma.XOR<Prisma.MemberScalarRelationFilter, Prisma.MemberWhereInput>
 }
@@ -222,6 +223,7 @@ export type BranchMemberOrderByWithRelationInput = {
   personel?: Prisma.PersonnelOrderByRelationAggregateInput
   student?: Prisma.StudentOrderByRelationAggregateInput
   memberCycles?: Prisma.BranchMemberCycleOrderByRelationAggregateInput
+  teacherPayslips?: Prisma.TeacherPayslipOrderByRelationAggregateInput
   branch?: Prisma.BranchOrderByWithRelationInput
   member?: Prisma.MemberOrderByWithRelationInput
 }
@@ -244,6 +246,7 @@ export type BranchMemberWhereUniqueInput = Prisma.AtLeast<{
   personel?: Prisma.PersonnelListRelationFilter
   student?: Prisma.StudentListRelationFilter
   memberCycles?: Prisma.BranchMemberCycleListRelationFilter
+  teacherPayslips?: Prisma.TeacherPayslipListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   member?: Prisma.XOR<Prisma.MemberScalarRelationFilter, Prisma.MemberWhereInput>
 }, "id" | "branchId_memberId">
@@ -286,6 +289,7 @@ export type BranchMemberCreateInput = {
   personel?: Prisma.PersonnelCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutBranchMemberInput
   branch: Prisma.BranchCreateNestedOneWithoutBranchemembersInput
   member: Prisma.MemberCreateNestedOneWithoutBranchMemberInput
 }
@@ -304,6 +308,7 @@ export type BranchMemberUncheckedCreateInput = {
   personel?: Prisma.PersonnelUncheckedCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentUncheckedCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutBranchMemberInput
 }
 
 export type BranchMemberUpdateInput = {
@@ -318,6 +323,7 @@ export type BranchMemberUpdateInput = {
   personel?: Prisma.PersonnelUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutBranchMemberNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutBranchemembersNestedInput
   member?: Prisma.MemberUpdateOneRequiredWithoutBranchMemberNestedInput
 }
@@ -336,6 +342,7 @@ export type BranchMemberUncheckedUpdateInput = {
   personel?: Prisma.PersonnelUncheckedUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUncheckedUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutBranchMemberNestedInput
 }
 
 export type BranchMemberCreateManyInput = {
@@ -499,6 +506,20 @@ export type BranchMemberUpdateOneWithoutScheduleNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.BranchMemberUpdateToOneWithWhereWithoutScheduleInput, Prisma.BranchMemberUpdateWithoutScheduleInput>, Prisma.BranchMemberUncheckedUpdateWithoutScheduleInput>
 }
 
+export type BranchMemberCreateNestedOneWithoutTeacherPayslipsInput = {
+  create?: Prisma.XOR<Prisma.BranchMemberCreateWithoutTeacherPayslipsInput, Prisma.BranchMemberUncheckedCreateWithoutTeacherPayslipsInput>
+  connectOrCreate?: Prisma.BranchMemberCreateOrConnectWithoutTeacherPayslipsInput
+  connect?: Prisma.BranchMemberWhereUniqueInput
+}
+
+export type BranchMemberUpdateOneRequiredWithoutTeacherPayslipsNestedInput = {
+  create?: Prisma.XOR<Prisma.BranchMemberCreateWithoutTeacherPayslipsInput, Prisma.BranchMemberUncheckedCreateWithoutTeacherPayslipsInput>
+  connectOrCreate?: Prisma.BranchMemberCreateOrConnectWithoutTeacherPayslipsInput
+  upsert?: Prisma.BranchMemberUpsertWithoutTeacherPayslipsInput
+  connect?: Prisma.BranchMemberWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BranchMemberUpdateToOneWithWhereWithoutTeacherPayslipsInput, Prisma.BranchMemberUpdateWithoutTeacherPayslipsInput>, Prisma.BranchMemberUncheckedUpdateWithoutTeacherPayslipsInput>
+}
+
 export type BranchMemberCreateNestedManyWithoutMemberInput = {
   create?: Prisma.XOR<Prisma.BranchMemberCreateWithoutMemberInput, Prisma.BranchMemberUncheckedCreateWithoutMemberInput> | Prisma.BranchMemberCreateWithoutMemberInput[] | Prisma.BranchMemberUncheckedCreateWithoutMemberInput[]
   connectOrCreate?: Prisma.BranchMemberCreateOrConnectWithoutMemberInput | Prisma.BranchMemberCreateOrConnectWithoutMemberInput[]
@@ -612,6 +633,7 @@ export type BranchMemberCreateWithoutParentInput = {
   personel?: Prisma.PersonnelCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutBranchMemberInput
   branch: Prisma.BranchCreateNestedOneWithoutBranchemembersInput
   member: Prisma.MemberCreateNestedOneWithoutBranchMemberInput
 }
@@ -629,6 +651,7 @@ export type BranchMemberUncheckedCreateWithoutParentInput = {
   personel?: Prisma.PersonnelUncheckedCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentUncheckedCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutBranchMemberInput
 }
 
 export type BranchMemberCreateOrConnectWithoutParentInput = {
@@ -658,6 +681,7 @@ export type BranchMemberUpdateWithoutParentInput = {
   personel?: Prisma.PersonnelUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutBranchMemberNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutBranchemembersNestedInput
   member?: Prisma.MemberUpdateOneRequiredWithoutBranchMemberNestedInput
 }
@@ -675,6 +699,7 @@ export type BranchMemberUncheckedUpdateWithoutParentInput = {
   personel?: Prisma.PersonnelUncheckedUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUncheckedUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutBranchMemberNestedInput
 }
 
 export type BranchMemberCreateWithoutStudentInput = {
@@ -688,6 +713,7 @@ export type BranchMemberCreateWithoutStudentInput = {
   schedule?: Prisma.ScheduleCreateNestedManyWithoutBranchMemberInput
   personel?: Prisma.PersonnelCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutBranchMemberInput
   branch: Prisma.BranchCreateNestedOneWithoutBranchemembersInput
   member: Prisma.MemberCreateNestedOneWithoutBranchMemberInput
 }
@@ -705,6 +731,7 @@ export type BranchMemberUncheckedCreateWithoutStudentInput = {
   schedule?: Prisma.ScheduleUncheckedCreateNestedManyWithoutBranchMemberInput
   personel?: Prisma.PersonnelUncheckedCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutBranchMemberInput
 }
 
 export type BranchMemberCreateOrConnectWithoutStudentInput = {
@@ -734,6 +761,7 @@ export type BranchMemberUpdateWithoutStudentInput = {
   schedule?: Prisma.ScheduleUpdateManyWithoutBranchMemberNestedInput
   personel?: Prisma.PersonnelUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutBranchMemberNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutBranchemembersNestedInput
   member?: Prisma.MemberUpdateOneRequiredWithoutBranchMemberNestedInput
 }
@@ -751,6 +779,7 @@ export type BranchMemberUncheckedUpdateWithoutStudentInput = {
   schedule?: Prisma.ScheduleUncheckedUpdateManyWithoutBranchMemberNestedInput
   personel?: Prisma.PersonnelUncheckedUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutBranchMemberNestedInput
 }
 
 export type BranchMemberCreateWithoutPersonelInput = {
@@ -764,6 +793,7 @@ export type BranchMemberCreateWithoutPersonelInput = {
   schedule?: Prisma.ScheduleCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutBranchMemberInput
   branch: Prisma.BranchCreateNestedOneWithoutBranchemembersInput
   member: Prisma.MemberCreateNestedOneWithoutBranchMemberInput
 }
@@ -781,6 +811,7 @@ export type BranchMemberUncheckedCreateWithoutPersonelInput = {
   schedule?: Prisma.ScheduleUncheckedCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentUncheckedCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutBranchMemberInput
 }
 
 export type BranchMemberCreateOrConnectWithoutPersonelInput = {
@@ -810,6 +841,7 @@ export type BranchMemberUpdateWithoutPersonelInput = {
   schedule?: Prisma.ScheduleUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutBranchMemberNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutBranchemembersNestedInput
   member?: Prisma.MemberUpdateOneRequiredWithoutBranchMemberNestedInput
 }
@@ -827,6 +859,7 @@ export type BranchMemberUncheckedUpdateWithoutPersonelInput = {
   schedule?: Prisma.ScheduleUncheckedUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUncheckedUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutBranchMemberNestedInput
 }
 
 export type BranchMemberCreateWithoutTeacherInput = {
@@ -840,6 +873,7 @@ export type BranchMemberCreateWithoutTeacherInput = {
   personel?: Prisma.PersonnelCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutBranchMemberInput
   branch: Prisma.BranchCreateNestedOneWithoutBranchemembersInput
   member: Prisma.MemberCreateNestedOneWithoutBranchMemberInput
 }
@@ -857,6 +891,7 @@ export type BranchMemberUncheckedCreateWithoutTeacherInput = {
   personel?: Prisma.PersonnelUncheckedCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentUncheckedCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutBranchMemberInput
 }
 
 export type BranchMemberCreateOrConnectWithoutTeacherInput = {
@@ -886,6 +921,7 @@ export type BranchMemberUpdateWithoutTeacherInput = {
   personel?: Prisma.PersonnelUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutBranchMemberNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutBranchemembersNestedInput
   member?: Prisma.MemberUpdateOneRequiredWithoutBranchMemberNestedInput
 }
@@ -903,6 +939,7 @@ export type BranchMemberUncheckedUpdateWithoutTeacherInput = {
   personel?: Prisma.PersonnelUncheckedUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUncheckedUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutBranchMemberNestedInput
 }
 
 export type BranchMemberCreateWithoutScheduleInput = {
@@ -916,6 +953,7 @@ export type BranchMemberCreateWithoutScheduleInput = {
   personel?: Prisma.PersonnelCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutBranchMemberInput
   branch: Prisma.BranchCreateNestedOneWithoutBranchemembersInput
   member: Prisma.MemberCreateNestedOneWithoutBranchMemberInput
 }
@@ -933,6 +971,7 @@ export type BranchMemberUncheckedCreateWithoutScheduleInput = {
   personel?: Prisma.PersonnelUncheckedCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentUncheckedCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutBranchMemberInput
 }
 
 export type BranchMemberCreateOrConnectWithoutScheduleInput = {
@@ -962,6 +1001,7 @@ export type BranchMemberUpdateWithoutScheduleInput = {
   personel?: Prisma.PersonnelUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutBranchMemberNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutBranchemembersNestedInput
   member?: Prisma.MemberUpdateOneRequiredWithoutBranchMemberNestedInput
 }
@@ -979,6 +1019,87 @@ export type BranchMemberUncheckedUpdateWithoutScheduleInput = {
   personel?: Prisma.PersonnelUncheckedUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUncheckedUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutBranchMemberNestedInput
+}
+
+export type BranchMemberCreateWithoutTeacherPayslipsInput = {
+  id?: string
+  role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  teacher?: Prisma.TeacherCreateNestedManyWithoutBranchMemberInput
+  parent?: Prisma.ParentCreateNestedManyWithoutBranchMemberInput
+  schedule?: Prisma.ScheduleCreateNestedManyWithoutBranchMemberInput
+  personel?: Prisma.PersonnelCreateNestedManyWithoutBranchMemberInput
+  student?: Prisma.StudentCreateNestedManyWithoutBranchMemberInput
+  memberCycles?: Prisma.BranchMemberCycleCreateNestedManyWithoutBranchMemberInput
+  branch: Prisma.BranchCreateNestedOneWithoutBranchemembersInput
+  member: Prisma.MemberCreateNestedOneWithoutBranchMemberInput
+}
+
+export type BranchMemberUncheckedCreateWithoutTeacherPayslipsInput = {
+  id?: string
+  branchId: string
+  memberId: string
+  role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  teacher?: Prisma.TeacherUncheckedCreateNestedManyWithoutBranchMemberInput
+  parent?: Prisma.ParentUncheckedCreateNestedManyWithoutBranchMemberInput
+  schedule?: Prisma.ScheduleUncheckedCreateNestedManyWithoutBranchMemberInput
+  personel?: Prisma.PersonnelUncheckedCreateNestedManyWithoutBranchMemberInput
+  student?: Prisma.StudentUncheckedCreateNestedManyWithoutBranchMemberInput
+  memberCycles?: Prisma.BranchMemberCycleUncheckedCreateNestedManyWithoutBranchMemberInput
+}
+
+export type BranchMemberCreateOrConnectWithoutTeacherPayslipsInput = {
+  where: Prisma.BranchMemberWhereUniqueInput
+  create: Prisma.XOR<Prisma.BranchMemberCreateWithoutTeacherPayslipsInput, Prisma.BranchMemberUncheckedCreateWithoutTeacherPayslipsInput>
+}
+
+export type BranchMemberUpsertWithoutTeacherPayslipsInput = {
+  update: Prisma.XOR<Prisma.BranchMemberUpdateWithoutTeacherPayslipsInput, Prisma.BranchMemberUncheckedUpdateWithoutTeacherPayslipsInput>
+  create: Prisma.XOR<Prisma.BranchMemberCreateWithoutTeacherPayslipsInput, Prisma.BranchMemberUncheckedCreateWithoutTeacherPayslipsInput>
+  where?: Prisma.BranchMemberWhereInput
+}
+
+export type BranchMemberUpdateToOneWithWhereWithoutTeacherPayslipsInput = {
+  where?: Prisma.BranchMemberWhereInput
+  data: Prisma.XOR<Prisma.BranchMemberUpdateWithoutTeacherPayslipsInput, Prisma.BranchMemberUncheckedUpdateWithoutTeacherPayslipsInput>
+}
+
+export type BranchMemberUpdateWithoutTeacherPayslipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teacher?: Prisma.TeacherUpdateManyWithoutBranchMemberNestedInput
+  parent?: Prisma.ParentUpdateManyWithoutBranchMemberNestedInput
+  schedule?: Prisma.ScheduleUpdateManyWithoutBranchMemberNestedInput
+  personel?: Prisma.PersonnelUpdateManyWithoutBranchMemberNestedInput
+  student?: Prisma.StudentUpdateManyWithoutBranchMemberNestedInput
+  memberCycles?: Prisma.BranchMemberCycleUpdateManyWithoutBranchMemberNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutBranchemembersNestedInput
+  member?: Prisma.MemberUpdateOneRequiredWithoutBranchMemberNestedInput
+}
+
+export type BranchMemberUncheckedUpdateWithoutTeacherPayslipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  memberId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teacher?: Prisma.TeacherUncheckedUpdateManyWithoutBranchMemberNestedInput
+  parent?: Prisma.ParentUncheckedUpdateManyWithoutBranchMemberNestedInput
+  schedule?: Prisma.ScheduleUncheckedUpdateManyWithoutBranchMemberNestedInput
+  personel?: Prisma.PersonnelUncheckedUpdateManyWithoutBranchMemberNestedInput
+  student?: Prisma.StudentUncheckedUpdateManyWithoutBranchMemberNestedInput
+  memberCycles?: Prisma.BranchMemberCycleUncheckedUpdateManyWithoutBranchMemberNestedInput
 }
 
 export type BranchMemberCreateWithoutMemberInput = {
@@ -993,6 +1114,7 @@ export type BranchMemberCreateWithoutMemberInput = {
   personel?: Prisma.PersonnelCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutBranchMemberInput
   branch: Prisma.BranchCreateNestedOneWithoutBranchemembersInput
 }
 
@@ -1009,6 +1131,7 @@ export type BranchMemberUncheckedCreateWithoutMemberInput = {
   personel?: Prisma.PersonnelUncheckedCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentUncheckedCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutBranchMemberInput
 }
 
 export type BranchMemberCreateOrConnectWithoutMemberInput = {
@@ -1062,6 +1185,7 @@ export type BranchMemberCreateWithoutBranchInput = {
   personel?: Prisma.PersonnelCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutBranchMemberInput
   member: Prisma.MemberCreateNestedOneWithoutBranchMemberInput
 }
 
@@ -1078,6 +1202,7 @@ export type BranchMemberUncheckedCreateWithoutBranchInput = {
   personel?: Prisma.PersonnelUncheckedCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentUncheckedCreateNestedManyWithoutBranchMemberInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutBranchMemberInput
 }
 
 export type BranchMemberCreateOrConnectWithoutBranchInput = {
@@ -1117,6 +1242,7 @@ export type BranchMemberCreateWithoutMemberCyclesInput = {
   schedule?: Prisma.ScheduleCreateNestedManyWithoutBranchMemberInput
   personel?: Prisma.PersonnelCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutBranchMemberInput
   branch: Prisma.BranchCreateNestedOneWithoutBranchemembersInput
   member: Prisma.MemberCreateNestedOneWithoutBranchMemberInput
 }
@@ -1134,6 +1260,7 @@ export type BranchMemberUncheckedCreateWithoutMemberCyclesInput = {
   schedule?: Prisma.ScheduleUncheckedCreateNestedManyWithoutBranchMemberInput
   personel?: Prisma.PersonnelUncheckedCreateNestedManyWithoutBranchMemberInput
   student?: Prisma.StudentUncheckedCreateNestedManyWithoutBranchMemberInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutBranchMemberInput
 }
 
 export type BranchMemberCreateOrConnectWithoutMemberCyclesInput = {
@@ -1163,6 +1290,7 @@ export type BranchMemberUpdateWithoutMemberCyclesInput = {
   schedule?: Prisma.ScheduleUpdateManyWithoutBranchMemberNestedInput
   personel?: Prisma.PersonnelUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutBranchMemberNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutBranchemembersNestedInput
   member?: Prisma.MemberUpdateOneRequiredWithoutBranchMemberNestedInput
 }
@@ -1180,6 +1308,7 @@ export type BranchMemberUncheckedUpdateWithoutMemberCyclesInput = {
   schedule?: Prisma.ScheduleUncheckedUpdateManyWithoutBranchMemberNestedInput
   personel?: Prisma.PersonnelUncheckedUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUncheckedUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutBranchMemberNestedInput
 }
 
 export type BranchMemberCreateManyMemberInput = {
@@ -1203,6 +1332,7 @@ export type BranchMemberUpdateWithoutMemberInput = {
   personel?: Prisma.PersonnelUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutBranchMemberNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutBranchemembersNestedInput
 }
 
@@ -1219,6 +1349,7 @@ export type BranchMemberUncheckedUpdateWithoutMemberInput = {
   personel?: Prisma.PersonnelUncheckedUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUncheckedUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutBranchMemberNestedInput
 }
 
 export type BranchMemberUncheckedUpdateManyWithoutMemberInput = {
@@ -1251,6 +1382,7 @@ export type BranchMemberUpdateWithoutBranchInput = {
   personel?: Prisma.PersonnelUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutBranchMemberNestedInput
   member?: Prisma.MemberUpdateOneRequiredWithoutBranchMemberNestedInput
 }
 
@@ -1267,6 +1399,7 @@ export type BranchMemberUncheckedUpdateWithoutBranchInput = {
   personel?: Prisma.PersonnelUncheckedUpdateManyWithoutBranchMemberNestedInput
   student?: Prisma.StudentUncheckedUpdateManyWithoutBranchMemberNestedInput
   memberCycles?: Prisma.BranchMemberCycleUncheckedUpdateManyWithoutBranchMemberNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutBranchMemberNestedInput
 }
 
 export type BranchMemberUncheckedUpdateManyWithoutBranchInput = {
@@ -1290,6 +1423,7 @@ export type BranchMemberCountOutputType = {
   personel: number
   student: number
   memberCycles: number
+  teacherPayslips: number
 }
 
 export type BranchMemberCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1299,6 +1433,7 @@ export type BranchMemberCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   personel?: boolean | BranchMemberCountOutputTypeCountPersonelArgs
   student?: boolean | BranchMemberCountOutputTypeCountStudentArgs
   memberCycles?: boolean | BranchMemberCountOutputTypeCountMemberCyclesArgs
+  teacherPayslips?: boolean | BranchMemberCountOutputTypeCountTeacherPayslipsArgs
 }
 
 /**
@@ -1353,6 +1488,13 @@ export type BranchMemberCountOutputTypeCountMemberCyclesArgs<ExtArgs extends run
   where?: Prisma.BranchMemberCycleWhereInput
 }
 
+/**
+ * BranchMemberCountOutputType without action
+ */
+export type BranchMemberCountOutputTypeCountTeacherPayslipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TeacherPayslipWhereInput
+}
+
 
 export type BranchMemberSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1368,6 +1510,7 @@ export type BranchMemberSelect<ExtArgs extends runtime.Types.Extensions.Internal
   personel?: boolean | Prisma.BranchMember$personelArgs<ExtArgs>
   student?: boolean | Prisma.BranchMember$studentArgs<ExtArgs>
   memberCycles?: boolean | Prisma.BranchMember$memberCyclesArgs<ExtArgs>
+  teacherPayslips?: boolean | Prisma.BranchMember$teacherPayslipsArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   member?: boolean | Prisma.MemberDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.BranchMemberCountOutputTypeDefaultArgs<ExtArgs>
@@ -1415,6 +1558,7 @@ export type BranchMemberInclude<ExtArgs extends runtime.Types.Extensions.Interna
   personel?: boolean | Prisma.BranchMember$personelArgs<ExtArgs>
   student?: boolean | Prisma.BranchMember$studentArgs<ExtArgs>
   memberCycles?: boolean | Prisma.BranchMember$memberCyclesArgs<ExtArgs>
+  teacherPayslips?: boolean | Prisma.BranchMember$teacherPayslipsArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   member?: boolean | Prisma.MemberDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.BranchMemberCountOutputTypeDefaultArgs<ExtArgs>
@@ -1437,6 +1581,7 @@ export type $BranchMemberPayload<ExtArgs extends runtime.Types.Extensions.Intern
     personel: Prisma.$PersonnelPayload<ExtArgs>[]
     student: Prisma.$StudentPayload<ExtArgs>[]
     memberCycles: Prisma.$BranchMemberCyclePayload<ExtArgs>[]
+    teacherPayslips: Prisma.$TeacherPayslipPayload<ExtArgs>[]
     branch: Prisma.$BranchPayload<ExtArgs>
     member: Prisma.$MemberPayload<ExtArgs>
   }
@@ -1446,7 +1591,8 @@ export type $BranchMemberPayload<ExtArgs extends runtime.Types.Extensions.Intern
     memberId: string
     role: $Enums.BranchRole
     /**
-     * * Actif dans cette branche uniquement (multi-branches indépendant).
+     * *
+     *    * Actif dans cette branche uniquement (multi-branches indépendant).
      */
     isActive: boolean
     deactivatedAt: Date | null
@@ -1851,6 +1997,7 @@ export interface Prisma__BranchMemberClient<T, Null = never, ExtArgs extends run
   personel<T extends Prisma.BranchMember$personelArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchMember$personelArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PersonnelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   student<T extends Prisma.BranchMember$studentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchMember$studentArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   memberCycles<T extends Prisma.BranchMember$memberCyclesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchMember$memberCyclesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BranchMemberCyclePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  teacherPayslips<T extends Prisma.BranchMember$teacherPayslipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchMember$teacherPayslipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeacherPayslipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   member<T extends Prisma.MemberDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MemberDefaultArgs<ExtArgs>>): Prisma.Prisma__MemberClient<runtime.Types.Result.GetResult<Prisma.$MemberPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
@@ -2431,6 +2578,30 @@ export type BranchMember$memberCyclesArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.BranchMemberCycleScalarFieldEnum | Prisma.BranchMemberCycleScalarFieldEnum[]
+}
+
+/**
+ * BranchMember.teacherPayslips
+ */
+export type BranchMember$teacherPayslipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TeacherPayslip
+   */
+  select?: Prisma.TeacherPayslipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TeacherPayslip
+   */
+  omit?: Prisma.TeacherPayslipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TeacherPayslipInclude<ExtArgs> | null
+  where?: Prisma.TeacherPayslipWhereInput
+  orderBy?: Prisma.TeacherPayslipOrderByWithRelationInput | Prisma.TeacherPayslipOrderByWithRelationInput[]
+  cursor?: Prisma.TeacherPayslipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TeacherPayslipScalarFieldEnum | Prisma.TeacherPayslipScalarFieldEnum[]
 }
 
 /**

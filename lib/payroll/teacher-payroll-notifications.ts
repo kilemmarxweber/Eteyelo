@@ -17,7 +17,10 @@ export function isPayrollManagerAppNotification(row: {
   title: string;
 }): boolean {
   if (row.type === "PAYROLL") {
-    return row.title === "Paie enseignants générée";
+    return (
+      row.title === "Paie enseignants générée" ||
+      row.title === "Paie du personnel générée"
+    );
   }
   if (row.type === "PAYROLL_DEDUCTION") {
     return (

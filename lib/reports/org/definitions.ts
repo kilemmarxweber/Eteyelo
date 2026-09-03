@@ -14,6 +14,8 @@ export const REPORT_TABS = [
   "effectifs",
   "presences",
   "finance",
+  "paie",
+  "credits",
   "satisfaction",
   "resultats",
   "rh",
@@ -27,8 +29,10 @@ export type ReportScope = "branch" | "all";
 export type OrgReportFilters = {
   organizationId: string;
   scope: ReportScope;
-  /** Requis si scope === "branch" */
+  /** Requis si scope === "branch" (une seule). */
   branchId?: string;
+  /** Plusieurs établissements (prioritaire sur `branchId`). */
+  branchIds?: string[];
   /** `all` ou nameYear (ex. "2025-2026") */
   schoolYearKey: string;
   tab: ReportTab;

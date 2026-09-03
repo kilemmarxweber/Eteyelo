@@ -14,13 +14,22 @@ type PayslipForPdf = {
   deductions: number;
   net: number;
   status: string;
+  agentKind?: string;
   teacher: {
     employmentKind: string;
     matriculeEtat: string | null;
     branchMember: {
       member: { user: { name: string; postnom: string | null; prenom: string | null } };
     } | null;
-  };
+  } | null;
+  personnel?: {
+    branchMember?: {
+      member?: { user?: { name?: string | null; postnom?: string | null; prenom?: string | null } | null } | null;
+    } | null;
+  } | null;
+  branchMember?: {
+    member?: { user?: { name?: string | null; postnom?: string | null; prenom?: string | null } | null } | null;
+  } | null;
   lines: Array<{
     occurredOn: string | null;
     cycle: string | null;
@@ -72,19 +81,22 @@ function parseDetail(value: unknown): TeacherPayslipLineDetailSnapshot | null {
 
 export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  const user = payslip.teacher.branchMember?.member.user;
+  const user =
+    payslip.branchMember?.member?.user ??
+    payslip.teacher?.branchMember?.member?.user ??
+    payslip.personnel?.branchMember?.member?.user;
   const teacherName = [user?.name, user?.postnom, user?.prenom].filter(Boolean).join(" ");
+  const isPersonnel = payslip.agentKind === "PERSONNEL" || !payslip.teacher;
+  const statusLabel = isPersonnel
+    ? "Personnel · forfait"
+    : `${payslip.teacher?.employmentKind === "MATRICULE" ? "Matriculé État" : "Non matriculé"}${payslip.teacher?.matriculeEtat ? ` (${payslip.teacher.matriculeEtat})` : ""}${payslip.agentKind === "BOTH" ? " + forfait personnel" : ""}`;
 
   doc.setFontSize(16);
-  doc.text("BULLETIN DE PAIE — ENSEIGNANT", 148, 14, { align: "center" });
+  doc.text("BULLETIN DE PAIE — PERSONNEL", 148, 14, { align: "center" });
   doc.setFontSize(10);
   doc.text(`Période : ${String(payslip.month).padStart(2, "0")}/${payslip.year}`, 14, 24);
-  doc.text(`Enseignant : ${teacherName || "Enseignant"}`, 14, 30);
-  doc.text(
-    `Statut : ${payslip.teacher.employmentKind === "MATRICULE" ? "Matriculé État" : "Non matriculé"}${payslip.teacher.matriculeEtat ? ` (${payslip.teacher.matriculeEtat})` : ""}`,
-    14,
-    36,
-  );
+  doc.text(`Agent : ${teacherName || "Agent"}`, 14, 30);
+  doc.text(`Statut : ${statusLabel}`, 14, 36);
   doc.text(`Devise de base : ${payslip.currency}`, 14, 42);
 
   autoTable(doc, {
@@ -123,7 +135,8 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
       const isLoss =
         line.kind === "ABSENCE" ||
         line.kind === "LATE" ||
-        line.kind === "EARLY_EXIT";
+        line.kind === "EARLY_EXIT" ||
+        line.kind === "ADVANCE";
       return [
         line.occurredOn ? new Date(line.occurredOn).toLocaleDateString("fr-FR") : "",
         clock(detail?.startTime),

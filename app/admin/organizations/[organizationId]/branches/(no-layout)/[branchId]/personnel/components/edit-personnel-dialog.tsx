@@ -69,6 +69,7 @@ export function UpdatePersonnelDialog({
                 image: personnel.image ?? "",
                 orgRole: personnel.role ?? "",
                 cycles: personnel.cycles ?? [],
+                monthlyForfait: personnel.monthlyForfait ?? null,
               }}
               onUpdated={handleUpdated}
               onPersonnelUpdate={handleUpdated}

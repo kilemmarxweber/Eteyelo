@@ -47,7 +47,10 @@ export type TeacherPayslipSumAggregateOutputType = {
 export type TeacherPayslipMinAggregateOutputType = {
   id: string | null
   branchId: string | null
+  branchMemberId: string | null
   teacherId: string | null
+  personnelId: string | null
+  agentKind: $Enums.PayrollAgentKind | null
   schoolYearId: string | null
   policyId: string | null
   year: number | null
@@ -72,7 +75,10 @@ export type TeacherPayslipMinAggregateOutputType = {
 export type TeacherPayslipMaxAggregateOutputType = {
   id: string | null
   branchId: string | null
+  branchMemberId: string | null
   teacherId: string | null
+  personnelId: string | null
+  agentKind: $Enums.PayrollAgentKind | null
   schoolYearId: string | null
   policyId: string | null
   year: number | null
@@ -97,7 +103,10 @@ export type TeacherPayslipMaxAggregateOutputType = {
 export type TeacherPayslipCountAggregateOutputType = {
   id: number
   branchId: number
+  branchMemberId: number
   teacherId: number
+  personnelId: number
+  agentKind: number
   schoolYearId: number
   policyId: number
   year: number
@@ -143,7 +152,10 @@ export type TeacherPayslipSumAggregateInputType = {
 export type TeacherPayslipMinAggregateInputType = {
   id?: true
   branchId?: true
+  branchMemberId?: true
   teacherId?: true
+  personnelId?: true
+  agentKind?: true
   schoolYearId?: true
   policyId?: true
   year?: true
@@ -168,7 +180,10 @@ export type TeacherPayslipMinAggregateInputType = {
 export type TeacherPayslipMaxAggregateInputType = {
   id?: true
   branchId?: true
+  branchMemberId?: true
   teacherId?: true
+  personnelId?: true
+  agentKind?: true
   schoolYearId?: true
   policyId?: true
   year?: true
@@ -193,7 +208,10 @@ export type TeacherPayslipMaxAggregateInputType = {
 export type TeacherPayslipCountAggregateInputType = {
   id?: true
   branchId?: true
+  branchMemberId?: true
   teacherId?: true
+  personnelId?: true
+  agentKind?: true
   schoolYearId?: true
   policyId?: true
   year?: true
@@ -306,7 +324,10 @@ export type TeacherPayslipGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
 export type TeacherPayslipGroupByOutputType = {
   id: string
   branchId: string
-  teacherId: string
+  branchMemberId: string
+  teacherId: string | null
+  personnelId: string | null
+  agentKind: $Enums.PayrollAgentKind
   schoolYearId: string | null
   policyId: string | null
   year: number
@@ -355,7 +376,10 @@ export type TeacherPayslipWhereInput = {
   NOT?: Prisma.TeacherPayslipWhereInput | Prisma.TeacherPayslipWhereInput[]
   id?: Prisma.StringFilter<"TeacherPayslip"> | string
   branchId?: Prisma.StringFilter<"TeacherPayslip"> | string
-  teacherId?: Prisma.StringFilter<"TeacherPayslip"> | string
+  branchMemberId?: Prisma.StringFilter<"TeacherPayslip"> | string
+  teacherId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
+  personnelId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFilter<"TeacherPayslip"> | $Enums.PayrollAgentKind
   schoolYearId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
   policyId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
   year?: Prisma.IntFilter<"TeacherPayslip"> | number
@@ -377,17 +401,23 @@ export type TeacherPayslipWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"TeacherPayslip"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TeacherPayslip"> | Date | string
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
-  teacher?: Prisma.XOR<Prisma.TeacherScalarRelationFilter, Prisma.TeacherWhereInput>
+  branchMember?: Prisma.XOR<Prisma.BranchMemberScalarRelationFilter, Prisma.BranchMemberWhereInput>
+  teacher?: Prisma.XOR<Prisma.TeacherNullableScalarRelationFilter, Prisma.TeacherWhereInput> | null
+  personnel?: Prisma.XOR<Prisma.PersonnelNullableScalarRelationFilter, Prisma.PersonnelWhereInput> | null
   schoolYear?: Prisma.XOR<Prisma.SchoolYearNullableScalarRelationFilter, Prisma.SchoolYearWhereInput> | null
   policy?: Prisma.XOR<Prisma.BranchPayrollPolicyNullableScalarRelationFilter, Prisma.BranchPayrollPolicyWhereInput> | null
   exchangeRate?: Prisma.XOR<Prisma.ExchangeRateNullableScalarRelationFilter, Prisma.ExchangeRateWhereInput> | null
   lines?: Prisma.TeacherPayslipLineListRelationFilter
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentListRelationFilter
 }
 
 export type TeacherPayslipOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
-  teacherId?: Prisma.SortOrder
+  branchMemberId?: Prisma.SortOrder
+  teacherId?: Prisma.SortOrderInput | Prisma.SortOrder
+  personnelId?: Prisma.SortOrderInput | Prisma.SortOrder
+  agentKind?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrderInput | Prisma.SortOrder
   policyId?: Prisma.SortOrderInput | Prisma.SortOrder
   year?: Prisma.SortOrder
@@ -409,21 +439,27 @@ export type TeacherPayslipOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branch?: Prisma.BranchOrderByWithRelationInput
+  branchMember?: Prisma.BranchMemberOrderByWithRelationInput
   teacher?: Prisma.TeacherOrderByWithRelationInput
+  personnel?: Prisma.PersonnelOrderByWithRelationInput
   schoolYear?: Prisma.SchoolYearOrderByWithRelationInput
   policy?: Prisma.BranchPayrollPolicyOrderByWithRelationInput
   exchangeRate?: Prisma.ExchangeRateOrderByWithRelationInput
   lines?: Prisma.TeacherPayslipLineOrderByRelationAggregateInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentOrderByRelationAggregateInput
 }
 
 export type TeacherPayslipWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  branchId_teacherId_year_month?: Prisma.TeacherPayslipBranchIdTeacherIdYearMonthCompoundUniqueInput
+  branchId_branchMemberId_year_month?: Prisma.TeacherPayslipBranchIdBranchMemberIdYearMonthCompoundUniqueInput
   AND?: Prisma.TeacherPayslipWhereInput | Prisma.TeacherPayslipWhereInput[]
   OR?: Prisma.TeacherPayslipWhereInput[]
   NOT?: Prisma.TeacherPayslipWhereInput | Prisma.TeacherPayslipWhereInput[]
   branchId?: Prisma.StringFilter<"TeacherPayslip"> | string
-  teacherId?: Prisma.StringFilter<"TeacherPayslip"> | string
+  branchMemberId?: Prisma.StringFilter<"TeacherPayslip"> | string
+  teacherId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
+  personnelId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFilter<"TeacherPayslip"> | $Enums.PayrollAgentKind
   schoolYearId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
   policyId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
   year?: Prisma.IntFilter<"TeacherPayslip"> | number
@@ -445,17 +481,23 @@ export type TeacherPayslipWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"TeacherPayslip"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TeacherPayslip"> | Date | string
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
-  teacher?: Prisma.XOR<Prisma.TeacherScalarRelationFilter, Prisma.TeacherWhereInput>
+  branchMember?: Prisma.XOR<Prisma.BranchMemberScalarRelationFilter, Prisma.BranchMemberWhereInput>
+  teacher?: Prisma.XOR<Prisma.TeacherNullableScalarRelationFilter, Prisma.TeacherWhereInput> | null
+  personnel?: Prisma.XOR<Prisma.PersonnelNullableScalarRelationFilter, Prisma.PersonnelWhereInput> | null
   schoolYear?: Prisma.XOR<Prisma.SchoolYearNullableScalarRelationFilter, Prisma.SchoolYearWhereInput> | null
   policy?: Prisma.XOR<Prisma.BranchPayrollPolicyNullableScalarRelationFilter, Prisma.BranchPayrollPolicyWhereInput> | null
   exchangeRate?: Prisma.XOR<Prisma.ExchangeRateNullableScalarRelationFilter, Prisma.ExchangeRateWhereInput> | null
   lines?: Prisma.TeacherPayslipLineListRelationFilter
-}, "id" | "branchId_teacherId_year_month">
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentListRelationFilter
+}, "id" | "branchId_branchMemberId_year_month">
 
 export type TeacherPayslipOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
-  teacherId?: Prisma.SortOrder
+  branchMemberId?: Prisma.SortOrder
+  teacherId?: Prisma.SortOrderInput | Prisma.SortOrder
+  personnelId?: Prisma.SortOrderInput | Prisma.SortOrder
+  agentKind?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrderInput | Prisma.SortOrder
   policyId?: Prisma.SortOrderInput | Prisma.SortOrder
   year?: Prisma.SortOrder
@@ -489,7 +531,10 @@ export type TeacherPayslipScalarWhereWithAggregatesInput = {
   NOT?: Prisma.TeacherPayslipScalarWhereWithAggregatesInput | Prisma.TeacherPayslipScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"TeacherPayslip"> | string
   branchId?: Prisma.StringWithAggregatesFilter<"TeacherPayslip"> | string
-  teacherId?: Prisma.StringWithAggregatesFilter<"TeacherPayslip"> | string
+  branchMemberId?: Prisma.StringWithAggregatesFilter<"TeacherPayslip"> | string
+  teacherId?: Prisma.StringNullableWithAggregatesFilter<"TeacherPayslip"> | string | null
+  personnelId?: Prisma.StringNullableWithAggregatesFilter<"TeacherPayslip"> | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindWithAggregatesFilter<"TeacherPayslip"> | $Enums.PayrollAgentKind
   schoolYearId?: Prisma.StringNullableWithAggregatesFilter<"TeacherPayslip"> | string | null
   policyId?: Prisma.StringNullableWithAggregatesFilter<"TeacherPayslip"> | string | null
   year?: Prisma.IntWithAggregatesFilter<"TeacherPayslip"> | number
@@ -514,6 +559,7 @@ export type TeacherPayslipScalarWhereWithAggregatesInput = {
 
 export type TeacherPayslipCreateInput = {
   id?: string
+  agentKind?: $Enums.PayrollAgentKind
   year: number
   month: number
   status?: $Enums.TeacherPayslipStatus
@@ -532,17 +578,23 @@ export type TeacherPayslipCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutTeacherPayslipsInput
-  teacher: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  branchMember: Prisma.BranchMemberCreateNestedOneWithoutTeacherPayslipsInput
+  teacher?: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  personnel?: Prisma.PersonnelCreateNestedOneWithoutPayslipsInput
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutTeacherPayslipsInput
   policy?: Prisma.BranchPayrollPolicyCreateNestedOneWithoutPayslipsInput
   exchangeRate?: Prisma.ExchangeRateCreateNestedOneWithoutTeacherPayslipsInput
   lines?: Prisma.TeacherPayslipLineCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentCreateNestedManyWithoutPayslipInput
 }
 
 export type TeacherPayslipUncheckedCreateInput = {
   id?: string
   branchId: string
-  teacherId: string
+  branchMemberId: string
+  teacherId?: string | null
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
   schoolYearId?: string | null
   policyId?: string | null
   year: number
@@ -564,10 +616,12 @@ export type TeacherPayslipUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   lines?: Prisma.TeacherPayslipLineUncheckedCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedCreateNestedManyWithoutPayslipInput
 }
 
 export type TeacherPayslipUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   year?: Prisma.IntFieldUpdateOperationsInput | number
   month?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
@@ -586,17 +640,23 @@ export type TeacherPayslipUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutTeacherPayslipsNestedInput
-  teacher?: Prisma.TeacherUpdateOneRequiredWithoutPayslipsNestedInput
+  branchMember?: Prisma.BranchMemberUpdateOneRequiredWithoutTeacherPayslipsNestedInput
+  teacher?: Prisma.TeacherUpdateOneWithoutPayslipsNestedInput
+  personnel?: Prisma.PersonnelUpdateOneWithoutPayslipsNestedInput
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutTeacherPayslipsNestedInput
   policy?: Prisma.BranchPayrollPolicyUpdateOneWithoutPayslipsNestedInput
   exchangeRate?: Prisma.ExchangeRateUpdateOneWithoutTeacherPayslipsNestedInput
   lines?: Prisma.TeacherPayslipLineUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUpdateManyWithoutPayslipNestedInput
 }
 
 export type TeacherPayslipUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
-  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.IntFieldUpdateOperationsInput | number
@@ -618,12 +678,16 @@ export type TeacherPayslipUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lines?: Prisma.TeacherPayslipLineUncheckedUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
 export type TeacherPayslipCreateManyInput = {
   id?: string
   branchId: string
-  teacherId: string
+  branchMemberId: string
+  teacherId?: string | null
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
   schoolYearId?: string | null
   policyId?: string | null
   year: number
@@ -648,6 +712,7 @@ export type TeacherPayslipCreateManyInput = {
 
 export type TeacherPayslipUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   year?: Prisma.IntFieldUpdateOperationsInput | number
   month?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
@@ -670,7 +735,10 @@ export type TeacherPayslipUpdateManyMutationInput = {
 export type TeacherPayslipUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
-  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.IntFieldUpdateOperationsInput | number
@@ -703,9 +771,9 @@ export type TeacherPayslipOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type TeacherPayslipBranchIdTeacherIdYearMonthCompoundUniqueInput = {
+export type TeacherPayslipBranchIdBranchMemberIdYearMonthCompoundUniqueInput = {
   branchId: string
-  teacherId: string
+  branchMemberId: string
   year: number
   month: number
 }
@@ -713,7 +781,10 @@ export type TeacherPayslipBranchIdTeacherIdYearMonthCompoundUniqueInput = {
 export type TeacherPayslipCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  branchMemberId?: Prisma.SortOrder
   teacherId?: Prisma.SortOrder
+  personnelId?: Prisma.SortOrder
+  agentKind?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   policyId?: Prisma.SortOrder
   year?: Prisma.SortOrder
@@ -748,7 +819,10 @@ export type TeacherPayslipAvgOrderByAggregateInput = {
 export type TeacherPayslipMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  branchMemberId?: Prisma.SortOrder
   teacherId?: Prisma.SortOrder
+  personnelId?: Prisma.SortOrder
+  agentKind?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   policyId?: Prisma.SortOrder
   year?: Prisma.SortOrder
@@ -773,7 +847,10 @@ export type TeacherPayslipMaxOrderByAggregateInput = {
 export type TeacherPayslipMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  branchMemberId?: Prisma.SortOrder
   teacherId?: Prisma.SortOrder
+  personnelId?: Prisma.SortOrder
+  agentKind?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   policyId?: Prisma.SortOrder
   year?: Prisma.SortOrder
@@ -807,6 +884,53 @@ export type TeacherPayslipSumOrderByAggregateInput = {
 export type TeacherPayslipScalarRelationFilter = {
   is?: Prisma.TeacherPayslipWhereInput
   isNot?: Prisma.TeacherPayslipWhereInput
+}
+
+export type TeacherPayslipNullableScalarRelationFilter = {
+  is?: Prisma.TeacherPayslipWhereInput | null
+  isNot?: Prisma.TeacherPayslipWhereInput | null
+}
+
+export type TeacherPayslipCreateNestedManyWithoutPersonnelInput = {
+  create?: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutPersonnelInput, Prisma.TeacherPayslipUncheckedCreateWithoutPersonnelInput> | Prisma.TeacherPayslipCreateWithoutPersonnelInput[] | Prisma.TeacherPayslipUncheckedCreateWithoutPersonnelInput[]
+  connectOrCreate?: Prisma.TeacherPayslipCreateOrConnectWithoutPersonnelInput | Prisma.TeacherPayslipCreateOrConnectWithoutPersonnelInput[]
+  createMany?: Prisma.TeacherPayslipCreateManyPersonnelInputEnvelope
+  connect?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+}
+
+export type TeacherPayslipUncheckedCreateNestedManyWithoutPersonnelInput = {
+  create?: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutPersonnelInput, Prisma.TeacherPayslipUncheckedCreateWithoutPersonnelInput> | Prisma.TeacherPayslipCreateWithoutPersonnelInput[] | Prisma.TeacherPayslipUncheckedCreateWithoutPersonnelInput[]
+  connectOrCreate?: Prisma.TeacherPayslipCreateOrConnectWithoutPersonnelInput | Prisma.TeacherPayslipCreateOrConnectWithoutPersonnelInput[]
+  createMany?: Prisma.TeacherPayslipCreateManyPersonnelInputEnvelope
+  connect?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+}
+
+export type TeacherPayslipUpdateManyWithoutPersonnelNestedInput = {
+  create?: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutPersonnelInput, Prisma.TeacherPayslipUncheckedCreateWithoutPersonnelInput> | Prisma.TeacherPayslipCreateWithoutPersonnelInput[] | Prisma.TeacherPayslipUncheckedCreateWithoutPersonnelInput[]
+  connectOrCreate?: Prisma.TeacherPayslipCreateOrConnectWithoutPersonnelInput | Prisma.TeacherPayslipCreateOrConnectWithoutPersonnelInput[]
+  upsert?: Prisma.TeacherPayslipUpsertWithWhereUniqueWithoutPersonnelInput | Prisma.TeacherPayslipUpsertWithWhereUniqueWithoutPersonnelInput[]
+  createMany?: Prisma.TeacherPayslipCreateManyPersonnelInputEnvelope
+  set?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  disconnect?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  delete?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  connect?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  update?: Prisma.TeacherPayslipUpdateWithWhereUniqueWithoutPersonnelInput | Prisma.TeacherPayslipUpdateWithWhereUniqueWithoutPersonnelInput[]
+  updateMany?: Prisma.TeacherPayslipUpdateManyWithWhereWithoutPersonnelInput | Prisma.TeacherPayslipUpdateManyWithWhereWithoutPersonnelInput[]
+  deleteMany?: Prisma.TeacherPayslipScalarWhereInput | Prisma.TeacherPayslipScalarWhereInput[]
+}
+
+export type TeacherPayslipUncheckedUpdateManyWithoutPersonnelNestedInput = {
+  create?: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutPersonnelInput, Prisma.TeacherPayslipUncheckedCreateWithoutPersonnelInput> | Prisma.TeacherPayslipCreateWithoutPersonnelInput[] | Prisma.TeacherPayslipUncheckedCreateWithoutPersonnelInput[]
+  connectOrCreate?: Prisma.TeacherPayslipCreateOrConnectWithoutPersonnelInput | Prisma.TeacherPayslipCreateOrConnectWithoutPersonnelInput[]
+  upsert?: Prisma.TeacherPayslipUpsertWithWhereUniqueWithoutPersonnelInput | Prisma.TeacherPayslipUpsertWithWhereUniqueWithoutPersonnelInput[]
+  createMany?: Prisma.TeacherPayslipCreateManyPersonnelInputEnvelope
+  set?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  disconnect?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  delete?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  connect?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  update?: Prisma.TeacherPayslipUpdateWithWhereUniqueWithoutPersonnelInput | Prisma.TeacherPayslipUpdateWithWhereUniqueWithoutPersonnelInput[]
+  updateMany?: Prisma.TeacherPayslipUpdateManyWithWhereWithoutPersonnelInput | Prisma.TeacherPayslipUpdateManyWithWhereWithoutPersonnelInput[]
+  deleteMany?: Prisma.TeacherPayslipScalarWhereInput | Prisma.TeacherPayslipScalarWhereInput[]
 }
 
 export type TeacherPayslipCreateNestedManyWithoutSchoolYearInput = {
@@ -977,6 +1101,10 @@ export type TeacherPayslipUncheckedUpdateManyWithoutPolicyNestedInput = {
   deleteMany?: Prisma.TeacherPayslipScalarWhereInput | Prisma.TeacherPayslipScalarWhereInput[]
 }
 
+export type EnumPayrollAgentKindFieldUpdateOperationsInput = {
+  set?: $Enums.PayrollAgentKind
+}
+
 export type EnumTeacherPayslipStatusFieldUpdateOperationsInput = {
   set?: $Enums.TeacherPayslipStatus
 }
@@ -997,6 +1125,22 @@ export type TeacherPayslipUpdateOneRequiredWithoutLinesNestedInput = {
   upsert?: Prisma.TeacherPayslipUpsertWithoutLinesInput
   connect?: Prisma.TeacherPayslipWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.TeacherPayslipUpdateToOneWithWhereWithoutLinesInput, Prisma.TeacherPayslipUpdateWithoutLinesInput>, Prisma.TeacherPayslipUncheckedUpdateWithoutLinesInput>
+}
+
+export type TeacherPayslipCreateNestedOneWithoutAdvanceInstallmentsInput = {
+  create?: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutAdvanceInstallmentsInput, Prisma.TeacherPayslipUncheckedCreateWithoutAdvanceInstallmentsInput>
+  connectOrCreate?: Prisma.TeacherPayslipCreateOrConnectWithoutAdvanceInstallmentsInput
+  connect?: Prisma.TeacherPayslipWhereUniqueInput
+}
+
+export type TeacherPayslipUpdateOneWithoutAdvanceInstallmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutAdvanceInstallmentsInput, Prisma.TeacherPayslipUncheckedCreateWithoutAdvanceInstallmentsInput>
+  connectOrCreate?: Prisma.TeacherPayslipCreateOrConnectWithoutAdvanceInstallmentsInput
+  upsert?: Prisma.TeacherPayslipUpsertWithoutAdvanceInstallmentsInput
+  disconnect?: Prisma.TeacherPayslipWhereInput | boolean
+  delete?: Prisma.TeacherPayslipWhereInput | boolean
+  connect?: Prisma.TeacherPayslipWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TeacherPayslipUpdateToOneWithWhereWithoutAdvanceInstallmentsInput, Prisma.TeacherPayslipUpdateWithoutAdvanceInstallmentsInput>, Prisma.TeacherPayslipUncheckedUpdateWithoutAdvanceInstallmentsInput>
 }
 
 export type TeacherPayslipCreateNestedManyWithoutBranchInput = {
@@ -1041,8 +1185,51 @@ export type TeacherPayslipUncheckedUpdateManyWithoutBranchNestedInput = {
   deleteMany?: Prisma.TeacherPayslipScalarWhereInput | Prisma.TeacherPayslipScalarWhereInput[]
 }
 
-export type TeacherPayslipCreateWithoutSchoolYearInput = {
+export type TeacherPayslipCreateNestedManyWithoutBranchMemberInput = {
+  create?: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutBranchMemberInput, Prisma.TeacherPayslipUncheckedCreateWithoutBranchMemberInput> | Prisma.TeacherPayslipCreateWithoutBranchMemberInput[] | Prisma.TeacherPayslipUncheckedCreateWithoutBranchMemberInput[]
+  connectOrCreate?: Prisma.TeacherPayslipCreateOrConnectWithoutBranchMemberInput | Prisma.TeacherPayslipCreateOrConnectWithoutBranchMemberInput[]
+  createMany?: Prisma.TeacherPayslipCreateManyBranchMemberInputEnvelope
+  connect?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+}
+
+export type TeacherPayslipUncheckedCreateNestedManyWithoutBranchMemberInput = {
+  create?: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutBranchMemberInput, Prisma.TeacherPayslipUncheckedCreateWithoutBranchMemberInput> | Prisma.TeacherPayslipCreateWithoutBranchMemberInput[] | Prisma.TeacherPayslipUncheckedCreateWithoutBranchMemberInput[]
+  connectOrCreate?: Prisma.TeacherPayslipCreateOrConnectWithoutBranchMemberInput | Prisma.TeacherPayslipCreateOrConnectWithoutBranchMemberInput[]
+  createMany?: Prisma.TeacherPayslipCreateManyBranchMemberInputEnvelope
+  connect?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+}
+
+export type TeacherPayslipUpdateManyWithoutBranchMemberNestedInput = {
+  create?: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutBranchMemberInput, Prisma.TeacherPayslipUncheckedCreateWithoutBranchMemberInput> | Prisma.TeacherPayslipCreateWithoutBranchMemberInput[] | Prisma.TeacherPayslipUncheckedCreateWithoutBranchMemberInput[]
+  connectOrCreate?: Prisma.TeacherPayslipCreateOrConnectWithoutBranchMemberInput | Prisma.TeacherPayslipCreateOrConnectWithoutBranchMemberInput[]
+  upsert?: Prisma.TeacherPayslipUpsertWithWhereUniqueWithoutBranchMemberInput | Prisma.TeacherPayslipUpsertWithWhereUniqueWithoutBranchMemberInput[]
+  createMany?: Prisma.TeacherPayslipCreateManyBranchMemberInputEnvelope
+  set?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  disconnect?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  delete?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  connect?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  update?: Prisma.TeacherPayslipUpdateWithWhereUniqueWithoutBranchMemberInput | Prisma.TeacherPayslipUpdateWithWhereUniqueWithoutBranchMemberInput[]
+  updateMany?: Prisma.TeacherPayslipUpdateManyWithWhereWithoutBranchMemberInput | Prisma.TeacherPayslipUpdateManyWithWhereWithoutBranchMemberInput[]
+  deleteMany?: Prisma.TeacherPayslipScalarWhereInput | Prisma.TeacherPayslipScalarWhereInput[]
+}
+
+export type TeacherPayslipUncheckedUpdateManyWithoutBranchMemberNestedInput = {
+  create?: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutBranchMemberInput, Prisma.TeacherPayslipUncheckedCreateWithoutBranchMemberInput> | Prisma.TeacherPayslipCreateWithoutBranchMemberInput[] | Prisma.TeacherPayslipUncheckedCreateWithoutBranchMemberInput[]
+  connectOrCreate?: Prisma.TeacherPayslipCreateOrConnectWithoutBranchMemberInput | Prisma.TeacherPayslipCreateOrConnectWithoutBranchMemberInput[]
+  upsert?: Prisma.TeacherPayslipUpsertWithWhereUniqueWithoutBranchMemberInput | Prisma.TeacherPayslipUpsertWithWhereUniqueWithoutBranchMemberInput[]
+  createMany?: Prisma.TeacherPayslipCreateManyBranchMemberInputEnvelope
+  set?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  disconnect?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  delete?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  connect?: Prisma.TeacherPayslipWhereUniqueInput | Prisma.TeacherPayslipWhereUniqueInput[]
+  update?: Prisma.TeacherPayslipUpdateWithWhereUniqueWithoutBranchMemberInput | Prisma.TeacherPayslipUpdateWithWhereUniqueWithoutBranchMemberInput[]
+  updateMany?: Prisma.TeacherPayslipUpdateManyWithWhereWithoutBranchMemberInput | Prisma.TeacherPayslipUpdateManyWithWhereWithoutBranchMemberInput[]
+  deleteMany?: Prisma.TeacherPayslipScalarWhereInput | Prisma.TeacherPayslipScalarWhereInput[]
+}
+
+export type TeacherPayslipCreateWithoutPersonnelInput = {
   id?: string
+  agentKind?: $Enums.PayrollAgentKind
   year: number
   month: number
   status?: $Enums.TeacherPayslipStatus
@@ -1061,16 +1248,22 @@ export type TeacherPayslipCreateWithoutSchoolYearInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutTeacherPayslipsInput
-  teacher: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  branchMember: Prisma.BranchMemberCreateNestedOneWithoutTeacherPayslipsInput
+  teacher?: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutTeacherPayslipsInput
   policy?: Prisma.BranchPayrollPolicyCreateNestedOneWithoutPayslipsInput
   exchangeRate?: Prisma.ExchangeRateCreateNestedOneWithoutTeacherPayslipsInput
   lines?: Prisma.TeacherPayslipLineCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentCreateNestedManyWithoutPayslipInput
 }
 
-export type TeacherPayslipUncheckedCreateWithoutSchoolYearInput = {
+export type TeacherPayslipUncheckedCreateWithoutPersonnelInput = {
   id?: string
   branchId: string
-  teacherId: string
+  branchMemberId: string
+  teacherId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
+  schoolYearId?: string | null
   policyId?: string | null
   year: number
   month: number
@@ -1091,6 +1284,125 @@ export type TeacherPayslipUncheckedCreateWithoutSchoolYearInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   lines?: Prisma.TeacherPayslipLineUncheckedCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedCreateNestedManyWithoutPayslipInput
+}
+
+export type TeacherPayslipCreateOrConnectWithoutPersonnelInput = {
+  where: Prisma.TeacherPayslipWhereUniqueInput
+  create: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutPersonnelInput, Prisma.TeacherPayslipUncheckedCreateWithoutPersonnelInput>
+}
+
+export type TeacherPayslipCreateManyPersonnelInputEnvelope = {
+  data: Prisma.TeacherPayslipCreateManyPersonnelInput | Prisma.TeacherPayslipCreateManyPersonnelInput[]
+  skipDuplicates?: boolean
+}
+
+export type TeacherPayslipUpsertWithWhereUniqueWithoutPersonnelInput = {
+  where: Prisma.TeacherPayslipWhereUniqueInput
+  update: Prisma.XOR<Prisma.TeacherPayslipUpdateWithoutPersonnelInput, Prisma.TeacherPayslipUncheckedUpdateWithoutPersonnelInput>
+  create: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutPersonnelInput, Prisma.TeacherPayslipUncheckedCreateWithoutPersonnelInput>
+}
+
+export type TeacherPayslipUpdateWithWhereUniqueWithoutPersonnelInput = {
+  where: Prisma.TeacherPayslipWhereUniqueInput
+  data: Prisma.XOR<Prisma.TeacherPayslipUpdateWithoutPersonnelInput, Prisma.TeacherPayslipUncheckedUpdateWithoutPersonnelInput>
+}
+
+export type TeacherPayslipUpdateManyWithWhereWithoutPersonnelInput = {
+  where: Prisma.TeacherPayslipScalarWhereInput
+  data: Prisma.XOR<Prisma.TeacherPayslipUpdateManyMutationInput, Prisma.TeacherPayslipUncheckedUpdateManyWithoutPersonnelInput>
+}
+
+export type TeacherPayslipScalarWhereInput = {
+  AND?: Prisma.TeacherPayslipScalarWhereInput | Prisma.TeacherPayslipScalarWhereInput[]
+  OR?: Prisma.TeacherPayslipScalarWhereInput[]
+  NOT?: Prisma.TeacherPayslipScalarWhereInput | Prisma.TeacherPayslipScalarWhereInput[]
+  id?: Prisma.StringFilter<"TeacherPayslip"> | string
+  branchId?: Prisma.StringFilter<"TeacherPayslip"> | string
+  branchMemberId?: Prisma.StringFilter<"TeacherPayslip"> | string
+  teacherId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
+  personnelId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFilter<"TeacherPayslip"> | $Enums.PayrollAgentKind
+  schoolYearId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
+  policyId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
+  year?: Prisma.IntFilter<"TeacherPayslip"> | number
+  month?: Prisma.IntFilter<"TeacherPayslip"> | number
+  status?: Prisma.EnumTeacherPayslipStatusFilter<"TeacherPayslip"> | $Enums.TeacherPayslipStatus
+  currency?: Prisma.EnumCurrencyCodeFilter<"TeacherPayslip"> | $Enums.CurrencyCode
+  quoteCurrency?: Prisma.EnumCurrencyCodeNullableFilter<"TeacherPayslip"> | $Enums.CurrencyCode | null
+  exchangeRateId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
+  rateSnapshot?: Prisma.FloatNullableFilter<"TeacherPayslip"> | number | null
+  gross?: Prisma.FloatFilter<"TeacherPayslip"> | number
+  deductions?: Prisma.FloatFilter<"TeacherPayslip"> | number
+  net?: Prisma.FloatFilter<"TeacherPayslip"> | number
+  policySnapshot?: Prisma.JsonFilter<"TeacherPayslip">
+  generatedAt?: Prisma.DateTimeFilter<"TeacherPayslip"> | Date | string
+  validatedAt?: Prisma.DateTimeNullableFilter<"TeacherPayslip"> | Date | string | null
+  paidAt?: Prisma.DateTimeNullableFilter<"TeacherPayslip"> | Date | string | null
+  validatedById?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
+  paidById?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"TeacherPayslip"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"TeacherPayslip"> | Date | string
+}
+
+export type TeacherPayslipCreateWithoutSchoolYearInput = {
+  id?: string
+  agentKind?: $Enums.PayrollAgentKind
+  year: number
+  month: number
+  status?: $Enums.TeacherPayslipStatus
+  currency: $Enums.CurrencyCode
+  quoteCurrency?: $Enums.CurrencyCode | null
+  rateSnapshot?: number | null
+  gross?: number
+  deductions?: number
+  net?: number
+  policySnapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Date | string
+  validatedAt?: Date | string | null
+  paidAt?: Date | string | null
+  validatedById?: string | null
+  paidById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branch: Prisma.BranchCreateNestedOneWithoutTeacherPayslipsInput
+  branchMember: Prisma.BranchMemberCreateNestedOneWithoutTeacherPayslipsInput
+  teacher?: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  personnel?: Prisma.PersonnelCreateNestedOneWithoutPayslipsInput
+  policy?: Prisma.BranchPayrollPolicyCreateNestedOneWithoutPayslipsInput
+  exchangeRate?: Prisma.ExchangeRateCreateNestedOneWithoutTeacherPayslipsInput
+  lines?: Prisma.TeacherPayslipLineCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentCreateNestedManyWithoutPayslipInput
+}
+
+export type TeacherPayslipUncheckedCreateWithoutSchoolYearInput = {
+  id?: string
+  branchId: string
+  branchMemberId: string
+  teacherId?: string | null
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
+  policyId?: string | null
+  year: number
+  month: number
+  status?: $Enums.TeacherPayslipStatus
+  currency: $Enums.CurrencyCode
+  quoteCurrency?: $Enums.CurrencyCode | null
+  exchangeRateId?: string | null
+  rateSnapshot?: number | null
+  gross?: number
+  deductions?: number
+  net?: number
+  policySnapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Date | string
+  validatedAt?: Date | string | null
+  paidAt?: Date | string | null
+  validatedById?: string | null
+  paidById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lines?: Prisma.TeacherPayslipLineUncheckedCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedCreateNestedManyWithoutPayslipInput
 }
 
 export type TeacherPayslipCreateOrConnectWithoutSchoolYearInput = {
@@ -1119,37 +1431,9 @@ export type TeacherPayslipUpdateManyWithWhereWithoutSchoolYearInput = {
   data: Prisma.XOR<Prisma.TeacherPayslipUpdateManyMutationInput, Prisma.TeacherPayslipUncheckedUpdateManyWithoutSchoolYearInput>
 }
 
-export type TeacherPayslipScalarWhereInput = {
-  AND?: Prisma.TeacherPayslipScalarWhereInput | Prisma.TeacherPayslipScalarWhereInput[]
-  OR?: Prisma.TeacherPayslipScalarWhereInput[]
-  NOT?: Prisma.TeacherPayslipScalarWhereInput | Prisma.TeacherPayslipScalarWhereInput[]
-  id?: Prisma.StringFilter<"TeacherPayslip"> | string
-  branchId?: Prisma.StringFilter<"TeacherPayslip"> | string
-  teacherId?: Prisma.StringFilter<"TeacherPayslip"> | string
-  schoolYearId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
-  policyId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
-  year?: Prisma.IntFilter<"TeacherPayslip"> | number
-  month?: Prisma.IntFilter<"TeacherPayslip"> | number
-  status?: Prisma.EnumTeacherPayslipStatusFilter<"TeacherPayslip"> | $Enums.TeacherPayslipStatus
-  currency?: Prisma.EnumCurrencyCodeFilter<"TeacherPayslip"> | $Enums.CurrencyCode
-  quoteCurrency?: Prisma.EnumCurrencyCodeNullableFilter<"TeacherPayslip"> | $Enums.CurrencyCode | null
-  exchangeRateId?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
-  rateSnapshot?: Prisma.FloatNullableFilter<"TeacherPayslip"> | number | null
-  gross?: Prisma.FloatFilter<"TeacherPayslip"> | number
-  deductions?: Prisma.FloatFilter<"TeacherPayslip"> | number
-  net?: Prisma.FloatFilter<"TeacherPayslip"> | number
-  policySnapshot?: Prisma.JsonFilter<"TeacherPayslip">
-  generatedAt?: Prisma.DateTimeFilter<"TeacherPayslip"> | Date | string
-  validatedAt?: Prisma.DateTimeNullableFilter<"TeacherPayslip"> | Date | string | null
-  paidAt?: Prisma.DateTimeNullableFilter<"TeacherPayslip"> | Date | string | null
-  validatedById?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
-  paidById?: Prisma.StringNullableFilter<"TeacherPayslip"> | string | null
-  createdAt?: Prisma.DateTimeFilter<"TeacherPayslip"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"TeacherPayslip"> | Date | string
-}
-
 export type TeacherPayslipCreateWithoutTeacherInput = {
   id?: string
+  agentKind?: $Enums.PayrollAgentKind
   year: number
   month: number
   status?: $Enums.TeacherPayslipStatus
@@ -1168,15 +1452,21 @@ export type TeacherPayslipCreateWithoutTeacherInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutTeacherPayslipsInput
+  branchMember: Prisma.BranchMemberCreateNestedOneWithoutTeacherPayslipsInput
+  personnel?: Prisma.PersonnelCreateNestedOneWithoutPayslipsInput
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutTeacherPayslipsInput
   policy?: Prisma.BranchPayrollPolicyCreateNestedOneWithoutPayslipsInput
   exchangeRate?: Prisma.ExchangeRateCreateNestedOneWithoutTeacherPayslipsInput
   lines?: Prisma.TeacherPayslipLineCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentCreateNestedManyWithoutPayslipInput
 }
 
 export type TeacherPayslipUncheckedCreateWithoutTeacherInput = {
   id?: string
   branchId: string
+  branchMemberId: string
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
   schoolYearId?: string | null
   policyId?: string | null
   year: number
@@ -1198,6 +1488,7 @@ export type TeacherPayslipUncheckedCreateWithoutTeacherInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   lines?: Prisma.TeacherPayslipLineUncheckedCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedCreateNestedManyWithoutPayslipInput
 }
 
 export type TeacherPayslipCreateOrConnectWithoutTeacherInput = {
@@ -1228,6 +1519,7 @@ export type TeacherPayslipUpdateManyWithWhereWithoutTeacherInput = {
 
 export type TeacherPayslipCreateWithoutExchangeRateInput = {
   id?: string
+  agentKind?: $Enums.PayrollAgentKind
   year: number
   month: number
   status?: $Enums.TeacherPayslipStatus
@@ -1246,16 +1538,22 @@ export type TeacherPayslipCreateWithoutExchangeRateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutTeacherPayslipsInput
-  teacher: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  branchMember: Prisma.BranchMemberCreateNestedOneWithoutTeacherPayslipsInput
+  teacher?: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  personnel?: Prisma.PersonnelCreateNestedOneWithoutPayslipsInput
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutTeacherPayslipsInput
   policy?: Prisma.BranchPayrollPolicyCreateNestedOneWithoutPayslipsInput
   lines?: Prisma.TeacherPayslipLineCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentCreateNestedManyWithoutPayslipInput
 }
 
 export type TeacherPayslipUncheckedCreateWithoutExchangeRateInput = {
   id?: string
   branchId: string
-  teacherId: string
+  branchMemberId: string
+  teacherId?: string | null
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
   schoolYearId?: string | null
   policyId?: string | null
   year: number
@@ -1276,6 +1574,7 @@ export type TeacherPayslipUncheckedCreateWithoutExchangeRateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   lines?: Prisma.TeacherPayslipLineUncheckedCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedCreateNestedManyWithoutPayslipInput
 }
 
 export type TeacherPayslipCreateOrConnectWithoutExchangeRateInput = {
@@ -1306,6 +1605,7 @@ export type TeacherPayslipUpdateManyWithWhereWithoutExchangeRateInput = {
 
 export type TeacherPayslipCreateWithoutPolicyInput = {
   id?: string
+  agentKind?: $Enums.PayrollAgentKind
   year: number
   month: number
   status?: $Enums.TeacherPayslipStatus
@@ -1324,16 +1624,22 @@ export type TeacherPayslipCreateWithoutPolicyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutTeacherPayslipsInput
-  teacher: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  branchMember: Prisma.BranchMemberCreateNestedOneWithoutTeacherPayslipsInput
+  teacher?: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  personnel?: Prisma.PersonnelCreateNestedOneWithoutPayslipsInput
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutTeacherPayslipsInput
   exchangeRate?: Prisma.ExchangeRateCreateNestedOneWithoutTeacherPayslipsInput
   lines?: Prisma.TeacherPayslipLineCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentCreateNestedManyWithoutPayslipInput
 }
 
 export type TeacherPayslipUncheckedCreateWithoutPolicyInput = {
   id?: string
   branchId: string
-  teacherId: string
+  branchMemberId: string
+  teacherId?: string | null
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
   schoolYearId?: string | null
   year: number
   month: number
@@ -1354,6 +1660,7 @@ export type TeacherPayslipUncheckedCreateWithoutPolicyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   lines?: Prisma.TeacherPayslipLineUncheckedCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedCreateNestedManyWithoutPayslipInput
 }
 
 export type TeacherPayslipCreateOrConnectWithoutPolicyInput = {
@@ -1384,6 +1691,7 @@ export type TeacherPayslipUpdateManyWithWhereWithoutPolicyInput = {
 
 export type TeacherPayslipCreateWithoutLinesInput = {
   id?: string
+  agentKind?: $Enums.PayrollAgentKind
   year: number
   month: number
   status?: $Enums.TeacherPayslipStatus
@@ -1402,16 +1710,22 @@ export type TeacherPayslipCreateWithoutLinesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutTeacherPayslipsInput
-  teacher: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  branchMember: Prisma.BranchMemberCreateNestedOneWithoutTeacherPayslipsInput
+  teacher?: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  personnel?: Prisma.PersonnelCreateNestedOneWithoutPayslipsInput
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutTeacherPayslipsInput
   policy?: Prisma.BranchPayrollPolicyCreateNestedOneWithoutPayslipsInput
   exchangeRate?: Prisma.ExchangeRateCreateNestedOneWithoutTeacherPayslipsInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentCreateNestedManyWithoutPayslipInput
 }
 
 export type TeacherPayslipUncheckedCreateWithoutLinesInput = {
   id?: string
   branchId: string
-  teacherId: string
+  branchMemberId: string
+  teacherId?: string | null
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
   schoolYearId?: string | null
   policyId?: string | null
   year: number
@@ -1432,6 +1746,7 @@ export type TeacherPayslipUncheckedCreateWithoutLinesInput = {
   paidById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedCreateNestedManyWithoutPayslipInput
 }
 
 export type TeacherPayslipCreateOrConnectWithoutLinesInput = {
@@ -1452,6 +1767,7 @@ export type TeacherPayslipUpdateToOneWithWhereWithoutLinesInput = {
 
 export type TeacherPayslipUpdateWithoutLinesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   year?: Prisma.IntFieldUpdateOperationsInput | number
   month?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
@@ -1470,16 +1786,22 @@ export type TeacherPayslipUpdateWithoutLinesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutTeacherPayslipsNestedInput
-  teacher?: Prisma.TeacherUpdateOneRequiredWithoutPayslipsNestedInput
+  branchMember?: Prisma.BranchMemberUpdateOneRequiredWithoutTeacherPayslipsNestedInput
+  teacher?: Prisma.TeacherUpdateOneWithoutPayslipsNestedInput
+  personnel?: Prisma.PersonnelUpdateOneWithoutPayslipsNestedInput
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutTeacherPayslipsNestedInput
   policy?: Prisma.BranchPayrollPolicyUpdateOneWithoutPayslipsNestedInput
   exchangeRate?: Prisma.ExchangeRateUpdateOneWithoutTeacherPayslipsNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUpdateManyWithoutPayslipNestedInput
 }
 
 export type TeacherPayslipUncheckedUpdateWithoutLinesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
-  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1500,10 +1822,12 @@ export type TeacherPayslipUncheckedUpdateWithoutLinesInput = {
   paidById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
-export type TeacherPayslipCreateWithoutBranchInput = {
+export type TeacherPayslipCreateWithoutAdvanceInstallmentsInput = {
   id?: string
+  agentKind?: $Enums.PayrollAgentKind
   year: number
   month: number
   status?: $Enums.TeacherPayslipStatus
@@ -1521,16 +1845,23 @@ export type TeacherPayslipCreateWithoutBranchInput = {
   paidById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  teacher: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  branch: Prisma.BranchCreateNestedOneWithoutTeacherPayslipsInput
+  branchMember: Prisma.BranchMemberCreateNestedOneWithoutTeacherPayslipsInput
+  teacher?: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  personnel?: Prisma.PersonnelCreateNestedOneWithoutPayslipsInput
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutTeacherPayslipsInput
   policy?: Prisma.BranchPayrollPolicyCreateNestedOneWithoutPayslipsInput
   exchangeRate?: Prisma.ExchangeRateCreateNestedOneWithoutTeacherPayslipsInput
   lines?: Prisma.TeacherPayslipLineCreateNestedManyWithoutPayslipInput
 }
 
-export type TeacherPayslipUncheckedCreateWithoutBranchInput = {
+export type TeacherPayslipUncheckedCreateWithoutAdvanceInstallmentsInput = {
   id?: string
-  teacherId: string
+  branchId: string
+  branchMemberId: string
+  teacherId?: string | null
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
   schoolYearId?: string | null
   policyId?: string | null
   year: number
@@ -1552,6 +1883,142 @@ export type TeacherPayslipUncheckedCreateWithoutBranchInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   lines?: Prisma.TeacherPayslipLineUncheckedCreateNestedManyWithoutPayslipInput
+}
+
+export type TeacherPayslipCreateOrConnectWithoutAdvanceInstallmentsInput = {
+  where: Prisma.TeacherPayslipWhereUniqueInput
+  create: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutAdvanceInstallmentsInput, Prisma.TeacherPayslipUncheckedCreateWithoutAdvanceInstallmentsInput>
+}
+
+export type TeacherPayslipUpsertWithoutAdvanceInstallmentsInput = {
+  update: Prisma.XOR<Prisma.TeacherPayslipUpdateWithoutAdvanceInstallmentsInput, Prisma.TeacherPayslipUncheckedUpdateWithoutAdvanceInstallmentsInput>
+  create: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutAdvanceInstallmentsInput, Prisma.TeacherPayslipUncheckedCreateWithoutAdvanceInstallmentsInput>
+  where?: Prisma.TeacherPayslipWhereInput
+}
+
+export type TeacherPayslipUpdateToOneWithWhereWithoutAdvanceInstallmentsInput = {
+  where?: Prisma.TeacherPayslipWhereInput
+  data: Prisma.XOR<Prisma.TeacherPayslipUpdateWithoutAdvanceInstallmentsInput, Prisma.TeacherPayslipUncheckedUpdateWithoutAdvanceInstallmentsInput>
+}
+
+export type TeacherPayslipUpdateWithoutAdvanceInstallmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
+  year?: Prisma.IntFieldUpdateOperationsInput | number
+  month?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
+  currency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  quoteCurrency?: Prisma.NullableEnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode | null
+  rateSnapshot?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  gross?: Prisma.FloatFieldUpdateOperationsInput | number
+  deductions?: Prisma.FloatFieldUpdateOperationsInput | number
+  net?: Prisma.FloatFieldUpdateOperationsInput | number
+  policySnapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  validatedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paidById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branch?: Prisma.BranchUpdateOneRequiredWithoutTeacherPayslipsNestedInput
+  branchMember?: Prisma.BranchMemberUpdateOneRequiredWithoutTeacherPayslipsNestedInput
+  teacher?: Prisma.TeacherUpdateOneWithoutPayslipsNestedInput
+  personnel?: Prisma.PersonnelUpdateOneWithoutPayslipsNestedInput
+  schoolYear?: Prisma.SchoolYearUpdateOneWithoutTeacherPayslipsNestedInput
+  policy?: Prisma.BranchPayrollPolicyUpdateOneWithoutPayslipsNestedInput
+  exchangeRate?: Prisma.ExchangeRateUpdateOneWithoutTeacherPayslipsNestedInput
+  lines?: Prisma.TeacherPayslipLineUpdateManyWithoutPayslipNestedInput
+}
+
+export type TeacherPayslipUncheckedUpdateWithoutAdvanceInstallmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
+  schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  year?: Prisma.IntFieldUpdateOperationsInput | number
+  month?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
+  currency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  quoteCurrency?: Prisma.NullableEnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode | null
+  exchangeRateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rateSnapshot?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  gross?: Prisma.FloatFieldUpdateOperationsInput | number
+  deductions?: Prisma.FloatFieldUpdateOperationsInput | number
+  net?: Prisma.FloatFieldUpdateOperationsInput | number
+  policySnapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  validatedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paidById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lines?: Prisma.TeacherPayslipLineUncheckedUpdateManyWithoutPayslipNestedInput
+}
+
+export type TeacherPayslipCreateWithoutBranchInput = {
+  id?: string
+  agentKind?: $Enums.PayrollAgentKind
+  year: number
+  month: number
+  status?: $Enums.TeacherPayslipStatus
+  currency: $Enums.CurrencyCode
+  quoteCurrency?: $Enums.CurrencyCode | null
+  rateSnapshot?: number | null
+  gross?: number
+  deductions?: number
+  net?: number
+  policySnapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Date | string
+  validatedAt?: Date | string | null
+  paidAt?: Date | string | null
+  validatedById?: string | null
+  paidById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchMember: Prisma.BranchMemberCreateNestedOneWithoutTeacherPayslipsInput
+  teacher?: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  personnel?: Prisma.PersonnelCreateNestedOneWithoutPayslipsInput
+  schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutTeacherPayslipsInput
+  policy?: Prisma.BranchPayrollPolicyCreateNestedOneWithoutPayslipsInput
+  exchangeRate?: Prisma.ExchangeRateCreateNestedOneWithoutTeacherPayslipsInput
+  lines?: Prisma.TeacherPayslipLineCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentCreateNestedManyWithoutPayslipInput
+}
+
+export type TeacherPayslipUncheckedCreateWithoutBranchInput = {
+  id?: string
+  branchMemberId: string
+  teacherId?: string | null
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
+  schoolYearId?: string | null
+  policyId?: string | null
+  year: number
+  month: number
+  status?: $Enums.TeacherPayslipStatus
+  currency: $Enums.CurrencyCode
+  quoteCurrency?: $Enums.CurrencyCode | null
+  exchangeRateId?: string | null
+  rateSnapshot?: number | null
+  gross?: number
+  deductions?: number
+  net?: number
+  policySnapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Date | string
+  validatedAt?: Date | string | null
+  paidAt?: Date | string | null
+  validatedById?: string | null
+  paidById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lines?: Prisma.TeacherPayslipLineUncheckedCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedCreateNestedManyWithoutPayslipInput
 }
 
 export type TeacherPayslipCreateOrConnectWithoutBranchInput = {
@@ -1580,10 +2047,215 @@ export type TeacherPayslipUpdateManyWithWhereWithoutBranchInput = {
   data: Prisma.XOR<Prisma.TeacherPayslipUpdateManyMutationInput, Prisma.TeacherPayslipUncheckedUpdateManyWithoutBranchInput>
 }
 
+export type TeacherPayslipCreateWithoutBranchMemberInput = {
+  id?: string
+  agentKind?: $Enums.PayrollAgentKind
+  year: number
+  month: number
+  status?: $Enums.TeacherPayslipStatus
+  currency: $Enums.CurrencyCode
+  quoteCurrency?: $Enums.CurrencyCode | null
+  rateSnapshot?: number | null
+  gross?: number
+  deductions?: number
+  net?: number
+  policySnapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Date | string
+  validatedAt?: Date | string | null
+  paidAt?: Date | string | null
+  validatedById?: string | null
+  paidById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branch: Prisma.BranchCreateNestedOneWithoutTeacherPayslipsInput
+  teacher?: Prisma.TeacherCreateNestedOneWithoutPayslipsInput
+  personnel?: Prisma.PersonnelCreateNestedOneWithoutPayslipsInput
+  schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutTeacherPayslipsInput
+  policy?: Prisma.BranchPayrollPolicyCreateNestedOneWithoutPayslipsInput
+  exchangeRate?: Prisma.ExchangeRateCreateNestedOneWithoutTeacherPayslipsInput
+  lines?: Prisma.TeacherPayslipLineCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentCreateNestedManyWithoutPayslipInput
+}
+
+export type TeacherPayslipUncheckedCreateWithoutBranchMemberInput = {
+  id?: string
+  branchId: string
+  teacherId?: string | null
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
+  schoolYearId?: string | null
+  policyId?: string | null
+  year: number
+  month: number
+  status?: $Enums.TeacherPayslipStatus
+  currency: $Enums.CurrencyCode
+  quoteCurrency?: $Enums.CurrencyCode | null
+  exchangeRateId?: string | null
+  rateSnapshot?: number | null
+  gross?: number
+  deductions?: number
+  net?: number
+  policySnapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Date | string
+  validatedAt?: Date | string | null
+  paidAt?: Date | string | null
+  validatedById?: string | null
+  paidById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lines?: Prisma.TeacherPayslipLineUncheckedCreateNestedManyWithoutPayslipInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedCreateNestedManyWithoutPayslipInput
+}
+
+export type TeacherPayslipCreateOrConnectWithoutBranchMemberInput = {
+  where: Prisma.TeacherPayslipWhereUniqueInput
+  create: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutBranchMemberInput, Prisma.TeacherPayslipUncheckedCreateWithoutBranchMemberInput>
+}
+
+export type TeacherPayslipCreateManyBranchMemberInputEnvelope = {
+  data: Prisma.TeacherPayslipCreateManyBranchMemberInput | Prisma.TeacherPayslipCreateManyBranchMemberInput[]
+  skipDuplicates?: boolean
+}
+
+export type TeacherPayslipUpsertWithWhereUniqueWithoutBranchMemberInput = {
+  where: Prisma.TeacherPayslipWhereUniqueInput
+  update: Prisma.XOR<Prisma.TeacherPayslipUpdateWithoutBranchMemberInput, Prisma.TeacherPayslipUncheckedUpdateWithoutBranchMemberInput>
+  create: Prisma.XOR<Prisma.TeacherPayslipCreateWithoutBranchMemberInput, Prisma.TeacherPayslipUncheckedCreateWithoutBranchMemberInput>
+}
+
+export type TeacherPayslipUpdateWithWhereUniqueWithoutBranchMemberInput = {
+  where: Prisma.TeacherPayslipWhereUniqueInput
+  data: Prisma.XOR<Prisma.TeacherPayslipUpdateWithoutBranchMemberInput, Prisma.TeacherPayslipUncheckedUpdateWithoutBranchMemberInput>
+}
+
+export type TeacherPayslipUpdateManyWithWhereWithoutBranchMemberInput = {
+  where: Prisma.TeacherPayslipScalarWhereInput
+  data: Prisma.XOR<Prisma.TeacherPayslipUpdateManyMutationInput, Prisma.TeacherPayslipUncheckedUpdateManyWithoutBranchMemberInput>
+}
+
+export type TeacherPayslipCreateManyPersonnelInput = {
+  id?: string
+  branchId: string
+  branchMemberId: string
+  teacherId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
+  schoolYearId?: string | null
+  policyId?: string | null
+  year: number
+  month: number
+  status?: $Enums.TeacherPayslipStatus
+  currency: $Enums.CurrencyCode
+  quoteCurrency?: $Enums.CurrencyCode | null
+  exchangeRateId?: string | null
+  rateSnapshot?: number | null
+  gross?: number
+  deductions?: number
+  net?: number
+  policySnapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Date | string
+  validatedAt?: Date | string | null
+  paidAt?: Date | string | null
+  validatedById?: string | null
+  paidById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TeacherPayslipUpdateWithoutPersonnelInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
+  year?: Prisma.IntFieldUpdateOperationsInput | number
+  month?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
+  currency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  quoteCurrency?: Prisma.NullableEnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode | null
+  rateSnapshot?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  gross?: Prisma.FloatFieldUpdateOperationsInput | number
+  deductions?: Prisma.FloatFieldUpdateOperationsInput | number
+  net?: Prisma.FloatFieldUpdateOperationsInput | number
+  policySnapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  validatedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paidById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branch?: Prisma.BranchUpdateOneRequiredWithoutTeacherPayslipsNestedInput
+  branchMember?: Prisma.BranchMemberUpdateOneRequiredWithoutTeacherPayslipsNestedInput
+  teacher?: Prisma.TeacherUpdateOneWithoutPayslipsNestedInput
+  schoolYear?: Prisma.SchoolYearUpdateOneWithoutTeacherPayslipsNestedInput
+  policy?: Prisma.BranchPayrollPolicyUpdateOneWithoutPayslipsNestedInput
+  exchangeRate?: Prisma.ExchangeRateUpdateOneWithoutTeacherPayslipsNestedInput
+  lines?: Prisma.TeacherPayslipLineUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUpdateManyWithoutPayslipNestedInput
+}
+
+export type TeacherPayslipUncheckedUpdateWithoutPersonnelInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
+  schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  year?: Prisma.IntFieldUpdateOperationsInput | number
+  month?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
+  currency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  quoteCurrency?: Prisma.NullableEnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode | null
+  exchangeRateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rateSnapshot?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  gross?: Prisma.FloatFieldUpdateOperationsInput | number
+  deductions?: Prisma.FloatFieldUpdateOperationsInput | number
+  net?: Prisma.FloatFieldUpdateOperationsInput | number
+  policySnapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  validatedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paidById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lines?: Prisma.TeacherPayslipLineUncheckedUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedUpdateManyWithoutPayslipNestedInput
+}
+
+export type TeacherPayslipUncheckedUpdateManyWithoutPersonnelInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
+  schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  year?: Prisma.IntFieldUpdateOperationsInput | number
+  month?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
+  currency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  quoteCurrency?: Prisma.NullableEnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode | null
+  exchangeRateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rateSnapshot?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  gross?: Prisma.FloatFieldUpdateOperationsInput | number
+  deductions?: Prisma.FloatFieldUpdateOperationsInput | number
+  net?: Prisma.FloatFieldUpdateOperationsInput | number
+  policySnapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  validatedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paidById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type TeacherPayslipCreateManySchoolYearInput = {
   id?: string
   branchId: string
-  teacherId: string
+  branchMemberId: string
+  teacherId?: string | null
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
   policyId?: string | null
   year: number
   month: number
@@ -1607,6 +2279,7 @@ export type TeacherPayslipCreateManySchoolYearInput = {
 
 export type TeacherPayslipUpdateWithoutSchoolYearInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   year?: Prisma.IntFieldUpdateOperationsInput | number
   month?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
@@ -1625,16 +2298,22 @@ export type TeacherPayslipUpdateWithoutSchoolYearInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutTeacherPayslipsNestedInput
-  teacher?: Prisma.TeacherUpdateOneRequiredWithoutPayslipsNestedInput
+  branchMember?: Prisma.BranchMemberUpdateOneRequiredWithoutTeacherPayslipsNestedInput
+  teacher?: Prisma.TeacherUpdateOneWithoutPayslipsNestedInput
+  personnel?: Prisma.PersonnelUpdateOneWithoutPayslipsNestedInput
   policy?: Prisma.BranchPayrollPolicyUpdateOneWithoutPayslipsNestedInput
   exchangeRate?: Prisma.ExchangeRateUpdateOneWithoutTeacherPayslipsNestedInput
   lines?: Prisma.TeacherPayslipLineUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUpdateManyWithoutPayslipNestedInput
 }
 
 export type TeacherPayslipUncheckedUpdateWithoutSchoolYearInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
-  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.IntFieldUpdateOperationsInput | number
   month?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1655,12 +2334,16 @@ export type TeacherPayslipUncheckedUpdateWithoutSchoolYearInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lines?: Prisma.TeacherPayslipLineUncheckedUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
 export type TeacherPayslipUncheckedUpdateManyWithoutSchoolYearInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
-  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.IntFieldUpdateOperationsInput | number
   month?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1685,6 +2368,9 @@ export type TeacherPayslipUncheckedUpdateManyWithoutSchoolYearInput = {
 export type TeacherPayslipCreateManyTeacherInput = {
   id?: string
   branchId: string
+  branchMemberId: string
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
   schoolYearId?: string | null
   policyId?: string | null
   year: number
@@ -1709,6 +2395,7 @@ export type TeacherPayslipCreateManyTeacherInput = {
 
 export type TeacherPayslipUpdateWithoutTeacherInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   year?: Prisma.IntFieldUpdateOperationsInput | number
   month?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
@@ -1727,15 +2414,21 @@ export type TeacherPayslipUpdateWithoutTeacherInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutTeacherPayslipsNestedInput
+  branchMember?: Prisma.BranchMemberUpdateOneRequiredWithoutTeacherPayslipsNestedInput
+  personnel?: Prisma.PersonnelUpdateOneWithoutPayslipsNestedInput
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutTeacherPayslipsNestedInput
   policy?: Prisma.BranchPayrollPolicyUpdateOneWithoutPayslipsNestedInput
   exchangeRate?: Prisma.ExchangeRateUpdateOneWithoutTeacherPayslipsNestedInput
   lines?: Prisma.TeacherPayslipLineUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUpdateManyWithoutPayslipNestedInput
 }
 
 export type TeacherPayslipUncheckedUpdateWithoutTeacherInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1757,11 +2450,15 @@ export type TeacherPayslipUncheckedUpdateWithoutTeacherInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lines?: Prisma.TeacherPayslipLineUncheckedUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
 export type TeacherPayslipUncheckedUpdateManyWithoutTeacherInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1787,7 +2484,10 @@ export type TeacherPayslipUncheckedUpdateManyWithoutTeacherInput = {
 export type TeacherPayslipCreateManyExchangeRateInput = {
   id?: string
   branchId: string
-  teacherId: string
+  branchMemberId: string
+  teacherId?: string | null
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
   schoolYearId?: string | null
   policyId?: string | null
   year: number
@@ -1811,6 +2511,7 @@ export type TeacherPayslipCreateManyExchangeRateInput = {
 
 export type TeacherPayslipUpdateWithoutExchangeRateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   year?: Prisma.IntFieldUpdateOperationsInput | number
   month?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
@@ -1829,16 +2530,22 @@ export type TeacherPayslipUpdateWithoutExchangeRateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutTeacherPayslipsNestedInput
-  teacher?: Prisma.TeacherUpdateOneRequiredWithoutPayslipsNestedInput
+  branchMember?: Prisma.BranchMemberUpdateOneRequiredWithoutTeacherPayslipsNestedInput
+  teacher?: Prisma.TeacherUpdateOneWithoutPayslipsNestedInput
+  personnel?: Prisma.PersonnelUpdateOneWithoutPayslipsNestedInput
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutTeacherPayslipsNestedInput
   policy?: Prisma.BranchPayrollPolicyUpdateOneWithoutPayslipsNestedInput
   lines?: Prisma.TeacherPayslipLineUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUpdateManyWithoutPayslipNestedInput
 }
 
 export type TeacherPayslipUncheckedUpdateWithoutExchangeRateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
-  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1859,12 +2566,16 @@ export type TeacherPayslipUncheckedUpdateWithoutExchangeRateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lines?: Prisma.TeacherPayslipLineUncheckedUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
 export type TeacherPayslipUncheckedUpdateManyWithoutExchangeRateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
-  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1889,7 +2600,10 @@ export type TeacherPayslipUncheckedUpdateManyWithoutExchangeRateInput = {
 export type TeacherPayslipCreateManyPolicyInput = {
   id?: string
   branchId: string
-  teacherId: string
+  branchMemberId: string
+  teacherId?: string | null
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
   schoolYearId?: string | null
   year: number
   month: number
@@ -1913,6 +2627,7 @@ export type TeacherPayslipCreateManyPolicyInput = {
 
 export type TeacherPayslipUpdateWithoutPolicyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   year?: Prisma.IntFieldUpdateOperationsInput | number
   month?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
@@ -1931,16 +2646,22 @@ export type TeacherPayslipUpdateWithoutPolicyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutTeacherPayslipsNestedInput
-  teacher?: Prisma.TeacherUpdateOneRequiredWithoutPayslipsNestedInput
+  branchMember?: Prisma.BranchMemberUpdateOneRequiredWithoutTeacherPayslipsNestedInput
+  teacher?: Prisma.TeacherUpdateOneWithoutPayslipsNestedInput
+  personnel?: Prisma.PersonnelUpdateOneWithoutPayslipsNestedInput
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutTeacherPayslipsNestedInput
   exchangeRate?: Prisma.ExchangeRateUpdateOneWithoutTeacherPayslipsNestedInput
   lines?: Prisma.TeacherPayslipLineUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUpdateManyWithoutPayslipNestedInput
 }
 
 export type TeacherPayslipUncheckedUpdateWithoutPolicyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
-  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.IntFieldUpdateOperationsInput | number
   month?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1961,12 +2682,16 @@ export type TeacherPayslipUncheckedUpdateWithoutPolicyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lines?: Prisma.TeacherPayslipLineUncheckedUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
 export type TeacherPayslipUncheckedUpdateManyWithoutPolicyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
-  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.IntFieldUpdateOperationsInput | number
   month?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1990,7 +2715,10 @@ export type TeacherPayslipUncheckedUpdateManyWithoutPolicyInput = {
 
 export type TeacherPayslipCreateManyBranchInput = {
   id?: string
-  teacherId: string
+  branchMemberId: string
+  teacherId?: string | null
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
   schoolYearId?: string | null
   policyId?: string | null
   year: number
@@ -2015,6 +2743,7 @@ export type TeacherPayslipCreateManyBranchInput = {
 
 export type TeacherPayslipUpdateWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   year?: Prisma.IntFieldUpdateOperationsInput | number
   month?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
@@ -2032,16 +2761,22 @@ export type TeacherPayslipUpdateWithoutBranchInput = {
   paidById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  teacher?: Prisma.TeacherUpdateOneRequiredWithoutPayslipsNestedInput
+  branchMember?: Prisma.BranchMemberUpdateOneRequiredWithoutTeacherPayslipsNestedInput
+  teacher?: Prisma.TeacherUpdateOneWithoutPayslipsNestedInput
+  personnel?: Prisma.PersonnelUpdateOneWithoutPayslipsNestedInput
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutTeacherPayslipsNestedInput
   policy?: Prisma.BranchPayrollPolicyUpdateOneWithoutPayslipsNestedInput
   exchangeRate?: Prisma.ExchangeRateUpdateOneWithoutTeacherPayslipsNestedInput
   lines?: Prisma.TeacherPayslipLineUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUpdateManyWithoutPayslipNestedInput
 }
 
 export type TeacherPayslipUncheckedUpdateWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2063,11 +2798,131 @@ export type TeacherPayslipUncheckedUpdateWithoutBranchInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lines?: Prisma.TeacherPayslipLineUncheckedUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
 export type TeacherPayslipUncheckedUpdateManyWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
+  schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  year?: Prisma.IntFieldUpdateOperationsInput | number
+  month?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
+  currency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  quoteCurrency?: Prisma.NullableEnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode | null
+  exchangeRateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rateSnapshot?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  gross?: Prisma.FloatFieldUpdateOperationsInput | number
+  deductions?: Prisma.FloatFieldUpdateOperationsInput | number
+  net?: Prisma.FloatFieldUpdateOperationsInput | number
+  policySnapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  validatedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paidById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TeacherPayslipCreateManyBranchMemberInput = {
+  id?: string
+  branchId: string
+  teacherId?: string | null
+  personnelId?: string | null
+  agentKind?: $Enums.PayrollAgentKind
+  schoolYearId?: string | null
+  policyId?: string | null
+  year: number
+  month: number
+  status?: $Enums.TeacherPayslipStatus
+  currency: $Enums.CurrencyCode
+  quoteCurrency?: $Enums.CurrencyCode | null
+  exchangeRateId?: string | null
+  rateSnapshot?: number | null
+  gross?: number
+  deductions?: number
+  net?: number
+  policySnapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Date | string
+  validatedAt?: Date | string | null
+  paidAt?: Date | string | null
+  validatedById?: string | null
+  paidById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TeacherPayslipUpdateWithoutBranchMemberInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
+  year?: Prisma.IntFieldUpdateOperationsInput | number
+  month?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
+  currency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  quoteCurrency?: Prisma.NullableEnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode | null
+  rateSnapshot?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  gross?: Prisma.FloatFieldUpdateOperationsInput | number
+  deductions?: Prisma.FloatFieldUpdateOperationsInput | number
+  net?: Prisma.FloatFieldUpdateOperationsInput | number
+  policySnapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  validatedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paidById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branch?: Prisma.BranchUpdateOneRequiredWithoutTeacherPayslipsNestedInput
+  teacher?: Prisma.TeacherUpdateOneWithoutPayslipsNestedInput
+  personnel?: Prisma.PersonnelUpdateOneWithoutPayslipsNestedInput
+  schoolYear?: Prisma.SchoolYearUpdateOneWithoutTeacherPayslipsNestedInput
+  policy?: Prisma.BranchPayrollPolicyUpdateOneWithoutPayslipsNestedInput
+  exchangeRate?: Prisma.ExchangeRateUpdateOneWithoutTeacherPayslipsNestedInput
+  lines?: Prisma.TeacherPayslipLineUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUpdateManyWithoutPayslipNestedInput
+}
+
+export type TeacherPayslipUncheckedUpdateWithoutBranchMemberInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
+  schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  year?: Prisma.IntFieldUpdateOperationsInput | number
+  month?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumTeacherPayslipStatusFieldUpdateOperationsInput | $Enums.TeacherPayslipStatus
+  currency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  quoteCurrency?: Prisma.NullableEnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode | null
+  exchangeRateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rateSnapshot?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  gross?: Prisma.FloatFieldUpdateOperationsInput | number
+  deductions?: Prisma.FloatFieldUpdateOperationsInput | number
+  net?: Prisma.FloatFieldUpdateOperationsInput | number
+  policySnapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  generatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  validatedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paidById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lines?: Prisma.TeacherPayslipLineUncheckedUpdateManyWithoutPayslipNestedInput
+  advanceInstallments?: Prisma.SalaryAdvanceInstallmentUncheckedUpdateManyWithoutPayslipNestedInput
+}
+
+export type TeacherPayslipUncheckedUpdateManyWithoutBranchMemberInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agentKind?: Prisma.EnumPayrollAgentKindFieldUpdateOperationsInput | $Enums.PayrollAgentKind
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   policyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2097,10 +2952,12 @@ export type TeacherPayslipUncheckedUpdateManyWithoutBranchInput = {
 
 export type TeacherPayslipCountOutputType = {
   lines: number
+  advanceInstallments: number
 }
 
 export type TeacherPayslipCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   lines?: boolean | TeacherPayslipCountOutputTypeCountLinesArgs
+  advanceInstallments?: boolean | TeacherPayslipCountOutputTypeCountAdvanceInstallmentsArgs
 }
 
 /**
@@ -2120,11 +2977,21 @@ export type TeacherPayslipCountOutputTypeCountLinesArgs<ExtArgs extends runtime.
   where?: Prisma.TeacherPayslipLineWhereInput
 }
 
+/**
+ * TeacherPayslipCountOutputType without action
+ */
+export type TeacherPayslipCountOutputTypeCountAdvanceInstallmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SalaryAdvanceInstallmentWhereInput
+}
+
 
 export type TeacherPayslipSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchId?: boolean
+  branchMemberId?: boolean
   teacherId?: boolean
+  personnelId?: boolean
+  agentKind?: boolean
   schoolYearId?: boolean
   policyId?: boolean
   year?: boolean
@@ -2146,18 +3013,24 @@ export type TeacherPayslipSelect<ExtArgs extends runtime.Types.Extensions.Intern
   createdAt?: boolean
   updatedAt?: boolean
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
-  teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
+  branchMember?: boolean | Prisma.BranchMemberDefaultArgs<ExtArgs>
+  teacher?: boolean | Prisma.TeacherPayslip$teacherArgs<ExtArgs>
+  personnel?: boolean | Prisma.TeacherPayslip$personnelArgs<ExtArgs>
   schoolYear?: boolean | Prisma.TeacherPayslip$schoolYearArgs<ExtArgs>
   policy?: boolean | Prisma.TeacherPayslip$policyArgs<ExtArgs>
   exchangeRate?: boolean | Prisma.TeacherPayslip$exchangeRateArgs<ExtArgs>
   lines?: boolean | Prisma.TeacherPayslip$linesArgs<ExtArgs>
+  advanceInstallments?: boolean | Prisma.TeacherPayslip$advanceInstallmentsArgs<ExtArgs>
   _count?: boolean | Prisma.TeacherPayslipCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["teacherPayslip"]>
 
 export type TeacherPayslipSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchId?: boolean
+  branchMemberId?: boolean
   teacherId?: boolean
+  personnelId?: boolean
+  agentKind?: boolean
   schoolYearId?: boolean
   policyId?: boolean
   year?: boolean
@@ -2179,7 +3052,9 @@ export type TeacherPayslipSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   createdAt?: boolean
   updatedAt?: boolean
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
-  teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
+  branchMember?: boolean | Prisma.BranchMemberDefaultArgs<ExtArgs>
+  teacher?: boolean | Prisma.TeacherPayslip$teacherArgs<ExtArgs>
+  personnel?: boolean | Prisma.TeacherPayslip$personnelArgs<ExtArgs>
   schoolYear?: boolean | Prisma.TeacherPayslip$schoolYearArgs<ExtArgs>
   policy?: boolean | Prisma.TeacherPayslip$policyArgs<ExtArgs>
   exchangeRate?: boolean | Prisma.TeacherPayslip$exchangeRateArgs<ExtArgs>
@@ -2188,7 +3063,10 @@ export type TeacherPayslipSelectCreateManyAndReturn<ExtArgs extends runtime.Type
 export type TeacherPayslipSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchId?: boolean
+  branchMemberId?: boolean
   teacherId?: boolean
+  personnelId?: boolean
+  agentKind?: boolean
   schoolYearId?: boolean
   policyId?: boolean
   year?: boolean
@@ -2210,7 +3088,9 @@ export type TeacherPayslipSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   createdAt?: boolean
   updatedAt?: boolean
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
-  teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
+  branchMember?: boolean | Prisma.BranchMemberDefaultArgs<ExtArgs>
+  teacher?: boolean | Prisma.TeacherPayslip$teacherArgs<ExtArgs>
+  personnel?: boolean | Prisma.TeacherPayslip$personnelArgs<ExtArgs>
   schoolYear?: boolean | Prisma.TeacherPayslip$schoolYearArgs<ExtArgs>
   policy?: boolean | Prisma.TeacherPayslip$policyArgs<ExtArgs>
   exchangeRate?: boolean | Prisma.TeacherPayslip$exchangeRateArgs<ExtArgs>
@@ -2219,7 +3099,10 @@ export type TeacherPayslipSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
 export type TeacherPayslipSelectScalar = {
   id?: boolean
   branchId?: boolean
+  branchMemberId?: boolean
   teacherId?: boolean
+  personnelId?: boolean
+  agentKind?: boolean
   schoolYearId?: boolean
   policyId?: boolean
   year?: boolean
@@ -2242,26 +3125,33 @@ export type TeacherPayslipSelectScalar = {
   updatedAt?: boolean
 }
 
-export type TeacherPayslipOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchId" | "teacherId" | "schoolYearId" | "policyId" | "year" | "month" | "status" | "currency" | "quoteCurrency" | "exchangeRateId" | "rateSnapshot" | "gross" | "deductions" | "net" | "policySnapshot" | "generatedAt" | "validatedAt" | "paidAt" | "validatedById" | "paidById" | "createdAt" | "updatedAt", ExtArgs["result"]["teacherPayslip"]>
+export type TeacherPayslipOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchId" | "branchMemberId" | "teacherId" | "personnelId" | "agentKind" | "schoolYearId" | "policyId" | "year" | "month" | "status" | "currency" | "quoteCurrency" | "exchangeRateId" | "rateSnapshot" | "gross" | "deductions" | "net" | "policySnapshot" | "generatedAt" | "validatedAt" | "paidAt" | "validatedById" | "paidById" | "createdAt" | "updatedAt", ExtArgs["result"]["teacherPayslip"]>
 export type TeacherPayslipInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
-  teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
+  branchMember?: boolean | Prisma.BranchMemberDefaultArgs<ExtArgs>
+  teacher?: boolean | Prisma.TeacherPayslip$teacherArgs<ExtArgs>
+  personnel?: boolean | Prisma.TeacherPayslip$personnelArgs<ExtArgs>
   schoolYear?: boolean | Prisma.TeacherPayslip$schoolYearArgs<ExtArgs>
   policy?: boolean | Prisma.TeacherPayslip$policyArgs<ExtArgs>
   exchangeRate?: boolean | Prisma.TeacherPayslip$exchangeRateArgs<ExtArgs>
   lines?: boolean | Prisma.TeacherPayslip$linesArgs<ExtArgs>
+  advanceInstallments?: boolean | Prisma.TeacherPayslip$advanceInstallmentsArgs<ExtArgs>
   _count?: boolean | Prisma.TeacherPayslipCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TeacherPayslipIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
-  teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
+  branchMember?: boolean | Prisma.BranchMemberDefaultArgs<ExtArgs>
+  teacher?: boolean | Prisma.TeacherPayslip$teacherArgs<ExtArgs>
+  personnel?: boolean | Prisma.TeacherPayslip$personnelArgs<ExtArgs>
   schoolYear?: boolean | Prisma.TeacherPayslip$schoolYearArgs<ExtArgs>
   policy?: boolean | Prisma.TeacherPayslip$policyArgs<ExtArgs>
   exchangeRate?: boolean | Prisma.TeacherPayslip$exchangeRateArgs<ExtArgs>
 }
 export type TeacherPayslipIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
-  teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
+  branchMember?: boolean | Prisma.BranchMemberDefaultArgs<ExtArgs>
+  teacher?: boolean | Prisma.TeacherPayslip$teacherArgs<ExtArgs>
+  personnel?: boolean | Prisma.TeacherPayslip$personnelArgs<ExtArgs>
   schoolYear?: boolean | Prisma.TeacherPayslip$schoolYearArgs<ExtArgs>
   policy?: boolean | Prisma.TeacherPayslip$policyArgs<ExtArgs>
   exchangeRate?: boolean | Prisma.TeacherPayslip$exchangeRateArgs<ExtArgs>
@@ -2271,16 +3161,25 @@ export type $TeacherPayslipPayload<ExtArgs extends runtime.Types.Extensions.Inte
   name: "TeacherPayslip"
   objects: {
     branch: Prisma.$BranchPayload<ExtArgs>
-    teacher: Prisma.$TeacherPayload<ExtArgs>
+    branchMember: Prisma.$BranchMemberPayload<ExtArgs>
+    teacher: Prisma.$TeacherPayload<ExtArgs> | null
+    personnel: Prisma.$PersonnelPayload<ExtArgs> | null
     schoolYear: Prisma.$SchoolYearPayload<ExtArgs> | null
     policy: Prisma.$BranchPayrollPolicyPayload<ExtArgs> | null
     exchangeRate: Prisma.$ExchangeRatePayload<ExtArgs> | null
     lines: Prisma.$TeacherPayslipLinePayload<ExtArgs>[]
+    advanceInstallments: Prisma.$SalaryAdvanceInstallmentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     branchId: string
-    teacherId: string
+    /**
+     * Identité unique de l’agent dans la branche (enseignant et/ou personnel).
+     */
+    branchMemberId: string
+    teacherId: string | null
+    personnelId: string | null
+    agentKind: $Enums.PayrollAgentKind
     schoolYearId: string | null
     policyId: string | null
     year: number
@@ -2696,11 +3595,14 @@ readonly fields: TeacherPayslipFieldRefs;
 export interface Prisma__TeacherPayslipClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  teacher<T extends Prisma.TeacherDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeacherDefaultArgs<ExtArgs>>): Prisma.Prisma__TeacherClient<runtime.Types.Result.GetResult<Prisma.$TeacherPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  branchMember<T extends Prisma.BranchMemberDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchMemberDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchMemberClient<runtime.Types.Result.GetResult<Prisma.$BranchMemberPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  teacher<T extends Prisma.TeacherPayslip$teacherArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeacherPayslip$teacherArgs<ExtArgs>>): Prisma.Prisma__TeacherClient<runtime.Types.Result.GetResult<Prisma.$TeacherPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  personnel<T extends Prisma.TeacherPayslip$personnelArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeacherPayslip$personnelArgs<ExtArgs>>): Prisma.Prisma__PersonnelClient<runtime.Types.Result.GetResult<Prisma.$PersonnelPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   schoolYear<T extends Prisma.TeacherPayslip$schoolYearArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeacherPayslip$schoolYearArgs<ExtArgs>>): Prisma.Prisma__SchoolYearClient<runtime.Types.Result.GetResult<Prisma.$SchoolYearPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   policy<T extends Prisma.TeacherPayslip$policyArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeacherPayslip$policyArgs<ExtArgs>>): Prisma.Prisma__BranchPayrollPolicyClient<runtime.Types.Result.GetResult<Prisma.$BranchPayrollPolicyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   exchangeRate<T extends Prisma.TeacherPayslip$exchangeRateArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeacherPayslip$exchangeRateArgs<ExtArgs>>): Prisma.Prisma__ExchangeRateClient<runtime.Types.Result.GetResult<Prisma.$ExchangeRatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   lines<T extends Prisma.TeacherPayslip$linesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeacherPayslip$linesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeacherPayslipLinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  advanceInstallments<T extends Prisma.TeacherPayslip$advanceInstallmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeacherPayslip$advanceInstallmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalaryAdvanceInstallmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2732,7 +3634,10 @@ export interface Prisma__TeacherPayslipClient<T, Null = never, ExtArgs extends r
 export interface TeacherPayslipFieldRefs {
   readonly id: Prisma.FieldRef<"TeacherPayslip", 'String'>
   readonly branchId: Prisma.FieldRef<"TeacherPayslip", 'String'>
+  readonly branchMemberId: Prisma.FieldRef<"TeacherPayslip", 'String'>
   readonly teacherId: Prisma.FieldRef<"TeacherPayslip", 'String'>
+  readonly personnelId: Prisma.FieldRef<"TeacherPayslip", 'String'>
+  readonly agentKind: Prisma.FieldRef<"TeacherPayslip", 'PayrollAgentKind'>
   readonly schoolYearId: Prisma.FieldRef<"TeacherPayslip", 'String'>
   readonly policyId: Prisma.FieldRef<"TeacherPayslip", 'String'>
   readonly year: Prisma.FieldRef<"TeacherPayslip", 'Int'>
@@ -3154,6 +4059,44 @@ export type TeacherPayslipDeleteManyArgs<ExtArgs extends runtime.Types.Extension
 }
 
 /**
+ * TeacherPayslip.teacher
+ */
+export type TeacherPayslip$teacherArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Teacher
+   */
+  select?: Prisma.TeacherSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Teacher
+   */
+  omit?: Prisma.TeacherOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TeacherInclude<ExtArgs> | null
+  where?: Prisma.TeacherWhereInput
+}
+
+/**
+ * TeacherPayslip.personnel
+ */
+export type TeacherPayslip$personnelArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Personnel
+   */
+  select?: Prisma.PersonnelSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Personnel
+   */
+  omit?: Prisma.PersonnelOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PersonnelInclude<ExtArgs> | null
+  where?: Prisma.PersonnelWhereInput
+}
+
+/**
  * TeacherPayslip.schoolYear
  */
 export type TeacherPayslip$schoolYearArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3232,6 +4175,30 @@ export type TeacherPayslip$linesArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.TeacherPayslipLineScalarFieldEnum | Prisma.TeacherPayslipLineScalarFieldEnum[]
+}
+
+/**
+ * TeacherPayslip.advanceInstallments
+ */
+export type TeacherPayslip$advanceInstallmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SalaryAdvanceInstallment
+   */
+  select?: Prisma.SalaryAdvanceInstallmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SalaryAdvanceInstallment
+   */
+  omit?: Prisma.SalaryAdvanceInstallmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SalaryAdvanceInstallmentInclude<ExtArgs> | null
+  where?: Prisma.SalaryAdvanceInstallmentWhereInput
+  orderBy?: Prisma.SalaryAdvanceInstallmentOrderByWithRelationInput | Prisma.SalaryAdvanceInstallmentOrderByWithRelationInput[]
+  cursor?: Prisma.SalaryAdvanceInstallmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SalaryAdvanceInstallmentScalarFieldEnum | Prisma.SalaryAdvanceInstallmentScalarFieldEnum[]
 }
 
 /**

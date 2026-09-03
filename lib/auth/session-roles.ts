@@ -196,7 +196,7 @@ export function canAccessFinanceOversight(
   );
 }
 
-/** Paie enseignants : lecture pour direction, caisse et enseignant. */
+/** Paie du personnel : lecture pour le propriétaire uniquement. */
 export function canAccessPayrollArea(
   session: any,
   ...extraRoles: unknown[]

@@ -5,6 +5,7 @@ export const CASHIER_EXPENSE_CATEGORIES = [
   "Dépôt promoteur",
   "Paiement des personnels",
   "Paiement salaire",
+  "Avance sur salaire",
   "Fournitures scolaires",
   "Entretien et maintenance",
   "Carburant",

@@ -36,13 +36,23 @@ type Payslip = {
   deductions: number;
   net: number;
   status: string;
+  agentKind?: string;
   teacher: {
     employmentKind: string;
     matriculeEtat: string | null;
     branchMember: {
       member: { user: { name: string; postnom: string | null; prenom: string | null } };
     } | null;
-  };
+  } | null;
+  personnel?: {
+    monthlyForfait?: number | null;
+    branchMember?: {
+      member?: { user?: { name?: string | null; postnom?: string | null; prenom?: string | null } | null } | null;
+    } | null;
+  } | null;
+  branchMember?: {
+    member?: { user?: { name?: string | null; postnom?: string | null; prenom?: string | null } | null } | null;
+  } | null;
   lines: Array<{
     id: string;
     occurredOn: string | null;
@@ -110,6 +120,7 @@ const KIND_LABELS: Record<string, string> = {
   LATE: "Retard",
   EARLY_EXIT: "Sortie anticipée",
   ADJUSTMENT: "Ajustement",
+  ADVANCE: "Avance sur salaire",
 };
 
 function formatAmount(value: number, currency: string) {
@@ -164,13 +175,31 @@ export default function PayslipDetailClient({
   } | null>(null);
   const [working, setWorking] = useState(false);
 
-  const user = payslip.teacher.branchMember?.member.user;
+  const user =
+    payslip.branchMember?.member?.user ??
+    payslip.teacher?.branchMember?.member?.user ??
+    payslip.personnel?.branchMember?.member?.user;
   const name = [user?.name, user?.postnom, user?.prenom].filter(Boolean).join(" ");
-  const sessionLines = payslip.lines.filter((line) => line.kind !== "GROSS" || line.detail || line.occurredOn);
+  const sessionLines = payslip.lines.filter(
+    (line) =>
+      line.kind !== "ADVANCE" &&
+      (line.kind !== "GROSS" || line.detail || line.occurredOn),
+  );
+  const advanceLines = payslip.lines.filter((line) => line.kind === "ADVANCE");
   const summaryLine = payslip.lines.find(
     (line) => line.kind === "GROSS" && !line.occurredOn && !line.detail,
   );
-  const isMatricule = payslip.teacher.employmentKind === "MATRICULE";
+  const isPersonnel = payslip.agentKind === "PERSONNEL" || !payslip.teacher;
+  const isMatricule = payslip.teacher?.employmentKind === "MATRICULE";
+  const contractLabel = isPersonnel
+    ? "Personnel · forfait"
+    : isMatricule
+      ? payslip.agentKind === "BOTH"
+        ? "Matriculé État + forfait"
+        : "Matriculé État"
+      : payslip.agentKind === "BOTH"
+        ? "Non matriculé + forfait"
+        : "Non matriculé";
   const statusMeta = PAYSLIP_STATUS[payslip.status] ?? {
     label: payslip.status,
     className: "border-border bg-muted text-foreground",
@@ -216,7 +245,7 @@ export default function PayslipDetailClient({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0 space-y-2">
               <CardTitle className="text-xl tracking-tight">
-                {name || "Enseignant"}
+                {name || "Agent"}
               </CardTitle>
               <p className="text-sm font-medium text-primary/90">
                 Bulletin · {periodLabel}
@@ -231,9 +260,9 @@ export default function PayslipDetailClient({
                       : "border-violet-300/70 bg-violet-50 text-violet-800 dark:bg-violet-950/40 dark:text-violet-300",
                   )}
                 >
-                  {isMatricule ? "Matriculé État" : "Non matriculé"}
+                  {contractLabel}
                 </Badge>
-                {payslip.teacher.matriculeEtat ? (
+                {payslip.teacher?.matriculeEtat ? (
                   <Badge
                     variant="outline"
                     className="border-slate-300/70 bg-slate-50 font-mono text-[11px] text-slate-700 dark:bg-slate-900/50 dark:text-slate-300"
@@ -285,6 +314,18 @@ export default function PayslipDetailClient({
                 {formatAmount(summaryLine.amount, payslip.currency)}
               </span>
             </div>
+          ) : null}
+          {advanceLines.length > 0 ? (
+            <ul className="mt-3 space-y-1.5 rounded-lg border border-amber-200/80 bg-amber-50/70 px-3 py-2.5 text-sm dark:border-amber-900 dark:bg-amber-950/30">
+              {advanceLines.map((line) => (
+                <li key={line.id} className="flex flex-wrap justify-between gap-2">
+                  <span>{line.label}</span>
+                  <span className="font-semibold text-amber-900 dark:text-amber-200">
+                    − {formatAmount(line.amount, payslip.currency)}
+                  </span>
+                </li>
+              ))}
+            </ul>
           ) : null}
         </CardContent>
       </Card>

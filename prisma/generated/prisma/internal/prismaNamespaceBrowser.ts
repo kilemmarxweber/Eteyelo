@@ -98,6 +98,8 @@ export const ModelName = {
   BranchPayrollPolicy: 'BranchPayrollPolicy',
   TeacherPayslip: 'TeacherPayslip',
   TeacherPayslipLine: 'TeacherPayslipLine',
+  SalaryAdvance: 'SalaryAdvance',
+  SalaryAdvanceInstallment: 'SalaryAdvanceInstallment',
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification',
@@ -331,6 +333,9 @@ export const PersonnelScalarFieldEnum = {
   branchMemberId: 'branchMemberId',
   isActive: 'isActive',
   deactivatedAt: 'deactivatedAt',
+  monthlyForfait: 'monthlyForfait',
+  payrollStartedOn: 'payrollStartedOn',
+  canRequestSalaryAdvance: 'canRequestSalaryAdvance',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -485,7 +490,8 @@ export const TeacherScalarFieldEnum = {
   updatedAt: 'updatedAt',
   employmentKind: 'employmentKind',
   matriculeEtat: 'matriculeEtat',
-  payrollStartedOn: 'payrollStartedOn'
+  payrollStartedOn: 'payrollStartedOn',
+  canRequestSalaryAdvance: 'canRequestSalaryAdvance'
 } as const
 
 export type TeacherScalarFieldEnum = (typeof TeacherScalarFieldEnum)[keyof typeof TeacherScalarFieldEnum]
@@ -939,7 +945,10 @@ export type BranchPayrollPolicyScalarFieldEnum = (typeof BranchPayrollPolicyScal
 export const TeacherPayslipScalarFieldEnum = {
   id: 'id',
   branchId: 'branchId',
+  branchMemberId: 'branchMemberId',
   teacherId: 'teacherId',
+  personnelId: 'personnelId',
+  agentKind: 'agentKind',
   schoolYearId: 'schoolYearId',
   policyId: 'policyId',
   year: 'year',
@@ -981,6 +990,46 @@ export const TeacherPayslipLineScalarFieldEnum = {
 } as const
 
 export type TeacherPayslipLineScalarFieldEnum = (typeof TeacherPayslipLineScalarFieldEnum)[keyof typeof TeacherPayslipLineScalarFieldEnum]
+
+
+export const SalaryAdvanceScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  teacherId: 'teacherId',
+  personnelId: 'personnelId',
+  amount: 'amount',
+  installmentCount: 'installmentCount',
+  currency: 'currency',
+  reason: 'reason',
+  status: 'status',
+  firstYear: 'firstYear',
+  firstMonth: 'firstMonth',
+  expenseRef: 'expenseRef',
+  requestedById: 'requestedById',
+  reviewedById: 'reviewedById',
+  reviewedAt: 'reviewedAt',
+  reviewNote: 'reviewNote',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SalaryAdvanceScalarFieldEnum = (typeof SalaryAdvanceScalarFieldEnum)[keyof typeof SalaryAdvanceScalarFieldEnum]
+
+
+export const SalaryAdvanceInstallmentScalarFieldEnum = {
+  id: 'id',
+  advanceId: 'advanceId',
+  sequence: 'sequence',
+  year: 'year',
+  month: 'month',
+  amount: 'amount',
+  status: 'status',
+  payslipId: 'payslipId',
+  deductedAt: 'deductedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type SalaryAdvanceInstallmentScalarFieldEnum = (typeof SalaryAdvanceInstallmentScalarFieldEnum)[keyof typeof SalaryAdvanceInstallmentScalarFieldEnum]
 
 
 export const SessionScalarFieldEnum = {

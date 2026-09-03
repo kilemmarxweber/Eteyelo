@@ -124,7 +124,7 @@ export const createPersonnelAction = action
   .input(userSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await requireHrWriteBranchContext();
-    const { ...data } = input;
+    const { monthlyForfait, ...data } = input;
     const count = await prisma.personnel.count();
     const emailLower = isValidEmail(data.email)
       ? data.email.toLowerCase()
@@ -187,6 +187,20 @@ export const createPersonnelAction = action
         personnel = await prisma.personnel.create({
           data: {
             branchMemberId,
+            monthlyForfait:
+              typeof monthlyForfait === "number" ? monthlyForfait : null,
+            payrollStartedOn:
+              typeof monthlyForfait === "number" && monthlyForfait > 0
+                ? new Date()
+                : null,
+          },
+        });
+      } else if (typeof monthlyForfait === "number") {
+        personnel = await prisma.personnel.update({
+          where: { id: personnel.id },
+          data: {
+            monthlyForfait,
+            payrollStartedOn: personnel.payrollStartedOn ?? new Date(),
           },
         });
       }
@@ -610,6 +624,8 @@ export const getPersonnelsAction = action.handler(
           personnel.isActive && (personnel.branchMember?.isActive ?? true),
         alsoTeacher,
 
+        monthlyForfait: personnel.monthlyForfait,
+
         // metadata
         createdAt: personnel.createdAt,
         updatedAt: personnel.updatedAt,
@@ -693,6 +709,20 @@ export const updatePersonnelAction = action
         branchId,
         orgRole,
         cycles: data.cycles,
+      });
+    }
+
+    if (data.monthlyForfait !== undefined) {
+      await prisma.personnel.update({
+        where: { id: personnel.id },
+        data: {
+          monthlyForfait: data.monthlyForfait,
+          payrollStartedOn:
+            personnel.payrollStartedOn ??
+            (data.monthlyForfait && data.monthlyForfait > 0
+              ? new Date()
+              : personnel.payrollStartedOn),
+        },
       });
     }
 

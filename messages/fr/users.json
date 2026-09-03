@@ -578,6 +578,9 @@
       "chooseRole": "Choisir un rôle",
       "searchRole": "Rechercher un rôle…",
       "noRoleFound": "Aucun rôle trouvé.",
+      "monthlyForfait": "Forfait mensuel",
+      "monthlyForfaitPlaceholder": "50000",
+      "monthlyForfaitHint": "Salaire connu dans la devise de base (ex. 50 000 AOA).",
       "selectCycle": "Sélectionnez au moins un cycle.",
       "chooseImage": "Choisissez une image (JPEG, PNG, WebP…).",
       "imageTooLarge": "Image trop volumineuse (max. 5 Mo).",
@@ -616,6 +619,7 @@
     "table": {
       "photo": "Photo",
       "role": "Rôle",
+      "monthlyForfait": "Forfait",
       "cycles": "Cycles",
       "edit": "Modifier",
       "details": "Détails",

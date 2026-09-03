@@ -3,6 +3,7 @@ import "server-only";
 import { Prisma } from "@/prisma/generated/prisma/client";
 
 export const PAYROLL_SALARY_CATEGORY = "Paiement salaire";
+export const PAYROLL_ADVANCE_CATEGORY = "Avance sur salaire";
 
 const MONTHS_FR = [
   "janvier",
@@ -56,7 +57,7 @@ export function payrollSalaryExpenseDescription(params: {
   year: number;
 }) {
   const monthLabel = MONTHS_FR[params.month - 1] ?? String(params.month);
-  const name = params.teacherName.trim() || "enseignant";
+  const name = params.teacherName.trim() || "agent";
   return `Paiement salaire · ${name} · ${monthLabel} ${params.year}`;
 }
 
@@ -126,6 +127,82 @@ export async function recordPayslipSalaryExpense(
     });
     if (conflict) {
       return { created: false, skipped: false, expenseId: conflict.id };
+    }
+    throw error;
+  }
+}
+
+export function salaryAdvanceTransactionRef(advanceId: string) {
+  return `ADV-${advanceId}`;
+}
+
+export function salaryAdvanceExpenseDescription(params: {
+  teacherName: string;
+  installmentCount: number;
+}) {
+  const name = params.teacherName.trim() || "agent";
+  const sessions =
+    params.installmentCount > 1
+      ? `${params.installmentCount} séances`
+      : "1 séance";
+  return `Avance sur salaire · ${name} · ${sessions}`;
+}
+
+/** Crée la dépense caisse de l’avance, ou la réutilise si elle existe déjà. */
+export async function recordSalaryAdvanceExpense(
+  db: ExpenseDb,
+  params: {
+    branchId: string;
+    userId: string;
+    advanceId: string;
+    amount: number;
+    teacherName: string;
+    installmentCount: number;
+  },
+): Promise<{ transactionRef: string; expenseId: string }> {
+  const transactionRef = salaryAdvanceTransactionRef(params.advanceId);
+  const existing = await db.cashierExpense.findUnique({
+    where: {
+      branchId_transactionRef: {
+        branchId: params.branchId,
+        transactionRef,
+      },
+    },
+    select: { id: true },
+  });
+  if (existing) {
+    return { transactionRef, expenseId: existing.id };
+  }
+
+  try {
+    await db.transaction.create({
+      data: { reference: transactionRef, branchId: params.branchId },
+    });
+    const expense = await db.cashierExpense.create({
+      data: {
+        amount: params.amount,
+        transactionRef,
+        description: salaryAdvanceExpenseDescription(params),
+        category: PAYROLL_ADVANCE_CATEGORY,
+        branchId: params.branchId,
+        createdByUserId: params.userId,
+      },
+      select: { id: true },
+    });
+    return { transactionRef, expenseId: expense.id };
+  } catch (error) {
+    if (!isUniqueConflict(error)) throw error;
+    const conflict = await db.cashierExpense.findUnique({
+      where: {
+        branchId_transactionRef: {
+          branchId: params.branchId,
+          transactionRef,
+        },
+      },
+      select: { id: true },
+    });
+    if (conflict) {
+      return { transactionRef, expenseId: conflict.id };
     }
     throw error;
   }

@@ -34,6 +34,7 @@ export type TeacherMinAggregateOutputType = {
   employmentKind: $Enums.TeacherEmploymentKind | null
   matriculeEtat: string | null
   payrollStartedOn: Date | null
+  canRequestSalaryAdvance: boolean | null
 }
 
 export type TeacherMaxAggregateOutputType = {
@@ -46,6 +47,7 @@ export type TeacherMaxAggregateOutputType = {
   employmentKind: $Enums.TeacherEmploymentKind | null
   matriculeEtat: string | null
   payrollStartedOn: Date | null
+  canRequestSalaryAdvance: boolean | null
 }
 
 export type TeacherCountAggregateOutputType = {
@@ -58,6 +60,7 @@ export type TeacherCountAggregateOutputType = {
   employmentKind: number
   matriculeEtat: number
   payrollStartedOn: number
+  canRequestSalaryAdvance: number
   _all: number
 }
 
@@ -72,6 +75,7 @@ export type TeacherMinAggregateInputType = {
   employmentKind?: true
   matriculeEtat?: true
   payrollStartedOn?: true
+  canRequestSalaryAdvance?: true
 }
 
 export type TeacherMaxAggregateInputType = {
@@ -84,6 +88,7 @@ export type TeacherMaxAggregateInputType = {
   employmentKind?: true
   matriculeEtat?: true
   payrollStartedOn?: true
+  canRequestSalaryAdvance?: true
 }
 
 export type TeacherCountAggregateInputType = {
@@ -96,6 +101,7 @@ export type TeacherCountAggregateInputType = {
   employmentKind?: true
   matriculeEtat?: true
   payrollStartedOn?: true
+  canRequestSalaryAdvance?: true
   _all?: true
 }
 
@@ -181,6 +187,7 @@ export type TeacherGroupByOutputType = {
   employmentKind: $Enums.TeacherEmploymentKind
   matriculeEtat: string | null
   payrollStartedOn: Date | null
+  canRequestSalaryAdvance: boolean
   _count: TeacherCountAggregateOutputType | null
   _min: TeacherMinAggregateOutputType | null
   _max: TeacherMaxAggregateOutputType | null
@@ -214,6 +221,7 @@ export type TeacherWhereInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFilter<"Teacher"> | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.StringNullableFilter<"Teacher"> | string | null
   payrollStartedOn?: Prisma.DateTimeNullableFilter<"Teacher"> | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFilter<"Teacher"> | boolean
   teaching?: Prisma.TeachingListRelationFilter
   branchMember?: Prisma.XOR<Prisma.BranchMemberNullableScalarRelationFilter, Prisma.BranchMemberWhereInput> | null
   fiche?: Prisma.FicheListRelationFilter
@@ -222,6 +230,7 @@ export type TeacherWhereInput = {
   onlineAssignments?: Prisma.OnlineAssignmentListRelationFilter
   profileDocuments?: Prisma.TeacherProfileDocumentListRelationFilter
   payslips?: Prisma.TeacherPayslipListRelationFilter
+  salaryAdvances?: Prisma.SalaryAdvanceListRelationFilter
 }
 
 export type TeacherOrderByWithRelationInput = {
@@ -234,6 +243,7 @@ export type TeacherOrderByWithRelationInput = {
   employmentKind?: Prisma.SortOrder
   matriculeEtat?: Prisma.SortOrderInput | Prisma.SortOrder
   payrollStartedOn?: Prisma.SortOrderInput | Prisma.SortOrder
+  canRequestSalaryAdvance?: Prisma.SortOrder
   teaching?: Prisma.TeachingOrderByRelationAggregateInput
   branchMember?: Prisma.BranchMemberOrderByWithRelationInput
   fiche?: Prisma.ficheOrderByRelationAggregateInput
@@ -242,6 +252,7 @@ export type TeacherOrderByWithRelationInput = {
   onlineAssignments?: Prisma.OnlineAssignmentOrderByRelationAggregateInput
   profileDocuments?: Prisma.TeacherProfileDocumentOrderByRelationAggregateInput
   payslips?: Prisma.TeacherPayslipOrderByRelationAggregateInput
+  salaryAdvances?: Prisma.SalaryAdvanceOrderByRelationAggregateInput
 }
 
 export type TeacherWhereUniqueInput = Prisma.AtLeast<{
@@ -257,6 +268,7 @@ export type TeacherWhereUniqueInput = Prisma.AtLeast<{
   employmentKind?: Prisma.EnumTeacherEmploymentKindFilter<"Teacher"> | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.StringNullableFilter<"Teacher"> | string | null
   payrollStartedOn?: Prisma.DateTimeNullableFilter<"Teacher"> | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFilter<"Teacher"> | boolean
   teaching?: Prisma.TeachingListRelationFilter
   branchMember?: Prisma.XOR<Prisma.BranchMemberNullableScalarRelationFilter, Prisma.BranchMemberWhereInput> | null
   fiche?: Prisma.FicheListRelationFilter
@@ -265,6 +277,7 @@ export type TeacherWhereUniqueInput = Prisma.AtLeast<{
   onlineAssignments?: Prisma.OnlineAssignmentListRelationFilter
   profileDocuments?: Prisma.TeacherProfileDocumentListRelationFilter
   payslips?: Prisma.TeacherPayslipListRelationFilter
+  salaryAdvances?: Prisma.SalaryAdvanceListRelationFilter
 }, "id" | "branchMemberId">
 
 export type TeacherOrderByWithAggregationInput = {
@@ -277,6 +290,7 @@ export type TeacherOrderByWithAggregationInput = {
   employmentKind?: Prisma.SortOrder
   matriculeEtat?: Prisma.SortOrderInput | Prisma.SortOrder
   payrollStartedOn?: Prisma.SortOrderInput | Prisma.SortOrder
+  canRequestSalaryAdvance?: Prisma.SortOrder
   _count?: Prisma.TeacherCountOrderByAggregateInput
   _max?: Prisma.TeacherMaxOrderByAggregateInput
   _min?: Prisma.TeacherMinOrderByAggregateInput
@@ -295,6 +309,7 @@ export type TeacherScalarWhereWithAggregatesInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindWithAggregatesFilter<"Teacher"> | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.StringNullableWithAggregatesFilter<"Teacher"> | string | null
   payrollStartedOn?: Prisma.DateTimeNullableWithAggregatesFilter<"Teacher"> | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolWithAggregatesFilter<"Teacher"> | boolean
 }
 
 export type TeacherCreateInput = {
@@ -306,6 +321,7 @@ export type TeacherCreateInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutTeacherInput
   fiche?: Prisma.ficheCreateNestedManyWithoutTeacherInput
@@ -314,6 +330,7 @@ export type TeacherCreateInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateInput = {
@@ -326,6 +343,7 @@ export type TeacherUncheckedCreateInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutTeacherInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutTeacherInput
@@ -333,6 +351,7 @@ export type TeacherUncheckedCreateInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUpdateInput = {
@@ -344,6 +363,7 @@ export type TeacherUpdateInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
   branchMember?: Prisma.BranchMemberUpdateOneWithoutTeacherNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutTeacherNestedInput
@@ -352,6 +372,7 @@ export type TeacherUpdateInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateInput = {
@@ -364,6 +385,7 @@ export type TeacherUncheckedUpdateInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutTeacherNestedInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutTeacherNestedInput
@@ -371,6 +393,7 @@ export type TeacherUncheckedUpdateInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateManyInput = {
@@ -383,6 +406,7 @@ export type TeacherCreateManyInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
 }
 
 export type TeacherUpdateManyMutationInput = {
@@ -394,6 +418,7 @@ export type TeacherUpdateManyMutationInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type TeacherUncheckedUpdateManyInput = {
@@ -406,6 +431,7 @@ export type TeacherUncheckedUpdateManyInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type TeacherNullableScalarRelationFilter = {
@@ -428,6 +454,7 @@ export type TeacherCountOrderByAggregateInput = {
   employmentKind?: Prisma.SortOrder
   matriculeEtat?: Prisma.SortOrder
   payrollStartedOn?: Prisma.SortOrder
+  canRequestSalaryAdvance?: Prisma.SortOrder
 }
 
 export type TeacherMaxOrderByAggregateInput = {
@@ -440,6 +467,7 @@ export type TeacherMaxOrderByAggregateInput = {
   employmentKind?: Prisma.SortOrder
   matriculeEtat?: Prisma.SortOrder
   payrollStartedOn?: Prisma.SortOrder
+  canRequestSalaryAdvance?: Prisma.SortOrder
 }
 
 export type TeacherMinOrderByAggregateInput = {
@@ -452,6 +480,7 @@ export type TeacherMinOrderByAggregateInput = {
   employmentKind?: Prisma.SortOrder
   matriculeEtat?: Prisma.SortOrder
   payrollStartedOn?: Prisma.SortOrder
+  canRequestSalaryAdvance?: Prisma.SortOrder
 }
 
 export type TeacherListRelationFilter = {
@@ -548,12 +577,30 @@ export type TeacherCreateNestedOneWithoutPayslipsInput = {
   connect?: Prisma.TeacherWhereUniqueInput
 }
 
-export type TeacherUpdateOneRequiredWithoutPayslipsNestedInput = {
+export type TeacherUpdateOneWithoutPayslipsNestedInput = {
   create?: Prisma.XOR<Prisma.TeacherCreateWithoutPayslipsInput, Prisma.TeacherUncheckedCreateWithoutPayslipsInput>
   connectOrCreate?: Prisma.TeacherCreateOrConnectWithoutPayslipsInput
   upsert?: Prisma.TeacherUpsertWithoutPayslipsInput
+  disconnect?: Prisma.TeacherWhereInput | boolean
+  delete?: Prisma.TeacherWhereInput | boolean
   connect?: Prisma.TeacherWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.TeacherUpdateToOneWithWhereWithoutPayslipsInput, Prisma.TeacherUpdateWithoutPayslipsInput>, Prisma.TeacherUncheckedUpdateWithoutPayslipsInput>
+}
+
+export type TeacherCreateNestedOneWithoutSalaryAdvancesInput = {
+  create?: Prisma.XOR<Prisma.TeacherCreateWithoutSalaryAdvancesInput, Prisma.TeacherUncheckedCreateWithoutSalaryAdvancesInput>
+  connectOrCreate?: Prisma.TeacherCreateOrConnectWithoutSalaryAdvancesInput
+  connect?: Prisma.TeacherWhereUniqueInput
+}
+
+export type TeacherUpdateOneWithoutSalaryAdvancesNestedInput = {
+  create?: Prisma.XOR<Prisma.TeacherCreateWithoutSalaryAdvancesInput, Prisma.TeacherUncheckedCreateWithoutSalaryAdvancesInput>
+  connectOrCreate?: Prisma.TeacherCreateOrConnectWithoutSalaryAdvancesInput
+  upsert?: Prisma.TeacherUpsertWithoutSalaryAdvancesInput
+  disconnect?: Prisma.TeacherWhereInput | boolean
+  delete?: Prisma.TeacherWhereInput | boolean
+  connect?: Prisma.TeacherWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TeacherUpdateToOneWithWhereWithoutSalaryAdvancesInput, Prisma.TeacherUpdateWithoutSalaryAdvancesInput>, Prisma.TeacherUncheckedUpdateWithoutSalaryAdvancesInput>
 }
 
 export type TeacherCreateNestedManyWithoutBranchMemberInput = {
@@ -621,6 +668,7 @@ export type TeacherCreateWithoutAttendanceSessionInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutTeacherInput
   fiche?: Prisma.ficheCreateNestedManyWithoutTeacherInput
@@ -628,6 +676,7 @@ export type TeacherCreateWithoutAttendanceSessionInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutAttendanceSessionInput = {
@@ -640,12 +689,14 @@ export type TeacherUncheckedCreateWithoutAttendanceSessionInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutTeacherInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutTeacherInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutAttendanceSessionInput = {
@@ -673,6 +724,7 @@ export type TeacherUpdateWithoutAttendanceSessionInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
   branchMember?: Prisma.BranchMemberUpdateOneWithoutTeacherNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutTeacherNestedInput
@@ -680,6 +732,7 @@ export type TeacherUpdateWithoutAttendanceSessionInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutAttendanceSessionInput = {
@@ -692,12 +745,14 @@ export type TeacherUncheckedUpdateWithoutAttendanceSessionInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutTeacherNestedInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutTeacherNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateWithoutTeacherAttendanceInput = {
@@ -709,6 +764,7 @@ export type TeacherCreateWithoutTeacherAttendanceInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutTeacherInput
   fiche?: Prisma.ficheCreateNestedManyWithoutTeacherInput
@@ -716,6 +772,7 @@ export type TeacherCreateWithoutTeacherAttendanceInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutTeacherAttendanceInput = {
@@ -728,12 +785,14 @@ export type TeacherUncheckedCreateWithoutTeacherAttendanceInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutTeacherInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutValidatedByTeacherInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutTeacherAttendanceInput = {
@@ -761,6 +820,7 @@ export type TeacherUpdateWithoutTeacherAttendanceInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
   branchMember?: Prisma.BranchMemberUpdateOneWithoutTeacherNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutTeacherNestedInput
@@ -768,6 +828,7 @@ export type TeacherUpdateWithoutTeacherAttendanceInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutTeacherAttendanceInput = {
@@ -780,12 +841,14 @@ export type TeacherUncheckedUpdateWithoutTeacherAttendanceInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutTeacherNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutValidatedByTeacherNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateWithoutProfileDocumentsInput = {
@@ -797,6 +860,7 @@ export type TeacherCreateWithoutProfileDocumentsInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutTeacherInput
   fiche?: Prisma.ficheCreateNestedManyWithoutTeacherInput
@@ -804,6 +868,7 @@ export type TeacherCreateWithoutProfileDocumentsInput = {
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutValidatedByTeacherInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutProfileDocumentsInput = {
@@ -816,12 +881,14 @@ export type TeacherUncheckedCreateWithoutProfileDocumentsInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutTeacherInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutTeacherInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutValidatedByTeacherInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutProfileDocumentsInput = {
@@ -849,6 +916,7 @@ export type TeacherUpdateWithoutProfileDocumentsInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
   branchMember?: Prisma.BranchMemberUpdateOneWithoutTeacherNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutTeacherNestedInput
@@ -856,6 +924,7 @@ export type TeacherUpdateWithoutProfileDocumentsInput = {
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutValidatedByTeacherNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutProfileDocumentsInput = {
@@ -868,12 +937,14 @@ export type TeacherUncheckedUpdateWithoutProfileDocumentsInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutTeacherNestedInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutTeacherNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutValidatedByTeacherNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateWithoutTeachingInput = {
@@ -885,6 +956,7 @@ export type TeacherCreateWithoutTeachingInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutTeacherInput
   fiche?: Prisma.ficheCreateNestedManyWithoutTeacherInput
   teacherAttendance?: Prisma.TeacherAttendanceCreateNestedManyWithoutTeacherInput
@@ -892,6 +964,7 @@ export type TeacherCreateWithoutTeachingInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutTeachingInput = {
@@ -904,12 +977,14 @@ export type TeacherUncheckedCreateWithoutTeachingInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutTeacherInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutTeacherInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutValidatedByTeacherInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutTeachingInput = {
@@ -937,6 +1012,7 @@ export type TeacherUpdateWithoutTeachingInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   branchMember?: Prisma.BranchMemberUpdateOneWithoutTeacherNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutTeacherNestedInput
   teacherAttendance?: Prisma.TeacherAttendanceUpdateManyWithoutTeacherNestedInput
@@ -944,6 +1020,7 @@ export type TeacherUpdateWithoutTeachingInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutTeachingInput = {
@@ -956,12 +1033,14 @@ export type TeacherUncheckedUpdateWithoutTeachingInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutTeacherNestedInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutTeacherNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutValidatedByTeacherNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateWithoutFicheInput = {
@@ -973,6 +1052,7 @@ export type TeacherCreateWithoutFicheInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutTeacherInput
   teacherAttendance?: Prisma.TeacherAttendanceCreateNestedManyWithoutTeacherInput
@@ -980,6 +1060,7 @@ export type TeacherCreateWithoutFicheInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutFicheInput = {
@@ -992,12 +1073,14 @@ export type TeacherUncheckedCreateWithoutFicheInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutTeacherInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutValidatedByTeacherInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutFicheInput = {
@@ -1025,6 +1108,7 @@ export type TeacherUpdateWithoutFicheInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
   branchMember?: Prisma.BranchMemberUpdateOneWithoutTeacherNestedInput
   teacherAttendance?: Prisma.TeacherAttendanceUpdateManyWithoutTeacherNestedInput
@@ -1032,6 +1116,7 @@ export type TeacherUpdateWithoutFicheInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutFicheInput = {
@@ -1044,12 +1129,14 @@ export type TeacherUncheckedUpdateWithoutFicheInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutTeacherNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutValidatedByTeacherNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateWithoutPayslipsInput = {
@@ -1061,6 +1148,7 @@ export type TeacherCreateWithoutPayslipsInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutTeacherInput
   fiche?: Prisma.ficheCreateNestedManyWithoutTeacherInput
@@ -1068,6 +1156,7 @@ export type TeacherCreateWithoutPayslipsInput = {
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutValidatedByTeacherInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutPayslipsInput = {
@@ -1080,12 +1169,14 @@ export type TeacherUncheckedCreateWithoutPayslipsInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutTeacherInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutTeacherInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutValidatedByTeacherInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutPayslipsInput = {
@@ -1113,6 +1204,7 @@ export type TeacherUpdateWithoutPayslipsInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
   branchMember?: Prisma.BranchMemberUpdateOneWithoutTeacherNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutTeacherNestedInput
@@ -1120,6 +1212,7 @@ export type TeacherUpdateWithoutPayslipsInput = {
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutValidatedByTeacherNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutPayslipsInput = {
@@ -1132,12 +1225,110 @@ export type TeacherUncheckedUpdateWithoutPayslipsInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutTeacherNestedInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutTeacherNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutValidatedByTeacherNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
+}
+
+export type TeacherCreateWithoutSalaryAdvancesInput = {
+  id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  employmentKind?: $Enums.TeacherEmploymentKind
+  matriculeEtat?: string | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
+  teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
+  branchMember?: Prisma.BranchMemberCreateNestedOneWithoutTeacherInput
+  fiche?: Prisma.ficheCreateNestedManyWithoutTeacherInput
+  teacherAttendance?: Prisma.TeacherAttendanceCreateNestedManyWithoutTeacherInput
+  attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutValidatedByTeacherInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutTeacherInput
+  profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
+  payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
+}
+
+export type TeacherUncheckedCreateWithoutSalaryAdvancesInput = {
+  id?: string
+  branchMemberId?: string | null
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  employmentKind?: $Enums.TeacherEmploymentKind
+  matriculeEtat?: string | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
+  fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutTeacherInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutTeacherInput
+  attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutValidatedByTeacherInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutTeacherInput
+  profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
+  payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
+}
+
+export type TeacherCreateOrConnectWithoutSalaryAdvancesInput = {
+  where: Prisma.TeacherWhereUniqueInput
+  create: Prisma.XOR<Prisma.TeacherCreateWithoutSalaryAdvancesInput, Prisma.TeacherUncheckedCreateWithoutSalaryAdvancesInput>
+}
+
+export type TeacherUpsertWithoutSalaryAdvancesInput = {
+  update: Prisma.XOR<Prisma.TeacherUpdateWithoutSalaryAdvancesInput, Prisma.TeacherUncheckedUpdateWithoutSalaryAdvancesInput>
+  create: Prisma.XOR<Prisma.TeacherCreateWithoutSalaryAdvancesInput, Prisma.TeacherUncheckedCreateWithoutSalaryAdvancesInput>
+  where?: Prisma.TeacherWhereInput
+}
+
+export type TeacherUpdateToOneWithWhereWithoutSalaryAdvancesInput = {
+  where?: Prisma.TeacherWhereInput
+  data: Prisma.XOR<Prisma.TeacherUpdateWithoutSalaryAdvancesInput, Prisma.TeacherUncheckedUpdateWithoutSalaryAdvancesInput>
+}
+
+export type TeacherUpdateWithoutSalaryAdvancesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
+  matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
+  branchMember?: Prisma.BranchMemberUpdateOneWithoutTeacherNestedInput
+  fiche?: Prisma.ficheUpdateManyWithoutTeacherNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUpdateManyWithoutTeacherNestedInput
+  attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutValidatedByTeacherNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutTeacherNestedInput
+  profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
+  payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
+}
+
+export type TeacherUncheckedUpdateWithoutSalaryAdvancesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
+  matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
+  fiche?: Prisma.ficheUncheckedUpdateManyWithoutTeacherNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutTeacherNestedInput
+  attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutValidatedByTeacherNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
+  profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
+  payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateWithoutBranchMemberInput = {
@@ -1149,6 +1340,7 @@ export type TeacherCreateWithoutBranchMemberInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
   fiche?: Prisma.ficheCreateNestedManyWithoutTeacherInput
   teacherAttendance?: Prisma.TeacherAttendanceCreateNestedManyWithoutTeacherInput
@@ -1156,6 +1348,7 @@ export type TeacherCreateWithoutBranchMemberInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutBranchMemberInput = {
@@ -1167,6 +1360,7 @@ export type TeacherUncheckedCreateWithoutBranchMemberInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutTeacherInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutTeacherInput
@@ -1174,6 +1368,7 @@ export type TeacherUncheckedCreateWithoutBranchMemberInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutBranchMemberInput = {
@@ -1215,6 +1410,7 @@ export type TeacherScalarWhereInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFilter<"Teacher"> | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.StringNullableFilter<"Teacher"> | string | null
   payrollStartedOn?: Prisma.DateTimeNullableFilter<"Teacher"> | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFilter<"Teacher"> | boolean
 }
 
 export type TeacherCreateWithoutOnlineAssignmentsInput = {
@@ -1226,6 +1422,7 @@ export type TeacherCreateWithoutOnlineAssignmentsInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutTeacherInput
   fiche?: Prisma.ficheCreateNestedManyWithoutTeacherInput
@@ -1233,6 +1430,7 @@ export type TeacherCreateWithoutOnlineAssignmentsInput = {
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutValidatedByTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutOnlineAssignmentsInput = {
@@ -1245,12 +1443,14 @@ export type TeacherUncheckedCreateWithoutOnlineAssignmentsInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutTeacherInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutTeacherInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutValidatedByTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutOnlineAssignmentsInput = {
@@ -1278,6 +1478,7 @@ export type TeacherUpdateWithoutOnlineAssignmentsInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
   branchMember?: Prisma.BranchMemberUpdateOneWithoutTeacherNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutTeacherNestedInput
@@ -1285,6 +1486,7 @@ export type TeacherUpdateWithoutOnlineAssignmentsInput = {
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutValidatedByTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutOnlineAssignmentsInput = {
@@ -1297,12 +1499,14 @@ export type TeacherUncheckedUpdateWithoutOnlineAssignmentsInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutTeacherNestedInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutTeacherNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutValidatedByTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateManyBranchMemberInput = {
@@ -1314,6 +1518,7 @@ export type TeacherCreateManyBranchMemberInput = {
   employmentKind?: $Enums.TeacherEmploymentKind
   matriculeEtat?: string | null
   payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
 }
 
 export type TeacherUpdateWithoutBranchMemberInput = {
@@ -1325,6 +1530,7 @@ export type TeacherUpdateWithoutBranchMemberInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutTeacherNestedInput
   teacherAttendance?: Prisma.TeacherAttendanceUpdateManyWithoutTeacherNestedInput
@@ -1332,6 +1538,7 @@ export type TeacherUpdateWithoutBranchMemberInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutBranchMemberInput = {
@@ -1343,6 +1550,7 @@ export type TeacherUncheckedUpdateWithoutBranchMemberInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutTeacherNestedInput
   teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutTeacherNestedInput
@@ -1350,6 +1558,7 @@ export type TeacherUncheckedUpdateWithoutBranchMemberInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateManyWithoutBranchMemberInput = {
@@ -1361,6 +1570,7 @@ export type TeacherUncheckedUpdateManyWithoutBranchMemberInput = {
   employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
   matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 
@@ -1376,6 +1586,7 @@ export type TeacherCountOutputType = {
   onlineAssignments: number
   profileDocuments: number
   payslips: number
+  salaryAdvances: number
 }
 
 export type TeacherCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1386,6 +1597,7 @@ export type TeacherCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   onlineAssignments?: boolean | TeacherCountOutputTypeCountOnlineAssignmentsArgs
   profileDocuments?: boolean | TeacherCountOutputTypeCountProfileDocumentsArgs
   payslips?: boolean | TeacherCountOutputTypeCountPayslipsArgs
+  salaryAdvances?: boolean | TeacherCountOutputTypeCountSalaryAdvancesArgs
 }
 
 /**
@@ -1447,6 +1659,13 @@ export type TeacherCountOutputTypeCountPayslipsArgs<ExtArgs extends runtime.Type
   where?: Prisma.TeacherPayslipWhereInput
 }
 
+/**
+ * TeacherCountOutputType without action
+ */
+export type TeacherCountOutputTypeCountSalaryAdvancesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SalaryAdvanceWhereInput
+}
+
 
 export type TeacherSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1458,6 +1677,7 @@ export type TeacherSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   employmentKind?: boolean
   matriculeEtat?: boolean
   payrollStartedOn?: boolean
+  canRequestSalaryAdvance?: boolean
   teaching?: boolean | Prisma.Teacher$teachingArgs<ExtArgs>
   branchMember?: boolean | Prisma.Teacher$branchMemberArgs<ExtArgs>
   fiche?: boolean | Prisma.Teacher$ficheArgs<ExtArgs>
@@ -1466,6 +1686,7 @@ export type TeacherSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   onlineAssignments?: boolean | Prisma.Teacher$onlineAssignmentsArgs<ExtArgs>
   profileDocuments?: boolean | Prisma.Teacher$profileDocumentsArgs<ExtArgs>
   payslips?: boolean | Prisma.Teacher$payslipsArgs<ExtArgs>
+  salaryAdvances?: boolean | Prisma.Teacher$salaryAdvancesArgs<ExtArgs>
   _count?: boolean | Prisma.TeacherCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["teacher"]>
 
@@ -1479,6 +1700,7 @@ export type TeacherSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   employmentKind?: boolean
   matriculeEtat?: boolean
   payrollStartedOn?: boolean
+  canRequestSalaryAdvance?: boolean
   branchMember?: boolean | Prisma.Teacher$branchMemberArgs<ExtArgs>
 }, ExtArgs["result"]["teacher"]>
 
@@ -1492,6 +1714,7 @@ export type TeacherSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   employmentKind?: boolean
   matriculeEtat?: boolean
   payrollStartedOn?: boolean
+  canRequestSalaryAdvance?: boolean
   branchMember?: boolean | Prisma.Teacher$branchMemberArgs<ExtArgs>
 }, ExtArgs["result"]["teacher"]>
 
@@ -1505,9 +1728,10 @@ export type TeacherSelectScalar = {
   employmentKind?: boolean
   matriculeEtat?: boolean
   payrollStartedOn?: boolean
+  canRequestSalaryAdvance?: boolean
 }
 
-export type TeacherOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "isActive" | "deactivatedAt" | "createdAt" | "updatedAt" | "employmentKind" | "matriculeEtat" | "payrollStartedOn", ExtArgs["result"]["teacher"]>
+export type TeacherOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "isActive" | "deactivatedAt" | "createdAt" | "updatedAt" | "employmentKind" | "matriculeEtat" | "payrollStartedOn" | "canRequestSalaryAdvance", ExtArgs["result"]["teacher"]>
 export type TeacherInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teaching?: boolean | Prisma.Teacher$teachingArgs<ExtArgs>
   branchMember?: boolean | Prisma.Teacher$branchMemberArgs<ExtArgs>
@@ -1517,6 +1741,7 @@ export type TeacherInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   onlineAssignments?: boolean | Prisma.Teacher$onlineAssignmentsArgs<ExtArgs>
   profileDocuments?: boolean | Prisma.Teacher$profileDocumentsArgs<ExtArgs>
   payslips?: boolean | Prisma.Teacher$payslipsArgs<ExtArgs>
+  salaryAdvances?: boolean | Prisma.Teacher$salaryAdvancesArgs<ExtArgs>
   _count?: boolean | Prisma.TeacherCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TeacherIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1537,6 +1762,7 @@ export type $TeacherPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     onlineAssignments: Prisma.$OnlineAssignmentPayload<ExtArgs>[]
     profileDocuments: Prisma.$TeacherProfileDocumentPayload<ExtArgs>[]
     payslips: Prisma.$TeacherPayslipPayload<ExtArgs>[]
+    salaryAdvances: Prisma.$SalaryAdvancePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1551,6 +1777,10 @@ export type $TeacherPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     employmentKind: $Enums.TeacherEmploymentKind
     matriculeEtat: string | null
     payrollStartedOn: Date | null
+    /**
+     * Autorisé à déposer une demande d’avance sur salaire.
+     */
+    canRequestSalaryAdvance: boolean
   }, ExtArgs["result"]["teacher"]>
   composites: {}
 }
@@ -1953,6 +2183,7 @@ export interface Prisma__TeacherClient<T, Null = never, ExtArgs extends runtime.
   onlineAssignments<T extends Prisma.Teacher$onlineAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Teacher$onlineAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OnlineAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   profileDocuments<T extends Prisma.Teacher$profileDocumentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Teacher$profileDocumentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeacherProfileDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payslips<T extends Prisma.Teacher$payslipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Teacher$payslipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeacherPayslipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  salaryAdvances<T extends Prisma.Teacher$salaryAdvancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Teacher$salaryAdvancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalaryAdvancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1991,6 +2222,7 @@ export interface TeacherFieldRefs {
   readonly employmentKind: Prisma.FieldRef<"Teacher", 'TeacherEmploymentKind'>
   readonly matriculeEtat: Prisma.FieldRef<"Teacher", 'String'>
   readonly payrollStartedOn: Prisma.FieldRef<"Teacher", 'DateTime'>
+  readonly canRequestSalaryAdvance: Prisma.FieldRef<"Teacher", 'Boolean'>
 }
     
 
@@ -2576,6 +2808,30 @@ export type Teacher$payslipsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.TeacherPayslipScalarFieldEnum | Prisma.TeacherPayslipScalarFieldEnum[]
+}
+
+/**
+ * Teacher.salaryAdvances
+ */
+export type Teacher$salaryAdvancesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SalaryAdvance
+   */
+  select?: Prisma.SalaryAdvanceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SalaryAdvance
+   */
+  omit?: Prisma.SalaryAdvanceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SalaryAdvanceInclude<ExtArgs> | null
+  where?: Prisma.SalaryAdvanceWhereInput
+  orderBy?: Prisma.SalaryAdvanceOrderByWithRelationInput | Prisma.SalaryAdvanceOrderByWithRelationInput[]
+  cursor?: Prisma.SalaryAdvanceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SalaryAdvanceScalarFieldEnum | Prisma.SalaryAdvanceScalarFieldEnum[]
 }
 
 /**

@@ -12,9 +12,9 @@ import {
 } from "@/lib/auth/session-roles";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
-  calculateTeacherPayroll,
-  persistTeacherPayroll,
-} from "@/lib/payroll/teacher-payroll";
+  calculateAndPersistStaffPayroll,
+  listPayrollAgents,
+} from "@/lib/payroll/staff-payroll";
 import {
   parsePayslipLineDetail,
   waivedSessionIdsFromLines,
@@ -25,6 +25,10 @@ import { prisma } from "@/lib/prisma";
 import { action } from "@/lib/zsa";
 import { StatusPaiement } from "@/src/interfaces/Paiement";
 import { getBaseCurrency } from "@/lib/exchange-rate";
+import {
+  buildSchoolReportContext,
+  schoolReportBranchSelect,
+} from "@/lib/reports/resolve-school-branding";
 
 const CYCLE_SORT_ORDER: Record<string, number> = {
   MATERNELLE: 0,
@@ -34,7 +38,8 @@ const CYCLE_SORT_ORDER: Record<string, number> = {
   CENTRE_FORMATION: 4,
   UNIVERSITE: 5,
   MIXTE: 6,
-  AUTRE: 7,
+  PERSONNEL: 7,
+  AUTRE: 8,
 };
 
 const CYCLE_LABELS: Record<string, string> = {
@@ -45,6 +50,7 @@ const CYCLE_LABELS: Record<string, string> = {
   CENTRE_FORMATION: "Centre de formation",
   UNIVERSITE: "Université",
   MIXTE: "Mixte",
+  PERSONNEL: "Personnel",
   AUTRE: "Autre",
 };
 
@@ -56,6 +62,7 @@ const periodSchema = z.object({
 
 const recalculateSchema = periodSchema.extend({
   teacherIds: z.array(z.string().min(1)).optional(),
+  branchMemberIds: z.array(z.string().min(1)).optional(),
 });
 
 const deletePayslipsSchema = periodSchema.extend({
@@ -68,18 +75,21 @@ const bulkPayslipsSchema = periodSchema.extend({
 
 const payslipSchema = z.object({ payslipId: z.string().min(1) });
 
-const PAYSLIP_PAY_TEACHER_SELECT = {
-  branchMember: {
+const PAYSLIP_PAY_MEMBER_SELECT = {
+  member: {
     select: {
-      member: {
-        select: {
-          userId: true,
-          user: {
-            select: { name: true, postnom: true, prenom: true },
-          },
-        },
+      userId: true,
+      role: true,
+      user: {
+        select: { name: true, postnom: true, prenom: true },
       },
     },
+  },
+} as const;
+
+const PAYSLIP_PAY_TEACHER_SELECT = {
+  branchMember: {
+    select: PAYSLIP_PAY_MEMBER_SELECT,
   },
 } as const;
 
@@ -95,6 +105,31 @@ type PayslipPayTeacher = {
     } | null;
   } | null;
 };
+
+function payslipAgentName(row: {
+  teacher?: PayslipPayTeacher | null;
+  personnel?: PayslipPayTeacher | null;
+  branchMember?: PayslipPayTeacher["branchMember"] | null;
+}) {
+  const user =
+    row.branchMember?.member?.user ??
+    row.teacher?.branchMember?.member?.user ??
+    row.personnel?.branchMember?.member?.user;
+  return formatTeacherName(user);
+}
+
+function payslipAgentUserId(row: {
+  teacher?: PayslipPayTeacher | null;
+  personnel?: PayslipPayTeacher | null;
+  branchMember?: PayslipPayTeacher["branchMember"] | null;
+}) {
+  return (
+    row.branchMember?.member?.userId ??
+    row.teacher?.branchMember?.member?.userId ??
+    row.personnel?.branchMember?.member?.userId ??
+    null
+  );
+}
 
 function formatTeacherName(user?: {
   name?: string | null;
@@ -139,7 +174,9 @@ async function markPayslipPaidInTx(
       month: number;
       year: number;
       currency: string;
-      teacher: PayslipPayTeacher;
+      teacher?: PayslipPayTeacher | null;
+      personnel?: PayslipPayTeacher | null;
+      branchMember?: PayslipPayTeacher["branchMember"] | null;
     };
     branchId: string;
     organizationId: string;
@@ -161,14 +198,12 @@ async function markPayslipPaidInTx(
     userId: params.userId,
     payslipId: params.payslip.id,
     amount: params.payslip.net,
-    teacherName: formatTeacherName(
-      params.payslip.teacher.branchMember?.member?.user,
-    ),
+    teacherName: payslipAgentName(params.payslip),
     year: params.payslip.year,
     month: params.payslip.month,
   });
 
-  const teacherUserId = params.payslip.teacher.branchMember?.member?.userId;
+  const teacherUserId = payslipAgentUserId(params.payslip);
   if (teacherUserId) {
     await tx.appNotification.create({
       data: {
@@ -318,15 +353,21 @@ function extractCycles(
   );
 }
 
-function resolveCycleGroup(cycles: string[]): string {
-  if (cycles.length === 0) return "AUTRE";
+function resolveCycleGroup(
+  cycles: string[],
+  agentKind?: string | null,
+): string {
+  if (agentKind === "PERSONNEL") return "PERSONNEL";
+  if (cycles.length === 0) return agentKind === "BOTH" ? "PERSONNEL" : "AUTRE";
   if (cycles.length === 1) return cycles[0]!;
   return "MIXTE";
 }
 
 function toListItem(row: {
   id: string;
-  teacherId: string;
+  teacherId: string | null;
+  branchMemberId: string;
+  agentKind: string;
   year: number;
   month: number;
   currency: string;
@@ -336,10 +377,11 @@ function toListItem(row: {
   status: string;
   createdAt: Date;
   branch?: { name: string } | null;
-  teacher: {
+  teacher?: {
     employmentKind: string;
     branchMember?: {
       member?: {
+        role?: string | null;
         user?: {
           name?: string | null;
           postnom?: string | null;
@@ -347,7 +389,30 @@ function toListItem(row: {
         } | null;
       } | null;
     } | null;
-  };
+  } | null;
+  personnel?: {
+    monthlyForfait?: number | null;
+    branchMember?: {
+      member?: {
+        role?: string | null;
+        user?: {
+          name?: string | null;
+          postnom?: string | null;
+          prenom?: string | null;
+        } | null;
+      } | null;
+    } | null;
+  } | null;
+  branchMember?: {
+    member?: {
+      role?: string | null;
+      user?: {
+        name?: string | null;
+        postnom?: string | null;
+        prenom?: string | null;
+      } | null;
+    } | null;
+  } | null;
   lines: Array<{
     sessions: number;
     label: string;
@@ -357,22 +422,38 @@ function toListItem(row: {
     kind: string;
   }>;
 }) {
-  const user = row.teacher.branchMember?.member?.user;
+  const user =
+    row.branchMember?.member?.user ??
+    row.teacher?.branchMember?.member?.user ??
+    row.personnel?.branchMember?.member?.user;
   const classes = extractClassNames(row.lines);
   const cycles = extractCycles(row.lines);
-  const cycleGroup = resolveCycleGroup(cycles);
+  const cycleGroup = resolveCycleGroup(cycles, row.agentKind);
   const lostMinutes = row.lines
     .filter((line) =>
       line.kind === "ABSENCE" || line.kind === "LATE" || line.kind === "EARLY_EXIT",
     )
     .reduce((sum, line) => sum + Number(line.minutes || 0), 0);
+  const contractLabel =
+    row.agentKind === "PERSONNEL"
+      ? "Forfait"
+      : row.teacher?.employmentKind === "MATRICULE"
+        ? row.agentKind === "BOTH"
+          ? "Matriculé + forfait"
+          : "Matriculé"
+        : row.agentKind === "BOTH"
+          ? "Non matriculé + forfait"
+          : "Non matriculé";
   return {
     id: row.id,
     teacherId: row.teacherId,
+    branchMemberId: row.branchMemberId,
+    agentKind: row.agentKind,
     teacherName: [user?.name, user?.postnom, user?.prenom]
       .filter(Boolean)
       .join(" "),
-    employmentKind: row.teacher.employmentKind,
+    employmentKind: row.teacher?.employmentKind ?? "FORFAIT",
+    contractLabel,
     branchName: row.branch?.name ?? "",
     classes,
     classSummary:
@@ -384,11 +465,13 @@ function toListItem(row: {
     cycles,
     cycleGroup,
     cycleLabel:
-      cycles.length === 0
-        ? "—"
-        : cycles.length === 1
-          ? (CYCLE_LABELS[cycles[0]!] ?? cycles[0])
-          : cycles.map((cycle) => CYCLE_LABELS[cycle] ?? cycle).join(" · "),
+      row.agentKind === "PERSONNEL"
+        ? "Personnel"
+        : cycles.length === 0
+          ? "—"
+          : cycles.length === 1
+            ? (CYCLE_LABELS[cycles[0]!] ?? cycles[0])
+            : cycles.map((cycle) => CYCLE_LABELS[cycle] ?? cycle).join(" · "),
     year: row.year,
     month: row.month,
     currency: row.currency,
@@ -500,8 +583,36 @@ export const getTeacherPayslipsAction = action
             branchMember: {
               select: {
                 member: {
-                  select: { user: { select: { name: true, postnom: true, prenom: true } } },
+                  select: {
+                    role: true,
+                    user: { select: { name: true, postnom: true, prenom: true } },
+                  },
                 },
+              },
+            },
+          },
+        },
+        personnel: {
+          select: {
+            monthlyForfait: true,
+            branchMember: {
+              select: {
+                member: {
+                  select: {
+                    role: true,
+                    user: { select: { name: true, postnom: true, prenom: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+        branchMember: {
+          select: {
+            member: {
+              select: {
+                role: true,
+                user: { select: { name: true, postnom: true, prenom: true } },
               },
             },
           },
@@ -542,30 +653,26 @@ export const recalculateTeacherPayslipsAction = action
       context.branchId,
       input.schoolYearId,
     );
-    const teacherFilter =
-      input.teacherIds && input.teacherIds.length > 0
-        ? { id: { in: input.teacherIds } }
-        : {};
-    const teachers = await prisma.teacher.findMany({
-      where: {
-        branchMember: { branchId: context.branchId },
-        isActive: true,
-        ...teacherFilter,
-      },
-      select: { id: true },
+    const agents = await listPayrollAgents(context.branchId, {
+      teacherIds: input.teacherIds,
+      branchMemberIds: input.branchMemberIds,
     });
-    if (input.teacherIds?.length && teachers.length === 0) {
-      throw new Error("Aucun enseignant sélectionné introuvable");
+    if (
+      (input.teacherIds?.length || input.branchMemberIds?.length) &&
+      agents.length === 0
+    ) {
+      throw new Error("Aucun agent sélectionné introuvable");
     }
 
     const results = [];
     let missingExchangeRate = false;
     let skippedPaid = 0;
-    for (const teacher of teachers) {
+    let skippedNoForfait = 0;
+    for (const agent of agents) {
       const paid = await prisma.teacherPayslip.findFirst({
         where: {
           branchId: context.branchId,
-          teacherId: teacher.id,
+          branchMemberId: agent.branchMemberId,
           year: input.year,
           month: input.month,
           status: "PAID",
@@ -580,7 +687,7 @@ export const recalculateTeacherPayslipsAction = action
       const previous = await prisma.teacherPayslip.findFirst({
         where: {
           branchId: context.branchId,
-          teacherId: teacher.id,
+          branchMemberId: agent.branchMemberId,
           year: input.year,
           month: input.month,
           status: { in: [...DELETABLE_STATUSES] },
@@ -589,35 +696,29 @@ export const recalculateTeacherPayslipsAction = action
       });
       const waivedSessionIds = waivedSessionIdsFromLines(previous?.lines ?? []);
 
-      // Remplace brouillons et validés pour permettre une régénération propre.
       await prisma.teacherPayslip.deleteMany({
         where: {
           branchId: context.branchId,
-          teacherId: teacher.id,
+          branchMemberId: agent.branchMemberId,
           year: input.year,
           month: input.month,
           status: { in: [...DELETABLE_STATUSES] },
         },
       });
 
-      const result = await calculateTeacherPayroll({
+      const persisted = await calculateAndPersistStaffPayroll({
         branchId: context.branchId,
         organizationId: context.organizationId,
-        teacherId: teacher.id,
         period: { ...input, schoolYearId },
+        agent,
+        waivedSessionIds,
       });
-      missingExchangeRate ||= result.missingExchangeRate;
-      const payslip = await persistTeacherPayroll(
-        {
-          branchId: context.branchId,
-          organizationId: context.organizationId,
-          teacherId: teacher.id,
-          period: { ...input, schoolYearId },
-          waivedSessionIds,
-        },
-        result,
-      );
-      results.push(payslip.id);
+      if (persisted.skipped === "NO_FORFAIT") {
+        skippedNoForfait += 1;
+        continue;
+      }
+      missingExchangeRate ||= persisted.missingExchangeRate;
+      if (persisted.payslipId) results.push(persisted.payslipId);
     }
 
     if (results.length > 0) {
@@ -627,7 +728,7 @@ export const recalculateTeacherPayslipsAction = action
           organizationId: context.organizationId,
           userId: context.userId,
           type: "PAYROLL",
-          title: "Paie enseignants générée",
+          title: "Paie du personnel générée",
           body: `${results.length} bulletin(s) brouillon(s) généré(s) pour ${input.month}/${input.year}.`,
           href: `/admin/organizations/${context.organizationId}/branches/${context.branchId}/paie-enseignants?year=${input.year}&month=${input.month}`,
         },
@@ -640,6 +741,7 @@ export const recalculateTeacherPayslipsAction = action
       count: results.length,
       missingExchangeRate,
       skippedPaid,
+      skippedNoForfait,
     };
   });
 
@@ -702,6 +804,25 @@ export const getTeacherPayslipAction = action
             },
           },
         },
+        personnel: {
+          select: {
+            monthlyForfait: true,
+            branchMember: {
+              select: {
+                member: {
+                  select: { user: { select: { name: true, postnom: true, prenom: true, email: true } } },
+                },
+              },
+            },
+          },
+        },
+        branchMember: {
+          select: {
+            member: {
+              select: { user: { select: { name: true, postnom: true, prenom: true, email: true } } },
+            },
+          },
+        },
         lines: { orderBy: [{ occurredOn: "asc" }, { createdAt: "asc" }] },
         policy: { select: { lateGraceMinutes: true } },
       },
@@ -731,7 +852,7 @@ export const getTeacherPayslipAction = action
                 },
               },
               teacherAttendance: {
-                where: { teacherId: row.teacherId },
+                where: row.teacherId ? { teacherId: row.teacherId } : { id: { in: [] } },
                 select: {
                   status: true,
                   checkIn: true,
@@ -899,7 +1020,13 @@ export const payTeacherPayslipAction = action
         branchId: context.branchId,
         status: "VALIDATED",
       },
-      include: { teacher: { select: PAYSLIP_PAY_TEACHER_SELECT } },
+      include: {
+        teacher: { select: PAYSLIP_PAY_TEACHER_SELECT },
+        personnel: {
+          select: { branchMember: { select: PAYSLIP_PAY_MEMBER_SELECT } },
+        },
+        branchMember: { select: PAYSLIP_PAY_MEMBER_SELECT },
+      },
     });
     if (!row) throw new Error("Bulletin validé introuvable");
 
@@ -941,7 +1068,13 @@ export const payAllTeacherPayslipsAction = action
         ...(schoolYearId ? { schoolYearId } : {}),
         ...(input.payslipIds?.length ? { id: { in: input.payslipIds } } : {}),
       },
-      include: { teacher: { select: PAYSLIP_PAY_TEACHER_SELECT } },
+      include: {
+        teacher: { select: PAYSLIP_PAY_TEACHER_SELECT },
+        personnel: {
+          select: { branchMember: { select: PAYSLIP_PAY_MEMBER_SELECT } },
+        },
+        branchMember: { select: PAYSLIP_PAY_MEMBER_SELECT },
+      },
     });
     if (rows.length === 0) {
       throw new Error("Aucun bulletin validé à payer");
@@ -968,6 +1101,7 @@ export const payAllTeacherPayslipsAction = action
   });
 
 const LOSS_LINE_KINDS = new Set(["ABSENCE", "LATE", "EARLY_EXIT"]);
+const DEDUCTION_LINE_KINDS = new Set(["ABSENCE", "LATE", "EARLY_EXIT", "ADVANCE"]);
 
 export const waiveTeacherPayslipDeductionAction = action
   .input(
@@ -1039,7 +1173,7 @@ export const waiveTeacherPayslipDeductionAction = action
       select: { kind: true, amount: true },
     });
     const deductions = lines
-      .filter((row) => LOSS_LINE_KINDS.has(row.kind))
+      .filter((row) => DEDUCTION_LINE_KINDS.has(row.kind))
       .reduce((sum, row) => sum + row.amount, 0);
     const settled = settlePayrollTotals(
       payslip.gross,
@@ -1069,3 +1203,13 @@ export const waiveTeacherPayslipDeductionAction = action
       status: payslip.status === "VALIDATED" ? "DRAFT" : payslip.status,
     };
   });
+
+export const getPayrollReportContextAction = action.handler(async () => {
+  const context = await getContext();
+  const branch = await prisma.branch.findFirst({
+    where: { id: context.branchId, organizationId: context.organizationId },
+    select: schoolReportBranchSelect,
+  });
+  if (!branch) throw new Error("Branche active introuvable");
+  return buildSchoolReportContext(branch);
+});

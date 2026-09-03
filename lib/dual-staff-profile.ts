@@ -112,6 +112,7 @@ export async function ensurePersonnelOnTeacherBranchMember(params: {
   branchMemberId: string;
   memberId: string;
   orgRole: string;
+  monthlyForfait?: number | null;
 }) {
   const orgRole = splitSessionRoles(params.orgRole)[0];
   if (
@@ -134,12 +135,23 @@ export async function ensurePersonnelOnTeacherBranchMember(params: {
     const personnel = existing
       ? await tx.personnel.update({
           where: { id: existing.id },
-          data: { isActive: true, deactivatedAt: null },
+          data: {
+            isActive: true,
+            deactivatedAt: null,
+            ...(params.monthlyForfait != null
+              ? { monthlyForfait: params.monthlyForfait }
+              : {}),
+          },
         })
       : await tx.personnel.create({
           data: {
             branchMemberId: params.branchMemberId,
             isActive: true,
+            monthlyForfait: params.monthlyForfait ?? null,
+            payrollStartedOn:
+              params.monthlyForfait && params.monthlyForfait > 0
+                ? new Date()
+                : null,
           },
         });
 

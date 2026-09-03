@@ -277,6 +277,16 @@ export type TeacherPayslip = Prisma.TeacherPayslipModel
  */
 export type TeacherPayslipLine = Prisma.TeacherPayslipLineModel
 /**
+ * Model SalaryAdvance
+ * Avance / crédit sur salaire : dépense à l’acceptation, remboursement par mensualités.
+ */
+export type SalaryAdvance = Prisma.SalaryAdvanceModel
+/**
+ * Model SalaryAdvanceInstallment
+ * 
+ */
+export type SalaryAdvanceInstallment = Prisma.SalaryAdvanceInstallmentModel
+/**
  * Model Session
  * 
  */

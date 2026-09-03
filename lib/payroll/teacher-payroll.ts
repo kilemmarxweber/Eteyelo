@@ -64,6 +64,7 @@ type SessionDetail = {
 
 export type TeacherPayrollResult = {
   teacherId: string;
+  branchMemberId: string;
   teacherName: string;
   employmentKind: "MATRICULE" | "NON_MATRICULE";
   matriculeEtat: string | null;
@@ -152,6 +153,17 @@ async function getPolicy(branchId: string): Promise<Policy> {
   });
 }
 
+export async function getBranchPayrollContext(
+  branchId: string,
+  organizationId: string,
+) {
+  const [policy, currencySnapshot] = await Promise.all([
+    getPolicy(branchId),
+    getCurrencySnapshot(organizationId),
+  ]);
+  return { policy, ...currencySnapshot };
+}
+
 async function getCurrencySnapshot(organizationId: string) {
   const rates = await prisma.exchangeRate.findMany({
     where: { organizationId, isActive: true },
@@ -193,6 +205,7 @@ export async function calculateTeacherPayroll(input: {
       },
       select: {
         id: true,
+        branchMemberId: true,
         employmentKind: true,
         matriculeEtat: true,
         branchMember: {
@@ -209,6 +222,9 @@ export async function calculateTeacherPayroll(input: {
   ]);
 
   if (!teacher) throw new Error("Enseignant introuvable dans cette branche");
+  if (!teacher.branchMemberId) {
+    throw new Error("Enseignant sans rattachement de branche");
+  }
 
   const { start, end } = periodBounds(input.period.year, input.period.month);
   const sessions = await prisma.attendanceSession.findMany({
@@ -420,6 +436,7 @@ export async function calculateTeacherPayroll(input: {
 
   return {
     teacherId: teacher.id,
+    branchMemberId: teacher.branchMemberId,
     teacherName: teacherDisplayName(teacher),
     employmentKind: teacher.employmentKind,
     matriculeEtat: teacher.matriculeEtat,
@@ -454,16 +471,35 @@ export async function persistTeacherPayroll(
     branchId: string;
     organizationId: string;
     period: PayrollPeriod;
-    teacherId: string;
+    branchMemberId?: string;
+    teacherId?: string | null;
+    personnelId?: string | null;
+    agentKind?: "TEACHER" | "PERSONNEL" | "BOTH";
+    personnelGross?: number;
+    personnelRoleLabel?: string | null;
     waivedSessionIds?: string[];
   },
   result: Awaited<ReturnType<typeof calculateTeacherPayroll>>,
 ) {
+  const branchMemberId = input.branchMemberId || result.branchMemberId;
+  if (!branchMemberId) {
+    throw new Error("Agent sans rattachement de branche");
+  }
+  const teacherId = input.teacherId || result.teacherId || null;
+  const personnelGross = Math.max(0, input.personnelGross ?? 0);
+  const agentKind =
+    input.agentKind ??
+    (teacherId && personnelGross > 0
+      ? "BOTH"
+      : teacherId
+        ? "TEACHER"
+        : "PERSONNEL");
+
   const existing = await prisma.teacherPayslip.findUnique({
     where: {
-      branchId_teacherId_year_month: {
+      branchId_branchMemberId_year_month: {
         branchId: input.branchId,
-        teacherId: input.teacherId,
+        branchMemberId,
         year: input.period.year,
         month: input.period.month,
       },
@@ -502,9 +538,18 @@ export async function persistTeacherPayroll(
     }
   }
 
+  const combined = settlePayrollTotals(
+    result.gross + personnelGross,
+    result.deductions,
+    result.currency,
+  );
+
   const data = {
     branchId: input.branchId,
-    teacherId: input.teacherId,
+    branchMemberId,
+    teacherId,
+    personnelId: input.personnelId ?? null,
+    agentKind,
     schoolYearId: result.schoolYearId,
     policyId: result.policy.id,
     year: result.year,
@@ -514,9 +559,9 @@ export async function persistTeacherPayroll(
     quoteCurrency: result.quoteCurrency,
     exchangeRateId: result.exchangeRateId,
     rateSnapshot: result.rateSnapshot,
-    gross: result.gross,
-    deductions: result.deductions,
-    net: result.net,
+    gross: combined.gross,
+    deductions: combined.deductions,
+    net: combined.net,
     policySnapshot: result.policy,
     generatedAt: new Date(),
   };
@@ -597,7 +642,134 @@ export async function persistTeacherPayroll(
         amount: primaryGrossAmount,
       });
     }
+    if (personnelGross > 0) {
+      const roleSuffix = input.personnelRoleLabel
+        ? ` · ${input.personnelRoleLabel}`
+        : "";
+      lines.unshift({
+        payslipId: payslip.id,
+        cycle: undefined,
+        kind: "GROSS",
+        occurredOn: undefined,
+        sessionId: undefined,
+        label: `Forfait personnel${roleSuffix}`,
+        sessions: 1,
+        minutes: 0,
+        amount: personnelGross,
+      });
+    }
     if (lines.length > 0) await tx.teacherPayslipLine.createMany({ data: lines });
-    return payslip;
+
+    const personnelId = input.personnelId ?? null;
+    if (!teacherId && !personnelId) return payslip;
+
+    const linked = await tx.salaryAdvanceInstallment.findMany({
+      where: { payslipId: payslip.id },
+      select: { advanceId: true },
+    });
+    if (linked.length > 0) {
+      await tx.salaryAdvanceInstallment.updateMany({
+        where: { payslipId: payslip.id },
+        data: { status: "PLANNED", payslipId: null, deductedAt: null },
+      });
+      await tx.salaryAdvance.updateMany({
+        where: {
+          id: { in: [...new Set(linked.map((row) => row.advanceId))] },
+          status: "SETTLED",
+        },
+        data: { status: "APPROVED" },
+      });
+    }
+
+    const dueInstallments = await tx.salaryAdvanceInstallment.findMany({
+      where: {
+        status: "PLANNED",
+        advance: {
+          branchId: input.branchId,
+          status: "APPROVED",
+          OR: [
+            ...(teacherId ? [{ teacherId }] : []),
+            ...(personnelId ? [{ personnelId }] : []),
+          ],
+        },
+        OR: [
+          { year: { lt: result.year } },
+          { AND: [{ year: result.year }, { month: { lte: result.month } }] },
+        ],
+      },
+      include: {
+        advance: { select: { id: true, installmentCount: true } },
+      },
+      orderBy: [{ year: "asc" }, { month: "asc" }, { sequence: "asc" }],
+    });
+
+    let remainingNet = combined.net;
+    const applied: typeof dueInstallments = [];
+    for (const row of dueInstallments) {
+      if (row.amount <= 0) continue;
+      if (remainingNet < row.amount) continue;
+      remainingNet = roundCurrency(remainingNet - row.amount, result.currency);
+      applied.push(row);
+    }
+
+    if (applied.length === 0) return payslip;
+
+    const advanceLines: Prisma.TeacherPayslipLineCreateManyInput[] = applied.map(
+      (row) => ({
+        payslipId: payslip.id,
+        kind: "ADVANCE" as const,
+        label: `Avance sur salaire · séance ${row.sequence}/${row.advance.installmentCount} · ${String(row.month).padStart(2, "0")}/${row.year}`,
+        sessions: 1,
+        minutes: 0,
+        amount: row.amount,
+        detail: {
+          advanceId: row.advance.id,
+          installmentId: row.id,
+          sequence: row.sequence,
+          installmentCount: row.advance.installmentCount,
+          plannedYear: row.year,
+          plannedMonth: row.month,
+        },
+      }),
+    );
+
+    await tx.teacherPayslipLine.createMany({ data: advanceLines });
+
+    const advanceDeductions = advanceLines.reduce(
+      (sum, line) => sum + line.amount,
+      0,
+    );
+    const settled = settlePayrollTotals(
+      combined.gross,
+      combined.deductions + advanceDeductions,
+      result.currency,
+    );
+
+    await tx.salaryAdvanceInstallment.updateMany({
+      where: { id: { in: applied.map((row) => row.id) } },
+      data: {
+        status: "DEDUCTED",
+        payslipId: payslip.id,
+        deductedAt: new Date(),
+      },
+    });
+
+    const advanceIds = [...new Set(applied.map((row) => row.advance.id))];
+    for (const advanceId of advanceIds) {
+      const remaining = await tx.salaryAdvanceInstallment.count({
+        where: { advanceId, status: { not: "DEDUCTED" } },
+      });
+      if (remaining === 0) {
+        await tx.salaryAdvance.update({
+          where: { id: advanceId },
+          data: { status: "SETTLED" },
+        });
+      }
+    }
+
+    return tx.teacherPayslip.update({
+      where: { id: payslip.id },
+      data: { deductions: settled.deductions, net: settled.net },
+    });
   });
 }

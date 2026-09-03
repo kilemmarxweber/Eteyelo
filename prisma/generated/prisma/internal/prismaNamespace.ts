@@ -444,6 +444,8 @@ export const ModelName = {
   BranchPayrollPolicy: 'BranchPayrollPolicy',
   TeacherPayslip: 'TeacherPayslip',
   TeacherPayslipLine: 'TeacherPayslipLine',
+  SalaryAdvance: 'SalaryAdvance',
+  SalaryAdvanceInstallment: 'SalaryAdvanceInstallment',
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification',
@@ -496,7 +498,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog" | "temporaryGrant"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "salaryAdvance" | "salaryAdvanceInstallment" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog" | "temporaryGrant"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3978,6 +3980,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SalaryAdvance: {
+      payload: Prisma.$SalaryAdvancePayload<ExtArgs>
+      fields: Prisma.SalaryAdvanceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SalaryAdvanceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvancePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SalaryAdvanceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvancePayload>
+        }
+        findFirst: {
+          args: Prisma.SalaryAdvanceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvancePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SalaryAdvanceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvancePayload>
+        }
+        findMany: {
+          args: Prisma.SalaryAdvanceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvancePayload>[]
+        }
+        create: {
+          args: Prisma.SalaryAdvanceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvancePayload>
+        }
+        createMany: {
+          args: Prisma.SalaryAdvanceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SalaryAdvanceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvancePayload>[]
+        }
+        delete: {
+          args: Prisma.SalaryAdvanceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvancePayload>
+        }
+        update: {
+          args: Prisma.SalaryAdvanceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvancePayload>
+        }
+        deleteMany: {
+          args: Prisma.SalaryAdvanceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SalaryAdvanceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SalaryAdvanceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvancePayload>[]
+        }
+        upsert: {
+          args: Prisma.SalaryAdvanceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvancePayload>
+        }
+        aggregate: {
+          args: Prisma.SalaryAdvanceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSalaryAdvance>
+        }
+        groupBy: {
+          args: Prisma.SalaryAdvanceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SalaryAdvanceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SalaryAdvanceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SalaryAdvanceCountAggregateOutputType> | number
+        }
+      }
+    }
+    SalaryAdvanceInstallment: {
+      payload: Prisma.$SalaryAdvanceInstallmentPayload<ExtArgs>
+      fields: Prisma.SalaryAdvanceInstallmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SalaryAdvanceInstallmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvanceInstallmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SalaryAdvanceInstallmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvanceInstallmentPayload>
+        }
+        findFirst: {
+          args: Prisma.SalaryAdvanceInstallmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvanceInstallmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SalaryAdvanceInstallmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvanceInstallmentPayload>
+        }
+        findMany: {
+          args: Prisma.SalaryAdvanceInstallmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvanceInstallmentPayload>[]
+        }
+        create: {
+          args: Prisma.SalaryAdvanceInstallmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvanceInstallmentPayload>
+        }
+        createMany: {
+          args: Prisma.SalaryAdvanceInstallmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SalaryAdvanceInstallmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvanceInstallmentPayload>[]
+        }
+        delete: {
+          args: Prisma.SalaryAdvanceInstallmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvanceInstallmentPayload>
+        }
+        update: {
+          args: Prisma.SalaryAdvanceInstallmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvanceInstallmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.SalaryAdvanceInstallmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SalaryAdvanceInstallmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SalaryAdvanceInstallmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvanceInstallmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.SalaryAdvanceInstallmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryAdvanceInstallmentPayload>
+        }
+        aggregate: {
+          args: Prisma.SalaryAdvanceInstallmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSalaryAdvanceInstallment>
+        }
+        groupBy: {
+          args: Prisma.SalaryAdvanceInstallmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SalaryAdvanceInstallmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SalaryAdvanceInstallmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SalaryAdvanceInstallmentCountAggregateOutputType> | number
+        }
+      }
+    }
     Session: {
       payload: Prisma.$SessionPayload<ExtArgs>
       fields: Prisma.SessionFieldRefs
@@ -6933,6 +7083,9 @@ export const PersonnelScalarFieldEnum = {
   branchMemberId: 'branchMemberId',
   isActive: 'isActive',
   deactivatedAt: 'deactivatedAt',
+  monthlyForfait: 'monthlyForfait',
+  payrollStartedOn: 'payrollStartedOn',
+  canRequestSalaryAdvance: 'canRequestSalaryAdvance',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -7087,7 +7240,8 @@ export const TeacherScalarFieldEnum = {
   updatedAt: 'updatedAt',
   employmentKind: 'employmentKind',
   matriculeEtat: 'matriculeEtat',
-  payrollStartedOn: 'payrollStartedOn'
+  payrollStartedOn: 'payrollStartedOn',
+  canRequestSalaryAdvance: 'canRequestSalaryAdvance'
 } as const
 
 export type TeacherScalarFieldEnum = (typeof TeacherScalarFieldEnum)[keyof typeof TeacherScalarFieldEnum]
@@ -7541,7 +7695,10 @@ export type BranchPayrollPolicyScalarFieldEnum = (typeof BranchPayrollPolicyScal
 export const TeacherPayslipScalarFieldEnum = {
   id: 'id',
   branchId: 'branchId',
+  branchMemberId: 'branchMemberId',
   teacherId: 'teacherId',
+  personnelId: 'personnelId',
+  agentKind: 'agentKind',
   schoolYearId: 'schoolYearId',
   policyId: 'policyId',
   year: 'year',
@@ -7583,6 +7740,46 @@ export const TeacherPayslipLineScalarFieldEnum = {
 } as const
 
 export type TeacherPayslipLineScalarFieldEnum = (typeof TeacherPayslipLineScalarFieldEnum)[keyof typeof TeacherPayslipLineScalarFieldEnum]
+
+
+export const SalaryAdvanceScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  teacherId: 'teacherId',
+  personnelId: 'personnelId',
+  amount: 'amount',
+  installmentCount: 'installmentCount',
+  currency: 'currency',
+  reason: 'reason',
+  status: 'status',
+  firstYear: 'firstYear',
+  firstMonth: 'firstMonth',
+  expenseRef: 'expenseRef',
+  requestedById: 'requestedById',
+  reviewedById: 'reviewedById',
+  reviewedAt: 'reviewedAt',
+  reviewNote: 'reviewNote',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SalaryAdvanceScalarFieldEnum = (typeof SalaryAdvanceScalarFieldEnum)[keyof typeof SalaryAdvanceScalarFieldEnum]
+
+
+export const SalaryAdvanceInstallmentScalarFieldEnum = {
+  id: 'id',
+  advanceId: 'advanceId',
+  sequence: 'sequence',
+  year: 'year',
+  month: 'month',
+  amount: 'amount',
+  status: 'status',
+  payslipId: 'payslipId',
+  deductedAt: 'deductedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type SalaryAdvanceInstallmentScalarFieldEnum = (typeof SalaryAdvanceInstallmentScalarFieldEnum)[keyof typeof SalaryAdvanceInstallmentScalarFieldEnum]
 
 
 export const SessionScalarFieldEnum = {
@@ -8680,6 +8877,20 @@ export type ListEnumAppNotificationTypeFieldRefInput<$PrismaModel> = FieldRefInp
 
 
 /**
+ * Reference to a field of type 'PayrollAgentKind'
+ */
+export type EnumPayrollAgentKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollAgentKind'>
+    
+
+
+/**
+ * Reference to a field of type 'PayrollAgentKind[]'
+ */
+export type ListEnumPayrollAgentKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollAgentKind[]'>
+    
+
+
+/**
  * Reference to a field of type 'TeacherPayslipStatus'
  */
 export type EnumTeacherPayslipStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeacherPayslipStatus'>
@@ -8704,6 +8915,34 @@ export type EnumTeacherPayslipLineKindFieldRefInput<$PrismaModel> = FieldRefInpu
  * Reference to a field of type 'TeacherPayslipLineKind[]'
  */
 export type ListEnumTeacherPayslipLineKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeacherPayslipLineKind[]'>
+    
+
+
+/**
+ * Reference to a field of type 'SalaryAdvanceStatus'
+ */
+export type EnumSalaryAdvanceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SalaryAdvanceStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'SalaryAdvanceStatus[]'
+ */
+export type ListEnumSalaryAdvanceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SalaryAdvanceStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'SalaryAdvanceInstallmentStatus'
+ */
+export type EnumSalaryAdvanceInstallmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SalaryAdvanceInstallmentStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'SalaryAdvanceInstallmentStatus[]'
+ */
+export type ListEnumSalaryAdvanceInstallmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SalaryAdvanceInstallmentStatus[]'>
     
 
 
@@ -9226,6 +9465,8 @@ export type GlobalOmitConfig = {
   branchPayrollPolicy?: Prisma.BranchPayrollPolicyOmit
   teacherPayslip?: Prisma.TeacherPayslipOmit
   teacherPayslipLine?: Prisma.TeacherPayslipLineOmit
+  salaryAdvance?: Prisma.SalaryAdvanceOmit
+  salaryAdvanceInstallment?: Prisma.SalaryAdvanceInstallmentOmit
   session?: Prisma.SessionOmit
   account?: Prisma.AccountOmit
   verification?: Prisma.VerificationOmit

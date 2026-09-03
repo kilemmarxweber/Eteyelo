@@ -578,6 +578,9 @@
       "chooseRole": "Choose a role",
       "searchRole": "Search for a role…",
       "noRoleFound": "No role found.",
+      "monthlyForfait": "Monthly lump sum",
+      "monthlyForfaitPlaceholder": "50000",
+      "monthlyForfaitHint": "Known salary in the organization base currency (e.g. 50,000 AOA).",
       "selectCycle": "Select at least one cycle.",
       "chooseImage": "Choose an image (JPEG, PNG, WebP…).",
       "imageTooLarge": "Image too large (max. 5 MB).",
@@ -637,6 +640,7 @@
     "table": {
       "photo": "Photo",
       "role": "Role",
+      "monthlyForfait": "Lump sum",
       "cycles": "Cycles",
       "edit": "Edit",
       "details": "Details",

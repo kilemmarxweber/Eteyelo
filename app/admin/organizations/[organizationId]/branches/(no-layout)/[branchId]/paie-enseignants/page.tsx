@@ -16,8 +16,8 @@ export default async function TeacherPayrollPage() {
 
   return (
     <BranchPageShell
-      title="Paie des enseignants"
-      description="Calculez les bulletins mensuels à partir des séances et des présences."
+      title="Paie du personnel"
+      description="Calculez et payez les bulletins du mois : enseignants (forfait par grade + prime) et personnels (forfait connu), tous ensemble."
       badge={
         <Badge variant="outline-primary" icon={<IconCash size={14} />}>
           Paie V1

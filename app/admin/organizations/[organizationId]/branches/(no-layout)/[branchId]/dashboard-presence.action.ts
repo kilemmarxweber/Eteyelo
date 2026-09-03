@@ -76,10 +76,54 @@ function monthRange() {
   return { start, end };
 }
 
+async function ensureMyStaffPresenceProfiles(userId: string, branchId: string) {
+  const branchMember = await prisma.branchMember.findFirst({
+    where: { branchId, isActive: true, member: { userId } },
+    select: {
+      id: true,
+      role: true,
+      personel: { select: { id: true, isActive: true }, take: 1 },
+      teacher: { select: { id: true, isActive: true }, take: 1 },
+    },
+  });
+  if (!branchMember) return;
+
+  const staffRoles = new Set(["DIRECTOR", "ADMIN", "CAISSIER"]);
+  if (staffRoles.has(branchMember.role)) {
+    const existing = branchMember.personel[0];
+    if (!existing) {
+      await prisma.personnel.create({
+        data: { branchMemberId: branchMember.id, isActive: true },
+      });
+    } else if (!existing.isActive) {
+      await prisma.personnel.update({
+        where: { id: existing.id },
+        data: { isActive: true, deactivatedAt: null },
+      });
+    }
+  }
+
+  if (branchMember.role === "TEACHER") {
+    const existing = branchMember.teacher[0];
+    if (!existing) {
+      await prisma.teacher.create({
+        data: { branchMemberId: branchMember.id, isActive: true },
+      });
+    } else if (!existing.isActive) {
+      await prisma.teacher.update({
+        where: { id: existing.id },
+        data: { isActive: true, deactivatedAt: null },
+      });
+    }
+  }
+}
+
 export const getMyDashboardPresenceAction = action.handler(
   async (): Promise<DashboardPresenceData> => {
     const { branchId, organizationId, userId } = await requireBranchContext();
     const { start, end } = monthRange();
+
+    await ensureMyStaffPresenceProfiles(userId, branchId);
 
     const [teacherId, personnelId] = await Promise.all([
       getTeacherIdForUser(userId, branchId),

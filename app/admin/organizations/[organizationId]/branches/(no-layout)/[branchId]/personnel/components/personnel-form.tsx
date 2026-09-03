@@ -74,6 +74,7 @@ const emptyValues: PersonnelFormValues = {
   dateOfBirth: undefined as unknown as Date,
   image: "",
   cycles: [],
+  monthlyForfait: null,
 };
 
 export function PersonnelUpForm({
@@ -407,6 +408,40 @@ export function PersonnelUpForm({
                       triggerClassName={controlClass}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="monthlyForfait"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>
+                    {t("monthlyForfait")}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      inputSize="sm"
+                      type="number"
+                      min={0}
+                      step="1"
+                      placeholder={t("monthlyForfaitPlaceholder")}
+                      className={controlClass}
+                      value={field.value ?? ""}
+                      onChange={(event) =>
+                        field.onChange(
+                          event.target.value === ""
+                            ? null
+                            : Number(event.target.value),
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    {t("monthlyForfaitHint")}
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}

@@ -734,14 +734,6 @@ export type TeachingCreatepreferredDaysInput = {
   set: $Enums.Day[]
 }
 
-export type NullableFloatFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type TeachingUpdatepreferredDaysInput = {
   set?: $Enums.Day[]
   push?: $Enums.Day | $Enums.Day[]

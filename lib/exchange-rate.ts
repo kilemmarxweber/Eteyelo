@@ -68,6 +68,9 @@ export function getBaseCurrency(
   const anySelected = rates.find((rate) => rate.isSelected);
   if (anySelected) return anySelected.fromCurrency;
 
+  const anyActive = rates.find((rate) => rate.isActive);
+  if (anyActive) return anyActive.fromCurrency;
+
   return fallback;
 }
 

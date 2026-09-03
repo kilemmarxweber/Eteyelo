@@ -113,6 +113,7 @@ export const SIDEBAR_HREF_BRANCH_AREA: Record<string, BranchArea> = {
   "/admin/frais": "fee_catalog",
   "/admin/paiement": "finance",
   "/admin/paie-enseignants": "payroll",
+  "/admin/paie-enseignants/credits": "payroll",
   "/admin/transactions": "payroll",
   "/admin/results": "results",
   "/admin/devoirs": "devoirs",

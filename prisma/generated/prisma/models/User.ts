@@ -347,6 +347,8 @@ export type UserWhereInput = {
   temporaryGrants?: Prisma.TemporaryGrantListRelationFilter
   grantsGiven?: Prisma.TemporaryGrantListRelationFilter
   grantsRevoked?: Prisma.TemporaryGrantListRelationFilter
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceListRelationFilter
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -394,6 +396,8 @@ export type UserOrderByWithRelationInput = {
   temporaryGrants?: Prisma.TemporaryGrantOrderByRelationAggregateInput
   grantsGiven?: Prisma.TemporaryGrantOrderByRelationAggregateInput
   grantsRevoked?: Prisma.TemporaryGrantOrderByRelationAggregateInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceOrderByRelationAggregateInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -444,6 +448,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   temporaryGrants?: Prisma.TemporaryGrantListRelationFilter
   grantsGiven?: Prisma.TemporaryGrantListRelationFilter
   grantsRevoked?: Prisma.TemporaryGrantListRelationFilter
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceListRelationFilter
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceListRelationFilter
 }, "id" | "username" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -549,6 +555,8 @@ export type UserCreateInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -596,6 +604,8 @@ export type UserUncheckedCreateInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUpdateInput = {
@@ -643,6 +653,8 @@ export type UserUpdateInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -690,6 +702,8 @@ export type UserUncheckedUpdateInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -988,6 +1002,36 @@ export type UserUpdateOneRequiredWithoutAppNotificationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAppNotificationsInput, Prisma.UserUpdateWithoutAppNotificationsInput>, Prisma.UserUncheckedUpdateWithoutAppNotificationsInput>
 }
 
+export type UserCreateNestedOneWithoutSalaryAdvancesRequestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSalaryAdvancesRequestedInput, Prisma.UserUncheckedCreateWithoutSalaryAdvancesRequestedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSalaryAdvancesRequestedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutSalaryAdvancesReviewedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSalaryAdvancesReviewedInput, Prisma.UserUncheckedCreateWithoutSalaryAdvancesReviewedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSalaryAdvancesReviewedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutSalaryAdvancesRequestedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSalaryAdvancesRequestedInput, Prisma.UserUncheckedCreateWithoutSalaryAdvancesRequestedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSalaryAdvancesRequestedInput
+  upsert?: Prisma.UserUpsertWithoutSalaryAdvancesRequestedInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSalaryAdvancesRequestedInput, Prisma.UserUpdateWithoutSalaryAdvancesRequestedInput>, Prisma.UserUncheckedUpdateWithoutSalaryAdvancesRequestedInput>
+}
+
+export type UserUpdateOneWithoutSalaryAdvancesReviewedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSalaryAdvancesReviewedInput, Prisma.UserUncheckedCreateWithoutSalaryAdvancesReviewedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSalaryAdvancesReviewedInput
+  upsert?: Prisma.UserUpsertWithoutSalaryAdvancesReviewedInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSalaryAdvancesReviewedInput, Prisma.UserUpdateWithoutSalaryAdvancesReviewedInput>, Prisma.UserUncheckedUpdateWithoutSalaryAdvancesReviewedInput>
+}
+
 export type UserCreateNestedOneWithoutSessionsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutSessionsInput, Prisma.UserUncheckedCreateWithoutSessionsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutSessionsInput
@@ -1230,6 +1274,8 @@ export type UserCreateWithoutFamilyPaymentsCreatedInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutFamilyPaymentsCreatedInput = {
@@ -1276,6 +1322,8 @@ export type UserUncheckedCreateWithoutFamilyPaymentsCreatedInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutFamilyPaymentsCreatedInput = {
@@ -1338,6 +1386,8 @@ export type UserUpdateWithoutFamilyPaymentsCreatedInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFamilyPaymentsCreatedInput = {
@@ -1384,6 +1434,8 @@ export type UserUncheckedUpdateWithoutFamilyPaymentsCreatedInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutCashierExpensesCreatedInput = {
@@ -1430,6 +1482,8 @@ export type UserCreateWithoutCashierExpensesCreatedInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutCashierExpensesCreatedInput = {
@@ -1476,6 +1530,8 @@ export type UserUncheckedCreateWithoutCashierExpensesCreatedInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutCashierExpensesCreatedInput = {
@@ -1538,6 +1594,8 @@ export type UserUpdateWithoutCashierExpensesCreatedInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCashierExpensesCreatedInput = {
@@ -1584,6 +1642,8 @@ export type UserUncheckedUpdateWithoutCashierExpensesCreatedInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutGradeModificationRequestsInput = {
@@ -1630,6 +1690,8 @@ export type UserCreateWithoutGradeModificationRequestsInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutGradeModificationRequestsInput = {
@@ -1676,6 +1738,8 @@ export type UserUncheckedCreateWithoutGradeModificationRequestsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutGradeModificationRequestsInput = {
@@ -1727,6 +1791,8 @@ export type UserCreateWithoutReviewedGradeModificationsInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutReviewedGradeModificationsInput = {
@@ -1773,6 +1839,8 @@ export type UserUncheckedCreateWithoutReviewedGradeModificationsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutReviewedGradeModificationsInput = {
@@ -1835,6 +1903,8 @@ export type UserUpdateWithoutGradeModificationRequestsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGradeModificationRequestsInput = {
@@ -1881,6 +1951,8 @@ export type UserUncheckedUpdateWithoutGradeModificationRequestsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUpsertWithoutReviewedGradeModificationsInput = {
@@ -1938,6 +2010,8 @@ export type UserUpdateWithoutReviewedGradeModificationsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewedGradeModificationsInput = {
@@ -1984,6 +2058,8 @@ export type UserUncheckedUpdateWithoutReviewedGradeModificationsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutAbsenceCasesInput = {
@@ -2030,6 +2106,8 @@ export type UserCreateWithoutAbsenceCasesInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutAbsenceCasesInput = {
@@ -2076,6 +2154,8 @@ export type UserUncheckedCreateWithoutAbsenceCasesInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutAbsenceCasesInput = {
@@ -2127,6 +2207,8 @@ export type UserCreateWithoutReviewedAbsenceCasesInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutReviewedAbsenceCasesInput = {
@@ -2173,6 +2255,8 @@ export type UserUncheckedCreateWithoutReviewedAbsenceCasesInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutReviewedAbsenceCasesInput = {
@@ -2235,6 +2319,8 @@ export type UserUpdateWithoutAbsenceCasesInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAbsenceCasesInput = {
@@ -2281,6 +2367,8 @@ export type UserUncheckedUpdateWithoutAbsenceCasesInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUpsertWithoutReviewedAbsenceCasesInput = {
@@ -2338,6 +2426,8 @@ export type UserUpdateWithoutReviewedAbsenceCasesInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewedAbsenceCasesInput = {
@@ -2384,6 +2474,8 @@ export type UserUncheckedUpdateWithoutReviewedAbsenceCasesInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutAppNotificationsInput = {
@@ -2430,6 +2522,8 @@ export type UserCreateWithoutAppNotificationsInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutAppNotificationsInput = {
@@ -2476,6 +2570,8 @@ export type UserUncheckedCreateWithoutAppNotificationsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutAppNotificationsInput = {
@@ -2538,6 +2634,8 @@ export type UserUpdateWithoutAppNotificationsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAppNotificationsInput = {
@@ -2584,6 +2682,424 @@ export type UserUncheckedUpdateWithoutAppNotificationsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
+}
+
+export type UserCreateWithoutSalaryAdvancesRequestedInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  archivedEmail?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
+}
+
+export type UserUncheckedCreateWithoutSalaryAdvancesRequestedInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  archivedEmail?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
+}
+
+export type UserCreateOrConnectWithoutSalaryAdvancesRequestedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSalaryAdvancesRequestedInput, Prisma.UserUncheckedCreateWithoutSalaryAdvancesRequestedInput>
+}
+
+export type UserCreateWithoutSalaryAdvancesReviewedInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  archivedEmail?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+}
+
+export type UserUncheckedCreateWithoutSalaryAdvancesReviewedInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  archivedEmail?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+}
+
+export type UserCreateOrConnectWithoutSalaryAdvancesReviewedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSalaryAdvancesReviewedInput, Prisma.UserUncheckedCreateWithoutSalaryAdvancesReviewedInput>
+}
+
+export type UserUpsertWithoutSalaryAdvancesRequestedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSalaryAdvancesRequestedInput, Prisma.UserUncheckedUpdateWithoutSalaryAdvancesRequestedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSalaryAdvancesRequestedInput, Prisma.UserUncheckedCreateWithoutSalaryAdvancesRequestedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSalaryAdvancesRequestedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSalaryAdvancesRequestedInput, Prisma.UserUncheckedUpdateWithoutSalaryAdvancesRequestedInput>
+}
+
+export type UserUpdateWithoutSalaryAdvancesRequestedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSalaryAdvancesRequestedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
+}
+
+export type UserUpsertWithoutSalaryAdvancesReviewedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSalaryAdvancesReviewedInput, Prisma.UserUncheckedUpdateWithoutSalaryAdvancesReviewedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSalaryAdvancesReviewedInput, Prisma.UserUncheckedCreateWithoutSalaryAdvancesReviewedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSalaryAdvancesReviewedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSalaryAdvancesReviewedInput, Prisma.UserUncheckedUpdateWithoutSalaryAdvancesReviewedInput>
+}
+
+export type UserUpdateWithoutSalaryAdvancesReviewedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSalaryAdvancesReviewedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -2630,6 +3146,8 @@ export type UserCreateWithoutSessionsInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -2676,6 +3194,8 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -2738,6 +3258,8 @@ export type UserUpdateWithoutSessionsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -2784,6 +3306,8 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -2830,6 +3354,8 @@ export type UserCreateWithoutAccountsInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -2876,6 +3402,8 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -2938,6 +3466,8 @@ export type UserUpdateWithoutAccountsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -2984,6 +3514,8 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutMembersInput = {
@@ -3030,6 +3562,8 @@ export type UserCreateWithoutMembersInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutMembersInput = {
@@ -3076,6 +3610,8 @@ export type UserUncheckedCreateWithoutMembersInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutMembersInput = {
@@ -3138,6 +3674,8 @@ export type UserUpdateWithoutMembersInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembersInput = {
@@ -3184,6 +3722,8 @@ export type UserUncheckedUpdateWithoutMembersInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutInvitationsInput = {
@@ -3230,6 +3770,8 @@ export type UserCreateWithoutInvitationsInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutInvitationsInput = {
@@ -3276,6 +3818,8 @@ export type UserUncheckedCreateWithoutInvitationsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutInvitationsInput = {
@@ -3338,6 +3882,8 @@ export type UserUpdateWithoutInvitationsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutInvitationsInput = {
@@ -3384,6 +3930,8 @@ export type UserUncheckedUpdateWithoutInvitationsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutPlatformSupportAgentInput = {
@@ -3430,6 +3978,8 @@ export type UserCreateWithoutPlatformSupportAgentInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutPlatformSupportAgentInput = {
@@ -3476,6 +4026,8 @@ export type UserUncheckedCreateWithoutPlatformSupportAgentInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutPlatformSupportAgentInput = {
@@ -3538,6 +4090,8 @@ export type UserUpdateWithoutPlatformSupportAgentInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlatformSupportAgentInput = {
@@ -3584,6 +4138,8 @@ export type UserUncheckedUpdateWithoutPlatformSupportAgentInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutPlatformEscalationsRequestedInput = {
@@ -3630,6 +4186,8 @@ export type UserCreateWithoutPlatformEscalationsRequestedInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutPlatformEscalationsRequestedInput = {
@@ -3676,6 +4234,8 @@ export type UserUncheckedCreateWithoutPlatformEscalationsRequestedInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutPlatformEscalationsRequestedInput = {
@@ -3738,6 +4298,8 @@ export type UserUpdateWithoutPlatformEscalationsRequestedInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlatformEscalationsRequestedInput = {
@@ -3784,6 +4346,8 @@ export type UserUncheckedUpdateWithoutPlatformEscalationsRequestedInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutConversationsCreatedInput = {
@@ -3830,6 +4394,8 @@ export type UserCreateWithoutConversationsCreatedInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutConversationsCreatedInput = {
@@ -3876,6 +4442,8 @@ export type UserUncheckedCreateWithoutConversationsCreatedInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutConversationsCreatedInput = {
@@ -3938,6 +4506,8 @@ export type UserUpdateWithoutConversationsCreatedInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutConversationsCreatedInput = {
@@ -3984,6 +4554,8 @@ export type UserUncheckedUpdateWithoutConversationsCreatedInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutConversationParticipantsInput = {
@@ -4030,6 +4602,8 @@ export type UserCreateWithoutConversationParticipantsInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutConversationParticipantsInput = {
@@ -4076,6 +4650,8 @@ export type UserUncheckedCreateWithoutConversationParticipantsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutConversationParticipantsInput = {
@@ -4138,6 +4714,8 @@ export type UserUpdateWithoutConversationParticipantsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutConversationParticipantsInput = {
@@ -4184,6 +4762,8 @@ export type UserUncheckedUpdateWithoutConversationParticipantsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutSentMessagesInput = {
@@ -4230,6 +4810,8 @@ export type UserCreateWithoutSentMessagesInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutSentMessagesInput = {
@@ -4276,6 +4858,8 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutSentMessagesInput = {
@@ -4338,6 +4922,8 @@ export type UserUpdateWithoutSentMessagesInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentMessagesInput = {
@@ -4384,6 +4970,8 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutMessageArchivesInput = {
@@ -4430,6 +5018,8 @@ export type UserCreateWithoutMessageArchivesInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutMessageArchivesInput = {
@@ -4476,6 +5066,8 @@ export type UserUncheckedCreateWithoutMessageArchivesInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutMessageArchivesInput = {
@@ -4538,6 +5130,8 @@ export type UserUpdateWithoutMessageArchivesInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMessageArchivesInput = {
@@ -4584,6 +5178,8 @@ export type UserUncheckedUpdateWithoutMessageArchivesInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutMessagingAuditLogsInput = {
@@ -4630,6 +5226,8 @@ export type UserCreateWithoutMessagingAuditLogsInput = {
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutMessagingAuditLogsInput = {
@@ -4676,6 +5274,8 @@ export type UserUncheckedCreateWithoutMessagingAuditLogsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutMessagingAuditLogsInput = {
@@ -4738,6 +5338,8 @@ export type UserUpdateWithoutMessagingAuditLogsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMessagingAuditLogsInput = {
@@ -4784,6 +5386,8 @@ export type UserUncheckedUpdateWithoutMessagingAuditLogsInput = {
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutTemporaryGrantsInput = {
@@ -4830,6 +5434,8 @@ export type UserCreateWithoutTemporaryGrantsInput = {
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutTemporaryGrantsInput = {
@@ -4876,6 +5482,8 @@ export type UserUncheckedCreateWithoutTemporaryGrantsInput = {
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutTemporaryGrantsInput = {
@@ -4927,6 +5535,8 @@ export type UserCreateWithoutGrantsGivenInput = {
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutGrantsGivenInput = {
@@ -4973,6 +5583,8 @@ export type UserUncheckedCreateWithoutGrantsGivenInput = {
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutGrantsGivenInput = {
@@ -5024,6 +5636,8 @@ export type UserCreateWithoutGrantsRevokedInput = {
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutGrantsRevokedInput = {
@@ -5070,6 +5684,8 @@ export type UserUncheckedCreateWithoutGrantsRevokedInput = {
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutGrantsRevokedInput = {
@@ -5132,6 +5748,8 @@ export type UserUpdateWithoutTemporaryGrantsInput = {
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTemporaryGrantsInput = {
@@ -5178,6 +5796,8 @@ export type UserUncheckedUpdateWithoutTemporaryGrantsInput = {
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUpsertWithoutGrantsGivenInput = {
@@ -5235,6 +5855,8 @@ export type UserUpdateWithoutGrantsGivenInput = {
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGrantsGivenInput = {
@@ -5281,6 +5903,8 @@ export type UserUncheckedUpdateWithoutGrantsGivenInput = {
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUpsertWithoutGrantsRevokedInput = {
@@ -5338,6 +5962,8 @@ export type UserUpdateWithoutGrantsRevokedInput = {
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGrantsRevokedInput = {
@@ -5384,6 +6010,8 @@ export type UserUncheckedUpdateWithoutGrantsRevokedInput = {
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
   grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 
@@ -5412,6 +6040,8 @@ export type UserCountOutputType = {
   temporaryGrants: number
   grantsGiven: number
   grantsRevoked: number
+  salaryAdvancesRequested: number
+  salaryAdvancesReviewed: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5435,6 +6065,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   temporaryGrants?: boolean | UserCountOutputTypeCountTemporaryGrantsArgs
   grantsGiven?: boolean | UserCountOutputTypeCountGrantsGivenArgs
   grantsRevoked?: boolean | UserCountOutputTypeCountGrantsRevokedArgs
+  salaryAdvancesRequested?: boolean | UserCountOutputTypeCountSalaryAdvancesRequestedArgs
+  salaryAdvancesReviewed?: boolean | UserCountOutputTypeCountSalaryAdvancesReviewedArgs
 }
 
 /**
@@ -5587,6 +6219,20 @@ export type UserCountOutputTypeCountGrantsRevokedArgs<ExtArgs extends runtime.Ty
   where?: Prisma.TemporaryGrantWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSalaryAdvancesRequestedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SalaryAdvanceWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSalaryAdvancesReviewedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SalaryAdvanceWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -5633,6 +6279,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   temporaryGrants?: boolean | Prisma.User$temporaryGrantsArgs<ExtArgs>
   grantsGiven?: boolean | Prisma.User$grantsGivenArgs<ExtArgs>
   grantsRevoked?: boolean | Prisma.User$grantsRevokedArgs<ExtArgs>
+  salaryAdvancesRequested?: boolean | Prisma.User$salaryAdvancesRequestedArgs<ExtArgs>
+  salaryAdvancesReviewed?: boolean | Prisma.User$salaryAdvancesReviewedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -5737,6 +6385,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   temporaryGrants?: boolean | Prisma.User$temporaryGrantsArgs<ExtArgs>
   grantsGiven?: boolean | Prisma.User$grantsGivenArgs<ExtArgs>
   grantsRevoked?: boolean | Prisma.User$grantsRevokedArgs<ExtArgs>
+  salaryAdvancesRequested?: boolean | Prisma.User$salaryAdvancesRequestedArgs<ExtArgs>
+  salaryAdvancesReviewed?: boolean | Prisma.User$salaryAdvancesReviewedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -5766,6 +6416,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     temporaryGrants: Prisma.$TemporaryGrantPayload<ExtArgs>[]
     grantsGiven: Prisma.$TemporaryGrantPayload<ExtArgs>[]
     grantsRevoked: Prisma.$TemporaryGrantPayload<ExtArgs>[]
+    salaryAdvancesRequested: Prisma.$SalaryAdvancePayload<ExtArgs>[]
+    salaryAdvancesReviewed: Prisma.$SalaryAdvancePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -6212,6 +6864,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   temporaryGrants<T extends Prisma.User$temporaryGrantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$temporaryGrantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TemporaryGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   grantsGiven<T extends Prisma.User$grantsGivenArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$grantsGivenArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TemporaryGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   grantsRevoked<T extends Prisma.User$grantsRevokedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$grantsRevokedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TemporaryGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  salaryAdvancesRequested<T extends Prisma.User$salaryAdvancesRequestedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$salaryAdvancesRequestedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalaryAdvancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  salaryAdvancesReviewed<T extends Prisma.User$salaryAdvancesReviewedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$salaryAdvancesReviewedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalaryAdvancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7153,6 +7807,54 @@ export type User$grantsRevokedArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.TemporaryGrantScalarFieldEnum | Prisma.TemporaryGrantScalarFieldEnum[]
+}
+
+/**
+ * User.salaryAdvancesRequested
+ */
+export type User$salaryAdvancesRequestedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SalaryAdvance
+   */
+  select?: Prisma.SalaryAdvanceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SalaryAdvance
+   */
+  omit?: Prisma.SalaryAdvanceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SalaryAdvanceInclude<ExtArgs> | null
+  where?: Prisma.SalaryAdvanceWhereInput
+  orderBy?: Prisma.SalaryAdvanceOrderByWithRelationInput | Prisma.SalaryAdvanceOrderByWithRelationInput[]
+  cursor?: Prisma.SalaryAdvanceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SalaryAdvanceScalarFieldEnum | Prisma.SalaryAdvanceScalarFieldEnum[]
+}
+
+/**
+ * User.salaryAdvancesReviewed
+ */
+export type User$salaryAdvancesReviewedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SalaryAdvance
+   */
+  select?: Prisma.SalaryAdvanceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SalaryAdvance
+   */
+  omit?: Prisma.SalaryAdvanceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SalaryAdvanceInclude<ExtArgs> | null
+  where?: Prisma.SalaryAdvanceWhereInput
+  orderBy?: Prisma.SalaryAdvanceOrderByWithRelationInput | Prisma.SalaryAdvanceOrderByWithRelationInput[]
+  cursor?: Prisma.SalaryAdvanceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SalaryAdvanceScalarFieldEnum | Prisma.SalaryAdvanceScalarFieldEnum[]
 }
 
 /**

@@ -578,6 +578,9 @@
       "chooseRole": "Escolher um papel",
       "searchRole": "Pesquisar papel…",
       "noRoleFound": "Nenhum papel encontrado.",
+      "monthlyForfait": "Forfait mensal",
+      "monthlyForfaitPlaceholder": "50000",
+      "monthlyForfaitHint": "Salário conhecido na moeda de base (ex. 50 000 AOA).",
       "selectCycle": "Seleccione pelo menos um ciclo.",
       "chooseImage": "Escolha uma imagem (JPEG, PNG, WebP…).",
       "imageTooLarge": "Imagem demasiado grande (máx. 5 Mo).",
@@ -637,6 +640,7 @@
     "table": {
       "photo": "Foto",
       "role": "Função",
+      "monthlyForfait": "Forfait",
       "cycles": "Ciclos",
       "edit": "Modificar",
       "details": "Detalhes",

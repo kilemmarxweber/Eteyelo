@@ -921,11 +921,13 @@ export type $CoursOptionPonderationPayload<ExtArgs extends runtime.Types.Extensi
     coursId: string
     optionId: string
     /**
-     * * Unités de max période : max = ponderation × 10 (ex. 1 → 10, 0.5 → 5).
+     * *
+     *    * Unités de max période : max = ponderation × 10 (ex. 1 → 10, 0.5 → 5).
      */
     ponderation: number
     /**
-     * * Niveau secondaire (7è, 1è…). Vide = tous les niveaux de l'option.
+     * *
+     *    * Niveau secondaire (7è, 1è…). Vide = tous les niveaux de l'option.
      */
     level: string
     branchId: string

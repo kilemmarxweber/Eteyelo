@@ -117,6 +117,14 @@ export function DetailsPersonnelDialog({
                   : t("roleUndefined")
               }
             />
+            <Field
+              label={t("monthlyForfait")}
+              value={
+                personnel.monthlyForfait != null && personnel.monthlyForfait > 0
+                  ? personnel.monthlyForfait.toLocaleString("fr-FR")
+                  : "—"
+              }
+            />
           </div>
 
           <PersonnelBadgePanel

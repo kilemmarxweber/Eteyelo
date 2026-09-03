@@ -182,6 +182,17 @@ export function usePersonnelColumns(
         ),
       },
       {
+        id: "monthlyForfait",
+        accessorFn: (row) => row.monthlyForfait ?? "",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("monthlyForfait")} />
+        ),
+        cell: ({ row }) =>
+          row.original.monthlyForfait != null && row.original.monthlyForfait > 0
+            ? row.original.monthlyForfait.toLocaleString("fr-FR")
+            : "—",
+      },
+      {
         accessorKey: "telephone",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={tPerson("phone")} />

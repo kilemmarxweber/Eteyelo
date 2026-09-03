@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, Fragment } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   IconRefresh,
@@ -11,6 +11,7 @@ import {
   IconSettings,
   IconTrash,
   IconCalculator,
+  IconFileTypePdf,
 } from "@tabler/icons-react";
 
 import { Button } from "@/components/custom/button";
@@ -18,6 +19,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SalaryCreditsClient from "../credits/credits-client";
+import { exportPayrollRegisterPdf } from "./export-payroll-register-pdf";
+import type { SchoolReportContext } from "@/lib/reports/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,13 +53,28 @@ import {
   updatePayrollPolicyAction,
   validateTeacherPayslipAction,
   validateAllTeacherPayslipsAction,
+  getPayrollReportContextAction,
 } from "../payroll.action";
+
+type PayrollTab = "brouillon" | "bareme" | "credit";
+
+function readPayrollTab(): PayrollTab {
+  if (typeof window === "undefined") return "brouillon";
+  const value = new URLSearchParams(window.location.search).get("tab");
+  if (value === "bareme" || value === "credit" || value === "brouillon") {
+    return value;
+  }
+  return "brouillon";
+}
 
 type PayslipRow = {
   id: string;
-  teacherId: string;
+  teacherId: string | null;
+  branchMemberId: string;
+  agentKind: string;
   teacherName: string;
   employmentKind: string;
+  contractLabel: string;
   branchName: string;
   classes: string[];
   classSummary: string;
@@ -151,6 +171,7 @@ const CYCLE_LABELS: Record<string, string> = {
   CENTRE_FORMATION: "Centre de formation",
   UNIVERSITE: "Université",
   MIXTE: "Mixte",
+  PERSONNEL: "Personnel",
   AUTRE: "Autre",
 };
 
@@ -159,14 +180,17 @@ const CYCLE_BADGE: Record<string, string> = {
   PRIMAIRE: "border-sky-300/70 bg-sky-50 text-sky-800 dark:bg-sky-950/40 dark:text-sky-300",
   SECONDAIRE: "border-indigo-300/70 bg-indigo-50 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300",
   MIXTE: "border-violet-300/70 bg-violet-50 text-violet-800 dark:bg-violet-950/40 dark:text-violet-300",
+  PERSONNEL: "border-amber-300/70 bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300",
   AUTRE: "border-border bg-muted text-foreground",
 };
 
 export default function PayrollClient() {
   const params = useParams<{ organizationId: string; branchId: string }>();
   const router = useRouter();
-  const { data: session } = useSession();
+  const pathname = usePathname();
+  const { data: session, isPending } = useSession();
   const now = new Date();
+  const [tab, setTab] = useState<PayrollTab>("brouillon");
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [schoolYears, setSchoolYears] = useState<SchoolYearOption[]>([]);
@@ -178,11 +202,27 @@ export default function PayrollClient() {
   const [working, setWorking] = useState(false);
   const [policy, setPolicy] = useState<Policy | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [branding, setBranding] = useState<SchoolReportContext | null>(null);
   const loadRequestRef = useRef(0);
 
   useEffect(() => {
     setHydrated(true);
+    setTab(readPayrollTab());
   }, []);
+
+  function selectTab(value: string) {
+    const next: PayrollTab =
+      value === "bareme" || (value === "credit" && isManager) ? value : "brouillon";
+    setTab(next);
+    const search = new URLSearchParams(
+      typeof window === "undefined" ? "" : window.location.search,
+    );
+    if (next === "brouillon") search.delete("tab");
+    else search.set("tab", next);
+    const query = search.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }
 
   const load = useCallback(async () => {
     const requestId = ++loadRequestRef.current;
@@ -245,17 +285,26 @@ export default function PayrollClient() {
   }, []);
 
   const isManager = useMemo(
-    () => hydrated && canComputePayroll(session),
-    [hydrated, session],
+    () => hydrated && !isPending && canComputePayroll(session),
+    [hydrated, isPending, session],
   );
   const canValidate = useMemo(
-    () => hydrated && canValidatePayroll(session),
-    [hydrated, session],
+    () => hydrated && !isPending && canValidatePayroll(session),
+    [hydrated, isPending, session],
   );
   const canPay = useMemo(
-    () => hydrated && canPayPayroll(session),
-    [hydrated, session],
+    () => hydrated && !isPending && canPayPayroll(session),
+    [hydrated, isPending, session],
   );
+
+  useEffect(() => {
+    if (!hydrated || isPending || tab !== "credit" || isManager) return;
+    setTab("brouillon");
+    const search = new URLSearchParams(window.location.search);
+    search.delete("tab");
+    const query = search.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [hydrated, isManager, isPending, pathname, router, tab]);
 
   const deletableRows = useMemo(
     () => rows.filter((row) => isDeletable(row.status)),
@@ -341,13 +390,13 @@ export default function PayrollClient() {
     });
   }
 
-  async function recalculate(teacherIds?: string[]) {
+  async function recalculate(branchMemberIds?: string[]) {
     setWorking(true);
     const [result, error] = await recalculateTeacherPayslipsAction({
       year,
       month,
       schoolYearId: schoolYearId || undefined,
-      ...(teacherIds && teacherIds.length > 0 ? { teacherIds } : {}),
+      ...(branchMemberIds && branchMemberIds.length > 0 ? { branchMemberIds } : {}),
     });
     if (error) toast.error(error.message);
     else {
@@ -359,6 +408,11 @@ export default function PayrollClient() {
       if (result?.skippedPaid) {
         toast.warning(
           `${result.skippedPaid} bulletin(s) payé(s) non modifié(s).`,
+        );
+      }
+      if (result?.skippedNoForfait) {
+        toast.warning(
+          `${result.skippedNoForfait} personnel(s) sans forfait mensuel : saisissez le salaire sur la fiche.`,
         );
       }
       toast.success(`${result?.count ?? 0} bulletin(s) généré(s)`);
@@ -510,6 +564,39 @@ export default function PayrollClient() {
     setWorking(false);
   }
 
+  async function exportRegisterPdf() {
+    if (rows.length === 0) {
+      toast.error("Aucun bulletin à exporter pour cette période.");
+      return;
+    }
+    setExportingPdf(true);
+    try {
+      let context = branding;
+      if (!context) {
+        const [fresh, err] = await getPayrollReportContextAction();
+        if (err || !fresh) {
+          throw new Error(err?.message || "Impossible de préparer l’en-tête du PDF.");
+        }
+        context = fresh;
+        setBranding(fresh);
+      }
+      const schoolYearLabel =
+        schoolYears.find((schoolYear) => schoolYear.id === schoolYearId)?.nameYear;
+      await exportPayrollRegisterPdf(rows, cash, context, {
+        month,
+        year,
+        schoolYearLabel,
+      });
+      toast.success("PDF des bulletins téléchargé.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Échec de l’export PDF.",
+      );
+    } finally {
+      setExportingPdf(false);
+    }
+  }
+
   async function mutate(
     action: (input: { payslipId: string }) => Promise<[unknown, { message: string } | null]>,
     success: string,
@@ -528,7 +615,40 @@ export default function PayrollClient() {
   return (
     <Card>
       <CardHeader className="gap-4">
-        <CardTitle>Bulletins mensuels</CardTitle>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle>Bulletins mensuels</CardTitle>
+          <Tabs value={tab} onValueChange={selectTab} className="w-full sm:w-auto">
+            <TabsList
+              className={cn(
+                "grid h-auto min-h-10 w-full border border-primary/20 bg-primary/10 sm:w-auto",
+                isManager ? "grid-cols-3" : "grid-cols-2",
+              )}
+            >
+              <TabsTrigger
+                value="brouillon"
+                className="px-4 py-2 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                Brouillon
+              </TabsTrigger>
+              <TabsTrigger
+                value="bareme"
+                className="px-4 py-2 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                Barème
+              </TabsTrigger>
+              {isManager ? (
+                <TabsTrigger
+                  value="credit"
+                  className="px-4 py-2 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  Crédit
+                </TabsTrigger>
+              ) : null}
+            </TabsList>
+          </Tabs>
+        </div>
+        {tab === "brouillon" ? (
+          <>
         <div className="grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-[9rem_8rem_minmax(0,1fr)] lg:items-end">
           <label className="space-y-1.5 text-xs font-medium text-muted-foreground" htmlFor="payroll-school-year">
             <span>Année scolaire</span>
@@ -575,6 +695,16 @@ export default function PayrollClient() {
             >
               <IconRefresh size={16} />
               Actualiser
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 sm:flex-none"
+              onClick={() => void exportRegisterPdf()}
+              disabled={loading || exportingPdf || rows.length === 0}
+            >
+              <IconFileTypePdf size={16} />
+              {exportingPdf ? "Export…" : "Exporter PDF"}
             </Button>
             {isManager ? (
               <>
@@ -634,7 +764,7 @@ export default function PayrollClient() {
               variant="outline"
               disabled={working || selectedRows.length === 0}
               onClick={() =>
-                void recalculate(selectedRows.map((row) => row.teacherId))
+                void recalculate(selectedRows.map((row) => row.branchMemberId))
               }
             >
               <IconCalculator size={15} />
@@ -679,7 +809,10 @@ export default function PayrollClient() {
             </Button>
           </div>
         ) : null}
+          </>
+        ) : null}
       </CardHeader>
+      {tab === "brouillon" ? (
       <CardContent className="space-y-4">
         {cash ? (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -711,7 +844,7 @@ export default function PayrollClient() {
           <p className="text-sm text-muted-foreground">Chargement…</p>
         ) : rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Aucun bulletin pour cette période. Lancez une régénération après la clôture des présences.
+            Aucun bulletin pour cette période. Lancez une régénération pour payer enseignants et personnels ensemble.
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -730,8 +863,8 @@ export default function PayrollClient() {
                       />
                     </th>
                   ) : null}
-                  <th className="p-2">Enseignant</th>
-                  <th className="p-2">Cycle</th>
+                  <th className="p-2">Agent</th>
+                  <th className="p-2">Cycle / rôle</th>
                   <th className="p-2">Branche</th>
                   <th className="p-2">Classes</th>
                   <th className="p-2">Contrat</th>
@@ -763,7 +896,7 @@ export default function PayrollClient() {
                             {group.label}
                           </Badge>
                           <span className="text-muted-foreground normal-case tracking-normal">
-                            {group.rows.length} enseignant
+                            {group.rows.length} agent
                             {group.rows.length > 1 ? "s" : ""}
                             {" · "}
                             pertes{" "}
@@ -791,14 +924,17 @@ export default function PayrollClient() {
                               onCheckedChange={(value) =>
                                 toggleRow(row.id, value === true)
                               }
-                              aria-label={`Sélectionner ${row.teacherName || "enseignant"}`}
+                              aria-label={`Sélectionner ${row.teacherName || "agent"}`}
                             />
                           </td>
                         ) : null}
                         <td className="p-2 font-medium">{row.teacherName || "Enseignant"}</td>
                         <td className="p-2">
                           <div className="flex flex-wrap gap-1">
-                            {(row.cycles.length > 0 ? row.cycles : ["AUTRE"]).map((cycle) => (
+                            {(row.cycles.length > 0
+                              ? row.cycles
+                              : [row.cycleGroup || "AUTRE"]
+                            ).map((cycle) => (
                               <Badge
                                 key={cycle}
                                 variant="outline"
@@ -847,9 +983,7 @@ export default function PayrollClient() {
                           )}
                         </td>
                         <td className="p-2">
-                          {row.employmentKind === "MATRICULE"
-                            ? "Matriculé"
-                            : "Non matriculé"}
+                          {row.contractLabel}
                         </td>
                         <td className="p-2">{formatAmount(row.gross, row.currency)}</td>
                         <td className="p-2 font-medium text-destructive">
@@ -881,7 +1015,7 @@ export default function PayrollClient() {
                               )
                             }
                             title="Détail"
-                            aria-label={`Voir le détail de ${row.teacherName || "enseignant"}`}
+                            aria-label={`Voir le détail de ${row.teacherName || "agent"}`}
                           >
                             <IconFileInvoice size={15} />
                           </Button>
@@ -899,7 +1033,7 @@ export default function PayrollClient() {
                                 )
                               }
                               title="Valider"
-                              aria-label={`Valider le bulletin de ${row.teacherName || "enseignant"}`}
+                              aria-label={`Valider le bulletin de ${row.teacherName || "agent"}`}
                             >
                               <IconCheck size={15} />
                             </Button>
@@ -917,7 +1051,7 @@ export default function PayrollClient() {
                                 )
                               }
                               title="Payer"
-                              aria-label={`Marquer payé le bulletin de ${row.teacherName || "enseignant"}`}
+                              aria-label={`Marquer payé le bulletin de ${row.teacherName || "agent"}`}
                             >
                               <IconCash size={15} />
                             </Button>
@@ -928,9 +1062,9 @@ export default function PayrollClient() {
                               size="icon"
                               className="size-8 shrink-0"
                               disabled={working}
-                              onClick={() => void recalculate([row.teacherId])}
+                              onClick={() => void recalculate([row.branchMemberId])}
                               title="Recalculer"
-                              aria-label={`Recalculer le bulletin de ${row.teacherName || "enseignant"}`}
+                              aria-label={`Recalculer le bulletin de ${row.teacherName || "agent"}`}
                             >
                               <IconCalculator size={15} />
                             </Button>
@@ -943,7 +1077,7 @@ export default function PayrollClient() {
                               disabled={working}
                               onClick={() => requestDeletePayslips([row.id])}
                               title="Supprimer"
-                              aria-label={`Supprimer le bulletin de ${row.teacherName || "enseignant"}`}
+                              aria-label={`Supprimer le bulletin de ${row.teacherName || "agent"}`}
                             >
                               <IconTrash size={15} />
                             </Button>
@@ -983,8 +1117,9 @@ export default function PayrollClient() {
           </div>
         )}
       </CardContent>
-      {policy ? (
-        <CardContent className="border-t pt-4">
+      ) : null}
+      {tab === "bareme" && policy ? (
+        <CardContent>
           <div className="mb-3 flex items-center justify-between gap-2">
             <div>
               <p className="font-semibold">Barème de la branche</p>
@@ -1024,6 +1159,11 @@ export default function PayrollClient() {
               </label>
             ))}
           </div>
+        </CardContent>
+      ) : null}
+      {tab === "credit" && isManager ? (
+        <CardContent>
+          <SalaryCreditsClient embedded />
         </CardContent>
       ) : null}
 
