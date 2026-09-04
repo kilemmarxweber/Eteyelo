@@ -57,7 +57,7 @@ export function roleAllowsAreaAction(
   const map = roleStatements ?? statementsMapFromSession(session);
 
   const covers = (required: Record<string, string[]> | undefined) => {
-    if (!required) return false;
+    if (!required) return () => false;
     return (statements: ReturnType<typeof getStatementsForRole>) =>
       Object.keys(required).every((resource) =>
         roleAllowsAll(statements, resource, [action]),
