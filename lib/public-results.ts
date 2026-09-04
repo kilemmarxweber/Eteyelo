@@ -9,6 +9,7 @@ import {
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { isCycle } from "@/lib/cycle";
 import { prisma } from "@/lib/prisma";
+import { SUCCESS_THRESHOLD_PERCENT } from "@/lib/reports/org/definitions";
 import { normalizeImageSrc } from "@/lib/utils";
 
 export type PublicResultFilters = {
@@ -16,13 +17,26 @@ export type PublicResultFilters = {
   branchIds?: string[];
   classeId?: string;
   classeName?: string;
+  classeNames?: string[];
   yearId?: string;
   yearName?: string;
   periodId?: number;
   periodLabel?: string;
+  periodLabels?: string[];
   cycle?: string;
+  cycles?: string[];
   q?: string;
 };
+
+function uniqueStrings(values: Array<string | undefined | null>): string[] {
+  return Array.from(
+    new Set(
+      values
+        .map((value) => (typeof value === "string" ? value.trim() : ""))
+        .filter(Boolean),
+    ),
+  );
+}
 
 export type PublicStudentResult = {
   studentId: string;
@@ -114,18 +128,26 @@ export async function getPublicStudentResults(
       ),
     ),
   );
-  const periodNames = filters.periodLabel
-    ? periodLabelsForFilter(filters.periodLabel)
-    : [];
-  const cycle = isCycle(filters.cycle) ? filters.cycle : undefined;
+  const periodLabels = uniqueStrings([
+    filters.periodLabel,
+    ...(filters.periodLabels ?? []),
+  ]);
+  const periodNames = periodLabels.flatMap(periodLabelsForFilter);
+  const cycles = uniqueStrings([filters.cycle, ...(filters.cycles ?? [])]).filter(
+    isCycle,
+  );
+  const classeNames = uniqueStrings([
+    filters.classeName,
+    ...(filters.classeNames ?? []),
+  ]);
 
   const fiches = await prisma.fiche.findMany({
     where: {
       typeFiche: "ficheCote",
       ...(branchIds.length ? { branchId: { in: branchIds } } : {}),
       ...(filters.classeId ? { classSectionId: filters.classeId } : {}),
-      ...(filters.classeName && !filters.classeId
-        ? { ClassSection: { nameClasse: filters.classeName } }
+      ...(classeNames.length && !filters.classeId
+        ? { ClassSection: { nameClasse: { in: classeNames } } }
         : {}),
       ...(filters.yearId ? { anneeId: filters.yearId } : {}),
       ...(filters.yearName && !filters.yearId
@@ -135,11 +157,11 @@ export async function getPublicStudentResults(
       ...(periodNames.length && !filters.periodId
         ? { periodeName: { in: periodNames } }
         : {}),
-      ...(cycle
+      ...(cycles.length
         ? {
             OR: [
-              { period: { cycle } },
-              { ClassSection: { cycle } },
+              { period: { cycle: { in: cycles } } },
+              { ClassSection: { cycle: { in: cycles } } },
             ],
           }
         : {}),
@@ -316,8 +338,15 @@ export async function getPublicStudentResults(
   return results.sort((a, b) => b.average - a.average);
 }
 
-export async function getHomeResultSlides(limitSchools = 3) {
+export async function getHomeResultHighlights(limitSchools = 3) {
   const results = await getPublicStudentResults();
+  const passed = results.filter(
+    (result) => result.average >= SUCCESS_THRESHOLD_PERCENT,
+  ).length;
+  const successRate = results.length
+    ? Math.round((passed / results.length) * 100)
+    : 0;
+
   const grouped = new Map<
     string,
     {
@@ -356,7 +385,15 @@ export async function getHomeResultSlides(limitSchools = 3) {
     grouped.set(result.branchId, current);
   }
 
-  return Array.from(grouped.values())
-    .filter((slide) => slide.students.length > 0)
-    .slice(0, limitSchools);
+  return {
+    successRate,
+    resultSlides: Array.from(grouped.values())
+      .filter((slide) => slide.students.length > 0)
+      .slice(0, limitSchools),
+  };
+}
+
+export async function getHomeResultSlides(limitSchools = 3) {
+  const { resultSlides } = await getHomeResultHighlights(limitSchools);
+  return resultSlides;
 }

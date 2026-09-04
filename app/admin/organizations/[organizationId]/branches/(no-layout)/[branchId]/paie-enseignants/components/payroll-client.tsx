@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SalaryCreditsClient from "../credits/credits-client";
+import PayrollNotificationLogs from "./payroll-notification-logs";
 import { exportPayrollRegisterPdf } from "./export-payroll-register-pdf";
 import { exportPayrollRegisterExcel } from "./export-payroll-register-excel";
 import type { SchoolReportContext } from "@/lib/reports/types";
@@ -60,12 +61,17 @@ import {
   getPayrollReportContextAction,
 } from "../payroll.action";
 
-type PayrollTab = "brouillon" | "bareme" | "credit";
+type PayrollTab = "brouillon" | "bareme" | "credit" | "logs";
 
 function readPayrollTab(): PayrollTab {
   if (typeof window === "undefined") return "brouillon";
   const value = new URLSearchParams(window.location.search).get("tab");
-  if (value === "bareme" || value === "credit" || value === "brouillon") {
+  if (
+    value === "bareme" ||
+    value === "credit" ||
+    value === "brouillon" ||
+    value === "logs"
+  ) {
     return value;
   }
   return "brouillon";
@@ -256,7 +262,10 @@ export default function PayrollClient() {
 
   function selectTab(value: string) {
     const next: PayrollTab =
-      value === "bareme" || (value === "credit" && isManager) ? value : "brouillon";
+      value === "bareme" ||
+      ((value === "credit" || value === "logs") && isManager)
+        ? value
+        : "brouillon";
     setTab(next);
     const search = new URLSearchParams(
       typeof window === "undefined" ? "" : window.location.search,
@@ -341,7 +350,8 @@ export default function PayrollClient() {
   );
 
   useEffect(() => {
-    if (!hydrated || isPending || tab !== "credit" || isManager) return;
+    if (!hydrated || isPending || isManager) return;
+    if (tab !== "credit" && tab !== "logs") return;
     setTab("brouillon");
     const search = new URLSearchParams(window.location.search);
     search.delete("tab");
@@ -669,12 +679,20 @@ export default function PayrollClient() {
     <Card>
       <CardHeader className="gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Bulletins mensuels</CardTitle>
+          <CardTitle>
+            {tab === "logs"
+              ? "Logs notifications paie"
+              : tab === "bareme"
+                ? "Barème"
+                : tab === "credit"
+                  ? "Crédit"
+                  : "Bulletins mensuels"}
+          </CardTitle>
           <Tabs value={tab} onValueChange={selectTab} className="w-full sm:w-auto">
             <TabsList
               className={cn(
                 "grid h-auto min-h-10 w-full border border-primary/20 bg-primary/10 sm:w-auto",
-                isManager ? "grid-cols-3" : "grid-cols-2",
+                isManager ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-2",
               )}
             >
               <TabsTrigger
@@ -695,6 +713,14 @@ export default function PayrollClient() {
                   className="px-4 py-2 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
                   Crédit
+                </TabsTrigger>
+              ) : null}
+              {isManager ? (
+                <TabsTrigger
+                  value="logs"
+                  className="inline-flex items-center px-4 py-2 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  Logs
                 </TabsTrigger>
               ) : null}
             </TabsList>
@@ -1290,6 +1316,11 @@ export default function PayrollClient() {
       {tab === "credit" && isManager ? (
         <CardContent>
           <SalaryCreditsClient embedded />
+        </CardContent>
+      ) : null}
+      {tab === "logs" && isManager ? (
+        <CardContent>
+          <PayrollNotificationLogs />
         </CardContent>
       ) : null}
 

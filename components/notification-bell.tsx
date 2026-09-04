@@ -18,16 +18,34 @@ import {
   Undo2,
   Banknote,
   FilePenLine,
+  Trash2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -39,6 +57,7 @@ import {
 import { NOTIFICATIONS_REFRESH_EVENT, openMessagingDrawer, refreshMessagingBell } from "@/lib/notification-events";
 import {
   confirmNotificationRequestAction,
+  deleteMyPayrollNotificationsAction,
   getNotificationInboxAction,
   rejectNotificationRequestAction,
 } from "@/lib/actions/notification.actions";
@@ -95,6 +114,13 @@ type AbsenceRow = {
 };
 
 type NotificationItem = RegistrationRow | JobRow | AbsenceRow;
+
+function isPayrollNotification(item: { type?: string; kind?: string }) {
+  return (
+    item.kind === "absence" &&
+    (item.type === "PAYROLL" || item.type === "PAYROLL_DEDUCTION")
+  );
+}
 
 function zsaErrorMessage(error: unknown, fallback: string) {
   if (
@@ -300,10 +326,14 @@ function AbsenceNotificationRow({
   item,
   onOpen,
   onReply,
+  selected,
+  onToggleSelect,
 }: {
   item: AbsenceRow;
   onOpen: (item: AbsenceRow) => void;
   onReply?: (item: AbsenceRow) => void;
+  selected?: boolean;
+  onToggleSelect?: (id: string, checked: boolean) => void;
 }) {
   const isPayment = item.type === "PAYMENT";
   const isPayroll =
@@ -325,8 +355,8 @@ function AbsenceNotificationRow({
             ? "OK"
             : "Voir";
 
-  return (
-    <div className="group flex items-start gap-3 border-b border-border/50 px-4 py-3 last:border-0 transition-colors hover:bg-accent/50">
+  const body = (
+    <>
       <div
         className={
           isPayment || isPayroll
@@ -358,27 +388,65 @@ function AbsenceNotificationRow({
           {relativeTime(item.createdAt)}
         </p>
       </div>
-      <div className="flex shrink-0 flex-col gap-1">
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-7 gap-1 px-2 text-[10px] text-primary hover:bg-primary/10"
-          onClick={() => onOpen(item)}
-        >
-          <Eye className="size-3" />
-          {actionLabel}
-        </Button>
-        {canReplyDirect ? (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-7 gap-1 px-2 text-[10px] text-primary hover:bg-primary/10"
-            onClick={() => onReply?.(item)}
-          >
-            Répondre
-          </Button>
-        ) : null}
-      </div>
+    </>
+  );
+
+  return (
+    <div className="group flex items-start gap-3 border-b border-border/50 px-4 py-3 last:border-0 transition-colors hover:bg-accent/50">
+      {isPayroll ? (
+        <Checkbox
+          className="mt-2"
+          checked={Boolean(selected)}
+          onCheckedChange={(value) => onToggleSelect?.(item.id, value === true)}
+          onClick={(event) => event.stopPropagation()}
+          aria-label={`Sélectionner ${item.title}`}
+        />
+      ) : null}
+      {isPayroll ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="flex min-w-0 flex-1 cursor-pointer items-start gap-3 text-left"
+              onClick={() => onOpen(item)}
+            >
+              {body}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="left" className="max-w-[280px]">
+            <p className="font-semibold">{item.title}</p>
+            <p className="mt-1 text-xs leading-snug">{item.body}</p>
+            <p className="mt-1.5 text-[10px] text-muted-foreground">
+              Cliquer pour ouvrir
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <>
+          {body}
+          <div className="flex shrink-0 flex-col gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 gap-1 px-2 text-[10px] text-primary hover:bg-primary/10"
+              onClick={() => onOpen(item)}
+            >
+              <Eye className="size-3" />
+              {actionLabel}
+            </Button>
+            {canReplyDirect ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 gap-1 px-2 text-[10px] text-primary hover:bg-primary/10"
+                onClick={() => onReply?.(item)}
+              >
+                Répondre
+              </Button>
+            ) : null}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -395,6 +463,11 @@ export function NotificationBell() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [selectedPayrollIds, setSelectedPayrollIds] = useState<Set<string>>(
+    new Set(),
+  );
+  const [payrollCleanOpen, setPayrollCleanOpen] = useState(false);
+  const [payrollCleaning, setPayrollCleaning] = useState(false);
   const [, startTransition] = useTransition();
   const hasLoadedRef = useRef(false);
   const lastMessagingCountRef = useRef<number | null>(null);
@@ -508,6 +581,14 @@ export function NotificationBell() {
         },
       );
       setItems(merged.slice(0, 40));
+      setSelectedPayrollIds((current) => {
+        const valid = new Set(
+          merged
+            .filter(isPayrollNotification)
+            .map((row) => row.id),
+        );
+        return new Set([...current].filter((id) => valid.has(id)));
+      });
       hasLoadedRef.current = true;
       await loadCount();
     } catch {
@@ -672,6 +753,57 @@ export function NotificationBell() {
     [loadCount, router],
   );
 
+  const payrollItems = items.filter(isPayrollNotification);
+  const allPayrollSelected =
+    payrollItems.length > 0 &&
+    payrollItems.every((row) => selectedPayrollIds.has(row.id));
+
+  const togglePayrollSelect = useCallback((id: string, checked: boolean) => {
+    setSelectedPayrollIds((current) => {
+      const next = new Set(current);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const toggleAllPayroll = useCallback(
+    (checked: boolean) => {
+      setSelectedPayrollIds(
+        checked
+          ? new Set(items.filter(isPayrollNotification).map((row) => row.id))
+          : new Set(),
+      );
+    },
+    [items],
+  );
+
+  const executePayrollClean = useCallback(async () => {
+    const ids = [...selectedPayrollIds];
+    if (ids.length === 0) return;
+    setPayrollCleaning(true);
+    const [result, err] = await deleteMyPayrollNotificationsAction({
+      notificationIds: ids,
+    });
+    setPayrollCleaning(false);
+    setPayrollCleanOpen(false);
+    if (err) {
+      setError(
+        zsaErrorMessage(err, "Impossible de nettoyer les notifications paie."),
+      );
+      return;
+    }
+    const removed = new Set(ids);
+    setItems((current) =>
+      current.filter((row) => !removed.has(row.id)),
+    );
+    setSelectedPayrollIds(new Set());
+    setPendingCount((count) =>
+      Math.max(0, count - (result?.count ?? ids.length)),
+    );
+    void loadCount();
+  }, [loadCount, selectedPayrollIds]);
+
   if (!params.branchId) return null;
 
   return (
@@ -734,6 +866,7 @@ export function NotificationBell() {
           sideOffset={8}
           className="w-[380px] max-w-[calc(100vw-1rem)] p-0 shadow-xl"
         >
+          <TooltipProvider delayDuration={250}>
           <div className="flex items-center justify-between border-b bg-card px-4 py-3">
             <div className="flex items-center gap-2">
               <Bell className="size-4 text-primary" />
@@ -763,6 +896,36 @@ export function NotificationBell() {
               />
             </Button>
           </div>
+
+          {payrollItems.length > 0 ? (
+            <div className="flex items-center gap-2 border-b bg-muted/40 px-4 py-2">
+              <Checkbox
+                checked={
+                  allPayrollSelected
+                    ? true
+                    : selectedPayrollIds.size > 0
+                      ? "indeterminate"
+                      : false
+                }
+                onCheckedChange={(value) => toggleAllPayroll(value === true)}
+                aria-label="Tout sélectionner"
+              />
+              <span className="flex-1 text-[11px] font-medium text-muted-foreground">
+                Tout sélectionner ({payrollItems.length})
+              </span>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-7 gap-1 px-2 text-[10px] text-destructive hover:bg-destructive/10 hover:text-destructive"
+                disabled={selectedPayrollIds.size === 0 || payrollCleaning}
+                onClick={() => setPayrollCleanOpen(true)}
+              >
+                <Trash2 className="size-3" />
+                Nettoyer
+              </Button>
+            </div>
+          ) : null}
 
           <div className="max-h-[400px] overflow-y-auto">
             {loading && items.length === 0 ? (
@@ -805,6 +968,8 @@ export function NotificationBell() {
                     <AbsenceNotificationRow
                       key={`${item.kind}-${item.id}`}
                       item={item}
+                      selected={selectedPayrollIds.has(item.id)}
+                      onToggleSelect={togglePayrollSelect}
                       onOpen={(row) => {
                         if (row.type === "PAYMENT") {
                           dismissAppNotification(row.id);
@@ -889,6 +1054,7 @@ export function NotificationBell() {
               </div>
             )}
           </div>
+          </TooltipProvider>
         </PopoverContent>
       </Popover>
       <AbsenceCaseDialog
@@ -919,6 +1085,33 @@ export function NotificationBell() {
           router.refresh();
         }}
       />
+      <AlertDialog open={payrollCleanOpen} onOpenChange={setPayrollCleanOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Nettoyer définitivement</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm leading-relaxed text-foreground">
+              Supprimer {selectedPayrollIds.size} notification
+              {selectedPayrollIds.size > 1 ? "s" : ""} d’impact paie de la
+              base ? Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={payrollCleaning}>
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={payrollCleaning}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(event) => {
+                event.preventDefault();
+                void executePayrollClean();
+              }}
+            >
+              Nettoyer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

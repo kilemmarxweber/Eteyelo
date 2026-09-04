@@ -1,11 +1,4 @@
-import {
-  BarChart3,
-  CalendarDays,
-  GraduationCap,
-  School,
-  Trophy,
-  UserRound,
-} from "lucide-react";
+import { Trophy, UserRound } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { HomeFooter } from "@/components/home-footer";
@@ -20,7 +13,6 @@ import {
   getBranchCycles,
   isCycle,
   resolveCycle,
-  type Cycle,
 } from "@/lib/cycle";
 import { prisma } from "@/lib/prisma";
 import { getPublicStudentResults } from "@/lib/public-results";
@@ -63,12 +55,11 @@ function uniqueInOrder<T>(items: T[], key: (item: T) => string): T[] {
 export default async function ResultatsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const selectedBranchIds = toList(params.branchId);
-  const selectedClasse = params.classe?.trim() || "";
-  const selectedYear = params.year?.trim() || "";
-  const selectedCycle = isCycle(params.cycle) ? params.cycle : "";
-  const selectedPeriod = params.period?.trim()
-    ? normalizeAcademicPeriodLabel(params.period.trim())
-    : "";
+  const selectedCycles = toList(params.cycle).filter(isCycle);
+  const selectedClasses = toList(params.classe);
+  const selectedPeriods = toList(params.period).map((item) =>
+    normalizeAcademicPeriodLabel(item),
+  );
 
   const branches = await prisma.branch.findMany({
     where: {
@@ -179,39 +170,35 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
   const scopedBranchIds = selectedBranchIds.filter((id) => {
     const branch = branchOptions.find((item) => item.id === id);
     if (!branch) return false;
-    if (selectedCycle && !branch.cycles.includes(selectedCycle)) return false;
+    if (
+      selectedCycles.length &&
+      !selectedCycles.some((cycle) => branch.cycles.includes(cycle))
+    ) {
+      return false;
+    }
     return true;
   });
   const inScope = (branchId: string) =>
     scopedBranchIds.length === 0 || scopedBranchIds.includes(branchId);
-  const inCycle = (cycle: Cycle) =>
-    !selectedCycle || cycle === selectedCycle;
 
-  const uniqueClasses = uniqueInOrder(
-    classOptions.filter(
-      (item) => inScope(item.branchId) && inCycle(item.cycle),
-    ),
-    (item) => item.name,
-  );
   const uniqueYears = uniqueInOrder(
     yearOptions.filter((item) => inScope(item.branchId)),
     (item) => item.name,
   );
-  const uniquePeriods = uniqueInOrder(
-    periodOptions.filter(
-      (item) => inScope(item.branchId) && inCycle(item.cycle),
-    ),
-    (item) => item.label,
-  );
+  const requestedYear = params.year?.trim() || "";
+  const selectedYear =
+    requestedYear && uniqueYears.some((year) => year.name === requestedYear)
+      ? requestedYear
+      : uniqueYears[0]?.name || "";
 
   const results = await getPublicStudentResults({
     branchIds: scopedBranchIds,
-    cycle: selectedCycle || undefined,
-    classeName: selectedClasse || undefined,
+    cycles: selectedCycles,
+    classeNames: selectedClasses,
     classeId: params.classeId || undefined,
     yearName: selectedYear || undefined,
     yearId: params.yearId || undefined,
-    periodLabel: selectedPeriod || undefined,
+    periodLabels: selectedPeriods,
     periodId:
       params.periodId && Number.isFinite(Number(params.periodId))
         ? Number(params.periodId)
@@ -235,9 +222,9 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
           </h1>
 
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-primary-foreground/90 md:text-base">
-            Choisissez un cycle, une ou plusieurs ecoles, une classe, une annee
-            scolaire, une periode ou recherchez un eleve par nom, prenom ou
-            postnom.
+            Choisissez un ou plusieurs cycles, ecoles, classes, une annee
+            scolaire, une ou plusieurs periodes ou recherchez un eleve par nom,
+            prenom ou postnom.
           </p>
         </div>
       </section>
@@ -249,47 +236,14 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
           classes={classOptions}
           years={yearOptions}
           periods={periodOptions}
-          selectedCycle={selectedCycle}
+          selectedCycles={selectedCycles}
           selectedBranchIds={scopedBranchIds}
-          selectedClasse={selectedClasse}
+          selectedClasses={selectedClasses}
           selectedYear={selectedYear}
-          selectedPeriod={selectedPeriod}
+          selectedPeriods={selectedPeriods}
           q={params.q || ""}
+          resultsCount={results.length}
         />
-
-        <div className="mt-8 grid gap-4 md:grid-cols-4">
-          <StatCard
-            icon={School}
-            label="Ecoles disponibles"
-            value={
-              scopedBranchIds.length > 0
-                ? scopedBranchIds.length
-                : selectedCycle
-                  ? branchOptions.filter((branch) =>
-                      branch.cycles.includes(selectedCycle),
-                    ).length
-                  : branches.length
-            }
-          />
-
-          <StatCard
-            icon={GraduationCap}
-            label="Classes"
-            value={uniqueClasses.length}
-          />
-
-          <StatCard
-            icon={CalendarDays}
-            label="Periodes"
-            value={uniquePeriods.length}
-          />
-
-          <StatCard
-            icon={BarChart3}
-            label="Resultats trouves"
-            value={results.length}
-          />
-        </div>
 
         <div className="mt-8 overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
           <div className="border-b border-border p-5">
@@ -301,9 +255,7 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Classement selon la moyenne des points enregistres.
-              {uniqueYears.length
-                ? ` Annees : ${uniqueYears.map((year) => year.name).join(", ")}.`
-                : ""}
+              {selectedYear ? ` Annee : ${selectedYear}.` : ""}
             </p>
           </div>
 
@@ -381,29 +333,5 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
 
       <HomeFooter />
     </main>
-  );
-}
-
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="rounded-3xl border border-border bg-card p-5 shadow-sm transition hover:border-primary/30">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <p className="mt-2 text-3xl font-bold text-foreground">{value}</p>
-        </div>
-        <span className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <Icon className="size-6" />
-        </span>
-      </div>
-    </div>
   );
 }

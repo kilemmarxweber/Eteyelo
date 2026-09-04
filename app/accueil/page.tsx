@@ -84,6 +84,7 @@ export default async function HomePage() {
     newSchools,
     mapLocations,
     resultSlides,
+    successRate,
     stats,
   } = await getHomeData();
 
@@ -620,9 +621,16 @@ export default async function HomePage() {
               </div>
 
               <div className="relative mx-auto flex h-36 w-36 items-center justify-center rounded-full bg-cyan-400/20">
-                <div className="absolute inset-0 rounded-full bg-[conic-gradient(#22d3ee_0_85%,rgba(255,255,255,0.15)_85%_100%)]" />
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: `conic-gradient(#22d3ee 0 ${successRate}%, rgba(255,255,255,0.15) ${successRate}% 100%)`,
+                  }}
+                />
                 <div className="relative flex h-24 w-24 flex-col items-center justify-center rounded-full bg-blue-950 text-center">
-                  <span className="text-3xl font-black text-cyan-300">85%</span>
+                  <span className="text-3xl font-black text-cyan-300">
+                    {successRate}%
+                  </span>
                   <span className="text-[11px] text-slate-300">Réussite</span>
                 </div>
               </div>

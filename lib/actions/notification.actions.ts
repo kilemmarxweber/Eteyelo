@@ -287,3 +287,32 @@ export const rejectNotificationRequestAction = action
     }
     return { requestId: input.requestId };
   });
+
+const PAYROLL_APP_NOTIFICATION_TYPES = [
+  "PAYROLL",
+  "PAYROLL_DEDUCTION",
+] as const;
+
+/** Suppression définitive des notifications paie de l’utilisateur (cloche). */
+export const deleteMyPayrollNotificationsAction = action
+  .input(
+    z.object({
+      notificationIds: z.array(z.string().min(1)).max(200).optional(),
+      all: z.boolean().optional(),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const { branchId, userId } = await requireNotificationContext();
+    const ids = input.notificationIds ?? [];
+    if (!input.all && ids.length === 0) return { count: 0 };
+
+    const result = await prisma.appNotification.deleteMany({
+      where: {
+        userId,
+        branchId,
+        type: { in: [...PAYROLL_APP_NOTIFICATION_TYPES] },
+        ...(input.all ? {} : { id: { in: ids } }),
+      },
+    });
+    return { count: result.count };
+  });

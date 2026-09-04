@@ -4,7 +4,7 @@ import { getStudentCountsByBranchId } from "@/lib/branch-student-count";
 import { getBranchCycles, isSchoolCycle } from "@/lib/cycle";
 import { getPeopleLabels, pluralizeStudentLabelLower } from "@/lib/people-labels";
 import { prisma } from "@/lib/prisma";
-import { getHomeResultSlides } from "@/lib/public-results";
+import { getHomeResultHighlights } from "@/lib/public-results";
 import { ensureUploadInSharedDirectory } from "@/lib/upload-file.server";
 import {
   getBranchImage,
@@ -142,6 +142,7 @@ export type HomeData = {
   newSchools: NewSchool[];
   mapLocations: HomeMapLocation[];
   resultSlides: ResultSlide[];
+  successRate: number;
   stats: {
     verified: number;
     segments: HomeStatsSegment[];
@@ -399,6 +400,7 @@ function getFallbackHomeData(): HomeData {
     newSchools: fallbackNewSchools,
     mapLocations: [],
     resultSlides: [],
+    successRate: 0,
     stats: fallbackStats,
   };
 }
@@ -485,7 +487,7 @@ function buildStatsSegments(
 
 export async function getHomeData(): Promise<HomeData> {
   try {
-    const [allBranches, partnaires, calendarEvents, resultSlides] =
+    const [allBranches, partnaires, calendarEvents, homeResults] =
       await Promise.all([
         prisma.branch.findMany({
           where: { isActive: true },
@@ -548,7 +550,7 @@ export async function getHomeData(): Promise<HomeData> {
             },
           },
         }),
-        getHomeResultSlides(3),
+        getHomeResultHighlights(3),
       ]);
 
     const studentCountsByBranchId =
@@ -652,7 +654,8 @@ export async function getHomeData(): Promise<HomeData> {
         ? dynamicNewSchools
         : fallbackNewSchools,
       mapLocations,
-      resultSlides,
+      resultSlides: homeResults.resultSlides,
+      successRate: homeResults.successRate,
       stats: {
         verified: allBranches.length ? 100 : fallbackStats.verified,
         segments: buildStatsSegments(allBranches, studentCountsByBranchId),

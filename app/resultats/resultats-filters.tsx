@@ -2,7 +2,16 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, ChevronsUpDown, Search } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  CalendarDays,
+  Check,
+  ChevronsUpDown,
+  GraduationCap,
+  School,
+  Search,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +28,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { getAcademicPeriodOrder } from "@/lib/academic-structure";
 import { cn } from "@/lib/utils";
 
 export type ResultatsCycleOption = {
@@ -49,6 +59,11 @@ export type ResultatsPeriodOption = {
   cycle: string;
 };
 
+type MultiSelectOption = {
+  value: string;
+  label: string;
+};
+
 function uniqueInOrder(values: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -60,51 +75,64 @@ function uniqueInOrder(values: string[]): string[] {
   return out;
 }
 
+function treatsAsAll(selected: string[], optionCount: number) {
+  return (
+    selected.length === 0 ||
+    (optionCount > 0 && selected.length === optionCount)
+  );
+}
+
 const fieldClassName =
   "h-12 w-full rounded-2xl border border-border bg-muted/40 px-4 font-normal outline-none focus:border-primary/40";
 
-function SchoolMultiSelect({
-  branches,
+function FilterMultiSelect({
+  options,
   value,
   onChange,
+  allLabel,
+  searchPlaceholder,
+  emptyLabel,
+  unitPlural,
 }: {
-  branches: ResultatsBranchOption[];
+  options: MultiSelectOption[];
   value: string[];
-  onChange: (ids: string[]) => void;
+  onChange: (values: string[]) => void;
+  allLabel: string;
+  searchPlaceholder: string;
+  emptyLabel: string;
+  unitPlural: string;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   const selected = value;
-  const allSelected =
-    branches.length > 0 && selected.length === branches.length;
-  const treatsAsAll = selected.length === 0 || allSelected;
+  const isAll = treatsAsAll(selected, options.length);
   const noneSelected = selected.length === 0;
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
-    if (!query) return branches;
-    return branches.filter((branch) =>
-      branch.name.toLowerCase().includes(query),
+    if (!query) return options;
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(query),
     );
-  }, [branches, search]);
+  }, [options, search]);
 
-  const selectedBranches = branches.filter((branch) =>
-    selected.includes(branch.id),
+  const selectedOptions = options.filter((option) =>
+    selected.includes(option.value),
   );
 
-  function toggle(id: string) {
+  function toggle(nextValue: string) {
     onChange(
-      selected.includes(id)
-        ? selected.filter((item) => item !== id)
-        : [...selected, id],
+      selected.includes(nextValue)
+        ? selected.filter((item) => item !== nextValue)
+        : [...selected, nextValue],
     );
   }
 
   function summaryLabel() {
-    if (treatsAsAll) return "Toutes les ecoles";
-    if (selectedBranches.length === 1) return selectedBranches[0].name;
-    return `${selectedBranches.length} ecoles selectionnees`;
+    if (isAll) return allLabel;
+    if (selectedOptions.length === 1) return selectedOptions[0].label;
+    return `${selectedOptions.length} ${unitPlural} selectionnes`;
   }
 
   return (
@@ -126,18 +154,18 @@ function SchoolMultiSelect({
           <span
             className={cn(
               "min-w-0 truncate",
-              treatsAsAll ? "text-muted-foreground" : "text-foreground",
+              isAll ? "text-muted-foreground" : "text-foreground",
             )}
           >
             {summaryLabel()}
           </span>
           <span className="flex shrink-0 items-center gap-1">
-            {!treatsAsAll ? (
+            {!isAll ? (
               <Badge
                 variant="outline"
                 className="rounded-full px-2 py-0 text-[10px]"
               >
-                {selectedBranches.length}
+                {selectedOptions.length}
               </Badge>
             ) : null}
             <ChevronsUpDown className="size-4 text-muted-foreground" />
@@ -151,12 +179,12 @@ function SchoolMultiSelect({
       >
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder="Rechercher une ecole..."
+            placeholder={searchPlaceholder}
             value={search}
             onValueChange={setSearch}
           />
           <CommandList className="max-h-64">
-            <CommandEmpty>Aucune ecole trouvee.</CommandEmpty>
+            <CommandEmpty>{emptyLabel}</CommandEmpty>
             <CommandGroup>
               <CommandItem
                 value="__all__"
@@ -175,17 +203,17 @@ function SchoolMultiSelect({
                 >
                   {noneSelected ? <Check className="size-3" /> : null}
                 </span>
-                Toutes les ecoles
+                {allLabel}
               </CommandItem>
 
-              {filtered.map((branch) => {
-                const isSelected = selected.includes(branch.id);
+              {filtered.map((option) => {
+                const isSelected = selected.includes(option.value);
 
                 return (
                   <CommandItem
-                    key={branch.id}
-                    value={branch.id}
-                    onSelect={() => toggle(branch.id)}
+                    key={option.value}
+                    value={option.value}
+                    onSelect={() => toggle(option.value)}
                   >
                     <span
                       className={cn(
@@ -197,7 +225,9 @@ function SchoolMultiSelect({
                     >
                       {isSelected ? <Check className="size-3" /> : null}
                     </span>
-                    <span className="min-w-0 flex-1 truncate">{branch.name}</span>
+                    <span className="min-w-0 flex-1 truncate">
+                      {option.label}
+                    </span>
                   </CommandItem>
                 );
               })}
@@ -210,7 +240,7 @@ function SchoolMultiSelect({
               size="sm"
               variant="ghost"
               className="h-8 rounded-full"
-              onClick={() => onChange(branches.map((branch) => branch.id))}
+              onClick={() => onChange(options.map((option) => option.value))}
             >
               Tout selectionner
             </Button>
@@ -230,55 +260,69 @@ function SchoolMultiSelect({
   );
 }
 
+function HiddenList({ name, values }: { name: string; values: string[] }) {
+  return (
+    <>
+      {values.map((value) => (
+        <input key={`${name}-${value}`} type="hidden" name={name} value={value} />
+      ))}
+    </>
+  );
+}
+
 export function ResultatsFilters({
   cycles,
   branches,
   classes,
   years,
   periods,
-  selectedCycle,
+  selectedCycles,
   selectedBranchIds,
-  selectedClasse,
+  selectedClasses,
   selectedYear,
-  selectedPeriod,
+  selectedPeriods,
   q,
+  resultsCount,
 }: {
   cycles: ResultatsCycleOption[];
   branches: ResultatsBranchOption[];
   classes: ResultatsClassOption[];
   years: ResultatsYearOption[];
   periods: ResultatsPeriodOption[];
-  selectedCycle: string;
+  selectedCycles: string[];
   selectedBranchIds: string[];
-  selectedClasse: string;
+  selectedClasses: string[];
   selectedYear: string;
-  selectedPeriod: string;
+  selectedPeriods: string[];
   q: string;
+  resultsCount: number;
 }) {
-  const [cycle, setCycle] = useState(selectedCycle);
+  const [cycleValues, setCycleValues] = useState(selectedCycles);
   const [branchIds, setBranchIds] = useState<string[]>(selectedBranchIds);
-  const [classe, setClasse] = useState(selectedClasse);
+  const [classeValues, setClasseValues] = useState(selectedClasses);
   const [year, setYear] = useState(selectedYear);
-  const [period, setPeriod] = useState(selectedPeriod);
+  const [periodValues, setPeriodValues] = useState(selectedPeriods);
+
+  const treatsAsAllCycles = treatsAsAll(cycleValues, cycles.length);
 
   const visibleBranches = useMemo(
     () =>
-      cycle
-        ? branches.filter((branch) => branch.cycles.includes(cycle))
-        : branches,
-    [branches, cycle],
+      treatsAsAllCycles
+        ? branches
+        : branches.filter((branch) =>
+            branch.cycles.some((cycle) => cycleValues.includes(cycle)),
+          ),
+    [branches, cycleValues, treatsAsAllCycles],
   );
 
-  const allSelected =
-    visibleBranches.length > 0 &&
-    visibleBranches.every((branch) => branchIds.includes(branch.id)) &&
-    branchIds.length === visibleBranches.length;
-  const treatsAsAllSchools = branchIds.length === 0 || allSelected;
+  const treatsAsAllSchools = treatsAsAll(branchIds, visibleBranches.length);
 
   const scoped = useMemo(() => {
     const matchBranch = (branchId: string) =>
       treatsAsAllSchools || branchIds.includes(branchId);
-    const matchCycle = (itemCycle: string) => !cycle || itemCycle === cycle;
+    const matchCycle = (itemCycle: string) =>
+      treatsAsAllCycles || cycleValues.includes(itemCycle);
+    const orderCycle = cycleValues[0];
 
     return {
       classes: uniqueInOrder(
@@ -298,10 +342,36 @@ export function ResultatsFilters({
           .filter(
             (item) => matchBranch(item.branchId) && matchCycle(item.cycle),
           )
+          .sort(
+            (left, right) =>
+              getAcademicPeriodOrder(left.label, orderCycle || left.cycle) -
+              getAcademicPeriodOrder(right.label, orderCycle || right.cycle),
+          )
           .map((item) => item.label),
       ),
     };
-  }, [branchIds, classes, cycle, periods, treatsAsAllSchools, years]);
+  }, [
+    branchIds,
+    classes,
+    cycleValues,
+    periods,
+    treatsAsAllCycles,
+    treatsAsAllSchools,
+    years,
+  ]);
+
+  const treatsAsAllClasses = treatsAsAll(classeValues, scoped.classes.length);
+  const treatsAsAllPeriods = treatsAsAll(periodValues, scoped.periods.length);
+
+  const schoolCount = treatsAsAllSchools
+    ? visibleBranches.length
+    : branchIds.length;
+  const classCount = treatsAsAllClasses
+    ? scoped.classes.length
+    : classeValues.length;
+  const periodCount = treatsAsAllPeriods
+    ? scoped.periods.length
+    : periodValues.length;
 
   useEffect(() => {
     const allowed = new Set(visibleBranches.map((branch) => branch.id));
@@ -312,121 +382,180 @@ export function ResultatsFilters({
   }, [visibleBranches]);
 
   useEffect(() => {
-    if (classe && !scoped.classes.includes(classe)) setClasse("");
-    if (year && !scoped.years.includes(year)) setYear("");
-    if (period && !scoped.periods.includes(period)) setPeriod("");
-  }, [classe, period, scoped, year]);
+    setClasseValues((current) => {
+      const next = current.filter((item) => scoped.classes.includes(item));
+      return next.length === current.length ? current : next;
+    });
+    setPeriodValues((current) => {
+      const next = current.filter((item) => scoped.periods.includes(item));
+      return next.length === current.length ? current : next;
+    });
+    setYear((current) => {
+      if (scoped.years.length === 0) return "";
+      if (current && scoped.years.includes(current)) return current;
+      return scoped.years[0];
+    });
+  }, [scoped]);
 
   return (
-    <form className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-      {treatsAsAllSchools
-        ? null
-        : branchIds.map((id) => (
-            <input key={id} type="hidden" name="branchId" value={id} />
-          ))}
+    <>
+      <form className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+        {treatsAsAllCycles ? null : (
+          <HiddenList name="cycle" values={cycleValues} />
+        )}
+        {treatsAsAllSchools ? null : (
+          <HiddenList name="branchId" values={branchIds} />
+        )}
+        {treatsAsAllClasses ? null : (
+          <HiddenList name="classe" values={classeValues} />
+        )}
+        {treatsAsAllPeriods ? null : (
+          <HiddenList name="period" values={periodValues} />
+        )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <label className="space-y-2 text-sm font-semibold text-foreground">
-          Cycle
-          <select
-            name="cycle"
-            value={cycle}
-            onChange={(event) => setCycle(event.target.value)}
-            className={fieldClassName}
-          >
-            <option value="">Tous les cycles</option>
-            {cycles.map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div className="space-y-2 text-sm font-semibold text-foreground">
-          Ecoles
-          <SchoolMultiSelect
-            branches={visibleBranches}
-            value={branchIds}
-            onChange={setBranchIds}
-          />
-        </div>
-
-        <label className="space-y-2 text-sm font-semibold text-foreground">
-          Classe
-          <select
-            name="classe"
-            value={classe}
-            onChange={(event) => setClasse(event.target.value)}
-            className={fieldClassName}
-          >
-            <option value="">Toutes les classes</option>
-            {scoped.classes.map((classeName) => (
-              <option key={classeName} value={classeName}>
-                {classeName}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="space-y-2 text-sm font-semibold text-foreground">
-          Annee scolaire
-          <select
-            name="year"
-            value={year}
-            onChange={(event) => setYear(event.target.value)}
-            className={fieldClassName}
-          >
-            <option value="">Toutes les annees</option>
-            {scoped.years.map((yearName) => (
-              <option key={yearName} value={yearName}>
-                {yearName}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="space-y-2 text-sm font-semibold text-foreground">
-          Periode
-          <select
-            name="period"
-            value={period}
-            onChange={(event) => setPeriod(event.target.value)}
-            className={fieldClassName}
-          >
-            <option value="">Toutes les periodes</option>
-            {scoped.periods.map((periodLabel) => (
-              <option key={periodLabel} value={periodLabel}>
-                {periodLabel}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <div className="mt-4 grid gap-4 md:grid-cols-[1fr_auto_auto] md:items-end">
-        <label className="space-y-2 text-sm font-semibold text-foreground">
-          Recherche eleve
-          <div className="relative">
-            <Search className="absolute left-3 top-4 size-4 text-primary" />
-            <input
-              name="q"
-              defaultValue={q}
-              placeholder="Nom, prenom, postnom..."
-              className="h-12 w-full rounded-2xl border border-border bg-muted/40 pl-10 pr-4 font-normal outline-none focus:border-primary/40"
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          <div className="space-y-2 text-sm font-semibold text-foreground">
+            Cycle
+            <FilterMultiSelect
+              options={cycles}
+              value={cycleValues}
+              onChange={setCycleValues}
+              allLabel="Tous les cycles"
+              searchPlaceholder="Rechercher un cycle..."
+              emptyLabel="Aucun cycle trouve."
+              unitPlural="cycles"
             />
           </div>
-        </label>
 
-        <Button asChild variant="outline" className="h-12 rounded-full">
-          <Link href="/resultats">Reinitialiser</Link>
-        </Button>
+          <div className="space-y-2 text-sm font-semibold text-foreground">
+            Ecoles
+            <FilterMultiSelect
+              options={visibleBranches.map((branch) => ({
+                value: branch.id,
+                label: branch.name,
+              }))}
+              value={branchIds}
+              onChange={setBranchIds}
+              allLabel="Toutes les ecoles"
+              searchPlaceholder="Rechercher une ecole..."
+              emptyLabel="Aucune ecole trouvee."
+              unitPlural="ecoles"
+            />
+          </div>
 
-        <Button className="h-12 rounded-full px-6">
-          Afficher les resultats
-          <ArrowRight className="ml-2 size-4" />
-        </Button>
+          <div className="space-y-2 text-sm font-semibold text-foreground">
+            Classe
+            <FilterMultiSelect
+              options={scoped.classes.map((classeName) => ({
+                value: classeName,
+                label: classeName,
+              }))}
+              value={classeValues}
+              onChange={setClasseValues}
+              allLabel="Toutes les classes"
+              searchPlaceholder="Rechercher une classe..."
+              emptyLabel="Aucune classe trouvee."
+              unitPlural="classes"
+            />
+          </div>
+
+          <label className="space-y-2 text-sm font-semibold text-foreground">
+            Annee scolaire
+            <select
+              name="year"
+              value={year}
+              onChange={(event) => setYear(event.target.value)}
+              disabled={scoped.years.length === 0}
+              className={fieldClassName}
+            >
+              {scoped.years.length === 0 ? (
+                <option value="">Aucune annee</option>
+              ) : (
+                scoped.years.map((yearName) => (
+                  <option key={yearName} value={yearName}>
+                    {yearName}
+                  </option>
+                ))
+              )}
+            </select>
+          </label>
+
+          <div className="space-y-2 text-sm font-semibold text-foreground">
+            Periode
+            <FilterMultiSelect
+              options={scoped.periods.map((periodLabel) => ({
+                value: periodLabel,
+                label: periodLabel,
+              }))}
+              value={periodValues}
+              onChange={setPeriodValues}
+              allLabel="Toutes les periodes"
+              searchPlaceholder="Rechercher une periode..."
+              emptyLabel="Aucune periode trouvee."
+              unitPlural="periodes"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-[1fr_auto_auto] md:items-end">
+          <label className="space-y-2 text-sm font-semibold text-foreground">
+            Recherche eleve
+            <div className="relative">
+              <Search className="absolute left-3 top-4 size-4 text-primary" />
+              <input
+                name="q"
+                defaultValue={q}
+                placeholder="Nom, prenom, postnom..."
+                className="h-12 w-full rounded-2xl border border-border bg-muted/40 pl-10 pr-4 font-normal outline-none focus:border-primary/40"
+              />
+            </div>
+          </label>
+
+          <Button asChild variant="outline" className="h-12 rounded-full">
+            <Link href="/resultats">Reinitialiser</Link>
+          </Button>
+
+          <Button className="h-12 rounded-full px-6">
+            Afficher les resultats
+            <ArrowRight className="ml-2 size-4" />
+          </Button>
+        </div>
+      </form>
+
+      <div className="mt-8 grid gap-4 md:grid-cols-4">
+        <StatCard icon={School} label="Ecoles disponibles" value={schoolCount} />
+        <StatCard icon={GraduationCap} label="Classes" value={classCount} />
+        <StatCard icon={CalendarDays} label="Periodes" value={periodCount} />
+        <StatCard
+          icon={BarChart3}
+          label="Resultats trouves"
+          value={resultsCount}
+        />
       </div>
-    </form>
+    </>
+  );
+}
+
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="rounded-3xl border border-border bg-card p-5 shadow-sm transition hover:border-primary/30">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">{label}</p>
+          <p className="mt-2 text-3xl font-bold text-foreground">{value}</p>
+        </div>
+        <span className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <Icon className="size-6" />
+        </span>
+      </div>
+    </div>
   );
 }
