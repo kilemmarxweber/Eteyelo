@@ -441,6 +441,14 @@ function resolveStatusFromTime(reference: Date) {
   return toMinutes(now) > lateThreshold ? ("LATE" as const) : ("PRESENT" as const);
 }
 
+/** Enseignant : 1 minute après le début = retard (signalé). La franchise paie est séparée. */
+function resolveTeacherStatusFromTime(reference: Date) {
+  const now = nowLocal();
+  return toMinutes(now) > scheduleHourToMinutes(reference)
+    ? ("LATE" as const)
+    : ("PRESENT" as const);
+}
+
 function sessionInclude() {
   return {
     teaching: {
@@ -827,7 +835,7 @@ async function performTeacherCheckIn(
     };
   }
 
-  const status = resolveStatusFromTime(hydratedSession.startTime);
+  const status = resolveTeacherStatusFromTime(hydratedSession.startTime);
   const now = nowLocal();
   const sessionLabel = formatSessionLabel(hydratedSession);
 

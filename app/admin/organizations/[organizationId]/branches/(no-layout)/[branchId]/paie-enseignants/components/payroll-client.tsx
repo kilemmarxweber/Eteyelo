@@ -43,6 +43,8 @@ import {
   canValidatePayroll,
 } from "@/lib/auth/session-roles";
 import { calendarYearForSchoolMonth } from "@/lib/payroll/calendar-year";
+import { parsePersonnelScales, type PersonnelScale } from "@/lib/payroll/personnel-scales";
+import { orgRoleLabel } from "@/lib/org-role-labels";
 import {
   getTeacherPayslipsAction,
   getPayrollSchoolYearsAction,
@@ -110,11 +112,16 @@ type CashSnapshot = {
 type Policy = {
   secondarySessionMinutes: number;
   primarySessionMinutes: number;
+  maternelleSessionMinutes: number;
   secondaryHourlyRate: number;
   secondaryMatriculePrimePercent: number;
   secondaryNonMatriculeSessionRate: number;
   primaryMatriculeMonthly: number;
   primaryNonMatriculeMonthly: number;
+  maternelleMatriculeMonthly: number;
+  maternelleNonMatriculeMonthly: number;
+  personnelDayMinutes: number;
+  personnelScales: PersonnelScale[];
   lateGraceMinutes: number;
   notifyByEmail: boolean;
 };
@@ -262,7 +269,14 @@ export default function PayrollClient() {
 
   useEffect(() => {
     void getPayrollPolicyAction().then(([result, error]) => {
-      if (!error && result) setPolicy(result as Policy);
+      if (!error && result) {
+        setPolicy({
+          ...(result as Policy),
+          personnelScales: parsePersonnelScales(
+            (result as { personnelScales?: unknown }).personnelScales,
+          ),
+        });
+      }
     });
   }, []);
 
@@ -414,7 +428,7 @@ export default function PayrollClient() {
       }
       if (result?.skippedNoForfait) {
         toast.warning(
-          `${result.skippedNoForfait} personnel(s) sans forfait mensuel : saisissez le salaire sur la fiche.`,
+          `${result.skippedNoForfait} personnel(s) sans salaire au barème (rôle) ni forfait fiche.`,
         );
       }
       toast.success(`${result?.count ?? 0} bulletin(s) généré(s)`);
@@ -1157,14 +1171,18 @@ export default function PayrollClient() {
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {([
-              ["secondarySessionMinutes", "Secondaire : durée (min)"],
+              ["maternelleSessionMinutes", "Maternelle : durée (min)"],
               ["primarySessionMinutes", "Primaire : durée (min)"],
-              ["secondaryHourlyRate", "Secondaire matriculé : taux horaire"],
-              ["secondaryMatriculePrimePercent", "Prime école (%)"],
-              ["secondaryNonMatriculeSessionRate", "Secondaire non matriculé : séance"],
-              ["primaryMatriculeMonthly", "Primaire matriculé : forfait"],
+              ["secondarySessionMinutes", "Secondaire : durée (min)"],
+              ["maternelleNonMatriculeMonthly", "Maternelle non matriculé : forfait"],
+              ["maternelleMatriculeMonthly", "Maternelle matriculé : forfait"],
               ["primaryNonMatriculeMonthly", "Primaire non matriculé : forfait"],
-              ["lateGraceMinutes", "Franchise retard (min)"],
+              ["primaryMatriculeMonthly", "Primaire matriculé : forfait"],
+              ["secondaryNonMatriculeSessionRate", "Secondaire : montant / séance"],
+              ["secondaryMatriculePrimePercent", "Matriculé : % du montant séance"],
+              ["secondaryHourlyRate", "Secondaire : montant séance (repli)"],
+              ["personnelDayMinutes", "Personnel : journée (min)"],
+              ["lateGraceMinutes", "Franchise retard (min, autorisée mais signalée)"],
             ] as Array<[keyof Policy, string]>).map(([key, label]) => (
               <label key={key} className="space-y-1 text-xs text-muted-foreground">
                 <span>{label}</span>
@@ -1180,6 +1198,65 @@ export default function PayrollClient() {
                 />
               </label>
             ))}
+          </div>
+          <div className="mt-6 space-y-2">
+            <p className="text-sm font-semibold">Personnel : salaire brut et prime par rôle</p>
+            <p className="text-xs text-muted-foreground">
+              Le montant de la fiche personnel remplace le brut du rôle s’il est renseigné.
+              Retard et absence non justifiés retranchent au prorata de la journée.
+            </p>
+            <div className="overflow-x-auto rounded-md border">
+              <table className="w-full min-w-[520px] text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/40 text-left text-muted-foreground">
+                    <th className="p-2 font-medium">Rôle</th>
+                    <th className="p-2 font-medium">Salaire brut</th>
+                    <th className="p-2 font-medium">Prime</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {policy.personnelScales.map((row, index) => (
+                    <tr key={row.role} className="border-b last:border-0">
+                      <td className="p-2">{orgRoleLabel(row.role)}</td>
+                      <td className="p-2">
+                        <Input
+                          type="number"
+                          value={row.gross}
+                          disabled={!isManager || working}
+                          onChange={(event) => {
+                            const gross = Number(event.target.value);
+                            setPolicy((current) => {
+                              if (!current) return current;
+                              const personnelScales = current.personnelScales.map((item, i) =>
+                                i === index ? { ...item, gross } : item,
+                              );
+                              return { ...current, personnelScales };
+                            });
+                          }}
+                        />
+                      </td>
+                      <td className="p-2">
+                        <Input
+                          type="number"
+                          value={row.prime}
+                          disabled={!isManager || working}
+                          onChange={(event) => {
+                            const prime = Number(event.target.value);
+                            setPolicy((current) => {
+                              if (!current) return current;
+                              const personnelScales = current.personnelScales.map((item, i) =>
+                                i === index ? { ...item, prime } : item,
+                              );
+                              return { ...current, personnelScales };
+                            });
+                          }}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </CardContent>
       ) : null}

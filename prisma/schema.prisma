@@ -1392,7 +1392,14 @@ model BranchPayrollPolicy {
   secondaryNonMatriculeSessionRate Float            @default(1500)
   primaryMatriculeMonthly          Float            @default(15000)
   primaryNonMatriculeMonthly       Float            @default(70000)
-  lateGraceMinutes                 Int              @default(10)
+  maternelleSessionMinutes         Int              @default(30)
+  maternelleMatriculeMonthly       Float            @default(100000)
+  maternelleNonMatriculeMonthly    Float            @default(100000)
+  /// Journée de travail personnel (minutes), pour retenue retard / absence.
+  personnelDayMinutes              Int              @default(480)
+  /// Échelles par rôle : [{ role, gross, prime }]
+  personnelScales                  Json?
+  lateGraceMinutes                 Int              @default(5)
   notifyByEmail                    Boolean          @default(true)
   isActive                         Boolean          @default(true)
   createdAt                        DateTime         @default(now())

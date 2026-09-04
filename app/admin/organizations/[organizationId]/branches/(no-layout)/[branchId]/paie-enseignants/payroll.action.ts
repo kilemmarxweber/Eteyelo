@@ -221,11 +221,25 @@ async function markPayslipPaidInTx(
 const policySchema = z.object({
   secondarySessionMinutes: z.coerce.number().int().min(1).max(240),
   primarySessionMinutes: z.coerce.number().int().min(1).max(240),
+  maternelleSessionMinutes: z.coerce.number().int().min(1).max(240),
   secondaryHourlyRate: z.coerce.number().min(0),
   secondaryMatriculePrimePercent: z.coerce.number().min(0).max(1000),
   secondaryNonMatriculeSessionRate: z.coerce.number().min(0),
   primaryMatriculeMonthly: z.coerce.number().min(0),
   primaryNonMatriculeMonthly: z.coerce.number().min(0),
+  maternelleMatriculeMonthly: z.coerce.number().min(0),
+  maternelleNonMatriculeMonthly: z.coerce.number().min(0),
+  personnelDayMinutes: z.coerce.number().int().min(1).max(1440),
+  personnelScales: z
+    .array(
+      z.object({
+        role: z.string().min(1),
+        gross: z.coerce.number().min(0),
+        prime: z.coerce.number().min(0),
+      }),
+    )
+    .optional()
+    .default([]),
   lateGraceMinutes: z.coerce.number().int().min(0).max(120),
   notifyByEmail: z.boolean(),
 });
@@ -332,6 +346,8 @@ function extractClassNames(
       continue;
     }
     if (line.label.startsWith("Forfait")) continue;
+    if (line.label.startsWith("Salaire brut personnel")) continue;
+    if (line.label.startsWith("Prime personnel")) continue;
     const separator = line.label.indexOf(" · ");
     if (separator > 0) {
       const className = line.label.slice(0, separator).trim();
@@ -870,7 +886,7 @@ export const getTeacherPayslipAction = action
       row.policySnapshot &&
       "lateGraceMinutes" in row.policySnapshot
         ? Number((row.policySnapshot as { lateGraceMinutes?: number }).lateGraceMinutes)
-        : 10);
+        : 5);
 
     return {
       ...row,
@@ -890,14 +906,12 @@ export const getTeacherPayslipAction = action
           | "LATE"
           | "ABSENT"
           | "EXCUSED";
-        const lateMinutes =
-          attendance?.checkIn && status === "LATE"
-            ? Math.max(
-                0,
-                (attendance.checkIn.getTime() - session.startTime.getTime()) / 60000 -
-                  grace,
-              )
-            : 0;
+        const lateMinutes = attendance?.checkIn
+          ? Math.max(
+              0,
+              (attendance.checkIn.getTime() - session.startTime.getTime()) / 60000,
+            )
+          : 0;
         const earlyExitMinutes =
           attendance?.earlyExit && attendance.checkOut
             ? Math.max(

@@ -4,9 +4,16 @@ import { getBranchPayrollOwners } from "@/lib/email/get-branch-manager-emails";
 import { sendPayrollDeductionEmail } from "@/lib/email/send-payroll-notification-email";
 import { CURRENCY_LABELS, getBaseCurrency, roundCurrency } from "@/lib/exchange-rate";
 import {
-  allocateSessionGross,
-  sessionLossAmount,
-} from "@/lib/payroll/session-rate";
+  billableLateMinutes,
+  contractualSessionMinutes,
+  isPayrollWeekendDate,
+  monthlyMinutesFromWeeklyVolume,
+  payrollSessionAmount,
+  rawLateMinutes,
+  sessionGrossFromRate,
+} from "@/lib/payroll/primary-volume";
+import { sessionLossAmount } from "@/lib/payroll/session-rate";
+import { loadPrimaryWeeklyVolume, loadTeacherWeeklyVolume } from "@/lib/payroll/teacher-payroll";
 import { prisma } from "@/lib/prisma";
 import { startOfTodayParis } from "@/lib/timezone";
 import type { CurrencyCode } from "@/prisma/generated/prisma/client";
@@ -92,34 +99,31 @@ export async function notifyTeacherPayrollImpact(input: {
   if (!branch || !session || !attendance) return;
   if (attendance.absenceCase?.status === "ACCEPTED") return;
 
-  const cycle = session.teaching.classe?.cycle === "PRIMAIRE" ? "PRIMAIRE" : "SECONDAIRE";
+  const cycleRaw = session.teaching.classe?.cycle;
+  const cycle =
+    cycleRaw === "PRIMAIRE" || cycleRaw === "MATERNELLE" || cycleRaw === "SECONDAIRE"
+      ? cycleRaw
+      : "SECONDAIRE";
   const creneauDuration = session.teaching.classe?.creneau?.durationCourse;
-  const duration =
+  const duration = contractualSessionMinutes(
+    creneauDuration,
     cycle === "PRIMAIRE"
-      ? Math.max(
-          1,
-          creneauDuration && creneauDuration > 0
-            ? creneauDuration
-            : (policy?.primarySessionMinutes ?? 30),
-        )
-      : Math.max(
-          1,
-          (session.endTime.getTime() - session.startTime.getTime()) / 60000 ||
-            creneauDuration ||
-            policy?.secondarySessionMinutes ||
-            45,
-        );
-  const grace = policy?.lateGraceMinutes ?? 10;
+      ? (policy?.primarySessionMinutes ?? 30)
+      : cycle === "MATERNELLE"
+        ? (policy?.maternelleSessionMinutes ?? 30)
+        : (policy?.secondarySessionMinutes ?? 45),
+    cycle === "SECONDAIRE" ? 45 : 30,
+  );
+  const grace = policy?.lateGraceMinutes ?? 5;
+  const rawLate = rawLateMinutes(attendance.checkIn, session.startTime);
   const lost =
     input.status === "ABSENT"
       ? duration
       : Math.min(
           duration,
-          Math.max(
-            0,
-            (attendance.checkIn
-              ? (attendance.checkIn.getTime() - session.startTime.getTime()) / 60000
-              : duration) - grace,
+          billableLateMinutes(
+            attendance.checkIn ? rawLate : input.status === "LATE" ? duration : 0,
+            grace,
           ) +
             (attendance.earlyExit && attendance.checkOut
               ? Math.max(
@@ -128,7 +132,9 @@ export async function notifyTeacherPayrollImpact(input: {
                 )
               : 0),
         );
-  if (lost <= 0) return;
+  const lateWithinGrace = input.status === "LATE" && lost <= 0;
+  if (lost <= 0 && !lateWithinGrace) return;
+  if (isPayrollWeekendDate(session.date)) return;
 
   const currency = getBaseCurrency(rates);
   const teacher = await prisma.teacher.findUnique({
@@ -151,54 +157,48 @@ export async function notifyTeacherPayrollImpact(input: {
 
   let estimate: number;
   if (cycle === "SECONDAIRE") {
+    const sessionAmount = payrollSessionAmount({
+      secondaryNonMatriculeSessionRate: policy?.secondaryNonMatriculeSessionRate,
+      secondaryHourlyRate: policy?.secondaryHourlyRate,
+    });
     const sessionGross =
       teacher.employmentKind === "MATRICULE"
-        ? (policy?.secondaryHourlyRate ?? 1500) *
-          ((policy?.secondaryMatriculePrimePercent ?? 30) / 100) *
-          (duration / 60)
-        : (policy?.secondaryNonMatriculeSessionRate ?? 1500);
+        ? sessionAmount * ((policy?.secondaryMatriculePrimePercent ?? 30) / 100)
+        : sessionAmount;
     estimate = sessionLossAmount(sessionGross, lost, duration, currency);
   } else {
-    const monthStart = new Date(
-      Date.UTC(session.date.getUTCFullYear(), session.date.getUTCMonth(), 1),
-    );
-    const monthEnd = new Date(
-      Date.UTC(session.date.getUTCFullYear(), session.date.getUTCMonth() + 1, 1),
-    );
-    const monthSessions = await prisma.attendanceSession.findMany({
-      where: {
-        branchId: input.branchId,
-        date: { gte: monthStart, lt: monthEnd },
-        teaching: {
-          teacherId: input.teacherId,
-          branchId: input.branchId,
-          classe: { cycle: "PRIMAIRE" },
-        },
-      },
-      orderBy: [{ date: "asc" }, { startTime: "asc" }],
-      select: {
-        id: true,
-        teaching: {
-          select: { classe: { select: { creneau: { select: { durationCourse: true } } } } },
-        },
-      },
-    });
-    const forfait =
-      teacher.employmentKind === "MATRICULE"
+    const isMaternelle = cycle === "MATERNELLE";
+    const forfait = isMaternelle
+      ? teacher.employmentKind === "MATRICULE"
+        ? (policy?.maternelleMatriculeMonthly ?? 100000)
+        : (policy?.maternelleNonMatriculeMonthly ?? 100000)
+      : teacher.employmentKind === "MATRICULE"
         ? (policy?.primaryMatriculeMonthly ?? 15000)
         : (policy?.primaryNonMatriculeMonthly ?? 70000);
-    const fallbackMinutes = policy?.primarySessionMinutes ?? 30;
-    const durations = monthSessions.map((row) => {
-      const minutes = row.teaching.classe?.creneau?.durationCourse;
-      return minutes && minutes > 0 ? minutes : fallbackMinutes;
-    });
-    const sessionGrosses = allocateSessionGross(forfait, durations, currency);
-    const thisIndex = monthSessions.findIndex((row) => row.id === input.sessionId);
+    const fallbackMinutes = isMaternelle
+      ? (policy?.maternelleSessionMinutes ?? 30)
+      : (policy?.primarySessionMinutes ?? 30);
+    const weekly = isMaternelle
+      ? await loadTeacherWeeklyVolume({
+          branchId: input.branchId,
+          teacherId: input.teacherId,
+          cycle: "MATERNELLE",
+          fallbackMinutes,
+        })
+      : await loadPrimaryWeeklyVolume({
+          branchId: input.branchId,
+          teacherId: input.teacherId,
+          fallbackMinutes,
+        });
+    const monthlyMinutes = monthlyMinutesFromWeeklyVolume(
+      weekly,
+      session.date.getUTCFullYear(),
+      session.date.getUTCMonth() + 1,
+    );
     const sessionGross =
-      (thisIndex >= 0 ? sessionGrosses[thisIndex] : undefined) ??
-      (durations.length > 0
-        ? roundCurrency(forfait / durations.length, currency)
-        : roundCurrency(forfait, currency));
+      monthlyMinutes > 0
+        ? sessionGrossFromRate(forfait / monthlyMinutes, duration, currency)
+        : roundCurrency(forfait, currency);
     estimate = sessionLossAmount(sessionGross, lost, duration, currency);
   }
   estimate = roundCurrency(estimate, currency);
@@ -217,7 +217,9 @@ export async function notifyTeacherPayrollImpact(input: {
   });
   if (alreadyNotified) return;
 
-  const body = `${contextLabel} · retenue estimée : ${estimate} ${CURRENCY_LABELS[currency]} · le montant définitif figure sur le bulletin du mois.`;
+  const body = lateWithinGrace
+    ? `${contextLabel} · retard de ${Math.round(rawLate * 10) / 10} min (franchise ${grace} min, retenue 0) · signalé au bulletin.`
+    : `${contextLabel} · retenue estimée : ${estimate} ${CURRENCY_LABELS[currency]} · le montant définitif figure sur le bulletin du mois.`;
   await prisma.appNotification.create({
     data: {
       branchId: input.branchId,
@@ -229,7 +231,9 @@ export async function notifyTeacherPayrollImpact(input: {
           ? "Absence avec impact paie"
           : input.status === "EARLY_EXIT"
             ? "Sortie anticipée avec impact paie"
-            : "Retard avec impact paie",
+            : lateWithinGrace
+              ? "Retard signalé (franchise)"
+              : "Retard avec impact paie",
       body,
       href,
     },
@@ -295,12 +299,12 @@ export async function notifyTeacherPayrollImpact(input: {
         currency: currency as CurrencyCode,
         rule:
           input.status === "ABSENT"
-            ? cycle === "PRIMAIRE"
-              ? "absence non justifiée : retenue de la valeur réelle de la séance (brut ÷ séances du mois)"
-              : "absence non justifiée : retenue de la séance"
+            ? cycle === "SECONDAIRE"
+              ? "absence non justifiée : retenue de la séance"
+              : "absence non justifiée : retenue de la valeur réelle de la séance (brut ÷ séances du mois)"
             : input.status === "EARLY_EXIT"
               ? "minutes non effectuées jusqu'à la fin de la séance"
-              : `minutes au-delà de la franchise de ${grace} min`,
+              : `minutes au-delà de la franchise de ${grace} min (retard ≤ ${grace} min : autorisé, signalé)`,
         organizationId: input.organizationId,
       }).catch((error) => {
         console.error("PAYROLL_EMAIL_ERROR", error);

@@ -2,8 +2,9 @@ import "server-only";
 
 import { splitSessionRoles } from "@/lib/auth/session-roles";
 import { PERSONNEL_ORG_ROLE_OPTIONS } from "@/lib/dual-staff-profile-shared";
-import { roundCurrency } from "@/lib/exchange-rate";
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { calculatePersonnelPayroll } from "@/lib/payroll/personnel-payroll";
+import { resolvePersonnelPay } from "@/lib/payroll/personnel-scales";
 import {
   calculateTeacherPayroll,
   getBranchPayrollContext,
@@ -165,6 +166,11 @@ function emptyTeacherResult(input: {
     plannedMinutes: 0,
     lostMinutes: 0,
     weeklyPlannedMinutes: 0,
+    weeklySessions: 0,
+    secondaryWeeklyPlannedMinutes: 0,
+    secondaryWeeklySessions: 0,
+    maternelleWeeklyPlannedMinutes: 0,
+    maternelleWeeklySessions: 0,
     ratePerMinute: 0,
     ratePerSession: 0,
     details: [],
@@ -178,8 +184,14 @@ export async function calculateAndPersistStaffPayroll(input: {
   agent: PayrollAgent;
   waivedSessionIds?: string[];
 }) {
-  const personnelForfait = Number(input.agent.monthlyForfait ?? 0);
-  if (!input.agent.teacherId && personnelForfait <= 0) {
+  const context = await getBranchPayrollContext(input.branchId, input.organizationId);
+  const pay = resolvePersonnelPay({
+    ficheForfait: input.agent.monthlyForfait,
+    orgRole: input.agent.orgRole,
+    scales: context.policy.personnelScales,
+  });
+  const personnelTotal = pay.total;
+  if (!input.agent.teacherId && personnelTotal <= 0) {
     return { skipped: "NO_FORFAIT" as const, payslipId: null, missingExchangeRate: false };
   }
 
@@ -193,23 +205,36 @@ export async function calculateAndPersistStaffPayroll(input: {
     });
   }
 
-  const context = teacherResult
-    ? null
-    : await getBranchPayrollContext(input.branchId, input.organizationId);
-  const currency = teacherResult?.currency ?? context!.currency;
-  const personnelGross =
-    personnelForfait > 0 ? roundCurrency(personnelForfait, currency) : 0;
+  const currency = teacherResult?.currency ?? context.currency;
+  const policy = teacherResult?.policy ?? context.policy;
+  const roleLabel = personnelRoleLabel(input.agent.orgRole) ?? pay.role;
+  const personnelPayroll =
+    input.agent.personnelId && personnelTotal > 0
+      ? await calculatePersonnelPayroll({
+          branchId: input.branchId,
+          personnelId: input.agent.personnelId,
+          period: input.period,
+          pay,
+          policy: {
+            lateGraceMinutes: policy.lateGraceMinutes,
+            personnelDayMinutes: policy.personnelDayMinutes,
+          },
+          currency,
+          roleLabel,
+        })
+      : null;
+
   const result =
     teacherResult ??
     emptyTeacherResult({
       name: input.agent.name,
       branchMemberId: input.agent.branchMemberId,
       period: input.period,
-      context: context!,
+      context,
     });
 
   const agentKind: PayrollAgentKind =
-    input.agent.teacherId && personnelGross > 0
+    input.agent.teacherId && personnelPayroll && personnelTotal > 0
       ? "BOTH"
       : input.agent.teacherId
         ? "TEACHER"
@@ -224,8 +249,8 @@ export async function calculateAndPersistStaffPayroll(input: {
       teacherId: input.agent.teacherId,
       personnelId: input.agent.personnelId,
       agentKind,
-      personnelGross,
-      personnelRoleLabel: personnelRoleLabel(input.agent.orgRole),
+      personnelPayroll,
+      personnelRoleLabel: roleLabel,
       waivedSessionIds: input.waivedSessionIds,
     },
     result,

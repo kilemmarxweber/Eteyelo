@@ -15,6 +15,8 @@ export type TeacherPayslipLineDetailSnapshot = {
   reason: "ABSENCE" | "LATE" | "EARLY_EXIT" | null;
   /** Valeur réelle de la séance (part du brut mensuel ou tarif secondaire). */
   sessionGross?: number;
+  /** Retard dans la franchise : signalé, sans retenue. */
+  lateWithinGrace?: boolean;
   /** Retenue volontairement retirée par le propriétaire. */
   waived?: boolean;
   waivedAmount?: number;

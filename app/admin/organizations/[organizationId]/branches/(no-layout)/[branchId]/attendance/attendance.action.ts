@@ -694,7 +694,7 @@ export const markTeacherAttendance = action
     const [attendanceSession, teacher] = await Promise.all([
       prisma.attendanceSession.findFirst({
         where: { id: input.sessionId, branchId },
-        select: { id: true },
+        select: { id: true, startTime: true },
       }),
       prisma.teacher.findFirst({
         where: {
@@ -711,6 +711,13 @@ export const markTeacherAttendance = action
       throw new Error("Presence enseignant impossible dans cette branche");
     }
 
+    const status =
+      input.status === "ABSENT"
+        ? input.status
+        : toMinutes(nowLocal()) > scheduleHourToMinutes(attendanceSession.startTime)
+          ? "LATE"
+          : "PRESENT";
+
     const attendance = await prisma.teacherAttendance.upsert({
       where: {
         teacherId_sessionId_branchId: {
@@ -720,16 +727,16 @@ export const markTeacherAttendance = action
         },
       },
       update: {
-        status: input.status,
+        status,
         checkIn:
-          input.status === "ABSENT" ? undefined : nowLocal(),
+          status === "ABSENT" ? undefined : nowLocal(),
       },
       create: {
         teacherId: input.teacherId,
         sessionId: input.sessionId,
-        status: input.status,
+        status,
         date: nowLocal(),
-        checkIn: input.status === "ABSENT" ? undefined : nowLocal(),
+        checkIn: status === "ABSENT" ? undefined : nowLocal(),
         branchId,
       },
     });
@@ -740,7 +747,7 @@ export const markTeacherAttendance = action
       teacherId: input.teacherId,
       sessionId: input.sessionId,
       attendanceId: attendance.id,
-      status: input.status,
+      status,
       checkIn: attendance.checkIn,
     }).catch((error) => {
       console.error("[markTeacherAttendance] absence sync", error);

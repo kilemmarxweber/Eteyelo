@@ -143,7 +143,8 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
         clock(detail?.endTime),
         minutes(detail?.plannedMinutes),
         `${clock(detail?.checkIn)} / ${clock(detail?.checkOut)}`,
-        minutes(detail?.lateMinutes ?? (line.kind === "LATE" ? line.minutes : 0)),
+        minutes(detail?.lateMinutes ?? (line.kind === "LATE" ? line.minutes : 0)) +
+          (detail?.lateWithinGrace ? " (autorisé)" : ""),
         minutes(detail?.earlyExitMinutes),
         minutes(detail?.lostMinutes ?? line.minutes),
         STATUS_LABELS[detail?.status ?? ""] ?? detail?.status ?? line.kind,

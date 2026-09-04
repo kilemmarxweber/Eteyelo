@@ -34,6 +34,10 @@ export type BranchPayrollPolicyAvgAggregateOutputType = {
   secondaryNonMatriculeSessionRate: number | null
   primaryMatriculeMonthly: number | null
   primaryNonMatriculeMonthly: number | null
+  maternelleSessionMinutes: number | null
+  maternelleMatriculeMonthly: number | null
+  maternelleNonMatriculeMonthly: number | null
+  personnelDayMinutes: number | null
   lateGraceMinutes: number | null
 }
 
@@ -45,6 +49,10 @@ export type BranchPayrollPolicySumAggregateOutputType = {
   secondaryNonMatriculeSessionRate: number | null
   primaryMatriculeMonthly: number | null
   primaryNonMatriculeMonthly: number | null
+  maternelleSessionMinutes: number | null
+  maternelleMatriculeMonthly: number | null
+  maternelleNonMatriculeMonthly: number | null
+  personnelDayMinutes: number | null
   lateGraceMinutes: number | null
 }
 
@@ -58,6 +66,10 @@ export type BranchPayrollPolicyMinAggregateOutputType = {
   secondaryNonMatriculeSessionRate: number | null
   primaryMatriculeMonthly: number | null
   primaryNonMatriculeMonthly: number | null
+  maternelleSessionMinutes: number | null
+  maternelleMatriculeMonthly: number | null
+  maternelleNonMatriculeMonthly: number | null
+  personnelDayMinutes: number | null
   lateGraceMinutes: number | null
   notifyByEmail: boolean | null
   isActive: boolean | null
@@ -75,6 +87,10 @@ export type BranchPayrollPolicyMaxAggregateOutputType = {
   secondaryNonMatriculeSessionRate: number | null
   primaryMatriculeMonthly: number | null
   primaryNonMatriculeMonthly: number | null
+  maternelleSessionMinutes: number | null
+  maternelleMatriculeMonthly: number | null
+  maternelleNonMatriculeMonthly: number | null
+  personnelDayMinutes: number | null
   lateGraceMinutes: number | null
   notifyByEmail: boolean | null
   isActive: boolean | null
@@ -92,6 +108,11 @@ export type BranchPayrollPolicyCountAggregateOutputType = {
   secondaryNonMatriculeSessionRate: number
   primaryMatriculeMonthly: number
   primaryNonMatriculeMonthly: number
+  maternelleSessionMinutes: number
+  maternelleMatriculeMonthly: number
+  maternelleNonMatriculeMonthly: number
+  personnelDayMinutes: number
+  personnelScales: number
   lateGraceMinutes: number
   notifyByEmail: number
   isActive: number
@@ -109,6 +130,10 @@ export type BranchPayrollPolicyAvgAggregateInputType = {
   secondaryNonMatriculeSessionRate?: true
   primaryMatriculeMonthly?: true
   primaryNonMatriculeMonthly?: true
+  maternelleSessionMinutes?: true
+  maternelleMatriculeMonthly?: true
+  maternelleNonMatriculeMonthly?: true
+  personnelDayMinutes?: true
   lateGraceMinutes?: true
 }
 
@@ -120,6 +145,10 @@ export type BranchPayrollPolicySumAggregateInputType = {
   secondaryNonMatriculeSessionRate?: true
   primaryMatriculeMonthly?: true
   primaryNonMatriculeMonthly?: true
+  maternelleSessionMinutes?: true
+  maternelleMatriculeMonthly?: true
+  maternelleNonMatriculeMonthly?: true
+  personnelDayMinutes?: true
   lateGraceMinutes?: true
 }
 
@@ -133,6 +162,10 @@ export type BranchPayrollPolicyMinAggregateInputType = {
   secondaryNonMatriculeSessionRate?: true
   primaryMatriculeMonthly?: true
   primaryNonMatriculeMonthly?: true
+  maternelleSessionMinutes?: true
+  maternelleMatriculeMonthly?: true
+  maternelleNonMatriculeMonthly?: true
+  personnelDayMinutes?: true
   lateGraceMinutes?: true
   notifyByEmail?: true
   isActive?: true
@@ -150,6 +183,10 @@ export type BranchPayrollPolicyMaxAggregateInputType = {
   secondaryNonMatriculeSessionRate?: true
   primaryMatriculeMonthly?: true
   primaryNonMatriculeMonthly?: true
+  maternelleSessionMinutes?: true
+  maternelleMatriculeMonthly?: true
+  maternelleNonMatriculeMonthly?: true
+  personnelDayMinutes?: true
   lateGraceMinutes?: true
   notifyByEmail?: true
   isActive?: true
@@ -167,6 +204,11 @@ export type BranchPayrollPolicyCountAggregateInputType = {
   secondaryNonMatriculeSessionRate?: true
   primaryMatriculeMonthly?: true
   primaryNonMatriculeMonthly?: true
+  maternelleSessionMinutes?: true
+  maternelleMatriculeMonthly?: true
+  maternelleNonMatriculeMonthly?: true
+  personnelDayMinutes?: true
+  personnelScales?: true
   lateGraceMinutes?: true
   notifyByEmail?: true
   isActive?: true
@@ -271,6 +313,11 @@ export type BranchPayrollPolicyGroupByOutputType = {
   secondaryNonMatriculeSessionRate: number
   primaryMatriculeMonthly: number
   primaryNonMatriculeMonthly: number
+  maternelleSessionMinutes: number
+  maternelleMatriculeMonthly: number
+  maternelleNonMatriculeMonthly: number
+  personnelDayMinutes: number
+  personnelScales: runtime.JsonValue | null
   lateGraceMinutes: number
   notifyByEmail: boolean
   isActive: boolean
@@ -311,6 +358,11 @@ export type BranchPayrollPolicyWhereInput = {
   secondaryNonMatriculeSessionRate?: Prisma.FloatFilter<"BranchPayrollPolicy"> | number
   primaryMatriculeMonthly?: Prisma.FloatFilter<"BranchPayrollPolicy"> | number
   primaryNonMatriculeMonthly?: Prisma.FloatFilter<"BranchPayrollPolicy"> | number
+  maternelleSessionMinutes?: Prisma.IntFilter<"BranchPayrollPolicy"> | number
+  maternelleMatriculeMonthly?: Prisma.FloatFilter<"BranchPayrollPolicy"> | number
+  maternelleNonMatriculeMonthly?: Prisma.FloatFilter<"BranchPayrollPolicy"> | number
+  personnelDayMinutes?: Prisma.IntFilter<"BranchPayrollPolicy"> | number
+  personnelScales?: Prisma.JsonNullableFilter<"BranchPayrollPolicy">
   lateGraceMinutes?: Prisma.IntFilter<"BranchPayrollPolicy"> | number
   notifyByEmail?: Prisma.BoolFilter<"BranchPayrollPolicy"> | boolean
   isActive?: Prisma.BoolFilter<"BranchPayrollPolicy"> | boolean
@@ -330,6 +382,11 @@ export type BranchPayrollPolicyOrderByWithRelationInput = {
   secondaryNonMatriculeSessionRate?: Prisma.SortOrder
   primaryMatriculeMonthly?: Prisma.SortOrder
   primaryNonMatriculeMonthly?: Prisma.SortOrder
+  maternelleSessionMinutes?: Prisma.SortOrder
+  maternelleMatriculeMonthly?: Prisma.SortOrder
+  maternelleNonMatriculeMonthly?: Prisma.SortOrder
+  personnelDayMinutes?: Prisma.SortOrder
+  personnelScales?: Prisma.SortOrderInput | Prisma.SortOrder
   lateGraceMinutes?: Prisma.SortOrder
   notifyByEmail?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
@@ -352,6 +409,11 @@ export type BranchPayrollPolicyWhereUniqueInput = Prisma.AtLeast<{
   secondaryNonMatriculeSessionRate?: Prisma.FloatFilter<"BranchPayrollPolicy"> | number
   primaryMatriculeMonthly?: Prisma.FloatFilter<"BranchPayrollPolicy"> | number
   primaryNonMatriculeMonthly?: Prisma.FloatFilter<"BranchPayrollPolicy"> | number
+  maternelleSessionMinutes?: Prisma.IntFilter<"BranchPayrollPolicy"> | number
+  maternelleMatriculeMonthly?: Prisma.FloatFilter<"BranchPayrollPolicy"> | number
+  maternelleNonMatriculeMonthly?: Prisma.FloatFilter<"BranchPayrollPolicy"> | number
+  personnelDayMinutes?: Prisma.IntFilter<"BranchPayrollPolicy"> | number
+  personnelScales?: Prisma.JsonNullableFilter<"BranchPayrollPolicy">
   lateGraceMinutes?: Prisma.IntFilter<"BranchPayrollPolicy"> | number
   notifyByEmail?: Prisma.BoolFilter<"BranchPayrollPolicy"> | boolean
   isActive?: Prisma.BoolFilter<"BranchPayrollPolicy"> | boolean
@@ -371,6 +433,11 @@ export type BranchPayrollPolicyOrderByWithAggregationInput = {
   secondaryNonMatriculeSessionRate?: Prisma.SortOrder
   primaryMatriculeMonthly?: Prisma.SortOrder
   primaryNonMatriculeMonthly?: Prisma.SortOrder
+  maternelleSessionMinutes?: Prisma.SortOrder
+  maternelleMatriculeMonthly?: Prisma.SortOrder
+  maternelleNonMatriculeMonthly?: Prisma.SortOrder
+  personnelDayMinutes?: Prisma.SortOrder
+  personnelScales?: Prisma.SortOrderInput | Prisma.SortOrder
   lateGraceMinutes?: Prisma.SortOrder
   notifyByEmail?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
@@ -396,6 +463,11 @@ export type BranchPayrollPolicyScalarWhereWithAggregatesInput = {
   secondaryNonMatriculeSessionRate?: Prisma.FloatWithAggregatesFilter<"BranchPayrollPolicy"> | number
   primaryMatriculeMonthly?: Prisma.FloatWithAggregatesFilter<"BranchPayrollPolicy"> | number
   primaryNonMatriculeMonthly?: Prisma.FloatWithAggregatesFilter<"BranchPayrollPolicy"> | number
+  maternelleSessionMinutes?: Prisma.IntWithAggregatesFilter<"BranchPayrollPolicy"> | number
+  maternelleMatriculeMonthly?: Prisma.FloatWithAggregatesFilter<"BranchPayrollPolicy"> | number
+  maternelleNonMatriculeMonthly?: Prisma.FloatWithAggregatesFilter<"BranchPayrollPolicy"> | number
+  personnelDayMinutes?: Prisma.IntWithAggregatesFilter<"BranchPayrollPolicy"> | number
+  personnelScales?: Prisma.JsonNullableWithAggregatesFilter<"BranchPayrollPolicy">
   lateGraceMinutes?: Prisma.IntWithAggregatesFilter<"BranchPayrollPolicy"> | number
   notifyByEmail?: Prisma.BoolWithAggregatesFilter<"BranchPayrollPolicy"> | boolean
   isActive?: Prisma.BoolWithAggregatesFilter<"BranchPayrollPolicy"> | boolean
@@ -412,6 +484,11 @@ export type BranchPayrollPolicyCreateInput = {
   secondaryNonMatriculeSessionRate?: number
   primaryMatriculeMonthly?: number
   primaryNonMatriculeMonthly?: number
+  maternelleSessionMinutes?: number
+  maternelleMatriculeMonthly?: number
+  maternelleNonMatriculeMonthly?: number
+  personnelDayMinutes?: number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: number
   notifyByEmail?: boolean
   isActive?: boolean
@@ -431,6 +508,11 @@ export type BranchPayrollPolicyUncheckedCreateInput = {
   secondaryNonMatriculeSessionRate?: number
   primaryMatriculeMonthly?: number
   primaryNonMatriculeMonthly?: number
+  maternelleSessionMinutes?: number
+  maternelleMatriculeMonthly?: number
+  maternelleNonMatriculeMonthly?: number
+  personnelDayMinutes?: number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: number
   notifyByEmail?: boolean
   isActive?: boolean
@@ -448,6 +530,11 @@ export type BranchPayrollPolicyUpdateInput = {
   secondaryNonMatriculeSessionRate?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleSessionMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  maternelleMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  personnelDayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   notifyByEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -467,6 +554,11 @@ export type BranchPayrollPolicyUncheckedUpdateInput = {
   secondaryNonMatriculeSessionRate?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleSessionMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  maternelleMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  personnelDayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   notifyByEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -485,6 +577,11 @@ export type BranchPayrollPolicyCreateManyInput = {
   secondaryNonMatriculeSessionRate?: number
   primaryMatriculeMonthly?: number
   primaryNonMatriculeMonthly?: number
+  maternelleSessionMinutes?: number
+  maternelleMatriculeMonthly?: number
+  maternelleNonMatriculeMonthly?: number
+  personnelDayMinutes?: number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: number
   notifyByEmail?: boolean
   isActive?: boolean
@@ -501,6 +598,11 @@ export type BranchPayrollPolicyUpdateManyMutationInput = {
   secondaryNonMatriculeSessionRate?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleSessionMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  maternelleMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  personnelDayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   notifyByEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -518,6 +620,11 @@ export type BranchPayrollPolicyUncheckedUpdateManyInput = {
   secondaryNonMatriculeSessionRate?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleSessionMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  maternelleMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  personnelDayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   notifyByEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -535,6 +642,11 @@ export type BranchPayrollPolicyCountOrderByAggregateInput = {
   secondaryNonMatriculeSessionRate?: Prisma.SortOrder
   primaryMatriculeMonthly?: Prisma.SortOrder
   primaryNonMatriculeMonthly?: Prisma.SortOrder
+  maternelleSessionMinutes?: Prisma.SortOrder
+  maternelleMatriculeMonthly?: Prisma.SortOrder
+  maternelleNonMatriculeMonthly?: Prisma.SortOrder
+  personnelDayMinutes?: Prisma.SortOrder
+  personnelScales?: Prisma.SortOrder
   lateGraceMinutes?: Prisma.SortOrder
   notifyByEmail?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
@@ -550,6 +662,10 @@ export type BranchPayrollPolicyAvgOrderByAggregateInput = {
   secondaryNonMatriculeSessionRate?: Prisma.SortOrder
   primaryMatriculeMonthly?: Prisma.SortOrder
   primaryNonMatriculeMonthly?: Prisma.SortOrder
+  maternelleSessionMinutes?: Prisma.SortOrder
+  maternelleMatriculeMonthly?: Prisma.SortOrder
+  maternelleNonMatriculeMonthly?: Prisma.SortOrder
+  personnelDayMinutes?: Prisma.SortOrder
   lateGraceMinutes?: Prisma.SortOrder
 }
 
@@ -563,6 +679,10 @@ export type BranchPayrollPolicyMaxOrderByAggregateInput = {
   secondaryNonMatriculeSessionRate?: Prisma.SortOrder
   primaryMatriculeMonthly?: Prisma.SortOrder
   primaryNonMatriculeMonthly?: Prisma.SortOrder
+  maternelleSessionMinutes?: Prisma.SortOrder
+  maternelleMatriculeMonthly?: Prisma.SortOrder
+  maternelleNonMatriculeMonthly?: Prisma.SortOrder
+  personnelDayMinutes?: Prisma.SortOrder
   lateGraceMinutes?: Prisma.SortOrder
   notifyByEmail?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
@@ -580,6 +700,10 @@ export type BranchPayrollPolicyMinOrderByAggregateInput = {
   secondaryNonMatriculeSessionRate?: Prisma.SortOrder
   primaryMatriculeMonthly?: Prisma.SortOrder
   primaryNonMatriculeMonthly?: Prisma.SortOrder
+  maternelleSessionMinutes?: Prisma.SortOrder
+  maternelleMatriculeMonthly?: Prisma.SortOrder
+  maternelleNonMatriculeMonthly?: Prisma.SortOrder
+  personnelDayMinutes?: Prisma.SortOrder
   lateGraceMinutes?: Prisma.SortOrder
   notifyByEmail?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
@@ -595,6 +719,10 @@ export type BranchPayrollPolicySumOrderByAggregateInput = {
   secondaryNonMatriculeSessionRate?: Prisma.SortOrder
   primaryMatriculeMonthly?: Prisma.SortOrder
   primaryNonMatriculeMonthly?: Prisma.SortOrder
+  maternelleSessionMinutes?: Prisma.SortOrder
+  maternelleMatriculeMonthly?: Prisma.SortOrder
+  maternelleNonMatriculeMonthly?: Prisma.SortOrder
+  personnelDayMinutes?: Prisma.SortOrder
   lateGraceMinutes?: Prisma.SortOrder
 }
 
@@ -660,6 +788,11 @@ export type BranchPayrollPolicyCreateWithoutPayslipsInput = {
   secondaryNonMatriculeSessionRate?: number
   primaryMatriculeMonthly?: number
   primaryNonMatriculeMonthly?: number
+  maternelleSessionMinutes?: number
+  maternelleMatriculeMonthly?: number
+  maternelleNonMatriculeMonthly?: number
+  personnelDayMinutes?: number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: number
   notifyByEmail?: boolean
   isActive?: boolean
@@ -678,6 +811,11 @@ export type BranchPayrollPolicyUncheckedCreateWithoutPayslipsInput = {
   secondaryNonMatriculeSessionRate?: number
   primaryMatriculeMonthly?: number
   primaryNonMatriculeMonthly?: number
+  maternelleSessionMinutes?: number
+  maternelleMatriculeMonthly?: number
+  maternelleNonMatriculeMonthly?: number
+  personnelDayMinutes?: number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: number
   notifyByEmail?: boolean
   isActive?: boolean
@@ -710,6 +848,11 @@ export type BranchPayrollPolicyUpdateWithoutPayslipsInput = {
   secondaryNonMatriculeSessionRate?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleSessionMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  maternelleMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  personnelDayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   notifyByEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -728,6 +871,11 @@ export type BranchPayrollPolicyUncheckedUpdateWithoutPayslipsInput = {
   secondaryNonMatriculeSessionRate?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleSessionMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  maternelleMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  personnelDayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   notifyByEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -744,6 +892,11 @@ export type BranchPayrollPolicyCreateWithoutBranchInput = {
   secondaryNonMatriculeSessionRate?: number
   primaryMatriculeMonthly?: number
   primaryNonMatriculeMonthly?: number
+  maternelleSessionMinutes?: number
+  maternelleMatriculeMonthly?: number
+  maternelleNonMatriculeMonthly?: number
+  personnelDayMinutes?: number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: number
   notifyByEmail?: boolean
   isActive?: boolean
@@ -761,6 +914,11 @@ export type BranchPayrollPolicyUncheckedCreateWithoutBranchInput = {
   secondaryNonMatriculeSessionRate?: number
   primaryMatriculeMonthly?: number
   primaryNonMatriculeMonthly?: number
+  maternelleSessionMinutes?: number
+  maternelleMatriculeMonthly?: number
+  maternelleNonMatriculeMonthly?: number
+  personnelDayMinutes?: number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: number
   notifyByEmail?: boolean
   isActive?: boolean
@@ -794,6 +952,11 @@ export type BranchPayrollPolicyUpdateWithoutBranchInput = {
   secondaryNonMatriculeSessionRate?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleSessionMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  maternelleMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  personnelDayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   notifyByEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -811,6 +974,11 @@ export type BranchPayrollPolicyUncheckedUpdateWithoutBranchInput = {
   secondaryNonMatriculeSessionRate?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
   primaryNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleSessionMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  maternelleMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  maternelleNonMatriculeMonthly?: Prisma.FloatFieldUpdateOperationsInput | number
+  personnelDayMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  personnelScales?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   lateGraceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   notifyByEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -860,6 +1028,11 @@ export type BranchPayrollPolicySelect<ExtArgs extends runtime.Types.Extensions.I
   secondaryNonMatriculeSessionRate?: boolean
   primaryMatriculeMonthly?: boolean
   primaryNonMatriculeMonthly?: boolean
+  maternelleSessionMinutes?: boolean
+  maternelleMatriculeMonthly?: boolean
+  maternelleNonMatriculeMonthly?: boolean
+  personnelDayMinutes?: boolean
+  personnelScales?: boolean
   lateGraceMinutes?: boolean
   notifyByEmail?: boolean
   isActive?: boolean
@@ -880,6 +1053,11 @@ export type BranchPayrollPolicySelectCreateManyAndReturn<ExtArgs extends runtime
   secondaryNonMatriculeSessionRate?: boolean
   primaryMatriculeMonthly?: boolean
   primaryNonMatriculeMonthly?: boolean
+  maternelleSessionMinutes?: boolean
+  maternelleMatriculeMonthly?: boolean
+  maternelleNonMatriculeMonthly?: boolean
+  personnelDayMinutes?: boolean
+  personnelScales?: boolean
   lateGraceMinutes?: boolean
   notifyByEmail?: boolean
   isActive?: boolean
@@ -898,6 +1076,11 @@ export type BranchPayrollPolicySelectUpdateManyAndReturn<ExtArgs extends runtime
   secondaryNonMatriculeSessionRate?: boolean
   primaryMatriculeMonthly?: boolean
   primaryNonMatriculeMonthly?: boolean
+  maternelleSessionMinutes?: boolean
+  maternelleMatriculeMonthly?: boolean
+  maternelleNonMatriculeMonthly?: boolean
+  personnelDayMinutes?: boolean
+  personnelScales?: boolean
   lateGraceMinutes?: boolean
   notifyByEmail?: boolean
   isActive?: boolean
@@ -916,6 +1099,11 @@ export type BranchPayrollPolicySelectScalar = {
   secondaryNonMatriculeSessionRate?: boolean
   primaryMatriculeMonthly?: boolean
   primaryNonMatriculeMonthly?: boolean
+  maternelleSessionMinutes?: boolean
+  maternelleMatriculeMonthly?: boolean
+  maternelleNonMatriculeMonthly?: boolean
+  personnelDayMinutes?: boolean
+  personnelScales?: boolean
   lateGraceMinutes?: boolean
   notifyByEmail?: boolean
   isActive?: boolean
@@ -923,7 +1111,7 @@ export type BranchPayrollPolicySelectScalar = {
   updatedAt?: boolean
 }
 
-export type BranchPayrollPolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchId" | "secondarySessionMinutes" | "primarySessionMinutes" | "secondaryHourlyRate" | "secondaryMatriculePrimePercent" | "secondaryNonMatriculeSessionRate" | "primaryMatriculeMonthly" | "primaryNonMatriculeMonthly" | "lateGraceMinutes" | "notifyByEmail" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["branchPayrollPolicy"]>
+export type BranchPayrollPolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchId" | "secondarySessionMinutes" | "primarySessionMinutes" | "secondaryHourlyRate" | "secondaryMatriculePrimePercent" | "secondaryNonMatriculeSessionRate" | "primaryMatriculeMonthly" | "primaryNonMatriculeMonthly" | "maternelleSessionMinutes" | "maternelleMatriculeMonthly" | "maternelleNonMatriculeMonthly" | "personnelDayMinutes" | "personnelScales" | "lateGraceMinutes" | "notifyByEmail" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["branchPayrollPolicy"]>
 export type BranchPayrollPolicyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   payslips?: boolean | Prisma.BranchPayrollPolicy$payslipsArgs<ExtArgs>
@@ -952,6 +1140,17 @@ export type $BranchPayrollPolicyPayload<ExtArgs extends runtime.Types.Extensions
     secondaryNonMatriculeSessionRate: number
     primaryMatriculeMonthly: number
     primaryNonMatriculeMonthly: number
+    maternelleSessionMinutes: number
+    maternelleMatriculeMonthly: number
+    maternelleNonMatriculeMonthly: number
+    /**
+     * Journée de travail personnel (minutes), pour retenue retard / absence.
+     */
+    personnelDayMinutes: number
+    /**
+     * Échelles par rôle : [{ role, gross, prime }]
+     */
+    personnelScales: runtime.JsonValue | null
     lateGraceMinutes: number
     notifyByEmail: boolean
     isActive: boolean
@@ -1391,6 +1590,11 @@ export interface BranchPayrollPolicyFieldRefs {
   readonly secondaryNonMatriculeSessionRate: Prisma.FieldRef<"BranchPayrollPolicy", 'Float'>
   readonly primaryMatriculeMonthly: Prisma.FieldRef<"BranchPayrollPolicy", 'Float'>
   readonly primaryNonMatriculeMonthly: Prisma.FieldRef<"BranchPayrollPolicy", 'Float'>
+  readonly maternelleSessionMinutes: Prisma.FieldRef<"BranchPayrollPolicy", 'Int'>
+  readonly maternelleMatriculeMonthly: Prisma.FieldRef<"BranchPayrollPolicy", 'Float'>
+  readonly maternelleNonMatriculeMonthly: Prisma.FieldRef<"BranchPayrollPolicy", 'Float'>
+  readonly personnelDayMinutes: Prisma.FieldRef<"BranchPayrollPolicy", 'Int'>
+  readonly personnelScales: Prisma.FieldRef<"BranchPayrollPolicy", 'Json'>
   readonly lateGraceMinutes: Prisma.FieldRef<"BranchPayrollPolicy", 'Int'>
   readonly notifyByEmail: Prisma.FieldRef<"BranchPayrollPolicy", 'Boolean'>
   readonly isActive: Prisma.FieldRef<"BranchPayrollPolicy", 'Boolean'>

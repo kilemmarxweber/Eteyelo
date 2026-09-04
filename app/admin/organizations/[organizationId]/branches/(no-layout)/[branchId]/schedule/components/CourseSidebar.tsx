@@ -22,7 +22,7 @@ type OptionsData = NonNullable<
   Awaited<ReturnType<typeof getScheduleOptionsAction>>[0]
 >;
 
-const PAGE_SIZE = 16;
+const PAGE_SIZE = 8;
 
 export function OptionSidebar() {
   const [options, setOptions] = useState<OptionsData>([]);

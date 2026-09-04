@@ -186,7 +186,7 @@ export default function PayslipDetailClient({
       (line.kind !== "GROSS" || line.detail || line.occurredOn),
   );
   const advanceLines = payslip.lines.filter((line) => line.kind === "ADVANCE");
-  const summaryLine = payslip.lines.find(
+  const summaryLines = payslip.lines.filter(
     (line) => line.kind === "GROSS" && !line.occurredOn && !line.detail,
   );
   const isPersonnel = payslip.agentKind === "PERSONNEL" || !payslip.teacher;
@@ -301,18 +301,25 @@ export default function PayslipDetailClient({
               tone="emerald"
             />
           </div>
-          {summaryLine ? (
-            <div className="mt-4 rounded-lg border border-primary/10 bg-muted/40 px-3 py-2.5 text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">{summaryLine.label}</span>
-              {" · "}
-              {summaryLine.sessions} séance
-              {summaryLine.sessions > 1 ? "s" : ""}
-              {" · durée prévue cumulée "}
-              {formatMinutes(summaryLine.minutes)}
-              {" · "}
-              <span className="font-semibold text-foreground">
-                {formatAmount(summaryLine.amount, payslip.currency)}
-              </span>
+          {summaryLines.length > 0 ? (
+            <div className="mt-4 space-y-2">
+              {summaryLines.map((line) => (
+                <div
+                  key={line.id}
+                  className="rounded-lg border border-primary/10 bg-muted/40 px-3 py-2.5 text-sm text-muted-foreground"
+                >
+                  <span className="font-medium text-foreground">{line.label}</span>
+                  {" · "}
+                  {line.sessions} séance
+                  {line.sessions > 1 ? "s" : ""}
+                  {" · durée prévue cumulée "}
+                  {formatMinutes(line.minutes)}
+                  {" · "}
+                  <span className="font-semibold text-foreground">
+                    {formatAmount(line.amount, payslip.currency)}
+                  </span>
+                </div>
+              ))}
             </div>
           ) : null}
           {advanceLines.length > 0 ? (
@@ -413,6 +420,14 @@ export default function PayslipDetailClient({
                         </td>
                         <td className="p-2 whitespace-nowrap">
                           {formatMinutes(detail?.lateMinutes ?? (line.kind === "LATE" ? line.minutes : 0))}
+                          {detail?.lateWithinGrace ||
+                          (line.kind === "LATE" &&
+                            (detail?.lostMinutes ?? line.minutes) <= 0 &&
+                            (detail?.lateMinutes ?? 0) > 0) ? (
+                            <div className="text-[10px] font-medium uppercase tracking-wide text-amber-700 dark:text-amber-400">
+                              Autorisé · signalé
+                            </div>
+                          ) : null}
                         </td>
                         <td className="p-2 whitespace-nowrap">
                           {formatMinutes(detail?.earlyExitMinutes)}
@@ -434,6 +449,10 @@ export default function PayslipDetailClient({
                           {waived ? (
                             <div className="text-[10px] font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
                               Retenue retirée
+                            </div>
+                          ) : detail?.lateWithinGrace ? (
+                            <div className="text-[10px] font-medium uppercase tracking-wide text-amber-700 dark:text-amber-400">
+                              Franchise {detail.graceMinutes} min
                             </div>
                           ) : null}
                         </td>
@@ -460,7 +479,7 @@ export default function PayslipDetailClient({
                         </td>
                         {editable ? (
                           <td className="p-2 whitespace-nowrap">
-                            {isLoss ? (
+                            {isLoss && (displayedLoss > 0 || waived) ? (
                               <Button
                                 variant="outline"
                                 size="sm"
