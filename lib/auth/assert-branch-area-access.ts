@@ -6,11 +6,26 @@ import {
   canAccessBranchArea,
   type BranchArea,
 } from "@/lib/auth/branch-area-access";
-import { isPermissionsFromDacEnabled } from "@/lib/auth/branch-area-permissions";
+import {
+  grantResourceForArea,
+  isPermissionsFromDacEnabled,
+} from "@/lib/auth/branch-area-permissions";
 import { getCachedSession } from "@/lib/auth/get-session-cached";
 import { loadOrganizationRoleStatements } from "@/lib/auth/org-role-permissions";
-import { canAccessBranchAreaFromPermissions } from "@/lib/auth/resolve-branch-area-permission";
-import { canAccessBranchAreaViaTemporaryGrants } from "@/lib/auth/temporary-privilege";
+import {
+  canAccessBranchAreaFromPermissions,
+  roleAllowsAreaAction,
+} from "@/lib/auth/resolve-branch-area-permission";
+import {
+  canManageOrganization,
+  canPermanentlyDeleteInformation,
+  isOrganizationOwnerSession,
+} from "@/lib/auth/session-roles";
+import {
+  canAccessBranchAreaViaTemporaryGrants,
+  grantsCoverPermissions,
+  loadActiveTemporaryGrants,
+} from "@/lib/auth/temporary-privilege";
 
 export type { BranchArea };
 export { canAccessBranchArea };
@@ -170,4 +185,125 @@ export async function canAccessBranchAreaAsync(
   }
 
   return allowed;
+}
+
+export type BranchAreaMutateAction = "create" | "update" | "delete";
+
+export type BranchAreaMutationFlags = {
+  canCreate: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  canWrite: boolean;
+};
+
+function resolveBranchId(
+  session: unknown,
+  branchId?: string | null,
+): string | null {
+  return (
+    branchId ??
+    (session as { branch?: { id?: string }; session?: { activeBranchId?: string } } | null)
+      ?.branch?.id ??
+    (session as { session?: { activeBranchId?: string } } | null)?.session
+      ?.activeBranchId ??
+    null
+  );
+}
+
+/**
+ * Droits d'écriture sur une zone : propriétaire, rôle gestionnaire,
+ * DAC create/update/delete, ou octroi temporaire de la même action.
+ * Un octroi `delete` autorise la suppression/archivage (pas le purge propriétaire).
+ */
+export async function getBranchAreaMutationFlags(
+  area: BranchArea,
+  session: unknown,
+  organizationId?: string | null,
+  branchId?: string | null,
+  extraRoles: unknown[] = [],
+): Promise<BranchAreaMutationFlags> {
+  if (isOrganizationOwnerSession(session, ...extraRoles)) {
+    return {
+      canCreate: true,
+      canUpdate: true,
+      canDelete: true,
+      canWrite: true,
+    };
+  }
+
+  const orgId = resolveOrganizationId(session, organizationId);
+  const userId = (session as { user?: { id?: string } } | null)?.user?.id;
+  const resolvedBranchId = resolveBranchId(session, branchId);
+
+  const roleCanWrite = canManageOrganization(session, ...extraRoles);
+  const roleCanDelete = canPermanentlyDeleteInformation(session, ...extraRoles);
+
+  let grantCreate = false;
+  let grantUpdate = false;
+  let grantDelete = false;
+  if (orgId && userId) {
+    const grants = await loadActiveTemporaryGrants(
+      userId,
+      orgId,
+      resolvedBranchId,
+    );
+    const resource = grantResourceForArea(area);
+    grantCreate = grantsCoverPermissions(grants, { [resource]: ["create"] });
+    grantUpdate = grantsCoverPermissions(grants, { [resource]: ["update"] });
+    grantDelete = grantsCoverPermissions(grants, { [resource]: ["delete"] });
+  }
+
+  let dacCreate = false;
+  let dacUpdate = false;
+  let dacDelete = false;
+  if (isPermissionsFromDacEnabled() && orgId) {
+    const roleStatements = await loadOrganizationRoleStatements(orgId);
+    dacCreate = roleAllowsAreaAction(area, "create", session, roleStatements);
+    dacUpdate = roleAllowsAreaAction(area, "update", session, roleStatements);
+    dacDelete = roleAllowsAreaAction(area, "delete", session, roleStatements);
+  }
+
+  const canCreate = roleCanWrite || grantCreate || dacCreate;
+  const canUpdate = roleCanWrite || grantUpdate || dacUpdate;
+  const canDelete = roleCanDelete || grantDelete || dacDelete;
+
+  return {
+    canCreate,
+    canUpdate,
+    canDelete,
+    canWrite: canCreate || canUpdate || canDelete,
+  };
+}
+
+export async function canMutateBranchAreaAsync(
+  area: BranchArea,
+  action: BranchAreaMutateAction,
+  session: unknown,
+  organizationId?: string | null,
+  branchId?: string | null,
+): Promise<boolean> {
+  const flags = await getBranchAreaMutationFlags(
+    area,
+    session,
+    organizationId,
+    branchId,
+  );
+  if (action === "create") return flags.canCreate;
+  if (action === "update") return flags.canUpdate;
+  return flags.canDelete;
+}
+
+export async function canWriteBranchAreaAsync(
+  area: BranchArea,
+  session: unknown,
+  organizationId?: string | null,
+  branchId?: string | null,
+): Promise<boolean> {
+  const flags = await getBranchAreaMutationFlags(
+    area,
+    session,
+    organizationId,
+    branchId,
+  );
+  return flags.canWrite;
 }

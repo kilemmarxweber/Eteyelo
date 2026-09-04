@@ -25,3 +25,47 @@ export function expandTemporaryGrantActions(action: string): string[] {
   }
   return [normalized];
 }
+
+/**
+ * Sélection multiple d'actions : create/update/delete impliquent déjà la lecture,
+ * donc `read` n'est pas persisté en plus. Liste vide → lecture seule.
+ */
+export function normalizeSelectedGrantActions(actions: string[]): string[] {
+  const unique = [
+    ...new Set(
+      actions.map((action) => action.trim().toLowerCase()).filter(Boolean),
+    ),
+  ];
+  if (unique.some((action) => action === "*")) return [];
+  const hasWrite = unique.some((action) => writeActionIncludesRead(action));
+  const next = hasWrite ? unique.filter((action) => action !== "read") : unique;
+  return next.length ? next : ["read"];
+}
+
+export function grantMatchesPermission(
+  grant: Pick<{ resource: string; action: string }, "resource" | "action">,
+  resource: string,
+  action: string,
+): boolean {
+  const matchResource =
+    grant.resource === "*" ||
+    grant.resource.toLowerCase() === resource.toLowerCase();
+  if (!matchResource) return false;
+
+  if (grant.action === "*") return true;
+
+  const grantAction = grant.action.toLowerCase();
+  const requestedAction = action.toLowerCase();
+  if (grantAction === requestedAction) return true;
+
+  return requestedAction === "read" && writeActionIncludesRead(grantAction);
+}
+
+export function grantsAllowWrite(
+  grants: Array<Pick<{ resource: string; action: string }, "resource" | "action">>,
+  resource: string,
+): boolean {
+  return WRITE_ACTIONS_THAT_INCLUDE_READ.some((action) =>
+    grants.some((grant) => grantMatchesPermission(grant, resource, action)),
+  );
+}

@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth/session-roles";
 import {
   BRANCH_AREA_PERMISSION,
+  GRANT_BRANCH_AREA_PERMISSION,
   isPermissionsFromDacEnabled,
   type BranchArea,
 } from "@/lib/auth/branch-area-permissions";
@@ -39,6 +40,40 @@ export function roleAllowsAll(
   if (!statements) return false;
   const have = new Set((statements[resource] ?? []).map(String));
   return actions.every((a) => have.has(a));
+}
+
+/** DAC : le rôle session a l'action d'écriture demandée sur la zone. */
+export function roleAllowsAreaAction(
+  area: BranchArea,
+  action: string,
+  session: unknown,
+  roleStatements?: Map<string, RoleStatements> | null,
+): boolean {
+  const dacRequired = BRANCH_AREA_PERMISSION[area];
+  const grantRequired = GRANT_BRANCH_AREA_PERMISSION[area];
+  if (!dacRequired && !grantRequired) return false;
+
+  const roles = getSessionRoles(session);
+  const map = roleStatements ?? statementsMapFromSession(session);
+
+  const covers = (required: Record<string, string[]> | undefined) => {
+    if (!required) return false;
+    return (statements: ReturnType<typeof getStatementsForRole>) =>
+      Object.keys(required).every((resource) =>
+        roleAllowsAll(statements, resource, [action]),
+      );
+  };
+
+  const dacCovers = covers(dacRequired);
+  const grantCovers = covers(grantRequired);
+
+  for (const slug of roles) {
+    const statements = getStatementsForRole(slug, map);
+    if (!statements) continue;
+    if (dacCovers(statements) || grantCovers(statements)) return true;
+  }
+
+  return false;
 }
 
 /**

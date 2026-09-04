@@ -4,10 +4,9 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import {
-  canManageOrganization,
-  canPermanentlyDeleteInformation,
   PERMANENT_DELETE_DENIED_MESSAGE,
 } from "@/lib/auth/session-roles";
+import { getBranchAreaMutationFlags } from "@/lib/auth/assert-branch-area-access";
 import { prisma } from "@/lib/prisma";
 import { Prisma, type Day } from "@/prisma/generated/prisma/client";
 import { action } from "@/lib/zsa";
@@ -131,7 +130,14 @@ async function getScheduleContext(): Promise<ScheduleContext> {
     where: { userId, organizationId },
     select: { role: true },
   });
-  const canManageSchedules = canManageOrganization(session, branchMember?.role);
+  const mutationFlags = await getBranchAreaMutationFlags(
+    "schedule",
+    session,
+    organizationId,
+    branchId,
+    [branchMember?.role],
+  );
+  const canManageSchedules = mutationFlags.canWrite;
 
   const teacher = !canManageSchedules
     ? await prisma.teacher.findFirst({
@@ -159,12 +165,9 @@ async function getScheduleContext(): Promise<ScheduleContext> {
     teacherId: teacher?.id ?? null,
     accessibleCycles,
     canManageSchedules,
-    canCreateSchedules: canManageSchedules,
-    canUpdateSchedules: canManageSchedules,
-    canDeleteSchedules: canPermanentlyDeleteInformation(
-      session,
-      branchMember?.role,
-    ),
+    canCreateSchedules: mutationFlags.canCreate,
+    canUpdateSchedules: mutationFlags.canUpdate,
+    canDeleteSchedules: mutationFlags.canDelete,
   };
 }
 

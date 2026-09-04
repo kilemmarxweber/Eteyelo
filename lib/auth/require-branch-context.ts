@@ -2,7 +2,10 @@ import { redirect } from "next/navigation";
 
 import {
   canAccessBranchAreaAsync,
+  canMutateBranchAreaAsync,
+  canWriteBranchAreaAsync,
   type BranchArea,
+  type BranchAreaMutateAction,
 } from "@/lib/auth/assert-branch-area-access";
 import { getCachedSession } from "@/lib/auth/get-session-cached";
 import { checkOrganizationPermission } from "@/lib/auth/has-organization-permission";
@@ -125,6 +128,46 @@ async function assertBranchAreaOrThrow(area: BranchArea, ctx: BranchContext) {
 export async function requireBranchAreaContext(area: BranchArea) {
   const ctx = await requireBranchContext();
   await assertBranchAreaOrThrow(area, ctx);
+  return ctx;
+}
+
+/**
+ * Branche active + droit d'écriture (create / update / delete) :
+ * rôle gestionnaire, DAC, ou octroi temporaire.
+ */
+export async function requireBranchAreaWriteContext(area: BranchArea) {
+  const ctx = await requireBranchContext();
+  const allowed = await canWriteBranchAreaAsync(
+    area,
+    ctx.session,
+    ctx.organizationId,
+    ctx.branchId,
+  );
+  if (!allowed) {
+    throw new Error("Action non autorisée");
+  }
+  return ctx;
+}
+
+/**
+ * Branche active + action d'écriture précise (create, update ou delete).
+ * Un octroi `create` n'autorise pas `update` / `delete`.
+ */
+export async function requireBranchAreaActionContext(
+  area: BranchArea,
+  action: BranchAreaMutateAction,
+) {
+  const ctx = await requireBranchContext();
+  const allowed = await canMutateBranchAreaAsync(
+    area,
+    action,
+    ctx.session,
+    ctx.organizationId,
+    ctx.branchId,
+  );
+  if (!allowed) {
+    throw new Error("Action non autorisée");
+  }
   return ctx;
 }
 

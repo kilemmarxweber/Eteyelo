@@ -3,11 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
+import {
+  canAccessBranchAreaAsync,
+  getBranchAreaMutationFlags,
+} from "@/lib/auth/assert-branch-area-access";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { getPeopleLabels } from "@/lib/people-labels";
 import {
   canAccessPedagogyArea,
-  canManageOrganization,
   hasSessionRole,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
@@ -121,8 +124,21 @@ const SingleTeacherPage = async ({
 
   if (!teacher) return notFound();
 
-  const canManage = canManageOrganization(session);
-  const canReadPedagogy = canAccessPedagogyArea(session);
+  const pedagogyFlags = await getBranchAreaMutationFlags(
+    "pedagogy",
+    session,
+    organizationId,
+    branchId,
+  );
+  const canManage = pedagogyFlags.canWrite;
+  const canReadPedagogy =
+    canAccessPedagogyArea(session) ||
+    (await canAccessBranchAreaAsync(
+      "pedagogy",
+      session,
+      organizationId,
+      branchId,
+    ));
   const isTeacherRole = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
   const isSelf = teacher.branchMember?.member?.userId === userId;
 

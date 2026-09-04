@@ -6,7 +6,10 @@ import { action } from "@/lib/zsa";
 import { ICours, coursSchema, coursComponentSchema } from "@/src/interfaces/Cours";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import z from "zod";
-import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  requireBranchAreaActionContext,
+  requireBranchContext,
+} from "@/lib/auth/require-branch-context";
 import {
   ensureUniqueIdentifier,
   generateCourseCode,
@@ -16,7 +19,6 @@ import { upsertAngolaSecondaryCoursesForBranch } from "@/lib/angola-secondary-ca
 import { upsertSecondaryCatalogCoursesForBranch } from "@/lib/secondary-catalog-sync";
 import { normalizeBranchType } from "@/lib/academic-structure";
 import { normalizeEducationSystem } from "@/lib/education-system";
-import { canManageOrganization } from "@/lib/auth/session-roles";
 import {
   importCourseToBranch,
   searchOrganizationCoursesForBranchImport,
@@ -30,12 +32,6 @@ import {
   gradeableCoursFilter,
   slugifyComponentCodePart,
 } from "@/lib/cours-components";
-
-function requireCoursManagement(session: unknown) {
-  if (!canManageOrganization(session as Parameters<typeof canManageOrganization>[0])) {
-    throw new Error("Action non autorisée");
-  }
-}
 
 function revalidateCoursPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/cours`);
@@ -93,8 +89,7 @@ export const createCoursAction = action
   .handler(async ({ input }) => {
     try {
       const { branchId, organizationId, session, typebranch } =
-        await requireBranchContext();
-      requireCoursManagement(session);
+        await requireBranchAreaActionContext("courses", "create");
       const existCours = await prisma.cours.findFirst({
         where: {
           nameCours: { equals: input.nameCours.trim(), mode: "insensitive" },
@@ -159,8 +154,7 @@ export const updateCoursAction = action
   .input(coursSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, session, typebranch } =
-      await requireBranchContext();
-    requireCoursManagement(session);
+      await requireBranchAreaActionContext("courses", "update");
     const { id } = input;
     if (!id) throw new Error("Identifiant du cours manquant");
     const existing = await prisma.cours.findFirst({
@@ -222,8 +216,8 @@ export const updateCoursAction = action
 export const archiveCoursAction = action
   .input(coursSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } = await requireBranchContext();
-    requireCoursManagement(session);
+    const { branchId, organizationId, session } =
+      await requireBranchAreaActionContext("courses", "delete");
     const { id } = input;
     const existing = await prisma.cours.findFirst({
       where: { id, branchId },
@@ -254,8 +248,8 @@ export const deleteCoursAction = archiveCoursAction;
 export const deleteCoursPermanentlyAction = action
   .input(z.object({ id: z.string().min(1) }))
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } = await requireBranchContext();
-    requireCoursManagement(session);
+    const { branchId, organizationId, session } =
+      await requireBranchAreaActionContext("courses", "delete");
 
     const existing = await prisma.cours.findFirst({
       where: { id: input.id, branchId },
@@ -290,8 +284,8 @@ export const deleteCoursPermanentlyAction = action
 export const setCoursStatusAction = action
   .input(z.object({ id: z.string().min(1), active: z.boolean() }))
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } = await requireBranchContext();
-    requireCoursManagement(session);
+    const { branchId, organizationId, session } =
+      await requireBranchAreaActionContext("courses", "update");
     const existing = await prisma.cours.findFirst({ where: { id: input.id, branchId }, select: { id: true } });
     if (!existing) throw new Error("Cours introuvable dans cette branche");
     const cours = await prisma.cours.update({
@@ -418,8 +412,8 @@ export const getCoursComponentsAction = action
 export const createCoursComponentAction = action
   .input(coursComponentSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } = await requireBranchContext();
-    requireCoursManagement(session);
+    const { branchId, organizationId, session } =
+      await requireBranchAreaActionContext("courses", "create");
 
     const parent = await prisma.cours.findFirst({
       where: {
@@ -498,8 +492,8 @@ export const createCoursComponentAction = action
 export const updateCoursComponentAction = action
   .input(coursComponentSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } = await requireBranchContext();
-    requireCoursManagement(session);
+    const { branchId, organizationId, session } =
+      await requireBranchAreaActionContext("courses", "update");
     if (!input.id) throw new Error("Identifiant du poste manquant");
 
     const existing = await prisma.cours.findFirst({
@@ -547,8 +541,8 @@ export const updateCoursComponentAction = action
 export const deleteCoursComponentAction = action
   .input(z.object({ id: z.string().min(1) }))
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } = await requireBranchContext();
-    requireCoursManagement(session);
+    const { branchId, organizationId, session } =
+      await requireBranchAreaActionContext("courses", "delete");
 
     const existing = await prisma.cours.findFirst({
       where: {
@@ -609,8 +603,7 @@ export const getCourseAction = action
  */
 export async function importSecondaryCatalogCoursesAction() {
   const { branchId, organizationId, session, typebranch, educationSystem } =
-    await requireBranchContext();
-  requireCoursManagement(session);
+    await requireBranchAreaActionContext("courses", "create");
 
   if (normalizeBranchType(typebranch) !== "SECONDAIRE") {
     return {
@@ -647,9 +640,8 @@ export async function searchOrganizationCoursesForImportAction(params: {
   query?: string;
   limit?: number;
 }) {
-  const { branchId, organizationId, session, typebranch } =
-    await requireBranchContext();
-  requireCoursManagement(session);
+  const { branchId, organizationId, typebranch } =
+    await requireBranchAreaActionContext("courses", "create");
 
   if (!supportsCourseImport(typebranch)) {
     return {
@@ -672,9 +664,8 @@ export async function importCourseFromBranchAction(input: {
   courseId: string;
   sourceBranchId: string;
 }) {
-  const { branchId, organizationId, session, typebranch } =
-    await requireBranchContext();
-  requireCoursManagement(session);
+  const { branchId, organizationId, typebranch } =
+    await requireBranchAreaActionContext("courses", "create");
 
   if (!supportsCourseImport(typebranch)) {
     return {

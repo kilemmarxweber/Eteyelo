@@ -3,13 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import { Clock, KeyRound, X } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
+import { useAppRouter } from "@/hooks/use-app-router";
 import {
   getMyActiveTemporaryGrantsAction,
   shouldLeavePageAfterGrantExpiryAction,
 } from "@/lib/auth/temporary-grants.action";
 import { writeActionIncludesRead } from "@/lib/auth/temporary-grant-actions";
+import {
+  isGrantedWorkspacePage,
+  parseBranchWorkspacePath,
+} from "@/lib/auth/temporary-privilege-session";
 
 type TemporaryGrantItem = {
   id: string;
@@ -20,20 +25,36 @@ type TemporaryGrantItem = {
 };
 
 const SESSION_ENDED_MESSAGE = "Votre session a pris fin.";
+const POLL_MS_WITH_GRANTS = 3000;
+const POLL_MS_IDLE = 10000;
 
 function dropExpiredGrants(items: TemporaryGrantItem[]) {
   const now = Date.now();
   return items.filter((grant) => new Date(grant.expiresAt).getTime() > now);
 }
 
+function sameGrantList(
+  current: TemporaryGrantItem[],
+  next: TemporaryGrantItem[],
+) {
+  if (current.length !== next.length) return false;
+  return current.every((grant, index) => grant.id === next[index]?.id);
+}
+
 export function TemporaryPrivilegeBanner({ organizationId }: { organizationId?: string }) {
-  const router = useRouter();
+  const router = useAppRouter();
+  const pathname = usePathname();
+  const parsedPath = parseBranchWorkspacePath(pathname);
+  const branchId = parsedPath?.branchId ?? null;
   const [grants, setGrants] = useState<TemporaryGrantItem[]>([]);
   const [dismissed, setDismissed] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<string>("");
   const previousGrantIdsRef = useRef<Set<string>>(new Set());
   const grantsHydratedRef = useRef(false);
   const redirectingRef = useRef(false);
+  const pathnameRef = useRef(pathname);
+
+  pathnameRef.current = pathname;
 
   useEffect(() => {
     let isMounted = true;
@@ -41,35 +62,64 @@ export function TemporaryPrivilegeBanner({ organizationId }: { organizationId?: 
     redirectingRef.current = false;
     previousGrantIdsRef.current = new Set();
     setGrants([]);
+    setDismissed(false);
 
     async function loadActiveGrants() {
-      const res = await getMyActiveTemporaryGrantsAction(organizationId);
+      const res = await getMyActiveTemporaryGrantsAction(organizationId, branchId);
       if (!isMounted) return;
       if (res.ok) {
         grantsHydratedRef.current = true;
-        setGrants(dropExpiredGrants(res.grants));
+        const next = dropExpiredGrants(res.grants);
+        setGrants((current) => (sameGrantList(current, next) ? current : next));
       }
     }
 
-    loadActiveGrants();
+    void loadActiveGrants();
 
-    const interval = setInterval(loadActiveGrants, 10000);
+    const interval = setInterval(loadActiveGrants, POLL_MS_IDLE);
     const onFocus = () => {
       void loadActiveGrants();
     };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void loadActiveGrants();
+      }
+    };
     window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
       window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [organizationId]);
+  }, [organizationId, branchId]);
+
+  const hasActiveGrants = grants.length > 0;
+
+  useEffect(() => {
+    if (!hasActiveGrants) return;
+
+    const interval = setInterval(() => {
+      void getMyActiveTemporaryGrantsAction(organizationId, branchId).then(
+        (res) => {
+          if (!res.ok) return;
+          const next = dropExpiredGrants(res.grants);
+          setGrants((current) => (sameGrantList(current, next) ? current : next));
+        },
+      );
+    }, POLL_MS_WITH_GRANTS);
+
+    return () => clearInterval(interval);
+  }, [hasActiveGrants, organizationId, branchId]);
 
   useEffect(() => {
     if (grants.length === 0) return;
 
-    const earliestExpire = new Date(grants[0].expiresAt).getTime();
+    const earliestExpire = Math.min(
+      ...grants.map((grant) => new Date(grant.expiresAt).getTime()),
+    );
 
     const updateTimer = () => {
       const now = Date.now();
@@ -95,8 +145,14 @@ export function TemporaryPrivilegeBanner({ organizationId }: { organizationId?: 
 
     updateTimer();
     const timerInterval = setInterval(updateTimer, 1000);
+    const expireTimeout = window.setTimeout(() => {
+      setGrants((current) => dropExpiredGrants(current));
+    }, Math.max(0, earliestExpire - Date.now()) + 50);
 
-    return () => clearInterval(timerInterval);
+    return () => {
+      clearInterval(timerInterval);
+      window.clearTimeout(expireTimeout);
+    };
   }, [grants]);
 
   useEffect(() => {
@@ -114,24 +170,34 @@ export function TemporaryPrivilegeBanner({ organizationId }: { organizationId?: 
     if (!lostGrant || redirectingRef.current) return;
 
     const allGrantsGone = currentIds.size === 0;
+    const currentPath = pathnameRef.current;
+    const parsed = parseBranchWorkspacePath(currentPath);
 
     const notifyAndMaybeRedirect = async () => {
-      const pathname =
-        typeof window !== "undefined" ? window.location.pathname : "";
+      const goToDashboard = (dashboardHref: string) => {
+        redirectingRef.current = true;
+        toast.warning(SESSION_ENDED_MESSAGE);
+        router.replace(dashboardHref);
+        router.refresh();
+      };
 
       try {
-        const result = await shouldLeavePageAfterGrantExpiryAction(pathname);
-        if (!result.leave) {
-          if (allGrantsGone) toast.warning(SESSION_ENDED_MESSAGE);
+        const result = await shouldLeavePageAfterGrantExpiryAction(currentPath);
+        if (result.leave && result.dashboardHref) {
+          goToDashboard(result.dashboardHref);
           return;
         }
 
-        redirectingRef.current = true;
-        toast.warning(SESSION_ENDED_MESSAGE);
-        if (result.dashboardHref) {
-          router.replace(result.dashboardHref);
+        if (!result.leave) {
+          if (allGrantsGone) toast.warning(SESSION_ENDED_MESSAGE);
+          router.refresh();
+          return;
         }
       } catch {
+        if (parsed?.dashboardHref && isGrantedWorkspacePage(parsed)) {
+          goToDashboard(parsed.dashboardHref);
+          return;
+        }
         if (allGrantsGone) toast.warning(SESSION_ENDED_MESSAGE);
       }
     };

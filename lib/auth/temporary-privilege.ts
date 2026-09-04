@@ -4,13 +4,15 @@ import {
   type BranchArea,
 } from "@/lib/auth/branch-area-permissions";
 import type { OrganizationPermissionPayload } from "@/lib/auth/has-organization-permission";
-import { writeActionIncludesRead } from "@/lib/auth/temporary-grant-actions";
+import { grantMatchesPermission } from "@/lib/auth/temporary-grant-actions";
 import type { TemporaryGrant } from "@/prisma/generated/prisma/client";
 
 export {
   expandTemporaryGrantActions,
   writeActionIncludesRead,
   WRITE_ACTIONS_THAT_INCLUDE_READ,
+  normalizeSelectedGrantActions,
+  grantMatchesPermission,
 } from "@/lib/auth/temporary-grant-actions";
 
 export type GrantTemporaryPrivilegeInput = {
@@ -67,27 +69,6 @@ export async function loadActiveTemporaryGrants(
 }
 
 /** Correspondance stricte ressource/action ; `*` n'est accepté que s'il est explicitement octroyé. */
-export function grantMatchesPermission(
-  grant: Pick<TemporaryGrant, "resource" | "action">,
-  resource: string,
-  action: string,
-): boolean {
-  const matchResource =
-    grant.resource === "*" ||
-    grant.resource.toLowerCase() === resource.toLowerCase();
-  if (!matchResource) return false;
-
-  if (grant.action === "*") return true;
-
-  const grantAction = grant.action.toLowerCase();
-  const requestedAction = action.toLowerCase();
-  if (grantAction === requestedAction) return true;
-
-  // create / update / delete couvrent aussi la lecture (entrée de zone, listes).
-  return requestedAction === "read" && writeActionIncludesRead(grantAction);
-}
-
-/** Vérifie qu'une liste d'octrois couvre toutes les permissions demandées (niveau organisation). */
 export function grantsCoverPermissions(
   grants: TemporaryGrant[],
   permissions: OrganizationPermissionPayload,

@@ -113,12 +113,17 @@ export default function Sidebar({
     loadFlags();
     const interval = setInterval(loadFlags, 10000);
     const onFocus = () => loadFlags();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") loadFlags();
+    };
     window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       ignore = true;
       clearInterval(interval);
       window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [
     menuReady,
@@ -129,6 +134,7 @@ export default function Sidebar({
     session?.branchMemberRole,
     organizationIdFromPath,
     branchIdFromPath,
+    pathname,
   ]);
 
   const sessionForLinks = menuReady ? session : null;

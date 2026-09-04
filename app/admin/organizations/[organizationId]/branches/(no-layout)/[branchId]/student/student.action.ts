@@ -11,7 +11,6 @@ import {
 import { StudentCategory } from "@/prisma/generated/prisma/client";
 import {
   canAccessStudentDirectory,
-  canManageOrganization,
   getSessionRoles,
   hasSessionRole,
   isOrganizationOwnerSession,
@@ -37,6 +36,7 @@ import {
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { getBranchAreaMutationFlags } from "@/lib/auth/assert-branch-area-access";
 import {
   classeCycleWhere,
   primaryOrgRoleFromSession,
@@ -71,6 +71,13 @@ export async function getCurrentBranch() {
     },
   });
   const roles = getSessionRoles(session, branchMember?.role);
+  const mutationFlags = await getBranchAreaMutationFlags(
+    "students",
+    session,
+    organizationId,
+    branchId,
+    [branchMember?.role],
+  );
 
   return {
     branchId,
@@ -82,7 +89,10 @@ export async function getCurrentBranch() {
     branchMemberId: branchMember?.id ?? null,
     branchMemberRole: branchMember?.role ?? null,
     roles,
-    canManageStudents: canManageOrganization(session, branchMember?.role),
+    canCreateStudents: mutationFlags.canCreate,
+    canUpdateStudents: mutationFlags.canUpdate,
+    canDeleteStudents: mutationFlags.canDelete,
+    canManageStudents: mutationFlags.canWrite,
     canPurgePermanently: isOrganizationOwnerSession(session, branchMember?.role),
     canReadStudents: canAccessStudentDirectory(session, branchMember?.role),
     canIssueDocuments: canIssueBranchDocuments(session, branchMember?.role),
@@ -149,9 +159,9 @@ function revalidateStudentPages(organizationId: string, branchId: string) {
 export const createStudentAction = action
   .input(studentSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canManageStudents, typebranch } =
+    const { branchId, organizationId, canCreateStudents, typebranch } =
       await getCurrentBranch();
-    if (!canManageStudents) {
+    if (!canCreateStudents) {
       return {
         ok: false,
         message: "Action non autorisee",
@@ -744,8 +754,8 @@ export const updateStudentAction = action
   .input(studentSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId, organizationId, canManageStudents } = await getCurrentBranch();
-      if (!canManageStudents) {
+      const { branchId, organizationId, canUpdateStudents } = await getCurrentBranch();
+      if (!canUpdateStudents) {
         return {
           ok: false,
           message: "Action non autorisee",
@@ -869,9 +879,9 @@ export const updateStudentExtraInfoAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canManageStudents } =
+    const { branchId, organizationId, canUpdateStudents } =
       await getCurrentBranch();
-    if (!canManageStudents) {
+    if (!canUpdateStudents) {
       return { ok: false as const, message: "Action non autorisee" };
     }
 
@@ -915,8 +925,8 @@ export const updateStudentExtraInfoAction = action
 export const archiveStudentAction = action
   .input(deleteStudentSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canManageStudents } = await getCurrentBranch();
-    if (!canManageStudents) {
+    const { branchId, organizationId, canDeleteStudents } = await getCurrentBranch();
+    if (!canDeleteStudents) {
       return {
         success: false,
         message: "Action non autorisee",
@@ -991,8 +1001,8 @@ export const updateStudentPhotoAction = action
   .input(updateStudentPhotoSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId, organizationId, canManageStudents } = await getCurrentBranch();
-      if (!canManageStudents) {
+      const { branchId, organizationId, canUpdateStudents } = await getCurrentBranch();
+      if (!canUpdateStudents) {
         return {
           ok: false,
           message: "Action non autorisee",
@@ -1072,9 +1082,9 @@ export const updateStudentPhotoAction = action
 export const deleteStudentPermanentlyAction = action
   .input(deleteStudentSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canManageStudents, canPurgePermanently } =
+    const { branchId, organizationId, canDeleteStudents, canPurgePermanently } =
       await getCurrentBranch();
-    if (!canManageStudents) {
+    if (!canDeleteStudents) {
       return {
         ok: false as const,
         message: "Action non autorisée",
@@ -1141,9 +1151,9 @@ const studentExamCodesSchema = z.object({
 export const saveStudentExamCodesAction = action
   .input(studentExamCodesSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canManageStudents, typebranch, educationSystem } =
+    const { branchId, organizationId, canUpdateStudents, typebranch, educationSystem } =
       await getCurrentBranch();
-    if (!canManageStudents) {
+    if (!canUpdateStudents) {
       throw new Error("Permission insuffisante pour modifier les codes E13/E80.");
     }
 

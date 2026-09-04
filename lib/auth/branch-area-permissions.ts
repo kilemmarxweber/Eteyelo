@@ -120,6 +120,11 @@ export const GRANT_BRANCH_AREA_PERMISSION: Record<
   documents: { documents: ["read"] },
 };
 
+export function grantResourceForArea(area: BranchArea): string {
+  const required = GRANT_BRANCH_AREA_PERMISSION[area];
+  return Object.keys(required)[0] ?? area;
+}
+
 /**
  * Hrefs logiques sidebar `/admin/...` → zone DAC (Voir = entrée menu).
  * Les sous-menus sans mapping restent filtrés par rôles legacy.

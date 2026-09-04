@@ -9,11 +9,16 @@ import {
   grantsCoverBranchArea,
   grantsCoverPermissions,
 } from "../lib/auth/temporary-privilege";
+import { grantsAllowWrite } from "../lib/auth/temporary-grant-actions";
+import { grantResourceForArea } from "../lib/auth/branch-area-permissions";
 import {
   GRANT_GROUP_ALL,
+  buildTemporaryGrantPairs,
   resolveTemporaryGrantResources,
 } from "../lib/auth/temporary-grant-catalog";
+import { normalizeSelectedGrantActions } from "../lib/auth/temporary-grant-actions";
 import {
+  isGrantedWorkspacePage,
   pageStillAllowedAfterGrantExpiry,
   parseBranchWorkspacePath,
 } from "../lib/auth/temporary-privilege-session";
@@ -68,7 +73,7 @@ test("lecture seule reste un octroi autonome", () => {
   assert.deepEqual(expandTemporaryGrantActions("encaisser"), ["encaisser"]);
 });
 
-test("catalogue finance : tout le menu ou un sous-menu", () => {
+test("catalogue finance : tout le menu, un sous-menu ou une sélection multiple", () => {
   assert.deepEqual(resolveTemporaryGrantResources("finance", GRANT_GROUP_ALL), [
     "fees",
     "finance",
@@ -77,6 +82,30 @@ test("catalogue finance : tout le menu ou un sous-menu", () => {
   ]);
   assert.deepEqual(resolveTemporaryGrantResources("finance", "fees"), ["fees"]);
   assert.deepEqual(resolveTemporaryGrantResources("cursus", "notes"), ["notes"]);
+  assert.deepEqual(
+    resolveTemporaryGrantResources("finance", ["fees", "finance"]),
+    ["fees", "finance"],
+  );
+});
+
+test("sélection multiple d'actions : lecture dédupliquée si écriture", () => {
+  assert.deepEqual(normalizeSelectedGrantActions(["read"]), ["read"]);
+  assert.deepEqual(normalizeSelectedGrantActions(["create", "read"]), ["create"]);
+  assert.deepEqual(
+    normalizeSelectedGrantActions(["create", "update", "read"]),
+    ["create", "update"],
+  );
+});
+
+test("paires octroi : encaisser seulement sur le paiement", () => {
+  assert.deepEqual(
+    buildTemporaryGrantPairs(["fees", "finance"], ["create", "encaisser"]),
+    [
+      { resource: "fees", action: "create" },
+      { resource: "finance", action: "create" },
+      { resource: "finance", action: "encaisser" },
+    ],
+  );
 });
 
 test("zone notes accessible avec notes:update (lecture accompagnante)", () => {
@@ -190,6 +219,7 @@ test("page paiement n'est plus autorisée si hideHrefs contient /admin/paiement"
     "/admin/organizations/org1/branches/br1/paiement",
   );
   assert.ok(parsed);
+  assert.equal(isGrantedWorkspacePage(parsed), true);
   assert.equal(
     pageStillAllowedAfterGrantExpiry(parsed, {
       hideHrefs: ["/admin/paiement"],
@@ -204,6 +234,89 @@ test("page paiement n'est plus autorisée si hideHrefs contient /admin/paiement"
     }),
     true,
   );
+});
+
+test("sous-page octroyée (attendance/pointage) mappe vers le menu et n'est plus autorisée", () => {
+  const parsed = parseBranchWorkspacePath(
+    "/admin/organizations/org1/branches/br1/attendance/pointage",
+  );
+  assert.equal(parsed?.logicalHref, "/admin/attendance");
+  assert.equal(parsed?.isDashboard, false);
+  assert.ok(parsed);
+  assert.equal(isGrantedWorkspacePage(parsed), true);
+  assert.equal(
+    pageStillAllowedAfterGrantExpiry(parsed, {
+      hideHrefs: ["/admin/attendance"],
+      settingsReads: {},
+    }),
+    false,
+  );
+});
+
+test("paie-enseignants/credits mappe vers le href le plus long", () => {
+  const parsed = parseBranchWorkspacePath(
+    "/admin/organizations/org1/branches/br1/paie-enseignants/credits",
+  );
+  assert.equal(parsed?.logicalHref, "/admin/paie-enseignants/credits");
+  assert.ok(parsed);
+  assert.equal(
+    pageStillAllowedAfterGrantExpiry(parsed, {
+      hideHrefs: ["/admin/paie-enseignants/credits"],
+      settingsReads: {},
+    }),
+    false,
+  );
+});
+
+test("le dashboard branche reste autorisé après expiration", () => {
+  const parsed = parseBranchWorkspacePath(
+    "/admin/organizations/org1/branches/br1",
+  );
+  assert.equal(parsed?.isDashboard, true);
+  assert.ok(parsed);
+  assert.equal(isGrantedWorkspacePage(parsed), false);
+  assert.equal(
+    pageStillAllowedAfterGrantExpiry(parsed, {
+      hideHrefs: Object.keys({
+        "/admin/paiement": true,
+      }),
+      settingsReads: {},
+    }),
+    true,
+  );
+});
+
+test("create / update / delete ne se croisent pas, mais autorisent l'écriture", () => {
+  assert.equal(
+    grantsAllowWrite([grant("teaching", "create")], "teaching"),
+    true,
+  );
+  assert.equal(grantsAllowWrite([grant("teaching", "read")], "teaching"), false);
+  assert.equal(
+    grantMatchesPermission(grant("student", "create"), "student", "create"),
+    true,
+  );
+  assert.equal(
+    grantMatchesPermission(grant("student", "create"), "student", "update"),
+    false,
+  );
+  assert.equal(
+    grantMatchesPermission(grant("student", "update"), "student", "update"),
+    true,
+  );
+  assert.equal(
+    grantMatchesPermission(grant("student", "delete"), "student", "delete"),
+    true,
+  );
+});
+
+test("ressource d'octroi par zone", () => {
+  assert.equal(grantResourceForArea("students"), "student");
+  assert.equal(grantResourceForArea("courses"), "courses");
+  assert.equal(grantResourceForArea("teaching"), "teaching");
+  assert.equal(grantResourceForArea("classe"), "classe");
+  assert.equal(grantResourceForArea("schedule"), "schedule");
+  assert.equal(grantResourceForArea("ponderations"), "ponderations");
 });
 
 console.log("\nAll temporary grant tests passed.");

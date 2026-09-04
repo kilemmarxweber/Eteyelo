@@ -8,9 +8,13 @@ import {
   expireOutdatedGrants,
 } from "@/lib/auth/temporary-privilege";
 import { prisma } from "@/lib/prisma";
-import { writeActionIncludesRead } from "@/lib/auth/temporary-grant-actions";
 import {
-  extraActionsForResource,
+  normalizeSelectedGrantActions,
+  writeActionIncludesRead,
+} from "@/lib/auth/temporary-grant-actions";
+import {
+  buildTemporaryGrantPairs,
+  isAllowedGrantAction,
   isCatalogGrantResource,
   resolveTemporaryGrantResources,
 } from "@/lib/auth/temporary-grant-catalog";
@@ -23,7 +27,9 @@ export async function grantTemporaryPrivilegeAction(
     resource?: string;
     groupId?: string;
     itemValue?: string;
+    itemValues?: string[];
     action?: string;
+    actions?: string[];
     temporaryRole?: string | null;
     durationMinutes: number;
     reason: string;
@@ -43,16 +49,31 @@ export async function grantTemporaryPrivilegeAction(
     return { ok: false, message: "La durée doit être comprise entre 1 minute et 7 jours (10080 minutes)." };
   }
 
-  const action = payload.action?.trim() || "read";
-  if (action === "*") {
+  const rawActions = payload.actions?.length
+    ? payload.actions
+    : [payload.action?.trim() || "read"];
+  if (rawActions.some((action) => action === "*")) {
     return {
       ok: false,
       message: "L'action « toutes les actions » n'est pas autorisée. Choisissez une action précise (ex: read, encaisser).",
     };
   }
+  if (rawActions.some((action) => !isAllowedGrantAction(action))) {
+    return {
+      ok: false,
+      message: "Choisissez au moins une action autorisée (lecture, création, modification, suppression ou encaissement).",
+    };
+  }
+
+  const actions = normalizeSelectedGrantActions(rawActions);
 
   const resources = payload.groupId
-    ? resolveTemporaryGrantResources(payload.groupId, payload.itemValue ?? "")
+    ? resolveTemporaryGrantResources(
+        payload.groupId,
+        payload.itemValues?.length
+          ? payload.itemValues
+          : (payload.itemValue ?? ""),
+      )
     : payload.resource
       ? [payload.resource]
       : [];
@@ -60,19 +81,15 @@ export async function grantTemporaryPrivilegeAction(
   if (!resources.length || resources.some((resource) => !isCatalogGrantResource(resource))) {
     return {
       ok: false,
-      message: "Choisissez un menu ou un sous-menu précis (ex: Finance → Paiement, ou tout le menu).",
+      message: "Choisissez au moins un sous-menu (ex: Finance → Frais et Paiement).",
     };
   }
 
-  const grantResources =
-    action === "encaisser"
-      ? resources.filter((resource) => extraActionsForResource(resource).includes("encaisser"))
-      : resources;
-
-  if (action === "encaisser" && grantResources.length === 0) {
+  const pairs = buildTemporaryGrantPairs(resources, actions);
+  if (pairs.length === 0) {
     return {
       ok: false,
-      message: "L'encaissement s'applique uniquement au paiement / caisse.",
+      message: "Cette combinaison n'est pas applicable. L'encaissement s'applique uniquement au paiement / caisse.",
     };
   }
 
@@ -103,14 +120,14 @@ export async function grantTemporaryPrivilegeAction(
 
   try {
     const grants: Awaited<ReturnType<typeof grantTemporaryPrivilege>>[] = [];
-    for (const resource of grantResources) {
+    for (const pair of pairs) {
       grants.push(
         await grantTemporaryPrivilege({
           userId: payload.targetUserId,
           organizationId,
           branchId: payload.branchId ?? null,
-          resource,
-          action,
+          resource: pair.resource,
+          action: pair.action,
           temporaryRole: payload.temporaryRole ?? null,
           durationMinutes: payload.durationMinutes,
           reason: payload.reason,
@@ -122,14 +139,14 @@ export async function grantTemporaryPrivilegeAction(
     revalidatePath(`/admin/organizations/${organizationId}/settings/temporary-grants`);
     revalidatePath("/admin", "layout");
 
-    const includesRead = writeActionIncludesRead(action);
+    const includesRead = pairs.some((pair) => writeActionIncludesRead(pair.action));
     const count = grants.length;
 
     return {
       ok: true,
       message:
         count > 1
-          ? `${count} sous-menus accordés${includesRead ? " (lecture incluse)" : ""}.`
+          ? `${count} privilèges accordés${includesRead ? " (lecture incluse)" : ""}.`
           : includesRead
             ? "Privilège temporaire accordé (lecture incluse)."
             : "Privilège temporaire accordé avec succès.",

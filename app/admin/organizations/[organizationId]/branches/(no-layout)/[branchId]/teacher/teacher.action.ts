@@ -15,10 +15,8 @@ import {
   resolveAccessibleCycles,
   sessionCanViewAllDirectoryUsers,
 } from "@/lib/auth/cycle-scope";
-import { isPermissionsFromDacEnabled } from "@/lib/auth/branch-area-permissions";
-import { checkOrganizationPermission } from "@/lib/auth/has-organization-permission";
+import { getBranchAreaMutationFlags } from "@/lib/auth/assert-branch-area-access";
 import {
-  canManageTeachers as sessionCanManageTeachers,
   getSessionRoles,
   hasSessionRole,
   isOrganizationOwnerSession,
@@ -186,19 +184,13 @@ export async function getCurrentBranch() {
   });
   const roles = getSessionRoles(session, branchMember?.role);
 
-  let canManageTeachers = false;
-  if (isOrganizationOwnerSession(session, branchMember?.role)) {
-    canManageTeachers = true;
-  } else if (isPermissionsFromDacEnabled()) {
-    const permission = await checkOrganizationPermission(
-      organizationId,
-      { teacher: ["create"] },
-      { branchId },
-    );
-    canManageTeachers = permission.ok;
-  } else {
-    canManageTeachers = sessionCanManageTeachers(session, branchMember?.role);
-  }
+  const mutationFlags = await getBranchAreaMutationFlags(
+    "pedagogy",
+    session,
+    organizationId,
+    branchId,
+    [branchMember?.role],
+  );
 
   return {
     branchId,
@@ -206,7 +198,10 @@ export async function getCurrentBranch() {
     userId: session.user.id,
     roles,
     branchMemberId: branchMember?.id ?? null,
-    canManageTeachers,
+    canCreateTeachers: mutationFlags.canCreate,
+    canUpdateTeachers: mutationFlags.canUpdate,
+    canDeleteTeachers: mutationFlags.canDelete,
+    canManageTeachers: mutationFlags.canWrite,
     canPurgePermanently: isOrganizationOwnerSession(session, branchMember?.role),
     isTeacher: hasSessionRole(
       session,
@@ -286,10 +281,10 @@ async function getAvailableUsername(username: string): Promise<string> {
 export const createTeacherAction = action
   .input(teacherSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canManageTeachers } =
+    const { branchId, organizationId, canCreateTeachers } =
       await getCurrentBranch();
 
-    if (!canManageTeachers) {
+    if (!canCreateTeachers) {
       return {
         ok: false,
         message: "Action non autorisee",
@@ -399,9 +394,9 @@ export const createTeacherAction = action
 export const archiveTeacherAction = action
   .input(deleteTeacherSchema)
   .handler(async ({ input }) => {
-    const { branchId, canManageTeachers } = await getCurrentBranch();
+    const { branchId, canDeleteTeachers } = await getCurrentBranch();
 
-    if (!canManageTeachers) {
+    if (!canDeleteTeachers) {
       return {
         success: false,
         message: "Action non autorisee",
@@ -453,10 +448,10 @@ export const archiveTeacherAction = action
 export const deleteTeacherPermanentlyAction = action
   .input(deleteTeacherSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canManageTeachers, canPurgePermanently } =
+    const { branchId, organizationId, canDeleteTeachers, canPurgePermanently } =
       await getCurrentBranch();
 
-    if (!canManageTeachers) {
+    if (!canDeleteTeachers) {
       return {
         ok: false as const,
         message: "Action non autorisée",
@@ -533,10 +528,10 @@ export const makeTeacherAlsoPersonnelAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canManageTeachers } =
+    const { branchId, organizationId, canUpdateTeachers } =
       await getCurrentBranch();
 
-    if (!canManageTeachers) {
+    if (!canUpdateTeachers) {
       return { ok: false as const, message: "Action non autorisée" };
     }
 

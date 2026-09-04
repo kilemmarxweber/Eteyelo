@@ -2,7 +2,11 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  requireBranchAreaActionContext,
+  requireBranchAreaWriteContext,
+  requireBranchContext,
+} from "@/lib/auth/require-branch-context";
 import { action } from "@/lib/zsa";
 import { z } from "zod";
 import { coursOptionPonderationSchema, mergeCoursOptionPonderationSchema } from "./schema";
@@ -18,22 +22,11 @@ import { type Cycle } from "@/lib/cycle";
 import { compareClassesByLevel } from "@/lib/class-structure";
 import { DEFAULT_PONDERATION_LEVEL, normalizePonderationLevel } from "@/lib/course-ponderation";
 import {
-  canManageOrganization,
-  canPermanentlyDeleteInformation,
-  PERMANENT_DELETE_DENIED_MESSAGE,
-} from "@/lib/auth/session-roles";
-import {
   primaryOrgRoleFromSession,
   resolveAccessibleCycles,
 } from "@/lib/auth/cycle-scope";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
 import { gradeableCoursFilter } from "@/lib/cours-components";
-
-function requireManagePermission(session: unknown) {
-  if (!canManageOrganization(session as Parameters<typeof canManageOrganization>[0])) {
-    throw new Error("Action non autorisée");
-  }
-}
 
 async function requireCoursAndOptionInBranch(params: {
   branchId: string;
@@ -363,8 +356,7 @@ export const createCoursOptionPonderationAction = action
   .input(coursOptionPonderationSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, session, userId, cycles } =
-      await requireBranchContext();
-    requireManagePermission(session);
+      await requireBranchAreaActionContext("ponderations", "create");
     const optionIds = resolvePonderationOptionIds(input);
     await requireCoursAndOptionInBranch({
       branchId,
@@ -423,8 +415,7 @@ export const saveCoursOptionPonderationAction = action
   .input(coursOptionPonderationSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, session, userId, cycles } =
-      await requireBranchContext();
-    requireManagePermission(session);
+      await requireBranchAreaWriteContext("ponderations");
     const optionIds = resolvePonderationOptionIds(input);
     await requireCoursAndOptionInBranch({
       branchId,
@@ -474,8 +465,7 @@ export const updateCoursOptionPonderationAction = action
   .input(coursOptionPonderationSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, session, userId, cycles } =
-      await requireBranchContext();
-    requireManagePermission(session);
+      await requireBranchAreaActionContext("ponderations", "update");
     await requireCoursAndOptionInBranch({
       branchId,
       coursId: input.coursId,
@@ -528,11 +518,7 @@ export const deleteCoursOptionPonderationAction = action
   )
   .handler(async ({ input }) => {
     const { branchId, organizationId, session, userId, cycles } =
-      await requireBranchContext();
-    requireManagePermission(session);
-    if (!canPermanentlyDeleteInformation(session)) {
-      throw new Error(PERMANENT_DELETE_DENIED_MESSAGE);
-    }
+      await requireBranchAreaActionContext("ponderations", "delete");
 
     if (input.id) {
       const existing = await prisma.coursOptionPonderation.findFirst({
@@ -591,8 +577,7 @@ export const mergeCoursOptionPonderationAction = action
   .input(mergeCoursOptionPonderationSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, session, userId, cycles } =
-      await requireBranchContext();
-    requireManagePermission(session);
+      await requireBranchAreaWriteContext("ponderations");
 
     const sourceLevel = normalizePonderationLevel(input.sourceLevel);
     const targets = Array.from(

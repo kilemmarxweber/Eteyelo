@@ -1,12 +1,15 @@
 "use server";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  requireBranchAreaActionContext,
+  requireBranchContext,
+} from "@/lib/auth/require-branch-context";
+import { getBranchAreaMutationFlags } from "@/lib/auth/assert-branch-area-access";
 import { action } from "@/lib/zsa";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { ITeaching, teachingSchema, consecutiveSlotsSchema, teachingWeekdaySchema, type TeachingWeekday } from "@/src/interfaces/Teaching";
 import { z } from "zod";
-import { canManageOrganization } from "@/lib/auth/session-roles";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
 import { scheduleHourToMinutes } from "@/lib/timezone";
 import {
@@ -55,12 +58,6 @@ type TeachingWithRelations = Prisma.TeachingGetPayload<{
 
 function revalidateTeachingPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/teaching`);
-}
-
-function requireManageTeaching(session: unknown) {
-  if (!canManageOrganization(session as Parameters<typeof canManageOrganization>[0])) {
-    throw new Error("Action non autorisée");
-  }
 }
 
 async function resolveViewerAccessibleCycles(params: {
@@ -561,7 +558,15 @@ async function assertTeacherMatchesClasseCycle(params: {
 
 export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).handler(async ({ input }) => {
   const { branchId, organizationId, session, userId } = await requireBranchContext();
-  requireManageTeaching(session);
+  const teachingFlags = await getBranchAreaMutationFlags(
+    "teaching",
+    session,
+    organizationId,
+    branchId,
+  );
+  if (!teachingFlags.canCreate && !teachingFlags.canUpdate) {
+    throw new Error("Action non autorisée");
+  }
   const accessibleCycles = await resolveViewerAccessibleCycles({
     branchId,
     organizationId,
@@ -748,8 +753,8 @@ const updatePlacementPrefsSchema = z.object({
 export const updateTeachingWeeklyHoursAction = action
   .input(updatePlacementPrefsSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } = await requireBranchContext();
-    requireManageTeaching(session);
+    const { branchId, organizationId, session } =
+      await requireBranchAreaActionContext("teaching", "update");
 
     const teaching = await prisma.teaching.findFirst({
       where: {
@@ -814,8 +819,7 @@ export const removeQuickAssignmentsAction = action
   .input(removeAssignmentSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, session, userId } =
-      await requireBranchContext();
-    requireManageTeaching(session);
+      await requireBranchAreaActionContext("teaching", "delete");
     const accessibleCycles = await resolveViewerAccessibleCycles({
       branchId,
       organizationId,

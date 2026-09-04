@@ -130,19 +130,54 @@ export function extraActionsForResource(resource: string) {
 /**
  * Résout la sélection UI en ressources DAC à octroyer.
  * `GRANT_GROUP_ALL` = tous les sous-menus du groupe.
+ * Un tableau de ressources = sélection multiple.
  */
 export function resolveTemporaryGrantResources(
   groupId: string,
-  itemValue: string,
+  itemValue: string | string[],
 ): string[] {
   const group = findGrantCatalogGroup(groupId);
   if (!group) return [];
 
-  if (itemValue === GRANT_GROUP_ALL) {
+  const values = (Array.isArray(itemValue) ? itemValue : [itemValue]).filter(
+    Boolean,
+  );
+  if (values.includes(GRANT_GROUP_ALL)) {
     return group.items.map((item) => item.resource);
   }
 
-  return group.items.some((item) => item.resource === itemValue)
-    ? [itemValue]
-    : [];
+  const allowed = new Set(group.items.map((item) => item.resource));
+  return [...new Set(values.filter((value) => allowed.has(value)))];
+}
+
+const ALLOWED_GRANT_ACTIONS = new Set([
+  "read",
+  "create",
+  "update",
+  "delete",
+  "encaisser",
+]);
+
+export function isAllowedGrantAction(action: string) {
+  return ALLOWED_GRANT_ACTIONS.has(action.trim().toLowerCase());
+}
+
+/** Paires ressource/action à persister (encaisser uniquement sur le paiement). */
+export function buildTemporaryGrantPairs(
+  resources: string[],
+  actions: string[],
+): Array<{ resource: string; action: string }> {
+  const pairs: Array<{ resource: string; action: string }> = [];
+  for (const resource of resources) {
+    for (const action of actions) {
+      if (
+        action === "encaisser" &&
+        !extraActionsForResource(resource).includes("encaisser")
+      ) {
+        continue;
+      }
+      pairs.push({ resource, action });
+    }
+  }
+  return pairs;
 }

@@ -25,7 +25,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useSession } from "@/lib/auth-client";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import {
   getCoursAction,
@@ -49,10 +49,11 @@ export default function Cours({
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
   const [importing, startImport] = useTransition();
   const { refreshKey, refresh } = useRefresh();
-  const { data: session, isPending } = useSession();
+  const { isPending } = useSession();
   const [hasMounted, setHasMounted] = useState(false);
   const sessionReady = hasMounted && !isPending;
-  const canCreate = sessionReady && canManageOrganization(session);
+  const { canCreate: canCreateFromGrant } = useTemporaryGrantActions("courses");
+  const canCreate = sessionReady && canCreateFromGrant;
 
   useEffect(() => {
     setHasMounted(true);

@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { SearchCombobox, type SearchComboboxOption } from "@/components/ui/search-combobox";
 import { toast } from "sonner";
+import { MultiSelect } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/[branchId]/paiement/components/MultiSelect";
 import {
   grantTemporaryPrivilegeAction,
   listTemporaryGrantMembersAction,
@@ -30,7 +31,6 @@ import {
 import {
   extraActionsForResource,
   findGrantCatalogGroup,
-  GRANT_GROUP_ALL,
   TEMPORARY_GRANT_CATALOG,
 } from "@/lib/auth/temporary-grant-catalog";
 import { writeActionIncludesRead } from "@/lib/auth/temporary-grant-actions";
@@ -87,8 +87,8 @@ export function TemporaryGrantModal({
   const [memberItems, setMemberItems] = useState<SearchComboboxOption[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [groupId, setGroupId] = useState<string>("finance");
-  const [itemValue, setItemValue] = useState<string>(GRANT_GROUP_ALL);
-  const [action, setAction] = useState<string>("read");
+  const [itemValues, setItemValues] = useState<string[]>([]);
+  const [actions, setActions] = useState<string[]>(["read"]);
   const [durationMinutes, setDurationMinutes] = useState<number>(60);
   const [customDuration, setCustomDuration] = useState<string>("");
   const [reason, setReason] = useState<string>("");
@@ -96,24 +96,28 @@ export function TemporaryGrantModal({
   const searchTimerRef = useRef<number | null>(null);
 
   const selectedGroup = findGrantCatalogGroup(groupId);
-  const selectedItem =
-    itemValue === GRANT_GROUP_ALL
-      ? null
-      : selectedGroup?.items.find((item) => item.resource === itemValue);
-  const canEncaisser =
-    itemValue === GRANT_GROUP_ALL
-      ? (selectedGroup?.items.some((item) =>
-          extraActionsForResource(item.resource).includes("encaisser"),
-        ) ?? false)
-      : extraActionsForResource(itemValue).includes("encaisser");
+  const submenuOptions = (selectedGroup?.items ?? []).map((item) => ({
+    value: item.resource,
+    label: item.label,
+  }));
+  const canEncaisser = itemValues.some((resource) =>
+    extraActionsForResource(resource).includes("encaisser"),
+  );
   const visibleActions = ACTION_OPTIONS.filter(
     (opt) => opt.value !== "encaisser" || canEncaisser,
   );
+  const selectedWrite = actions.some((value) => writeActionIncludesRead(value));
+  const selectedReadOnly =
+    actions.includes("read") && !selectedWrite && !actions.includes("encaisser");
 
   const handleGroupChange = (nextGroupId: string) => {
     setGroupId(nextGroupId);
-    setItemValue(GRANT_GROUP_ALL);
-    if (action === "encaisser") setAction("read");
+    setItemValues([]);
+    setActions((current) =>
+      current.filter((value) => value !== "encaisser").length
+        ? current.filter((value) => value !== "encaisser")
+        : ["read"],
+    );
   };
 
   const loadMembers = useCallback(
@@ -170,6 +174,16 @@ export function TemporaryGrantModal({
       return;
     }
 
+    if (!itemValues.length) {
+      toast.error("Sélectionnez au moins un sous-menu.");
+      return;
+    }
+
+    if (!actions.length) {
+      toast.error("Sélectionnez au moins une action.");
+      return;
+    }
+
     if (!reason.trim()) {
       toast.error("Le motif de l'octroi temporaire est obligatoire.");
       return;
@@ -187,8 +201,8 @@ export function TemporaryGrantModal({
       const res = await grantTemporaryPrivilegeAction(organizationId, {
         targetUserId: selectedUserId,
         groupId,
-        itemValue,
-        action,
+        itemValues,
+        actions,
         durationMinutes: finalDuration,
         reason: reason.trim(),
       });
@@ -218,8 +232,8 @@ export function TemporaryGrantModal({
             <DialogTitle>Accorder un Privilège Temporaire</DialogTitle>
           </div>
           <DialogDescription>
-            Choisissez un menu puis tout le groupe, ou un sous-menu précis
-            (Finance, Cursus, Enseignement, etc.). Le privilège sera révoqué à l&apos;échéance.
+            Choisissez un menu, un ou plusieurs sous-menus, puis les actions
+            autorisées. Le privilège sera révoqué à l&apos;échéance.
           </DialogDescription>
         </DialogHeader>
 
@@ -270,54 +284,63 @@ export function TemporaryGrantModal({
 
             <div className="space-y-1.5">
               <Label>Sous-menu</Label>
-              <Select value={itemValue} onValueChange={setItemValue}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={GRANT_GROUP_ALL}>
-                    Tout le menu {selectedGroup?.label ?? ""}
-                  </SelectItem>
-                  {(selectedGroup?.items ?? []).map((item) => (
-                    <SelectItem key={item.resource} value={item.resource}>
-                      {item.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <MultiSelect
+                options={submenuOptions}
+                value={itemValues}
+                onValueChange={(next) => {
+                  setItemValues(next);
+                  const stillCanEncaisser = next.some((resource) =>
+                    extraActionsForResource(resource).includes("encaisser"),
+                  );
+                  if (!stillCanEncaisser) {
+                    setActions((current) => {
+                      const filtered = current.filter((value) => value !== "encaisser");
+                      return filtered.length ? filtered : ["read"];
+                    });
+                  }
+                }}
+                placeholder="Choisir un ou plusieurs sous-menus..."
+                searchable={submenuOptions.length > 6}
+                maxCount={2}
+                showSelectAll
+                selectedCountLabel={(count) =>
+                  `${count} sous-menu${count > 1 ? "s" : ""}`
+                }
+              />
               <p className="text-xs text-muted-foreground">
-                {itemValue === GRANT_GROUP_ALL
-                  ? `Accorde les ${selectedGroup?.items.length ?? 0} sous-menus de ${selectedGroup?.label ?? "ce menu"}.`
-                  : selectedItem
-                    ? `Uniquement « ${selectedItem.label} ».`
-                    : "Choisissez un sous-menu ou tout le menu."}
+                {itemValues.length
+                  ? `${itemValues.length} sous-menu${itemValues.length > 1 ? "s" : ""} sélectionné${itemValues.length > 1 ? "s" : ""}.`
+                  : "Cochez plusieurs sous-menus, ou « Tout sélectionner »."}
               </p>
             </div>
           </div>
 
           <div className="space-y-1.5">
             <Label>Action Autorisée</Label>
-            <Select
-              value={visibleActions.some((opt) => opt.value === action) ? action : "read"}
-              onValueChange={setAction}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {visibleActions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MultiSelect
+              options={visibleActions}
+              value={actions.filter((value) =>
+                visibleActions.some((opt) => opt.value === value),
+              )}
+              onValueChange={(next) => {
+                setActions(next.length ? next : ["read"]);
+              }}
+              placeholder="Choisir une ou plusieurs actions..."
+              searchable={false}
+              maxCount={3}
+              showSelectAll
+              selectedCountLabel={(count) =>
+                `${count} action${count > 1 ? "s" : ""}`
+              }
+            />
             <p className="text-xs text-muted-foreground">
-              {writeActionIncludesRead(action)
-                ? "La lecture (Voir le menu et les listes) est incluse automatiquement."
-                : action === "read"
-                  ? "Lecture seule : l'utilisateur peut consulter, sans créer, modifier ni supprimer."
-                  : "L'encaissement s'applique au paiement / caisse. Les rapports restent bloqués sans lecture."}
+              {selectedWrite
+                ? "Création, modification et suppression incluent automatiquement la lecture."
+                : selectedReadOnly
+                  ? "Lecture seule : consulter sans créer, modifier ni supprimer."
+                  : actions.includes("encaisser")
+                    ? "L'encaissement s'applique au paiement / caisse."
+                    : "Sélectionnez au moins une action."}
             </p>
           </div>
 

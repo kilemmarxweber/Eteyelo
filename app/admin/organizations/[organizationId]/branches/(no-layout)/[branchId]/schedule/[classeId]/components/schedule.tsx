@@ -45,11 +45,7 @@ import { z } from "zod";
 import { scheduleSchema } from "@/src/interfaces/Schedule";
 import { genererCreneaux } from "@/src/hooks/getCourseHours";
 import { toast } from "sonner";
-import { useSession } from "@/lib/auth-client";
-import {
-  canManageOrganization,
-  canPermanentlyDeleteInformation,
-} from "@/lib/auth/session-roles";
+import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
 import {
   exportSchedulePdf,
   findScheduleConflicts,
@@ -151,10 +147,9 @@ export default function Schedule({
   const [deleteTarget, setDeleteTarget] = useState<Horaire | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const { data: session } = useSession();
-  const canManageSchedules = canManageOrganization(session);
-  const canCreateSchedule = canManageSchedules;
-  const canDeleteSchedule = canPermanentlyDeleteInformation(session);
+  const { canCreate, canDelete } = useTemporaryGrantActions("schedule");
+  const canCreateSchedule = canCreate;
+  const canDeleteSchedule = canDelete;
 
   const vacationHref = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/creneau`;
 

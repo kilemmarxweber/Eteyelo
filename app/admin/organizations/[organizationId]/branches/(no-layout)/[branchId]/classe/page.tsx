@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/sheet";
 import { useSession } from "@/lib/auth-client";
 import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
+import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
 import {
   getClassDisplayLabel,
   getClassDisplayLabelPlural,
@@ -47,6 +48,7 @@ export default function Page() {
   const [classLabel, setClassLabel] = useState("Classe");
   const [classLabelPlural, setClassLabelPlural] = useState("Classes");
   const { data: session, isPending } = useSession();
+  const { canCreate } = useTemporaryGrantActions("classe");
 
   useEffect(() => {
     void getStudentPageContextAction().then((context) => {
@@ -101,6 +103,7 @@ export default function Page() {
         </Badge>
       }
       actions={
+        canCreate ? (
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
@@ -128,6 +131,7 @@ export default function Page() {
             {t("create", { class: classLabel.toLowerCase() })}
           </Button>
         </div>
+        ) : null
       }
     >
       <Sheet open={open} onOpenChange={setOpen}>

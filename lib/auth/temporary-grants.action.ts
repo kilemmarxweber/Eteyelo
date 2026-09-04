@@ -3,12 +3,16 @@
 import { getOrganizationAuthContext } from "@/lib/auth/require-organization-permission";
 import { getSidebarPermissionFlagsAction } from "@/lib/auth/sidebar-permission-flags.action";
 import {
+  isGrantedWorkspacePage,
   pageStillAllowedAfterGrantExpiry,
   parseBranchWorkspacePath,
 } from "@/lib/auth/temporary-privilege-session";
 import { getUserActiveTemporaryGrants } from "@/lib/auth/temporary-privilege";
 
-export async function getMyActiveTemporaryGrantsAction(organizationId?: string) {
+export async function getMyActiveTemporaryGrantsAction(
+  organizationId?: string,
+  branchId?: string | null,
+) {
   const context = await getOrganizationAuthContext();
   if (!context) {
     return { ok: false as const, grants: [] };
@@ -18,6 +22,10 @@ export async function getMyActiveTemporaryGrantsAction(organizationId?: string) 
     const grants = await getUserActiveTemporaryGrants(
       context.userId,
       organizationId,
+      branchId ??
+        context.session?.branch?.id ??
+        context.session?.session?.activeBranchId ??
+        null,
     );
     return { ok: true as const, grants };
   } catch (error) {
@@ -46,6 +54,9 @@ export async function shouldLeavePageAfterGrantExpiryAction(pathname: string) {
       dashboardHref: parsed.dashboardHref,
     };
   } catch {
-    return { leave: true, dashboardHref: parsed.dashboardHref };
+    return {
+      leave: isGrantedWorkspacePage(parsed),
+      dashboardHref: parsed.dashboardHref,
+    };
   }
 }

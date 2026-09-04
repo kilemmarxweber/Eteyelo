@@ -17,8 +17,7 @@ import { IconAlertCircle, IconSchool } from "@tabler/icons-react";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { isPrimaryBranch } from "@/lib/class-structure";
 import { ManagedBranchType } from "@/lib/academic-structure";
-import { useSession } from "@/lib/auth-client";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
 import { UpdateClasseDialog } from "./edit-Classe-dialog";
 import { DeleteClassesDialog } from "./delete-Classe-dialog";
 import { toast } from "sonner";
@@ -45,8 +44,7 @@ const ClassesList = ({
   const [deletingClasse, setDeletingClasse] = useState<IClasse | null>(null);
   const hasLoadedOnce = useRef(false);
   const { refreshKey: contextRefreshKey } = useRefresh();
-  const { data: session } = useSession();
-  const canManage = canManageOrganization(session);
+  const { canManage } = useTemporaryGrantActions("classe");
 
   const showOption = !isPrimaryBranch(branchType);
 

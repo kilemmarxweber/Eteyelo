@@ -10,7 +10,10 @@ import {
 } from "@/src/interfaces/Classe";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { z } from "zod";
-import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  requireBranchAreaActionContext,
+  requireBranchContext,
+} from "@/lib/auth/require-branch-context";
 import {
   classeCycleWhere,
   isCycleGlobalRole,
@@ -227,7 +230,7 @@ export const createClasseAction = action
   .handler(async ({ input }) => {
     try {
       const { branchId, organizationId, typebranch, educationSystem, cycles } =
-        await requireBranchContext();
+        await requireBranchAreaActionContext("classe", "create");
       const { creneauId, capacity } = input;
       const cycle = resolveActivatedCycle(input.cycle, typebranch, cycles);
 
@@ -429,7 +432,7 @@ export const updateClasseAction = action
   .input(classeSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, typebranch, educationSystem, cycles } =
-      await requireBranchContext();
+      await requireBranchAreaActionContext("classe", "update");
     const { id, statusClasse, creneauId, capacity } = input;
     if (!id) throw new Error("Identifiant de classe manquant");
 
@@ -507,7 +510,8 @@ export const updateClasseAction = action
 export const archiveClasseAction = action
   .input(classeSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } =
+      await requireBranchAreaActionContext("classe", "delete");
     const { id } = input;
 
     const existClass = await prisma.classe.findFirst({
@@ -546,7 +550,8 @@ export const deleteClasseAction = archiveClasseAction;
 export const deleteClassePermanentlyAction = action
   .input(z.object({ id: z.string().min(1) }))
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } =
+      await requireBranchAreaActionContext("classe", "delete");
     const { id } = input;
 
     const existClass = await prisma.classe.findFirst({
@@ -667,7 +672,8 @@ export const statusClasseAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } =
+      await requireBranchAreaActionContext("classe", "update");
     const { statusClasse, id } = input;
     const existing = await prisma.classe.findFirst({
       where: { id, branchId },
@@ -707,7 +713,7 @@ export async function importClassCatalogAction(params?: {
   importSectionsAndOptions?: boolean;
 }) {
   const { branchId, organizationId, typebranch } =
-    await requireBranchContext();
+    await requireBranchAreaActionContext("classe", "create");
 
   const result = await upsertClassCatalogForBranch(branchId, {
     importSectionsAndOptions:

@@ -18,8 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useSession } from "@/lib/auth-client";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { type ICours } from "@/src/interfaces/Cours";
 import { PRIMARY_DOMAIN_SHORT_LABELS, type SystemPrimaryDomainCode } from "@/lib/primary-domains";
@@ -131,9 +130,8 @@ export function useCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
     {
       id: "actions",
       cell: function ActionsCell({ row }) {
-        const { data: session } = useSession();
         const { refresh } = useRefresh();
-        const canManage = canManageOrganization(session);
+        const { canUpdate, canDelete } = useTemporaryGrantActions("courses");
         const [editOpen, setEditOpen] = React.useState(false);
         const [archiveOpen, setArchiveOpen] = React.useState(false);
         const [deleteOpen, setDeleteOpen] = React.useState(false);
@@ -174,7 +172,7 @@ export function useCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
-                {canManage && (
+                {canUpdate && (
                   <DropdownMenuItem
                     onSelect={(event) => {
                       event.preventDefault();
@@ -185,8 +183,8 @@ export function useCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                {canManage &&
-                  (row.original.statusCours === false ? (
+                {canUpdate &&
+                  row.original.statusCours === false ? (
                     <DropdownMenuItem
                       disabled={pending}
                       onSelect={() =>
@@ -206,7 +204,7 @@ export function useCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
                     >
                       {pending ? t("reactivating") : t("reactivate")}
                     </DropdownMenuItem>
-                  ) : (
+                  ) : canDelete && row.original.statusCours !== false ? (
                     <DropdownMenuItem
                       onSelect={(event) => {
                         event.preventDefault();
@@ -215,8 +213,8 @@ export function useCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
                     >
                       {tc("deactivate")}
                     </DropdownMenuItem>
-                  ))}
-                {canManage ? (
+                  ) : null}
+                {canDelete ? (
                   <DropdownMenuItem
                     className="text-destructive focus:bg-destructive/10 focus:text-destructive"
                     onSelect={(event) => {
