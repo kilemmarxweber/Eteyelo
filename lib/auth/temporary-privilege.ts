@@ -4,7 +4,12 @@ import {
   type BranchArea,
 } from "@/lib/auth/branch-area-permissions";
 import type { OrganizationPermissionPayload } from "@/lib/auth/has-organization-permission";
-import { grantMatchesPermission } from "@/lib/auth/temporary-grant-actions";
+import {
+  formatGrantPair,
+  grantBranchScopesOverlap,
+  grantMatchesPermission,
+  type GrantResourceAction,
+} from "@/lib/auth/temporary-grant-actions";
 import type { TemporaryGrant } from "@/prisma/generated/prisma/client";
 
 export {
@@ -13,6 +18,8 @@ export {
   WRITE_ACTIONS_THAT_INCLUDE_READ,
   normalizeSelectedGrantActions,
   grantMatchesPermission,
+  formatGrantPair,
+  splitGrantPairsByActiveDuplicates,
 } from "@/lib/auth/temporary-grant-actions";
 
 export type GrantTemporaryPrivilegeInput = {
@@ -197,20 +204,70 @@ export async function getUserActiveTemporaryGrants(
   });
 }
 
+export class DuplicateActiveTemporaryGrantError extends Error {
+  resource: string;
+  action: string;
+
+  constructor(resource: string, action: string) {
+    super(`DUPLICATE_ACTIVE_GRANT:${resource}:${action}`);
+    this.name = "DuplicateActiveTemporaryGrantError";
+    this.resource = resource;
+    this.action = action;
+  }
+}
+
+export async function findActiveGrantPairs(params: {
+  userId: string;
+  organizationId: string;
+}): Promise<Array<GrantResourceAction & { branchId: string | null }>> {
+  const now = new Date();
+  const grants = await prisma.temporaryGrant.findMany({
+    where: {
+      userId: params.userId,
+      organizationId: params.organizationId,
+      ...ACTIVE_GRANT_WHERE(now),
+    },
+    select: { resource: true, action: true, branchId: true },
+  });
+  return grants.map((grant) => ({
+    resource: grant.resource,
+    action: grant.action,
+    branchId: grant.branchId ?? null,
+  }));
+}
+
 /**
  * Octroie un privilège temporaire à un utilisateur.
  */
 export async function grantTemporaryPrivilege(input: GrantTemporaryPrivilegeInput) {
   const now = new Date();
   const expiresAt = new Date(now.getTime() + input.durationMinutes * 60 * 1000);
+  const resource = input.resource.trim().toLowerCase();
+  const action = input.action.trim().toLowerCase() || "read";
+
+  if (input.organizationId) {
+    await expireOutdatedGrants();
+    const active = await findActiveGrantPairs({
+      userId: input.userId,
+      organizationId: input.organizationId,
+    });
+    const alreadyActive = active.some(
+      (grant) =>
+        formatGrantPair(grant) === formatGrantPair({ resource, action }) &&
+        grantBranchScopesOverlap(grant.branchId, input.branchId),
+    );
+    if (alreadyActive) {
+      throw new DuplicateActiveTemporaryGrantError(resource, action);
+    }
+  }
 
   return prisma.temporaryGrant.create({
     data: {
       userId: input.userId,
       organizationId: input.organizationId ?? null,
       branchId: input.branchId ?? null,
-      resource: input.resource,
-      action: input.action,
+      resource,
+      action,
       temporaryRole: input.temporaryRole ?? null,
       reason: input.reason,
       grantedById: input.grantedById,

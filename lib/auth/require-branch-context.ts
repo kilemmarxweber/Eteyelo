@@ -191,7 +191,7 @@ export async function requireFinanceBranchContext() {
 
 /**
  * Encaissement / écriture caisse : rôle finance legacy, DAC `encaisser`,
- * ou octroi temporaire `finance:encaisser`.
+ * ou octroi temporaire `finance:encaisser` / `finance:create|update|delete`.
  */
 export async function requireFinanceCollectBranchContext() {
   const ctx = await requireFinanceBranchContext();

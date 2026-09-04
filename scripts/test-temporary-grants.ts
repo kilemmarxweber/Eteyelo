@@ -16,7 +16,10 @@ import {
   buildTemporaryGrantPairs,
   resolveTemporaryGrantResources,
 } from "../lib/auth/temporary-grant-catalog";
-import { normalizeSelectedGrantActions } from "../lib/auth/temporary-grant-actions";
+import {
+  normalizeSelectedGrantActions,
+  splitGrantPairsByActiveDuplicates,
+} from "../lib/auth/temporary-grant-actions";
 import {
   isGrantedWorkspacePage,
   pageStillAllowedAfterGrantExpiry,
@@ -56,6 +59,31 @@ test("create / update / delete couvrent la lecture, sans se croiser", () => {
   assert.equal(grantMatchesPermission(grant("notes", "create"), "notes", "update"), false);
   assert.equal(grantMatchesPermission(grant("notes", "update"), "notes", "delete"), false);
   assert.equal(grantMatchesPermission(grant("notes", "read"), "notes", "create"), false);
+});
+
+test("finance:create / update / delete couvrent l'encaissement caisse", () => {
+  assert.equal(
+    grantMatchesPermission(grant("finance", "create"), "finance", "encaisser"),
+    true,
+  );
+  assert.equal(
+    grantMatchesPermission(grant("finance", "update"), "finance", "encaisser"),
+    true,
+  );
+  assert.equal(
+    grantMatchesPermission(grant("finance", "delete"), "finance", "encaisser"),
+    true,
+  );
+  assert.equal(
+    grantsCoverPermissions([grant("finance", "create")], {
+      finance: ["encaisser"],
+    }),
+    true,
+  );
+  assert.equal(
+    grantMatchesPermission(grant("fees", "create"), "finance", "encaisser"),
+    false,
+  );
 });
 
 test("encaisser n'implique pas la lecture des rapports", () => {
@@ -317,6 +345,56 @@ test("ressource d'octroi par zone", () => {
   assert.equal(grantResourceForArea("classe"), "classe");
   assert.equal(grantResourceForArea("schedule"), "schedule");
   assert.equal(grantResourceForArea("ponderations"), "ponderations");
+});
+
+test("pas deux fois le même droit actif pour un utilisateur", () => {
+  const active = [
+    { resource: "finance", action: "create", branchId: null },
+  ];
+  const allDup = splitGrantPairsByActiveDuplicates(
+    [{ resource: "finance", action: "create" }],
+    active,
+    null,
+  );
+  assert.deepEqual(allDup.next, []);
+  assert.equal(allDup.duplicates.length, 1);
+
+  const mixed = splitGrantPairsByActiveDuplicates(
+    [
+      { resource: "finance", action: "create" },
+      { resource: "fees", action: "create" },
+    ],
+    active,
+    null,
+  );
+  assert.deepEqual(mixed.next, [{ resource: "fees", action: "create" }]);
+  assert.equal(mixed.duplicates.length, 1);
+
+  const otherBranch = splitGrantPairsByActiveDuplicates(
+    [{ resource: "finance", action: "create" }],
+    [{ resource: "finance", action: "create", branchId: "branch-a" }],
+    "branch-b",
+  );
+  assert.equal(otherBranch.next.length, 1);
+  assert.equal(otherBranch.duplicates.length, 0);
+
+  const orgWideBlocksBranch = splitGrantPairsByActiveDuplicates(
+    [{ resource: "finance", action: "create" }],
+    [{ resource: "finance", action: "create", branchId: null }],
+    "branch-a",
+  );
+  assert.equal(orgWideBlocksBranch.next.length, 0);
+
+  const sameRequestTwice = splitGrantPairsByActiveDuplicates(
+    [
+      { resource: "finance", action: "create" },
+      { resource: "Finance", action: "CREATE" },
+    ],
+    [],
+    null,
+  );
+  assert.equal(sameRequestTwice.next.length, 1);
+  assert.equal(sameRequestTwice.duplicates.length, 1);
 });
 
 console.log("\nAll temporary grant tests passed.");

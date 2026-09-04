@@ -58,7 +58,16 @@ export function grantMatchesPermission(
   const requestedAction = action.toLowerCase();
   if (grantAction === requestedAction) return true;
 
-  return requestedAction === "read" && writeActionIncludesRead(grantAction);
+  if (requestedAction === "read" && writeActionIncludesRead(grantAction)) {
+    return true;
+  }
+
+  // Paiement / caisse : create / update / delete autorisent l'encaissement.
+  return (
+    requestedAction === "encaisser" &&
+    writeActionIncludesRead(grantAction) &&
+    (grant.resource === "*" || grant.resource.toLowerCase() === "finance")
+  );
 }
 
 export function grantsAllowWrite(
@@ -68,4 +77,60 @@ export function grantsAllowWrite(
   return WRITE_ACTIONS_THAT_INCLUDE_READ.some((action) =>
     grants.some((grant) => grantMatchesPermission(grant, resource, action)),
   );
+}
+
+export type GrantResourceAction = { resource: string; action: string };
+
+export function formatGrantPair(pair: GrantResourceAction): string {
+  return `${pair.resource.trim().toLowerCase()}:${pair.action.trim().toLowerCase()}`;
+}
+
+export function isSameGrantPair(
+  left: GrantResourceAction,
+  right: GrantResourceAction,
+): boolean {
+  return formatGrantPair(left) === formatGrantPair(right);
+}
+
+export function grantBranchScopesOverlap(
+  leftBranchId?: string | null,
+  rightBranchId?: string | null,
+): boolean {
+  const left = leftBranchId ?? null;
+  const right = rightBranchId ?? null;
+  if (left === right) return true;
+  return left == null || right == null;
+}
+
+/** Retire les paires déjà actives pour le même utilisateur / org (même établissement ou toute l'org). */
+export function splitGrantPairsByActiveDuplicates(
+  requested: GrantResourceAction[],
+  active: Array<GrantResourceAction & { branchId?: string | null }>,
+  branchId?: string | null,
+): { next: GrantResourceAction[]; duplicates: GrantResourceAction[] } {
+  const next: GrantResourceAction[] = [];
+  const duplicates: GrantResourceAction[] = [];
+  const seenRequested = new Set<string>();
+
+  for (const pair of requested) {
+    const key = formatGrantPair(pair);
+    if (seenRequested.has(key)) {
+      duplicates.push(pair);
+      continue;
+    }
+    seenRequested.add(key);
+
+    const alreadyActive = active.some(
+      (grant) =>
+        isSameGrantPair(grant, pair) &&
+        grantBranchScopesOverlap(grant.branchId, branchId),
+    );
+    if (alreadyActive) {
+      duplicates.push(pair);
+    } else {
+      next.push(pair);
+    }
+  }
+
+  return { next, duplicates };
 }

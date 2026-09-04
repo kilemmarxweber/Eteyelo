@@ -6,10 +6,14 @@ import {
   grantTemporaryPrivilege,
   revokeTemporaryPrivilege,
   expireOutdatedGrants,
+  findActiveGrantPairs,
+  DuplicateActiveTemporaryGrantError,
 } from "@/lib/auth/temporary-privilege";
 import { prisma } from "@/lib/prisma";
 import {
+  formatGrantPair,
   normalizeSelectedGrantActions,
+  splitGrantPairsByActiveDuplicates,
   writeActionIncludesRead,
 } from "@/lib/auth/temporary-grant-actions";
 import {
@@ -119,8 +123,30 @@ export async function grantTemporaryPrivilegeAction(
   }
 
   try {
+    await expireOutdatedGrants();
+    const active = await findActiveGrantPairs({
+      userId: payload.targetUserId,
+      organizationId,
+    });
+    const { next, duplicates } = splitGrantPairsByActiveDuplicates(
+      pairs,
+      active,
+      payload.branchId ?? null,
+    );
+
+    if (!next.length) {
+      const labels = duplicates.map(formatGrantPair).join(", ");
+      return {
+        ok: false,
+        message:
+          duplicates.length === 1
+            ? `Ce droit est déjà actif pour cet utilisateur (${labels}). Révoquez-le ou attendez la fin de validité.`
+            : `Ces droits sont déjà actifs pour cet utilisateur (${labels}). Révoquez-les ou attendez la fin de validité.`,
+      };
+    }
+
     const grants: Awaited<ReturnType<typeof grantTemporaryPrivilege>>[] = [];
-    for (const pair of pairs) {
+    for (const pair of next) {
       grants.push(
         await grantTemporaryPrivilege({
           userId: payload.targetUserId,
@@ -139,20 +165,29 @@ export async function grantTemporaryPrivilegeAction(
     revalidatePath(`/admin/organizations/${organizationId}/settings/temporary-grants`);
     revalidatePath("/admin", "layout");
 
-    const includesRead = pairs.some((pair) => writeActionIncludesRead(pair.action));
+    const includesRead = next.some((pair) => writeActionIncludesRead(pair.action));
     const count = grants.length;
+    const skipped = duplicates.length
+      ? ` Déjà actifs (ignorés) : ${duplicates.map(formatGrantPair).join(", ")}.`
+      : "";
 
     return {
       ok: true,
       message:
-        count > 1
+        (count > 1
           ? `${count} privilèges accordés${includesRead ? " (lecture incluse)" : ""}.`
           : includesRead
             ? "Privilège temporaire accordé (lecture incluse)."
-            : "Privilège temporaire accordé avec succès.",
+            : "Privilège temporaire accordé avec succès.") + skipped,
       grantId: grants[0]?.id,
     };
   } catch (error) {
+    if (error instanceof DuplicateActiveTemporaryGrantError) {
+      return {
+        ok: false,
+        message: `Ce droit est déjà actif pour cet utilisateur (${error.resource}:${error.action}). Révoquez-le ou attendez la fin de validité.`,
+      };
+    }
     console.error("Erreur lors de l'octroi du privilège temporaire:", error);
     return { ok: false, message: "Une erreur est survenue lors de l'octroi du privilège." };
   }

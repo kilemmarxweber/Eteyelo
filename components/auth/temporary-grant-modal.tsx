@@ -105,6 +105,13 @@ export function TemporaryGrantModal({
   );
   const visibleActions = ACTION_OPTIONS.filter(
     (opt) => opt.value !== "encaisser" || canEncaisser,
+  ).map((opt) =>
+    canEncaisser && writeActionIncludesRead(opt.value)
+      ? {
+          ...opt,
+          label: opt.label.replace("+ lecture", "+ lecture + encaissement"),
+        }
+      : opt,
   );
   const selectedWrite = actions.some((value) => writeActionIncludesRead(value));
   const selectedReadOnly =
@@ -334,7 +341,9 @@ export function TemporaryGrantModal({
               }
             />
             <p className="text-xs text-muted-foreground">
-              {selectedWrite
+              {selectedWrite && canEncaisser
+                ? "Sur Paiement / Caisse, création, modification et suppression incluent la lecture et l'encaissement."
+                : selectedWrite
                 ? "Création, modification et suppression incluent automatiquement la lecture."
                 : selectedReadOnly
                   ? "Lecture seule : consulter sans créer, modifier ni supprimer."
