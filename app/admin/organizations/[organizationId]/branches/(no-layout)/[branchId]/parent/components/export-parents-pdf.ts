@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+import { sortPeopleByName } from "@/lib/person-full-name";
 import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
   drawReportFooterOnAllPages,
@@ -78,8 +79,8 @@ function formatChildName(student: IStudent): string {
 }
 
 function formatChildren(parent: IParent, noneLabel: string): string {
-  const children = (parent.students ?? []).filter(
-    (student) => student.statusUser !== false,
+  const children = sortPeopleByName(
+    (parent.students ?? []).filter((student) => student.statusUser !== false),
   );
   if (children.length === 0) return noneLabel;
 
@@ -158,6 +159,7 @@ export async function buildParentsReportPdf(
   const { labels } = options;
   const title = buildParentsReportTitle(options);
   const filterLabels = buildParentsReportFilterLabels(options);
+  const sortedParents = sortPeopleByName(parents);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
@@ -167,7 +169,7 @@ export async function buildParentsReportPdf(
     labels.colContact,
     labels.colChildrenDetail,
   ];
-  const body = parents.map((parent, index) => [
+  const body = sortedParents.map((parent, index) => [
     index + 1,
     formatFullName(parent),
     formatContact(parent),
@@ -176,7 +178,7 @@ export async function buildParentsReportPdf(
 
   const countLabel = labels.parentCount.replace(
     "{count}",
-    String(parents.length),
+    String(sortedParents.length),
   );
 
   autoTable(doc, {

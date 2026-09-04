@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { ITeacher } from "@/src/interfaces/Teacher";
+import { sortPeopleByName } from "@/lib/person-full-name";
 import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
   drawReportFooterOnAllPages,
@@ -171,6 +172,7 @@ export async function buildTeachersReportPdf(
   const { labels } = options;
   const title = buildTeachersReportTitle(options);
   const filterLabels = buildTeachersReportFilterLabels(options);
+  const sortedTeachers = sortPeopleByName(teachers);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
@@ -182,7 +184,7 @@ export async function buildTeachersReportPdf(
     labels.colCourses,
     labels.colStatus,
   ];
-  const body = teachers.map((teacher, index) => [
+  const body = sortedTeachers.map((teacher, index) => [
     index + 1,
     formatFullName(teacher),
     formatContact(teacher),
@@ -231,7 +233,7 @@ export async function buildTeachersReportPdf(
         subtitle: context.branchName,
         details: [
           ...filterLabels,
-          labels.teacherCount.replace("{count}", String(teachers.length)),
+          labels.teacherCount.replace("{count}", String(sortedTeachers.length)),
         ],
         logoDataUrl: logo,
       });

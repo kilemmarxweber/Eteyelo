@@ -23,6 +23,7 @@ import {
   buildStudentsReportFilterLabels,
   buildStudentsReportTitle,
   exportStudentsReportPdf,
+  sortStudentsForReport,
   type StudentPdfLabels,
   type StudentReportOptions,
 } from "./export-students-pdf";
@@ -95,6 +96,11 @@ export function StudentsListPreviewDialog({
     [options, pdfLabels],
   );
 
+  const sortedStudents = React.useMemo(
+    () => sortStudentsForReport(students, locale),
+    [locale, students],
+  );
+
   const title = buildStudentsReportTitle(reportOptions);
   const filterLabels = buildStudentsReportFilterLabels(reportOptions);
   const isClassReport = Boolean(options.selectedClass);
@@ -109,7 +115,7 @@ export function StudentsListPreviewDialog({
     if (!context) return;
     setDownloading(true);
     try {
-      await exportStudentsReportPdf(students, context, reportOptions);
+      await exportStudentsReportPdf(sortedStudents, context, reportOptions);
       toast.success(
         tPdf("generated", {
           studentsLower: peopleLabels.studentPluralLower,
@@ -133,7 +139,7 @@ export function StudentsListPreviewDialog({
         </Badge>
       ))}
       <Badge variant="outline" size="sm">
-        {tPdf("studentCount", { count: students.length })}
+        {tPdf("studentCount", { count: sortedStudents.length })}
       </Badge>
       {generatedLabel ? (
         <Badge variant="ghost" size="sm" className="text-muted-foreground">
@@ -168,14 +174,14 @@ export function StudentsListPreviewDialog({
         <Button
           type="button"
           onClick={handleDownloadPdf}
-          disabled={!context || !students.length || downloading}
+          disabled={!context || !sortedStudents.length || downloading}
         >
           <Download data-icon="inline-start" />
           {downloading ? tPdf("generating") : tPdf("downloadPdf")}
         </Button>
       }
     >
-      {students.length === 0 ? (
+      {sortedStudents.length === 0 ? (
         <EmptyState
           icon={Users}
           title={tPdf("emptyTitle", {
@@ -216,7 +222,7 @@ export function StudentsListPreviewDialog({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {students.map((student, index) => (
+              {sortedStudents.map((student, index) => (
                 <TableRow
                   key={student.id ?? `${student.username}-${index}`}
                   className="odd:bg-muted/40"

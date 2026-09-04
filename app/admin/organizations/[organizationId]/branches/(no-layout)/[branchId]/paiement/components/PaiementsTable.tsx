@@ -41,6 +41,7 @@ import { useSession } from "@/lib/auth-client";
 import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { resolveOverallReceiptSettlementStatus } from "@/lib/reports/receipt-settlement";
+import { formatReceiptStudentLabel } from "@/components/reports/receipt-format";
 import {
   exportPaiementsReportPdf,
   type PaiementReportPeriod,
@@ -136,6 +137,10 @@ function mapGroupedToReceipt(
     },
     items: g.items.map((i) => ({
       description: i.frais?.nameFrais || labels.schoolFee,
+      studentName: formatReceiptStudentLabel({
+        prenom: i.classEnrollment?.prenom,
+        nom: i.classEnrollment?.nom,
+      }),
       price: Number(i.frais?.montantFrais ?? i.montantPaye),
       mode: String(i.modePaiement || ModePaiement.ESPECES),
       montant: Number(i.montantPaye),

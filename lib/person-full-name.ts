@@ -1,3 +1,44 @@
+export type PersonNameSortParts = {
+  nom?: string | null;
+  name?: string | null;
+  prenom?: string | null;
+  postnom?: string | null;
+};
+
+function compareNamePart(
+  left: string | null | undefined,
+  right: string | null | undefined,
+  locale: string,
+) {
+  return (left ?? "").trim().localeCompare((right ?? "").trim(), locale, {
+    sensitivity: "base",
+    numeric: true,
+  });
+}
+
+function lastName(person: PersonNameSortParts) {
+  return person.nom ?? person.name ?? "";
+}
+
+export function comparePersonNames(
+  a: PersonNameSortParts,
+  b: PersonNameSortParts,
+  locale = "fr",
+) {
+  const byNom = compareNamePart(lastName(a), lastName(b), locale);
+  if (byNom !== 0) return byNom;
+  const byPrenom = compareNamePart(a.prenom, b.prenom, locale);
+  if (byPrenom !== 0) return byPrenom;
+  return compareNamePart(a.postnom, b.postnom, locale);
+}
+
+export function sortPeopleByName<T extends PersonNameSortParts>(
+  people: T[],
+  locale = "fr",
+): T[] {
+  return [...people].sort((a, b) => comparePersonNames(a, b, locale));
+}
+
 export function formatPersonFullName(person?: {
   name?: string | null;
   postnom?: string | null;

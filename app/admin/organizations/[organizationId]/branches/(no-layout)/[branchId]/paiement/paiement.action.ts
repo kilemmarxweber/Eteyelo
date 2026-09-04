@@ -40,6 +40,7 @@ import {
   resolveOverallReceiptSettlementStatus,
   resolveReceiptSettlementStatus,
 } from "@/lib/reports/receipt-settlement";
+import { formatReceiptStudentLabel } from "@/components/reports/receipt-format";
 import {
   isFraisChargedOnAccount,
   resolveFraisPriority,
@@ -217,6 +218,7 @@ type ReceiptPayload = {
   };
   items: {
     description: string;
+    studentName?: string;
     price: number;
     mode: string;
     montant: number;
@@ -1059,8 +1061,11 @@ export const createPaiementAction = action
           alreadyPaidBefore,
         });
 
+        const studentUser = getLinkedUser(payment.classEnrollment?.student);
+
         return {
           description: payment.frais?.nameFrais ?? "Frais scolaire",
+          studentName: formatReceiptStudentLabel(studentUser),
           price: Number(payment.frais?.montantFrais ?? payment.amount),
           mode: payment.method ?? "ESPECES",
           montant: Number(payment.amount),

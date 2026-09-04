@@ -1,5 +1,6 @@
 import {
   formatReceiptClasseCode,
+  formatReceiptStudentName,
   type FacturePaymentStudentData,
 } from "@/components/FacturePaymentStudent";
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
@@ -12,11 +13,7 @@ import {
   sumReceiptBase,
   sumReceiptSecondary,
 } from "@/components/reports/receipt-format";
-import {
-  formatReceiptSettlementStatus,
-  receiptItemStatusLabel,
-  resolveOverallReceiptSettlementStatus,
-} from "@/lib/reports/receipt-settlement";
+import { receiptItemStatusLabel } from "@/lib/reports/receipt-settlement";
 
 export type ReceiptPos80BodyProps = {
   data: FacturePaymentStudentData;
@@ -61,9 +58,6 @@ export function ReceiptPos80Body({
     dateStyle: "short",
     timeStyle: "short",
   });
-  const overallStatus =
-    data.settlementStatus ?? resolveOverallReceiptSettlementStatus(data.items);
-  const statusLabel = formatReceiptSettlementStatus(overallStatus);
 
   return (
     <div
@@ -79,9 +73,6 @@ export function ReceiptPos80Body({
         <p className="mt-1 font-mono text-xs font-bold">
           N° {data.invoiceNumber}
         </p>
-        {statusLabel ? (
-          <p className="mt-0.5 font-semibold">{statusLabel}</p>
-        ) : null}
       </header>
 
       <dl className="space-y-1">
@@ -110,12 +101,15 @@ export function ReceiptPos80Body({
             >
               <div className="flex items-start justify-between gap-2">
                 <p className="min-w-0 flex-1 break-words font-medium">
-                  {item.description}
+                  {formatReceiptStudentName(item)}
                 </p>
                 <p className="shrink-0 tabular-nums font-semibold">
                   {formatReceiptCurrency(Number(item.montant), baseCurrency)}
                 </p>
               </div>
+              <p className="mt-0.5 text-[10px] text-black/60">
+                {item.description}
+              </p>
               <p className="mt-0.5 text-[10px] text-black/60">
                 {formatModePaiementLabel(item.mode ?? item.statut)}
                 {" · "}

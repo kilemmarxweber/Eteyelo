@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { sortPeopleByName } from "@/lib/person-full-name";
 import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
   drawReportFooterOnAllPages,
@@ -124,6 +125,7 @@ export async function buildPersonnelReportPdf(
   const { labels } = options;
   const title = buildPersonnelReportTitle(options);
   const filterLabels = buildPersonnelReportFilterLabels(options);
+  const sortedPersonnels = sortPeopleByName(personnels);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
@@ -134,7 +136,7 @@ export async function buildPersonnelReportPdf(
     labels.colStatus,
     labels.colContact,
   ];
-  const body = personnels.map((personnel, index) => [
+  const body = sortedPersonnels.map((personnel, index) => [
     index + 1,
     formatFullName(personnel),
     formatFonction(personnel, labels.roleUndefined),
@@ -144,7 +146,7 @@ export async function buildPersonnelReportPdf(
 
   const countLabel = labels.personnelCount.replace(
     "{count}",
-    String(personnels.length),
+    String(sortedPersonnels.length),
   );
 
   autoTable(doc, {

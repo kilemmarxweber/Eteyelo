@@ -91,6 +91,8 @@ async function sendAbsenceMail(input: {
   }
 }
 
+export type AbsenceEmailAudience = "subject" | "parent" | "reviewer";
+
 export async function sendAbsenceLifecycleEmail(input: {
   kind: AbsenceEmailKind;
   to?: string | null;
@@ -104,6 +106,7 @@ export async function sendAbsenceLifecycleEmail(input: {
   justification?: string | null;
   reviewComment?: string | null;
   organizationId?: string | null;
+  audience?: AbsenceEmailAudience;
 }): Promise<void> {
   const dateLabel = formatDateLabel(input.occurredOn);
   const rows = [
@@ -120,6 +123,7 @@ export async function sendAbsenceLifecycleEmail(input: {
     rows.push({ label: "Décision", value: input.reviewComment.trim() });
   }
 
+  const forParent = input.audience === "parent";
   const copy: Record<
     AbsenceEmailKind,
     { subject: string; title: string; intro: string; note: string; cta: string }
@@ -127,14 +131,18 @@ export async function sendAbsenceLifecycleEmail(input: {
     absence: {
       subject: `${APP_NAME} — Absence signalée`,
       title: "Absence signalée",
-      intro: `Bonjour ${input.recipientName}, une absence a été enregistrée automatiquement (aucun scan ni pointage manuel) pour « ${input.personName} ». Merci de vous connecter pour justifier.`,
+      intro: forParent
+        ? `Bonjour ${input.recipientName}, une absence a été enregistrée automatiquement (aucun scan ni pointage manuel) pour l'élève « ${input.personName} ». Merci de vous connecter pour justifier.`
+        : `Bonjour ${input.recipientName}, une absence a été enregistrée automatiquement (aucun scan ni pointage manuel) pour « ${input.personName} ». Merci de vous connecter pour justifier.`,
       note: "Cliquez sur la cloche dans la barre de navigation pour voir le détail et envoyer votre justification.",
       cta: "Ouvrir mon espace",
     },
     justification_submitted: {
       subject: `${APP_NAME} — Justification d'absence reçue`,
       title: "Justification reçue",
-      intro: `Bonjour ${input.recipientName}, votre justification d'absence a bien été transmise à l'établissement « ${input.branchName} ». Vous serez notifié de la décision.`,
+      intro: forParent
+        ? `Bonjour ${input.recipientName}, la justification d'absence de l'élève « ${input.personName} » a bien été transmise à l'établissement « ${input.branchName} ». Vous serez notifié de la décision.`
+        : `Bonjour ${input.recipientName}, votre justification d'absence a bien été transmise à l'établissement « ${input.branchName} ». Vous serez notifié de la décision.`,
       note: "La réponse apparaîtra aussi à la cloche de votre barre de navigation.",
       cta: "Voir mon espace",
     },
@@ -148,21 +156,27 @@ export async function sendAbsenceLifecycleEmail(input: {
     accepted: {
       subject: `${APP_NAME} — Justification d'absence acceptée`,
       title: "Justification acceptée",
-      intro: `Bonjour ${input.recipientName}, votre justification d'absence a été acceptée par l'établissement « ${input.branchName} ».`,
+      intro: forParent
+        ? `Bonjour ${input.recipientName}, la justification d'absence de l'élève « ${input.personName} » a été acceptée par l'établissement « ${input.branchName} ».`
+        : `Bonjour ${input.recipientName}, votre justification d'absence a été acceptée par l'établissement « ${input.branchName} ».`,
       note: "Un retour a également été signalé dans votre compte.",
       cta: "Voir le détail",
     },
     rejected: {
       subject: `${APP_NAME} — Justification d'absence refusée`,
       title: "Justification refusée",
-      intro: `Bonjour ${input.recipientName}, votre justification d'absence n'a pas été retenue par l'établissement « ${input.branchName} ».`,
+      intro: forParent
+        ? `Bonjour ${input.recipientName}, la justification d'absence de l'élève « ${input.personName} » n'a pas été retenue par l'établissement « ${input.branchName} ».`
+        : `Bonjour ${input.recipientName}, votre justification d'absence n'a pas été retenue par l'établissement « ${input.branchName} ».`,
       note: "Consultez la cloche pour le motif de la décision.",
       cta: "Voir le détail",
     },
     return: {
       subject: `${APP_NAME} — Retour après absence`,
       title: "Retour signalé",
-      intro: `Bonjour ${input.recipientName}, un retour a été enregistré dans votre compte suite à l'acceptation de votre justification.`,
+      intro: forParent
+        ? `Bonjour ${input.recipientName}, un retour a été enregistré pour l'élève « ${input.personName} » suite à l'acceptation de la justification.`
+        : `Bonjour ${input.recipientName}, un retour a été enregistré dans votre compte suite à l'acceptation de votre justification.`,
       note: "L'absence est désormais marquée comme excusée.",
       cta: "Voir mon espace",
     },

@@ -17,6 +17,19 @@ export function parseReceiptPrintFormat(
   return value === "POS_80MM" ? "POS_80MM" : DEFAULT_RECEIPT_PRINT_FORMAT;
 }
 
+/** Prénom + nom de l’élève pour une ligne de reçu. */
+export function formatReceiptStudentLabel(person?: {
+  prenom?: string | null;
+  name?: string | null;
+  nom?: string | null;
+} | null): string {
+  if (!person) return "";
+  return [person.prenom, person.name ?? person.nom]
+    .map((part) => (typeof part === "string" ? part.trim() : ""))
+    .filter(Boolean)
+    .join(" ");
+}
+
 /** Libellé affiché pour ModePaiement sur reçu / PDF. */
 export function formatModePaiementLabel(mode?: string | null): string {
   switch (mode) {
@@ -258,6 +271,7 @@ export function mapInvoicePropsToReceipt(
     },
     items: props.fees.map((fee) => ({
       description: fee.nameFrais,
+      studentName: props.studentName,
       price: Number(fee.amountPaid),
       mode: "ESPECES",
       montant: Number(fee.amountPaid),

@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { getBranchAbsenceReviewers } from "@/lib/email/get-branch-manager-emails";
-import { sendAbsenceLifecycleEmail } from "@/lib/email/send-absence-notification-email";
+import {
+  sendAbsenceLifecycleEmail,
+  type AbsenceEmailAudience,
+} from "@/lib/email/send-absence-notification-email";
 import {
   ensureAttendanceSessionForSchedule,
   getBranchCourseDurationMinutes,
@@ -84,6 +87,111 @@ function subjectLabel(type: AttendanceSubjectType) {
   return "Élève";
 }
 
+function isDeliverableEmail(email: string | null | undefined) {
+  const value = email?.trim() ?? "";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return false;
+  return !value.toLowerCase().endsWith(".local");
+}
+
+async function getParentContactForStudent(
+  studentId: string | null | undefined,
+): Promise<UserContact | null> {
+  if (!studentId) return null;
+  const student = await prisma.student.findUnique({
+    where: { id: studentId },
+    select: {
+      parent: {
+        select: {
+          branchMember: {
+            select: {
+              member: {
+                select: { user: { select: userContactSelect } },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  return student?.parent?.branchMember?.member?.user ?? null;
+}
+
+async function getStudentIdsForParentUser(userId: string): Promise<string[]> {
+  const parents = await prisma.parent.findMany({
+    where: { branchMember: { member: { userId } } },
+    select: { students: { select: { id: true } } },
+  });
+  return parents.flatMap((parent) => parent.students.map((student) => student.id));
+}
+
+async function resolveAbsenceSubjectMail(params: {
+  subjectType: AttendanceSubjectType;
+  studentId?: string | null;
+  subjectUser: UserContact;
+}): Promise<{
+  to: string | null;
+  phone: string | null;
+  recipientName: string;
+  audience: AbsenceEmailAudience;
+  parentUserId: string | null;
+}> {
+  if (params.subjectType === "STUDENT") {
+    const parent = await getParentContactForStudent(params.studentId);
+    if (parent) {
+      const parentEmail = isDeliverableEmail(parent.email) ? parent.email : null;
+      const parentPhone = parent.telephone?.trim() || null;
+      if (parentEmail || parentPhone) {
+        return {
+          to: parentEmail,
+          phone: parentPhone,
+          recipientName: formatPersonName(parent),
+          audience: "parent",
+          parentUserId: parent.id,
+        };
+      }
+      return {
+        to: params.subjectUser.email,
+        phone: params.subjectUser.telephone,
+        recipientName: formatPersonName(params.subjectUser),
+        audience: "subject",
+        parentUserId: parent.id,
+      };
+    }
+  }
+
+  return {
+    to: params.subjectUser.email,
+    phone: params.subjectUser.telephone,
+    recipientName: formatPersonName(params.subjectUser),
+    audience: "subject",
+    parentUserId: null,
+  };
+}
+
+async function notifyAbsenceAudienceInApp(params: {
+  caseRow: AbsenceCase;
+  subjectUserId: string;
+  parentUserId: string | null;
+  type: AppNotificationType;
+  title: string;
+  body: string;
+}) {
+  const userIds = new Set<string>([params.subjectUserId]);
+  if (params.parentUserId) userIds.add(params.parentUserId);
+  await Promise.all(
+    Array.from(userIds).map((userId) =>
+      createAppNotification({
+        branchId: params.caseRow.branchId,
+        userId,
+        type: params.type,
+        title: params.title,
+        body: params.body,
+        absenceCaseId: params.caseRow.id,
+      }),
+    ),
+  );
+}
+
 function isPresentLike(status: AttendanceStatus, checkIn?: Date | null) {
   return status === "PRESENT" || status === "LATE" || Boolean(checkIn);
 }
@@ -130,20 +238,27 @@ async function notifyAbsenceOpened(params: {
   branchName: string;
 }) {
   const personName = formatPersonName(params.user);
-  await createAppNotification({
-    branchId: params.caseRow.branchId,
-    userId: params.user.id,
+  const mail = await resolveAbsenceSubjectMail({
+    subjectType: params.caseRow.subjectType,
+    studentId: params.caseRow.studentId,
+    subjectUser: params.user,
+  });
+
+  await notifyAbsenceAudienceInApp({
+    caseRow: params.caseRow,
+    subjectUserId: params.user.id,
+    parentUserId: mail.parentUserId,
     type: "ABSENCE",
     title: "Absence signalée",
     body: `${params.caseRow.contextLabel} — cliquez pour justifier.`,
-    absenceCaseId: params.caseRow.id,
   });
 
   void sendAbsenceLifecycleEmail({
     kind: "absence",
-    to: params.user.email,
-    phone: params.user.telephone,
-    recipientName: personName,
+    to: mail.to,
+    phone: mail.phone,
+    recipientName: mail.recipientName,
+    audience: mail.audience,
     personName,
     branchName: params.branchName,
     contextLabel: params.caseRow.contextLabel,
@@ -750,11 +865,17 @@ export async function submitAbsenceJustification(params: {
     throw new Error("Expliquez le motif de l'absence (au moins 8 caractères).");
   }
 
+  const parentStudentIds = await getStudentIdsForParentUser(params.userId);
   const caseRow = await prisma.absenceCase.findFirst({
     where: {
       id: params.caseId,
       branchId: params.branchId,
-      userId: params.userId,
+      OR: [
+        { userId: params.userId },
+        ...(parentStudentIds.length
+          ? [{ studentId: { in: parentStudentIds } }]
+          : []),
+      ],
     },
     include: {
       user: { select: userContactSelect },
@@ -787,27 +908,41 @@ export async function submitAbsenceJustification(params: {
     });
   }
 
-  await markRelatedNotificationsRead({
-    absenceCaseId: updated.id,
-    userId: params.userId,
-    types: ["ABSENCE", "JUSTIFICATION_DECISION"],
-  });
+  const relatedUserIds = Array.from(
+    new Set([params.userId, updated.userId]),
+  );
+  await Promise.all(
+    relatedUserIds.map((userId) =>
+      markRelatedNotificationsRead({
+        absenceCaseId: updated.id,
+        userId,
+        types: ["ABSENCE", "JUSTIFICATION_DECISION"],
+      }),
+    ),
+  );
 
   const personName = formatPersonName(updated.user);
-  await createAppNotification({
-    branchId: updated.branchId,
-    userId: params.userId,
+  const mail = await resolveAbsenceSubjectMail({
+    subjectType: updated.subjectType,
+    studentId: updated.studentId,
+    subjectUser: updated.user,
+  });
+
+  await notifyAbsenceAudienceInApp({
+    caseRow: updated,
+    subjectUserId: updated.userId,
+    parentUserId: mail.parentUserId,
     type: "JUSTIFICATION_SUBMITTED",
     title: "Justification envoyée",
     body: `${updated.contextLabel} — en attente de décision.`,
-    absenceCaseId: updated.id,
   });
 
   void sendAbsenceLifecycleEmail({
     kind: "justification_submitted",
-    to: updated.user.email,
-    phone: updated.user.telephone,
-    recipientName: personName,
+    to: mail.to,
+    phone: mail.phone,
+    recipientName: mail.recipientName,
+    audience: mail.audience,
     personName,
     branchName: updated.branch.name,
     contextLabel: updated.contextLabel,
@@ -896,10 +1031,16 @@ export async function reviewAbsenceJustification(params: {
 
   const personName = formatPersonName(updated.user);
   const accepted = params.decision === "ACCEPTED";
+  const mail = await resolveAbsenceSubjectMail({
+    subjectType: updated.subjectType,
+    studentId: updated.studentId,
+    subjectUser: updated.user,
+  });
 
-  await createAppNotification({
-    branchId: updated.branchId,
-    userId: updated.userId,
+  await notifyAbsenceAudienceInApp({
+    caseRow: updated,
+    subjectUserId: updated.userId,
+    parentUserId: mail.parentUserId,
     type: "JUSTIFICATION_DECISION",
     title: accepted
       ? "Justification acceptée"
@@ -907,14 +1048,14 @@ export async function reviewAbsenceJustification(params: {
     body: accepted
       ? `${updated.contextLabel} — un retour a été signalé dans votre compte.`
       : `${updated.contextLabel}${comment ? ` — ${comment}` : ""}`,
-    absenceCaseId: updated.id,
   });
 
   void sendAbsenceLifecycleEmail({
     kind: accepted ? "accepted" : "rejected",
-    to: updated.user.email,
-    phone: updated.user.telephone,
-    recipientName: personName,
+    to: mail.to,
+    phone: mail.phone,
+    recipientName: mail.recipientName,
+    audience: mail.audience,
     personName,
     branchName: updated.branch.name,
     contextLabel: updated.contextLabel,
@@ -926,19 +1067,20 @@ export async function reviewAbsenceJustification(params: {
   });
 
   if (accepted) {
-    await createAppNotification({
-      branchId: updated.branchId,
-      userId: updated.userId,
+    await notifyAbsenceAudienceInApp({
+      caseRow: updated,
+      subjectUserId: updated.userId,
+      parentUserId: mail.parentUserId,
       type: "RETURN",
       title: "Retour signalé",
       body: `Retour enregistré après absence · ${updated.contextLabel}`,
-      absenceCaseId: updated.id,
     });
     void sendAbsenceLifecycleEmail({
       kind: "return",
-      to: updated.user.email,
-      phone: updated.user.telephone,
-      recipientName: personName,
+      to: mail.to,
+      phone: mail.phone,
+      recipientName: mail.recipientName,
+      audience: mail.audience,
       personName,
       branchName: updated.branch.name,
       contextLabel: updated.contextLabel,
@@ -984,13 +1126,26 @@ export async function listMyAbsenceCases(params: {
   userId: string;
 }): Promise<AbsenceCaseView[]> {
   const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+  const parentStudentIds = await getStudentIdsForParentUser(params.userId);
   const rows = await prisma.absenceCase.findMany({
     where: {
       branchId: params.branchId,
-      userId: params.userId,
       OR: [
-        { status: { in: ["OPEN", "PENDING_REVIEW"] } },
-        { status: { in: ["ACCEPTED", "REJECTED"] }, reviewedAt: { gte: since } },
+        { userId: params.userId },
+        ...(parentStudentIds.length
+          ? [{ studentId: { in: parentStudentIds } }]
+          : []),
+      ],
+      AND: [
+        {
+          OR: [
+            { status: { in: ["OPEN", "PENDING_REVIEW"] } },
+            {
+              status: { in: ["ACCEPTED", "REJECTED"] },
+              reviewedAt: { gte: since },
+            },
+          ],
+        },
       ],
     },
     include: { user: { select: userContactSelect } },
@@ -1018,11 +1173,23 @@ export async function getAbsenceCaseForUser(params: {
   userId: string;
   asReviewer: boolean;
 }): Promise<AbsenceCaseView | null> {
+  const parentStudentIds = params.asReviewer
+    ? []
+    : await getStudentIdsForParentUser(params.userId);
   const row = await prisma.absenceCase.findFirst({
     where: {
       id: params.caseId,
       branchId: params.branchId,
-      ...(params.asReviewer ? {} : { userId: params.userId }),
+      ...(params.asReviewer
+        ? {}
+        : {
+            OR: [
+              { userId: params.userId },
+              ...(parentStudentIds.length
+                ? [{ studentId: { in: parentStudentIds } }]
+                : []),
+            ],
+          }),
     },
     include: { user: { select: userContactSelect } },
   });

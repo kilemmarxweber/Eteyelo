@@ -8,6 +8,7 @@ import {
 } from "@/lib/reports/pdf-header-footer";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import { studentAllowsExamCodes } from "@/lib/exam-export-meta";
+import { sortPeopleByName } from "@/lib/person-full-name";
 
 export type StudentReportSexe = "M" | "F";
 export type StudentReportStatus = "active" | "inactive";
@@ -249,6 +250,13 @@ function formatDateOfBirth(
   return date.toLocaleDateString(locale);
 }
 
+export function sortStudentsForReport(
+  students: IStudent[],
+  locale = "fr",
+): IStudent[] {
+  return sortPeopleByName(students, locale);
+}
+
 export async function buildStudentsReportPdf(
   students: IStudent[],
   context: SchoolReportContext,
@@ -275,6 +283,7 @@ export async function buildStudentsReportPdf(
   );
   const title = buildStudentsReportTitle(options);
   const filterLabels = buildStudentsReportFilterLabels(options);
+  const sortedStudents = sortStudentsForReport(students, labels.locale);
   const doc = new jsPDF({
     orientation: "landscape",
     unit: "mm",
@@ -290,7 +299,7 @@ export async function buildStudentsReportPdf(
     subtitle: context.branchName,
     details: [
       ...filterLabels,
-      labels.studentCount.replace("{count}", String(students.length)),
+      labels.studentCount.replace("{count}", String(sortedStudents.length)),
     ],
     logoDataUrl: logo,
   };
@@ -310,7 +319,7 @@ export async function buildStudentsReportPdf(
     ...(showBirthColumns ? [labels.colBirthDate, labels.colBirthPlace] : []),
   ];
 
-  const body = students.map((student, index) => {
+  const body = sortedStudents.map((student, index) => {
     const exam = resolveStudentExamCodes(student, options.schoolYearIds);
     const allowed = studentAllowsExamCodes(student, examCodesContext);
     const age = calculateAge(student.dateOfBirth);

@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import {
   formatReceiptClasseCode,
+  formatReceiptStudentName,
   type FacturePaymentStudentData,
 } from "@/components/FacturePaymentStudent";
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
@@ -13,11 +14,7 @@ import {
   sumReceiptBase,
   sumReceiptSecondary,
 } from "@/components/reports/receipt-format";
-import {
-  formatReceiptSettlementStatus,
-  receiptItemStatusLabel,
-  resolveOverallReceiptSettlementStatus,
-} from "@/lib/reports/receipt-settlement";
+import { receiptItemStatusLabel } from "@/lib/reports/receipt-settlement";
 
 export type ReceiptPreviewBodyProps = {
   data: FacturePaymentStudentData;
@@ -72,20 +69,11 @@ export function ReceiptPreviewBody({
       ? sumReceiptSecondary(data.items, secondary, secondaryOpts)
       : 0;
   const dateLabel = issuedAt.toLocaleDateString("fr-FR");
-  const overallStatus =
-    data.settlementStatus ?? resolveOverallReceiptSettlementStatus(data.items);
-  const statusLabel = formatReceiptSettlementStatus(overallStatus);
 
   return (
     <div className={cn("flex flex-col gap-4 text-sm text-foreground", className)}>
       <div className="flex flex-col gap-1">
         <p className="font-medium">Facture N°: {data.invoiceNumber}</p>
-        {statusLabel ? (
-          <p>
-            <span className="text-muted-foreground">Statut : </span>
-            <span className="font-semibold">{statusLabel}</span>
-          </p>
-        ) : null}
         <p>
           <span className="text-muted-foreground">Parent : </span>
           {data.recipient.name || "-"}
@@ -95,28 +83,44 @@ export function ReceiptPreviewBody({
       <div className="overflow-visible rounded-md border">
         <table className="w-full table-fixed text-left text-[10px] leading-snug sm:text-xs">
           <colgroup>
-            <col className="w-[22%]" />
-            <col className="w-[12%]" />
-            <col className="w-[16%]" />
-            <col className="w-[14%]" />
-            <col className="w-[14%]" />
-            {showSecondaryColumn ? <col className="w-[12%]" /> : null}
-            <col className="w-[10%]" />
+            {showSecondaryColumn ? (
+              <>
+                <col className="w-[16%]" />
+                <col className="w-[22%]" />
+                <col className="w-[8%]" />
+                <col className="w-[10%]" />
+                <col className="w-[10%]" />
+                <col className="w-[10%]" />
+                <col className="w-[12%]" />
+                <col className="w-[12%]" />
+              </>
+            ) : (
+              <>
+                <col className="w-[18%]" />
+                <col className="w-[28%]" />
+                <col className="w-[8%]" />
+                <col className="w-[12%]" />
+                <col className="w-[12%]" />
+                <col className="w-[12%]" />
+                <col className="w-[10%]" />
+              </>
+            )}
           </colgroup>
           <thead className="bg-foreground text-background">
             <tr>
+              <th className="px-1.5 py-2 font-semibold">Noms</th>
               <th className="px-1.5 py-2 font-semibold">Description</th>
               <th className="px-1.5 py-2 text-right font-semibold">Mode</th>
               <th className="px-1.5 py-2 font-semibold">Classe</th>
               <th className="px-1.5 py-2 text-right font-semibold">
-                Mnt a payer {baseCurrency}
+                A payer {baseCurrency}
               </th>
               <th className="px-1.5 py-2 text-right font-semibold">
-                Mnt payer {baseCurrency}
+                Payer {baseCurrency}
               </th>
               {showSecondaryColumn && secondary ? (
                 <th className="px-1.5 py-2 text-right font-semibold">
-                  Mnt {secondary}
+                  {secondary}
                 </th>
               ) : null}
               <th className="px-1.5 py-2 font-semibold">Statut</th>
@@ -126,6 +130,9 @@ export function ReceiptPreviewBody({
             {data.items.map((item, index) => (
               <tr key={`${item.description}-${index}`} className="border-t">
                 <td className="px-1.5 py-2 break-words whitespace-normal">
+                  {formatReceiptStudentName(item)}
+                </td>
+                <td className="px-1.5 py-2 whitespace-nowrap">
                   {item.description}
                 </td>
                 <td className="px-1.5 py-2 break-words text-right whitespace-normal">

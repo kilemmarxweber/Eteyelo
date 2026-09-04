@@ -13,9 +13,7 @@ import {
   type ReceiptPrintFormat,
 } from "@/components/reports/receipt-format";
 import {
-  formatReceiptSettlementStatus,
   receiptItemStatusLabel,
-  resolveOverallReceiptSettlementStatus,
   type ReceiptSettlementStatus,
 } from "@/lib/reports/receipt-settlement";
 
@@ -26,6 +24,8 @@ export type FacturePaymentStudentData = {
   recipient: { name: string; class?: string; sexe?: string };
   items: {
     description: string;
+    /** Prénom + nom de l’élève concerné par la ligne. */
+    studentName?: string;
     price: number;
     /** Mode de paiement (ESPECES, MPESA, …). */
     mode: string;
@@ -86,6 +86,21 @@ export function formatReceiptClasseCode(
   return item.codeClasse?.trim() || "-";
 }
 
+export function formatReceiptStudentName(
+  item:
+    | string
+    | null
+    | undefined
+    | {
+        studentName?: string | null;
+      },
+): string {
+  if (typeof item === "string" || item == null) {
+    return item?.trim() || "-";
+  }
+  return item.studentName?.trim() || "-";
+}
+
 function formatBaseCell(amount: number, currency: ReceiptCurrency): string {
   if (currency === "USD") {
     return Number(amount).toFixed(2);
@@ -114,13 +129,12 @@ function generateFacturePaymentStudentPosPDF(
     quoteCurrency,
     selectedRate,
     showConversion = true,
-    settlementStatus,
   } = data;
   const pageWidth = 80;
   const margin = 4;
   const contentWidth = pageWidth - margin * 2;
   const lineH = 4.2;
-  const itemBlock = 14;
+  const itemBlock = 18;
   const headerH = 42;
   const pageHeight = Math.max(120, headerH + items.length * itemBlock + 36);
   const doc = new jsPDF({
@@ -145,9 +159,6 @@ function generateFacturePaymentStudentPosPDF(
       : 0;
   const dateLabel = new Date().toLocaleDateString("fr-FR");
   const schoolName = sender.name || "Établissement";
-  const overallStatus =
-    settlementStatus ?? resolveOverallReceiptSettlementStatus(items);
-  const statusLabel = formatReceiptSettlementStatus(overallStatus);
 
   const drawCopy = () => {
     let y = 6;
@@ -180,10 +191,6 @@ function generateFacturePaymentStudentPosPDF(
     doc.setFontSize(9);
     doc.text(`N° ${invoiceNumber}`, pageWidth / 2, y, { align: "center" });
     y += 5;
-    if (statusLabel) {
-      doc.text(statusLabel, pageWidth / 2, y, { align: "center" });
-      y += 4;
-    }
 
     doc.setDrawColor(0);
     doc.setLineWidth(0.2);
@@ -207,17 +214,23 @@ function generateFacturePaymentStudentPosPDF(
     for (const item of items) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8);
-      const desc = doc.splitTextToSize(item.description, contentWidth - 28);
-      doc.text(desc, margin, y);
+      const studentNameLines = doc.splitTextToSize(
+        formatReceiptStudentName(item),
+        contentWidth - 28,
+      );
+      doc.text(studentNameLines, margin, y);
       doc.text(
         formatReceiptCurrency(Number(item.montant), base),
         pageWidth - margin,
         y,
         { align: "right" },
       );
-      y += desc.length * 3.4 + 0.5;
+      y += studentNameLines.length * 3.4 + 0.5;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
+      const descLines = doc.splitTextToSize(item.description, contentWidth);
+      doc.text(descLines, margin, y);
+      y += descLines.length * 3.1;
       const meta = `${formatModePaiementLabel(item.mode ?? item.statut)} · ${formatReceiptClasseCode(item)} · ${receiptItemStatusLabel(item)}`;
       const metaLines = doc.splitTextToSize(meta, contentWidth);
       doc.text(metaLines, margin, y);
@@ -307,7 +320,6 @@ export function generateFacturePaymentStudentPDF(
     quoteCurrency,
     selectedRate,
     showConversion = true,
-    settlementStatus,
   } = data;
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -360,38 +372,30 @@ export function generateFacturePaymentStudentPDF(
     doc.setFont("helvetica", "normal");
     doc.setTextColor(primaryColor);
     doc.text(`Facture N°: ${invoiceNumber}`, 14, 40);
-    const overallStatus =
-      settlementStatus ?? resolveOverallReceiptSettlementStatus(items);
-    const statusLabel = formatReceiptSettlementStatus(overallStatus);
-    if (statusLabel) {
-      doc.setFont("helvetica", "bold");
-      doc.text(`Statut : ${statusLabel}`, 14, 46);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Parent : ${recipient.name || "-"}`, 14, 52);
-    } else {
-      doc.text(`Parent : ${recipient.name || "-"}`, 14, 46);
-    }
+    doc.text(`Parent : ${recipient.name || "-"}`, 14, 46);
 
-    const startY = statusLabel ? 58 : 52;
+    const startY = 52;
     const head = showSecondaryColumn
       ? [
           [
+            "Noms",
             "Description",
             "Mode",
             "Classe",
-            `Mnt a payer ${base}`,
-            `Mnt payer ${base}`,
-            `Mnt ${secondary}`,
+            `A payer ${base}`,
+            `Payer ${base}`,
+            `${secondary}`,
             "Statut",
           ],
         ]
       : [
           [
+            "Noms",
             "Description",
             "Mode",
             "Classe",
-            `Mnt a payer ${base}`,
-            `Mnt payer ${base}`,
+            `A payer ${base}`,
+            `Payer ${base}`,
             "Statut",
           ],
         ];
@@ -400,7 +404,7 @@ export function generateFacturePaymentStudentPDF(
       startY,
       margin: { left: 14, right: 14 },
       theme: "plain",
-      styles: { fontSize: 5, cellPadding: 4, textColor: "#000" },
+      styles: { fontSize: 5, cellPadding: 3, textColor: "#000" },
       headStyles: {
         fillColor: [0, 0, 0],
         textColor: [255, 255, 255],
@@ -408,25 +412,28 @@ export function generateFacturePaymentStudentPDF(
       },
       columnStyles: showSecondaryColumn
         ? {
-            0: { cellWidth: 44 },
-            1: { halign: "right", cellWidth: 20 },
-            2: { cellWidth: 30 },
-            3: { halign: "right", cellWidth: 22 },
-            4: { halign: "right", cellWidth: 22 },
+            0: { cellWidth: 26 },
+            1: { cellWidth: 46, overflow: "visible" },
+            2: { halign: "right", cellWidth: 14 },
+            3: { cellWidth: 16 },
+            4: { halign: "right", cellWidth: 20 },
             5: { halign: "right", cellWidth: 20 },
-            6: { cellWidth: 22 },
+            6: { halign: "right", cellWidth: 18 },
+            7: { cellWidth: 22 },
           }
         : {
-            0: { cellWidth: 52 },
-            1: { halign: "right", cellWidth: 24 },
-            2: { cellWidth: 35 },
-            3: { halign: "right", cellWidth: 26 },
-            4: { halign: "right", cellWidth: 26 },
-            5: { cellWidth: 24 },
+            0: { cellWidth: 30 },
+            1: { cellWidth: 56, overflow: "visible" },
+            2: { halign: "right", cellWidth: 14 },
+            3: { cellWidth: 18 },
+            4: { halign: "right", cellWidth: 22 },
+            5: { halign: "right", cellWidth: 22 },
+            6: { cellWidth: 20 },
           },
       head,
       body: items.map((item) => {
         const row = [
+          formatReceiptStudentName(item),
           item.description,
           formatModePaiementLabel(item.mode ?? item.statut),
           formatReceiptClasseCode(item),
@@ -465,8 +472,8 @@ export function generateFacturePaymentStudentPDF(
         ? sumReceiptSecondary(items, secondary, secondaryOpts)
         : 0;
     const tableRightX = showSecondaryColumn
-      ? 14 + 44 + 20 + 30 + 22 + 22 + 20
-      : 14 + 52 + 24 + 35 + 26 + 26;
+      ? 14 + 26 + 46 + 14 + 16 + 20 + 20 + 18
+      : 14 + 30 + 56 + 14 + 18 + 22 + 22;
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
