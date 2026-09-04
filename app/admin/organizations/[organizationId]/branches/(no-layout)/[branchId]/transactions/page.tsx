@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function BranchTransactionsPage() {
   const context = await requireBranchContext({ onMissing: "redirect" });
-  await assertBranchAreaAccess("payroll", context.session, {
+  await assertBranchAreaAccess("transactions", context.session, {
     organizationId: context.organizationId,
     branchId: context.branchId,
   });

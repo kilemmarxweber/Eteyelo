@@ -4,10 +4,15 @@
 import assert from "node:assert/strict";
 
 import {
+  expandTemporaryGrantActions,
   grantMatchesPermission,
   grantsCoverBranchArea,
   grantsCoverPermissions,
 } from "../lib/auth/temporary-privilege";
+import {
+  GRANT_GROUP_ALL,
+  resolveTemporaryGrantResources,
+} from "../lib/auth/temporary-grant-catalog";
 import {
   pageStillAllowedAfterGrantExpiry,
   parseBranchWorkspacePath,
@@ -36,6 +41,52 @@ test("finance:read ne couvre pas finance:encaisser", () => {
       finance: ["encaisser"],
     }),
     false,
+  );
+});
+
+test("create / update / delete couvrent la lecture, sans se croiser", () => {
+  assert.equal(grantMatchesPermission(grant("notes", "create"), "notes", "read"), true);
+  assert.equal(grantMatchesPermission(grant("notes", "update"), "notes", "read"), true);
+  assert.equal(grantMatchesPermission(grant("notes", "delete"), "notes", "read"), true);
+  assert.equal(grantMatchesPermission(grant("notes", "create"), "notes", "update"), false);
+  assert.equal(grantMatchesPermission(grant("notes", "update"), "notes", "delete"), false);
+  assert.equal(grantMatchesPermission(grant("notes", "read"), "notes", "create"), false);
+});
+
+test("encaisser n'implique pas la lecture des rapports", () => {
+  assert.equal(
+    grantMatchesPermission(grant("finance", "encaisser"), "finance", "read"),
+    false,
+  );
+});
+
+test("lecture seule reste un octroi autonome", () => {
+  assert.deepEqual(expandTemporaryGrantActions("read"), ["read"]);
+  assert.deepEqual(expandTemporaryGrantActions("update"), ["update", "read"]);
+  assert.deepEqual(expandTemporaryGrantActions("create"), ["create", "read"]);
+  assert.deepEqual(expandTemporaryGrantActions("delete"), ["delete", "read"]);
+  assert.deepEqual(expandTemporaryGrantActions("encaisser"), ["encaisser"]);
+});
+
+test("catalogue finance : tout le menu ou un sous-menu", () => {
+  assert.deepEqual(resolveTemporaryGrantResources("finance", GRANT_GROUP_ALL), [
+    "fees",
+    "finance",
+    "payroll",
+    "transactions",
+  ]);
+  assert.deepEqual(resolveTemporaryGrantResources("finance", "fees"), ["fees"]);
+  assert.deepEqual(resolveTemporaryGrantResources("cursus", "notes"), ["notes"]);
+});
+
+test("zone notes accessible avec notes:update (lecture accompagnante)", () => {
+  assert.equal(
+    grantsCoverBranchArea([grant("notes", "update")], "notes"),
+    true,
+  );
+  assert.equal(
+    grantsCoverBranchArea([grant("notes", "read")], "notes"),
+    true,
   );
 });
 
@@ -73,6 +124,55 @@ test("fee_catalog exige fees:read, pas finance:read", () => {
   assert.equal(
     grantsCoverBranchArea([grant("finance", "read")], "fee_catalog"),
     false,
+  );
+});
+
+test("octroi paie n'ouvre pas les transactions, et inversement", () => {
+  assert.equal(
+    grantsCoverBranchArea([grant("payroll", "read")], "payroll"),
+    true,
+  );
+  assert.equal(
+    grantsCoverBranchArea([grant("payroll", "read")], "transactions"),
+    false,
+  );
+  assert.equal(
+    grantsCoverBranchArea([grant("transactions", "read")], "transactions"),
+    true,
+  );
+  assert.equal(
+    grantsCoverBranchArea([grant("transactions", "read")], "payroll"),
+    false,
+  );
+});
+
+test("octroi personnel n'ouvre pas les parents, et inversement", () => {
+  assert.equal(
+    grantsCoverBranchArea([grant("personnel", "read")], "hr_directory"),
+    true,
+  );
+  assert.equal(
+    grantsCoverBranchArea([grant("personnel", "read")], "parents"),
+    false,
+  );
+  assert.equal(
+    grantsCoverBranchArea([grant("parent", "read")], "parents"),
+    true,
+  );
+});
+
+test("octroi élèves n'ouvre pas les enseignants", () => {
+  assert.equal(
+    grantsCoverBranchArea([grant("student", "read")], "students"),
+    true,
+  );
+  assert.equal(
+    grantsCoverBranchArea([grant("student", "read")], "pedagogy"),
+    false,
+  );
+  assert.equal(
+    grantsCoverBranchArea([grant("teacher", "read")], "pedagogy"),
+    true,
   );
 });
 

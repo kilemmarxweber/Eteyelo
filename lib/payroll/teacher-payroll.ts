@@ -891,7 +891,7 @@ export async function persistTeacherPayroll(
     gross: combined.gross,
     deductions: combined.deductions,
     net: combined.net,
-    policySnapshot: result.policy,
+    policySnapshot: result.policy as Prisma.InputJsonValue,
     generatedAt: new Date(),
   };
 

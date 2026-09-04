@@ -8,13 +8,21 @@ import {
   expireOutdatedGrants,
 } from "@/lib/auth/temporary-privilege";
 import { prisma } from "@/lib/prisma";
+import { writeActionIncludesRead } from "@/lib/auth/temporary-grant-actions";
+import {
+  extraActionsForResource,
+  isCatalogGrantResource,
+  resolveTemporaryGrantResources,
+} from "@/lib/auth/temporary-grant-catalog";
 
 export async function grantTemporaryPrivilegeAction(
   organizationId: string,
   payload: {
     targetUserId: string;
     branchId?: string | null;
-    resource: string;
+    resource?: string;
+    groupId?: string;
+    itemValue?: string;
     action?: string;
     temporaryRole?: string | null;
     durationMinutes: number;
@@ -27,8 +35,8 @@ export async function grantTemporaryPrivilegeAction(
     return { ok: false, message: guard.message };
   }
 
-  if (!payload.targetUserId || !payload.resource || !payload.reason || !payload.durationMinutes) {
-    return { ok: false, message: "Informations incomplètes (utilisateur, ressource, motif et durée requis)." };
+  if (!payload.targetUserId || !payload.reason || !payload.durationMinutes) {
+    return { ok: false, message: "Informations incomplètes (utilisateur, motif et durée requis)." };
   }
 
   if (payload.durationMinutes <= 0 || payload.durationMinutes > 10080) { // Max 7 jours (10080 min)
@@ -43,10 +51,28 @@ export async function grantTemporaryPrivilegeAction(
     };
   }
 
-  if (payload.resource === "*") {
+  const resources = payload.groupId
+    ? resolveTemporaryGrantResources(payload.groupId, payload.itemValue ?? "")
+    : payload.resource
+      ? [payload.resource]
+      : [];
+
+  if (!resources.length || resources.some((resource) => !isCatalogGrantResource(resource))) {
     return {
       ok: false,
-      message: "L'octroi global « toutes les ressources » n'est pas autorisé. Choisissez une ressource précise.",
+      message: "Choisissez un menu ou un sous-menu précis (ex: Finance → Paiement, ou tout le menu).",
+    };
+  }
+
+  const grantResources =
+    action === "encaisser"
+      ? resources.filter((resource) => extraActionsForResource(resource).includes("encaisser"))
+      : resources;
+
+  if (action === "encaisser" && grantResources.length === 0) {
+    return {
+      ok: false,
+      message: "L'encaissement s'applique uniquement au paiement / caisse.",
     };
   }
 
@@ -76,25 +102,38 @@ export async function grantTemporaryPrivilegeAction(
   }
 
   try {
-    const grant = await grantTemporaryPrivilege({
-      userId: payload.targetUserId,
-      organizationId,
-      branchId: payload.branchId ?? null,
-      resource: payload.resource,
-      action,
-      temporaryRole: payload.temporaryRole ?? null,
-      durationMinutes: payload.durationMinutes,
-      reason: payload.reason,
-      grantedById: guard.context.userId,
-    });
+    const grants: Awaited<ReturnType<typeof grantTemporaryPrivilege>>[] = [];
+    for (const resource of grantResources) {
+      grants.push(
+        await grantTemporaryPrivilege({
+          userId: payload.targetUserId,
+          organizationId,
+          branchId: payload.branchId ?? null,
+          resource,
+          action,
+          temporaryRole: payload.temporaryRole ?? null,
+          durationMinutes: payload.durationMinutes,
+          reason: payload.reason,
+          grantedById: guard.context.userId,
+        }),
+      );
+    }
 
     revalidatePath(`/admin/organizations/${organizationId}/settings/temporary-grants`);
     revalidatePath("/admin", "layout");
 
+    const includesRead = writeActionIncludesRead(action);
+    const count = grants.length;
+
     return {
       ok: true,
-      message: "Privilège temporaire accordé avec succès.",
-      grantId: grant.id,
+      message:
+        count > 1
+          ? `${count} sous-menus accordés${includesRead ? " (lecture incluse)" : ""}.`
+          : includesRead
+            ? "Privilège temporaire accordé (lecture incluse)."
+            : "Privilège temporaire accordé avec succès.",
+      grantId: grants[0]?.id,
     };
   } catch (error) {
     console.error("Erreur lors de l'octroi du privilège temporaire:", error);

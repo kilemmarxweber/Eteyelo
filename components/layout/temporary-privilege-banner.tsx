@@ -9,6 +9,7 @@ import {
   getMyActiveTemporaryGrantsAction,
   shouldLeavePageAfterGrantExpiryAction,
 } from "@/lib/auth/temporary-grants.action";
+import { writeActionIncludesRead } from "@/lib/auth/temporary-grant-actions";
 
 type TemporaryGrantItem = {
   id: string;
@@ -154,6 +155,9 @@ export function TemporaryPrivilegeBanner({ organizationId }: { organizationId?: 
           Accès accordé à{" "}
           <strong className="font-mono">
             {primaryGrant.resource}:{primaryGrant.action}
+            {writeActionIncludesRead(primaryGrant.action)
+              ? " + lecture"
+              : ""}
           </strong>{" "}
           ({primaryGrant.reason})
         </span>

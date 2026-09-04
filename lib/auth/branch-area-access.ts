@@ -106,6 +106,12 @@ export function canAccessBranchArea(
       return canAccessTitulaireFichesArea(session);
     case "roles_privileges":
       return canAccessBranchOrgSettings(session);
+    case "transactions":
+      return canAccessPayrollArea(session);
+    case "parents":
+      return canAccessPedagogyArea(session);
+    case "documents":
+      return canAccessResultsArea(session) || canAccessPedagogyArea(session);
     default: {
       const _exhaustive: never = area;
       return _exhaustive;

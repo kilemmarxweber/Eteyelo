@@ -1,10 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import {
-  BRANCH_AREA_PERMISSION,
+  GRANT_BRANCH_AREA_PERMISSION,
   type BranchArea,
 } from "@/lib/auth/branch-area-permissions";
 import type { OrganizationPermissionPayload } from "@/lib/auth/has-organization-permission";
+import { writeActionIncludesRead } from "@/lib/auth/temporary-grant-actions";
 import type { TemporaryGrant } from "@/prisma/generated/prisma/client";
+
+export {
+  expandTemporaryGrantActions,
+  writeActionIncludesRead,
+  WRITE_ACTIONS_THAT_INCLUDE_READ,
+} from "@/lib/auth/temporary-grant-actions";
 
 export type GrantTemporaryPrivilegeInput = {
   userId: string;
@@ -71,7 +78,13 @@ export function grantMatchesPermission(
   if (!matchResource) return false;
 
   if (grant.action === "*") return true;
-  return grant.action.toLowerCase() === action.toLowerCase();
+
+  const grantAction = grant.action.toLowerCase();
+  const requestedAction = action.toLowerCase();
+  if (grantAction === requestedAction) return true;
+
+  // create / update / delete couvrent aussi la lecture (entrée de zone, listes).
+  return requestedAction === "read" && writeActionIncludesRead(grantAction);
 }
 
 /** Vérifie qu'une liste d'octrois couvre toutes les permissions demandées (niveau organisation). */
@@ -90,12 +103,12 @@ export function grantsCoverPermissions(
   return true;
 }
 
-/** Vérifie qu'un octroi couvre l'entrée dans une zone branche (même règles que le DAC). */
+/** Vérifie qu'un octroi couvre l'entrée dans une zone branche. */
 export function grantsCoverBranchArea(
   grants: TemporaryGrant[],
   area: BranchArea,
 ): boolean {
-  const required = BRANCH_AREA_PERMISSION[area];
+  const required = GRANT_BRANCH_AREA_PERMISSION[area];
   if (!required) return false;
 
   for (const [resource, actions] of Object.entries(required)) {

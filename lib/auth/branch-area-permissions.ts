@@ -47,7 +47,10 @@ export type BranchArea =
   | "periods"
   | "structure_copy"
   | "roles_privileges"
-  | "candidatures";
+  | "candidatures"
+  | "transactions"
+  | "parents"
+  | "documents";
 
 /** Permission minimale pour ENTRER dans une zone (souvent `read`). */
 export const BRANCH_AREA_PERMISSION: Record<
@@ -92,6 +95,29 @@ export const BRANCH_AREA_PERMISSION: Record<
   structure_copy: { structureCopy: ["read"] },
   roles_privileges: { ac: ["read"] },
   candidatures: { candidatures: ["read"] },
+  /** DAC : même privilège paie. Octroi temporaire : ressource `transactions`. */
+  transactions: { payroll: ["read"] },
+  /** DAC : même privilège RH. Octroi temporaire : ressource `parent`. */
+  parents: { personnel: ["read"] },
+  documents: { documents: ["read"] },
+};
+
+/**
+ * Ressources d'octroi temporaire (1 sous-menu = 1 ressource).
+ * Plus précises que le DAC : un octroi `payroll` n'ouvre pas Transactions.
+ */
+export const GRANT_BRANCH_AREA_PERMISSION: Record<
+  BranchArea,
+  OrganizationPermissionPayload
+> = {
+  ...BRANCH_AREA_PERMISSION,
+  pedagogy: { teacher: ["read"] },
+  students: { student: ["read"] },
+  hr_directory: { personnel: ["read"] },
+  parents: { parent: ["read"] },
+  payroll: { payroll: ["read"] },
+  transactions: { transactions: ["read"] },
+  documents: { documents: ["read"] },
 };
 
 /**
@@ -114,7 +140,7 @@ export const SIDEBAR_HREF_BRANCH_AREA: Record<string, BranchArea> = {
   "/admin/paiement": "finance",
   "/admin/paie-enseignants": "payroll",
   "/admin/paie-enseignants/credits": "payroll",
-  "/admin/transactions": "payroll",
+  "/admin/transactions": "transactions",
   "/admin/results": "results",
   "/admin/devoirs": "devoirs",
   "/admin/bibliotheque": "library",
@@ -125,7 +151,10 @@ export const SIDEBAR_HREF_BRANCH_AREA: Record<string, BranchArea> = {
   "/admin/student": "students",
   "/admin/personnel": "hr_directory",
   "/admin/teacher": "pedagogy",
-  "/admin/parent": "hr_directory",
+  "/admin/parent": "parents",
+  "/admin/attestations": "documents",
+  "/admin/brevets": "documents",
+  "/admin/releves": "documents",
 };
 
 /** Settings sous-menus → zone DAC. */

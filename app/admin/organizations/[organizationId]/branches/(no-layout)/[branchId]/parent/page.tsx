@@ -11,12 +11,10 @@ import {
   IconUsersGroup,
 } from "@tabler/icons-react";
 
-import { NotFoundView } from "@/components/not-found-view";
 import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
 import { useSession } from "@/lib/auth-client";
-import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
 
 import UserList from "./components/ParentsTable";
 import { getParentEnrollmentStatsAction } from "./parent.action";
@@ -49,7 +47,7 @@ export default function Parents() {
   const [stats, setStats] = useState<ParentStats>(emptyStats);
   const [hasMounted, setHasMounted] = useState(false);
   const peopleLabels = useBranchPeopleLabels();
-  const { data: session, isPending } = useSession();
+  const { isPending } = useSession();
   const sessionReady = hasMounted && !isPending;
 
   useEffect(() => {
@@ -70,13 +68,6 @@ export default function Parents() {
 
     if (sessionReady) void loadStats();
   }, [sessionReady]);
-
-  if (
-    sessionReady &&
-    (!session || !canAccessBranchArea("hr_directory", session))
-  ) {
-    return <NotFoundView />;
-  }
 
   const yearRatio = stats.totalParents
     ? Math.round((stats.parentsCurrentYear / stats.totalParents) * 100)

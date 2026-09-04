@@ -27,6 +27,13 @@ import {
   grantTemporaryPrivilegeAction,
   listTemporaryGrantMembersAction,
 } from "@/app/admin/organizations/[organizationId]/settings/temporary-grants/actions";
+import {
+  extraActionsForResource,
+  findGrantCatalogGroup,
+  GRANT_GROUP_ALL,
+  TEMPORARY_GRANT_CATALOG,
+} from "@/lib/auth/temporary-grant-catalog";
+import { writeActionIncludesRead } from "@/lib/auth/temporary-grant-actions";
 
 type TemporaryGrantModalProps = {
   open: boolean;
@@ -35,25 +42,11 @@ type TemporaryGrantModalProps = {
   onSuccess?: () => void;
 };
 
-const RESOURCE_OPTIONS = [
-  { value: "finance", label: "Finances & Caisse (finance)" },
-  { value: "notes", label: "Notes & Bulletins (notes)" },
-  { value: "student", label: "Annuaire Élèves (student)" },
-  { value: "inscription", label: "Inscriptions (inscription)" },
-  { value: "candidatures", label: "Candidatures recrutement (candidatures)" },
-  { value: "payroll", label: "Paie du personnel (payroll)" },
-  { value: "attendance", label: "Présences (attendance)" },
-  { value: "devoirs", label: "Devoirs & Cours (devoirs)" },
-  { value: "schedule", label: "Horaire & Vacations (schedule)" },
-  { value: "messaging", label: "Messagerie interne (messaging)" },
-  { value: "settings", label: "Paramètres d'établissement (settings)" },
-];
-
 const ACTION_OPTIONS = [
   { value: "read", label: "Lecture uniquement (read)" },
-  { value: "create", label: "Création (create)" },
-  { value: "update", label: "Modification (update)" },
-  { value: "delete", label: "Suppression (delete)" },
+  { value: "create", label: "Création (create) + lecture" },
+  { value: "update", label: "Modification (update) + lecture" },
+  { value: "delete", label: "Suppression (delete) + lecture" },
   { value: "encaisser", label: "Encaissement caisse (encaisser)" },
 ];
 
@@ -93,13 +86,35 @@ export function TemporaryGrantModal({
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [memberItems, setMemberItems] = useState<SearchComboboxOption[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
-  const [resource, setResource] = useState<string>("finance");
+  const [groupId, setGroupId] = useState<string>("finance");
+  const [itemValue, setItemValue] = useState<string>(GRANT_GROUP_ALL);
   const [action, setAction] = useState<string>("read");
   const [durationMinutes, setDurationMinutes] = useState<number>(60);
   const [customDuration, setCustomDuration] = useState<string>("");
   const [reason, setReason] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const searchTimerRef = useRef<number | null>(null);
+
+  const selectedGroup = findGrantCatalogGroup(groupId);
+  const selectedItem =
+    itemValue === GRANT_GROUP_ALL
+      ? null
+      : selectedGroup?.items.find((item) => item.resource === itemValue);
+  const canEncaisser =
+    itemValue === GRANT_GROUP_ALL
+      ? (selectedGroup?.items.some((item) =>
+          extraActionsForResource(item.resource).includes("encaisser"),
+        ) ?? false)
+      : extraActionsForResource(itemValue).includes("encaisser");
+  const visibleActions = ACTION_OPTIONS.filter(
+    (opt) => opt.value !== "encaisser" || canEncaisser,
+  );
+
+  const handleGroupChange = (nextGroupId: string) => {
+    setGroupId(nextGroupId);
+    setItemValue(GRANT_GROUP_ALL);
+    if (action === "encaisser") setAction("read");
+  };
 
   const loadMembers = useCallback(
     async (query?: string) => {
@@ -171,7 +186,8 @@ export function TemporaryGrantModal({
     try {
       const res = await grantTemporaryPrivilegeAction(organizationId, {
         targetUserId: selectedUserId,
-        resource,
+        groupId,
+        itemValue,
         action,
         durationMinutes: finalDuration,
         reason: reason.trim(),
@@ -195,15 +211,15 @@ export function TemporaryGrantModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-[620px]">
         <DialogHeader>
           <div className="flex items-center gap-2 text-primary">
             <KeyRound className="h-5 w-5" />
             <DialogTitle>Accorder un Privilège Temporaire</DialogTitle>
           </div>
           <DialogDescription>
-            Attribuez temporairement des droits d'accès à un utilisateur quel que soit son rôle.
-            Le privilège sera automatiquement révoqué à l'échéance.
+            Choisissez un menu puis tout le groupe, ou un sous-menu précis
+            (Finance, Cursus, Enseignement, etc.). Le privilège sera révoqué à l&apos;échéance.
           </DialogDescription>
         </DialogHeader>
 
@@ -237,15 +253,15 @@ export function TemporaryGrantModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Ressource Cible</Label>
-              <Select value={resource} onValueChange={setResource}>
+              <Label>Menu</Label>
+              <Select value={groupId} onValueChange={handleGroupChange}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {RESOURCE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
+                  {TEMPORARY_GRANT_CATALOG.map((group) => (
+                    <SelectItem key={group.id} value={group.id}>
+                      {group.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -253,20 +269,56 @@ export function TemporaryGrantModal({
             </div>
 
             <div className="space-y-1.5">
-              <Label>Action Autorisée</Label>
-              <Select value={action} onValueChange={setAction}>
+              <Label>Sous-menu</Label>
+              <Select value={itemValue} onValueChange={setItemValue}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {ACTION_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
+                  <SelectItem value={GRANT_GROUP_ALL}>
+                    Tout le menu {selectedGroup?.label ?? ""}
+                  </SelectItem>
+                  {(selectedGroup?.items ?? []).map((item) => (
+                    <SelectItem key={item.resource} value={item.resource}>
+                      {item.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                {itemValue === GRANT_GROUP_ALL
+                  ? `Accorde les ${selectedGroup?.items.length ?? 0} sous-menus de ${selectedGroup?.label ?? "ce menu"}.`
+                  : selectedItem
+                    ? `Uniquement « ${selectedItem.label} ».`
+                    : "Choisissez un sous-menu ou tout le menu."}
+              </p>
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Action Autorisée</Label>
+            <Select
+              value={visibleActions.some((opt) => opt.value === action) ? action : "read"}
+              onValueChange={setAction}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {visibleActions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {writeActionIncludesRead(action)
+                ? "La lecture (Voir le menu et les listes) est incluse automatiquement."
+                : action === "read"
+                  ? "Lecture seule : l'utilisateur peut consulter, sans créer, modifier ni supprimer."
+                  : "L'encaissement s'applique au paiement / caisse. Les rapports restent bloqués sans lecture."}
+            </p>
           </div>
 
           <div className="space-y-2">

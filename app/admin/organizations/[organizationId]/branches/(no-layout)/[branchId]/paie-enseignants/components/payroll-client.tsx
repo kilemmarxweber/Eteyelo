@@ -126,6 +126,40 @@ type Policy = {
   notifyByEmail: boolean;
 };
 
+function toPolicyForm(row: {
+  secondarySessionMinutes: number;
+  primarySessionMinutes: number;
+  maternelleSessionMinutes: number;
+  secondaryHourlyRate: number;
+  secondaryMatriculePrimePercent: number;
+  secondaryNonMatriculeSessionRate: number;
+  primaryMatriculeMonthly: number;
+  primaryNonMatriculeMonthly: number;
+  maternelleMatriculeMonthly: number;
+  maternelleNonMatriculeMonthly: number;
+  personnelDayMinutes: number;
+  personnelScales: unknown;
+  lateGraceMinutes: number;
+  notifyByEmail: boolean;
+}): Policy {
+  return {
+    secondarySessionMinutes: row.secondarySessionMinutes,
+    primarySessionMinutes: row.primarySessionMinutes,
+    maternelleSessionMinutes: row.maternelleSessionMinutes,
+    secondaryHourlyRate: row.secondaryHourlyRate,
+    secondaryMatriculePrimePercent: row.secondaryMatriculePrimePercent,
+    secondaryNonMatriculeSessionRate: row.secondaryNonMatriculeSessionRate,
+    primaryMatriculeMonthly: row.primaryMatriculeMonthly,
+    primaryNonMatriculeMonthly: row.primaryNonMatriculeMonthly,
+    maternelleMatriculeMonthly: row.maternelleMatriculeMonthly,
+    maternelleNonMatriculeMonthly: row.maternelleNonMatriculeMonthly,
+    personnelDayMinutes: row.personnelDayMinutes,
+    personnelScales: parsePersonnelScales(row.personnelScales),
+    lateGraceMinutes: row.lateGraceMinutes,
+    notifyByEmail: row.notifyByEmail,
+  };
+}
+
 type SchoolYearOption = {
   id: string;
   nameYear: string;
@@ -269,14 +303,7 @@ export default function PayrollClient() {
 
   useEffect(() => {
     void getPayrollPolicyAction().then(([result, error]) => {
-      if (!error && result) {
-        setPolicy({
-          ...(result as Policy),
-          personnelScales: parsePersonnelScales(
-            (result as { personnelScales?: unknown }).personnelScales,
-          ),
-        });
-      }
+      if (!error && result) setPolicy(toPolicyForm(result));
     });
   }, []);
 

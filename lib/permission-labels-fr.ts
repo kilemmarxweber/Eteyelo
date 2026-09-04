@@ -19,6 +19,8 @@ const RESOURCE_LABELS_FR: Record<string, string> = {
   schedule: "Horaire",
   student: "Élève",
   finance: "Paiement",
+  payroll: "Paie du personnel",
+  transactions: "Transactions",
   fees: "Frais",
   feeTypes: "Types de frais",
   exchangeRates: "Taux de change",
@@ -152,7 +154,7 @@ export const PERMISSION_MATRIX_GROUPS: PermissionMatrixGroup[] = [
   {
     id: "finance",
     label: "Finance",
-    resources: ["fees", "finance"],
+    resources: ["fees", "finance", "payroll"],
   },
   {
     id: "rh",

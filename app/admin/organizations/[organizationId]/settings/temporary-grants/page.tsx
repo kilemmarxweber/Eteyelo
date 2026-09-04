@@ -27,6 +27,7 @@ import {
 import { toast } from "sonner";
 import { BackLink } from "@/components/ui/back-link";
 import { TemporaryGrantModal } from "@/components/auth/temporary-grant-modal";
+import { writeActionIncludesRead } from "@/lib/auth/temporary-grant-actions";
 import {
   getOrganizationTemporaryGrantsAction,
   revokeTemporaryPrivilegeAction,
@@ -223,9 +224,16 @@ export default function TemporaryGrantsPage({
                       <div className="text-xs text-muted-foreground">{grant.user.email}</div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="font-mono bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30">
-                        {grant.resource}:{grant.action}
-                      </Badge>
+                      <div className="flex flex-wrap items-center gap-1">
+                        <Badge variant="outline" className="font-mono bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30">
+                          {grant.resource}:{grant.action}
+                        </Badge>
+                        {writeActionIncludesRead(grant.action) ? (
+                          <Badge variant="secondary" className="text-[10px]">
+                            + lecture
+                          </Badge>
+                        ) : null}
+                      </div>
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground" title={grant.reason}>
                       {grant.reason}

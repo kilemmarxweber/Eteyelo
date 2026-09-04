@@ -75,7 +75,7 @@ export const getBranchTransactionsAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const context = await requireBranchAreaContext("payroll");
+    const context = await requireBranchAreaContext("transactions");
 
     const search = input.search?.trim();
     const mode = input.mode ?? "day";
@@ -372,7 +372,7 @@ export const archiveBranchTransactionAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const context = await requireBranchAreaContext("payroll");
+    const context = await requireBranchAreaContext("transactions");
 
     if (input.kind === "PAYMENT") {
       const row = await prisma.familyPayment.findFirst({
@@ -424,7 +424,7 @@ export const unarchiveBranchTransactionAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const context = await requireBranchAreaContext("payroll");
+    const context = await requireBranchAreaContext("transactions");
 
     if (input.kind === "PAYMENT") {
       const row = await prisma.familyPayment.findFirst({
@@ -476,7 +476,7 @@ export const deleteBranchTransactionAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const context = await requireBranchAreaContext("payroll");
+    const context = await requireBranchAreaContext("transactions");
     if (!isOrganizationOwnerSession(context.session)) {
       throw new Error(
         "Seul le propriétaire peut supprimer définitivement une transaction.",
