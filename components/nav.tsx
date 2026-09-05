@@ -19,7 +19,7 @@ import {
 } from "./ui/dropdown-menu";
 import { TooltipProvider } from "./ui/tooltip";
 import { cn } from "@/lib/utils";
-import useCheckActiveNav from "@/src/hooks/use-check-active-nav";
+import useCheckActiveNav, { isPathActive } from "@/src/hooks/use-check-active-nav";
 import { SideLink } from "@/src/data/sidelinks";
 import { iconMap } from "@/lib/menu-mapper";
 
@@ -48,22 +48,21 @@ export default function Nav({
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   const activeParentTitle = useMemo(() => {
-    return (
-      links.find((link) =>
-        link.sub?.some((sub) => {
-          const current = pathname.replace(/\/$/, "") || "/";
-          const target = sub.href.replace(/\/$/, "") || "/";
-          if (!target || target === "#") return false;
-          if (current === target) return true;
-          const branchRoot = target.match(
-            /^\/admin\/organizations\/[^/]+\/branches\/[^/]+$/,
-          )?.[0];
-          if (branchRoot) return current === branchRoot;
-          if (target === "/admin") return current === "/admin";
-          return current.startsWith(`${target}/`);
-        }),
-      )?.title ?? null
-    );
+    let bestTitle: string | null = null;
+    let bestLength = -1;
+
+    for (const link of links) {
+      for (const sub of link.sub ?? []) {
+        if (!isPathActive(pathname, sub.href)) continue;
+        const length = sub.href.replace(/\/$/, "").length;
+        if (length > bestLength) {
+          bestLength = length;
+          bestTitle = link.title;
+        }
+      }
+    }
+
+    return bestTitle;
   }, [links, pathname]);
 
   useEffect(() => {
