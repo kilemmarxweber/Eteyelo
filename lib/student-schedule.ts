@@ -2,6 +2,10 @@ import { prisma } from "@/lib/prisma";
 import type { StudentScheduleData, StudentScheduleEntry } from "@/lib/student-schedule-types";
 import { genererCreneaux } from "@/src/hooks/getCourseHours";
 import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
+import {
+  formatScheduleCoursLabel,
+  subjectIdsReplacedBySchedulePosts,
+} from "@/lib/cours-components";
 
 function formatScheduleHour(hour: Date | null | undefined) {
   if (!hour) return "";
@@ -100,7 +104,15 @@ export async function buildStudentScheduleData(
     include: {
       teaching: {
         include: {
-          cours: { select: { nameCours: true } },
+          cours: {
+            select: {
+              id: true,
+              nameCours: true,
+              kind: true,
+              parentCoursId: true,
+              parentCours: { select: { nameCours: true } },
+            },
+          },
           teacher: {
             include: {
               branchMember: {
@@ -126,15 +138,36 @@ export async function buildStudentScheduleData(
     orderBy: [{ hour: "asc" }, { day: "asc" }],
   });
 
-  const entries: StudentScheduleEntry[] = schedules.map((schedule) => ({
-    id: schedule.id,
-    day: schedule.day,
-    hourStart: formatScheduleHour(schedule.hour),
-    courseName: schedule.teaching?.cours?.nameCours ?? "—",
-    teacherName: formatTeacherName(
-      schedule.teaching?.teacher?.branchMember?.member?.user,
-    ),
-  }));
+  const replacedParentIds = await subjectIdsReplacedBySchedulePosts({
+    branchId,
+    subjectIds: schedules
+      .map(
+        (schedule) =>
+          schedule.teaching?.cours?.parentCoursId ??
+          schedule.teaching?.cours?.id,
+      )
+      .filter((id): id is string => Boolean(id)),
+  });
+
+  const entries: StudentScheduleEntry[] = schedules
+    .filter(
+      (schedule) =>
+        !replacedParentIds.has(schedule.teaching?.cours?.id ?? ""),
+    )
+    .map((schedule) => ({
+      id: schedule.id,
+      day: schedule.day,
+      hourStart: formatScheduleHour(schedule.hour),
+      courseName: formatScheduleCoursLabel({
+        nameCours: schedule.teaching?.cours?.nameCours ?? "—",
+        parentNameCours: schedule.teaching?.cours?.parentCours?.nameCours,
+        kind: schedule.teaching?.cours?.kind,
+        parentCoursId: schedule.teaching?.cours?.parentCoursId,
+      }),
+      teacherName: formatTeacherName(
+        schedule.teaching?.teacher?.branchMember?.member?.user,
+      ),
+    }));
 
   let timeSlots: string[] = [];
   let recreationHour = "";

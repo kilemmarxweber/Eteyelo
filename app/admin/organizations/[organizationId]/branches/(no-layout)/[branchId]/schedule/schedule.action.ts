@@ -21,7 +21,11 @@ import {
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { scheduleHourToMinutes } from "@/lib/timezone";
-import { formatScheduleCoursLabel } from "@/lib/cours-components";
+import {
+  formatScheduleCoursLabel,
+  filterCoursVisibleOnSchedule,
+  subjectIdsReplacedBySchedulePosts,
+} from "@/lib/cours-components";
 import {
   generateCourseStartSlots,
   sessionsNeededFromWeeklyHours,
@@ -250,6 +254,57 @@ async function findActiveTeachingForSlot(
   });
 }
 
+async function assertCoursPlaceableOnSchedule(
+  ctx: ScheduleContext,
+  coursId: string,
+) {
+  const replaced = await subjectIdsReplacedBySchedulePosts({
+    branchId: ctx.branchId,
+    subjectIds: [coursId],
+  });
+  if (replaced.has(coursId)) {
+    throw new Error(
+      "Ce cours a des postes d'horaire : placez uniquement les sous-branches dans le créneau.",
+    );
+  }
+}
+
+async function deleteReplacedParentSchedulesAtSlot(params: {
+  ctx: ScheduleContext;
+  classeId: string;
+  day: Day;
+  hour: Date;
+  excludeScheduleId?: string;
+}) {
+  const { ctx, classeId, day, hour, excludeScheduleId } = params;
+  const teachings = await prisma.teaching.findMany({
+    where: scopedTeachingWhere(ctx, { classeId }),
+    select: {
+      cours: { select: { id: true, parentCoursId: true } },
+    },
+  });
+  const replacedParentIds = await subjectIdsReplacedBySchedulePosts({
+    branchId: ctx.branchId,
+    subjectIds: teachings
+      .map((row) => row.cours?.parentCoursId ?? row.cours?.id)
+      .filter((id): id is string => Boolean(id)),
+  });
+  if (!replacedParentIds.size) return;
+
+  await prisma.schedule.deleteMany({
+    where: {
+      day,
+      hour,
+      isArchived: false,
+      ...(excludeScheduleId ? { id: { not: excludeScheduleId } } : {}),
+      teaching: {
+        classeId,
+        coursId: { in: [...replacedParentIds] },
+      },
+    },
+  });
+}
+
 /**
  * Un créneau est libre si :
  * - la classe n'a pas déjà un cours à cette heure ;
@@ -298,14 +353,29 @@ async function assertScheduleSlotAvailable(params: {
           teacherId: true,
           classeId: true,
           classe: { select: { nameClasse: true } },
-          cours: { select: { nameCours: true } },
+          cours: {
+            select: {
+              id: true,
+              nameCours: true,
+              parentCoursId: true,
+            },
+          },
         },
       },
     },
   });
 
+  const replacedParentIds = await subjectIdsReplacedBySchedulePosts({
+    branchId: ctx.branchId,
+    subjectIds: candidates
+      .map((row) => row.teaching?.cours?.parentCoursId ?? row.teaching?.cours?.id)
+      .filter((id): id is string => Boolean(id)),
+  });
+
   const atThisHour = candidates.filter(
-    (row) => scheduleHourToMinutes(row.hour) === slotMinutes,
+    (row) =>
+      scheduleHourToMinutes(row.hour) === slotMinutes &&
+      !replacedParentIds.has(row.teaching?.cours?.id ?? ""),
   );
   const hourLabel = formatHourLabel(hour);
 
@@ -405,6 +475,7 @@ export const createScheduleAction = action
     }
 
     await assertClasseInBranch(ctx, classeId);
+    await assertCoursPlaceableOnSchedule(ctx, coursId);
 
     const teaching = await findActiveTeachingForSlot(ctx, classeId, coursId);
 
@@ -424,6 +495,13 @@ export const createScheduleAction = action
         teachingId: teaching.id,
         isArchived: true,
       },
+    });
+
+    await deleteReplacedParentSchedulesAtSlot({
+      ctx,
+      classeId,
+      day,
+      hour: scheduleHour,
     });
 
     await assertScheduleSlotAvailable({
@@ -463,6 +541,7 @@ export const updateScheduleAction = action
     }
 
     await assertClasseInBranch(ctx, classeId);
+    await assertCoursPlaceableOnSchedule(ctx, coursId);
 
     const existing = await prisma.schedule.findFirst({
       where: {
@@ -485,6 +564,13 @@ export const updateScheduleAction = action
     }
 
     const scheduleHour = parseScheduleHour(hour);
+    await deleteReplacedParentSchedulesAtSlot({
+      ctx,
+      classeId,
+      day,
+      hour: scheduleHour,
+      excludeScheduleId: id,
+    });
     await assertScheduleSlotAvailable({
       ctx,
       classeId,
@@ -560,7 +646,23 @@ export const getSchedulesByClasseAction = action
       orderBy: [{ hour: "asc" }, { day: "asc" }],
     });
 
-    return schedules.map((schedule) => ({
+    const replacedParentIds = await subjectIdsReplacedBySchedulePosts({
+      branchId: ctx.branchId,
+      subjectIds: schedules
+        .map(
+          (schedule) =>
+            schedule.teaching?.cours?.parentCoursId ??
+            schedule.teaching?.cours?.id,
+        )
+        .filter((id): id is string => Boolean(id)),
+    });
+
+    return schedules
+      .filter(
+        (schedule) =>
+          !replacedParentIds.has(schedule.teaching?.cours?.id ?? ""),
+      )
+      .map((schedule) => ({
       ...schedule,
       createdBy: schedule.createdBy || "",
       hour: schedule.hour
@@ -655,14 +757,34 @@ export const getSchedulesByTeacherAction = action
               },
             },
             classe: true,
-            cours: true,
+            cours: {
+              include: {
+                parentCours: { select: { nameCours: true } },
+              },
+            },
           },
         },
       },
       orderBy: [{ day: "asc" }, { hour: "asc" }],
     });
 
-    return schedules.map((schedule) => {
+    const replacedParentIds = await subjectIdsReplacedBySchedulePosts({
+      branchId: ctx.branchId,
+      subjectIds: schedules
+        .map(
+          (schedule) =>
+            schedule.teaching?.cours?.parentCoursId ??
+            schedule.teaching?.cours?.id,
+        )
+        .filter((id): id is string => Boolean(id)),
+    });
+
+    return schedules
+      .filter(
+        (schedule) =>
+          !replacedParentIds.has(schedule.teaching?.cours?.id ?? ""),
+      )
+      .map((schedule) => {
       const user = schedule.teaching?.teacher?.branchMember?.member?.user;
 
       return {
@@ -688,7 +810,12 @@ export const getSchedulesByTeacherAction = action
         cours: {
           id: schedule.teaching?.cours?.id || "",
           codeCours: schedule.teaching?.cours?.codeCours || "",
-          nameCours: schedule.teaching?.cours?.nameCours || "",
+          nameCours: formatScheduleCoursLabel({
+            nameCours: schedule.teaching?.cours?.nameCours || "",
+            parentNameCours: schedule.teaching?.cours?.parentCours?.nameCours,
+            kind: schedule.teaching?.cours?.kind,
+            parentCoursId: schedule.teaching?.cours?.parentCoursId,
+          }),
         },
       };
     });
@@ -743,7 +870,11 @@ export const getScheduleCoursByClasseAction = action
         classeId: input.classeId,
       }),
       select: {
-        cours: true,
+        cours: {
+          include: {
+            parentCours: { select: { nameCours: true } },
+          },
+        },
       },
       orderBy: {
         cours: {
@@ -752,14 +883,32 @@ export const getScheduleCoursByClasseAction = action
       },
     });
 
-    return teachings.map((teaching) => ({
-      ...teaching.cours,
-      id: teaching.cours?.id || "",
-      codeCours: teaching.cours?.codeCours || "",
-      nameCours: teaching.cours?.nameCours || "",
-      description: teaching.cours?.description || "",
-      ponderation: 0,
-    }));
+    const visibleCours = await filterCoursVisibleOnSchedule({
+      branchId: ctx.branchId,
+      cours: teachings
+        .map((teaching) => teaching.cours)
+        .filter((cours): cours is NonNullable<typeof cours> => Boolean(cours?.id)),
+    });
+
+    return visibleCours
+      .sort((a, b) => {
+        const order = (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+        if (order !== 0) return order;
+        return a.nameCours.localeCompare(b.nameCours, "fr");
+      })
+      .map((cours) => ({
+        ...cours,
+        id: cours.id,
+        codeCours: cours.codeCours || "",
+        nameCours: formatScheduleCoursLabel({
+          nameCours: cours.nameCours || "",
+          parentNameCours: cours.parentCours?.nameCours,
+          kind: cours.kind,
+          parentCoursId: cours.parentCoursId,
+        }),
+        description: cours.description || "",
+        ponderation: 0,
+      }));
   });
 
 export const getScheduleCreneauByClasseAction = action
@@ -1087,12 +1236,23 @@ export const regenerateScheduleForClasseAction = action
         weeklyHours: true,
         consecutiveSlots: true,
         preferredDays: true,
-        cours: { select: { nameCours: true } },
+        cours: { select: { id: true, nameCours: true, parentCoursId: true } },
       },
     });
 
+    const replacedParentIds = await subjectIdsReplacedBySchedulePosts({
+      branchId: ctx.branchId,
+      subjectIds: teachings
+        .map((t) => t.cours?.parentCoursId ?? t.cours?.id)
+        .filter((id): id is string => Boolean(id)),
+    });
+
     const withHours = teachings.filter(
-      (t) => t.weeklyHours != null && t.weeklyHours > 0 && t.teacherId,
+      (t) =>
+        t.weeklyHours != null &&
+        t.weeklyHours > 0 &&
+        t.teacherId &&
+        !replacedParentIds.has(t.cours?.id ?? ""),
     );
     if (!withHours.length) {
       throw new Error(
@@ -1112,6 +1272,20 @@ export const regenerateScheduleForClasseAction = action
         },
       },
     });
+
+    if (replacedParentIds.size) {
+      await prisma.schedule.deleteMany({
+        where: {
+          isArchived: false,
+          teaching: {
+            classeId: input.classeId,
+            schoolYearId: schoolYear.id,
+            coursId: { in: [...replacedParentIds] },
+            OR: [{ branchId: ctx.branchId }, { branchId: null }],
+          },
+        },
+      });
+    }
 
     const remaining = await prisma.schedule.findMany({
       where: {

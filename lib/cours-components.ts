@@ -97,6 +97,35 @@ export async function expandConfiguredCoursIdsForSchedule(params: {
 }
 
 /**
+ * Cours bulletin remplacés à l'horaire : ils ont au moins un poste actif,
+ * donc seul le poste doit apparaître dans les créneaux (plus le parent).
+ */
+export async function subjectIdsReplacedBySchedulePosts(params: {
+  branchId: string;
+  subjectIds: string[];
+}): Promise<Set<string>> {
+  const parentIds = [...new Set(params.subjectIds.filter(Boolean))];
+  if (!parentIds.length) return new Set();
+
+  const expanded = await expandConfiguredCoursIdsForSchedule({
+    branchId: params.branchId,
+    configuredParentIds: parentIds,
+  });
+  const expandedSet = new Set(expanded);
+  return new Set(parentIds.filter((id) => !expandedSet.has(id)));
+}
+
+export async function filterCoursVisibleOnSchedule<
+  T extends { id: string; parentCoursId?: string | null },
+>(params: { branchId: string; cours: T[] }): Promise<T[]> {
+  const replaced = await subjectIdsReplacedBySchedulePosts({
+    branchId: params.branchId,
+    subjectIds: params.cours.map((row) => row.parentCoursId ?? row.id),
+  });
+  return params.cours.filter((row) => !replaced.has(row.id));
+}
+
+/**
  * Propage teacherId à tous les Teachings du groupe parent + postes
  * (classe × année). Un seul enseignant pour le cours parent.
  */

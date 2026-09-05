@@ -5,6 +5,10 @@ import {
 } from "@/lib/timezone";
 import { cycleLabel, resolveCycle } from "@/lib/cycle";
 import type { Day } from "@/prisma/generated/prisma/client";
+import {
+  formatScheduleCoursLabel,
+  subjectIdsReplacedBySchedulePosts,
+} from "@/lib/cours-components";
 
 export type TeacherBusySlot = {
   scheduleId: string;
@@ -147,12 +151,46 @@ export async function listTeacherBusySlots(params: {
               creneau: { select: { durationCourse: true } },
             },
           },
-          cours: { select: { nameCours: true } },
+          cours: {
+            select: {
+              id: true,
+              nameCours: true,
+              kind: true,
+              parentCoursId: true,
+              parentCours: { select: { nameCours: true } },
+            },
+          },
           branch: { select: { id: true, name: true } },
         },
       },
     },
   });
+
+  const subjectIdsByBranch = new Map<string, string[]>();
+  for (const row of schedules) {
+    const branchId =
+      row.teaching?.branchId ??
+      row.teaching?.classe?.branchId ??
+      row.teaching?.classe?.branch?.id ??
+      row.teaching?.branch?.id ??
+      "";
+    const subjectId =
+      row.teaching?.cours?.parentCoursId ?? row.teaching?.cours?.id;
+    if (!branchId || !subjectId) continue;
+    const list = subjectIdsByBranch.get(branchId) ?? [];
+    list.push(subjectId);
+    subjectIdsByBranch.set(branchId, list);
+  }
+
+  const replacedByBranch = new Map<string, Set<string>>();
+  await Promise.all(
+    [...subjectIdsByBranch.entries()].map(async ([branchId, subjectIds]) => {
+      replacedByBranch.set(
+        branchId,
+        await subjectIdsReplacedBySchedulePosts({ branchId, subjectIds }),
+      );
+    }),
+  );
 
   return schedules.flatMap((row) => {
     if (!row.hour || !row.teaching) return [];
@@ -166,6 +204,9 @@ export async function listTeacherBusySlots(params: {
       row.teaching.classe?.branch?.id ??
       row.teaching.branch?.id ??
       "";
+    if (replacedByBranch.get(branchId)?.has(row.teaching.cours?.id ?? "")) {
+      return [];
+    }
     const branchName =
       row.teaching.branch?.name ??
       row.teaching.classe?.branch?.name ??
@@ -184,7 +225,12 @@ export async function listTeacherBusySlots(params: {
         startMin,
         endMin: startMin + duration,
         className: row.teaching.classe?.nameClasse ?? "Classe",
-        courseName: row.teaching.cours?.nameCours ?? "Cours",
+        courseName: formatScheduleCoursLabel({
+          nameCours: row.teaching.cours?.nameCours ?? "Cours",
+          parentNameCours: row.teaching.cours?.parentCours?.nameCours,
+          kind: row.teaching.cours?.kind,
+          parentCoursId: row.teaching.cours?.parentCoursId,
+        }),
       },
     ];
   });

@@ -33,6 +33,10 @@ import {
 } from "@/lib/teacher-assignment-years";
 import { formatAgeLabel, formatBirthDate } from "@/lib/person-age";
 import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
+import {
+  formatScheduleCoursLabel,
+  subjectIdsReplacedBySchedulePosts,
+} from "@/lib/cours-components";
 import type {
   TeacherAttendanceStatus,
   TeacherProfileClass,
@@ -112,7 +116,15 @@ const SingleTeacherPage = async ({
           ],
         },
         include: {
-          cours: { select: { id: true, nameCours: true } },
+          cours: {
+            select: {
+              id: true,
+              nameCours: true,
+              kind: true,
+              parentCoursId: true,
+              parentCours: { select: { nameCours: true } },
+            },
+          },
           classe: {
             select: { id: true, nameClasse: true, codeClasse: true },
           },
@@ -319,6 +331,29 @@ const SingleTeacherPage = async ({
       creneau.recreationDuration,
     );
   }
+
+  const replacedParentIds = await subjectIdsReplacedBySchedulePosts({
+    branchId,
+    subjectIds: teacher.teaching
+      .map((item) => item.cours?.parentCoursId ?? item.cours?.id)
+      .filter((id): id is string => Boolean(id)),
+  });
+  const scheduleTeachings = teacher.teaching
+    .filter((item) => !replacedParentIds.has(item.cours?.id ?? ""))
+    .map((item) => ({
+      ...item,
+      cours: item.cours
+        ? {
+            ...item.cours,
+            nameCours: formatScheduleCoursLabel({
+              nameCours: item.cours.nameCours,
+              parentNameCours: item.cours.parentCours?.nameCours,
+              kind: item.cours.kind,
+              parentCoursId: item.cours.parentCoursId,
+            }),
+          }
+        : item.cours,
+    }));
 
   const courses: TeacherProfileCourse[] = teacher.teaching.map((item) => ({
     id: item.id,
@@ -539,7 +574,7 @@ const SingleTeacherPage = async ({
     >
       <TeacherProfileClient
         profile={profile}
-        teaching={teacher.teaching as TeacherScheduleUI[]}
+        teaching={scheduleTeachings as TeacherScheduleUI[]}
         hours={heuresDebut}
         workingDays={
           creneau

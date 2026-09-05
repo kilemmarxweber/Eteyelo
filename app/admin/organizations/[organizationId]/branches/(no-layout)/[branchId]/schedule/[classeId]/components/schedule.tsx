@@ -266,7 +266,12 @@ export default function Schedule({
     Cours.forEach((c) => {
       if (!map.has(c.id)) map.set(c.id, c);
     });
-    return Array.from(map.values());
+    const parentIdsWithPosts = new Set(
+      Cours.map((c) => c.parentCoursId).filter(
+        (id): id is string => Boolean(id),
+      ),
+    );
+    return Array.from(map.values()).filter((c) => !parentIdsWithPosts.has(c.id));
   }, [Cours]);
 
   const reportEntries = useMemo(
