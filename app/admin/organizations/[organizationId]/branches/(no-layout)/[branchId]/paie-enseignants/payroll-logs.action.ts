@@ -52,7 +52,7 @@ export const listPayrollNotificationLogsAction = action.handler(async () => {
   const where = {
     branchId: context.branchId,
     type: { in: [...PAYROLL_LOG_TYPES] },
-  } as const;
+  };
 
   const [rows, total, unread] = await Promise.all([
     prisma.appNotification.findMany({
