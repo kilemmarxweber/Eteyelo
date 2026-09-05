@@ -137,12 +137,13 @@ export function ReconduireScheduleDialog({
         if (!submitting) onOpenChange(next);
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        size="lg"
+        className="max-h-[min(90dvh,52rem)] gap-4 overflow-y-auto"
+      >
         <DialogHeader>
-          <DialogTitle className="font-medium">{t("reconduireTitle")}</DialogTitle>
-          <DialogDescription className="font-normal leading-relaxed">
-            {t("reconduireDesc")}
-          </DialogDescription>
+          <DialogTitle>{t("reconduireTitle")}</DialogTitle>
+          <DialogDescription>{t("reconduireDesc")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
