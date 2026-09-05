@@ -1690,6 +1690,7 @@ export const reconduireScheduleFromClasseAction = action
     const occupiedTeacherSlots = new Set(
       existingTargetSlots
         .map((row) => {
+          if (!row.teachingId) return "";
           const teacherId = teacherIdByTeachingId.get(row.teachingId);
           if (!teacherId) return "";
           return `${teacherId}|${row.day}|${scheduleHourToMinutes(row.hour)}`;
