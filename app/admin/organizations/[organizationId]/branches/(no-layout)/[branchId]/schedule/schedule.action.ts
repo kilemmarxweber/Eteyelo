@@ -37,6 +37,10 @@ import {
 } from "@/lib/schedule-auto-generate";
 import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
 import {
+  getCoursePonderationMap,
+  resolveCoursePonderation,
+} from "@/lib/course-ponderation";
+import {
   assertTeacherFreeAt,
   getTeacherUserId,
   listTeacherBusySlots,
@@ -1157,6 +1161,103 @@ const regenerateScheduleSchema = z.object({
   classeId: z.string().min(1),
 });
 
+type AutoScheduleTeachingInput = {
+  teachingId: string;
+  teacherId: string;
+  courseName: string;
+  titulaire: boolean;
+  weeklyMinutes: number;
+  weeklySessions: number;
+  explicitWeeklyMinutes: boolean;
+  ponderation: number;
+  consecutiveSlots?: number | null;
+  preferredDays?: Day[] | null;
+};
+
+function targetSessionsFromTeachings(params: {
+  teachings: AutoScheduleTeachingInput[];
+  availableClassSlots: number;
+}) {
+  const capped = params.teachings.map((teaching) => {
+    const weight = Number.isFinite(teaching.ponderation)
+      ? Math.max(0.25, teaching.ponderation)
+      : 1;
+    const blockSize =
+      teaching.consecutiveSlots != null && teaching.consecutiveSlots > 0
+        ? Math.min(4, Math.max(1, Math.floor(teaching.consecutiveSlots)))
+        : weight >= 2
+          ? 2
+          : 1;
+    const capByWeight = Math.max(blockSize, Math.round(weight * 10));
+    const seeded =
+      teaching.weeklySessions > 0
+        ? teaching.weeklySessions
+        : Math.min(capByWeight, blockSize);
+    return {
+      ...teaching,
+      blockSize,
+      sessionsNeeded: seeded,
+      maxSessions: Math.max(capByWeight, seeded),
+    };
+  });
+
+  if (params.availableClassSlots <= 0 || capped.length === 0) {
+    return capped.map((teaching) => ({
+      ...teaching,
+      sessionsNeeded: 0,
+    }));
+  }
+
+  let assigned = capped.reduce((sum, teaching) => sum + teaching.sessionsNeeded, 0);
+  const ranked = capped
+    .slice()
+    .sort((a, b) => {
+      if (a.titulaire !== b.titulaire) return a.titulaire ? -1 : 1;
+      if (b.ponderation !== a.ponderation) return b.ponderation - a.ponderation;
+      if (b.weeklyMinutes !== a.weeklyMinutes) return b.weeklyMinutes - a.weeklyMinutes;
+      return a.courseName.localeCompare(b.courseName, "fr");
+    });
+
+  // Trop de séances prévues: retirer d'abord celles non explicites.
+  if (assigned > params.availableClassSlots) {
+    const deltas = ranked
+      .slice()
+      .sort((a, b) => {
+        if (a.explicitWeeklyMinutes !== b.explicitWeeklyMinutes) {
+          return a.explicitWeeklyMinutes ? 1 : -1;
+        }
+        if (a.ponderation !== b.ponderation) return a.ponderation - b.ponderation;
+        return a.sessionsNeeded - b.sessionsNeeded;
+      });
+    for (const teaching of deltas) {
+      const minKeep = teaching.explicitWeeklyMinutes ? 1 : 0;
+      while (
+        assigned > params.availableClassSlots &&
+        teaching.sessionsNeeded > minKeep
+      ) {
+        teaching.sessionsNeeded -= 1;
+        assigned -= 1;
+      }
+      if (assigned <= params.availableClassSlots) break;
+    }
+  }
+
+  // Pas assez de séances: compléter selon titulaire + pondération jusqu'au cap.
+  while (assigned < params.availableClassSlots) {
+    let progressed = false;
+    for (const teaching of ranked) {
+      if (assigned >= params.availableClassSlots) break;
+      if (teaching.sessionsNeeded >= teaching.maxSessions) continue;
+      teaching.sessionsNeeded += 1;
+      assigned += 1;
+      progressed = true;
+    }
+    if (!progressed) break;
+  }
+
+  return ranked;
+}
+
 /**
  * Régénère les créneaux AUTO d'une classe à partir des weeklyHours.
  * Conserve les séances MANUAL. Respecte conflits classe / enseignant (multi-branches).
@@ -1178,6 +1279,8 @@ export const regenerateScheduleForClasseAction = action
         select: {
           id: true,
           nameClasse: true,
+          optionId: true,
+          level: true,
           creneau: {
             select: {
               startTime: true,
@@ -1255,16 +1358,14 @@ export const regenerateScheduleForClasseAction = action
         .filter((id): id is string => Boolean(id)),
     });
 
-    const withHours = teachings.filter(
+    const autoTeachings = teachings.filter(
       (t) =>
-        t.weeklyHours != null &&
-        t.weeklyHours > 0 &&
         t.teacherId &&
         !replacedParentIds.has(t.cours?.id ?? ""),
     );
-    if (!withHours.length) {
+    if (!autoTeachings.length) {
       throw new Error(
-        "Aucune affectation avec minutes / semaine. Renseignez le volume (ex. 135) sur la page Affectations.",
+        "Aucune affectation exploitable pour la génération (enseignant manquant ou cours parent remplacé).",
       );
     }
 
@@ -1315,9 +1416,15 @@ export const regenerateScheduleForClasseAction = action
       ),
     );
 
+    const workDays = resolveScheduleWorkDays(classe.creneau.workingDays);
+    const availableClassSlots = Math.max(
+      0,
+      workDays.length * courseSlots.length - occupiedClassSlots.size,
+    );
+
     const occupiedTeacherIntervals = new Map<string, TeacherBusyInterval[]>();
 
-    for (const teaching of withHours) {
+    for (const teaching of autoTeachings) {
       const teacherId = teaching.teacherId!;
       if (occupiedTeacherIntervals.has(teacherId)) continue;
       const userId = await getTeacherUserId(teacherId);
@@ -1379,19 +1486,56 @@ export const regenerateScheduleForClasseAction = action
       occupiedTeacherIntervals.set(teacherId, list);
     }
 
-    const candidates = withHours.map((t) => ({
-      teachingId: t.id,
-      teacherId: t.teacherId!,
-      courseName: t.cours?.nameCours ?? "Cours",
-      sessionsNeeded: sessionsNeededFromWeeklyHours(
-        t.weeklyHours,
-        durationCourse,
-      ),
-      titulaire: Boolean(t.titulaire),
-      weeklyMinutes: t.weeklyHours ?? 0,
-      consecutiveSlots: t.consecutiveSlots,
-      preferredDays: t.preferredDays,
-    }));
+    const ponderationMap = await getCoursePonderationMap({
+      branchId: ctx.branchId,
+      pairs: autoTeachings.map((teaching) => ({
+        coursId: teaching.cours?.parentCoursId ?? teaching.cours?.id,
+        optionId: classe.optionId,
+        level: classe.level,
+      })),
+    });
+
+    const targetTeachings = targetSessionsFromTeachings({
+      teachings: autoTeachings.map((teaching) => {
+        const weeklyMinutes = teaching.weeklyHours ?? 0;
+        const weeklySessions = sessionsNeededFromWeeklyHours(
+          weeklyMinutes,
+          durationCourse,
+        );
+        const ponderation = resolveCoursePonderation(ponderationMap, {
+          coursId: teaching.cours?.parentCoursId ?? teaching.cours?.id,
+          optionId: classe.optionId,
+          level: classe.level,
+        });
+        return {
+          teachingId: teaching.id,
+          teacherId: teaching.teacherId!,
+          courseName: teaching.cours?.nameCours ?? "Cours",
+          titulaire: Boolean(teaching.titulaire),
+          weeklyMinutes,
+          weeklySessions,
+          explicitWeeklyMinutes: weeklyMinutes > 0,
+          ponderation,
+          consecutiveSlots: teaching.consecutiveSlots,
+          preferredDays: teaching.preferredDays,
+        };
+      }),
+      availableClassSlots,
+    });
+
+    const candidates = targetTeachings
+      .filter((teaching) => teaching.sessionsNeeded > 0)
+      .map((teaching) => ({
+        teachingId: teaching.teachingId,
+        teacherId: teaching.teacherId,
+        courseName: teaching.courseName,
+        ponderation: teaching.ponderation,
+        sessionsNeeded: teaching.sessionsNeeded,
+        titulaire: teaching.titulaire,
+        weeklyMinutes: teaching.weeklyMinutes,
+        consecutiveSlots: teaching.consecutiveSlots,
+        preferredDays: teaching.preferredDays,
+      }));
 
     const { placed, failures, attempts, foundComplete } =
       placeTeachingsWithRetries(
@@ -1401,9 +1545,9 @@ export const regenerateScheduleForClasseAction = action
           durationCourseMinutes: durationCourse,
           occupiedClassSlots,
           occupiedTeacherIntervals,
-          workDays: resolveScheduleWorkDays(classe.creneau.workingDays),
+          workDays,
         },
-        { maxAttempts: 48 },
+        { maxAttempts: 96 },
       );
 
     if (placed.length) {
@@ -1429,9 +1573,10 @@ export const regenerateScheduleForClasseAction = action
       failures,
       attempts,
       foundComplete,
-      skippedWithoutHours: teachings.length - withHours.length,
+      skippedWithoutHours: teachings.length - autoTeachings.length,
       durationCourse,
       courseSlots: courseSlots.length,
+      availableClassSlots,
     };
   });
 

@@ -147,6 +147,8 @@ export type PlacementCandidate = {
   teachingId: string;
   teacherId: string;
   courseName: string;
+  /** Pondération de référence (1, 2, etc.) pour prioriser les placements. */
+  ponderation?: number | null;
   sessionsNeeded: number;
   titulaire: boolean;
   weeklyMinutes: number;
@@ -201,6 +203,18 @@ export function normalizeConsecutiveSlots(
 ): number {
   if (value == null || !Number.isFinite(value)) return 1;
   return Math.min(4, Math.max(1, Math.floor(value)));
+}
+
+function resolveCandidateBlockSize(candidate: PlacementCandidate): number {
+  if (
+    candidate.consecutiveSlots != null &&
+    Number.isFinite(candidate.consecutiveSlots)
+  ) {
+    return normalizeConsecutiveSlots(candidate.consecutiveSlots);
+  }
+  const weight = candidate.ponderation ?? 1;
+  // Sans réglage manuel, un cours fortement pondéré se place par blocs de 2.
+  return weight >= 2 ? 2 : 1;
 }
 
 /**
@@ -318,6 +332,8 @@ export function placeTeachingsGreedy(params: {
   const workDays = resolveScheduleWorkDays(params.workDays);
   const byPriority = [...params.candidates].sort((a, b) => {
     if (a.titulaire !== b.titulaire) return a.titulaire ? -1 : 1;
+    const weightGap = (b.ponderation ?? 1) - (a.ponderation ?? 1);
+    if (weightGap !== 0) return weightGap;
     if (b.weeklyMinutes !== a.weeklyMinutes) {
       return b.weeklyMinutes - a.weeklyMinutes;
     }
@@ -357,7 +373,7 @@ export function placeTeachingsGreedy(params: {
     let remaining = candidate.sessionsNeeded;
     const teacherBusy =
       occupiedTeachers.get(candidate.teacherId) ?? [];
-    const blockSize = normalizeConsecutiveSlots(candidate.consecutiveSlots);
+    const blockSize = resolveCandidateBlockSize(candidate);
     const daysPool = resolveCandidateDays(workDays, candidate.preferredDays);
     const teacherLoad =
       teacherDayLoad.get(candidate.teacherId) ?? new Map<Day, number>();
