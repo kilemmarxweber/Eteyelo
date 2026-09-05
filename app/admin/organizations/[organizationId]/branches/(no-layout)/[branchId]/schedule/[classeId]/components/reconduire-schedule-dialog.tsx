@@ -139,8 +139,10 @@ export function ReconduireScheduleDialog({
     >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t("reconduireTitle")}</DialogTitle>
-          <DialogDescription>{t("reconduireDesc")}</DialogDescription>
+          <DialogTitle className="font-medium">{t("reconduireTitle")}</DialogTitle>
+          <DialogDescription className="font-normal leading-relaxed">
+            {t("reconduireDesc")}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">

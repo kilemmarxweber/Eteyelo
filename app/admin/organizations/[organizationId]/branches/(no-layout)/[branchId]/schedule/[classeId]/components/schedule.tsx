@@ -513,15 +513,16 @@ export default function Schedule({
                 </p>
               )}
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
               {canCreateSchedule && (
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={() => setReconduireOpen(true)}
                   disabled={loading || clearing || generating || !hasCreneau || !classeId}
                 >
-                  <Copy className="mr-2 size-4" />
+                  <Copy className="size-4" />
                   {t("reconduire")}
                 </Button>
               )}
@@ -529,6 +530,7 @@ export default function Schedule({
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={() => setConfirmClearOpen(true)}
                   disabled={
                     loading ||
@@ -538,7 +540,7 @@ export default function Schedule({
                     horaires.length === 0
                   }
                 >
-                  <Eraser className="mr-2 size-4" />
+                  <Eraser className="size-4" />
                   {clearing ? t("clearing") : t("clear")}
                 </Button>
               )}
@@ -546,22 +548,29 @@ export default function Schedule({
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={() => setConfirmGenerateOpen(true)}
                   disabled={loading || generating || clearing || !hasCreneau || !classeId}
                 >
-                  <Sparkles className="mr-2 size-4" />
+                  <Sparkles className="size-4" />
                   {generating ? t("generating") : t("generate")}
                 </Button>
               )}
               <Button
                 type="button"
+                size="icon"
+                className="size-8 shrink-0"
                 onClick={handleExportPdf}
                 disabled={
                   loading || exporting || horaires.length === 0 || !reportContext
                 }
+                title={t("download")}
+                aria-label={exporting ? t("generating") : t("download")}
               >
-                <Download className="mr-2 size-4" />
-                {exporting ? t("generating") : t("download")}
+                <Download className="size-4" />
+                <span className="sr-only">
+                  {exporting ? t("generating") : t("download")}
+                </span>
               </Button>
             </div>
           </div>
