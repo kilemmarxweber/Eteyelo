@@ -592,7 +592,13 @@
       "vacation": "Vacation {name}",
       "noCreneauTitle": "Classes sans vacation",
       "vacationClasses": "{count, plural, one {# classe} other {# classes}}",
-      "teacherMeta": "{classes, plural, one {# classe} other {# classes}} · {courses, plural, one {# cours} other {# cours}} · {periods, plural, one {# période} other {# périodes}}"
+      "teacherMeta": "{classes, plural, one {# classe} other {# classes}} · {courses, plural, one {# cours} other {# cours}} · {periods, plural, one {# période} other {# périodes}}",
+      "print": "Imprimer",
+      "printing": "Impression…",
+      "printSuccess": "Le PDF de l'horaire global a été généré.",
+      "printFailed": "Impossible de générer le PDF de l'horaire global.",
+      "printPdfTitle": "Horaire global · {cycle}",
+      "recreationPdf": "Récréation"
     }
   },
   "staff": {

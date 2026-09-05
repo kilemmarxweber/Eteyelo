@@ -592,7 +592,13 @@
       "vacation": "Shift {name}",
       "noCreneauTitle": "Classes without a time slot",
       "vacationClasses": "{count, plural, one {# class} other {# classes}}",
-      "teacherMeta": "{classes, plural, one {# class} other {# classes}} · {courses, plural, one {# course} other {# courses}} · {periods, plural, one {# period} other {# periods}}"
+      "teacherMeta": "{classes, plural, one {# class} other {# classes}} · {courses, plural, one {# course} other {# courses}} · {periods, plural, one {# period} other {# periods}}",
+      "print": "Print",
+      "printing": "Printing…",
+      "printSuccess": "The global timetable PDF has been generated.",
+      "printFailed": "Unable to generate the global timetable PDF.",
+      "printPdfTitle": "Global timetable · {cycle}",
+      "recreationPdf": "Break"
     }
   },
   "staff": {

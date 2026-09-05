@@ -7,14 +7,17 @@ import {
   IconBook2,
   IconCalendarTime,
   IconClockHour4,
+  IconPrinter,
   IconSchool,
   IconSearch,
   IconUsers,
 } from "@tabler/icons-react";
+import { toast } from "sonner";
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { NotFoundView } from "@/components/not-found-view";
 import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,15 +28,21 @@ import { canAccessPedagogyArea } from "@/lib/auth/session-roles";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { DEFAULT_CRENEAU_WORKING_DAYS } from "@/lib/creneau-working-days";
 import { cn } from "@/lib/utils";
+import { getTeacherReportContextAction } from "../teacher.action";
 import {
   getGlobalScheduleByCycleAction,
   getGlobalScheduleCyclesAction,
 } from "../../schedule/schedule.action";
+import {
+  exportGlobalSchedulePdf,
+  type GlobalSchedulePdfTable,
+} from "./export-global-schedule-pdf";
 import { GlobalScheduleGrid } from "./global-schedule-grid";
 import type {
   GlobalScheduleByCycle,
   GlobalScheduleCreneau,
   GlobalScheduleCycleOption,
+  GlobalScheduleTeacher,
 } from "./types";
 import type { Cycle } from "@/lib/cycle";
 
@@ -43,6 +52,39 @@ function unionWorkingDays(creneaux: GlobalScheduleCreneau[]) {
   const days = new Set(creneaux.flatMap((creneau) => creneau.workingDays));
   if (days.size === 0) return [...DEFAULT_CRENEAU_WORKING_DAYS];
   return DEFAULT_CRENEAU_WORKING_DAYS.filter((day) => days.has(day));
+}
+
+function teacherPrintTable(
+  teacher: GlobalScheduleTeacher,
+  schedule: GlobalScheduleByCycle,
+  meta: string,
+): GlobalSchedulePdfTable {
+  const teacherCreneaux =
+    teacher.creneauIds.length > 0
+      ? schedule.creneaux.filter((creneau) =>
+          teacher.creneauIds.includes(creneau.id),
+        )
+      : schedule.creneaux;
+  const hours =
+    teacherCreneaux.length > 0
+      ? [...new Set(teacherCreneaux.flatMap((creneau) => creneau.slots))].sort()
+      : [...new Set(teacher.entries.map((entry) => entry.hour))].sort();
+  return {
+    title: teacher.name,
+    subtitle: meta,
+    hours,
+    workingDays: unionWorkingDays(
+      teacherCreneaux.length > 0 ? teacherCreneaux : schedule.creneaux,
+    ),
+    recreationHour:
+      teacherCreneaux.length === 1 ? teacherCreneaux[0]?.recreationHour : "",
+    endTime:
+      teacherCreneaux.length === 1
+        ? teacherCreneaux[0]?.endTime
+        : teacherCreneaux.map((creneau) => creneau.endTime).sort().at(-1) ?? "",
+    entries: teacher.entries,
+    showTeacher: false,
+  };
 }
 
 export function HoraireGlobalClient() {
@@ -61,6 +103,7 @@ export function HoraireGlobalClient() {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<ViewMode>("teachers");
   const [query, setQuery] = useState("");
+  const [printing, setPrinting] = useState(false);
 
   const listHref = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/teacher`;
 
@@ -141,6 +184,104 @@ export function HoraireGlobalClient() {
       teacher.name.toLowerCase().includes(needle),
     );
   }, [query, schedule?.teachers]);
+
+  const canPrint = Boolean(
+    schedule &&
+      schedule.periodCount > 0 &&
+      !loadingSchedule &&
+      (view !== "teachers" || filteredTeachers.length > 0),
+  );
+
+  async function handlePrint() {
+    if (!schedule || schedule.periodCount === 0) return;
+    setPrinting(true);
+    try {
+      const [context, err] = await getTeacherReportContextAction();
+      if (err || !context) {
+        toast.error(t("printFailed"));
+        return;
+      }
+
+      const tables: GlobalSchedulePdfTable[] =
+        view === "teachers"
+          ? filteredTeachers.map((teacher) =>
+              teacherPrintTable(
+                teacher,
+                schedule,
+                t("teacherMeta", {
+                  classes: teacher.classCount,
+                  courses: teacher.courseCount,
+                  periods: teacher.periodCount,
+                }),
+              ),
+            )
+          : schedule.creneaux.length === 0
+            ? [
+                {
+                  title: t("cycleTitle", { cycle: schedule.cycleLabel }),
+                  hours: [
+                    ...new Set(schedule.entries.map((entry) => entry.hour)),
+                  ].sort(),
+                  workingDays: [...DEFAULT_CRENEAU_WORKING_DAYS],
+                  entries: schedule.entries,
+                  showTeacher: true,
+                },
+              ]
+            : [
+                ...schedule.creneaux.map((creneau) => ({
+                  title: t("vacation", { name: creneau.nameCreneau }),
+                  subtitle: `${creneau.startTime} – ${creneau.endTime} · ${t("vacationClasses", { count: creneau.classeCount })}`,
+                  hours: creneau.slots,
+                  workingDays: creneau.workingDays,
+                  recreationHour: creneau.recreationHour,
+                  endTime: creneau.endTime,
+                  entries: schedule.entries.filter(
+                    (entry) => entry.creneauId === creneau.id,
+                  ),
+                  showTeacher: true,
+                })),
+                ...(schedule.entries.some((entry) => !entry.creneauId)
+                  ? [
+                      {
+                        title: t("noCreneauTitle"),
+                        hours: [
+                          ...new Set(
+                            schedule.entries
+                              .filter((entry) => !entry.creneauId)
+                              .map((entry) => entry.hour),
+                          ),
+                        ].sort(),
+                        workingDays: unionWorkingDays(schedule.creneaux),
+                        entries: schedule.entries.filter(
+                          (entry) => !entry.creneauId,
+                        ),
+                        showTeacher: true,
+                      } satisfies GlobalSchedulePdfTable,
+                    ]
+                  : []),
+              ];
+
+      if (!tables.length) {
+        toast.error(t("empty"));
+        return;
+      }
+
+      await exportGlobalSchedulePdf({
+        context,
+        title: t("printPdfTitle", { cycle: schedule.cycleLabel }),
+        details: [view === "teachers" ? t("viewTeachers") : t("viewGrid")],
+        hoursLabel: t("hoursColumn"),
+        recreationLabel: t("recreationPdf"),
+        tables,
+      });
+      toast.success(t("printSuccess"));
+    } catch (error) {
+      console.error(error);
+      toast.error(t("printFailed"));
+    } finally {
+      setPrinting(false);
+    }
+  }
 
   if (sessionReady && (!session || !canAccessPedagogyArea(session))) {
     return <NotFoundView />;
@@ -258,6 +399,15 @@ export function HoraireGlobalClient() {
                     />
                   </div>
                 ) : null}
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => void handlePrint()}
+                  disabled={!canPrint || printing}
+                >
+                  <IconPrinter className="size-4" />
+                  {printing ? t("printing") : t("print")}
+                </Button>
               </div>
             </div>
           </CardHeader>

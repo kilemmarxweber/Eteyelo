@@ -592,7 +592,13 @@
       "vacation": "Turno {name}",
       "noCreneauTitle": "Turmas sem turno",
       "vacationClasses": "{count, plural, one {# turma} other {# turmas}}",
-      "teacherMeta": "{classes, plural, one {# turma} other {# turmas}} · {courses, plural, one {# disciplina} other {# disciplinas}} · {periods, plural, one {# período} other {# períodos}}"
+      "teacherMeta": "{classes, plural, one {# turma} other {# turmas}} · {courses, plural, one {# disciplina} other {# disciplinas}} · {periods, plural, one {# período} other {# períodos}}",
+      "print": "Imprimir",
+      "printing": "A imprimir…",
+      "printSuccess": "O PDF do horário global foi gerado.",
+      "printFailed": "Não foi possível gerar o PDF do horário global.",
+      "printPdfTitle": "Horário global · {cycle}",
+      "recreationPdf": "Intervalo"
     }
   },
   "staff": {
