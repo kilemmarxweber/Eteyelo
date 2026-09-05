@@ -270,6 +270,12 @@ const staticSidebarMenu: StaticMenuItem[] = [
         icon: "horaire",
         roles: SCHOOL_ADMIN_ROLES,
       },
+      {
+        title: "globalSchedule",
+        href: "/admin/teacher/horaire-global",
+        icon: "horaire",
+        roles: SCHOOL_ADMIN_ROLES,
+      },
     ],
   },
   {

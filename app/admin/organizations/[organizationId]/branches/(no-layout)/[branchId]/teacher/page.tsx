@@ -3,10 +3,14 @@
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { NotFoundView } from "@/components/not-found-view";
 import {
+  IconCalendarTime,
   IconChalkboardTeacher,
+  IconUpload,
   IconUserCheck,
   IconUserPlus,
   IconUserQuestion,
@@ -39,7 +43,6 @@ import {
 import { ImportStaffDialog } from "../components/import-staff-dialog";
 import { getStaffPageContextAction } from "../staff-import.action";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
-import { IconUpload } from "@tabler/icons-react";
 import { cycleLabel, type SchoolCycle } from "@/lib/cycle";
 
 export type TeacherAssignmentFilter =
@@ -63,6 +66,7 @@ type TeacherDashboardStats = {
 
 export default function Teachers() {
   const t = useTranslations("users");
+  const params = useParams<{ organizationId: string; branchId: string }>();
   const [refreshKey, setRefreshKey] = useState(0);
   const [open, setOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
@@ -147,8 +151,17 @@ export default function Teachers() {
             </Badge>
           }
           actions={
-            canManageTeachers ? (
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button asChild size="sm" variant="outline">
+                <Link
+                  href={`/admin/organizations/${params.organizationId}/branches/${params.branchId}/teacher/horaire-global`}
+                >
+                  <IconCalendarTime size={16} className="mr-2" />
+                  {t("teachers.globalSchedule.title")}
+                </Link>
+              </Button>
+              {canManageTeachers ? (
+                <>
                 {supportsStaffImport ? (
                   <Button
                     size="sm"
@@ -195,8 +208,9 @@ export default function Teachers() {
                     </div>
                   </SheetContent>
                 </Sheet>
-              </div>
-            ) : null
+                </>
+              ) : null}
+            </div>
           }
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">

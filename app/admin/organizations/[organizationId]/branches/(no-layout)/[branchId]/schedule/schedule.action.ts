@@ -43,11 +43,19 @@ import {
 } from "@/lib/teacher-availability";
 import {
   CYCLE_SORT_ORDER,
+  CYCLES,
   cycleLabel,
   normalizeCycle,
+  resolveCycle,
   type Cycle,
 } from "@/lib/cycle";
 import { compareClassesByLevel } from "@/lib/class-structure";
+import { genererCreneaux } from "@/src/hooks/getCourseHours";
+import type {
+  GlobalScheduleByCycle,
+  GlobalScheduleCycleOption,
+  GlobalScheduleEntry,
+} from "../teacher/horaire-global/types";
 import {
   classeCycleWhere,
   primaryOrgRoleFromSession,
@@ -1424,5 +1432,683 @@ export const regenerateScheduleForClasseAction = action
       skippedWithoutHours: teachings.length - withHours.length,
       durationCourse,
       courseSlots: courseSlots.length,
+    };
+  });
+
+const classePairSchema = z.object({
+  classeId: z.string().min(1),
+});
+
+export const clearScheduleForClasseAction = action
+  .input(classePairSchema)
+  .handler(async ({ input }) => {
+    const ctx = await getScheduleContext();
+    assertScheduleWriteAccess(ctx, "DELETE");
+    await assertClasseInBranch(ctx, input.classeId);
+
+    const schoolYear = await prisma.schoolYear.findFirst({
+      where: {
+        branchId: ctx.branchId,
+        branch: { organizationId: ctx.organizationId },
+        isCurrentYear: true,
+        isArchived: false,
+      },
+      select: { id: true },
+    });
+    if (!schoolYear) {
+      throw new Error("Aucune année scolaire courante.");
+    }
+
+    const deleted = await prisma.schedule.deleteMany({
+      where: {
+        isArchived: false,
+        teaching: {
+          classeId: input.classeId,
+          schoolYearId: schoolYear.id,
+          OR: [{ branchId: ctx.branchId }, { branchId: null }],
+        },
+      },
+    });
+
+    revalidateSchedulePages(ctx);
+    return { deleted: deleted.count };
+  });
+
+export type ScheduleReconduireSourceClasse = {
+  id: string;
+  nameClasse: string;
+  codeClasse: string;
+  optionName: string;
+  sectionName: string;
+  slotCount: number;
+};
+
+export const getScheduleReconduireSourcesAction = action
+  .input(classePairSchema)
+  .handler(async ({ input }): Promise<ScheduleReconduireSourceClasse[]> => {
+    const ctx = await getScheduleContext();
+    await assertClasseInBranch(ctx, input.classeId);
+
+    const schoolYear = await prisma.schoolYear.findFirst({
+      where: {
+        branchId: ctx.branchId,
+        branch: { organizationId: ctx.organizationId },
+        isCurrentYear: true,
+        isArchived: false,
+      },
+      select: { id: true },
+    });
+    if (!schoolYear) return [];
+
+    const classes = await prisma.classe.findMany({
+      where: {
+        branchId: ctx.branchId,
+        branch: { organizationId: ctx.organizationId },
+        id: { not: input.classeId },
+        OR: [{ statusClasse: true }, { statusClasse: null }],
+        ...cycleScopedClasseWhere(ctx),
+        ...teacherAssignmentFilter(ctx),
+      },
+      select: {
+        id: true,
+        nameClasse: true,
+        codeClasse: true,
+        cycle: true,
+        level: true,
+        parallel: true,
+        option: {
+          select: {
+            nameOption: true,
+            section: { select: { nameSection: true } },
+          },
+        },
+        teaching: {
+          where: {
+            schoolYearId: schoolYear.id,
+            OR: [{ statusTeaching: true }, { statusTeaching: null }],
+          },
+          select: {
+            _count: {
+              select: {
+                Schedule: { where: { isArchived: false } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return classes
+      .slice()
+      .sort(compareClassesByLevel)
+      .map((classe) => ({
+        id: classe.id,
+        nameClasse: classe.nameClasse,
+        codeClasse: classe.codeClasse ?? "",
+        optionName: classe.option?.nameOption ?? "",
+        sectionName: classe.option?.section?.nameSection ?? "",
+        slotCount: classe.teaching.reduce(
+          (sum, row) => sum + row._count.Schedule,
+          0,
+        ),
+      }));
+  });
+
+const reconduireScheduleSchema = z.object({
+  targetClasseId: z.string().min(1),
+  sourceClasseId: z.string().min(1),
+});
+
+export const reconduireScheduleFromClasseAction = action
+  .input(reconduireScheduleSchema)
+  .handler(async ({ input }) => {
+    const ctx = await getScheduleContext();
+    assertScheduleWriteAccess(ctx, "CREATE");
+
+    if (input.sourceClasseId === input.targetClasseId) {
+      throw new Error("Choisissez une autre classe source.");
+    }
+
+    await assertClasseInBranch(ctx, input.targetClasseId);
+    await assertClasseInBranch(ctx, input.sourceClasseId);
+
+    const schoolYear = await prisma.schoolYear.findFirst({
+      where: {
+        branchId: ctx.branchId,
+        branch: { organizationId: ctx.organizationId },
+        isCurrentYear: true,
+        isArchived: false,
+      },
+      select: { id: true },
+    });
+    if (!schoolYear) {
+      throw new Error("Aucune année scolaire courante.");
+    }
+
+    const [sourceClasse, targetClasse] = await Promise.all([
+      prisma.classe.findFirst({
+        where: { id: input.sourceClasseId, branchId: ctx.branchId },
+        select: { id: true, nameClasse: true },
+      }),
+      prisma.classe.findFirst({
+        where: { id: input.targetClasseId, branchId: ctx.branchId },
+        select: { id: true, nameClasse: true },
+      }),
+    ]);
+    if (!sourceClasse || !targetClasse) {
+      throw new Error("Classe introuvable dans cette branche");
+    }
+
+    const sourceSchedules = await prisma.schedule.findMany({
+      where: {
+        isArchived: false,
+        teaching: scopedTeachingWhere(ctx, {
+          classeId: input.sourceClasseId,
+          schoolYearId: schoolYear.id,
+        }),
+      },
+      select: {
+        day: true,
+        hour: true,
+        teaching: {
+          select: {
+            cours: {
+              select: {
+                id: true,
+                parentCoursId: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: [{ day: "asc" }, { hour: "asc" }],
+    });
+
+    const replacedParentIds = await subjectIdsReplacedBySchedulePosts({
+      branchId: ctx.branchId,
+      subjectIds: sourceSchedules
+        .map(
+          (row) =>
+            row.teaching?.cours?.parentCoursId ?? row.teaching?.cours?.id,
+        )
+        .filter((id): id is string => Boolean(id)),
+    });
+
+    const slots = sourceSchedules.filter(
+      (row) =>
+        row.teaching?.cours?.id &&
+        !replacedParentIds.has(row.teaching.cours.id),
+    );
+
+    if (!slots.length) {
+      throw new Error(
+        `Aucun créneau à reconduire depuis ${sourceClasse.nameClasse}.`,
+      );
+    }
+
+    const targetTeachings = await prisma.teaching.findMany({
+      where: scopedTeachingWhere(ctx, {
+        classeId: input.targetClasseId,
+        schoolYearId: schoolYear.id,
+      }),
+      select: {
+        id: true,
+        coursId: true,
+        teacherId: true,
+      },
+    });
+    const targetByCoursId = new Map(
+      targetTeachings
+        .filter((row) => Boolean(row.teacherId))
+        .map((row) => [row.coursId, row]),
+    );
+
+    const existingTargetSlots = await prisma.schedule.findMany({
+      where: {
+        isArchived: false,
+        teaching: {
+          classeId: input.targetClasseId,
+          schoolYearId: schoolYear.id,
+        },
+      },
+      select: { day: true, hour: true, teachingId: true },
+    });
+    const occupiedClassSlots = new Set(
+      existingTargetSlots.map(
+        (row) => `${row.day}|${scheduleHourToMinutes(row.hour)}`,
+      ),
+    );
+    const occupiedTeachingSlots = new Set(
+      existingTargetSlots.map(
+        (row) =>
+          `${row.teachingId}|${row.day}|${scheduleHourToMinutes(row.hour)}`,
+      ),
+    );
+    const teacherIdByTeachingId = new Map(
+      targetTeachings.map((row) => [row.id, row.teacherId]),
+    );
+    const occupiedTeacherSlots = new Set(
+      existingTargetSlots
+        .map((row) => {
+          const teacherId = teacherIdByTeachingId.get(row.teachingId);
+          if (!teacherId) return "";
+          return `${teacherId}|${row.day}|${scheduleHourToMinutes(row.hour)}`;
+        })
+        .filter(Boolean),
+    );
+
+    let placed = 0;
+    let skippedOccupied = 0;
+    let skippedConflict = 0;
+    let skippedUnassigned = 0;
+
+    for (const slot of slots) {
+      const coursId = slot.teaching?.cours?.id;
+      if (!coursId || !slot.hour) continue;
+
+      const targetTeaching = targetByCoursId.get(coursId);
+      if (!targetTeaching?.teacherId) {
+        skippedUnassigned += 1;
+        continue;
+      }
+
+      const slotMinutes = scheduleHourToMinutes(slot.hour);
+      const classKey = `${slot.day}|${slotMinutes}`;
+      const teachingKey = `${targetTeaching.id}|${slot.day}|${slotMinutes}`;
+      const teacherKey = `${targetTeaching.teacherId}|${slot.day}|${slotMinutes}`;
+      if (occupiedClassSlots.has(classKey)) {
+        skippedOccupied += 1;
+        continue;
+      }
+      if (occupiedTeachingSlots.has(teachingKey)) {
+        skippedOccupied += 1;
+        continue;
+      }
+      if (occupiedTeacherSlots.has(teacherKey)) {
+        skippedConflict += 1;
+        continue;
+      }
+
+      await prisma.schedule.deleteMany({
+        where: {
+          day: slot.day,
+          hour: slot.hour,
+          teachingId: targetTeaching.id,
+          isArchived: true,
+        },
+      });
+
+      try {
+        await assertScheduleSlotAvailable({
+          ctx,
+          classeId: input.targetClasseId,
+          teacherId: targetTeaching.teacherId,
+          day: slot.day,
+          hour: slot.hour,
+        });
+      } catch {
+        skippedConflict += 1;
+        continue;
+      }
+
+      await prisma.schedule.create({
+        data: {
+          day: slot.day,
+          hour: slot.hour,
+          teachingId: targetTeaching.id,
+          source: "MANUAL",
+          createdBy: ctx.branchMemberId ?? undefined,
+        },
+      });
+      occupiedClassSlots.add(classKey);
+      occupiedTeachingSlots.add(teachingKey);
+      occupiedTeacherSlots.add(teacherKey);
+      placed += 1;
+    }
+
+    revalidateSchedulePages(ctx);
+
+    return {
+      sourceName: sourceClasse.nameClasse,
+      targetName: targetClasse.nameClasse,
+      placed,
+      skippedOccupied,
+      skippedConflict,
+      skippedUnassigned,
+    };
+  });
+
+function formatTeacherFullName(user?: {
+  name?: string | null;
+  postnom?: string | null;
+  prenom?: string | null;
+} | null) {
+  if (!user) return "";
+  return [user.name, user.postnom, user.prenom].filter(Boolean).join(" ").trim();
+}
+
+function generateSlotsFromHm(params: {
+  startTime: string;
+  endTime: string;
+  durationCourse: number;
+  recreationHour: string;
+  recreationDuration: number;
+}) {
+  if (!params.startTime || !params.endTime || params.durationCourse <= 0) {
+    return [] as string[];
+  }
+  const start = new Date(`2000-01-01T${params.startTime}`);
+  const end = new Date(`2000-01-01T${params.endTime}`);
+  const recreation = new Date(
+    `2000-01-01T${params.recreationHour || params.startTime}`,
+  );
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return [] as string[];
+  }
+  return genererCreneaux(
+    start,
+    end,
+    params.durationCourse,
+    Number.isNaN(recreation.getTime()) ? start : recreation,
+    params.recreationDuration || 0,
+  );
+}
+
+export const getGlobalScheduleCyclesAction = action.handler(
+  async (): Promise<{ cycles: GlobalScheduleCycleOption[] }> => {
+    const ctx = await getScheduleContext();
+    if (!ctx.canManageSchedules && !ctx.teacherId) {
+      return { cycles: [] };
+    }
+    return {
+      cycles: [...ctx.accessibleCycles]
+        .sort((a, b) => CYCLE_SORT_ORDER[a] - CYCLE_SORT_ORDER[b])
+        .map((cycle) => ({
+          value: cycle,
+          label: cycleLabel(cycle),
+        })),
+    };
+  },
+);
+
+export const getGlobalScheduleByCycleAction = action
+  .input(
+    z.object({
+      cycle: z.enum(CYCLES),
+    }),
+  )
+  .handler(async ({ input }): Promise<GlobalScheduleByCycle> => {
+    const ctx = await getScheduleContext();
+    if (!ctx.canManageSchedules && !ctx.teacherId) {
+      throw new Error("Action non autorisee");
+    }
+    if (!ctx.accessibleCycles.includes(input.cycle)) {
+      throw new Error("Cycle non autorisé");
+    }
+
+    const branch = await prisma.branch.findFirst({
+      where: {
+        id: ctx.branchId,
+        organizationId: ctx.organizationId,
+      },
+      select: { typebranch: true },
+    });
+
+    const classes = await prisma.classe.findMany({
+      where: {
+        branchId: ctx.branchId,
+        branch: { organizationId: ctx.organizationId },
+        OR: [{ statusClasse: true }, { statusClasse: null }],
+        AND: [classeCycleWhere([input.cycle])],
+        ...teacherAssignmentFilter(ctx),
+      },
+      select: {
+        id: true,
+        codeClasse: true,
+        nameClasse: true,
+        cycle: true,
+        creneauId: true,
+        creneau: {
+          select: {
+            id: true,
+            nameCreneau: true,
+            startTime: true,
+            endTime: true,
+            durationCourse: true,
+            recreationHour: true,
+            recreationDuration: true,
+            workingDays: true,
+          },
+        },
+      },
+    });
+
+    const cycleClasses = classes
+      .filter((classe) => resolveCycle(classe, branch) === input.cycle)
+      .sort(compareClassesByLevel);
+
+    const classIds = cycleClasses.map((classe) => classe.id);
+    const classeById = new Map(cycleClasses.map((classe) => [classe.id, classe]));
+
+    const creneauMap = new Map<
+      string,
+      GlobalScheduleByCycle["creneaux"][number] & { classeIds: Set<string> }
+    >();
+
+    for (const classe of cycleClasses) {
+      if (!classe.creneau) continue;
+      const startTime = formatHourLabel(classe.creneau.startTime);
+      const endTime = formatHourLabel(classe.creneau.endTime);
+      const recreationHour = classe.creneau.recreationHour
+        ? formatHourLabel(classe.creneau.recreationHour)
+        : "";
+      const existing = creneauMap.get(classe.creneau.id);
+      if (existing) {
+        existing.classeIds.add(classe.id);
+        existing.classeCount = existing.classeIds.size;
+        continue;
+      }
+      creneauMap.set(classe.creneau.id, {
+        id: classe.creneau.id,
+        nameCreneau: classe.creneau.nameCreneau || "",
+        startTime,
+        endTime,
+        durationCourse: classe.creneau.durationCourse || 0,
+        recreationHour,
+        recreationDuration: classe.creneau.recreationDuration || 0,
+        workingDays: normalizeCreneauWorkingDays(classe.creneau.workingDays),
+        slots: generateSlotsFromHm({
+          startTime,
+          endTime,
+          durationCourse: classe.creneau.durationCourse || 0,
+          recreationHour,
+          recreationDuration: classe.creneau.recreationDuration || 0,
+        }),
+        classeCount: 1,
+        classeIds: new Set([classe.id]),
+      });
+    }
+
+    const schedules =
+      classIds.length === 0
+        ? []
+        : await prisma.schedule.findMany({
+            where: {
+              isArchived: false,
+              teaching: scopedTeachingWhere(ctx, {
+                classeId: { in: classIds },
+                ...(ctx.canManageSchedules || !ctx.teacherId
+                  ? {}
+                  : { teacherId: ctx.teacherId }),
+              }),
+            },
+            include: {
+              teaching: {
+                include: {
+                  classe: {
+                    select: {
+                      id: true,
+                      codeClasse: true,
+                      nameClasse: true,
+                    },
+                  },
+                  cours: {
+                    include: {
+                      parentCours: { select: { nameCours: true } },
+                    },
+                  },
+                  teacher: {
+                    include: {
+                      branchMember: {
+                        include: {
+                          member: {
+                            include: {
+                              user: {
+                                select: {
+                                  name: true,
+                                  postnom: true,
+                                  prenom: true,
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: [{ hour: "asc" }, { day: "asc" }],
+          });
+
+    const replacedParentIds = await subjectIdsReplacedBySchedulePosts({
+      branchId: ctx.branchId,
+      subjectIds: schedules
+        .map(
+          (schedule) =>
+            schedule.teaching?.cours?.parentCoursId ??
+            schedule.teaching?.cours?.id,
+        )
+        .filter((id): id is string => Boolean(id)),
+    });
+
+    const entries: GlobalScheduleEntry[] = schedules
+      .filter(
+        (schedule) =>
+          !replacedParentIds.has(schedule.teaching?.cours?.id ?? ""),
+      )
+      .map((schedule) => {
+        const user = schedule.teaching?.teacher?.branchMember?.member?.user;
+        const classe = schedule.teaching?.classe;
+        return {
+          id: schedule.id,
+          day: schedule.day,
+          hour: schedule.hour ? formatHourLabel(schedule.hour) : "",
+          teacher: {
+            id: schedule.teaching?.teacher?.id || "",
+            nom: user?.name || "",
+            postnom: user?.postnom || "",
+            prenom: user?.prenom || "",
+            name: formatTeacherFullName(user) || "Non assigné",
+          },
+          classe: {
+            id: classe?.id || "",
+            codeClasse: classe?.codeClasse || "",
+            nameClasse: classe?.nameClasse || "",
+          },
+          cours: {
+            id: schedule.teaching?.cours?.id || "",
+            codeCours: schedule.teaching?.cours?.codeCours || "",
+            nameCours: formatScheduleCoursLabel({
+              nameCours: schedule.teaching?.cours?.nameCours || "",
+              parentNameCours: schedule.teaching?.cours?.parentCours?.nameCours,
+              kind: schedule.teaching?.cours?.kind,
+              parentCoursId: schedule.teaching?.cours?.parentCoursId,
+            }),
+          },
+          creneauId: classeById.get(classe?.id || "")?.creneauId ?? null,
+        };
+      });
+
+    const teacherMap = new Map<
+      string,
+      {
+        id: string;
+        nom: string;
+        postnom: string;
+        prenom: string;
+        name: string;
+        classIds: Set<string>;
+        courseIds: Set<string>;
+        creneauIds: Set<string>;
+        entries: GlobalScheduleEntry[];
+      }
+    >();
+
+    for (const entry of entries) {
+      const teacherId = entry.teacher.id || `unassigned:${entry.id}`;
+      const existing = teacherMap.get(teacherId);
+      if (!existing) {
+        teacherMap.set(teacherId, {
+          id: entry.teacher.id,
+          nom: entry.teacher.nom,
+          postnom: entry.teacher.postnom,
+          prenom: entry.teacher.prenom,
+          name: entry.teacher.name,
+          classIds: new Set(entry.classe.id ? [entry.classe.id] : []),
+          courseIds: new Set(entry.cours.id ? [entry.cours.id] : []),
+          creneauIds: new Set(entry.creneauId ? [entry.creneauId] : []),
+          entries: [entry],
+        });
+        continue;
+      }
+      if (entry.classe.id) existing.classIds.add(entry.classe.id);
+      if (entry.cours.id) existing.courseIds.add(entry.cours.id);
+      if (entry.creneauId) existing.creneauIds.add(entry.creneauId);
+      existing.entries.push(entry);
+    }
+
+    const teachers = [...teacherMap.values()]
+      .sort((a, b) => a.name.localeCompare(b.name, "fr"))
+      .map((teacher) => ({
+        id: teacher.id,
+        nom: teacher.nom,
+        postnom: teacher.postnom,
+        prenom: teacher.prenom,
+        name: teacher.name,
+        classCount: teacher.classIds.size,
+        courseCount: teacher.courseIds.size,
+        periodCount: teacher.entries.length,
+        creneauIds: [...teacher.creneauIds],
+        entries: teacher.entries.sort((left, right) => {
+          const hour = left.hour.localeCompare(right.hour);
+          if (hour !== 0) return hour;
+          const day = left.day.localeCompare(right.day, "fr");
+          if (day !== 0) return day;
+          return left.classe.codeClasse.localeCompare(
+            right.classe.codeClasse,
+            "fr",
+          );
+        }),
+      }));
+
+    const courseIds = new Set(
+      entries.map((entry) => entry.cours.id).filter(Boolean),
+    );
+
+    return {
+      cycle: input.cycle,
+      cycleLabel: cycleLabel(input.cycle),
+      classCount: cycleClasses.length,
+      courseCount: courseIds.size,
+      teacherCount: teachers.length,
+      periodCount: entries.length,
+      classesWithoutCreneau: cycleClasses.filter((classe) => !classe.creneau).length,
+      creneaux: [...creneauMap.values()]
+        .map(({ classeIds: _classeIds, ...creneau }) => creneau)
+        .sort((a, b) => a.startTime.localeCompare(b.startTime) || a.nameCreneau.localeCompare(b.nameCreneau, "fr")),
+      teachers,
+      entries,
     };
   });

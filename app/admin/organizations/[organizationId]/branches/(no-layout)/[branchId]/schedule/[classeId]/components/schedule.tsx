@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AlertTriangle, Download, Plus, Sparkles, Trash2 } from "lucide-react";
+import { AlertTriangle, Copy, Download, Eraser, Plus, Sparkles, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +32,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  clearScheduleForClasseAction,
   createScheduleAction,
   deleteScheduleAction,
   getScheduleCoursByClasseAction,
@@ -55,6 +56,7 @@ import {
   DEFAULT_CRENEAU_WORKING_DAYS,
   normalizeCreneauWorkingDays,
 } from "@/lib/creneau-working-days";
+import { ReconduireScheduleDialog } from "./reconduire-schedule-dialog";
 
 export const Day = {
   Lundi: "Lundi",
@@ -142,6 +144,9 @@ export default function Schedule({
   const [exporting, setExporting] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [confirmGenerateOpen, setConfirmGenerateOpen] = useState(false);
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [reconduireOpen, setReconduireOpen] = useState(false);
   const [cellTarget, setCellTarget] = useState<CellTarget | null>(null);
   const [selectedCours, setSelectedCours] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Horaire | null>(null);
@@ -191,6 +196,15 @@ export default function Schedule({
         heureFin: "",
       })),
     );
+  }, [classeId]);
+
+  const reloadCours = useCallback(async () => {
+    if (!classeId) return;
+    const [rawCours, coursErr] = await getScheduleCoursByClasseAction({
+      classeId,
+    });
+    if (coursErr) throw new Error("Failed to fetch cours");
+    setCours(rawCours);
   }, [classeId]);
 
   useEffect(() => {
@@ -441,6 +455,40 @@ export default function Schedule({
     }
   }
 
+  async function handleClearSchedule() {
+    if (!canDeleteSchedule || !classeId) {
+      toast.error("Action non autorisee");
+      return;
+    }
+    setConfirmClearOpen(false);
+    setClearing(true);
+    try {
+      const [result, err] = await clearScheduleForClasseAction({ classeId });
+      if (err || !result) {
+        toast.error(err?.message ?? t("clearFailed"));
+        return;
+      }
+      await loadHoraires();
+      onScheduleAction?.();
+      toast.success(t("clearSuccess", { count: result.deleted }));
+    } catch (error) {
+      console.error(error);
+      toast.error(t("clearFailed"));
+    } finally {
+      setClearing(false);
+    }
+  }
+
+  async function handleReconduireSuccess() {
+    try {
+      await Promise.all([reloadCours(), loadHoraires()]);
+      onScheduleAction?.();
+    } catch (error) {
+      console.error(error);
+      toast.error(t("reconduireReloadError"));
+    }
+  }
+
   return (
     <>
       <Card
@@ -470,8 +518,36 @@ export default function Schedule({
                 <Button
                   type="button"
                   variant="outline"
+                  onClick={() => setReconduireOpen(true)}
+                  disabled={loading || clearing || generating || !hasCreneau || !classeId}
+                >
+                  <Copy className="mr-2 size-4" />
+                  {t("reconduire")}
+                </Button>
+              )}
+              {canDeleteSchedule && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setConfirmClearOpen(true)}
+                  disabled={
+                    loading ||
+                    clearing ||
+                    generating ||
+                    !classeId ||
+                    horaires.length === 0
+                  }
+                >
+                  <Eraser className="mr-2 size-4" />
+                  {clearing ? t("clearing") : t("clear")}
+                </Button>
+              )}
+              {canCreateSchedule && (
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setConfirmGenerateOpen(true)}
-                  disabled={loading || generating || !hasCreneau || !classeId}
+                  disabled={loading || generating || clearing || !hasCreneau || !classeId}
                 >
                   <Sparkles className="mr-2 size-4" />
                   {generating ? t("generating") : t("generate")}
@@ -729,6 +805,47 @@ export default function Schedule({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog
+        open={confirmClearOpen}
+        onOpenChange={(open) => {
+          if (!clearing) setConfirmClearOpen(open);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("confirmClearTitle")}</DialogTitle>
+            <DialogDescription>{t("confirmClearDesc")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={clearing}
+              onClick={() => setConfirmClearOpen(false)}
+            >
+              {tc("cancel")}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={clearing}
+              onClick={() => void handleClearSchedule()}
+            >
+              {clearing ? t("clearing") : t("confirmClear")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {classeId ? (
+        <ReconduireScheduleDialog
+          open={reconduireOpen}
+          onOpenChange={setReconduireOpen}
+          targetClasseId={classeId}
+          onSuccess={() => void handleReconduireSuccess()}
+        />
+      ) : null}
 
       <Dialog
         open={Boolean(deleteTarget)}
