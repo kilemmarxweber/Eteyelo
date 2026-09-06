@@ -1,8 +1,10 @@
 import type { Day } from "../prisma/generated/prisma/client";
 import {
+  generateCourseStartSlots,
   maxSessionsPerSpreadDay,
   parseHmToMinutes,
   placeTeachingsGreedy,
+  placeTeachingsWithRetries,
   type PlacementCandidate,
 } from "../lib/schedule-auto-generate";
 
@@ -192,3 +194,74 @@ for (let i = 0; i < 24; i += 1) {
 console.log("OK schedule auto-generate spread");
 console.log("  3 séances + 2 h d'affilée + 2 jours → 2 + 1");
 console.log("  3 matières même enseignant → réparties sur les jours attachés");
+
+const angolanSlots = ["07:30", "08:15", "09:00", "10:00", "10:45", "11:30"];
+const angolanDays: Day[] = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
+const angolanCandidates: PlacementCandidate[] = [
+  ...[0, 1].map((index) => ({
+    teachingId: `bloc180-${index}`,
+    teacherId: `teacher-180-${index}`,
+    courseName: `Cours 180 ${index + 1}`,
+    sessionsNeeded: 4,
+    titulaire: false,
+    weeklyMinutes: 180,
+    consecutiveSlots: 4,
+    explicitWeeklyMinutes: true,
+  })),
+  ...[0, 1].map((index) => ({
+    teachingId: `bloc45-${index}`,
+    teacherId: `teacher-45-${index}`,
+    courseName: `Cours 45 ${index + 1}`,
+    sessionsNeeded: 1,
+    titulaire: false,
+    weeklyMinutes: 45,
+    consecutiveSlots: 1,
+    explicitWeeklyMinutes: true,
+  })),
+  ...Array.from({ length: 10 }, (_, index) => ({
+    teachingId: `bloc90-${index}`,
+    teacherId: `teacher-90-${index}`,
+    courseName: `Cours 90 ${index + 1}`,
+    sessionsNeeded: 2,
+    titulaire: false,
+    weeklyMinutes: 90,
+    consecutiveSlots: 2,
+    explicitWeeklyMinutes: true,
+  })),
+];
+
+{
+  const generated = generateCourseStartSlots({
+    startTime: "07:30",
+    endTime: "12:15",
+    durationCourse: 45,
+    recreationHour: "09:45",
+    recreationDuration: 15,
+  });
+  assert(
+    generated.length === 6,
+    `vacation 270 min / 45 → 6 séances, reçu ${generated.length}`,
+  );
+  assert(
+    generated.join(",") === angolanSlots.join(","),
+    `grilles différentes: ${generated.join(" ")}`,
+  );
+
+  const packed = placeTeachingsWithRetries(
+    {
+      candidates: angolanCandidates,
+      courseSlots: angolanSlots,
+      durationCourseMinutes: 45,
+      occupiedClassSlots: new Set(),
+      occupiedTeacherIntervals: new Map(),
+      workDays: angolanDays,
+    },
+    { maxAttempts: 96 },
+  );
+  assert(
+    packed.placed.length === 30,
+    `7a 1350 min: 30 cases attendues, ${packed.placed.length} placées, manquantes=${JSON.stringify(packed.failures)}`,
+  );
+  assert(packed.failures.length === 0, "7a 1350 min: des cours n'ont pas été casés");
+  console.log("OK 7a angolais 270×5 = 1350 : grille 3+3 remplie (4 d'affilée recasés en 3+1)");
+}

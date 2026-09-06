@@ -1599,6 +1599,7 @@ export const regenerateScheduleForClasseAction = action
         titulaire: teaching.titulaire,
         weeklyMinutes: teaching.weeklyMinutes,
         consecutiveSlots: teaching.consecutiveSlots,
+        explicitWeeklyMinutes: teaching.explicitWeeklyMinutes,
         preferredDays: teaching.preferredDays,
       }));
 

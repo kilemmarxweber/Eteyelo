@@ -154,6 +154,8 @@ export type PlacementCandidate = {
   weeklyMinutes: number;
   /** Périodes d'affilée (1–4). */
   consecutiveSlots?: number | null;
+  /** Minutes fixées à la main : ne pas dériver le bloc de la pondération. */
+  explicitWeeklyMinutes?: boolean;
   /** Jours cibles ; vide = tous les jours ouvrés. */
   preferredDays?: Day[] | null;
 };
@@ -205,6 +207,26 @@ export function normalizeConsecutiveSlots(
   return Math.min(4, Math.max(1, Math.floor(value)));
 }
 
+/** Plus longue suite de périodes collées (ex. 3+3 autour de la récré → 3). */
+export function maxConsecutiveRun(
+  courseSlots: string[],
+  durationMinutes: number,
+): number {
+  if (!(durationMinutes > 0) || courseSlots.length === 0) return 0;
+  const mins = courseSlots.map(parseHmToMinutes);
+  let best = 1;
+  let run = 1;
+  for (let i = 1; i < mins.length; i += 1) {
+    if (mins[i] === mins[i - 1] + durationMinutes) {
+      run += 1;
+      best = Math.max(best, run);
+    } else {
+      run = 1;
+    }
+  }
+  return best;
+}
+
 function resolveCandidateBlockSize(candidate: PlacementCandidate): number {
   if (
     candidate.consecutiveSlots != null &&
@@ -212,8 +234,13 @@ function resolveCandidateBlockSize(candidate: PlacementCandidate): number {
   ) {
     return normalizeConsecutiveSlots(candidate.consecutiveSlots);
   }
+  if (candidate.explicitWeeklyMinutes) {
+    return normalizeConsecutiveSlots(
+      Math.min(4, Math.max(1, candidate.sessionsNeeded)),
+    );
+  }
   const weight = candidate.ponderation ?? 1;
-  // Sans réglage manuel, un cours fortement pondéré se place par blocs de 2.
+  // Sans minutes manuelles : un cours fortement pondéré se place par blocs de 2.
   return weight >= 2 ? 2 : 1;
 }
 
@@ -315,6 +342,8 @@ export function teacherIntervalConflicts(params: {
  * - évite tout chevauchement horaire de l'enseignant (autres classes, cycles,
  *   branches de l'organisation) via intervalles start/end ;
  * - place des blocs d'affilée (consecutiveSlots 2–4) quand demandé ;
+ * - si le bloc demandé ne rentre pas (ex. 4 d'affilée sur une grille 3+3),
+ *   recase en 3+1 / 2+2 / 1 pour ne pas laisser de vide ;
  * - restreint aux preferredDays s'ils sont renseignés ;
  * - si ≥ 2 jours attachés : répartit sur TOUS ces jours (pas seulement le
  *   dernier) ; 2 h d'affilée + 3 séances → 2 + 1, jamais 3 le même jour ;
@@ -374,7 +403,7 @@ export function placeTeachingsGreedy(params: {
     let remaining = candidate.sessionsNeeded;
     const teacherBusy =
       occupiedTeachers.get(candidate.teacherId) ?? [];
-    const blockSize = resolveCandidateBlockSize(candidate);
+    const requestedBlock = resolveCandidateBlockSize(candidate);
     let daysPool = resolveCandidateDays(workDays, candidate.preferredDays);
     const canRelaxPreferredDays =
       Array.isArray(candidate.preferredDays) &&
@@ -383,12 +412,6 @@ export function placeTeachingsGreedy(params: {
     const teacherLoad =
       teacherDayLoad.get(candidate.teacherId) ?? new Map<Day, number>();
     const teachingDayLoad = new Map<Day, number>();
-    const spreadCap = maxSessionsPerSpreadDay({
-      sessionsNeeded: candidate.sessionsNeeded,
-      attachedDayCount: daysPool.length,
-      consecutiveSlots: blockSize,
-    });
-    let enforceSpread = daysPool.length >= 2;
 
     if (!daysPool.length) {
       failures.push({
@@ -401,22 +424,23 @@ export function placeTeachingsGreedy(params: {
       continue;
     }
 
-    const blocksForDay = (day: Day, size: number) =>
-      findConsecutiveSlotBlocks(
-        params.courseSlotsByDay?.[day] ?? params.courseSlots,
-        size,
-        duration,
-      );
+    const slotsForDay = (day: Day) =>
+      params.courseSlotsByDay?.[day] ?? params.courseSlots;
 
-    if (blockSize > 1 && !daysPool.some((day) => blocksForDay(day, blockSize).length)) {
-      failures.push({
-        teachingId: candidate.teachingId,
-        courseName: candidate.courseName,
-        missing: remaining,
-        reason: `Impossible de former ${blockSize} périodes d'affilée sur cette vacation (grille / récréation).`,
-      });
-      continue;
-    }
+    const maxGridBlock = Math.max(
+      1,
+      ...daysPool.map((day) => maxConsecutiveRun(slotsForDay(day), duration)),
+    );
+    const blockSize = Math.min(requestedBlock, maxGridBlock);
+    const spreadCap = maxSessionsPerSpreadDay({
+      sessionsNeeded: candidate.sessionsNeeded,
+      attachedDayCount: daysPool.length,
+      consecutiveSlots: blockSize,
+    });
+    let enforceSpread = daysPool.length >= 2;
+
+    const blocksForDay = (day: Day, size: number) =>
+      findConsecutiveSlotBlocks(slotsForDay(day), size, duration);
 
     const dayLoadScore = (day: Day) =>
       (teachingDayLoad.get(day) ?? 0) * 1000 + (teacherLoad.get(day) ?? 0);
@@ -486,30 +510,13 @@ export function placeTeachingsGreedy(params: {
 
     while (remaining > 0) {
       let placedThisRound = 0;
-
-      if (blockSize > 1 && remaining >= blockSize) {
-        placedThisRound = placeOnePerDay(blockSize);
-      } else {
-        placedThisRound = placeOnePerDay(1);
+      const startSize = Math.min(blockSize, remaining);
+      for (let size = startSize; size >= 1; size -= 1) {
+        placedThisRound = placeOnePerDay(size);
+        if (placedThisRound > 0) break;
       }
 
       if (placedThisRound === 0) {
-        if (blockSize > 1 && remaining > 0 && remaining < blockSize) {
-          const placedRemainder = placeOnePerDay(1);
-          if (placedRemainder === 0) {
-            if (enforceSpread) {
-              enforceSpread = false;
-              continue;
-            }
-            if (canRelaxPreferredDays && daysPool.length < workDays.length) {
-              daysPool = workDays;
-              enforceSpread = daysPool.length >= 2;
-              continue;
-            }
-            break;
-          }
-          continue;
-        }
         if (enforceSpread) {
           enforceSpread = false;
           continue;
@@ -532,9 +539,7 @@ export function placeTeachingsGreedy(params: {
         courseName: candidate.courseName,
         missing: remaining,
         reason:
-          blockSize > 1
-            ? `Pas assez de plages pour ${blockSize} périodes d'affilée (classe saturée, jours préférés, ou enseignant déjà pris).`
-            : "Pas assez de créneaux libres : classe saturée ou enseignant déjà pris (autre classe, autre cycle ou autre établissement) sur ces plages.",
+          "Pas assez de créneaux libres : classe saturée ou enseignant déjà pris (autre classe, autre cycle ou autre établissement) sur ces plages.",
       });
     }
   }
