@@ -71,7 +71,7 @@ const toFormNumber = (value: string, fallback: number) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-const NOON_TIME = "12:00";
+const SATURDAY_MAX_END_TIME = "12:30";
 
 type StructurePreset = {
   id: string;
@@ -174,11 +174,11 @@ export function CreneauUpForm({
     if (!saturdaySelected) return;
     const endTime = watched.endTime ?? "";
     const recreationHour = watched.recreationHour ?? "";
-    if (endTime && endTime > NOON_TIME) {
-      form.setValue("endTime", NOON_TIME, { shouldValidate: true });
+    if (endTime && endTime > SATURDAY_MAX_END_TIME) {
+      form.setValue("endTime", SATURDAY_MAX_END_TIME, { shouldValidate: true });
     }
-    if (recreationHour && recreationHour > NOON_TIME) {
-      form.setValue("recreationHour", NOON_TIME, { shouldValidate: true });
+    if (recreationHour && recreationHour > SATURDAY_MAX_END_TIME) {
+      form.setValue("recreationHour", SATURDAY_MAX_END_TIME, { shouldValidate: true });
     }
   }, [
     saturdaySelected,
@@ -378,7 +378,7 @@ export function CreneauUpForm({
                         className={controlClass}
                         {...field}
                         value={controlledTime(field.value)}
-                        max={saturdaySelected ? NOON_TIME : undefined}
+                        max={saturdaySelected ? SATURDAY_MAX_END_TIME : undefined}
                       />
                     </FormControl>
                     <FormMessage />
@@ -398,7 +398,7 @@ export function CreneauUpForm({
                         className={controlClass}
                         {...field}
                         value={controlledTime(field.value)}
-                        max={saturdaySelected ? NOON_TIME : undefined}
+                        max={saturdaySelected ? SATURDAY_MAX_END_TIME : undefined}
                       />
                     </FormControl>
                     <FormMessage />
@@ -567,7 +567,7 @@ export function CreneauUpForm({
                 <FormMessage />
                 {saturdaySelected ? (
                   <p className="text-[11px] text-muted-foreground">
-                    Le samedi est actif: les heures affichées sont limitées à l'avant-midi.
+                    Le samedi est actif: les heures affichées sont limitées jusqu'à 12:30.
                   </p>
                 ) : null}
               </FormItem>

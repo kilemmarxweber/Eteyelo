@@ -225,7 +225,7 @@ function resolveStrictScheduleWorkDays(
   return resolved;
 }
 
-const SATURDAY_END_LIMIT_MINUTES = 12 * 60;
+const SATURDAY_END_LIMIT_MINUTES = 12 * 60 + 30;
 
 const activeTeachingStatus: Prisma.TeachingWhereInput = {
   OR: [{ statusTeaching: true }, { statusTeaching: null }],
@@ -451,7 +451,7 @@ async function assertScheduleSlotAvailable(params: {
     slotMinutes + durationMinutes > SATURDAY_END_LIMIT_MINUTES
   ) {
     throw new Error(
-      "Le samedi, les cours doivent se terminer avant midi pour cette vacation.",
+      "Le samedi, les cours doivent se terminer au plus tard à 12:30 pour cette vacation.",
     );
   }
   await assertTeacherFreeAt({
