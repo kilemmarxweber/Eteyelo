@@ -167,7 +167,7 @@ export function CreneauUpForm({
     setActivePresetId(null);
   }, [form, mode, initialData?.id]);
 
-  const watched = useWatch({ control: form.control });
+  const watched = useWatch({ control: form.control }) ?? emptyCreneauValues();
   const saturdaySelected = (watched.workingDays ?? []).includes("Samedi");
 
   useEffect(() => {

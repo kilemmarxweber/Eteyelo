@@ -6,6 +6,9 @@ export function genererCreneaux(
   recreationDuration: number // Durée de la récréation en minutes
 ) {
   const creneaux: string[] = [];
+  if (!Number.isFinite(interval) || interval <= 0) {
+    return creneaux;
+  }
   let currentDate = new Date(startDate);
 
   // Calculer l'heure de fin de la récréation

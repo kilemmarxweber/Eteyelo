@@ -88,7 +88,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
         if (err) {
           throw new Error("Failed to fetch creneaux");
         }
-        setCreneaus(rawCreneaus);
+        setCreneaus(Array.isArray(rawCreneaus) ? rawCreneaus : []);
       } catch (error) {
         console.error("Échec de récupérer les créneaux", error);
       } finally {
@@ -99,19 +99,22 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
     fetchCreneaus();
   }, [refreshKey, localRefreshKey]);
 
-  const filteredCreneaux = creneaux.filter((creneau) => {
-    const matchesSearch =
-      creneau.nameCreneau.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      creneau.startTime.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      creneau.endTime.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredCreneaux = (Array.isArray(creneaux) ? creneaux : []).filter(
+    (creneau) => {
+      const query = searchTerm.toLowerCase();
+      const matchesSearch =
+        (creneau.nameCreneau ?? "").toLowerCase().includes(query) ||
+        String(creneau.startTime ?? "").toLowerCase().includes(query) ||
+        String(creneau.endTime ?? "").toLowerCase().includes(query);
 
-    const matchesArchive = matchesIsArchivedFilter(
-      creneau.isArchived,
-      statusFilter,
-    );
+      const matchesArchive = matchesIsArchivedFilter(
+        creneau.isArchived,
+        statusFilter,
+      );
 
-    return matchesSearch && matchesArchive;
-  });
+      return matchesSearch && matchesArchive;
+    },
+  );
 
   const handleEdit = (creneau: ICreneau) => {
     setSelectedCreneau(creneau);

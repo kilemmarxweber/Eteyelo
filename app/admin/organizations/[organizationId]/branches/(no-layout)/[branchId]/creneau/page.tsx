@@ -63,12 +63,14 @@ export default function Creneaus() {
             </SheetDescription>
           </SheetHeader>
           <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
-            <CreneauUpForm
-              key={open ? "creneau-create-open" : "creneau-create-closed"}
-              mode="create"
-              layout="dialog"
-              onCreated={handleCreneauAction}
-            />
+            {open ? (
+              <CreneauUpForm
+                key="creneau-create-open"
+                mode="create"
+                layout="dialog"
+                onCreated={handleCreneauAction}
+              />
+            ) : null}
           </div>
         </SheetContent>
       </Sheet>

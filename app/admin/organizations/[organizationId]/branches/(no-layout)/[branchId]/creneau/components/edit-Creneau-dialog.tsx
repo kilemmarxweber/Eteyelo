@@ -45,12 +45,14 @@ export function UpdateCreneauDialog({
           <SheetDescription>{t("editDesc")}</SheetDescription>
         </SheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
-          <CreneauUpForm
-            mode="update"
-            layout="dialog"
-            initialData={creneau}
-            onUpdated={handleUpdate}
-          />
+          {open ? (
+            <CreneauUpForm
+              mode="update"
+              layout="dialog"
+              initialData={creneau}
+              onUpdated={handleUpdate}
+            />
+          ) : null}
         </div>
       </SheetContent>
     </Sheet>
