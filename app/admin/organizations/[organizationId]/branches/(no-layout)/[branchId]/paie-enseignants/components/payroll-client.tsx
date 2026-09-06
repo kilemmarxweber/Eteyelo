@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, Fragment } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   IconRefresh,
@@ -174,36 +175,21 @@ type SchoolYearOption = {
   isCurrentYear: boolean;
 };
 
-const MONTHS = [
-  "Janvier",
-  "Février",
-  "Mars",
-  "Avril",
-  "Mai",
-  "Juin",
-  "Juillet",
-  "Août",
-  "Septembre",
-  "Octobre",
-  "Novembre",
-  "Décembre",
-];
-
-function formatAmount(value: number, currency: string) {
-  return new Intl.NumberFormat("fr-FR", {
+function formatAmount(value: number, currency: string, localeTag: string) {
+  return new Intl.NumberFormat(localeTag, {
     style: "currency",
     currency,
     maximumFractionDigits: currency === "USD" ? 2 : 0,
   }).format(value);
 }
 
-function statusLabel(status: string) {
+function statusLabel(status: string, t: ReturnType<typeof useTranslations>) {
   return (
     {
-      DRAFT: "Brouillon",
-      VALIDATED: "Validé",
-      PAID: "Payé",
-      CANCELLED: "Annulé",
+      DRAFT: t("status.draft"),
+      VALIDATED: t("status.validated"),
+      PAID: t("status.paid"),
+      CANCELLED: t("status.cancelled"),
     }[status] ?? status
   );
 }
@@ -211,18 +197,6 @@ function statusLabel(status: string) {
 function isDeletable(status: string) {
   return status === "DRAFT" || status === "VALIDATED";
 }
-
-const CYCLE_LABELS: Record<string, string> = {
-  MATERNELLE: "Maternelle",
-  PRIMAIRE: "Primaire",
-  SECONDAIRE: "Secondaire",
-  ATELIER: "Atelier",
-  CENTRE_FORMATION: "Centre de formation",
-  UNIVERSITE: "Université",
-  MIXTE: "Mixte",
-  PERSONNEL: "Personnel",
-  AUTRE: "Autre",
-};
 
 const CYCLE_BADGE: Record<string, string> = {
   MATERNELLE: "border-pink-300/70 bg-pink-50 text-pink-800 dark:bg-pink-950/40 dark:text-pink-300",
@@ -234,6 +208,10 @@ const CYCLE_BADGE: Record<string, string> = {
 };
 
 export default function PayrollClient() {
+  const t = useTranslations("finance.payroll");
+  const locale = useLocale();
+  const localeTag =
+    locale === "fr" ? "fr-FR" : locale === "pt" ? "pt-PT" : "en-US";
   const params = useParams<{ organizationId: string; branchId: string }>();
   const router = useRouter();
   const pathname = usePathname();
@@ -254,6 +232,24 @@ export default function PayrollClient() {
   const [exporting, setExporting] = useState<"pdf" | "excel" | null>(null);
   const [branding, setBranding] = useState<SchoolReportContext | null>(null);
   const loadRequestRef = useRef(0);
+  const months = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, index) =>
+        new Date(2020, index, 1).toLocaleString(localeTag, { month: "long" }),
+      ),
+    [localeTag],
+  );
+  const cycleLabels: Record<string, string> = {
+    MATERNELLE: t("cycles.MATERNELLE"),
+    PRIMAIRE: t("cycles.PRIMAIRE"),
+    SECONDAIRE: t("cycles.SECONDAIRE"),
+    ATELIER: t("cycles.ATELIER"),
+    CENTRE_FORMATION: t("cycles.CENTRE_FORMATION"),
+    UNIVERSITE: t("cycles.UNIVERSITE"),
+    MIXTE: t("cycles.MIXTE"),
+    PERSONNEL: t("cycles.PERSONNEL"),
+    AUTRE: t("cycles.AUTRE"),
+  };
 
   useEffect(() => {
     setHydrated(true);
@@ -415,7 +411,7 @@ export default function PayrollClient() {
       } else {
         groups.push({
           cycleGroup: row.cycleGroup,
-          label: CYCLE_LABELS[row.cycleGroup] ?? row.cycleGroup,
+          label: cycleLabels[row.cycleGroup] ?? row.cycleGroup,
           rows: [row],
         });
       }
@@ -455,20 +451,20 @@ export default function PayrollClient() {
     else {
       if (result?.missingExchangeRate) {
         toast.warning(
-          "Aucun taux sélectionné : les brouillons utilisent USD. Configurez le taux avant validation.",
+          t("toast.noRateDraft"),
         );
       }
       if (result?.skippedPaid) {
         toast.warning(
-          `${result.skippedPaid} bulletin(s) payé(s) non modifié(s).`,
+          t("toast.skippedPaid", { count: result.skippedPaid }),
         );
       }
       if (result?.skippedNoForfait) {
         toast.warning(
-          `${result.skippedNoForfait} personnel(s) sans salaire au barème (rôle) ni forfait fiche.`,
+          t("toast.skippedNoForfait", { count: result.skippedNoForfait }),
         );
       }
-      toast.success(`${result?.count ?? 0} bulletin(s) généré(s)`);
+      toast.success(t("toast.generated", { count: result?.count ?? 0 }));
       setSelectedIds(new Set());
       await load();
     }
@@ -493,9 +489,9 @@ export default function PayrollClient() {
     const scope =
       count > 0
         ? count === 1
-          ? "le bulletin sélectionné"
-          : `les ${count} bulletins sélectionnés`
-        : "tous les brouillons et validés du mois";
+          ? t("delete.selectedOne")
+          : t("delete.selectedMany", { count })
+        : t("delete.allScope");
     setPendingDeleteTarget({ payslipIds, scopeLabel: scope });
     setDeleteConfirmOpen(true);
   }
@@ -513,7 +509,7 @@ export default function PayrollClient() {
     });
     if (error) toast.error(error.message);
     else {
-      toast.success(`${result?.count ?? 0} bulletin(s) supprimé(s)`);
+      toast.success(t("toast.deletedPayslips", { count: result?.count ?? 0 }));
       setSelectedIds(new Set());
       await load();
     }
@@ -526,7 +522,7 @@ export default function PayrollClient() {
       ? draftRows.filter((row) => payslipIds.includes(row.id))
       : draftRows;
     if (targets.length === 0) {
-      toast.error("Aucun bulletin brouillon à valider");
+      toast.error(t("toast.noDraftToValidate"));
       return;
     }
     setPendingBulk({
@@ -543,7 +539,7 @@ export default function PayrollClient() {
       ? validatedRows.filter((row) => payslipIds.includes(row.id))
       : validatedRows;
     if (targets.length === 0) {
-      toast.error("Aucun bulletin validé à payer");
+      toast.error(t("toast.noValidatedToPay"));
       return;
     }
     setPendingBulk({
@@ -571,11 +567,9 @@ export default function PayrollClient() {
       if (error) toast.error(error.message);
       else {
         if (result?.skippedNoRate) {
-          toast.warning(
-            `${result.skippedNoRate} bulletin(s) non validé(s) : taux de change manquant.`,
-          );
+          toast.warning(t("toast.skippedNoRate", { count: result.skippedNoRate }));
         }
-        toast.success(`${result?.count ?? 0} bulletin(s) validé(s)`);
+        toast.success(t("toast.validated", { count: result?.count ?? 0 }));
         setSelectedIds(new Set());
         await load();
       }
@@ -584,7 +578,7 @@ export default function PayrollClient() {
       if (error) toast.error(error.message);
       else {
         toast.success(
-          `${result?.count ?? 0} bulletin(s) payé(s) · dépenses « Paiement salaire » enregistrées`,
+          t("toast.paid", { count: result?.count ?? 0 }),
         );
         setSelectedIds(new Set());
         await load();
@@ -613,13 +607,13 @@ export default function PayrollClient() {
     setWorking(true);
     const [, error] = await updatePayrollPolicyAction(policy);
     if (error) toast.error(error.message);
-    else toast.success("Barème enregistré");
+    else toast.success(t("toast.policySaved"));
     setWorking(false);
   }
 
   async function exportRegister(kind: "pdf" | "excel") {
     if (rows.length === 0) {
-      toast.error("Aucun bulletin à exporter pour cette période.");
+      toast.error(t("toast.noPayslipToExport"));
       return;
     }
     setExporting(kind);
@@ -628,7 +622,7 @@ export default function PayrollClient() {
       if (!context) {
         const [fresh, err] = await getPayrollReportContextAction();
         if (err || !fresh) {
-          throw new Error(err?.message || "Impossible de préparer l’en-tête de l’export.");
+          throw new Error(err?.message || t("toast.exportHeaderError"));
         }
         context = fresh;
         setBranding(fresh);
@@ -642,18 +636,18 @@ export default function PayrollClient() {
       };
       if (kind === "pdf") {
         await exportPayrollRegisterPdf(rows, cash, context, payload);
-        toast.success("PDF des bulletins téléchargé.");
+        toast.success(t("toast.pdfExported"));
       } else {
         await exportPayrollRegisterExcel(rows, cash, context, payload);
-        toast.success("Excel des bulletins téléchargé.");
+        toast.success(t("toast.excelExported"));
       }
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
           : kind === "pdf"
-            ? "Échec de l’export PDF."
-            : "Échec de l’export Excel.",
+            ? t("toast.pdfExportFailed")
+            : t("toast.excelExportFailed"),
       );
     } finally {
       setExporting(null);
@@ -681,12 +675,12 @@ export default function PayrollClient() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>
             {tab === "logs"
-              ? "Logs notifications paie"
+              ? t("tabs.logsTitle")
               : tab === "bareme"
-                ? "Barème"
+                ? t("tabs.scaleTitle")
                 : tab === "credit"
-                  ? "Crédit"
-                  : "Bulletins mensuels"}
+                  ? t("tabs.creditsTitle")
+                  : t("tabs.monthlyTitle")}
           </CardTitle>
           <Tabs value={tab} onValueChange={selectTab} className="w-full sm:w-auto">
             <TabsList
@@ -699,20 +693,20 @@ export default function PayrollClient() {
                 value="brouillon"
                 className="px-4 py-2 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
-                Brouillon
+                {t("tabs.draft")}
               </TabsTrigger>
               <TabsTrigger
                 value="bareme"
                 className="px-4 py-2 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
-                Barème
+                {t("tabs.scale")}
               </TabsTrigger>
               {isManager ? (
                 <TabsTrigger
                   value="credit"
                   className="px-4 py-2 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
-                  Crédit
+                  {t("tabs.credits")}
                 </TabsTrigger>
               ) : null}
               {isManager ? (
@@ -720,7 +714,7 @@ export default function PayrollClient() {
                   value="logs"
                   className="inline-flex items-center px-4 py-2 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
-                  Logs
+                  {t("tabs.logs")}
                 </TabsTrigger>
               ) : null}
             </TabsList>
@@ -730,7 +724,7 @@ export default function PayrollClient() {
           <>
         <div className="grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-[9rem_8rem_minmax(0,1fr)] lg:items-end">
           <label className="space-y-1.5 text-xs font-medium text-muted-foreground" htmlFor="payroll-school-year">
-            <span>Année scolaire</span>
+            <span>{t("filters.schoolYear")}</span>
             <select
               id="payroll-school-year"
               className="flex h-8 w-full rounded-lg border border-input bg-background px-3 py-1.5 text-xs font-normal text-foreground transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
@@ -739,25 +733,25 @@ export default function PayrollClient() {
               onChange={(event) => handleSchoolYearChange(event.target.value)}
             >
               {schoolYears.length === 0 ? (
-                <option value="">Chargement…</option>
+                <option value="">{t("state.loading")}</option>
               ) : null}
               {schoolYears.map((schoolYear) => (
                 <option key={schoolYear.id} value={schoolYear.id}>
                   {schoolYear.nameYear}
-                  {schoolYear.isCurrentYear ? " (en cours)" : ""}
+                  {schoolYear.isCurrentYear ? ` ${t("filters.currentYear")}` : ""}
                 </option>
               ))}
             </select>
           </label>
           <label className="space-y-1.5 text-xs font-medium text-muted-foreground" htmlFor="payroll-month">
-            <span>Mois</span>
+            <span>{t("filters.month")}</span>
             <select
               id="payroll-month"
               className="flex h-8 w-full rounded-lg border border-input bg-background px-3 py-1.5 text-xs font-normal text-foreground transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
               value={month}
               onChange={(event) => handleMonthChange(Number(event.target.value))}
             >
-              {MONTHS.map((monthName, index) => (
+              {months.map((monthName, index) => (
                 <option key={monthName} value={index + 1}>
                   {monthName}
                 </option>
@@ -773,7 +767,7 @@ export default function PayrollClient() {
               disabled={loading}
             >
               <IconRefresh size={16} />
-              Actualiser
+              {t("actions.refresh")}
             </Button>
             {isManager ? (
               <>
@@ -784,7 +778,7 @@ export default function PayrollClient() {
                   disabled={working}
                 >
                   <IconRefresh size={16} />
-                  Régénérer tous
+                  {t("actions.recalculateAll")}
                 </Button>
                 {canValidate ? (
                   <Button
@@ -795,7 +789,7 @@ export default function PayrollClient() {
                     disabled={working || draftRows.length === 0}
                   >
                     <IconCheck size={16} />
-                    Valider tous
+                    {t("actions.validateAll")}
                   </Button>
                 ) : null}
                 {canPay ? (
@@ -806,7 +800,7 @@ export default function PayrollClient() {
                     disabled={working || validatedRows.length === 0}
                   >
                     <IconCash size={16} />
-                    Payer tous
+                    {t("actions.payAll")}
                   </Button>
                 ) : null}
                 <Button
@@ -817,7 +811,7 @@ export default function PayrollClient() {
                   disabled={working || deletableRows.length === 0}
                 >
                   <IconTrash size={16} />
-                  Supprimer brouillons &amp; validés
+                  {t("actions.deleteDraftAndValidated")}
                 </Button>
               </>
             ) : null}
@@ -829,7 +823,7 @@ export default function PayrollClient() {
               disabled={loading || exporting !== null || rows.length === 0}
             >
               <IconFileTypePdf size={16} />
-              {exporting === "pdf" ? "Export…" : "Pdf"}
+              {exporting === "pdf" ? t("actions.exporting") : t("actions.pdf")}
             </Button>
             <Button
               variant="outline"
@@ -839,14 +833,14 @@ export default function PayrollClient() {
               disabled={loading || exporting !== null || rows.length === 0}
             >
               <IconFileSpreadsheet size={16} />
-              {exporting === "excel" ? "Export…" : "Excel"}
+              {exporting === "excel" ? t("actions.exporting") : t("actions.excel")}
             </Button>
           </div>
         </div>
         {isManager && selectedIds.size > 0 ? (
           <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2">
             <span className="text-xs text-muted-foreground">
-              {selectedIds.size} sélectionné{selectedIds.size > 1 ? "s" : ""}
+              {t("selection.selected", { count: selectedIds.size })}
             </span>
             <Button
               size="sm"
@@ -857,7 +851,7 @@ export default function PayrollClient() {
               }
             >
               <IconCalculator size={15} />
-              Recalculer la sélection
+              {t("actions.recalculateSelection")}
             </Button>
             {canValidate ? (
               <Button
@@ -869,7 +863,7 @@ export default function PayrollClient() {
                 }
               >
                 <IconCheck size={15} />
-                Valider la sélection
+                {t("actions.validateSelection")}
               </Button>
             ) : null}
             {canPay ? (
@@ -881,7 +875,7 @@ export default function PayrollClient() {
                 }
               >
                 <IconCash size={15} />
-                Payer la sélection
+                {t("actions.paySelection")}
               </Button>
             ) : null}
             <Button
@@ -894,7 +888,7 @@ export default function PayrollClient() {
               }
             >
               <IconTrash size={15} />
-              Supprimer la sélection
+              {t("actions.deleteSelection")}
             </Button>
           </div>
         ) : null}
@@ -906,34 +900,37 @@ export default function PayrollClient() {
         {cash ? (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <SummaryTile
-              label="Encaissements"
-              value={formatAmount(cash.incomeTotal, cash.currency)}
+              label={t("summary.income")}
+              value={formatAmount(cash.incomeTotal, cash.currency, localeTag)}
               tone="sky"
             />
             <SummaryTile
-              label="Dépenses caisse"
-              value={formatAmount(cash.expenseTotal, cash.currency)}
+              label={t("summary.expenses")}
+              value={formatAmount(cash.expenseTotal, cash.currency, localeTag)}
               tone="rose"
             />
             <SummaryTile
-              label="Solde net de caisse"
-              value={formatAmount(cash.cashNet, cash.currency)}
+              label={t("summary.cashNet")}
+              value={formatAmount(cash.cashNet, cash.currency, localeTag)}
               tone="emerald"
-              hint="Après encaissements − dépenses"
+              hint={t("summary.cashNetHint")}
             />
             <SummaryTile
-              label="Reste après paie"
-              value={formatAmount(cash.remainingAfterPayroll, cash.currency)}
+              label={t("summary.remainingAfterPayroll")}
+              value={formatAmount(cash.remainingAfterPayroll, cash.currency, localeTag)}
               tone={cash.remainingAfterPayroll >= 0 ? "emerald" : "rose"}
-              hint={`Paie à consommer : ${formatAmount(cash.payrollConsume, cash.currency)} (${cash.unpaidCount} bulletin${cash.unpaidCount > 1 ? "s" : ""} non payé${cash.unpaidCount > 1 ? "s" : ""})`}
+              hint={t("summary.remainingHint", {
+                amount: formatAmount(cash.payrollConsume, cash.currency, localeTag),
+                count: cash.unpaidCount,
+              })}
             />
           </div>
         ) : null}
         {loading ? (
-          <p className="text-sm text-muted-foreground">Chargement…</p>
+          <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
         ) : rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Aucun bulletin pour cette période. Lancez une régénération pour payer enseignants et personnels ensemble.
+            {t("state.empty")}
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -948,22 +945,22 @@ export default function PayrollClient() {
                         onCheckedChange={(value) =>
                           toggleAllDeletable(value === true)
                         }
-                        aria-label="Sélectionner tous les brouillons et validés"
+                        aria-label={t("aria.selectAllDeletable")}
                       />
                     </th>
                   ) : null}
-                  <th className="p-2">Agent</th>
-                  <th className="p-2">Cycle / rôle</th>
-                  <th className="p-2">Branche</th>
-                  <th className="p-2">Classes</th>
-                  <th className="p-2">Contrat</th>
-                  <th className="p-2">Brut</th>
-                  <th className="p-2">Pertes</th>
-                  <th className="p-2">Min. perdues</th>
-                  <th className="p-2">Net</th>
-                  <th className="p-2">Différence</th>
-                  <th className="p-2">Bulletin</th>
-                  <th className="whitespace-nowrap p-2">Actions</th>
+                  <th className="p-2">{t("table.agent")}</th>
+                  <th className="p-2">{t("table.cycleRole")}</th>
+                  <th className="p-2">{t("table.branch")}</th>
+                  <th className="p-2">{t("table.classes")}</th>
+                  <th className="p-2">{t("table.contract")}</th>
+                  <th className="p-2">{t("table.gross")}</th>
+                  <th className="p-2">{t("table.losses")}</th>
+                  <th className="p-2">{t("table.lostMinutes")}</th>
+                  <th className="p-2">{t("table.net")}</th>
+                  <th className="p-2">{t("table.difference")}</th>
+                  <th className="p-2">{t("table.payslip")}</th>
+                  <th className="whitespace-nowrap p-2">{t("table.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -992,12 +989,14 @@ export default function PayrollClient() {
                             {formatAmount(
                               group.rows.reduce((sum, row) => sum + row.deductions, 0),
                               listCurrency,
+                              localeTag,
                             )}
                             {" · "}
                             net{" "}
                             {formatAmount(
                               group.rows.reduce((sum, row) => sum + row.net, 0),
                               listCurrency,
+                              localeTag,
                             )}
                           </span>
                         </span>
@@ -1032,7 +1031,7 @@ export default function PayrollClient() {
                                   CYCLE_BADGE[cycle] ?? CYCLE_BADGE.AUTRE,
                                 )}
                               >
-                                {CYCLE_LABELS[cycle] ?? cycle}
+                                {cycleLabels[cycle] ?? cycle}
                               </Badge>
                             ))}
                           </div>
@@ -1074,9 +1073,9 @@ export default function PayrollClient() {
                         <td className="p-2">
                           {row.contractLabel}
                         </td>
-                        <td className="p-2">{formatAmount(row.gross, row.currency)}</td>
+                        <td className="p-2">{formatAmount(row.gross, row.currency, localeTag)}</td>
                         <td className="p-2 font-medium text-destructive">
-                          {formatAmount(row.deductions, row.currency)}
+                          {formatAmount(row.deductions, row.currency, localeTag)}
                         </td>
                         <td className="p-2 text-destructive/80">
                           {row.lostMinutes > 0
@@ -1084,13 +1083,13 @@ export default function PayrollClient() {
                             : "—"}
                         </td>
                         <td className="p-2 font-semibold">
-                          {formatAmount(row.net, row.currency)}
+                          {formatAmount(row.net, row.currency, localeTag)}
                         </td>
                         <td className="p-2 text-amber-700 dark:text-amber-400">
-                          {formatAmount(row.difference, row.currency)}
+                          {formatAmount(row.difference, row.currency, localeTag)}
                         </td>
                         <td className="p-2">
-                          <Badge variant="outline">{statusLabel(row.status)}</Badge>
+                          <Badge variant="outline">{statusLabel(row.status, t)}</Badge>
                         </td>
                         <td className="p-2 whitespace-nowrap">
                           <div className="flex flex-nowrap items-center gap-1">
@@ -1186,18 +1185,18 @@ export default function PayrollClient() {
                   >
                     Totaux ({rows.length})
                   </td>
-                  <td className="p-2">{formatAmount(totals.gross, listCurrency)}</td>
+                  <td className="p-2">{formatAmount(totals.gross, listCurrency, localeTag)}</td>
                   <td className="p-2 text-destructive">
-                    {formatAmount(totals.lost, listCurrency)}
+                    {formatAmount(totals.lost, listCurrency, localeTag)}
                   </td>
                   <td className="p-2 text-destructive/80">
                     {totals.lostMinutes > 0
                       ? `${totals.lostMinutes.toFixed(totals.lostMinutes % 1 === 0 ? 0 : 1)} min`
                       : "—"}
                   </td>
-                  <td className="p-2">{formatAmount(totals.net, listCurrency)}</td>
+                  <td className="p-2">{formatAmount(totals.net, listCurrency, localeTag)}</td>
                   <td className="p-2 text-amber-700 dark:text-amber-400">
-                    {formatAmount(totals.difference, listCurrency)}
+                    {formatAmount(totals.difference, listCurrency, localeTag)}
                   </td>
                   <td className="p-2" colSpan={2} />
                 </tr>
@@ -1371,7 +1370,7 @@ export default function PayrollClient() {
                   {pendingBulk.count > 1 ? "s" : ""} et enregistrer{" "}
                   {pendingBulk.count > 1 ? "les dépenses" : "la dépense"} «
                   Paiement salaire » pour un total de{" "}
-                  {formatAmount(pendingBulk.netTotal, listCurrency)} ? Cette
+                  {formatAmount(pendingBulk.netTotal, listCurrency, localeTag)} ? Cette
                   action est irréversible.
                 </>
               ) : (

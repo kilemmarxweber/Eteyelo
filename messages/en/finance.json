@@ -227,5 +227,180 @@
     "airtel": "Airtel",
     "orange": "Orange",
     "establishment": "School"
+  },
+  "transactions": {
+    "pageTitle": "Transactions",
+    "pageDescription": "All transactions in the active branch: student, parent, reference, date, amount and class.",
+    "badge": "Cash desk",
+    "periodDailyLabel": "Daily · {date}",
+    "periodAllLabel": "All transactions",
+    "periodRangeLabel": "From {start} to {end}",
+    "cardTitle": "Branch transactions",
+    "cardSubtitle": "Collections and expenses · {period}",
+    "kinds": {
+      "expense": "Expense",
+      "payment": "Collection"
+    },
+    "filters": {
+      "period": "Period",
+      "dayMode": "Daily",
+      "allMode": "All",
+      "rangeMode": "Custom range",
+      "day": "Day",
+      "from": "From",
+      "to": "To",
+      "search": "Search",
+      "searchPlaceholder": "Ref., student, parent, class, expense…",
+      "includeArchived": "Show archived"
+    },
+    "table": {
+      "type": "Type",
+      "reference": "Transaction #",
+      "date": "Date",
+      "studentLabel": "Student / Label",
+      "parentCashier": "Parent / Cashier",
+      "classCategory": "Class / Category",
+      "amount": "Amount",
+      "status": "Status",
+      "actions": "Actions",
+      "expenseFallback": "Cash expense",
+      "archived": "Archived"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "archive": "Archive",
+      "unarchive": "Restore",
+      "deletePermanently": "Delete permanently",
+      "cancel": "Cancel",
+      "deleting": "Deleting…",
+      "archiveAria": "Archive {ref}",
+      "unarchiveAria": "Restore {ref}",
+      "deleteAria": "Delete {ref}"
+    },
+    "state": {
+      "loading": "Loading…",
+      "empty": "No transactions for this branch."
+    },
+    "toast": {
+      "expenseArchived": "Expense archived",
+      "transactionArchived": "Transaction archived",
+      "expenseRestored": "Expense restored",
+      "transactionRestored": "Transaction restored",
+      "deleted": "Permanent deletion completed"
+    },
+    "confirm": {
+      "title": "Delete permanently?",
+      "descriptionPrefix": "This action is irreversible.",
+      "expense": "The expense",
+      "transaction": "The transaction",
+      "descriptionSuffix": "will be removed from the database. Prefer archiving if you only want to hide it from cash desk reports."
+    }
+  },
+  "payroll": {
+    "pageTitle": "Staff payroll",
+    "pageDescription": "Calculate and pay monthly payslips: teachers (grade-based lump sum + bonus) and staff (known lump sum), all together.",
+    "badge": "Payroll V1",
+    "status": {
+      "draft": "Draft",
+      "validated": "Validated",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    },
+    "cycles": {
+      "MATERNELLE": "Kindergarten",
+      "PRIMAIRE": "Primary",
+      "SECONDAIRE": "Secondary",
+      "ATELIER": "Workshop",
+      "CENTRE_FORMATION": "Training center",
+      "UNIVERSITE": "University",
+      "MIXTE": "Mixed",
+      "PERSONNEL": "Staff",
+      "AUTRE": "Other"
+    },
+    "tabs": {
+      "logsTitle": "Payroll notification logs",
+      "scaleTitle": "Scale",
+      "creditsTitle": "Credits",
+      "monthlyTitle": "Monthly payslips",
+      "draft": "Draft",
+      "scale": "Scale",
+      "credits": "Credits",
+      "logs": "Logs"
+    },
+    "filters": {
+      "schoolYear": "School year",
+      "month": "Month",
+      "currentYear": "(current)"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "recalculateAll": "Recalculate all",
+      "validateAll": "Validate all",
+      "payAll": "Pay all",
+      "deleteDraftAndValidated": "Delete drafts & validated",
+      "exporting": "Exporting…",
+      "pdf": "Pdf",
+      "excel": "Excel",
+      "recalculateSelection": "Recalculate selection",
+      "validateSelection": "Validate selection",
+      "paySelection": "Pay selection",
+      "deleteSelection": "Delete selection"
+    },
+    "selection": {
+      "selected": "{count} selected"
+    },
+    "summary": {
+      "income": "Collections",
+      "expenses": "Cash expenses",
+      "cashNet": "Net cash",
+      "cashNetHint": "After collections − expenses",
+      "remainingAfterPayroll": "Remaining after payroll",
+      "remainingHint": "Payroll to consume: {amount} ({count} unpaid payslip{count, plural, one {} other {s}})"
+    },
+    "table": {
+      "agent": "Agent",
+      "cycleRole": "Cycle / role",
+      "branch": "Branch",
+      "classes": "Classes",
+      "contract": "Contract",
+      "gross": "Gross",
+      "losses": "Losses",
+      "lostMinutes": "Lost min.",
+      "net": "Net",
+      "difference": "Difference",
+      "payslip": "Payslip",
+      "actions": "Actions"
+    },
+    "delete": {
+      "selectedOne": "the selected payslip",
+      "selectedMany": "the {count} selected payslips",
+      "allScope": "all drafts and validated payslips of the month"
+    },
+    "state": {
+      "loading": "Loading…",
+      "empty": "No payslip for this period. Recalculate to pay teachers and staff together."
+    },
+    "aria": {
+      "selectAllDeletable": "Select all drafts and validated payslips"
+    },
+    "toast": {
+      "noRateDraft": "No exchange rate selected: drafts use USD. Configure a rate before validation.",
+      "skippedPaid": "{count} paid payslip(s) not modified.",
+      "skippedNoForfait": "{count} staff member(s) without role-scale salary or profile lump sum.",
+      "generated": "{count} payslip(s) generated",
+      "deletedPayslips": "{count} payslip(s) deleted",
+      "noDraftToValidate": "No draft payslip to validate",
+      "noValidatedToPay": "No validated payslip to pay",
+      "skippedNoRate": "{count} payslip(s) not validated: missing exchange rate.",
+      "validated": "{count} payslip(s) validated",
+      "paid": "{count} payslip(s) paid · “Salary payment” expenses recorded",
+      "policySaved": "Scale saved",
+      "noPayslipToExport": "No payslip to export for this period.",
+      "exportHeaderError": "Unable to prepare export header.",
+      "pdfExported": "Payslip PDF downloaded.",
+      "excelExported": "Payslip Excel downloaded.",
+      "pdfExportFailed": "PDF export failed.",
+      "excelExportFailed": "Excel export failed."
+    }
   }
 }

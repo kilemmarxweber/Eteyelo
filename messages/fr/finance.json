@@ -227,5 +227,180 @@
     "airtel": "Airtel",
     "orange": "Orange",
     "establishment": "Établissement"
+  },
+  "transactions": {
+    "pageTitle": "Transactions",
+    "pageDescription": "Toutes les transactions de la branche active : élève, parent, référence, date, montant et classe.",
+    "badge": "Caisse",
+    "periodDailyLabel": "Journalier · {date}",
+    "periodAllLabel": "Toutes les transactions",
+    "periodRangeLabel": "Du {start} au {end}",
+    "cardTitle": "Transactions de la branche",
+    "cardSubtitle": "Encaissements et dépenses · {period}",
+    "kinds": {
+      "expense": "Dépense",
+      "payment": "Encaissement"
+    },
+    "filters": {
+      "period": "Période",
+      "dayMode": "Journalier",
+      "allMode": "Tous",
+      "rangeMode": "Période précise",
+      "day": "Jour",
+      "from": "Du",
+      "to": "Au",
+      "search": "Recherche",
+      "searchPlaceholder": "Réf., élève, parent, classe, dépense…",
+      "includeArchived": "Afficher les archivées"
+    },
+    "table": {
+      "type": "Type",
+      "reference": "N° transaction",
+      "date": "Date",
+      "studentLabel": "Élève / Libellé",
+      "parentCashier": "Parent / Caissier",
+      "classCategory": "Classe / Catégorie",
+      "amount": "Montant",
+      "status": "Statut",
+      "actions": "Actions",
+      "expenseFallback": "Dépense de caisse",
+      "archived": "Archivée"
+    },
+    "actions": {
+      "refresh": "Actualiser",
+      "archive": "Archiver",
+      "unarchive": "Désarchiver",
+      "deletePermanently": "Supprimer définitivement",
+      "cancel": "Annuler",
+      "deleting": "Suppression…",
+      "archiveAria": "Archiver {ref}",
+      "unarchiveAria": "Désarchiver {ref}",
+      "deleteAria": "Supprimer {ref}"
+    },
+    "state": {
+      "loading": "Chargement…",
+      "empty": "Aucune transaction pour cette branche."
+    },
+    "toast": {
+      "expenseArchived": "Dépense archivée",
+      "transactionArchived": "Transaction archivée",
+      "expenseRestored": "Dépense restaurée",
+      "transactionRestored": "Transaction restaurée",
+      "deleted": "Suppression définitive effectuée"
+    },
+    "confirm": {
+      "title": "Supprimer définitivement ?",
+      "descriptionPrefix": "Cette action est irréversible.",
+      "expense": "La dépense",
+      "transaction": "La transaction",
+      "descriptionSuffix": "sera effacée de la base. Préférez l’archivage pour seulement la masquer de la caisse."
+    }
+  },
+  "payroll": {
+    "pageTitle": "Paie du personnel",
+    "pageDescription": "Calculez et payez les bulletins du mois : enseignants (forfait par grade + prime) et personnels (forfait connu), tous ensemble.",
+    "badge": "Paie V1",
+    "status": {
+      "draft": "Brouillon",
+      "validated": "Validé",
+      "paid": "Payé",
+      "cancelled": "Annulé"
+    },
+    "cycles": {
+      "MATERNELLE": "Maternelle",
+      "PRIMAIRE": "Primaire",
+      "SECONDAIRE": "Secondaire",
+      "ATELIER": "Atelier",
+      "CENTRE_FORMATION": "Centre de formation",
+      "UNIVERSITE": "Université",
+      "MIXTE": "Mixte",
+      "PERSONNEL": "Personnel",
+      "AUTRE": "Autre"
+    },
+    "tabs": {
+      "logsTitle": "Logs notifications paie",
+      "scaleTitle": "Barème",
+      "creditsTitle": "Crédit",
+      "monthlyTitle": "Bulletins mensuels",
+      "draft": "Brouillon",
+      "scale": "Barème",
+      "credits": "Crédit",
+      "logs": "Logs"
+    },
+    "filters": {
+      "schoolYear": "Année scolaire",
+      "month": "Mois",
+      "currentYear": "(en cours)"
+    },
+    "actions": {
+      "refresh": "Actualiser",
+      "recalculateAll": "Régénérer tous",
+      "validateAll": "Valider tous",
+      "payAll": "Payer tous",
+      "deleteDraftAndValidated": "Supprimer brouillons & validés",
+      "exporting": "Export…",
+      "pdf": "Pdf",
+      "excel": "Excel",
+      "recalculateSelection": "Recalculer la sélection",
+      "validateSelection": "Valider la sélection",
+      "paySelection": "Payer la sélection",
+      "deleteSelection": "Supprimer la sélection"
+    },
+    "selection": {
+      "selected": "{count} sélectionné{count, plural, one {} other {s}}"
+    },
+    "summary": {
+      "income": "Encaissements",
+      "expenses": "Dépenses caisse",
+      "cashNet": "Solde net de caisse",
+      "cashNetHint": "Après encaissements − dépenses",
+      "remainingAfterPayroll": "Reste après paie",
+      "remainingHint": "Paie à consommer : {amount} ({count} bulletin{count, plural, one {} other {s}} non payé{count, plural, one {} other {s}})"
+    },
+    "table": {
+      "agent": "Agent",
+      "cycleRole": "Cycle / rôle",
+      "branch": "Branche",
+      "classes": "Classes",
+      "contract": "Contrat",
+      "gross": "Brut",
+      "losses": "Pertes",
+      "lostMinutes": "Min. perdues",
+      "net": "Net",
+      "difference": "Différence",
+      "payslip": "Bulletin",
+      "actions": "Actions"
+    },
+    "delete": {
+      "selectedOne": "le bulletin sélectionné",
+      "selectedMany": "les {count} bulletins sélectionnés",
+      "allScope": "tous les brouillons et validés du mois"
+    },
+    "state": {
+      "loading": "Chargement…",
+      "empty": "Aucun bulletin pour cette période. Lancez une régénération pour payer enseignants et personnels ensemble."
+    },
+    "aria": {
+      "selectAllDeletable": "Sélectionner tous les brouillons et validés"
+    },
+    "toast": {
+      "noRateDraft": "Aucun taux sélectionné : les brouillons utilisent USD. Configurez le taux avant validation.",
+      "skippedPaid": "{count} bulletin(s) payé(s) non modifié(s).",
+      "skippedNoForfait": "{count} personnel(s) sans salaire au barème (rôle) ni forfait fiche.",
+      "generated": "{count} bulletin(s) généré(s)",
+      "deletedPayslips": "{count} bulletin(s) supprimé(s)",
+      "noDraftToValidate": "Aucun bulletin brouillon à valider",
+      "noValidatedToPay": "Aucun bulletin validé à payer",
+      "skippedNoRate": "{count} bulletin(s) non validé(s) : taux de change manquant.",
+      "validated": "{count} bulletin(s) validé(s)",
+      "paid": "{count} bulletin(s) payé(s) · dépenses « Paiement salaire » enregistrées",
+      "policySaved": "Barème enregistré",
+      "noPayslipToExport": "Aucun bulletin à exporter pour cette période.",
+      "exportHeaderError": "Impossible de préparer l’en-tête de l’export.",
+      "pdfExported": "PDF des bulletins téléchargé.",
+      "excelExported": "Excel des bulletins téléchargé.",
+      "pdfExportFailed": "Échec de l’export PDF.",
+      "excelExportFailed": "Échec de l’export Excel."
+    }
   }
 }

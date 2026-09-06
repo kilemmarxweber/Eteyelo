@@ -227,5 +227,180 @@
     "airtel": "Airtel",
     "orange": "Orange",
     "establishment": "Estabelecimento"
+  },
+  "transactions": {
+    "pageTitle": "Transações",
+    "pageDescription": "Todas as transações da filial ativa: aluno, encarregado, referência, data, montante e turma.",
+    "badge": "Caixa",
+    "periodDailyLabel": "Diário · {date}",
+    "periodAllLabel": "Todas as transações",
+    "periodRangeLabel": "De {start} a {end}",
+    "cardTitle": "Transações da filial",
+    "cardSubtitle": "Cobranças e despesas · {period}",
+    "kinds": {
+      "expense": "Despesa",
+      "payment": "Cobrança"
+    },
+    "filters": {
+      "period": "Período",
+      "dayMode": "Diário",
+      "allMode": "Todos",
+      "rangeMode": "Período específico",
+      "day": "Dia",
+      "from": "De",
+      "to": "Até",
+      "search": "Pesquisa",
+      "searchPlaceholder": "Ref., aluno, encarregado, turma, despesa…",
+      "includeArchived": "Mostrar arquivadas"
+    },
+    "table": {
+      "type": "Tipo",
+      "reference": "Nº transação",
+      "date": "Data",
+      "studentLabel": "Aluno / Rótulo",
+      "parentCashier": "Encarregado / Caixa",
+      "classCategory": "Turma / Categoria",
+      "amount": "Montante",
+      "status": "Estado",
+      "actions": "Ações",
+      "expenseFallback": "Despesa de caixa",
+      "archived": "Arquivada"
+    },
+    "actions": {
+      "refresh": "Atualizar",
+      "archive": "Arquivar",
+      "unarchive": "Restaurar",
+      "deletePermanently": "Eliminar definitivamente",
+      "cancel": "Cancelar",
+      "deleting": "A eliminar…",
+      "archiveAria": "Arquivar {ref}",
+      "unarchiveAria": "Restaurar {ref}",
+      "deleteAria": "Eliminar {ref}"
+    },
+    "state": {
+      "loading": "A carregar…",
+      "empty": "Nenhuma transação para esta filial."
+    },
+    "toast": {
+      "expenseArchived": "Despesa arquivada",
+      "transactionArchived": "Transação arquivada",
+      "expenseRestored": "Despesa restaurada",
+      "transactionRestored": "Transação restaurada",
+      "deleted": "Eliminação definitiva concluída"
+    },
+    "confirm": {
+      "title": "Eliminar definitivamente?",
+      "descriptionPrefix": "Esta ação é irreversível.",
+      "expense": "A despesa",
+      "transaction": "A transação",
+      "descriptionSuffix": "será removida da base de dados. Prefira arquivar se quiser apenas ocultar da caixa."
+    }
+  },
+  "payroll": {
+    "pageTitle": "Salários do pessoal",
+    "pageDescription": "Calcule e pague os recibos do mês: docentes (forfait por grau + prémio) e pessoal (forfait conhecido), em conjunto.",
+    "badge": "Salários V1",
+    "status": {
+      "draft": "Rascunho",
+      "validated": "Validado",
+      "paid": "Pago",
+      "cancelled": "Cancelado"
+    },
+    "cycles": {
+      "MATERNELLE": "Pré-escolar",
+      "PRIMAIRE": "Primário",
+      "SECONDAIRE": "Secundário",
+      "ATELIER": "Atelier",
+      "CENTRE_FORMATION": "Centro de formação",
+      "UNIVERSITE": "Universidade",
+      "MIXTE": "Misto",
+      "PERSONNEL": "Pessoal",
+      "AUTRE": "Outro"
+    },
+    "tabs": {
+      "logsTitle": "Registos de notificações salariais",
+      "scaleTitle": "Tabela",
+      "creditsTitle": "Crédito",
+      "monthlyTitle": "Recibos mensais",
+      "draft": "Rascunho",
+      "scale": "Tabela",
+      "credits": "Crédito",
+      "logs": "Registos"
+    },
+    "filters": {
+      "schoolYear": "Ano letivo",
+      "month": "Mês",
+      "currentYear": "(em curso)"
+    },
+    "actions": {
+      "refresh": "Atualizar",
+      "recalculateAll": "Recalcular todos",
+      "validateAll": "Validar todos",
+      "payAll": "Pagar todos",
+      "deleteDraftAndValidated": "Eliminar rascunhos e validados",
+      "exporting": "A exportar…",
+      "pdf": "Pdf",
+      "excel": "Excel",
+      "recalculateSelection": "Recalcular seleção",
+      "validateSelection": "Validar seleção",
+      "paySelection": "Pagar seleção",
+      "deleteSelection": "Eliminar seleção"
+    },
+    "selection": {
+      "selected": "{count} selecionado{count, plural, one {} other {s}}"
+    },
+    "summary": {
+      "income": "Cobranças",
+      "expenses": "Despesas de caixa",
+      "cashNet": "Saldo líquido de caixa",
+      "cashNetHint": "Após cobranças − despesas",
+      "remainingAfterPayroll": "Restante após salários",
+      "remainingHint": "Salário a consumir: {amount} ({count} recibo{count, plural, one {} other {s}} não pago{count, plural, one {} other {s}})"
+    },
+    "table": {
+      "agent": "Agente",
+      "cycleRole": "Ciclo / função",
+      "branch": "Filial",
+      "classes": "Turmas",
+      "contract": "Contrato",
+      "gross": "Bruto",
+      "losses": "Perdas",
+      "lostMinutes": "Min. perdidos",
+      "net": "Líquido",
+      "difference": "Diferença",
+      "payslip": "Recibo",
+      "actions": "Ações"
+    },
+    "delete": {
+      "selectedOne": "o recibo selecionado",
+      "selectedMany": "os {count} recibos selecionados",
+      "allScope": "todos os rascunhos e validados do mês"
+    },
+    "state": {
+      "loading": "A carregar…",
+      "empty": "Nenhum recibo neste período. Recalcule para pagar docentes e pessoal em conjunto."
+    },
+    "aria": {
+      "selectAllDeletable": "Selecionar todos os rascunhos e validados"
+    },
+    "toast": {
+      "noRateDraft": "Nenhuma taxa selecionada: os rascunhos usam USD. Configure a taxa antes da validação.",
+      "skippedPaid": "{count} recibo(s) pago(s) não modificado(s).",
+      "skippedNoForfait": "{count} membro(s) do pessoal sem salário por tabela (função) nem forfait na ficha.",
+      "generated": "{count} recibo(s) gerado(s)",
+      "deletedPayslips": "{count} recibo(s) eliminado(s)",
+      "noDraftToValidate": "Nenhum recibo em rascunho para validar",
+      "noValidatedToPay": "Nenhum recibo validado para pagar",
+      "skippedNoRate": "{count} recibo(s) não validados: taxa de câmbio em falta.",
+      "validated": "{count} recibo(s) validados",
+      "paid": "{count} recibo(s) pagos · despesas « Pagamento de salário » registadas",
+      "policySaved": "Tabela guardada",
+      "noPayslipToExport": "Nenhum recibo para exportar neste período.",
+      "exportHeaderError": "Não foi possível preparar o cabeçalho da exportação.",
+      "pdfExported": "PDF dos recibos transferido.",
+      "excelExported": "Excel dos recibos transferido.",
+      "pdfExportFailed": "Falha na exportação PDF.",
+      "excelExportFailed": "Falha na exportação Excel."
+    }
   }
 }

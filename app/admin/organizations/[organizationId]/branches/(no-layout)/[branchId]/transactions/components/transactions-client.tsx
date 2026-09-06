@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   IconArchive,
@@ -53,17 +54,17 @@ type TransactionRow = {
   cashierName: string | null;
 };
 
-function formatAmount(value: number, currency: string) {
-  return new Intl.NumberFormat("fr-FR", {
+function formatAmount(value: number, currency: string, localeTag: string) {
+  return new Intl.NumberFormat(localeTag, {
     style: "currency",
     currency,
     maximumFractionDigits: currency === "USD" ? 2 : 0,
   }).format(value);
 }
 
-function formatDate(iso: string) {
+function formatDate(iso: string, localeTag: string) {
   try {
-    return new Date(iso).toLocaleString("fr-FR", {
+    return new Date(iso).toLocaleString(localeTag, {
       dateStyle: "short",
       timeStyle: "short",
     });
@@ -84,6 +85,10 @@ function toDateInputValue(date = new Date()) {
 type PeriodMode = "day" | "all" | "period";
 
 export default function TransactionsClient() {
+  const t = useTranslations("finance.transactions");
+  const locale = useLocale();
+  const localeTag =
+    locale === "fr" ? "fr-FR" : locale === "pt" ? "pt-PT" : "en-US";
   const today = toDateInputValue();
   const [rows, setRows] = useState<TransactionRow[]>([]);
   const [currency, setCurrency] = useState("USD");
@@ -123,10 +128,17 @@ export default function TransactionsClient() {
 
   const periodLabel =
     mode === "day"
-      ? `Journalier · ${new Date(`${day}T00:00:00`).toLocaleDateString("fr-FR")}`
+      ? t("periodDailyLabel", {
+          date: new Date(`${day}T00:00:00`).toLocaleDateString(localeTag),
+        })
       : mode === "all"
-        ? "Toutes les transactions"
-        : `Du ${new Date(`${startDate}T00:00:00`).toLocaleDateString("fr-FR")} au ${new Date(`${endDate}T00:00:00`).toLocaleDateString("fr-FR")}`;
+        ? t("periodAllLabel")
+        : t("periodRangeLabel", {
+            start: new Date(`${startDate}T00:00:00`).toLocaleDateString(
+              localeTag,
+            ),
+            end: new Date(`${endDate}T00:00:00`).toLocaleDateString(localeTag),
+          });
 
   async function archiveRow(row: TransactionRow) {
     setWorking(true);
@@ -137,7 +149,9 @@ export default function TransactionsClient() {
     if (error) toast.error(error.message);
     else {
       toast.success(
-        row.kind === "EXPENSE" ? "Dépense archivée" : "Transaction archivée",
+        row.kind === "EXPENSE"
+          ? t("toast.expenseArchived")
+          : t("toast.transactionArchived"),
       );
       await load();
     }
@@ -153,7 +167,9 @@ export default function TransactionsClient() {
     if (error) toast.error(error.message);
     else {
       toast.success(
-        row.kind === "EXPENSE" ? "Dépense restaurée" : "Transaction restaurée",
+        row.kind === "EXPENSE"
+          ? t("toast.expenseRestored")
+          : t("toast.transactionRestored"),
       );
       await load();
     }
@@ -169,7 +185,7 @@ export default function TransactionsClient() {
     });
     if (error) toast.error(error.message);
     else {
-      toast.success("Suppression définitive effectuée");
+      toast.success(t("toast.deleted"));
       setPendingDelete(null);
       await load();
     }
@@ -179,26 +195,26 @@ export default function TransactionsClient() {
   return (
     <Card>
       <CardHeader className="gap-3">
-        <CardTitle>Transactions de la branche</CardTitle>
+        <CardTitle>{t("cardTitle")}</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Encaissements et dépenses · {periodLabel}
+          {t("cardSubtitle", { period: periodLabel })}
         </p>
         <div className="flex flex-wrap items-end gap-2">
           <label className="space-y-1 text-xs text-muted-foreground">
-            <span>Période</span>
+            <span>{t("filters.period")}</span>
             <select
               className="flex h-9 w-[11rem] rounded-lg border border-input bg-background px-3 text-sm text-foreground"
               value={mode}
               onChange={(event) => setMode(event.target.value as PeriodMode)}
             >
-              <option value="day">Journalier</option>
-              <option value="all">Tous</option>
-              <option value="period">Période précise</option>
+              <option value="day">{t("filters.dayMode")}</option>
+              <option value="all">{t("filters.allMode")}</option>
+              <option value="period">{t("filters.rangeMode")}</option>
             </select>
           </label>
           {mode === "day" ? (
             <label className="space-y-1 text-xs text-muted-foreground">
-              <span>Jour</span>
+              <span>{t("filters.day")}</span>
               <Input
                 type="date"
                 className="h-9 w-[11rem]"
@@ -210,7 +226,7 @@ export default function TransactionsClient() {
           {mode === "period" ? (
             <>
               <label className="space-y-1 text-xs text-muted-foreground">
-                <span>Du</span>
+                <span>{t("filters.from")}</span>
                 <Input
                   type="date"
                   className="h-9 w-[11rem]"
@@ -219,7 +235,7 @@ export default function TransactionsClient() {
                 />
               </label>
               <label className="space-y-1 text-xs text-muted-foreground">
-                <span>Au</span>
+                <span>{t("filters.to")}</span>
                 <Input
                   type="date"
                   className="h-9 w-[11rem]"
@@ -230,14 +246,14 @@ export default function TransactionsClient() {
             </>
           ) : null}
           <label className="min-w-[14rem] flex-1 space-y-1 text-xs text-muted-foreground">
-            <span>Recherche</span>
+            <span>{t("filters.search")}</span>
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") setAppliedSearch(search.trim());
               }}
-              placeholder="Réf., élève, parent, classe, dépense…"
+              placeholder={t("filters.searchPlaceholder")}
             />
           </label>
           <label className="flex items-center gap-2 pb-2 text-sm">
@@ -245,7 +261,7 @@ export default function TransactionsClient() {
               checked={includeArchived}
               onCheckedChange={(value) => setIncludeArchived(value === true)}
             />
-            Afficher les archivées
+            {t("filters.includeArchived")}
           </label>
           <Button
             variant="outline"
@@ -257,31 +273,31 @@ export default function TransactionsClient() {
             disabled={loading || working}
           >
             <IconRefresh size={16} />
-            Actualiser
+            {t("actions.refresh")}
           </Button>
         </div>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Chargement…</p>
+          <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
         ) : rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Aucune transaction pour cette branche.
+            {t("state.empty")}
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1200px] text-sm">
               <thead>
                 <tr className="border-b text-left text-muted-foreground">
-                  <th className="p-2">Type</th>
-                  <th className="p-2">N° transaction</th>
-                  <th className="p-2">Date</th>
-                  <th className="p-2">Élève / Libellé</th>
-                  <th className="p-2">Parent / Caissier</th>
-                  <th className="p-2">Classe / Catégorie</th>
-                  <th className="p-2">Montant</th>
-                  <th className="p-2">Statut</th>
-                  <th className="p-2">Actions</th>
+                  <th className="p-2">{t("table.type")}</th>
+                  <th className="p-2">{t("table.reference")}</th>
+                  <th className="p-2">{t("table.date")}</th>
+                  <th className="p-2">{t("table.studentLabel")}</th>
+                  <th className="p-2">{t("table.parentCashier")}</th>
+                  <th className="p-2">{t("table.classCategory")}</th>
+                  <th className="p-2">{t("table.amount")}</th>
+                  <th className="p-2">{t("table.status")}</th>
+                  <th className="p-2">{t("table.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -305,16 +321,16 @@ export default function TransactionsClient() {
                               : "border-emerald-300/70 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
                           )}
                         >
-                          {isExpense ? "Dépense" : "Encaissement"}
+                          {isExpense ? t("kinds.expense") : t("kinds.payment")}
                         </Badge>
                       </td>
                       <td className="p-2 font-mono text-xs">{row.transactionRef}</td>
                       <td className="p-2 whitespace-nowrap">
-                        {formatDate(row.createdAt)}
+                        {formatDate(row.createdAt, localeTag)}
                       </td>
                       <td className="p-2 font-medium">
                         {isExpense
-                          ? row.description || "Dépense de caisse"
+                          ? row.description || t("table.expenseFallback")
                           : row.studentName}
                       </td>
                       <td className="p-2">
@@ -341,13 +357,13 @@ export default function TransactionsClient() {
                         )}
                       >
                         {isExpense ? "−" : ""}
-                        {formatAmount(row.amount, currency)}
+                        {formatAmount(row.amount, currency, localeTag)}
                       </td>
                       <td className="p-2">
                         <div className="flex flex-wrap gap-1">
                           <Badge variant="outline">{row.status}</Badge>
                           {row.isArchived ? (
-                            <Badge variant="secondary">Archivée</Badge>
+                            <Badge variant="secondary">{t("table.archived")}</Badge>
                           ) : null}
                         </div>
                       </td>
@@ -358,8 +374,10 @@ export default function TransactionsClient() {
                             size="icon"
                             className="size-8"
                             disabled={working}
-                            title="Archiver"
-                            aria-label={`Archiver ${row.transactionRef}`}
+                            title={t("actions.archive")}
+                            aria-label={t("actions.archiveAria", {
+                              ref: row.transactionRef,
+                            })}
                             onClick={() => void archiveRow(row)}
                           >
                             <IconArchive size={15} />
@@ -370,8 +388,10 @@ export default function TransactionsClient() {
                             size="icon"
                             className="size-8"
                             disabled={working}
-                            title="Désarchiver"
-                            aria-label={`Désarchiver ${row.transactionRef}`}
+                            title={t("actions.unarchive")}
+                            aria-label={t("actions.unarchiveAria", {
+                              ref: row.transactionRef,
+                            })}
                             onClick={() => void unarchiveRow(row)}
                           >
                             <IconArchiveOff size={15} />
@@ -383,8 +403,10 @@ export default function TransactionsClient() {
                             size="icon"
                             className="size-8 text-destructive hover:text-destructive"
                             disabled={working}
-                            title="Supprimer définitivement"
-                            aria-label={`Supprimer ${row.transactionRef}`}
+                            title={t("actions.deletePermanently")}
+                            aria-label={t("actions.deleteAria", {
+                              ref: row.transactionRef,
+                            })}
                             onClick={() => setPendingDelete(row)}
                           >
                             <IconTrash size={15} />
@@ -408,19 +430,22 @@ export default function TransactionsClient() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer définitivement ?</AlertDialogTitle>
+            <AlertDialogTitle>{t("confirm.title")}</AlertDialogTitle>
             <AlertDialogDescription className="text-sm leading-relaxed text-foreground">
-              Cette action est irréversible.{" "}
-              {pendingDelete?.kind === "EXPENSE" ? "La dépense" : "La transaction"}{" "}
+              {t("confirm.descriptionPrefix")}{" "}
+              {pendingDelete?.kind === "EXPENSE"
+                ? t("confirm.expense")
+                : t("confirm.transaction")}{" "}
               <span className="inline font-mono font-medium break-all">
                 {pendingDelete?.transactionRef}
               </span>{" "}
-              sera effacée de la base. Préférez l’archivage pour seulement la
-              masquer de la caisse.
+              {t("confirm.descriptionSuffix")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={working}>Annuler</AlertDialogCancel>
+            <AlertDialogCancel disabled={working}>
+              {t("actions.cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={working}
@@ -429,7 +454,7 @@ export default function TransactionsClient() {
                 void confirmDelete();
               }}
             >
-              {working ? "Suppression…" : "Supprimer définitivement"}
+              {working ? t("actions.deleting") : t("actions.deletePermanently")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
