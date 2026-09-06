@@ -204,6 +204,26 @@ function parseScheduleHour(hour: string) {
   return new Date(Date.UTC(2000, 1, 1, heures, minutes));
 }
 
+function resolveStrictScheduleWorkDays(
+  days: Day[] | null | undefined,
+): Day[] {
+  if (!Array.isArray(days) || days.length === 0) {
+    throw new Error(
+      "Jours ouvrés non configurés sur la vacation de cette classe. Configurez explicitement les jours (ex: Lundi à Vendredi).",
+    );
+  }
+  const selected = new Set(days);
+  const resolved = resolveScheduleWorkDays(days).filter((day) =>
+    selected.has(day),
+  );
+  if (!resolved.length) {
+    throw new Error(
+      "La vacation active contient des jours invalides. Corrigez les jours ouvrés du créneau.",
+    );
+  }
+  return resolved;
+}
+
 const activeTeachingStatus: Prisma.TeachingWhereInput = {
   OR: [{ statusTeaching: true }, { statusTeaching: null }],
 };
@@ -1416,7 +1436,7 @@ export const regenerateScheduleForClasseAction = action
       ),
     );
 
-    const workDays = resolveScheduleWorkDays(classe.creneau.workingDays);
+    const workDays = resolveStrictScheduleWorkDays(classe.creneau.workingDays);
     const availableClassSlots = Math.max(
       0,
       workDays.length * courseSlots.length - occupiedClassSlots.size,
