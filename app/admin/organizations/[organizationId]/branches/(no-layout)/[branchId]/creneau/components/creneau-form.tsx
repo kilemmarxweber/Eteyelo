@@ -71,6 +71,8 @@ const toFormNumber = (value: string, fallback: number) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+const NOON_TIME = "12:00";
+
 type StructurePreset = {
   id: string;
   label: string;
@@ -166,6 +168,25 @@ export function CreneauUpForm({
   }, [form, mode, initialData?.id]);
 
   const watched = useWatch({ control: form.control });
+  const saturdaySelected = (watched.workingDays ?? []).includes("Samedi");
+
+  useEffect(() => {
+    if (!saturdaySelected) return;
+    const endTime = watched.endTime ?? "";
+    const recreationHour = watched.recreationHour ?? "";
+    if (endTime && endTime > NOON_TIME) {
+      form.setValue("endTime", NOON_TIME, { shouldValidate: true });
+    }
+    if (recreationHour && recreationHour > NOON_TIME) {
+      form.setValue("recreationHour", NOON_TIME, { shouldValidate: true });
+    }
+  }, [
+    saturdaySelected,
+    watched.endTime,
+    watched.recreationHour,
+    form,
+  ]);
+
   const periodPreview = useMemo(
     () =>
       previewPeriodsAroundRecreation(
@@ -357,6 +378,7 @@ export function CreneauUpForm({
                         className={controlClass}
                         {...field}
                         value={controlledTime(field.value)}
+                        max={saturdaySelected ? NOON_TIME : undefined}
                       />
                     </FormControl>
                     <FormMessage />
@@ -376,6 +398,7 @@ export function CreneauUpForm({
                         className={controlClass}
                         {...field}
                         value={controlledTime(field.value)}
+                        max={saturdaySelected ? NOON_TIME : undefined}
                       />
                     </FormControl>
                     <FormMessage />
@@ -542,6 +565,11 @@ export function CreneauUpForm({
                   })}
                 </div>
                 <FormMessage />
+                {saturdaySelected ? (
+                  <p className="text-[11px] text-muted-foreground">
+                    Le samedi est actif: les heures affichées sont limitées à l'avant-midi.
+                  </p>
+                ) : null}
               </FormItem>
             )}
           />

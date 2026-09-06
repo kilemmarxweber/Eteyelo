@@ -28,6 +28,7 @@ import {
 } from "@/lib/cours-components";
 import {
   generateCourseStartSlots,
+  parseHmToMinutes,
   sessionsNeededFromWeeklyHours,
   placeTeachingsWithRetries,
   resolveScheduleWorkDays,
@@ -223,6 +224,8 @@ function resolveStrictScheduleWorkDays(
   }
   return resolved;
 }
+
+const SATURDAY_END_LIMIT_MINUTES = 12 * 60;
 
 const activeTeachingStatus: Prisma.TeachingWhereInput = {
   OR: [{ statusTeaching: true }, { statusTeaching: null }],
@@ -441,12 +444,22 @@ async function assertScheduleSlotAvailable(params: {
     where: { id: classeId, branchId: ctx.branchId },
     select: { creneau: { select: { durationCourse: true } } },
   });
+  const durationMinutes = classeCreneau?.creneau?.durationCourse ?? undefined;
+  if (
+    day === "Samedi" &&
+    durationMinutes &&
+    slotMinutes + durationMinutes > SATURDAY_END_LIMIT_MINUTES
+  ) {
+    throw new Error(
+      "Le samedi, les cours doivent se terminer avant midi pour cette vacation.",
+    );
+  }
   await assertTeacherFreeAt({
     teacherId,
     organizationId: ctx.organizationId,
     day,
     startMin: slotMinutes,
-    durationMinutes: classeCreneau?.creneau?.durationCourse ?? undefined,
+    durationMinutes,
     excludeScheduleId,
   });
 }
@@ -1198,7 +1211,7 @@ function targetSessionsFromTeachings(params: {
   teachings: AutoScheduleTeachingInput[];
   availableClassSlots: number;
 }) {
-  const capped = params.teachings.map((teaching) => {
+  const planned = params.teachings.map((teaching) => {
     const weight = Number.isFinite(teaching.ponderation)
       ? Math.max(0.25, teaching.ponderation)
       : 1;
@@ -1216,20 +1229,37 @@ function targetSessionsFromTeachings(params: {
     return {
       ...teaching,
       blockSize,
-      sessionsNeeded: seeded,
-      maxSessions: Math.max(capByWeight, seeded),
+      fixedByManualMinutes: teaching.explicitWeeklyMinutes,
+      sessionsNeeded: teaching.explicitWeeklyMinutes ? teaching.weeklySessions : seeded,
+      maxSessions: teaching.explicitWeeklyMinutes
+        ? teaching.weeklySessions
+        : Math.max(capByWeight, seeded),
     };
   });
 
-  if (params.availableClassSlots <= 0 || capped.length === 0) {
-    return capped.map((teaching) => ({
+  if (params.availableClassSlots <= 0 || planned.length === 0) {
+    return planned.map((teaching) => ({
       ...teaching,
       sessionsNeeded: 0,
     }));
   }
 
-  let assigned = capped.reduce((sum, teaching) => sum + teaching.sessionsNeeded, 0);
-  const ranked = capped
+  const fixed = planned.filter((teaching) => teaching.fixedByManualMinutes);
+  const flexible = planned.filter((teaching) => !teaching.fixedByManualMinutes);
+  const fixedAssigned = fixed.reduce(
+    (sum, teaching) => sum + teaching.sessionsNeeded,
+    0,
+  );
+
+  if (fixedAssigned >= params.availableClassSlots) {
+    return [
+      ...fixed,
+      ...flexible.map((teaching) => ({ ...teaching, sessionsNeeded: 0 })),
+    ];
+  }
+
+  let remainingCapacity = params.availableClassSlots - fixedAssigned;
+  const rankedFlexible = flexible
     .slice()
     .sort((a, b) => {
       if (a.titulaire !== b.titulaire) return a.titulaire ? -1 : 1;
@@ -1238,44 +1268,25 @@ function targetSessionsFromTeachings(params: {
       return a.courseName.localeCompare(b.courseName, "fr");
     });
 
-  // Trop de séances prévues: retirer d'abord celles non explicites.
-  if (assigned > params.availableClassSlots) {
-    const deltas = ranked
-      .slice()
-      .sort((a, b) => {
-        if (a.explicitWeeklyMinutes !== b.explicitWeeklyMinutes) {
-          return a.explicitWeeklyMinutes ? 1 : -1;
-        }
-        if (a.ponderation !== b.ponderation) return a.ponderation - b.ponderation;
-        return a.sessionsNeeded - b.sessionsNeeded;
-      });
-    for (const teaching of deltas) {
-      const minKeep = teaching.explicitWeeklyMinutes ? 1 : 0;
-      while (
-        assigned > params.availableClassSlots &&
-        teaching.sessionsNeeded > minKeep
-      ) {
-        teaching.sessionsNeeded -= 1;
-        assigned -= 1;
-      }
-      if (assigned <= params.availableClassSlots) break;
-    }
+  // Minutes manuelles présentes: ne pas étendre automatiquement pour "remplir".
+  if (fixed.length > 0) {
+    return [...fixed, ...rankedFlexible];
   }
 
-  // Pas assez de séances: compléter selon titulaire + pondération jusqu'au cap.
-  while (assigned < params.availableClassSlots) {
+  // Full auto: compléter jusqu'à la capacité disponible.
+  while (remainingCapacity > 0) {
     let progressed = false;
-    for (const teaching of ranked) {
-      if (assigned >= params.availableClassSlots) break;
+    for (const teaching of rankedFlexible) {
+      if (remainingCapacity <= 0) break;
       if (teaching.sessionsNeeded >= teaching.maxSessions) continue;
       teaching.sessionsNeeded += 1;
-      assigned += 1;
+      remainingCapacity -= 1;
       progressed = true;
     }
     if (!progressed) break;
   }
 
-  return ranked;
+  return rankedFlexible;
 }
 
 /**
@@ -1437,9 +1448,43 @@ export const regenerateScheduleForClasseAction = action
     );
 
     const workDays = resolveStrictScheduleWorkDays(classe.creneau.workingDays);
+    const courseSlotsByDay: Partial<Record<Day, string[]>> = {};
+    for (const day of workDays) {
+      if (day === "Samedi") {
+        courseSlotsByDay[day] = courseSlots.filter(
+          (hourHm) =>
+            parseHmToMinutes(hourHm) + durationCourse <=
+            SATURDAY_END_LIMIT_MINUTES,
+        );
+      } else {
+        courseSlotsByDay[day] = courseSlots;
+      }
+    }
+
+    const allowedSlotKeys = new Set<string>();
+    let totalPlannableSlots = 0;
+    for (const day of workDays) {
+      const daySlots = courseSlotsByDay[day] ?? [];
+      totalPlannableSlots += daySlots.length;
+      for (const hourHm of daySlots) {
+        allowedSlotKeys.add(slotKey(day, hourHm));
+      }
+    }
+    if (totalPlannableSlots <= 0) {
+      throw new Error(
+        "Aucun créneau planifiable avec la vacation active (samedi limité avant midi).",
+      );
+    }
+    const occupiedAllowedCount = remaining.reduce((sum, row) => {
+      const key = slotKey(
+        row.day,
+        formatMinutesToHm(scheduleHourToMinutes(row.hour)),
+      );
+      return allowedSlotKeys.has(key) ? sum + 1 : sum;
+    }, 0);
     const availableClassSlots = Math.max(
       0,
-      workDays.length * courseSlots.length - occupiedClassSlots.size,
+      totalPlannableSlots - occupiedAllowedCount,
     );
 
     const occupiedTeacherIntervals = new Map<string, TeacherBusyInterval[]>();
@@ -1562,6 +1607,7 @@ export const regenerateScheduleForClasseAction = action
         {
           candidates,
           courseSlots,
+          courseSlotsByDay,
           durationCourseMinutes: durationCourse,
           occupiedClassSlots,
           occupiedTeacherIntervals,

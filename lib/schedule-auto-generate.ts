@@ -276,7 +276,7 @@ function resolveCandidateDays(
   if (!preferredDays?.length) return workDays;
   const preferred = new Set(preferredDays);
   const filtered = workDays.filter((day) => preferred.has(day));
-  return filtered;
+  return filtered.length ? filtered : workDays;
 }
 
 export function shuffleInPlace<T>(items: T[]): T[] {
@@ -323,6 +323,7 @@ export function teacherIntervalConflicts(params: {
 export function placeTeachingsGreedy(params: {
   candidates: PlacementCandidate[];
   courseSlots: string[];
+  courseSlotsByDay?: Partial<Record<Day, string[]>>;
   durationCourseMinutes: number;
   occupiedClassSlots: Set<SlotKey>;
   /** Intervalles déjà occupés par enseignant (multi-branches / multi-cycles). */
@@ -374,7 +375,11 @@ export function placeTeachingsGreedy(params: {
     const teacherBusy =
       occupiedTeachers.get(candidate.teacherId) ?? [];
     const blockSize = resolveCandidateBlockSize(candidate);
-    const daysPool = resolveCandidateDays(workDays, candidate.preferredDays);
+    let daysPool = resolveCandidateDays(workDays, candidate.preferredDays);
+    const canRelaxPreferredDays =
+      Array.isArray(candidate.preferredDays) &&
+      candidate.preferredDays.length > 0 &&
+      daysPool.length < workDays.length;
     const teacherLoad =
       teacherDayLoad.get(candidate.teacherId) ?? new Map<Day, number>();
     const teachingDayLoad = new Map<Day, number>();
@@ -396,13 +401,14 @@ export function placeTeachingsGreedy(params: {
       continue;
     }
 
-    const blocks = findConsecutiveSlotBlocks(
-      params.courseSlots,
-      blockSize,
-      duration,
-    );
+    const blocksForDay = (day: Day, size: number) =>
+      findConsecutiveSlotBlocks(
+        params.courseSlotsByDay?.[day] ?? params.courseSlots,
+        size,
+        duration,
+      );
 
-    if (blockSize > 1 && !blocks.length) {
+    if (blockSize > 1 && !daysPool.some((day) => blocksForDay(day, blockSize).length)) {
       failures.push({
         teachingId: candidate.teachingId,
         courseName: candidate.courseName,
@@ -462,11 +468,12 @@ export function placeTeachingsGreedy(params: {
       return true;
     };
 
-    const placeOnePerDay = (availableBlocks: string[][]) => {
+    const placeOnePerDay = (chunkSize: number) => {
       let placedThisRound = 0;
-      const chunk = availableBlocks[0]?.length ?? 1;
       for (const day of orderedDays()) {
-        if (remaining < chunk) break;
+        if (remaining < chunkSize) break;
+        const availableBlocks = blocksForDay(day, chunkSize);
+        if (!availableBlocks.length) continue;
         for (const block of shuffledCopy(availableBlocks)) {
           if (tryPlaceBlock(day, block)) {
             placedThisRound += 1;
@@ -481,26 +488,22 @@ export function placeTeachingsGreedy(params: {
       let placedThisRound = 0;
 
       if (blockSize > 1 && remaining >= blockSize) {
-        placedThisRound = placeOnePerDay(blocks);
+        placedThisRound = placeOnePerDay(blockSize);
       } else {
-        const singleBlocks =
-          blockSize === 1
-            ? blocks
-            : findConsecutiveSlotBlocks(params.courseSlots, 1, duration);
-        placedThisRound = placeOnePerDay(singleBlocks);
+        placedThisRound = placeOnePerDay(1);
       }
 
       if (placedThisRound === 0) {
         if (blockSize > 1 && remaining > 0 && remaining < blockSize) {
-          const singles = findConsecutiveSlotBlocks(
-            params.courseSlots,
-            1,
-            duration,
-          );
-          const placedRemainder = placeOnePerDay(singles);
+          const placedRemainder = placeOnePerDay(1);
           if (placedRemainder === 0) {
             if (enforceSpread) {
               enforceSpread = false;
+              continue;
+            }
+            if (canRelaxPreferredDays && daysPool.length < workDays.length) {
+              daysPool = workDays;
+              enforceSpread = daysPool.length >= 2;
               continue;
             }
             break;
@@ -509,6 +512,11 @@ export function placeTeachingsGreedy(params: {
         }
         if (enforceSpread) {
           enforceSpread = false;
+          continue;
+        }
+        if (canRelaxPreferredDays && daysPool.length < workDays.length) {
+          daysPool = workDays;
+          enforceSpread = daysPool.length >= 2;
           continue;
         }
         break;
@@ -552,6 +560,7 @@ export function placeTeachingsWithRetries(
   params: {
     candidates: PlacementCandidate[];
     courseSlots: string[];
+    courseSlotsByDay?: Partial<Record<Day, string[]>>;
     durationCourseMinutes: number;
     occupiedClassSlots: Set<SlotKey>;
     occupiedTeacherIntervals: Map<string, TeacherBusyInterval[]>;
