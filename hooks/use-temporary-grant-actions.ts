@@ -11,8 +11,8 @@ import {
 import {
   grantMatchesPermission,
   grantsAllowWrite,
+  grantsCoverBranchArea,
 } from "@/lib/auth/temporary-grant-actions";
-import { grantsCoverBranchArea } from "@/lib/auth/temporary-privilege";
 import { getMyActiveTemporaryGrantsAction } from "@/lib/auth/temporary-grants.action";
 
 type GrantLite = { resource: string; action: string };

@@ -1,3 +1,8 @@
+import {
+  GRANT_BRANCH_AREA_PERMISSION,
+  type BranchArea,
+} from "@/lib/auth/branch-area-permissions";
+
 /** Actions d'écriture : un octroi create / update / delete inclut aussi la lecture. */
 export const WRITE_ACTIONS_THAT_INCLUDE_READ = [
   "create",
@@ -77,6 +82,32 @@ export function grantsAllowWrite(
   return WRITE_ACTIONS_THAT_INCLUDE_READ.some((action) =>
     grants.some((grant) => grantMatchesPermission(grant, resource, action)),
   );
+}
+
+/** Vérifie qu'un octroi couvre l'entrée dans une zone branche. */
+export function grantsCoverBranchArea(
+  grants: Array<Pick<{ resource: string; action: string }, "resource" | "action">>,
+  area: BranchArea,
+): boolean {
+  const required = GRANT_BRANCH_AREA_PERMISSION[area];
+  if (!required) return false;
+
+  for (const [resource, actions] of Object.entries(required)) {
+    if (resource === "finance" && area === "finance") {
+      const ok = actions.some((action) =>
+        grants.some((grant) => grantMatchesPermission(grant, resource, action)),
+      );
+      if (!ok) return false;
+      continue;
+    }
+
+    const ok = actions.every((action) =>
+      grants.some((grant) => grantMatchesPermission(grant, resource, action)),
+    );
+    if (!ok) return false;
+  }
+
+  return true;
 }
 
 export type GrantResourceAction = { resource: string; action: string };

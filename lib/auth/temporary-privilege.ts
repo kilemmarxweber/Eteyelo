@@ -1,13 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import {
-  GRANT_BRANCH_AREA_PERMISSION,
-  type BranchArea,
-} from "@/lib/auth/branch-area-permissions";
+import type { BranchArea } from "@/lib/auth/branch-area-permissions";
 import type { OrganizationPermissionPayload } from "@/lib/auth/has-organization-permission";
 import {
   formatGrantPair,
   grantBranchScopesOverlap,
   grantMatchesPermission,
+  grantsCoverBranchArea,
   type GrantResourceAction,
 } from "@/lib/auth/temporary-grant-actions";
 import type { TemporaryGrant } from "@/prisma/generated/prisma/client";
@@ -20,6 +18,7 @@ export {
   grantMatchesPermission,
   formatGrantPair,
   splitGrantPairsByActiveDuplicates,
+  grantsCoverBranchArea,
 } from "@/lib/auth/temporary-grant-actions";
 
 export type GrantTemporaryPrivilegeInput = {
@@ -88,32 +87,6 @@ export function grantsCoverPermissions(
       if (!covered) return false;
     }
   }
-  return true;
-}
-
-/** Vérifie qu'un octroi couvre l'entrée dans une zone branche. */
-export function grantsCoverBranchArea(
-  grants: Array<Pick<{ resource: string; action: string }, "resource" | "action">>,
-  area: BranchArea,
-): boolean {
-  const required = GRANT_BRANCH_AREA_PERMISSION[area];
-  if (!required) return false;
-
-  for (const [resource, actions] of Object.entries(required)) {
-    if (resource === "finance" && area === "finance") {
-      const ok = actions.some((action) =>
-        grants.some((grant) => grantMatchesPermission(grant, resource, action)),
-      );
-      if (!ok) return false;
-      continue;
-    }
-
-    const ok = actions.every((action) =>
-      grants.some((grant) => grantMatchesPermission(grant, resource, action)),
-    );
-    if (!ok) return false;
-  }
-
   return true;
 }
 
