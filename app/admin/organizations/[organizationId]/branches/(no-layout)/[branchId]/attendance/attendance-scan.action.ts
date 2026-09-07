@@ -63,10 +63,16 @@ import type {
   AttendanceCheckInClass,
   AttendanceCheckInCycleGroup,
   AttendanceCheckInResult,
+  AttendanceFaceMatchResult,
   AttendancePersonLookup,
   AttendancePersonType,
   AttendanceQuickCheckInBootstrap,
 } from "./attendance-scan-types";
+import {
+  matchFaceDescriptor,
+  parseFaceDescriptor,
+  type FacePersonType,
+} from "@/lib/face-descriptor";
 
 const scanSchema = z.object({
   code: z.string().trim().min(1, "Code vide."),
@@ -2026,4 +2032,143 @@ export async function listPersonnelForCheckInAction(): Promise<
       ...attendanceOpenState(attendanceByPersonnel.get(personnel.id)),
     }))
     .sort((left, right) => left.name.localeCompare(right.name, "fr"));
+}
+
+const personTypeSchema = z.enum(["student", "teacher", "personnel"]);
+const faceDescriptorSchema = z
+  .array(z.number().finite())
+  .length(128, "Empreinte faciale invalide.");
+
+async function loadPersonLookup(params: {
+  branchId: string;
+  organizationId: string;
+  personType: AttendancePersonType;
+  personId: string;
+}): Promise<AttendancePersonLookup | null> {
+  const branchMember = {
+    branchId: params.branchId,
+    branch: { organizationId: params.organizationId },
+  };
+
+  if (params.personType === "student") {
+    const student = await prisma.student.findFirst({
+      where: { id: params.personId, branchMember },
+      include: studentInclude(),
+    });
+    return student ? mapStudentLookup(student) : null;
+  }
+
+  if (params.personType === "teacher") {
+    const teacher = await prisma.teacher.findFirst({
+      where: { id: params.personId, branchMember },
+      include: userInclude(),
+    });
+    return teacher ? mapTeacherLookup(teacher) : null;
+  }
+
+  const personnel = await prisma.personnel.findFirst({
+    where: { id: params.personId, branchMember },
+    include: userInclude(),
+  });
+  return personnel ? mapPersonnelLookup(personnel) : null;
+}
+
+export async function matchFaceDescriptorAction(
+  descriptor: number[],
+): Promise<AttendanceFaceMatchResult> {
+  const { branchId, organizationId } = await requireBranchContext();
+  const probe = parseFaceDescriptor(faceDescriptorSchema.parse(descriptor));
+  if (!probe) {
+    return { matched: false, reason: "none" };
+  }
+
+  const rows = await prisma.attendanceFaceDescriptor.findMany({
+    where: { branchId },
+    select: { personType: true, personId: true, descriptor: true },
+  });
+
+  const candidates = rows.flatMap((row) => {
+    const parsed = parseFaceDescriptor(row.descriptor);
+    if (!parsed) return [];
+    if (
+      row.personType !== "student" &&
+      row.personType !== "teacher" &&
+      row.personType !== "personnel"
+    ) {
+      return [];
+    }
+    return [
+      {
+        personType: row.personType as FacePersonType,
+        personId: row.personId,
+        descriptor: parsed,
+      },
+    ];
+  });
+
+  const result = matchFaceDescriptor(probe, candidates);
+  if (!result.matched) {
+    return { matched: false, reason: result.reason };
+  }
+
+  const person = await loadPersonLookup({
+    branchId,
+    organizationId,
+    personType: result.personType,
+    personId: result.personId,
+  });
+  if (!person) {
+    return { matched: false, reason: "none" };
+  }
+
+  return {
+    matched: true,
+    personType: result.personType,
+    personId: result.personId,
+    person,
+  };
+}
+
+export async function enrollFaceDescriptorAction(input: {
+  personType: AttendancePersonType;
+  personId: string;
+  descriptor: number[];
+}): Promise<{ ok: boolean; message: string; person?: AttendancePersonLookup }> {
+  const { branchId, organizationId } = await requireBranchContext();
+  const personType = personTypeSchema.parse(input.personType);
+  const personId = z.string().min(1).parse(input.personId);
+  const descriptor = faceDescriptorSchema.parse(input.descriptor);
+
+  const person = await loadPersonLookup({
+    branchId,
+    organizationId,
+    personType,
+    personId,
+  });
+  if (!person) {
+    return { ok: false, message: "Personne introuvable dans cette branche." };
+  }
+
+  await prisma.attendanceFaceDescriptor.upsert({
+    where: {
+      branchId_personType_personId: {
+        branchId,
+        personType,
+        personId,
+      },
+    },
+    create: {
+      branchId,
+      personType,
+      personId,
+      descriptor,
+    },
+    update: { descriptor },
+  });
+
+  return {
+    ok: true,
+    message: `Visage enregistre pour ${person.name}.`,
+    person,
+  };
 }

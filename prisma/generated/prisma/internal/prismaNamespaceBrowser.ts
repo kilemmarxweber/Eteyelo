@@ -108,6 +108,7 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Branch: 'Branch',
+  AttendanceFaceDescriptor: 'AttendanceFaceDescriptor',
   BranchCycle: 'BranchCycle',
   BranchPrimaryDomain: 'BranchPrimaryDomain',
   BranchRegistrationInfo: 'BranchRegistrationInfo',
@@ -1179,6 +1180,19 @@ export const BranchScalarFieldEnum = {
 } as const
 
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
+
+
+export const AttendanceFaceDescriptorScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  personType: 'personType',
+  personId: 'personId',
+  descriptor: 'descriptor',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AttendanceFaceDescriptorScalarFieldEnum = (typeof AttendanceFaceDescriptorScalarFieldEnum)[keyof typeof AttendanceFaceDescriptorScalarFieldEnum]
 
 
 export const BranchCycleScalarFieldEnum = {

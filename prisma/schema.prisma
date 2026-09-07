@@ -1790,12 +1790,28 @@ model Branch {
   gradeModificationRequests       GradeModificationRequest[]
   /// En-tête listing finalistes Excel : province, centre, établissement, option, gestion…
   examExportMeta                  Json?
+  attendanceFaceDescriptors       AttendanceFaceDescriptor[]
 
   @@unique([organizationId, code])
   @@index([organizationId])
   @@index([organizationId, isActive])
   @@index([organizationId, typebranch])
   @@index([code])
+}
+
+/// Empreinte faciale (128 valeurs) pour le pointage sans carte.
+model AttendanceFaceDescriptor {
+  id          String   @id @default(cuid())
+  branchId    String
+  personType  String
+  personId    String
+  descriptor  Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, personType, personId])
+  @@index([branchId])
 }
 
 /// Cycles scolaires activés sur une branche. Aucune ligne = mono-cycle (= typebranch).

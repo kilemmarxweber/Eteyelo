@@ -454,6 +454,7 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Branch: 'Branch',
+  AttendanceFaceDescriptor: 'AttendanceFaceDescriptor',
   BranchCycle: 'BranchCycle',
   BranchPrimaryDomain: 'BranchPrimaryDomain',
   BranchRegistrationInfo: 'BranchRegistrationInfo',
@@ -498,7 +499,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "salaryAdvance" | "salaryAdvanceInstallment" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog" | "temporaryGrant"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "salaryAdvance" | "salaryAdvanceInstallment" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "attendanceFaceDescriptor" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog" | "temporaryGrant"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4720,6 +4721,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AttendanceFaceDescriptor: {
+      payload: Prisma.$AttendanceFaceDescriptorPayload<ExtArgs>
+      fields: Prisma.AttendanceFaceDescriptorFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AttendanceFaceDescriptorFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceFaceDescriptorPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AttendanceFaceDescriptorFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceFaceDescriptorPayload>
+        }
+        findFirst: {
+          args: Prisma.AttendanceFaceDescriptorFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceFaceDescriptorPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AttendanceFaceDescriptorFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceFaceDescriptorPayload>
+        }
+        findMany: {
+          args: Prisma.AttendanceFaceDescriptorFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceFaceDescriptorPayload>[]
+        }
+        create: {
+          args: Prisma.AttendanceFaceDescriptorCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceFaceDescriptorPayload>
+        }
+        createMany: {
+          args: Prisma.AttendanceFaceDescriptorCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AttendanceFaceDescriptorCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceFaceDescriptorPayload>[]
+        }
+        delete: {
+          args: Prisma.AttendanceFaceDescriptorDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceFaceDescriptorPayload>
+        }
+        update: {
+          args: Prisma.AttendanceFaceDescriptorUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceFaceDescriptorPayload>
+        }
+        deleteMany: {
+          args: Prisma.AttendanceFaceDescriptorDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AttendanceFaceDescriptorUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AttendanceFaceDescriptorUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceFaceDescriptorPayload>[]
+        }
+        upsert: {
+          args: Prisma.AttendanceFaceDescriptorUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceFaceDescriptorPayload>
+        }
+        aggregate: {
+          args: Prisma.AttendanceFaceDescriptorAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAttendanceFaceDescriptor>
+        }
+        groupBy: {
+          args: Prisma.AttendanceFaceDescriptorGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AttendanceFaceDescriptorGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AttendanceFaceDescriptorCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AttendanceFaceDescriptorCountAggregateOutputType> | number
+        }
+      }
+    }
     BranchCycle: {
       payload: Prisma.$BranchCyclePayload<ExtArgs>
       fields: Prisma.BranchCycleFieldRefs
@@ -7931,6 +8006,19 @@ export const BranchScalarFieldEnum = {
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
 
 
+export const AttendanceFaceDescriptorScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  personType: 'personType',
+  personId: 'personId',
+  descriptor: 'descriptor',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AttendanceFaceDescriptorScalarFieldEnum = (typeof AttendanceFaceDescriptorScalarFieldEnum)[keyof typeof AttendanceFaceDescriptorScalarFieldEnum]
+
+
 export const BranchCycleScalarFieldEnum = {
   id: 'id',
   branchId: 'branchId',
@@ -9480,6 +9568,7 @@ export type GlobalOmitConfig = {
   member?: Prisma.MemberOmit
   invitation?: Prisma.InvitationOmit
   branch?: Prisma.BranchOmit
+  attendanceFaceDescriptor?: Prisma.AttendanceFaceDescriptorOmit
   branchCycle?: Prisma.BranchCycleOmit
   branchPrimaryDomain?: Prisma.BranchPrimaryDomainOmit
   branchRegistrationInfo?: Prisma.BranchRegistrationInfoOmit

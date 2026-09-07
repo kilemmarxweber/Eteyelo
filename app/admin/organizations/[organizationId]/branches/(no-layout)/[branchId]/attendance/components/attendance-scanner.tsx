@@ -4,11 +4,22 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { IconCamera, IconCameraOff } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  enrollFaceDescriptorAction,
+  matchFaceDescriptorAction,
+  searchPeopleForCheckInAction,
+} from "../attendance-scan.action";
+import type {
+  AttendancePersonLookup,
+  AttendancePersonType,
+} from "../attendance-scan-types";
+import { AttendanceFaceCamera } from "./attendance-face-camera";
 
 type AttendanceScannerProps = {
   onScan: (value: string) => void;
@@ -197,36 +208,223 @@ export function AttendanceScanner({
   );
 }
 
+type ScanMode = "card" | "face";
+
 export function AttendanceScanDialog({
   open,
   onOpenChange,
   onScan,
+  onFacePerson,
   disabled = false,
+  initialMode = "card",
+  labels,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onScan: (value: string) => void;
+  onFacePerson: (personType: AttendancePersonType, personId: string) => void;
   disabled?: boolean;
+  initialMode?: ScanMode;
+  labels: {
+    title: string;
+    card: string;
+    face: string;
+    cardDescription: string;
+    faceDescription: string;
+    unknown: string;
+    ambiguous: string;
+    searchPlaceholder: string;
+    noPersonFound: string;
+    retryFace: string;
+  };
 }) {
+  const [mode, setMode] = useState<ScanMode>(initialMode);
+  const [busy, setBusy] = useState(false);
+  const [enrollDescriptor, setEnrollDescriptor] = useState<number[] | null>(
+    null,
+  );
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<AttendancePersonLookup[]>([]);
+  const [hint, setHint] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setMode(initialMode);
+      setEnrollDescriptor(null);
+      setQuery("");
+      setResults([]);
+      setHint(null);
+      setBusy(false);
+    }
+  }, [open, initialMode]);
+
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!enrollDescriptor || trimmed.length < 2) {
+      setResults([]);
+      return;
+    }
+    const handle = window.setTimeout(() => {
+      void searchPeopleForCheckInAction(trimmed).then(setResults);
+    }, 250);
+    return () => window.clearTimeout(handle);
+  }, [enrollDescriptor, query]);
+
+  async function handleDescriptor(descriptor: number[]) {
+    if (busy || disabled || enrollDescriptor) return;
+    setBusy(true);
+    setHint(null);
+    try {
+      const match = await matchFaceDescriptorAction(descriptor);
+      if (match.matched) {
+        onFacePerson(match.personType, match.personId);
+        return;
+      }
+      if (match.reason === "ambiguous") {
+        setHint(labels.ambiguous);
+        return;
+      }
+      setEnrollDescriptor(descriptor);
+      setHint(labels.unknown);
+    } catch (error) {
+      setHint(error instanceof Error ? error.message : labels.unknown);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function enrollPerson(person: AttendancePersonLookup) {
+    if (!enrollDescriptor || busy) return;
+    setBusy(true);
+    try {
+      const result = await enrollFaceDescriptorAction({
+        personType: person.personType,
+        personId: person.id,
+        descriptor: enrollDescriptor,
+      });
+      if (!result.ok) {
+        setHint(result.message);
+        return;
+      }
+      setEnrollDescriptor(null);
+      setQuery("");
+      setResults([]);
+      onFacePerson(person.personType, person.id);
+    } catch (error) {
+      setHint(error instanceof Error ? error.message : labels.unknown);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        title="Scanner une carte"
-        size="sm"
+        title={labels.title}
+        size="md"
         overlayClassName="z-[110]"
         className="z-[110] gap-3 p-5"
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
+        <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+          <Button
+            type="button"
+            size="sm"
+            variant={mode === "card" ? "default" : "ghost"}
+            onClick={() => {
+              setMode("card");
+              setEnrollDescriptor(null);
+              setHint(null);
+            }}
+          >
+            {labels.card}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={mode === "face" ? "default" : "ghost"}
+            onClick={() => {
+              setMode("face");
+              setHint(null);
+            }}
+          >
+            {labels.face}
+          </Button>
+        </div>
+
         <DialogDescription className="text-sm leading-relaxed text-foreground">
-          Autorisez la caméra, puis alignez le QR ou le code-barres dans le cadre.
+          {mode === "card" ? labels.cardDescription : labels.faceDescription}
         </DialogDescription>
-        {open ? (
+
+        {open && mode === "card" ? (
           <AttendanceScanner
             autoStart
             hideToggle
             onScan={onScan}
             disabled={disabled}
           />
+        ) : null}
+
+        {open && mode === "face" ? (
+          <div className="space-y-3">
+            <AttendanceFaceCamera
+              paused={busy || disabled || Boolean(enrollDescriptor)}
+              onDescriptor={(descriptor) => void handleDescriptor(descriptor)}
+            />
+            {hint ? (
+              <p className="text-sm text-muted-foreground">{hint}</p>
+            ) : null}
+            {enrollDescriptor ? (
+              <div className="space-y-2 rounded-xl border bg-muted/30 p-3">
+                <Input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder={labels.searchPlaceholder}
+                  autoFocus
+                />
+                {results.length === 0 && query.trim().length >= 2 ? (
+                  <p className="text-sm text-muted-foreground">
+                    {labels.noPersonFound}
+                  </p>
+                ) : (
+                  <div className="max-h-40 space-y-1 overflow-y-auto">
+                    {results.map((person) => (
+                      <Button
+                        key={`${person.personType}-${person.id}`}
+                        type="button"
+                        variant="outline"
+                        className="h-auto w-full justify-start py-2 text-left"
+                        disabled={busy}
+                        onClick={() => void enrollPerson(person)}
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate font-medium">
+                            {person.name}
+                          </span>
+                          <span className="block truncate text-xs text-muted-foreground">
+                            {person.roleLabel} · {person.matricule}
+                          </span>
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setEnrollDescriptor(null);
+                    setQuery("");
+                    setResults([]);
+                    setHint(null);
+                  }}
+                >
+                  {labels.retryFace}
+                </Button>
+              </div>
+            ) : null}
+          </div>
         ) : null}
       </DialogContent>
     </Dialog>

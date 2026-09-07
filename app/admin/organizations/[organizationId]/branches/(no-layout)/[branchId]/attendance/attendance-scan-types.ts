@@ -61,5 +61,14 @@ export type AttendanceCheckInResult = {
   normalCheckoutAllowed?: boolean;
 };
 
+export type AttendanceFaceMatchResult =
+  | {
+      matched: true;
+      personType: AttendancePersonType;
+      personId: string;
+      person: AttendancePersonLookup;
+    }
+  | { matched: false; reason: "none" | "ambiguous" };
+
 /** @deprecated Use AttendancePersonLookup */
 export type AttendanceStudentLookup = AttendancePersonLookup;

@@ -11,6 +11,7 @@ import {
 import { useTranslations } from "next-intl";
 import {
   IconCamera,
+  IconFaceId,
   IconSearch,
   IconUserCheck,
   IconUsers,
@@ -113,6 +114,7 @@ export function AttendanceCheckInClient() {
 
   const [tab, setTab] = useState<PointageTab>("teacher");
   const [scanOpen, setScanOpen] = useState(false);
+  const [scanMode, setScanMode] = useState<"card" | "face">("card");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<AttendancePersonLookup[]>(
     [],
@@ -681,10 +683,26 @@ export function AttendanceCheckInClient() {
               type="button"
               size="lg"
               className="h-12 flex-1 touch-manipulation sm:flex-none"
-              onClick={() => setScanOpen(true)}
+              onClick={() => {
+                setScanMode("card");
+                setScanOpen(true);
+              }}
             >
               <IconCamera className="mr-2 size-4" />
               {t("checkInUi.scanCard")}
+            </Button>
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              className="h-12 flex-1 touch-manipulation sm:flex-none"
+              onClick={() => {
+                setScanMode("face");
+                setScanOpen(true);
+              }}
+            >
+              <IconFaceId className="mr-2 size-4" />
+              {t("checkInUi.scanFace")}
             </Button>
             <div className="hidden rounded-lg border bg-muted/40 px-3 py-1.5 text-right sm:block">
               <LiveClock />
@@ -812,9 +830,31 @@ export function AttendanceCheckInClient() {
 
       <AttendanceScanDialog
         open={scanOpen}
+        initialMode={scanMode}
         onOpenChange={setScanOpen}
         onScan={runScan}
+        onFacePerson={(personType, personId) => {
+          checkInPerson({
+            id: personId,
+            name: "",
+            matricule: "",
+            roleLabel: personTypeLabels[personType],
+            personType,
+          });
+        }}
         disabled={pending}
+        labels={{
+          title: t("checkInUi.scanTitle"),
+          card: t("checkInUi.scanModeCard"),
+          face: t("checkInUi.scanModeFace"),
+          cardDescription: t("checkInUi.cameraDescription"),
+          faceDescription: t("checkInUi.faceDescription"),
+          unknown: t("checkInUi.faceUnknown"),
+          ambiguous: t("checkInUi.faceAmbiguous"),
+          searchPlaceholder: t("checkInUi.faceSearchPlaceholder"),
+          noPersonFound: t("checkInUi.noPersonFound"),
+          retryFace: t("checkInUi.faceRetry"),
+        }}
       />
 
       {checkout ? (

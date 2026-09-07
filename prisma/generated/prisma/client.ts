@@ -327,6 +327,11 @@ export type Invitation = Prisma.InvitationModel
  */
 export type Branch = Prisma.BranchModel
 /**
+ * Model AttendanceFaceDescriptor
+ * Empreinte faciale (128 valeurs) pour le pointage sans carte.
+ */
+export type AttendanceFaceDescriptor = Prisma.AttendanceFaceDescriptorModel
+/**
  * Model BranchCycle
  * Cycles scolaires activés sur une branche. Aucune ligne = mono-cycle (= typebranch).
  */
