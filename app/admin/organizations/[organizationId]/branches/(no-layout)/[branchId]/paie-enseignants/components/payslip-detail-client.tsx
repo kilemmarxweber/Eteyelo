@@ -22,6 +22,7 @@ import { useSession } from "@/lib/auth-client";
 import { canComputePayroll } from "@/lib/auth/session-roles";
 import { formatPayrollAmount } from "@/lib/reports/format-amount";
 import { exportTeacherPayslipPdf } from "./export-teacher-payslip-pdf";
+import { getPayrollReportContextAction } from "../payroll.action";
 import {
   parsePayslipLineDetail,
   type TeacherPayslipLineDetailSnapshot,
@@ -171,6 +172,7 @@ export default function PayslipDetailClient({
     amount: number;
   } | null>(null);
   const [working, setWorking] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   const user =
     payslip.branchMember?.member?.user ??
@@ -227,14 +229,37 @@ export default function PayslipDetailClient({
     router.refresh();
   }
 
+  async function handleDownloadPdf() {
+    setExportingPdf(true);
+    try {
+      const [context, err] = await getPayrollReportContextAction();
+      if (err || !context) {
+        throw new Error(err?.message || "Impossible de charger l'en-tête du bulletin.");
+      }
+      await exportTeacherPayslipPdf(payslip, context);
+      toast.success("Bulletin PDF généré.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Impossible de générer le bulletin PDF.",
+      );
+    } finally {
+      setExportingPdf(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" asChild>
           <Link href={backHref}>Retour aux bulletins</Link>
         </Button>
-        <Button onClick={() => void exportTeacherPayslipPdf(payslip)}>
-          Télécharger le PDF
+        <Button
+          onClick={() => void handleDownloadPdf()}
+          disabled={exportingPdf}
+        >
+          {exportingPdf ? "Génération…" : "Télécharger le PDF"}
         </Button>
       </div>
       <Card className="overflow-hidden border-primary/15">

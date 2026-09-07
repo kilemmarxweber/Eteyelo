@@ -1,12 +1,21 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+
+import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import { formatPayrollAmount } from "@/lib/reports/format-amount";
+import {
+  drawReportFooterOnAllPages,
+  drawReportHeader,
+  REPORT_CONTINUATION_CONTENT_TOP_MM,
+} from "@/lib/reports/pdf-header-footer";
+import { safePdfFilePart } from "@/lib/pdf/pdf-engine";
+import type { SchoolReportContext } from "@/lib/reports/types";
 import {
   parsePayslipLineDetail,
   type TeacherPayslipLineDetailSnapshot,
 } from "@/lib/payroll/teacher-payslip-line-detail";
 
-type PayslipForPdf = {
+export type PayslipForPdf = {
   id: string;
   year: number;
   month: number;
@@ -42,6 +51,21 @@ type PayslipForPdf = {
     detail?: TeacherPayslipLineDetailSnapshot | null;
   }>;
 };
+
+const MONTHS = [
+  "Janvier",
+  "Février",
+  "Mars",
+  "Avril",
+  "Mai",
+  "Juin",
+  "Juillet",
+  "Août",
+  "Septembre",
+  "Octobre",
+  "Novembre",
+  "Décembre",
+];
 
 const STATUS_LABELS: Record<string, string> = {
   PRESENT: "Présent",
@@ -87,8 +111,12 @@ function isSummaryGrossLine(line: PayslipForPdf["lines"][number]) {
   return line.kind === "GROSS" && !line.occurredOn;
 }
 
-export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
+export async function exportTeacherPayslipPdf(
+  payslip: PayslipForPdf,
+  context: SchoolReportContext,
+) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const logo = await imageUrlToDataUrl(context.logoUrl);
   const user =
     payslip.branchMember?.member?.user ??
     payslip.teacher?.branchMember?.member?.user ??
@@ -98,14 +126,28 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
   const statusLabel = isPersonnel
     ? "Personnel · forfait"
     : `${payslip.teacher?.employmentKind === "MATRICULE" ? "Matriculé État" : "Non matriculé"}${payslip.teacher?.matriculeEtat ? ` (${payslip.teacher.matriculeEtat})` : ""}${payslip.agentKind === "BOTH" ? " + forfait personnel" : ""}`;
+  const monthName = MONTHS[payslip.month - 1] ?? String(payslip.month);
+  const periodLabel = `${monthName} ${payslip.year}`;
+  const currencyLabel = payslip.currency === "AOA" ? "Kz" : payslip.currency;
 
-  doc.setFontSize(16);
-  doc.text("BULLETIN DE PAIE — PERSONNEL", 148, 14, { align: "center" });
-  doc.setFontSize(10);
-  doc.text(`Période : ${String(payslip.month).padStart(2, "0")}/${payslip.year}`, 14, 24);
-  doc.text(`Agent : ${teacherName || "Agent"}`, 14, 30);
-  doc.text(`Statut : ${statusLabel}`, 14, 36);
-  doc.text(`Devise : ${payslip.currency === "AOA" ? "Kz" : payslip.currency}`, 14, 42);
+  const headerBottomY = drawReportHeader(doc, context, {
+    title: `Bulletin de paie — ${periodLabel}`,
+    subtitle: context.branchName,
+    details: [
+      `Agent : ${teacherName || "Agent"}`,
+      `Statut : ${statusLabel}`,
+      `Devise : ${currencyLabel}`,
+      `Net à payer : ${amount(payslip.net, payslip.currency)}`,
+    ],
+    logoDataUrl: logo,
+  });
+
+  const tableMargin = {
+    top: REPORT_CONTINUATION_CONTENT_TOP_MM,
+    left: 10,
+    right: 10,
+    bottom: 14,
+  };
 
   const grossLines = payslip.lines.filter(isSummaryGrossLine);
   const recapBody: string[][] = [
@@ -121,12 +163,14 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
   const recapOffset = grossLines.length;
 
   autoTable(doc, {
-    startY: 48,
+    startY: headerBottomY,
+    margin: tableMargin,
+    showHead: "everyPage",
     head: [["Libellé", "Séances", "Montant"]],
     body: recapBody,
     theme: "grid",
-    styles: { fontSize: 9 },
-    headStyles: { fillColor: [30, 64, 175] },
+    styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
+    headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: "bold" },
     columnStyles: {
       1: { halign: "right", cellWidth: 28 },
       2: { halign: "right", cellWidth: 42 },
@@ -180,7 +224,9 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
     });
 
   autoTable(doc, {
-    startY: lastTableY(doc, 70) + 8,
+    startY: lastTableY(doc, headerBottomY) + 8,
+    margin: tableMargin,
+    showHead: "everyPage",
     head: [[
       "Date",
       "Début",
@@ -210,9 +256,9 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
       amount(payslip.gross, payslip.currency),
       amount(payslip.deductions, payslip.currency),
     ]],
-    theme: "striped",
-    styles: { fontSize: 7 },
-    headStyles: { fillColor: [30, 64, 175] },
+    theme: "grid",
+    styles: { font: "helvetica", fontSize: 7, cellPadding: 1.6 },
+    headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: "bold" },
     footStyles: {
       fillColor: [219, 234, 254],
       textColor: [15, 23, 42],
@@ -225,15 +271,12 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
     },
   });
 
-  const footerY = Math.min(200, lastTableY(doc, 190) + 10);
-  doc.setFontSize(8);
-  doc.text(
-    `Total brut : ${amount(payslip.gross, payslip.currency)}    ·    Retenues : ${amount(payslip.deductions, payslip.currency)}    ·    Net à payer : ${amount(payslip.net, payslip.currency)}`,
-    148,
-    footerY,
-    { align: "center" },
+  drawReportFooterOnAllPages(doc, context, {
+    leftText: context.branchName || context.schoolName,
+  });
+
+  const safeName = safePdfFilePart(teacherName || "agent");
+  doc.save(
+    `bulletin-paie-${safeName}-${payslip.year}-${String(payslip.month).padStart(2, "0")}.pdf`,
   );
-  doc.text("Document généré par Eteyelo / KlamboCore", 148, 200, { align: "center" });
-  const safeName = (teacherName || "enseignant").replace(/[^\p{L}\p{N}]+/gu, "-");
-  doc.save(`bulletin-paie-${safeName}-${payslip.year}-${String(payslip.month).padStart(2, "0")}.pdf`);
 }
