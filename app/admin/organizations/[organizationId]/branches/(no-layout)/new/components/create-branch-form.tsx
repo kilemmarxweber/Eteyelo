@@ -87,6 +87,12 @@ type PendingBranchFiles = {
 type BranchFormTab = "identity" | "type" | "location" | "images";
 type BranchFormValues = CreateBranchFormValues & { contactEmail?: string };
 
+function numberInputValue(value: unknown): string | number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") return value;
+  return "";
+}
+
 const emptyBranchImages = (): BranchImages => ({
   logo: "",
   event: [],
@@ -965,7 +971,7 @@ export function CreateBranchForm({
                                 placeholder="-4.4419"
                                 className="h-9 rounded-xl"
                                 disabled={isSubmitting || locating}
-                                value={field.value ?? ""}
+                                value={numberInputValue(field.value)}
                                 onChange={(e) =>
                                   field.onChange(
                                     e.target.value === ""
@@ -994,7 +1000,7 @@ export function CreateBranchForm({
                                 placeholder="15.2663"
                                 className="h-9 rounded-xl"
                                 disabled={isSubmitting || locating}
-                                value={field.value ?? ""}
+                                value={numberInputValue(field.value)}
                                 onChange={(e) =>
                                   field.onChange(
                                     e.target.value === ""
