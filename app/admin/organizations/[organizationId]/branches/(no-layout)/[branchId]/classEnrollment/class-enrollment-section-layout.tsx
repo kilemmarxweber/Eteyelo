@@ -19,13 +19,8 @@ import { useEffect, useState } from "react";
 import { IClasse } from "@/src/interfaces/Classe";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { useParams } from "next/navigation";
-import { NotFoundView } from "@/components/not-found-view";
-import { useSession } from "@/lib/auth-client";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
-import {
-  canAccessPedagogyArea,
-  canManageOrganization,
-} from "@/lib/auth/session-roles";
+import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
 
 export default function RootLayout({
   children,
@@ -33,7 +28,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const { refresh } = useRefresh();
-  const { data: session, isPending } = useSession();
   const [open, setOpen] = useState(false);
   const [classes, setClasses] = useState<IClasse | null>(null);
   const params = useParams();
@@ -64,11 +58,7 @@ export default function RootLayout({
 
   const hasClasse = !!classeId;
   const peopleLabels = useBranchPeopleLabels();
-
-  if (!isPending && !canAccessPedagogyArea(session)) {
-    return <NotFoundView />;
-  }
-  const canCreateEnrollment = canManageOrganization(session);
+  const { canCreate: canCreateEnrollment } = useTemporaryGrantActions("inscription");
   return (
     <BranchPageShell
       fixedHeight

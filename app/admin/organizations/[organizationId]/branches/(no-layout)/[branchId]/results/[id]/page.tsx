@@ -9,9 +9,9 @@ import { IconChartBar } from "@tabler/icons-react";
 import { getSchoolYear } from "@/lib/school-year";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
-  enforceResultsAreaAccess,
   isCursusSelfScopedRole,
   listAccessibleCursusStudents,
+  resolveGrantedCursusViewerRole,
   resolveScopedCursusStudent,
 } from "@/lib/auth/cursus-scope";
 
@@ -43,7 +43,7 @@ const StudentResultPage = async ({
   const subjectName = decodeURIComponent(id);
   const { session, userId, branchId, typebranch } = await requireBranchContext();
   const listHref = `/admin/organizations/${organizationId}/branches/${branchIdParam}/results`;
-  const role = enforceResultsAreaAccess(session);
+  const role = resolveGrantedCursusViewerRole(session);
 
   // studentIds scopés (unit-05) — jamais un autre élève via ?studentId=
   let targetStudentIds: string[] = [];

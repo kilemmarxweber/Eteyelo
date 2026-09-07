@@ -30,9 +30,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useSession } from "@/lib/auth-client";
-import {
-  canAccessPedagogyArea,
-} from "@/lib/auth/session-roles";
+import { useCanAccessBranchArea } from "@/hooks/use-temporary-grant-actions";
 
 import UserList from "./components/TeachersTable";
 import { TeacherUpForm } from "./components/teacher-form";
@@ -82,6 +80,8 @@ export default function Teachers() {
   const { data: session, isPending } = useSession();
   const [hasMounted, setHasMounted] = useState(false);
   const sessionReady = hasMounted && !isPending;
+  const { allowed: canAccessTeachers, ready: teachersAccessReady } =
+    useCanAccessBranchArea("pedagogy");
 
   const handleUserAction = () => {
     setRefreshKey((prev) => prev + 1);
@@ -132,10 +132,7 @@ export default function Teachers() {
     });
   }, [refreshKey]);
 
-  if (
-    sessionReady &&
-    (!session || !canAccessPedagogyArea(session))
-  ) {
+  if (teachersAccessReady && !canAccessTeachers) {
     return <NotFoundView />;
   }
 

@@ -5,14 +5,11 @@ import { IconCalendarTime } from "@tabler/icons-react";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { prisma } from "@/lib/prisma";
 import {
-  enforceScheduleAreaAccess,
   isCursusSelfScopedRole,
+  resolveGrantedCursusViewerRole,
 } from "@/lib/auth/cursus-scope";
 import { assertClassRosterAccess } from "@/lib/auth/data-scope";
-import {
-  canAccessTeachingArea,
-  canManageOrganization,
-} from "@/lib/auth/session-roles";
+import { canManageOrganization } from "@/lib/auth/session-roles";
 import ScheduleEditorClient from "./schedule-editor-client";
 
 export const dynamic = "force-dynamic";
@@ -26,13 +23,10 @@ export default async function ScheduleClassePage({
   const { session, userId, branchId, organizationId } = await requireBranchContext({
     onMissing: "redirect",
   });
-  const role = enforceScheduleAreaAccess(session);
+  const role = resolveGrantedCursusViewerRole(session);
 
   // Élève / parent : pas d'horaire d'une autre classe via URL (unit-05).
-  if (
-    isCursusSelfScopedRole(role) ||
-    (!canManageOrganization(session) && !canAccessTeachingArea(session))
-  ) {
+  if (isCursusSelfScopedRole(role)) {
     notFound();
   }
 

@@ -6,8 +6,8 @@ import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { canWriteBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import {
-  canAccessPedagogyArea,
   canManageOrganization,
   hasSessionRole,
   isOrganizationOwnerSession,
@@ -106,7 +106,12 @@ export const completeTeacherApplicationAction = action
     const isSelf = teacher.branchMember?.member?.userId === userId;
     const canWrite =
       canManageOrganization(session) ||
-      canAccessPedagogyArea(session) ||
+      (await canWriteBranchAreaAsync(
+        "pedagogy",
+        session,
+        organizationId,
+        branchId,
+      )) ||
       (hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]) && isSelf);
 
     if (!canWrite) {
@@ -251,7 +256,14 @@ export const updateTeacherIdentityAction = action
   .handler(async ({ input }) => {
     const { branchId, organizationId, userId, session } =
       await requireBranchContext();
-    const canManage = canManageOrganization(session);
+    const canManage =
+      canManageOrganization(session) ||
+      (await canWriteBranchAreaAsync(
+        "pedagogy",
+        session,
+        organizationId,
+        branchId,
+      ));
     const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
 
     if (!canManage && !isTeacher) {
@@ -313,7 +325,14 @@ export const addTeacherProfileDocumentAction = action
   .handler(async ({ input }) => {
     const { branchId, organizationId, userId, session } =
       await requireBranchContext();
-    const canManage = canManageOrganization(session);
+    const canManage =
+      canManageOrganization(session) ||
+      (await canWriteBranchAreaAsync(
+        "pedagogy",
+        session,
+        organizationId,
+        branchId,
+      ));
     const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
 
     const teacher = await prisma.teacher.findFirst({
@@ -359,7 +378,14 @@ export const deleteTeacherProfileDocumentAction = action
   .handler(async ({ input }) => {
     const { branchId, organizationId, userId, session } =
       await requireBranchContext();
-    const canManage = canManageOrganization(session);
+    const canManage =
+      canManageOrganization(session) ||
+      (await canWriteBranchAreaAsync(
+        "pedagogy",
+        session,
+        organizationId,
+        branchId,
+      ));
     const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
 
     const document = await prisma.teacherProfileDocument.findFirst({

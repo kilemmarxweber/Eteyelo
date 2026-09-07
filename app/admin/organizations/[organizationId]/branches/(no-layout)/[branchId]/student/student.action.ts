@@ -36,7 +36,7 @@ import {
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { getBranchAreaMutationFlags } from "@/lib/auth/assert-branch-area-access";
+import { getBranchAreaMutationFlags, canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import {
   classeCycleWhere,
   primaryOrgRoleFromSession,
@@ -94,7 +94,14 @@ export async function getCurrentBranch() {
     canDeleteStudents: mutationFlags.canDelete,
     canManageStudents: mutationFlags.canWrite,
     canPurgePermanently: isOrganizationOwnerSession(session, branchMember?.role),
-    canReadStudents: canAccessStudentDirectory(session, branchMember?.role),
+    canReadStudents:
+      canAccessStudentDirectory(session, branchMember?.role) ||
+      (await canAccessBranchAreaAsync(
+        "students",
+        session,
+        organizationId,
+        branchId,
+      )),
     canIssueDocuments: canIssueBranchDocuments(session, branchMember?.role),
     isParent: hasSessionRole(
       session,

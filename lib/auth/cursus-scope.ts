@@ -50,6 +50,16 @@ export function resolveCursusViewerRole(session: unknown): CursusViewerRole | nu
   return null;
 }
 
+/**
+ * Après `assertBranchAreaAccess` (DAC ou octroi), un staff sans rôle cursus
+ * est traité comme administrateur de la vue.
+ */
+export function resolveGrantedCursusViewerRole(
+  session: unknown,
+): CursusViewerRole {
+  return resolveCursusViewerRole(session) ?? "admin";
+}
+
 export function isCursusSelfScopedRole(
   role: CursusViewerRole | null,
 ): role is "student" | "parent" {

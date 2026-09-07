@@ -14,7 +14,6 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
-import { NotFoundView } from "@/components/not-found-view";
 import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TableSkeleton } from "@/components/custom";
 import { EmptyTableState } from "@/components/custom";
 import { useSession } from "@/lib/auth-client";
-import { canAccessPedagogyArea } from "@/lib/auth/session-roles";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { DEFAULT_CRENEAU_WORKING_DAYS } from "@/lib/creneau-working-days";
 import { cn } from "@/lib/utils";
@@ -281,10 +279,6 @@ export function HoraireGlobalClient() {
     } finally {
       setPrinting(false);
     }
-  }
-
-  if (sessionReady && (!session || !canAccessPedagogyArea(session))) {
-    return <NotFoundView />;
   }
 
   return (

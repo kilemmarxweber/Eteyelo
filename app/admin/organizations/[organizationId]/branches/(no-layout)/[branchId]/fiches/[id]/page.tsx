@@ -13,9 +13,9 @@ import FicheExportActions from "./FicheExportActions";
 import CancelInterventionButton from "./CancelInterventionButton";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
-  enforceResultsAreaAccess,
   isCursusSelfScopedRole,
   listAccessibleCursusStudents,
+  resolveGrantedCursusViewerRole,
 } from "@/lib/auth/cursus-scope";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +41,7 @@ export default async function FichePage({
 }) {
   const { organizationId, branchId, id } = await params;
   const { session, userId } = await requireBranchContext();
-  const role = enforceResultsAreaAccess(session);
+  const role = resolveGrantedCursusViewerRole(session);
 
   const [fiche, branch] = await Promise.all([
     prisma.fiche.findFirst({

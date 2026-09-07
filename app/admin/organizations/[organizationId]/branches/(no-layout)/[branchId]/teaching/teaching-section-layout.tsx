@@ -1,27 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { NotFoundView } from "@/components/not-found-view";
-import { useSession } from "@/lib/auth-client";
-import { canAccessPedagogyArea } from "@/lib/auth/session-roles";
+import type { ReactNode } from "react";
 
-export default function TeachingLayout({
+export default function TeachingSectionLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
-  const { data: session, isPending } = useSession();
-  const [hasMounted, setHasMounted] = useState(false);
-  const sessionReady = hasMounted && !isPending;
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  // Avoid swapping to Loading on isPending — that mismatches SSR vs client.
-  if (sessionReady && !canAccessPedagogyArea(session)) {
-    return <NotFoundView />;
-  }
-
   return children;
 }

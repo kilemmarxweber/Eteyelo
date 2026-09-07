@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth";
 import {
   PERMANENT_DELETE_DENIED_MESSAGE,
 } from "@/lib/auth/session-roles";
-import { getBranchAreaMutationFlags } from "@/lib/auth/assert-branch-area-access";
+import { getBranchAreaMutationFlags, canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import { prisma } from "@/lib/prisma";
 import { Prisma, type Day } from "@/prisma/generated/prisma/client";
 import { action } from "@/lib/zsa";
@@ -76,6 +76,7 @@ type ScheduleContext = {
   accessibleCycles: Cycle[];
   /** Admin : toutes les classes. Enseignant : uniquement ses affectations. */
   canManageSchedules: boolean;
+  canReadSchedules: boolean;
   canCreateSchedules: boolean;
   canUpdateSchedules: boolean;
   canDeleteSchedules: boolean;
@@ -154,6 +155,12 @@ async function getScheduleContext(): Promise<ScheduleContext> {
     [branchMember?.role],
   );
   const canManageSchedules = mutationFlags.canWrite;
+  const canReadSchedules = await canAccessBranchAreaAsync(
+    "schedule",
+    session,
+    organizationId,
+    branchId,
+  );
 
   const teacher = !canManageSchedules
     ? await prisma.teacher.findFirst({
@@ -181,6 +188,7 @@ async function getScheduleContext(): Promise<ScheduleContext> {
     teacherId: teacher?.id ?? null,
     accessibleCycles,
     canManageSchedules,
+    canReadSchedules,
     canCreateSchedules: mutationFlags.canCreate,
     canUpdateSchedules: mutationFlags.canUpdate,
     canDeleteSchedules: mutationFlags.canDelete,
@@ -486,7 +494,7 @@ function teacherAssignmentFilter(ctx: ScheduleContext) {
 }
 
 async function assertClasseInBranch(ctx: ScheduleContext, classeId: string) {
-  if (!ctx.canManageSchedules && !ctx.teacherId) {
+  if (!ctx.canManageSchedules && !ctx.teacherId && !ctx.canReadSchedules) {
     throw new Error("Classe introuvable dans cette branche");
   }
 
@@ -1010,7 +1018,7 @@ export const getScheduleOptionsAction = action.handler(
   async (): Promise<IOption[]> => {
     const ctx = await getScheduleContext();
 
-    if (!ctx.canManageSchedules && !ctx.teacherId) {
+    if (!ctx.canManageSchedules && !ctx.teacherId && !ctx.canReadSchedules) {
       return [];
     }
 
@@ -1999,7 +2007,7 @@ function generateSlotsFromHm(params: {
 export const getGlobalScheduleCyclesAction = action.handler(
   async (): Promise<{ cycles: GlobalScheduleCycleOption[] }> => {
     const ctx = await getScheduleContext();
-    if (!ctx.canManageSchedules && !ctx.teacherId) {
+    if (!ctx.canManageSchedules && !ctx.teacherId && !ctx.canReadSchedules) {
       return { cycles: [] };
     }
     return {
@@ -2021,7 +2029,7 @@ export const getGlobalScheduleByCycleAction = action
   )
   .handler(async ({ input }): Promise<GlobalScheduleByCycle> => {
     const ctx = await getScheduleContext();
-    if (!ctx.canManageSchedules && !ctx.teacherId) {
+    if (!ctx.canManageSchedules && !ctx.teacherId && !ctx.canReadSchedules) {
       throw new Error("Action non autorisee");
     }
     if (!ctx.accessibleCycles.includes(input.cycle)) {

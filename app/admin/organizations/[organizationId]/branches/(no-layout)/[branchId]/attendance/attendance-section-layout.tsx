@@ -1,13 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams, usePathname } from "next/navigation";
 import { IconUserCheck } from "@tabler/icons-react";
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Badge } from "@/components/ui/badge";
-import { NotFoundView } from "@/components/not-found-view";
-import { useSession } from "@/lib/auth-client";
-import { canAccessTeachingArea } from "@/lib/auth/session-roles";
 import { AttendanceTabsNav } from "./components/attendance-tabs-nav";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
@@ -18,9 +14,6 @@ export default function AttendanceLayout({
   children: React.ReactNode;
 }) {
   const t = useTranslations("attendance");
-  const { data: session, isPending } = useSession();
-  const [hasMounted, setHasMounted] = useState(false);
-  const sessionReady = hasMounted && !isPending;
   const params = useParams<{ organizationId: string; branchId: string }>();
   const pathname = usePathname();
   const basePath = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/attendance`;
@@ -28,14 +21,6 @@ export default function AttendanceLayout({
     pathname === basePath ||
     pathname === `${basePath}/` ||
     pathname.startsWith(`${basePath}/pointage`);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  if (sessionReady && !canAccessTeachingArea(session)) {
-    return <NotFoundView />;
-  }
 
   return (
     <BranchPageShell

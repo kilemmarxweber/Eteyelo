@@ -6,7 +6,7 @@ import Cours from "./components/coursClient";
 
 export default async function Page() {
   const { session, typebranch } = await requireBranchContext();
-  await assertBranchAreaAccess("school_admin", session);
+  await assertBranchAreaAccess("courses", session);
 
   return (
     <Cours

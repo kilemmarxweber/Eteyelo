@@ -6,14 +6,10 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { IconChartBar } from "@tabler/icons-react";
-import { ORG_ROLE } from "@/lib/permissions";
 import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { getServerTranslator } from "@/lib/i18n-server";
-import {
-  canManageOrganization,
-  hasSessionRole,
-} from "@/lib/auth/session-roles";
+import { resolveGrantedCursusViewerRole } from "@/lib/auth/cursus-scope";
 
 export const dynamic = "force-dynamic";
 
@@ -30,16 +26,7 @@ const ResultListPage = async () => {
     await requireBranchContext();
   await assertBranchAreaAccess("results", session);
 
-  const canManage = canManageOrganization(session);
-  const role = canManage
-    ? "admin"
-    : hasSessionRole(session, [ORG_ROLE.STUDENT, "STUDENT"])
-      ? "student"
-      : hasSessionRole(session, [ORG_ROLE.PARENT, "PARENT"])
-        ? "parent"
-        : hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"])
-          ? "teacher"
-          : "guest";
+  const role = resolveGrantedCursusViewerRole(session);
 
   const student = await prisma.student.findFirst({
     where: {

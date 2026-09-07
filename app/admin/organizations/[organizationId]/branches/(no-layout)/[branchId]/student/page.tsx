@@ -18,9 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
 import { useSession } from "@/lib/auth-client";
-import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
 import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
-import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
+import { useTemporaryGrantActions, useCanAccessBranchArea } from "@/hooks/use-temporary-grant-actions";
 
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { pluralizeStudentLabelLower } from "@/lib/people-labels";
@@ -83,6 +82,8 @@ export default function Students() {
   const [hasMounted, setHasMounted] = useState(false);
   const sessionReady = hasMounted && !isPending;
   const { canManage: canManageFromGrant } = useTemporaryGrantActions("student");
+  const { allowed: canAccessStudents, ready: studentsAccessReady } =
+    useCanAccessBranchArea("students");
   const canManage = sessionReady && canManageFromGrant;
   const canPurgePermanently =
     sessionReady && isOrganizationOwnerSession(session);
@@ -109,10 +110,7 @@ export default function Students() {
     setHasMounted(true);
   }, []);
 
-  if (
-    sessionReady &&
-    (!session || !canAccessBranchArea("students", session))
-  ) {
+  if (studentsAccessReady && !canAccessStudents) {
     return <NotFoundView />;
   }
 

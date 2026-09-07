@@ -21,6 +21,7 @@ import {
   sessionCanViewAllDirectoryUsers,
 } from "@/lib/auth/cycle-scope";
 import { requireBranchContext, requireHrWriteBranchContext } from "@/lib/auth/require-branch-context";
+import { canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import {
   buildSchoolReportContext,
@@ -493,7 +494,14 @@ export const getPersonnelPresenceStatsAction = action.handler(async () => {
       select: { id: true },
     }),
   ]);
-  const seeAll = sessionCanViewAllDirectoryUsers(session, orgMember?.role);
+  const seeAll =
+    sessionCanViewAllDirectoryUsers(session, orgMember?.role) ||
+    (await canAccessBranchAreaAsync(
+      "hr_directory",
+      session,
+      organizationId,
+      branchId,
+    ));
   const seeWholeBranch = !seeAll && isCycleGlobalRole(orgMember?.role);
   const directoryWhere = await buildBranchMemberDirectoryWhere({
     viewerBranchMemberId: branchMember?.id ?? null,
@@ -555,7 +563,14 @@ export const getPersonnelsAction = action.handler(
       }),
     ]);
 
-    const seeAll = sessionCanViewAllDirectoryUsers(session, orgMember?.role);
+    const seeAll =
+      sessionCanViewAllDirectoryUsers(session, orgMember?.role) ||
+      (await canAccessBranchAreaAsync(
+        "hr_directory",
+        session,
+        organizationId,
+        branchId,
+      ));
     const seeWholeBranch =
       !seeAll && isCycleGlobalRole(orgMember?.role);
     const directoryWhere = await buildBranchMemberDirectoryWhere({

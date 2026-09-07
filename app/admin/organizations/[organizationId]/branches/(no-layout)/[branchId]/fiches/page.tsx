@@ -9,8 +9,8 @@ import {
   canManageOrganization,
 } from "@/lib/auth/session-roles";
 import {
-  enforceResultsAreaAccess,
   isCursusSelfScopedRole,
+  resolveGrantedCursusViewerRole,
   resolveScopedCursusStudent,
 } from "@/lib/auth/cursus-scope";
 import { usesBulletinForBranch } from "@/lib/branch-capabilities";
@@ -34,7 +34,7 @@ export default async function ClassFichePage() {
     );
   }
 
-  const role = enforceResultsAreaAccess(session);
+  const role = resolveGrantedCursusViewerRole(session);
 
   // Élève / parent : fiches personnelles via profil (pas la vue classe admin).
   if (isCursusSelfScopedRole(role)) {
@@ -50,8 +50,8 @@ export default async function ClassFichePage() {
 
   const canManage = canManageOrganization(session);
 
-  // Fiches classe : school admin ou enseignant titulaire uniquement (unit-06).
-  if (!canAccessTitulaireFichesArea(session)) {
+  // Fiches classe : school admin, titulaire, ou octroi fiche (layout déjà autorisé).
+  if (!canAccessTitulaireFichesArea(session) && role !== "admin") {
     notFound();
   }
 

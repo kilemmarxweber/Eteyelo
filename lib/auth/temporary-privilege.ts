@@ -93,7 +93,7 @@ export function grantsCoverPermissions(
 
 /** Vérifie qu'un octroi couvre l'entrée dans une zone branche. */
 export function grantsCoverBranchArea(
-  grants: TemporaryGrant[],
+  grants: Array<Pick<{ resource: string; action: string }, "resource" | "action">>,
   area: BranchArea,
 ): boolean {
   const required = GRANT_BRANCH_AREA_PERMISSION[area];

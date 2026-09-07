@@ -25,6 +25,7 @@ import {
   sessionCanViewAllDirectoryUsers,
 } from "@/lib/auth/cycle-scope";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
@@ -407,7 +408,14 @@ export const getParentsAction = action.handler(async (): Promise<IParent[]> => {
     where: { userId, organizationId },
     select: { role: true },
   });
-  const seeAll = sessionCanViewAllDirectoryUsers(session, orgMember?.role);
+  const canReadParents = await canAccessBranchAreaAsync(
+    "parents",
+    session,
+    organizationId,
+    branchId,
+  );
+  const seeAll =
+    sessionCanViewAllDirectoryUsers(session, orgMember?.role) || canReadParents;
   const seeWholeBranch = !seeAll && isCycleGlobalRole(orgMember?.role);
   const directoryWhere = await buildBranchMemberDirectoryWhere({
     viewerBranchMemberId: branchMemberId,

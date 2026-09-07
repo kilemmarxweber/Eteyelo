@@ -15,7 +15,7 @@ import {
   resolveAccessibleCycles,
   sessionCanViewAllDirectoryUsers,
 } from "@/lib/auth/cycle-scope";
-import { getBranchAreaMutationFlags } from "@/lib/auth/assert-branch-area-access";
+import { getBranchAreaMutationFlags, canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import {
   getSessionRoles,
   hasSessionRole,
@@ -191,6 +191,12 @@ export async function getCurrentBranch() {
     branchId,
     [branchMember?.role],
   );
+  const canReadTeachers = await canAccessBranchAreaAsync(
+    "pedagogy",
+    session,
+    organizationId,
+    branchId,
+  );
 
   return {
     branchId,
@@ -202,6 +208,7 @@ export async function getCurrentBranch() {
     canUpdateTeachers: mutationFlags.canUpdate,
     canDeleteTeachers: mutationFlags.canDelete,
     canManageTeachers: mutationFlags.canWrite,
+    canReadTeachers,
     canPurgePermanently: isOrganizationOwnerSession(session, branchMember?.role),
     isTeacher: hasSessionRole(
       session,
@@ -598,11 +605,12 @@ export const getTeachersAction = action.handler(
       organizationId,
       userId: sessionUserId,
       canManageTeachers,
+      canReadTeachers,
       isTeacher,
       branchMemberId,
     } = await getCurrentBranch();
 
-    if (!canManageTeachers && !isTeacher) {
+    if (!canManageTeachers && !isTeacher && !canReadTeachers) {
       return [];
     }
 
@@ -613,7 +621,9 @@ export const getTeachersAction = action.handler(
       where: { userId: sessionUserId, organizationId },
       select: { role: true },
     });
-    const seeAll = sessionCanViewAllDirectoryUsers(session, orgMember?.role);
+    const seeAll =
+      sessionCanViewAllDirectoryUsers(session, orgMember?.role) ||
+      (canReadTeachers && !isTeacher);
     const seeWholeBranch =
       !seeAll && isCycleGlobalRole(orgMember?.role);
     const directoryWhere = await buildBranchMemberDirectoryWhere({
@@ -634,7 +644,9 @@ export const getTeachersAction = action.handler(
               isActive: true,
               member: {
                 organizationId,
-                ...(canManageTeachers ? {} : { userId: sessionUserId }),
+                ...(canManageTeachers || (canReadTeachers && !isTeacher)
+                  ? {}
+                  : { userId: sessionUserId }),
               },
             },
             ...(directoryWhere ? [directoryWhere] : []),
@@ -777,11 +789,12 @@ export const getTeacherDashboardStatsAction = action
       organizationId,
       userId,
       canManageTeachers,
+      canReadTeachers,
       isTeacher,
       branchMemberId,
     } = await getCurrentBranch();
 
-    if (!canManageTeachers && !isTeacher) {
+    if (!canManageTeachers && !isTeacher && !canReadTeachers) {
       throw new Error("Action non autorisee");
     }
 
@@ -792,7 +805,9 @@ export const getTeacherDashboardStatsAction = action
       where: { userId, organizationId },
       select: { role: true },
     });
-    const seeAll = sessionCanViewAllDirectoryUsers(session, orgMember?.role);
+    const seeAll =
+      sessionCanViewAllDirectoryUsers(session, orgMember?.role) ||
+      (canReadTeachers && !isTeacher);
     const seeWholeBranch = !seeAll && isCycleGlobalRole(orgMember?.role);
     const directoryWhere = await buildBranchMemberDirectoryWhere({
       viewerBranchMemberId: branchMemberId,
@@ -840,7 +855,9 @@ export const getTeacherDashboardStatsAction = action
             isActive: true,
             member: {
               organizationId,
-              ...(canManageTeachers ? {} : { userId }),
+              ...(canManageTeachers || (canReadTeachers && !isTeacher)
+                ? {}
+                : { userId }),
             },
           },
           ...(directoryWhere ? [directoryWhere] : []),
@@ -1084,10 +1101,10 @@ export const updateTeacherPhotoAction = action
   });
 
 export const getTeacherReportContextAction = action.handler(async () => {
-  const { branchId, organizationId, canManageTeachers, isTeacher } =
+  const { branchId, organizationId, canManageTeachers, canReadTeachers, isTeacher } =
     await getCurrentBranch();
 
-  if (!canManageTeachers && !isTeacher) {
+  if (!canManageTeachers && !isTeacher && !canReadTeachers) {
     throw new Error("Action non autorisee");
   }
 

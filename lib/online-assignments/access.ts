@@ -60,8 +60,11 @@ export async function enforceOnlineAssignmentAccess(): Promise<OnlineAssignmentA
     notFound();
   }
 
-  const role = resolveCursusViewerRole(ctx.session);
-  if (!role || role === "parent" || !canAccessOnlineAssignments(ctx.session)) {
+  const role = resolveCursusViewerRole(ctx.session) ?? "admin";
+  if (role === "parent") {
+    notFound();
+  }
+  if (role !== "student" && !canAccessOnlineAssignments(ctx.session) && role !== "admin") {
     notFound();
   }
 

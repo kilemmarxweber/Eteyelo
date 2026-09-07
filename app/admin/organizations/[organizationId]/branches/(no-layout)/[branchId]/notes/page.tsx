@@ -9,9 +9,9 @@ import {
   resolveAccessibleCycles,
 } from "@/lib/auth/cycle-scope";
 import {
-  enforceNotesAreaAccess,
   isCursusSelfScopedRole,
   listAccessibleCursusStudents,
+  resolveGrantedCursusViewerRole,
   resolveScopedCursusStudent,
 } from "@/lib/auth/cursus-scope";
 import { isUniversiteBranch } from "@/lib/branch-capabilities";
@@ -69,7 +69,7 @@ export default async function NotesPage({
 }) {
   const { session, userId, branchId, organizationId, typebranch } =
     await requireBranchContext();
-  const role = enforceNotesAreaAccess(session);
+  const role = resolveGrantedCursusViewerRole(session);
   const sp = await searchParams;
 
   if (isCursusSelfScopedRole(role)) {
@@ -111,7 +111,7 @@ export default async function NotesPage({
     );
   }
 
-  const canManage = canManageOrganization(session);
+  const canManage = canManageOrganization(session) || role === "admin";
   const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
 
   if (!canManage && !isTeacher) {

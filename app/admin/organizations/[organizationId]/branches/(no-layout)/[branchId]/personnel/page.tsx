@@ -14,7 +14,6 @@ import {
 } from "@tabler/icons-react";
 
 import { Button } from "@/components/custom/button";
-import { NotFoundView } from "@/components/not-found-view";
 import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
@@ -27,11 +26,11 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useSession } from "@/lib/auth-client";
-import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
 import {
   canManagePersonnelRecords,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
+import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
 
 import { PersonnelUpForm } from "./components/personnel-form";
 import UserList from "./components/PersonnelsTable";
@@ -70,7 +69,10 @@ export default function Personnels() {
   const { data: session, isPending } = useSession();
   const [hasMounted, setHasMounted] = useState(false);
   const sessionReady = hasMounted && !isPending;
-  const canManage = sessionReady && canManagePersonnelRecords(session);
+  const { canManage: canManageFromGrant } = useTemporaryGrantActions("personnel");
+  const canManage =
+    sessionReady &&
+    (canManagePersonnelRecords(session) || canManageFromGrant);
   const canPurgePermanently =
     sessionReady && isOrganizationOwnerSession(session);
 
@@ -113,13 +115,6 @@ export default function Personnels() {
       setSupportsStaffImport(Boolean(context.supportsStaffImport));
     });
   }, [refreshKey]);
-
-  if (
-    sessionReady &&
-    (!session || !canAccessBranchArea("hr_directory", session))
-  ) {
-    return <NotFoundView />;
-  }
 
   const presencePercent = stats.totalExpected
     ? Math.round((stats.present / stats.totalExpected) * 100)

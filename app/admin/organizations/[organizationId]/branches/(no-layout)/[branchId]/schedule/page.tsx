@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
-  enforceScheduleAreaAccess,
   isCursusSelfScopedRole,
   listAccessibleCursusStudents,
+  resolveGrantedCursusViewerRole,
   resolveScopedCursusStudent,
 } from "@/lib/auth/cursus-scope";
 import { getPeopleLabels } from "@/lib/people-labels";
@@ -19,7 +19,7 @@ export default async function ScheduleIndexPage({
 }) {
   const { session, userId, branchId, organizationId, typebranch } =
     await requireBranchContext({ onMissing: "redirect" });
-  const role = enforceScheduleAreaAccess(session);
+  const role = resolveGrantedCursusViewerRole(session);
   const sp = await searchParams;
 
   if (!isCursusSelfScopedRole(role)) {

@@ -7,6 +7,7 @@ import {
   type CursusViewerRole,
 } from "@/lib/auth/cursus-scope";
 import { listTeacherScheduleCandidates } from "@/lib/attendance-teacher-session";
+import { canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import {
   canAccessStudentDirectory,
   canAccessTeachingArea,
@@ -145,11 +146,23 @@ export async function assertClassRosterAccess(params: {
 }): Promise<void> {
   const { session, userId, branchId, classId } = params;
 
-  if (!canAccessTeachingArea(session)) {
-    notFound();
+  if (canManageOrganization(session)) {
+    return;
   }
 
-  if (canManageOrganization(session)) {
+  if (!canAccessTeachingArea(session)) {
+    const organizationId =
+      (session as { organization?: { id?: string }; session?: { activeOrganizationId?: string } } | null)
+        ?.organization?.id ??
+      (session as { session?: { activeOrganizationId?: string } } | null)?.session
+        ?.activeOrganizationId ??
+      null;
+    const granted =
+      (await canAccessBranchAreaAsync("schedule", session, organizationId, branchId)) ||
+      (await canAccessBranchAreaAsync("teaching", session, organizationId, branchId)) ||
+      (await canAccessBranchAreaAsync("attendance", session, organizationId, branchId)) ||
+      (await canAccessBranchAreaAsync("notes", session, organizationId, branchId));
+    if (!granted) notFound();
     return;
   }
 
@@ -243,8 +256,16 @@ export async function assertStudentReadableInBranch(params: {
 }): Promise<void> {
   const { session, userId, branchId, studentId } = params;
 
-  // School admin + caissier : lecture fiche / présence (sans CRUD).
-  if (canAccessStudentDirectory(session)) {
+  const organizationId =
+    (session as { organization?: { id?: string }; session?: { activeOrganizationId?: string } } | null)
+      ?.organization?.id ??
+    (session as { session?: { activeOrganizationId?: string } } | null)?.session
+      ?.activeOrganizationId ??
+    null;
+  if (
+    canAccessStudentDirectory(session) ||
+    (await canAccessBranchAreaAsync("students", session, organizationId, branchId))
+  ) {
     const exists = await prisma.student.findFirst({
       where: { id: studentId, branchMember: { branchId } },
       select: { id: true },

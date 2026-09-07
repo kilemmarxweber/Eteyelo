@@ -156,7 +156,7 @@ export const SIDEBAR_HREF_BRANCH_AREA: Record<string, BranchArea> = {
   "/admin/student": "students",
   "/admin/personnel": "hr_directory",
   "/admin/teacher": "pedagogy",
-  "/admin/teacher/horaire-global": "pedagogy",
+  "/admin/teacher/horaire-global": "schedule",
   "/admin/parent": "parents",
   "/admin/attestations": "documents",
   "/admin/brevets": "documents",

@@ -11,6 +11,7 @@ import {
   canManageOrganization,
   hasSessionRole,
 } from "@/lib/auth/session-roles";
+import { canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import { ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { branchDocumentName } from "@/lib/branch-document-name";
@@ -102,10 +103,14 @@ const SingleStudentPage = async ({
     session,
     currentBranchMember?.role,
   );
-  const canReadStudentDirectory = canAccessStudentDirectory(
-    session,
-    currentBranchMember?.role,
-  );
+  const canReadStudentDirectory =
+    canAccessStudentDirectory(session, currentBranchMember?.role) ||
+    (await canAccessBranchAreaAsync(
+      "students",
+      session,
+      organizationId,
+      branchId,
+    ));
 
   const branch = await prisma.branch.findFirst({
     where: { id: branchId, organizationId },

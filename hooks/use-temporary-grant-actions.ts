@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "@/lib/auth-client";
+import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
+import type { BranchArea } from "@/lib/auth/branch-area-permissions";
 import {
   canManageOrganization,
   canPermanentlyDeleteInformation,
@@ -10,6 +12,7 @@ import {
   grantMatchesPermission,
   grantsAllowWrite,
 } from "@/lib/auth/temporary-grant-actions";
+import { grantsCoverBranchArea } from "@/lib/auth/temporary-privilege";
 import { getMyActiveTemporaryGrantsAction } from "@/lib/auth/temporary-grants.action";
 
 type GrantLite = { resource: string; action: string };
@@ -50,11 +53,7 @@ async function loadActiveGrants(
   return pending;
 }
 
-/**
- * Droits d'écriture côté UI : rôle gestionnaire, ou octroi temporaire
- * create / update / delete sur la ressource du catalogue.
- */
-export function useTemporaryGrantActions(resource: string) {
+function useActiveGrants() {
   const { data: session, isPending } = useSession();
   const [grants, setGrants] = useState<GrantLite[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -89,6 +88,33 @@ export function useTemporaryGrantActions(resource: string) {
     };
   }, [organizationId, branchId, isPending]);
 
+  return { session, isPending, grants, loaded: loaded && !isPending };
+}
+
+/**
+ * Entrée dans une zone : DAC (rôle) ou octroi temporaire, comme le menu.
+ */
+export function useCanAccessBranchArea(area: BranchArea) {
+  const { session, isPending, grants, loaded } = useActiveGrants();
+
+  const allowed = useMemo(() => {
+    if (canAccessBranchArea(area, session)) return true;
+    return grantsCoverBranchArea(grants, area);
+  }, [area, grants, session]);
+
+  return {
+    allowed,
+    ready: loaded && !isPending,
+    session,
+  };
+}
+
+/**
+ * Droits d'écriture côté UI : rôle gestionnaire, ou octroi temporaire
+ * create / update / delete sur la ressource du catalogue.
+ */
+export function useTemporaryGrantActions(resource: string) {
+  const { session, isPending, grants, loaded } = useActiveGrants();
   const roleCanWrite = canManageOrganization(session);
   const roleCanDelete = canPermanentlyDeleteInformation(session);
 

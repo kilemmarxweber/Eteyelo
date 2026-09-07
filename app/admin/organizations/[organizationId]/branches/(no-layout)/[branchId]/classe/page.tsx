@@ -4,7 +4,6 @@ import { BranchPageShell } from "@/components/layout/branch-page-shell";
 
 import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { NotFoundView } from "@/components/not-found-view";
 import {
   IconDownload,
   IconSchool,
@@ -25,8 +24,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useSession } from "@/lib/auth-client";
-import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
 import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
 import {
   getClassDisplayLabel,
@@ -47,7 +44,6 @@ export default function Page() {
   const [importing, startImport] = useTransition();
   const [classLabel, setClassLabel] = useState("Classe");
   const [classLabelPlural, setClassLabelPlural] = useState("Classes");
-  const { data: session, isPending } = useSession();
   const { canCreate } = useTemporaryGrantActions("classe");
 
   useEffect(() => {
@@ -58,13 +54,6 @@ export default function Page() {
       }
     });
   }, [refreshKey]);
-
-  if (
-    !isPending &&
-    (!session || !canAccessBranchArea("school_admin", session))
-  ) {
-    return <NotFoundView />;
-  }
 
   function handleImportCatalog() {
     startImport(async () => {

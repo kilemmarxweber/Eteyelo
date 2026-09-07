@@ -2,10 +2,8 @@ import { notFound, redirect } from "next/navigation";
 
 import { canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import { getCachedSession } from "@/lib/auth/get-session-cached";
-import { hasSessionRole } from "@/lib/auth/session-roles";
-import { ORG_ROLE } from "@/lib/permissions";
 
-export default async function TeacherLayout({
+export default async function HoraireGlobalLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -15,10 +13,9 @@ export default async function TeacherLayout({
     redirect("/auth/sign-in");
   }
 
-  const pedagogy = await canAccessBranchAreaAsync("pedagogy", session);
   const schedule = await canAccessBranchAreaAsync("schedule", session);
-  const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
-  if (!pedagogy && !schedule && !isTeacher) {
+  const pedagogy = await canAccessBranchAreaAsync("pedagogy", session);
+  if (!schedule && !pedagogy) {
     notFound();
   }
 
