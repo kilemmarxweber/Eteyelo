@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
+import { canComputePayroll } from "@/lib/auth/session-roles";
 import { formatPayrollAmount } from "@/lib/reports/format-amount";
 import { exportTeacherPayslipPdf } from "./export-teacher-payslip-pdf";
 import {
