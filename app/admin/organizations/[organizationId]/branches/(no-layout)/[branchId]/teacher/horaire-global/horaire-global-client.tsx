@@ -65,10 +65,14 @@ function teacherPrintTable(
           teacher.creneauIds.includes(creneau.id),
         )
       : schedule.creneaux;
-  const hours =
-    teacherCreneaux.length > 0
-      ? [...new Set(teacherCreneaux.flatMap((creneau) => creneau.slots))].sort()
-      : [...new Set(teacher.entries.map((entry) => entry.hour))].sort();
+  const hours = [
+    ...new Set([
+      ...(teacherCreneaux.length > 0
+        ? teacherCreneaux.flatMap((creneau) => creneau.slots)
+        : []),
+      ...teacher.entries.map((entry) => entry.hour),
+    ]),
+  ].sort();
   return {
     title: teacher.name,
     subtitle: meta,
@@ -235,6 +239,8 @@ export function HoraireGlobalClient() {
                   workingDays: creneau.workingDays,
                   recreationHour: creneau.recreationHour,
                   endTime: creneau.endTime,
+                  saturdayHours: creneau.saturdaySlots,
+                  saturdayEndTime: creneau.saturdayEndTime,
                   entries: schedule.entries.filter(
                     (entry) => entry.creneauId === creneau.id,
                   ),
@@ -463,6 +469,8 @@ export function HoraireGlobalClient() {
                         workingDays={creneau.workingDays}
                         recreationHour={creneau.recreationHour}
                         endTime={creneau.endTime}
+                        saturdayHours={creneau.saturdaySlots}
+                        saturdayEndTime={creneau.saturdayEndTime}
                         entries={schedule.entries.filter(
                           (entry) => entry.creneauId === creneau.id,
                         )}
@@ -520,32 +528,29 @@ export function HoraireGlobalClient() {
                           teacher.creneauIds.includes(creneau.id),
                         )
                       : schedule.creneaux;
-                  const hours =
-                    teacherCreneaux.length > 0
-                      ? [
-                          ...new Set(
-                            teacherCreneaux.flatMap((creneau) => creneau.slots),
-                          ),
-                        ].sort()
-                      : [
-                          ...new Set(teacher.entries.map((entry) => entry.hour)),
-                        ].sort();
+                  const hours = [
+                    ...new Set([
+                      ...(teacherCreneaux.length > 0
+                        ? teacherCreneaux.flatMap((creneau) => creneau.slots)
+                        : []),
+                      ...teacher.entries.map((entry) => entry.hour),
+                    ]),
+                  ].sort();
                   const workingDays = unionWorkingDays(
                     teacherCreneaux.length > 0
                       ? teacherCreneaux
                       : schedule.creneaux,
                   );
-                  const recreationHour =
-                    teacherCreneaux.length === 1
-                      ? teacherCreneaux[0]?.recreationHour
-                      : "";
+                  const singleCreneau =
+                    teacherCreneaux.length === 1 ? teacherCreneaux[0] : null;
+                  const recreationHour = singleCreneau?.recreationHour ?? "";
                   const endTime =
-                    teacherCreneaux.length === 1
-                      ? teacherCreneaux[0]?.endTime
-                      : teacherCreneaux
-                          .map((creneau) => creneau.endTime)
-                          .sort()
-                          .at(-1) ?? "";
+                    singleCreneau?.endTime ??
+                    teacherCreneaux
+                      .map((creneau) => creneau.endTime)
+                      .sort()
+                      .at(-1) ??
+                    "";
 
                   return (
                     <section key={teacher.id || teacher.name} className="space-y-3">

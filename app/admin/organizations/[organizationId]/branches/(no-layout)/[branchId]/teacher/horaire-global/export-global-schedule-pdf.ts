@@ -9,6 +9,7 @@ import {
 } from "@/lib/reports/pdf-header-footer";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type { GlobalScheduleEntry } from "./types";
+import { slotHourOnDay } from "@/lib/creneau-saturday";
 
 export type GlobalSchedulePdfTable = {
   title: string;
@@ -17,6 +18,8 @@ export type GlobalSchedulePdfTable = {
   workingDays: string[];
   recreationHour?: string;
   endTime?: string;
+  saturdayHours?: string[];
+  saturdayEndTime?: string;
   entries: GlobalScheduleEntry[];
   showTeacher: boolean;
 };
@@ -128,7 +131,19 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
       return [
         `${hour} - ${nextTime}`,
         ...table.workingDays.map((day) =>
-          formatCell(entriesForCell(table.entries, day, hour), table.showTeacher),
+          formatCell(
+            entriesForCell(
+              table.entries,
+              day,
+              slotHourOnDay({
+                day,
+                weekdaySlot: hour,
+                weekdaySlots: table.hours,
+                saturdaySlots: table.saturdayHours ?? [],
+              }),
+            ),
+            table.showTeacher,
+          ),
         ),
       ];
     });

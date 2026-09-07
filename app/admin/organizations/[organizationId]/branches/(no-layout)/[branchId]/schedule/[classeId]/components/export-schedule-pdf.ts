@@ -8,6 +8,7 @@ import {
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import type { SchoolReportContext } from "@/lib/reports/types";
+import { slotHourOnDay } from "@/lib/creneau-saturday";
 
 export type ScheduleReportContext = SchoolReportContext & {
   classeName: string;
@@ -29,6 +30,8 @@ type SchedulePdfInput = {
   timeSlots: string[];
   recreationHour: string;
   endTime: string;
+  saturdayTimeSlots?: string[];
+  saturdayEndTime?: string;
   entries: ScheduleReportEntry[];
 };
 
@@ -55,13 +58,25 @@ export function findScheduleConflicts(entries: ScheduleReportEntry[]) {
 }
 
 export async function exportSchedulePdf(input: SchedulePdfInput) {
-  const { context, days, timeSlots, recreationHour, endTime, entries } = input;
+  const {
+    context,
+    days,
+    timeSlots,
+    recreationHour,
+    endTime,
+    saturdayTimeSlots = [],
+    saturdayEndTime,
+    entries,
+  } = input;
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const title = `Horaire de la classe ${context.classeName}`;
   const details = [
     context.creneauName ? `Vacation : ${context.creneauName}` : "",
     context.classeCode ? `Code : ${context.classeCode}` : "",
+    saturdayTimeSlots.length
+      ? `Samedi : 07:30 – ${saturdayEndTime || "12:30"}`
+      : "",
   ].filter(Boolean);
 
   const body = timeSlots.map((hour, index) => {
@@ -76,7 +91,13 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
     return [
       `${hour} - ${nextTime}`,
       ...days.map((day) => {
-        const cellEntries = entriesForCell(entries, day, hour);
+        const cellHour = slotHourOnDay({
+          day,
+          weekdaySlot: hour,
+          weekdaySlots: timeSlots,
+          saturdaySlots: saturdayTimeSlots,
+        });
+        const cellEntries = entriesForCell(entries, day, cellHour);
         if (!cellEntries.length) return "-";
         const content = cellEntries.map((entry) =>
           [entry.courseName, entry.teacherName].filter(Boolean).join("\n"),

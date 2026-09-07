@@ -23,6 +23,8 @@ export type StudentScheduleData = {
   timeSlots: string[];
   recreationHour: string;
   endTime: string;
+  saturdayTimeSlots?: string[];
+  saturdayEndTime?: string;
   /** Jours ouvrables de la vacation (sinon Lun–Sam). */
   workingDays: string[];
   entries: StudentScheduleEntry[];

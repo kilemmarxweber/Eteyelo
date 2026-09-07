@@ -55,6 +55,12 @@ import { resolveCycle, type Cycle } from "@/lib/cycle";
 import { CRENEAU_WEEKDAY_OPTIONS } from "@/lib/creneau-working-days";
 import { MultiSelect } from "../../../paiement/components/MultiSelect";
 import { useTranslations } from "next-intl";
+import {
+  MAX_WEEKLY_INTERVENTIONS,
+  resolveSessionDurationMinutes,
+  weeklyInterventionsFromMinutes,
+  weeklyMinutesFromInterventions,
+} from "@/lib/teaching-volume";
 
 interface EnrollmentUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: () => void;
@@ -81,6 +87,7 @@ export function EnrollmentUpForm({
   const [errorMessage, setErrorMessage] = useState("");
   const [Teachers, setTeachers] = useState<ITeacher[]>([]);
   const [classCycle, setClassCycle] = useState<Cycle | null>(null);
+  const [sessionDuration, setSessionDuration] = useState(45);
   const [Cours, setCours] = useState<ICours[]>([]);
   const [SchoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
   const { data: session } = useSession();
@@ -112,6 +119,9 @@ export function EnrollmentUpForm({
       coursId: initialData?.coursId ?? "",
       classeId: initialData?.classeId ?? classeId ?? "",
       weeklyHours: initialData?.weeklyHours ?? undefined,
+      weeklyInterventions:
+        weeklyInterventionsFromMinutes(initialData?.weeklyHours, 45) ??
+        undefined,
       consecutiveSlots: initialData?.consecutiveSlots ?? null,
       preferredDays: initialData?.preferredDays ?? [],
     },
@@ -160,6 +170,17 @@ export function EnrollmentUpForm({
       setClassCycle(
         resolveCycle(classes[0], { typebranch: branchType }),
       );
+      const duration = resolveSessionDurationMinutes(
+        classes[0].creneau?.durationCourse,
+      );
+      setSessionDuration(duration);
+      if (initialData?.weeklyHours) {
+        form.setValue(
+          "weeklyInterventions",
+          weeklyInterventionsFromMinutes(initialData.weeklyHours, duration) ??
+            undefined,
+        );
+      }
     };
     fetchClasseCycle();
   }, [branchId, branchType, classeId]);
@@ -183,6 +204,7 @@ export function EnrollmentUpForm({
           coursId: "",
           classeId,
           weeklyHours: undefined,
+          weeklyInterventions: undefined,
           consecutiveSlots: null,
           preferredDays: [],
         });
@@ -343,33 +365,50 @@ export function EnrollmentUpForm({
             />
             <FormField
               control={form.control}
-              name="weeklyHours"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("minutesPerWeekField")} *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={15}
-                      max={600}
-                      step={15}
-                      placeholder="Ex. 135"
-                      value={field.value ?? ""}
-                      onChange={(event) =>
-                        field.onChange(
-                          event.target.value === ""
-                            ? undefined
-                            : Number(event.target.value),
-                        )
-                      }
-                    />
-                  </FormControl>
-                  <p className="text-xs text-muted-foreground">
-                    {tf("weeklyHoursHint")}
-                  </p>
-                  <FormMessage />
-                </FormItem>
-              )}
+              name="weeklyInterventions"
+              render={({ field }) => {
+                const totalMinutes = weeklyMinutesFromInterventions(
+                  field.value,
+                  sessionDuration,
+                );
+                return (
+                  <FormItem>
+                    <FormLabel>{t("interventionsFieldLabel")} *</FormLabel>
+                    <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-2">
+                      <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm tabular-nums text-muted-foreground">
+                        {t("sessionDurationShort", { minutes: sessionDuration })}
+                      </div>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={MAX_WEEKLY_INTERVENTIONS}
+                          step={1}
+                          placeholder="Ex. 4"
+                          value={field.value ?? ""}
+                          onChange={(event) =>
+                            field.onChange(
+                              event.target.value === ""
+                                ? undefined
+                                : Number(event.target.value),
+                            )
+                          }
+                        />
+                      </FormControl>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {totalMinutes
+                        ? tf("weeklyVolumePreview", {
+                            duration: sessionDuration,
+                            count: field.value ?? 0,
+                            total: totalMinutes,
+                          })
+                        : tf("weeklyHoursHint")}
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             <FormField
               control={form.control}

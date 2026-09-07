@@ -1208,6 +1208,53 @@ export async function searchPeopleForCheckInAction(
   ].slice(0, 8);
 }
 
+/** Recherche élève + enseignant + personnel pour associer un visage. */
+export async function searchPeopleForFaceEnrollAction(
+  query: string,
+): Promise<AttendancePersonLookup[]> {
+  const { branchId, organizationId } = await requireBranchContext();
+  const { query: search } = searchSchema.parse({ query });
+
+  const userFilter = {
+    OR: [
+      { username: { contains: search, mode: "insensitive" as const } },
+      { name: { contains: search, mode: "insensitive" as const } },
+      { prenom: { contains: search, mode: "insensitive" as const } },
+      { postnom: { contains: search, mode: "insensitive" as const } },
+    ],
+  };
+
+  const branchFilter = {
+    branchId,
+    branch: { organizationId },
+    member: { user: userFilter },
+  };
+
+  const [students, teachers, personnels] = await Promise.all([
+    prisma.student.findMany({
+      where: { branchMember: branchFilter },
+      include: studentInclude(),
+      take: 15,
+    }),
+    prisma.teacher.findMany({
+      where: { branchMember: branchFilter },
+      include: userInclude(),
+      take: 15,
+    }),
+    prisma.personnel.findMany({
+      where: { branchMember: branchFilter },
+      include: userInclude(),
+      take: 15,
+    }),
+  ]);
+
+  return [
+    ...students.map(mapStudentLookup),
+    ...teachers.map(mapTeacherLookup),
+    ...personnels.map(mapPersonnelLookup),
+  ].sort((left, right) => left.name.localeCompare(right.name, "fr"));
+}
+
 /** @deprecated Use searchPeopleForCheckInAction */
 export async function searchStudentsForCheckInAction(query: string) {
   return searchPeopleForCheckInAction(query);

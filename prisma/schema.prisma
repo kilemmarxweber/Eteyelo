@@ -575,8 +575,8 @@ model Teaching {
   schoolYearId      String
   titulaire         Boolean?
   statusTeaching    Boolean?
-  /// Volume hebdomadaire en minutes pour cette affectation (ex. 135).
-  /// Nombre de séances = ceil(weeklyHours / durationCourse de la vacation).
+  /// Volume hebdomadaire en minutes = durée de séance (créneau) × interventions
+  /// dans la semaine (ex. 45 × 4 = 180). La pondération n'intervient pas.
   weeklyHours       Float?
   /// Nombre de périodes d'affilée à placer ensemble (2–4). Null / 1 = séances isolées.
   consecutiveSlots  Int?

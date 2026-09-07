@@ -21,6 +21,7 @@ import {
 } from "@/lib/archive";
 import { previewPeriodsAroundRecreation } from "@/src/hooks/getCourseHours";
 import { ICreneau } from "@/src/interfaces/creneau";
+import { saturdayUsesShiftedMorningHours } from "@/lib/creneau-saturday";
 
 import { getCreneauxAction } from "../creneau.action";
 import { DeleteCreneausDialog } from "./delete-Creneau-dialog";
@@ -178,6 +179,10 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
             </div>
             <div className="text-xs text-muted-foreground">
               {t("sessionDuration", { minutes: creneau.durationCourse })}
+              {creneau.workingDays?.includes("Samedi") &&
+              saturdayUsesShiftedMorningHours(creneau.startTime)
+                ? " · Sam. 07:30–12:30"
+                : ""}
             </div>
           </div>
         </div>

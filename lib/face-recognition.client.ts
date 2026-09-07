@@ -1,9 +1,7 @@
 import { euclideanDistance } from "@/lib/face-descriptor";
 
-const FACE_API_SRC =
-  "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js";
-const MODEL_URL =
-  "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights";
+const FACE_API_SRC = "/vendor/face-api/face-api.min.js";
+const MODEL_URL = "/models/face-api";
 
 type FaceApiNet = {
   loadFromUri: (uri: string) => Promise<unknown>;
@@ -73,14 +71,25 @@ function loadScript(src: string) {
   });
 }
 
+function getFaceApi(): FaceApiGlobal | undefined {
+  return window.faceapi;
+}
+
+async function waitForFaceApi(timeoutMs = 4000): Promise<FaceApiGlobal> {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const faceapi = getFaceApi();
+    if (faceapi?.nets?.tinyFaceDetector) return faceapi;
+    await new Promise((resolve) => window.setTimeout(resolve, 50));
+  }
+  throw new Error("Reconnaissance faciale indisponible.");
+}
+
 export async function loadFaceApi(): Promise<FaceApiGlobal> {
   if (!modelsReady) {
     modelsReady = (async () => {
       await loadScript(FACE_API_SRC);
-      const faceapi = window.faceapi;
-      if (!faceapi) {
-        throw new Error("Reconnaissance faciale indisponible.");
-      }
+      const faceapi = await waitForFaceApi();
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
         faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),

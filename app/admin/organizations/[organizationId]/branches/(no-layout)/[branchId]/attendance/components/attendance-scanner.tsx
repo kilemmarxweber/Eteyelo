@@ -5,6 +5,7 @@ import { BrowserMultiFormatReader } from "@zxing/browser";
 import { IconCamera, IconCameraOff } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,7 @@ import {
 import {
   enrollFaceDescriptorAction,
   matchFaceDescriptorAction,
-  searchPeopleForCheckInAction,
+  searchPeopleForFaceEnrollAction,
 } from "../attendance-scan.action";
 import type {
   AttendancePersonLookup,
@@ -236,6 +237,8 @@ export function AttendanceScanDialog({
     searchPlaceholder: string;
     noPersonFound: string;
     retryFace: string;
+    tabAll: string;
+    personTypes: Record<AttendancePersonType, string>;
   };
 }) {
   const [mode, setMode] = useState<ScanMode>(initialMode);
@@ -244,14 +247,33 @@ export function AttendanceScanDialog({
     null,
   );
   const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"all" | AttendancePersonType>(
+    "all",
+  );
   const [results, setResults] = useState<AttendancePersonLookup[]>([]);
   const [hint, setHint] = useState<string | null>(null);
+
+  const typeFilters: Array<{
+    id: "all" | AttendancePersonType;
+    label: string;
+  }> = [
+    { id: "all", label: labels.tabAll },
+    { id: "student", label: labels.personTypes.student },
+    { id: "teacher", label: labels.personTypes.teacher },
+    { id: "personnel", label: labels.personTypes.personnel },
+  ];
+
+  const visibleResults =
+    typeFilter === "all"
+      ? results
+      : results.filter((person) => person.personType === typeFilter);
 
   useEffect(() => {
     if (open) {
       setMode(initialMode);
       setEnrollDescriptor(null);
       setQuery("");
+      setTypeFilter("all");
       setResults([]);
       setHint(null);
       setBusy(false);
@@ -265,7 +287,9 @@ export function AttendanceScanDialog({
       return;
     }
     const handle = window.setTimeout(() => {
-      void searchPeopleForCheckInAction(trimmed).then(setResults);
+      void searchPeopleForFaceEnrollAction(trimmed)
+        .then(setResults)
+        .catch(() => setResults([]));
     }, 250);
     return () => window.clearTimeout(handle);
   }, [enrollDescriptor, query]);
@@ -308,6 +332,7 @@ export function AttendanceScanDialog({
       }
       setEnrollDescriptor(null);
       setQuery("");
+      setTypeFilter("all");
       setResults([]);
       onFacePerson(person.personType, person.id);
     } catch (error) {
@@ -382,31 +407,53 @@ export function AttendanceScanDialog({
                   placeholder={labels.searchPlaceholder}
                   autoFocus
                 />
-                {results.length === 0 && query.trim().length >= 2 ? (
+                <div className="flex flex-wrap gap-1">
+                  {typeFilters.map((filter) => (
+                    <Button
+                      key={filter.id}
+                      type="button"
+                      size="sm"
+                      variant={typeFilter === filter.id ? "default" : "outline"}
+                      className={cn("h-7 px-2 text-xs")}
+                      onClick={() => setTypeFilter(filter.id)}
+                    >
+                      {filter.label}
+                    </Button>
+                  ))}
+                </div>
+                {visibleResults.length === 0 && query.trim().length >= 2 ? (
                   <p className="text-sm text-muted-foreground">
                     {labels.noPersonFound}
                   </p>
                 ) : (
                   <div className="max-h-40 space-y-1 overflow-y-auto">
-                    {results.map((person) => (
-                      <Button
-                        key={`${person.personType}-${person.id}`}
-                        type="button"
-                        variant="outline"
-                        className="h-auto w-full justify-start py-2 text-left"
-                        disabled={busy}
-                        onClick={() => void enrollPerson(person)}
-                      >
-                        <span className="min-w-0">
-                          <span className="block truncate font-medium">
-                            {person.name}
+                    {visibleResults.map((person) => {
+                      const typeLabel = labels.personTypes[person.personType];
+                      const extra =
+                        person.roleLabel && person.roleLabel !== typeLabel
+                          ? ` · ${person.roleLabel}`
+                          : "";
+                      return (
+                        <Button
+                          key={`${person.personType}-${person.id}`}
+                          type="button"
+                          variant="outline"
+                          className="h-auto w-full justify-start py-2 text-left"
+                          disabled={busy}
+                          onClick={() => void enrollPerson(person)}
+                        >
+                          <span className="min-w-0">
+                            <span className="block truncate font-medium">
+                              {person.name}
+                            </span>
+                            <span className="block truncate text-xs text-muted-foreground">
+                              {typeLabel}
+                              {extra} · {person.matricule}
+                            </span>
                           </span>
-                          <span className="block truncate text-xs text-muted-foreground">
-                            {person.roleLabel} · {person.matricule}
-                          </span>
-                        </span>
-                      </Button>
-                    ))}
+                        </Button>
+                      );
+                    })}
                   </div>
                 )}
                 <Button
@@ -416,6 +463,7 @@ export function AttendanceScanDialog({
                   onClick={() => {
                     setEnrollDescriptor(null);
                     setQuery("");
+                    setTypeFilter("all");
                     setResults([]);
                     setHint(null);
                   }}

@@ -3,6 +3,10 @@ import type { StudentScheduleData, StudentScheduleEntry } from "@/lib/student-sc
 import { genererCreneaux } from "@/src/hooks/getCourseHours";
 import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
 import {
+  buildVacationDisplaySlots,
+  saturdayUsesShiftedMorningHours,
+} from "@/lib/creneau-saturday";
+import {
   formatScheduleCoursLabel,
   subjectIdsReplacedBySchedulePosts,
 } from "@/lib/cours-components";
@@ -172,20 +176,38 @@ export async function buildStudentScheduleData(
   let timeSlots: string[] = [];
   let recreationHour = "";
   let endTime = "";
+  let saturdayTimeSlots: string[] = [];
+  let saturdayEndTime = "";
   const workingDays = normalizeCreneauWorkingDays(classe.creneau?.workingDays);
 
   if (classe.creneau) {
     const creneau = classe.creneau;
     recreationHour = formatScheduleHour(creneau.recreationHour);
     endTime = formatScheduleHour(creneau.endTime);
+    const startTime = formatScheduleHour(creneau.startTime);
 
     timeSlots = genererCreneaux(
-      new Date(`2000-01-01T${formatScheduleHour(creneau.startTime)}`),
+      new Date(`2000-01-01T${startTime}`),
       new Date(`2000-01-01T${endTime}`),
       creneau.durationCourse,
       new Date(`2000-01-01T${recreationHour}`),
       creneau.recreationDuration,
     );
+
+    if (saturdayUsesShiftedMorningHours(startTime)) {
+      const saturday = buildVacationDisplaySlots(
+        {
+          startTime,
+          endTime,
+          durationCourse: creneau.durationCourse,
+          recreationHour,
+          recreationDuration: creneau.recreationDuration,
+        },
+        "Samedi",
+      );
+      saturdayTimeSlots = saturday.slots;
+      saturdayEndTime = saturday.endTime;
+    }
   } else {
     timeSlots = Array.from(new Set(entries.map((entry) => entry.hourStart))).sort(
       (a, b) => timeToMinutes(a) - timeToMinutes(b),
@@ -198,6 +220,8 @@ export async function buildStudentScheduleData(
     timeSlots: buildDisplayTimeSlots(timeSlots, recreationHour),
     recreationHour,
     endTime,
+    saturdayTimeSlots,
+    saturdayEndTime,
     workingDays,
     entries,
   };

@@ -10,27 +10,6 @@ import { buildIsArchivedUpdate } from "@/lib/archive";
 import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
 import type { Day } from "@/prisma/generated/prisma/client";
 
-const SATURDAY_MAX_END_MINUTES = 12 * 60 + 30;
-
-function hmToMinutes(value: string) {
-  const [hours, minutes] = value.split(":").map(Number);
-  return hours * 60 + minutes;
-}
-
-function assertSaturdayBeforeNoon(workingDays: Day[], endTime: string, recreationHour: string) {
-  if (!workingDays.includes("Samedi")) return;
-  if (hmToMinutes(endTime) > SATURDAY_MAX_END_MINUTES) {
-    throw new Error(
-      "Si le samedi est ouvrable, l'heure de fin doit être au plus tard à 12:30.",
-    );
-  }
-  if (hmToMinutes(recreationHour) > SATURDAY_MAX_END_MINUTES) {
-    throw new Error(
-      "Si le samedi est ouvrable, l'heure de récréation doit être avant 12:30.",
-    );
-  }
-}
-
 function revalidateCreneauPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/creneau`);
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/classe`);
@@ -56,7 +35,6 @@ export const createCreneauAction = action
       const [heuresFin, minutesFin] = endTime.split(":").map(Number);
       const [RecreHeure, RecreMinutes] = recreationHour.split(":").map(Number);
       const normalizedWorkingDays = normalizeCreneauWorkingDays(workingDays) as Day[];
-      assertSaturdayBeforeNoon(normalizedWorkingDays, endTime, recreationHour);
       const existingCreneau = await prisma.creneau.findFirst({
         where: { branchId, nameCreneau },
         select: { id: true },
@@ -122,7 +100,6 @@ export const updateCreneauAction = action
     const [heuresFin, minutesFin] = endTime.split(":").map(Number);
     const [RecreHeure, RecreMinutes] = recreationHour.split(":").map(Number);
     const normalizedWorkingDays = normalizeCreneauWorkingDays(workingDays) as Day[];
-    assertSaturdayBeforeNoon(normalizedWorkingDays, endTime, recreationHour);
     // MET À JOURLE CRENEAU AVEC LES NOUVELLES DONNÉES
     const updatedCreneau = await prisma.creneau.update({
       where: {

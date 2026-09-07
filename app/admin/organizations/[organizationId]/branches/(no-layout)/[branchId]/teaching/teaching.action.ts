@@ -8,7 +8,7 @@ import {
 import { getBranchAreaMutationFlags } from "@/lib/auth/assert-branch-area-access";
 import { action } from "@/lib/zsa";
 import { Prisma } from "@/prisma/generated/prisma/client";
-import { ITeaching, teachingSchema, consecutiveSlotsSchema, teachingWeekdaySchema, type TeachingWeekday } from "@/src/interfaces/Teaching";
+import { ITeaching, teachingSchema, consecutiveSlotsSchema, teachingWeekdaySchema, weeklyInterventionsSchema, type TeachingWeekday } from "@/src/interfaces/Teaching";
 import { z } from "zod";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
 import { scheduleHourToMinutes } from "@/lib/timezone";
@@ -32,6 +32,10 @@ import {
   resolveAccessibleCycles,
   sessionCanViewAllDirectoryUsers,
 } from "@/lib/auth/cycle-scope";
+import {
+  weeklyMinutesFromInterventions,
+  resolveSessionDurationMinutes,
+} from "@/lib/teaching-volume";
 
 const teachingInclude = {
   teacher: {
@@ -208,6 +212,7 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
           optionId: true,
           level: true,
           cycle: true,
+          creneau: { select: { durationCourse: true } },
           option: {
             select: {
               nameOption: true,
@@ -359,8 +364,10 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
             .length
         : 0;
       const cycle = resolveCycle(classe, branch);
+      const { creneau, ...classeFields } = classe;
       return {
-        ...classe,
+        ...classeFields,
+        durationCourse: resolveSessionDurationMinutes(creneau?.durationCourse),
         cycle,
         cycleLabel: cycleLabel(cycle),
         configuredCount: configuredIds.size,
@@ -409,7 +416,12 @@ export const getTeachingClassCoursesAction = action
             accessibleCycles,
           ),
         },
-        select: { id: true, optionId: true, level: true },
+        select: {
+          id: true,
+          optionId: true,
+          level: true,
+          creneau: { select: { durationCourse: true } },
+        },
       }),
       prisma.schoolYear.findFirst({
         where: {
@@ -430,7 +442,14 @@ export const getTeachingClassCoursesAction = action
     });
 
     if (!configuredParentIds.length) {
-      return { classeId: classe.id, courses: [], teachings: [] };
+      return {
+        classeId: classe.id,
+        durationCourse: resolveSessionDurationMinutes(
+          classe.creneau?.durationCourse,
+        ),
+        courses: [],
+        teachings: [],
+      };
     }
 
     const scheduleCoursIds = await expandConfiguredCoursIdsForSchedule({
@@ -485,6 +504,9 @@ export const getTeachingClassCoursesAction = action
 
     return {
       classeId: classe.id,
+      durationCourse: resolveSessionDurationMinutes(
+        classe.creneau?.durationCourse,
+      ),
       courses: courses.map((course) => ({
         id: course.id,
         nameCours: course.nameCours,
@@ -502,7 +524,8 @@ const quickAssignmentSchema = z.object({
   classeId: z.string().min(1),
   coursIds: z.array(z.string().min(1)).min(1).max(200),
   teacherId: z.string().min(1),
-  weeklyHours: z.coerce.number().positive().max(600).optional(),
+  weeklyHours: z.coerce.number().positive().max(1800).optional(),
+  weeklyInterventions: weeklyInterventionsSchema.optional(),
   consecutiveSlots: consecutiveSlotsSchema,
   preferredDays: z.array(teachingWeekdaySchema).optional(),
 });
@@ -612,7 +635,9 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
       Schedule: { where: { isArchived: false }, select: { id: true, day: true, hour: true } },
     },
   });
-  const durationMinutes = classe.creneau?.durationCourse ?? 45;
+  const durationMinutes = resolveSessionDurationMinutes(
+    classe.creneau?.durationCourse,
+  );
   for (const item of existing) {
     if (item.teacherId === input.teacherId) continue;
     for (const slot of item.Schedule) {
@@ -629,9 +654,10 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
 
   const existingMap = new Map(existing.map(item => [item.coursId, item]));
   const weeklyHours =
-    input.weeklyHours != null && input.weeklyHours > 0
+    weeklyMinutesFromInterventions(input.weeklyInterventions, durationMinutes) ??
+    (input.weeklyHours != null && input.weeklyHours > 0
       ? input.weeklyHours
-      : undefined;
+      : undefined);
   const placementData = {
     ...(weeklyHours != null ? { weeklyHours } : {}),
     ...(input.consecutiveSlots !== undefined
@@ -745,7 +771,8 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
 
 const updatePlacementPrefsSchema = z.object({
   teachingId: z.string().min(1),
-  weeklyHours: z.coerce.number().positive().max(600).optional(),
+  weeklyHours: z.coerce.number().positive().max(1800).optional(),
+  weeklyInterventions: weeklyInterventionsSchema.optional(),
   consecutiveSlots: consecutiveSlotsSchema,
   preferredDays: z.array(teachingWeekdaySchema).optional(),
 });
@@ -763,22 +790,33 @@ export const updateTeachingWeeklyHoursAction = action
         branch: { organizationId },
         OR: [{ statusTeaching: true }, { statusTeaching: null }],
       },
-      select: { id: true },
+      select: {
+        id: true,
+        classe: { select: { creneau: { select: { durationCourse: true } } } },
+      },
     });
     if (!teaching) throw new Error("Affectation introuvable");
 
     if (
       input.weeklyHours == null &&
+      input.weeklyInterventions == null &&
       input.consecutiveSlots === undefined &&
       input.preferredDays === undefined
     ) {
       throw new Error("Aucune préférence à enregistrer");
     }
 
+    const durationMinutes = resolveSessionDurationMinutes(
+      teaching.classe?.creneau?.durationCourse,
+    );
+    const weeklyHours =
+      weeklyMinutesFromInterventions(input.weeklyInterventions, durationMinutes) ??
+      input.weeklyHours;
+
     const updated = await prisma.teaching.update({
       where: { id: teaching.id },
       data: {
-        ...(input.weeklyHours != null ? { weeklyHours: input.weeklyHours } : {}),
+        ...(weeklyHours != null ? { weeklyHours } : {}),
         ...(input.consecutiveSlots !== undefined
           ? {
               consecutiveSlots:
@@ -970,13 +1008,48 @@ function mapTeaching(teaching: TeachingWithRelations): ITeaching {
   };
 }
 
+async function weeklyHoursForClasse(params: {
+  classeId: string;
+  branchId: string;
+  organizationId: string;
+  weeklyInterventions?: number;
+  weeklyHours?: number;
+}) {
+  const classe = await prisma.classe.findFirst({
+    where: {
+      id: params.classeId,
+      branchId: params.branchId,
+      branch: { organizationId: params.organizationId },
+    },
+    select: { creneau: { select: { durationCourse: true } } },
+  });
+  const durationMinutes = resolveSessionDurationMinutes(
+    classe?.creneau?.durationCourse,
+  );
+  return (
+    weeklyMinutesFromInterventions(params.weeklyInterventions, durationMinutes) ??
+    (params.weeklyHours != null && params.weeklyHours > 0
+      ? params.weeklyHours
+      : undefined)
+  );
+}
+
 export const createTeachingAction = action
   .input(teachingSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, userId, session } =
       await requireBranchContext();
-    const { teacherId, classeId, coursId, schoolYearId, titulaire, weeklyHours, consecutiveSlots, preferredDays } =
-      input;
+    const {
+      teacherId,
+      classeId,
+      coursId,
+      schoolYearId,
+      titulaire,
+      weeklyHours,
+      weeklyInterventions,
+      consecutiveSlots,
+      preferredDays,
+    } = input;
     const accessibleCycles = await resolveViewerAccessibleCycles({
       branchId,
       organizationId,
@@ -998,6 +1071,14 @@ export const createTeachingAction = action
       teacherId,
     });
 
+    const resolvedWeeklyHours = await weeklyHoursForClasse({
+      classeId,
+      branchId,
+      organizationId,
+      weeklyInterventions,
+      weeklyHours,
+    });
+
     try {
       const teaching = await prisma.teaching.create({
         data: {
@@ -1006,7 +1087,7 @@ export const createTeachingAction = action
           coursId,
           schoolYearId,
           titulaire,
-          weeklyHours,
+          weeklyHours: resolvedWeeklyHours,
           consecutiveSlots:
             consecutiveSlots == null || consecutiveSlots <= 1
               ? null
@@ -1061,8 +1142,18 @@ export const updateTeachingAction = action
   .handler(async ({ input }) => {
     const { branchId, organizationId, userId, session } =
       await requireBranchContext();
-    const { id, teacherId, classeId, coursId, schoolYearId, titulaire, weeklyHours, consecutiveSlots, preferredDays } =
-      input;
+    const {
+      id,
+      teacherId,
+      classeId,
+      coursId,
+      schoolYearId,
+      titulaire,
+      weeklyHours,
+      weeklyInterventions,
+      consecutiveSlots,
+      preferredDays,
+    } = input;
 
     if (!id) throw new Error("ID requis");
 
@@ -1087,6 +1178,14 @@ export const updateTeachingAction = action
       teacherId,
     });
 
+    const resolvedWeeklyHours = await weeklyHoursForClasse({
+      classeId,
+      branchId,
+      organizationId,
+      weeklyInterventions,
+      weeklyHours,
+    });
+
     const teaching = await prisma.teaching.update({
       data: {
         teacherId,
@@ -1094,7 +1193,7 @@ export const updateTeachingAction = action
         coursId,
         schoolYearId,
         titulaire,
-        weeklyHours,
+        weeklyHours: resolvedWeeklyHours,
         consecutiveSlots:
           consecutiveSlots == null || consecutiveSlots <= 1
             ? null

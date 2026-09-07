@@ -58,7 +58,7 @@ export function UpdateStudentDialog({
             titulaire: teaching.titulaire,
             schoolYearId: teaching.schoolYearId ?? "",
             coursId: teaching.coursId ?? "",
-            weeklyHours: teaching.weeklyHours ?? 45,
+            weeklyHours: teaching.weeklyHours ?? undefined,
             consecutiveSlots: teaching.consecutiveSlots ?? null,
             preferredDays: teaching.preferredDays ?? [],
           }}

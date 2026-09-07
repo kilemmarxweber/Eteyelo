@@ -3,6 +3,7 @@ import { IClasse } from "./Classe";
 import { ISchoolYear } from "./SchoolYear";
 import { ITeacher } from "./Teacher";
 import { ICours } from "./Cours";
+import { MAX_WEEKLY_INTERVENTIONS } from "@/lib/teaching-volume";
 
 export const TEACHING_WEEKDAY_VALUES = [
   "Lundi",
@@ -25,6 +26,16 @@ export const consecutiveSlotsSchema = z.coerce
   .max(4, "Maximum 4 périodes d'affilée")
   .nullable()
   .optional();
+
+/** Nombre de séances / interventions dans la semaine (saisi à la main). */
+export const weeklyInterventionsSchema = z.coerce
+  .number({ invalid_type_error: "Indiquez le nombre d'interventions / semaine" })
+  .int()
+  .min(1, "Minimum 1 intervention")
+  .max(
+    MAX_WEEKLY_INTERVENTIONS,
+    `Maximum ${MAX_WEEKLY_INTERVENTIONS} interventions / semaine`,
+  );
 
 export interface ITeaching
   extends
@@ -56,7 +67,9 @@ export const teachingSchema = z.object({
   weeklyHours: z.coerce
     .number({ invalid_type_error: "Indiquez les minutes / semaine" })
     .positive("Les minutes / semaine doivent être > 0")
-    .max(600, "Maximum 600 min / semaine pour une affectation"),
+    .max(1800, "Maximum 1800 min / semaine pour une affectation")
+    .optional(),
+  weeklyInterventions: weeklyInterventionsSchema.optional(),
   consecutiveSlots: consecutiveSlotsSchema,
   preferredDays: z.array(teachingWeekdaySchema).optional(),
 });

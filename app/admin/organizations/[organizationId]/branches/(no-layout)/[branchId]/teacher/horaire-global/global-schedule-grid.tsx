@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DEFAULT_CRENEAU_WORKING_DAYS } from "@/lib/creneau-working-days";
+import { slotHourOnDay } from "@/lib/creneau-saturday";
 import { cn } from "@/lib/utils";
 import type { GlobalScheduleEntry } from "./types";
 
@@ -38,6 +39,8 @@ type GlobalScheduleGridProps = {
   workingDays?: string[];
   recreationHour?: string;
   endTime?: string;
+  saturdayHours?: string[];
+  saturdayEndTime?: string;
   entries: GlobalScheduleGridEntry[];
   showTeacher?: boolean;
   emptyLabel: string;
@@ -50,6 +53,8 @@ export function GlobalScheduleGrid({
   workingDays,
   recreationHour = "",
   endTime = "",
+  saturdayHours = [],
+  saturdayEndTime = "",
   entries,
   showTeacher = true,
   emptyLabel,
@@ -68,6 +73,19 @@ export function GlobalScheduleGrid({
       (a, b) => timeToMinutes(a) - timeToMinutes(b),
     );
   }, [hours, recreationHour]);
+
+  const saturdayDisplayHours = saturdayHours.filter(Boolean);
+  const showSaturdayClock =
+    saturdayDisplayHours.length > 0 &&
+    saturdayDisplayHours.some((hour, index) => hour !== displayHours[index]);
+
+  const hourOnDay = (day: string, weekdayHour: string) =>
+    slotHourOnDay({
+      day,
+      weekdaySlot: weekdayHour,
+      weekdaySlots: displayHours,
+      saturdaySlots: saturdayDisplayHours,
+    });
 
   const entriesByCell = useMemo(() => {
     const map = new Map<string, GlobalScheduleGridEntry[]>();
@@ -97,6 +115,11 @@ export function GlobalScheduleGrid({
             {days.map((day) => (
               <TableHead key={day} className="min-w-[140px] text-center">
                 {day}
+                {showSaturdayClock && day === "Samedi" ? (
+                  <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
+                    07:30 – {saturdayEndTime || "12:30"}
+                  </span>
+                ) : null}
               </TableHead>
             ))}
           </TableRow>
@@ -130,11 +153,25 @@ export function GlobalScheduleGrid({
               ) : (
                 <TableRow key={heure}>
                   <TableCell className="whitespace-nowrap text-sm font-medium">
-                    {formatSlotRange(heure, displayHours, index, endTime)}
+                    <span>
+                      {formatSlotRange(heure, displayHours, index, endTime)}
+                    </span>
+                    {showSaturdayClock && saturdayDisplayHours[index] ? (
+                      <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
+                        Sam.{" "}
+                        {formatSlotRange(
+                          saturdayDisplayHours[index]!,
+                          saturdayDisplayHours,
+                          index,
+                          saturdayEndTime || endTime,
+                        )}
+                      </span>
+                    ) : null}
                   </TableCell>
                   {days.map((day) => {
+                    const cellHour = hourOnDay(day, heure);
                     const cellEntries =
-                      entriesByCell.get(`${day}|${heure}`) ?? [];
+                      entriesByCell.get(`${day}|${cellHour}`) ?? [];
                     const crowded = showTeacher
                       ? cellEntries.length > 4
                       : cellEntries.length > 1;

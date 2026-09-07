@@ -39,6 +39,8 @@ export type GlobalScheduleCreneau = {
   recreationDuration: number;
   workingDays: string[];
   slots: string[];
+  saturdaySlots?: string[];
+  saturdayEndTime?: string;
   classeCount: number;
 };
 

@@ -17,6 +17,10 @@ import {
   startOfTodayParis,
   toMinutes,
 } from "@/lib/timezone";
+import {
+  hmToUtcTimeDate,
+  resolveVacationHoursForDay,
+} from "@/lib/creneau-saturday";
 
 const DAY_BY_WEEKDAY = {
   0: Day.Dimanche,
@@ -36,6 +40,25 @@ type StudentScheduleCandidate = {
 
 function getTodayDay(date = nowLocal()) {
   return DAY_BY_WEEKDAY[getParisWeekday(date) as keyof typeof DAY_BY_WEEKDAY];
+}
+
+function dateToHm(value: Date | null | undefined) {
+  if (!value) return "";
+  return `${String(value.getUTCHours()).padStart(2, "0")}:${String(value.getUTCMinutes()).padStart(2, "0")}`;
+}
+
+function resolveCreneauHoursForNow(
+  creneau: { startTime: Date; endTime: Date },
+  date = nowLocal(),
+) {
+  return resolveVacationHoursForDay(
+    {
+      startTime: dateToHm(creneau.startTime),
+      endTime: dateToHm(creneau.endTime),
+      durationCourse: 45,
+    },
+    getTodayDay(date),
+  );
 }
 
 function teachingBranchWhere(branchId: string, classeId: string) {
@@ -357,7 +380,7 @@ async function ensureStudentDaySessionFromClasse(
   if (!teaching) return null;
 
   const classe = await prisma.classe.findFirst({
-    where: { id: classeId, OR: [{ branchId }, { branchId: null }] },
+    where: { id: classeId, branchId },
     select: {
       creneau: { select: { startTime: true, endTime: true } },
     },
@@ -367,12 +390,16 @@ async function ensureStudentDaySessionFromClasse(
   const endTime = classe?.creneau?.endTime;
   if (!startTime || !endTime) return null;
 
+  const resolved = resolveCreneauHoursForNow({ startTime, endTime });
+  const sessionStart = hmToUtcTimeDate(resolved.startTime) ?? startTime;
+  const sessionEnd = hmToUtcTimeDate(resolved.endTime) ?? endTime;
+
   const today = startOfTodayParis();
   const existing = await prisma.attendanceSession.findFirst({
     where: {
       teachingId: teaching.id,
       date: today,
-      startTime,
+      startTime: sessionStart,
     },
   });
   if (existing) {
@@ -390,8 +417,8 @@ async function ensureStudentDaySessionFromClasse(
       teachingId: teaching.id,
       branchId,
       date: today,
-      startTime,
-      endTime,
+      startTime: sessionStart,
+      endTime: sessionEnd,
       schoolYearId: teaching.schoolYearId,
     },
   });
@@ -414,7 +441,10 @@ export async function isStudentNormalCheckoutAllowed(
 
   const endTime = enrollment.classe?.creneau?.endTime;
   if (!endTime) return true;
-  return currentMinutes >= scheduleHourToMinutes(endTime) - 15;
+  const startTime = enrollment.classe?.creneau?.startTime ?? endTime;
+  const resolved = resolveCreneauHoursForNow({ startTime, endTime }, now);
+  const resolvedEnd = hmToUtcTimeDate(resolved.endTime) ?? endTime;
+  return currentMinutes >= scheduleHourToMinutes(resolvedEnd) - 15;
 }
 
 export async function getStudentDayPointageLabel(
@@ -455,8 +485,9 @@ export async function getStudentDayPointageLabel(
   }
 
   if (!creneau) return phase === "arrival" ? "Arrivée" : "Sortie";
-  const start = `${String(creneau.startTime.getUTCHours()).padStart(2, "0")}:${String(creneau.startTime.getUTCMinutes()).padStart(2, "0")}`;
-  const end = `${String(creneau.endTime.getUTCHours()).padStart(2, "0")}:${String(creneau.endTime.getUTCMinutes()).padStart(2, "0")}`;
+  const resolved = resolveCreneauHoursForNow(creneau, now);
+  const start = resolved.startTime;
+  const end = resolved.endTime;
   const name = creneau.nameCreneau?.trim();
   const range = name ? `${name} ${start}–${end}` : `${start}–${end}`;
   return phase === "arrival" ? `Arrivée · ${range}` : `Sortie · ${range}`;

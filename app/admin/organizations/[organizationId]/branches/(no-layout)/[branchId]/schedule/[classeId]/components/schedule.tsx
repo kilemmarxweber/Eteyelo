@@ -56,6 +56,11 @@ import {
   DEFAULT_CRENEAU_WORKING_DAYS,
   normalizeCreneauWorkingDays,
 } from "@/lib/creneau-working-days";
+import {
+  buildVacationDisplaySlots,
+  saturdayUsesShiftedMorningHours,
+  slotHourOnDay,
+} from "@/lib/creneau-saturday";
 import { ReconduireScheduleDialog } from "./reconduire-schedule-dialog";
 
 export const Day = {
@@ -135,6 +140,8 @@ export default function Schedule({
   const [heuresDebut, setHeuresDebut] = useState<string[]>([]);
   const [recreationHour, setRecreationHour] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [saturdayHeuresDebut, setSaturdayHeuresDebut] = useState<string[]>([]);
+  const [saturdayEndTime, setSaturdayEndTime] = useState("");
   const [workingDays, setWorkingDays] = useState<string[]>([
     ...DEFAULT_CRENEAU_WORKING_DAYS,
   ]);
@@ -161,6 +168,20 @@ export default function Schedule({
   const displayHeuresDebut = useMemo(
     () => buildDisplayTimeSlots(heuresDebut, recreationHour),
     [heuresDebut, recreationHour],
+  );
+  const saturdayDisplayHeures = useMemo(
+    () =>
+      saturdayHeuresDebut.length
+        ? saturdayHeuresDebut
+        : displayHeuresDebut,
+    [saturdayHeuresDebut, displayHeuresDebut],
+  );
+  const showSaturdayClock = useMemo(
+    () =>
+      saturdayDisplayHeures.some(
+        (hour, index) => hour !== displayHeuresDebut[index],
+      ),
+    [saturdayDisplayHeures, displayHeuresDebut],
   );
 
   const JOURS = useMemo(() => {
@@ -245,6 +266,23 @@ export default function Schedule({
           setHeuresDebut(generatedTimes);
           setRecreationHour(creneaux[0].recreationHour);
           setEndTime(creneaux[0].endTime);
+          if (saturdayUsesShiftedMorningHours(creneaux[0].startTime)) {
+            const saturday = buildVacationDisplaySlots(
+              {
+                startTime: creneaux[0].startTime,
+                endTime: creneaux[0].endTime,
+                durationCourse: creneaux[0].durationCourse,
+                recreationHour: creneaux[0].recreationHour,
+                recreationDuration: creneaux[0].recreationDuration,
+              },
+              "Samedi",
+            );
+            setSaturdayHeuresDebut(saturday.slots);
+            setSaturdayEndTime(saturday.endTime);
+          } else {
+            setSaturdayHeuresDebut([]);
+            setSaturdayEndTime("");
+          }
           setWorkingDays(
             normalizeCreneauWorkingDays(creneaux[0].workingDays),
           );
@@ -253,6 +291,8 @@ export default function Schedule({
           setHeuresDebut([]);
           setRecreationHour("");
           setEndTime("");
+          setSaturdayHeuresDebut([]);
+          setSaturdayEndTime("");
           setWorkingDays([...DEFAULT_CRENEAU_WORKING_DAYS]);
         }
 
@@ -402,6 +442,8 @@ export default function Schedule({
         timeSlots: displayHeuresDebut,
         recreationHour,
         endTime,
+        saturdayTimeSlots: showSaturdayClock ? saturdayDisplayHeures : [],
+        saturdayEndTime: saturdayEndTime || undefined,
         entries: reportEntries,
       });
       toast.success("Le rapport PDF a ete genere.");
@@ -610,7 +652,14 @@ export default function Schedule({
                   <TableRow>
                     <TableHead className="w-[150px]">{t("hoursColumn")}</TableHead>
                     {joursList.map((jour) => (
-                      <TableHead key={jour}>{jour}</TableHead>
+                      <TableHead key={jour}>
+                        {jour}
+                        {showSaturdayClock && jour === "Samedi" ? (
+                          <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
+                            07:30 – {saturdayEndTime || "12:30"}
+                          </span>
+                        ) : null}
+                      </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
@@ -627,25 +676,55 @@ export default function Schedule({
                               start: heure,
                               end: displayHeuresDebut[index + 1] || endTime,
                             })}
+                            {showSaturdayClock && saturdayDisplayHeures[index]
+                              ? ` · Sam. ${saturdayDisplayHeures[index]} – ${
+                                  saturdayDisplayHeures[index + 1] ||
+                                  saturdayEndTime ||
+                                  endTime
+                                }`
+                              : ""}
                           </span>
                         </TableCell>
                       </TableRow>
                     ) : (
                       <TableRow key={heure}>
                         <TableCell className="whitespace-nowrap text-sm font-medium">
-                          {formatSlotRange(
-                            heure,
-                            displayHeuresDebut,
-                            index,
-                            endTime,
-                          )}
+                          <span>
+                            {formatSlotRange(
+                              heure,
+                              displayHeuresDebut,
+                              index,
+                              endTime,
+                            )}
+                          </span>
+                          {showSaturdayClock && saturdayDisplayHeures[index] ? (
+                            <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
+                              Sam.{" "}
+                              {formatSlotRange(
+                                saturdayDisplayHeures[index]!,
+                                saturdayDisplayHeures,
+                                index,
+                                saturdayEndTime || endTime,
+                              )}
+                            </span>
+                          ) : null}
                         </TableCell>
                         {joursList.map((jour) => {
+                          const cellHour = slotHourOnDay({
+                            day: jour,
+                            weekdaySlot: heure,
+                            weekdaySlots: displayHeuresDebut,
+                            saturdaySlots: saturdayDisplayHeures,
+                          });
                           const cellSchedules = horaires.filter(
-                            (h) => h.jour === jour && h.heureDebut === heure,
+                            (h) => h.jour === jour && h.heureDebut === cellHour,
                           );
                           const heureFin =
-                            displayHeuresDebut[index + 1] || endTime;
+                            jour === "Samedi" && showSaturdayClock
+                              ? saturdayDisplayHeures[index + 1] ||
+                                saturdayEndTime ||
+                                endTime
+                              : displayHeuresDebut[index + 1] || endTime;
                           const isEmpty = cellSchedules.length === 0;
 
                           return (
@@ -690,13 +769,13 @@ export default function Schedule({
                                 <button
                                   type="button"
                                   onClick={() =>
-                                    openCell(jour, heure, heureFin)
+                                    openCell(jour, cellHour, heureFin)
                                   }
                                   className="flex w-full min-h-14 items-center justify-center rounded-md border border-dashed border-transparent text-muted-foreground transition-colors hover:border-border hover:bg-muted/50 hover:text-foreground"
                                 >
                                   <Plus className="size-4" />
                                   <span className="sr-only">
-                                    {t("addCourseSr", { day: jour, hour: heure })}
+                                    {t("addCourseSr", { day: jour, hour: cellHour })}
                                   </span>
                                 </button>
                               )}

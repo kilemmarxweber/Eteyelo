@@ -27,8 +27,6 @@ import {
   subjectIdsReplacedBySchedulePosts,
 } from "@/lib/cours-components";
 import {
-  generateCourseStartSlots,
-  parseHmToMinutes,
   sessionsNeededFromWeeklyHours,
   placeTeachingsWithRetries,
   resolveScheduleWorkDays,
@@ -36,11 +34,12 @@ import {
   formatMinutesToHm,
   type TeacherBusyInterval,
 } from "@/lib/schedule-auto-generate";
-import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
 import {
-  getCoursePonderationMap,
-  resolveCoursePonderation,
-} from "@/lib/course-ponderation";
+  buildVacationDisplaySlots,
+  generateCourseStartSlotsForDay,
+  type VacationClockHours,
+} from "@/lib/creneau-saturday";
+import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
 import {
   assertTeacherFreeAt,
   getTeacherUserId,
@@ -1202,7 +1201,6 @@ type AutoScheduleTeachingInput = {
   weeklyMinutes: number;
   weeklySessions: number;
   explicitWeeklyMinutes: boolean;
-  ponderation: number;
   consecutiveSlots?: number | null;
   preferredDays?: Day[] | null;
 };
@@ -1211,82 +1209,29 @@ function targetSessionsFromTeachings(params: {
   teachings: AutoScheduleTeachingInput[];
   availableClassSlots: number;
 }) {
-  const planned = params.teachings.map((teaching) => {
-    const weight = Number.isFinite(teaching.ponderation)
-      ? Math.max(0.25, teaching.ponderation)
-      : 1;
-    const blockSize =
-      teaching.consecutiveSlots != null && teaching.consecutiveSlots > 0
-        ? Math.min(4, Math.max(1, Math.floor(teaching.consecutiveSlots)))
-        : weight >= 2
-          ? 2
-          : 1;
-    const capByWeight = Math.max(blockSize, Math.round(weight * 10));
-    const seeded =
-      teaching.weeklySessions > 0
-        ? teaching.weeklySessions
-        : Math.min(capByWeight, blockSize);
-    return {
+  if (params.availableClassSlots <= 0 || params.teachings.length === 0) {
+    return params.teachings.map((teaching) => ({
       ...teaching,
-      blockSize,
-      fixedByManualMinutes: teaching.explicitWeeklyMinutes,
-      sessionsNeeded: teaching.explicitWeeklyMinutes ? teaching.weeklySessions : seeded,
-      maxSessions: teaching.explicitWeeklyMinutes
-        ? teaching.weeklySessions
-        : Math.max(capByWeight, seeded),
-    };
-  });
-
-  if (params.availableClassSlots <= 0 || planned.length === 0) {
-    return planned.map((teaching) => ({
-      ...teaching,
+      blockSize: 1,
       sessionsNeeded: 0,
+      maxSessions: 0,
     }));
   }
 
-  const fixed = planned.filter((teaching) => teaching.fixedByManualMinutes);
-  const flexible = planned.filter((teaching) => !teaching.fixedByManualMinutes);
-  const fixedAssigned = fixed.reduce(
-    (sum, teaching) => sum + teaching.sessionsNeeded,
-    0,
-  );
-
-  if (fixedAssigned >= params.availableClassSlots) {
-    return [
-      ...fixed,
-      ...flexible.map((teaching) => ({ ...teaching, sessionsNeeded: 0 })),
-    ];
-  }
-
-  let remainingCapacity = params.availableClassSlots - fixedAssigned;
-  const rankedFlexible = flexible
-    .slice()
-    .sort((a, b) => {
-      if (a.titulaire !== b.titulaire) return a.titulaire ? -1 : 1;
-      if (b.ponderation !== a.ponderation) return b.ponderation - a.ponderation;
-      if (b.weeklyMinutes !== a.weeklyMinutes) return b.weeklyMinutes - a.weeklyMinutes;
-      return a.courseName.localeCompare(b.courseName, "fr");
-    });
-
-  // Minutes manuelles présentes: ne pas étendre automatiquement pour "remplir".
-  if (fixed.length > 0) {
-    return [...fixed, ...rankedFlexible];
-  }
-
-  // Full auto: compléter jusqu'à la capacité disponible.
-  while (remainingCapacity > 0) {
-    let progressed = false;
-    for (const teaching of rankedFlexible) {
-      if (remainingCapacity <= 0) break;
-      if (teaching.sessionsNeeded >= teaching.maxSessions) continue;
-      teaching.sessionsNeeded += 1;
-      remainingCapacity -= 1;
-      progressed = true;
-    }
-    if (!progressed) break;
-  }
-
-  return rankedFlexible;
+  return params.teachings.map((teaching) => {
+    const blockSize =
+      teaching.consecutiveSlots != null && teaching.consecutiveSlots > 0
+        ? Math.min(4, Math.max(1, Math.floor(teaching.consecutiveSlots)))
+        : 1;
+    const sessionsNeeded =
+      teaching.weeklySessions > 0 ? teaching.weeklySessions : 0;
+    return {
+      ...teaching,
+      blockSize,
+      sessionsNeeded,
+      maxSessions: sessionsNeeded,
+    };
+  });
 }
 
 /**
@@ -1354,13 +1299,15 @@ export const regenerateScheduleForClasseAction = action
         ? date.toISOString().split("T")[1].slice(0, 5)
         : "";
 
-    const courseSlots = generateCourseStartSlots({
+    const vacationHours: VacationClockHours = {
       startTime: toHm(classe.creneau.startTime),
       endTime: toHm(classe.creneau.endTime),
       durationCourse,
       recreationHour: toHm(classe.creneau.recreationHour),
       recreationDuration: classe.creneau.recreationDuration ?? 0,
-    });
+    };
+
+    const courseSlots = generateCourseStartSlotsForDay(vacationHours, "Lundi");
 
     if (!courseSlots.length) {
       throw new Error("Impossible de générer les périodes à partir du créneau.");
@@ -1450,15 +1397,7 @@ export const regenerateScheduleForClasseAction = action
     const workDays = resolveStrictScheduleWorkDays(classe.creneau.workingDays);
     const courseSlotsByDay: Partial<Record<Day, string[]>> = {};
     for (const day of workDays) {
-      if (day === "Samedi") {
-        courseSlotsByDay[day] = courseSlots.filter(
-          (hourHm) =>
-            parseHmToMinutes(hourHm) + durationCourse <=
-            SATURDAY_END_LIMIT_MINUTES,
-        );
-      } else {
-        courseSlotsByDay[day] = courseSlots;
-      }
+      courseSlotsByDay[day] = generateCourseStartSlotsForDay(vacationHours, day);
     }
 
     const allowedSlotKeys = new Set<string>();
@@ -1472,7 +1411,7 @@ export const regenerateScheduleForClasseAction = action
     }
     if (totalPlannableSlots <= 0) {
       throw new Error(
-        "Aucun créneau planifiable avec la vacation active (samedi limité avant midi).",
+        "Aucun créneau planifiable avec la vacation active.",
       );
     }
     const occupiedAllowedCount = remaining.reduce((sum, row) => {
@@ -1551,15 +1490,6 @@ export const regenerateScheduleForClasseAction = action
       occupiedTeacherIntervals.set(teacherId, list);
     }
 
-    const ponderationMap = await getCoursePonderationMap({
-      branchId: ctx.branchId,
-      pairs: autoTeachings.map((teaching) => ({
-        coursId: teaching.cours?.parentCoursId ?? teaching.cours?.id,
-        optionId: classe.optionId,
-        level: classe.level,
-      })),
-    });
-
     const targetTeachings = targetSessionsFromTeachings({
       teachings: autoTeachings.map((teaching) => {
         const weeklyMinutes = teaching.weeklyHours ?? 0;
@@ -1567,11 +1497,6 @@ export const regenerateScheduleForClasseAction = action
           weeklyMinutes,
           durationCourse,
         );
-        const ponderation = resolveCoursePonderation(ponderationMap, {
-          coursId: teaching.cours?.parentCoursId ?? teaching.cours?.id,
-          optionId: classe.optionId,
-          level: classe.level,
-        });
         return {
           teachingId: teaching.id,
           teacherId: teaching.teacherId!,
@@ -1580,7 +1505,6 @@ export const regenerateScheduleForClasseAction = action
           weeklyMinutes,
           weeklySessions,
           explicitWeeklyMinutes: weeklyMinutes > 0,
-          ponderation,
           consecutiveSlots: teaching.consecutiveSlots,
           preferredDays: teaching.preferredDays,
         };
@@ -1594,7 +1518,6 @@ export const regenerateScheduleForClasseAction = action
         teachingId: teaching.teachingId,
         teacherId: teaching.teacherId,
         courseName: teaching.courseName,
-        ponderation: teaching.ponderation,
         sessionsNeeded: teaching.sessionsNeeded,
         titulaire: teaching.titulaire,
         weeklyMinutes: teaching.weeklyMinutes,
@@ -2121,6 +2044,14 @@ export const getGlobalScheduleByCycleAction = action
         existing.classeCount = existing.classeIds.size;
         continue;
       }
+      const vacationHours: VacationClockHours = {
+        startTime,
+        endTime,
+        durationCourse: classe.creneau.durationCourse || 0,
+        recreationHour,
+        recreationDuration: classe.creneau.recreationDuration || 0,
+      };
+      const saturdayDisplay = buildVacationDisplaySlots(vacationHours, "Samedi");
       creneauMap.set(classe.creneau.id, {
         id: classe.creneau.id,
         nameCreneau: classe.creneau.nameCreneau || "",
@@ -2137,6 +2068,8 @@ export const getGlobalScheduleByCycleAction = action
           recreationHour,
           recreationDuration: classe.creneau.recreationDuration || 0,
         }),
+        saturdaySlots: saturdayDisplay.slots,
+        saturdayEndTime: saturdayDisplay.endTime,
         classeCount: 1,
         classeIds: new Set([classe.id]),
       });

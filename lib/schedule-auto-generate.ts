@@ -109,7 +109,7 @@ export function generateCourseStartSlots(params: {
 }
 
 /**
- * `weeklyMinutes` = volume hebdomadaire en minutes (ex. 135).
+ * `weeklyMinutes` = volume hebdomadaire en minutes (durée × interventions, ex. 180).
  * `durationCourseMinutes` = durée d'une période selon la vacation de la classe
  * (souvent 45 min secondaire, 30 min primaire / maternelle).
  */
@@ -234,14 +234,7 @@ function resolveCandidateBlockSize(candidate: PlacementCandidate): number {
   ) {
     return normalizeConsecutiveSlots(candidate.consecutiveSlots);
   }
-  if (candidate.explicitWeeklyMinutes) {
-    return normalizeConsecutiveSlots(
-      Math.min(4, Math.max(1, candidate.sessionsNeeded)),
-    );
-  }
-  const weight = candidate.ponderation ?? 1;
-  // Sans minutes manuelles : un cours fortement pondéré se place par blocs de 2.
-  return weight >= 2 ? 2 : 1;
+  return 1;
 }
 
 /**
@@ -362,12 +355,10 @@ export function placeTeachingsGreedy(params: {
   const workDays = resolveScheduleWorkDays(params.workDays);
   const byPriority = [...params.candidates].sort((a, b) => {
     if (a.titulaire !== b.titulaire) return a.titulaire ? -1 : 1;
-    const weightGap = (b.ponderation ?? 1) - (a.ponderation ?? 1);
-    if (weightGap !== 0) return weightGap;
     if (b.weeklyMinutes !== a.weeklyMinutes) {
       return b.weeklyMinutes - a.weeklyMinutes;
     }
-    return 0;
+    return a.courseName.localeCompare(b.courseName, "fr");
   });
   const ordered: PlacementCandidate[] = [];
   let i = 0;

@@ -58,6 +58,11 @@ import { compareClassesByLevel } from "@/lib/class-structure";
 import { CRENEAU_WEEKDAY_OPTIONS } from "@/lib/creneau-working-days";
 import { MultiSelect } from "../paiement/components/MultiSelect";
 import type { TeachingWeekday } from "@/src/interfaces/Teaching";
+import {
+  MAX_WEEKLY_INTERVENTIONS,
+  weeklyInterventionsFromMinutes,
+  weeklyMinutesFromInterventions,
+} from "@/lib/teaching-volume";
 
 type Workspace = NonNullable<
   Awaited<ReturnType<typeof getTeachingWorkspaceAction>>[0]
@@ -84,7 +89,7 @@ export default function TeachingWorkspacePage() {
   const [page, setPage] = useState(0);
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [bulkTeacherId, setBulkTeacherId] = useState("");
-  const [bulkWeeklyHours, setBulkWeeklyHours] = useState("");
+  const [bulkWeeklyInterventions, setBulkWeeklyInterventions] = useState("");
   const [bulkConsecutiveSlots, setBulkConsecutiveSlots] = useState("1");
   const [bulkPreferredDays, setBulkPreferredDays] = useState<TeachingWeekday[]>(
     [],
@@ -191,6 +196,10 @@ export default function TeachingWorkspacePage() {
   const selectedAssignedCourses = selectedCourses.filter((id) =>
     assignmentMap.has(id),
   );
+  const sessionDuration =
+    classCourses?.durationCourse ??
+    data?.classes.find((item) => item.id === selectedClassId)?.durationCourse ??
+    45;
   const rowIds = useMemo(() => rows.map((row) => row.id), [rows]);
   const allVisibleSelected =
     rowIds.length > 0 && rowIds.every((id) => selectedCourses.includes(id));
@@ -304,7 +313,7 @@ export default function TeachingWorkspacePage() {
   function applyAssignments(
     courseIds: string[],
     teacherId: string,
-    weeklyHours?: number,
+    weeklyInterventions?: number,
     consecutiveSlots?: number | null,
     preferredDays?: TeachingWeekday[],
   ) {
@@ -314,6 +323,10 @@ export default function TeachingWorkspacePage() {
     const consecutive =
       consecutiveSlots != null && consecutiveSlots > 1 ? consecutiveSlots : null;
     const days = (preferredDays ?? []).filter(Boolean) as TeachingWeekday[];
+    const weeklyHours = weeklyMinutesFromInterventions(
+      weeklyInterventions,
+      sessionDuration,
+    );
     const tempRows: ClassTeaching[] = courseIds.map((coursId) => ({
       id: `temp-${coursId}`,
       classeId: selectedClassId,
@@ -343,7 +356,9 @@ export default function TeachingWorkspacePage() {
         classeId: selectedClassId,
         coursIds: courseIds,
         teacherId,
-        ...(weeklyHours != null && weeklyHours > 0 ? { weeklyHours } : {}),
+        ...(weeklyInterventions != null && weeklyInterventions > 0
+          ? { weeklyInterventions }
+          : {}),
         consecutiveSlots: consecutive,
         preferredDays: days,
       });
@@ -369,13 +384,24 @@ export default function TeachingWorkspacePage() {
     });
   }
 
-  function saveWeeklyHours(teachingId: string, coursId: string, value: string) {
-    const weeklyHours = Number(value);
-    if (!Number.isFinite(weeklyHours) || weeklyHours <= 0) {
-      toast.error(t("invalidWeeklyHours"));
+  function saveWeeklyInterventions(
+    teachingId: string,
+    coursId: string,
+    value: string,
+  ) {
+    const weeklyInterventions = Number(value);
+    if (
+      !Number.isFinite(weeklyInterventions) ||
+      weeklyInterventions <= 0 ||
+      !Number.isInteger(weeklyInterventions)
+    ) {
+      toast.error(t("invalidWeeklyInterventions"));
       return;
     }
     if (!classCourses || !selectedClassId) return;
+    const weeklyHours =
+      weeklyMinutesFromInterventions(weeklyInterventions, sessionDuration) ??
+      null;
     const previous = classCourses.teachings;
     updateClassTeachings(
       selectedClassId,
@@ -387,7 +413,7 @@ export default function TeachingWorkspacePage() {
     startTransition(async () => {
       const [updated, error] = await updateTeachingWeeklyHoursAction({
         teachingId,
-        weeklyHours,
+        weeklyInterventions,
       });
       setSavingCourseId(null);
       if (error || !updated) {
@@ -399,7 +425,7 @@ export default function TeachingWorkspacePage() {
         selectedClassId,
         previous.map((item) => (item.id === teachingId ? { ...item, ...updated } : item)),
       );
-      toast.success(t("weeklyHoursSaved"));
+      toast.success(t("weeklyInterventionsSaved"));
     });
   }
 
@@ -620,6 +646,7 @@ export default function TeachingWorkspacePage() {
                       : selectedClass
                         ? ` · ${t("statsRows", { count: selectedClass.configuredCount })}`
                         : ""}
+                    {` · ${t("sessionDurationLabel", { minutes: sessionDuration })}`}
                   </p>
                 </div>
                 {selectedCourses.length > 0 && (
@@ -631,16 +658,22 @@ export default function TeachingWorkspacePage() {
                       placeholder={t("bulkTeacher")}
                       className="h-9 min-w-[9rem] flex-1"
                     />
+                    <span
+                      className="inline-flex h-9 shrink-0 items-center rounded-md border bg-muted/40 px-2 text-xs font-medium tabular-nums text-muted-foreground"
+                      title={t("sessionDurationTitle", { minutes: sessionDuration })}
+                    >
+                      {t("sessionDurationShort", { minutes: sessionDuration })}
+                    </span>
                     <Input
                       type="number"
-                      min={15}
-                      max={600}
-                      step={15}
-                      value={bulkWeeklyHours}
-                      onChange={(e) => setBulkWeeklyHours(e.target.value)}
-                      placeholder={t("minutesShort")}
+                      min={1}
+                      max={MAX_WEEKLY_INTERVENTIONS}
+                      step={1}
+                      value={bulkWeeklyInterventions}
+                      onChange={(e) => setBulkWeeklyInterventions(e.target.value)}
+                      placeholder={t("interventionsShort")}
                       className="h-9 w-[4.25rem] shrink-0 px-1.5 text-center tabular-nums"
-                      title={t("minutesPerWeekTitle")}
+                      title={t("interventionsTitle")}
                     />
                     <Select
                       value={bulkConsecutiveSlots}
@@ -680,13 +713,13 @@ export default function TeachingWorkspacePage() {
                       className="shrink-0"
                       disabled={!bulkTeacherId || savingCourseId === "bulk"}
                       onClick={() => {
-                        const hours = Number(bulkWeeklyHours);
+                        const interventions = Number(bulkWeeklyInterventions);
                         const consecutive = Number(bulkConsecutiveSlots);
                         applyAssignments(
                           selectedCourses,
                           bulkTeacherId,
-                          Number.isFinite(hours) && hours > 0
-                            ? hours
+                          Number.isFinite(interventions) && interventions > 0
+                            ? interventions
                             : undefined,
                           Number.isFinite(consecutive) ? consecutive : 1,
                           bulkPreferredDays,
@@ -771,7 +804,7 @@ export default function TeachingWorkspacePage() {
               </p>
             </div>
             <div className="min-h-0 flex-1 overflow-auto">
-              <table className="w-full min-w-[920px] text-sm">
+              <table className="w-full min-w-[980px] text-sm">
                 <thead className="sticky top-0 bg-background text-left shadow-sm">
                   <tr>
                     <th className="p-2">
@@ -795,7 +828,8 @@ export default function TeachingWorkspacePage() {
                     </th>
                     <th className="p-2">{t("courseColumn")}</th>
                     <th className="p-2 w-[11rem]">{t("teacherColumn")}</th>
-                    <th className="p-2 w-[4.5rem]">{t("minPerWeek")}</th>
+                    <th className="p-2 w-[4.5rem]">{t("sessionDurationColumn")}</th>
+                    <th className="p-2 w-[4.5rem]">{t("interventionsColumn")}</th>
                     <th className="p-2 w-[4.5rem]">{t("consecutiveColumn")}</th>
                     <th className="p-2 w-[4.5rem]">{t("daysColumn")}</th>
                     <th className="p-2 w-[6.5rem]">{t("stateColumn")}</th>
@@ -843,7 +877,7 @@ export default function TeachingWorkspacePage() {
                                 if (assignment) removeAssignments([course.id]);
                                 return;
                               }
-                              const hours = Number(bulkWeeklyHours);
+                              const hours = Number(bulkWeeklyInterventions);
                               const consecutive = Number(bulkConsecutiveSlots);
                               applyAssignments(
                                 [course.id],
@@ -862,28 +896,49 @@ export default function TeachingWorkspacePage() {
                           />
                         </td>
                         <td className="p-2">
+                          <span
+                            className="text-xs tabular-nums text-muted-foreground"
+                            title={t("sessionDurationTitle", {
+                              minutes: sessionDuration,
+                            })}
+                          >
+                            {t("sessionDurationShort", {
+                              minutes: sessionDuration,
+                            })}
+                          </span>
+                        </td>
+                        <td className="p-2">
                           {assignment ? (
                             <Input
                               type="number"
-                              min={15}
-                              max={600}
-                              step={15}
-                              defaultValue={assignment.weeklyHours ?? ""}
+                              min={1}
+                              max={MAX_WEEKLY_INTERVENTIONS}
+                              step={1}
+                              defaultValue={
+                                weeklyInterventionsFromMinutes(
+                                  assignment.weeklyHours,
+                                  sessionDuration,
+                                ) ?? ""
+                              }
                               key={`${assignment.id}-${assignment.weeklyHours ?? "empty"}`}
                               disabled={isSaving}
                               className="h-9 w-[4.25rem] px-1.5 text-center tabular-nums"
-                              placeholder="135"
-                              title={t("minutesPerWeekField")}
+                              placeholder="4"
+                              title={t("interventionsTitle")}
                               onBlur={(e) => {
                                 const next = e.target.value;
-                                const prev = assignment.weeklyHours;
+                                const prev =
+                                  weeklyInterventionsFromMinutes(
+                                    assignment.weeklyHours,
+                                    sessionDuration,
+                                  ) ?? null;
                                 if (
                                   next === "" ||
                                   (prev != null && Number(next) === prev)
                                 ) {
                                   return;
                                 }
-                                saveWeeklyHours(
+                                saveWeeklyInterventions(
                                   assignment.id,
                                   course.id,
                                   next,

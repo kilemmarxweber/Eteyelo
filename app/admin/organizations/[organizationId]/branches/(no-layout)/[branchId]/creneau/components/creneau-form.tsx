@@ -24,6 +24,7 @@ import {
   type CreneauFormValues,
 } from "@/src/interfaces/creneau";
 import { previewPeriodsAroundRecreation } from "@/src/hooks/getCourseHours";
+import { buildVacationDisplaySlots } from "@/lib/creneau-saturday";
 import {
   CRENEAU_WEEKDAY_OPTIONS,
   DEFAULT_CRENEAU_WORKING_DAYS,
@@ -70,8 +71,6 @@ const toFormNumber = (value: string, fallback: number) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 };
-
-const SATURDAY_MAX_END_TIME = "12:30";
 
 type StructurePreset = {
   id: string;
@@ -169,23 +168,25 @@ export function CreneauUpForm({
 
   const watched = useWatch({ control: form.control }) ?? emptyCreneauValues();
   const saturdaySelected = (watched.workingDays ?? []).includes("Samedi");
+  const afternoonVacation =
+    (watched.startTime ?? "") >= "12:00" && (watched.startTime ?? "") !== "";
 
-  useEffect(() => {
-    if (!saturdaySelected) return;
-    const endTime = watched.endTime ?? "";
-    const recreationHour = watched.recreationHour ?? "";
-    if (endTime && endTime > SATURDAY_MAX_END_TIME) {
-      form.setValue("endTime", SATURDAY_MAX_END_TIME, { shouldValidate: true });
+  const saturdayPreview = useMemo(() => {
+    if (!saturdaySelected || !afternoonVacation) return null;
+    if (!watched.startTime || !watched.endTime || !watched.durationCourse) {
+      return null;
     }
-    if (recreationHour && recreationHour > SATURDAY_MAX_END_TIME) {
-      form.setValue("recreationHour", SATURDAY_MAX_END_TIME, { shouldValidate: true });
-    }
-  }, [
-    saturdaySelected,
-    watched.endTime,
-    watched.recreationHour,
-    form,
-  ]);
+    return buildVacationDisplaySlots(
+      {
+        startTime: watched.startTime,
+        endTime: watched.endTime,
+        durationCourse: Number(watched.durationCourse) || 0,
+        recreationHour: watched.recreationHour,
+        recreationDuration: Number(watched.recreationDuration) || 0,
+      },
+      "Samedi",
+    );
+  }, [afternoonVacation, saturdaySelected, watched]);
 
   const periodPreview = useMemo(
     () =>
@@ -378,7 +379,6 @@ export function CreneauUpForm({
                         className={controlClass}
                         {...field}
                         value={controlledTime(field.value)}
-                        max={saturdaySelected ? SATURDAY_MAX_END_TIME : undefined}
                       />
                     </FormControl>
                     <FormMessage />
@@ -398,7 +398,6 @@ export function CreneauUpForm({
                         className={controlClass}
                         {...field}
                         value={controlledTime(field.value)}
-                        max={saturdaySelected ? SATURDAY_MAX_END_TIME : undefined}
                       />
                     </FormControl>
                     <FormMessage />
@@ -567,7 +566,9 @@ export function CreneauUpForm({
                 <FormMessage />
                 {saturdaySelected ? (
                   <p className="text-[11px] text-muted-foreground">
-                    Le samedi est actif: les heures affichées sont limitées jusqu'à 12:30.
+                    {afternoonVacation
+                      ? t("saturdayAfternoonNote")
+                      : t("saturdayMorningNote")}
                   </p>
                 ) : null}
               </FormItem>
@@ -592,6 +593,15 @@ export function CreneauUpForm({
               {periodPreview.slots.length > 0 ? (
                 <p className="mt-1.5 text-xs text-muted-foreground">
                   {t("previewStarts", { slots: periodPreview.slots.join(" · ") })}
+                </p>
+              ) : null}
+              {saturdayPreview?.slots.length ? (
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  {t("previewStartsSaturday", {
+                    slots: saturdayPreview.slots
+                      .filter((slot) => slot !== saturdayPreview.recreationHour)
+                      .join(" · "),
+                  })}
                 </p>
               ) : null}
             </div>

@@ -16,6 +16,7 @@ import {
   type StudentScheduleData,
 } from "@/lib/student-schedule-types";
 import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
+import { slotHourOnDay } from "@/lib/creneau-saturday";
 
 type StudentScheduleSectionProps = {
   schedule: StudentScheduleData | null;
@@ -30,12 +31,23 @@ export function StudentScheduleSection({ schedule }: StudentScheduleSectionProps
     );
   }
 
-  const { classLabel, classCode, timeSlots, recreationHour, endTime, entries } =
-    schedule;
+  const {
+    classLabel,
+    classCode,
+    timeSlots,
+    recreationHour,
+    endTime,
+    entries,
+    saturdayTimeSlots = [],
+    saturdayEndTime = "",
+  } = schedule;
   const days =
     schedule.workingDays?.length > 0
       ? normalizeCreneauWorkingDays(schedule.workingDays)
       : [...STUDENT_SCHEDULE_DAYS];
+  const showSaturdayClock = saturdayTimeSlots.some(
+    (hour, index) => hour !== timeSlots[index],
+  );
 
   return (
     <Card className="rounded-xl border bg-card p-4 shadow-sm">
@@ -56,7 +68,14 @@ export function StudentScheduleSection({ schedule }: StudentScheduleSectionProps
             <TableRow>
               <TableHead className="w-[150px]">Heures</TableHead>
               {days.map((day) => (
-                <TableHead key={day}>{day}</TableHead>
+                <TableHead key={day}>
+                  {day}
+                  {showSaturdayClock && day === "Samedi" ? (
+                    <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
+                      07:30 – {saturdayEndTime || "12:30"}
+                    </span>
+                  ) : null}
+                </TableHead>
               ))}
             </TableRow>
           </TableHeader>
@@ -87,11 +106,26 @@ export function StudentScheduleSection({ schedule }: StudentScheduleSectionProps
                 ) : (
                   <TableRow key={hour}>
                     <TableCell className="font-medium">
-                      {`${hour} - ${timeSlots[index + 1] || endTime}`}
+                      <span>{`${hour} - ${timeSlots[index + 1] || endTime}`}</span>
+                      {showSaturdayClock && saturdayTimeSlots[index] ? (
+                        <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
+                          Sam. {saturdayTimeSlots[index]} -{" "}
+                          {saturdayTimeSlots[index + 1] ||
+                            saturdayEndTime ||
+                            endTime}
+                        </span>
+                      ) : null}
                     </TableCell>
                     {days.map((day) => {
+                      const cellHour = slotHourOnDay({
+                        day,
+                        weekdaySlot: hour,
+                        weekdaySlots: timeSlots,
+                        saturdaySlots: saturdayTimeSlots,
+                      });
                       const cellEntries = entries.filter(
-                        (entry) => entry.day === day && entry.hourStart === hour,
+                        (entry) =>
+                          entry.day === day && entry.hourStart === cellHour,
                       );
 
                       return (

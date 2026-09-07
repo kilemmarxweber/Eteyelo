@@ -14,7 +14,7 @@ const adapter = new PrismaPg({
  * Bump when Prisma schema fields change so the cached client is rebuilt in dev.
  * Also used to bust Turbopack module cache after `prisma generate`.
  */
-const PRISMA_CLIENT_VERSION = "payroll-maternelle-personnel-scales-1";
+const PRISMA_CLIENT_VERSION = "attendance-face-descriptors-1";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
@@ -110,6 +110,10 @@ function getPrismaClient() {
     typeof (
       existing as { teacherProfileDocument?: { findMany?: unknown } }
     )?.teacherProfileDocument?.findMany === "function";
+  const hasAttendanceFaceDescriptorDelegate =
+    typeof (
+      existing as { attendanceFaceDescriptor?: { findMany?: unknown } }
+    )?.attendanceFaceDescriptor?.findMany === "function";
 
   if (
     existing &&
@@ -117,6 +121,7 @@ function getPrismaClient() {
     hasLibraryBookDelegate &&
     hasBranchPrimaryDomainDelegate &&
     hasTeacherProfileDocumentDelegate &&
+    hasAttendanceFaceDescriptorDelegate &&
     modelHasField(existing, "User", "theme") &&
     modelHasField(existing, "PlatformSupportEscalation", "branch") &&
     modelHasField(existing, "PlatformSupportEscalation", "channel") &&

@@ -21,7 +21,6 @@ export interface ICreneau {
 }
 
 export const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
-const SATURDAY_MAX_END_TIME = "12:30";
 
 const weekdayEnum = z.enum(
   CRENEAU_WEEKDAY_OPTIONS.map((d) => d.value) as [
@@ -78,30 +77,6 @@ export const creneauSchema = creneauFieldsSchema
       data.recreationHour <= data.endTime,
     {
       message: "L'heure de récréation doit être entre le début et la fin",
-      path: ["recreationHour"],
-    },
-  )
-  .refine(
-    (data) =>
-      !(
-        data.workingDays?.includes("Samedi") &&
-        data.endTime > SATURDAY_MAX_END_TIME
-      ),
-    {
-      message:
-        "Si le samedi est ouvrable, la fin doit être au plus tard à 12:30.",
-      path: ["endTime"],
-    },
-  )
-  .refine(
-    (data) =>
-      !(
-        data.workingDays?.includes("Samedi") &&
-        data.recreationHour > SATURDAY_MAX_END_TIME
-      ),
-    {
-      message:
-        "Si le samedi est ouvrable, la récréation doit être programmée avant 12:30.",
       path: ["recreationHour"],
     },
   );

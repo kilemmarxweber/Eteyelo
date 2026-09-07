@@ -854,6 +854,8 @@ export function AttendanceCheckInClient() {
           searchPlaceholder: t("checkInUi.faceSearchPlaceholder"),
           noPersonFound: t("checkInUi.noPersonFound"),
           retryFace: t("checkInUi.faceRetry"),
+          tabAll: t("checkInUi.tabAll"),
+          personTypes: personTypeLabels,
         }}
       />
 

@@ -1897,6 +1897,8 @@ export function RegistrationForm({
               <Label>Jours ouvrables</Label>
               <p className="text-xs text-muted-foreground">
                 Décochez le samedi s&apos;il n&apos;y a pas de cours ce jour-là.
+                Pour l&apos;après-midi, le samedi reste possible : les cours ont
+                alors lieu le matin, de 7h30 à 12h30.
               </p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {CRENEAU_WEEKDAY_OPTIONS.map((day) => {
