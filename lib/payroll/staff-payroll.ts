@@ -169,6 +169,8 @@ function emptyTeacherResult(input: {
     weeklySessions: 0,
     secondaryWeeklyPlannedMinutes: 0,
     secondaryWeeklySessions: 0,
+    secondaryMonthlySessions: 0,
+    secondaryGross: 0,
     maternelleWeeklyPlannedMinutes: 0,
     maternelleWeeklySessions: 0,
     ratePerMinute: 0,

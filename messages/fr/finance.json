@@ -298,7 +298,7 @@
   },
   "payroll": {
     "pageTitle": "Paie du personnel",
-    "pageDescription": "Calculez et payez les bulletins du mois : enseignants (forfait par grade + prime) et personnels (forfait connu), tous ensemble.",
+    "pageDescription": "Calculez et payez les bulletins du mois : personnels (salaire brut connu) et enseignants (brut selon les séances de l’horaire).",
     "badge": "Paie V1",
     "status": {
       "draft": "Brouillon",

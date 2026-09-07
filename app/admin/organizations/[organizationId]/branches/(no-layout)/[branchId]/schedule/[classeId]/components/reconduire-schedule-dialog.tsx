@@ -185,7 +185,11 @@ export function ReconduireScheduleDialog({
                         disabled={disabled || submitting}
                         onClick={() => setSourceClasseId(classe.id)}
                         className={`flex w-full items-start gap-3 px-3 py-2.5 text-left hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-50 ${
-                          selected ? "bg-muted" : ""
+                          selected
+                            ? "bg-muted"
+                            : !disabled
+                              ? "bg-success/10"
+                              : ""
                         }`}
                       >
                         <span

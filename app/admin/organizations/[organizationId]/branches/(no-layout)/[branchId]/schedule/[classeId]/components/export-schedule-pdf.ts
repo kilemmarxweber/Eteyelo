@@ -5,7 +5,7 @@ import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
   drawReportFooterOnAllPages,
   drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
+  REPORT_CONTINUATION_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import { slotHourOnDay } from "@/lib/creneau-saturday";
@@ -118,23 +118,44 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
     ];
   });
 
+  const headerBottomY = drawReportHeader(doc, context, {
+    title,
+    subtitle: context.branchName,
+    details,
+    logoDataUrl: logo,
+  });
+
   autoTable(doc, {
-    startY: REPORT_HEADER_CONTENT_TOP_MM,
+    startY: headerBottomY,
     head: [["Heures", ...days]],
     body,
     theme: "grid",
+    showHead: "everyPage",
     margin: {
-      top: REPORT_HEADER_CONTENT_TOP_MM,
+      top: REPORT_CONTINUATION_CONTENT_TOP_MM,
       left: 10,
       right: 10,
       bottom: 14,
     },
-    styles: { font: "helvetica", fontSize: 7.5, cellPadding: 2, halign: "center", valign: "middle" },
+    styles: {
+      font: "helvetica",
+      fontSize: 7.5,
+      cellPadding: 2,
+      halign: "center",
+      valign: "middle",
+      textColor: [15, 23, 42],
+      lineColor: [191, 219, 254],
+      lineWidth: 0.2,
+    },
     headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: "bold" },
+    alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: { 0: { cellWidth: 27, fontStyle: "bold" } },
     didParseCell: (data) => {
       if (data.section !== "body") return;
       const text = Array.isArray(data.cell.text) ? data.cell.text.join(" ") : String(data.cell.text);
+      if (data.column.index === 0) {
+        data.cell.styles.fillColor = [219, 234, 254];
+      }
       if (text.includes("RECREATION")) {
         data.cell.styles.fillColor = [254, 243, 199];
         data.cell.styles.textColor = [146, 64, 14];
@@ -144,14 +165,6 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
         data.cell.styles.textColor = [153, 27, 27];
         data.cell.styles.fontStyle = "bold";
       }
-    },
-    didDrawPage: () => {
-      drawReportHeader(doc, context, {
-        title,
-        subtitle: context.branchName,
-        details,
-        logoDataUrl: logo,
-      });
     },
   });
 

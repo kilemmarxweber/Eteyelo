@@ -5,7 +5,7 @@ import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
   drawReportFooterOnAllPages,
   drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
+  REPORT_CONTINUATION_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type { GlobalScheduleEntry } from "./types";
@@ -36,6 +36,15 @@ type GlobalSchedulePdfInput = {
   recreationLabel: string;
   tables: GlobalSchedulePdfTable[];
 };
+
+const HEADER_BLUE: [number, number, number] = [30, 64, 175];
+const ROW_ALT: [number, number, number] = [239, 246, 255];
+const HOURS_COL: [number, number, number] = [219, 234, 254];
+const RECREATION_BG: [number, number, number] = [254, 243, 199];
+const RECREATION_FG: [number, number, number] = [146, 64, 14];
+const GRID_LINE: [number, number, number] = [191, 219, 254];
+const TEXT_MAIN: [number, number, number] = [15, 23, 42];
+const TEXT_MUTED: [number, number, number] = [100, 116, 139];
 
 function safeFilePart(value: string) {
   return value
@@ -78,8 +87,12 @@ function formatCell(entries: GlobalScheduleEntry[], showTeacher: boolean) {
 function tableEndY(doc: jsPDF) {
   return (
     (doc as jsPDF & { lastAutoTable?: { finalY: number } }).lastAutoTable
-      ?.finalY ?? REPORT_HEADER_CONTENT_TOP_MM
+      ?.finalY ?? REPORT_CONTINUATION_CONTENT_TOP_MM
   );
+}
+
+function cellText(value: unknown) {
+  return Array.isArray(value) ? value.join(" ") : String(value ?? "");
 }
 
 export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
@@ -95,34 +108,30 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
     ),
   );
 
-  const drawHeader = () => {
-    drawReportHeader(doc, context, {
-      title,
-      subtitle: context.branchName,
-      details: [
-        ...details,
-        context.academicYearLabel ? `Année : ${context.academicYearLabel}` : "",
-        hasSaturdayMorning
-          ? `Samedi : ${SATURDAY_SESSION_START} – ${SATURDAY_SESSION_END}`
-          : "",
-      ].filter(Boolean),
-      logoDataUrl: logo,
-    });
-  };
+  const headerBottomY = drawReportHeader(doc, context, {
+    title,
+    subtitle: context.branchName,
+    details: [
+      ...details,
+      context.academicYearLabel ? `Année : ${context.academicYearLabel}` : "",
+      hasSaturdayMorning
+        ? `Samedi : ${SATURDAY_SESSION_START} – ${SATURDAY_SESSION_END}`
+        : "",
+    ].filter(Boolean),
+    logoDataUrl: logo,
+  });
 
-  drawHeader();
-  let startY = REPORT_HEADER_CONTENT_TOP_MM;
+  let startY = headerBottomY;
 
   for (const table of tables) {
     if (startY > pageHeight - 50) {
       doc.addPage();
-      drawHeader();
-      startY = REPORT_HEADER_CONTENT_TOP_MM;
+      startY = REPORT_CONTINUATION_CONTENT_TOP_MM;
     }
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.setTextColor(15, 23, 42);
+    doc.setTextColor(...TEXT_MAIN);
     doc.text(table.title, 10, startY);
     startY += 5;
     const saturdayHours = table.saturdayHours ?? [];
@@ -142,7 +151,7 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
     if (tableSubtitle) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
-      doc.setTextColor(71, 85, 105);
+      doc.setTextColor(...TEXT_MUTED);
       doc.text(tableSubtitle, 10, startY);
       startY += 4;
     }
@@ -201,8 +210,9 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
       ],
       body,
       theme: "grid",
+      showHead: "everyPage",
       margin: {
-        top: REPORT_HEADER_CONTENT_TOP_MM,
+        top: REPORT_CONTINUATION_CONTENT_TOP_MM,
         left: 10,
         right: 10,
         bottom: 14,
@@ -213,27 +223,39 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
         cellPadding: 1.6,
         halign: "center",
         valign: "middle",
+        textColor: TEXT_MAIN,
+        lineColor: GRID_LINE,
+        lineWidth: 0.2,
+        overflow: "linebreak",
       },
       headStyles: {
-        fillColor: [30, 64, 175],
+        fillColor: HEADER_BLUE,
         textColor: 255,
         fontStyle: "bold",
         fontSize: 8,
+        halign: "center",
+        valign: "middle",
       },
+      alternateRowStyles: { fillColor: ROW_ALT },
       columnStyles: { 0: { cellWidth: 28, fontStyle: "bold" } },
       didParseCell: (data) => {
         if (data.section !== "body") return;
-        const text = Array.isArray(data.cell.text)
-          ? data.cell.text.join(" ")
-          : String(data.cell.text);
-        if (text.includes(recreationLabel)) {
-          data.cell.styles.fillColor = [254, 243, 199];
-          data.cell.styles.textColor = [146, 64, 14];
-          data.cell.styles.fontStyle = "bold";
+        const text = cellText(data.cell.text);
+
+        if (data.column.index === 0) {
+          data.cell.styles.fillColor = HOURS_COL;
         }
-      },
-      didDrawPage: () => {
-        drawHeader();
+
+        if (text.includes(recreationLabel)) {
+          data.cell.styles.fillColor = RECREATION_BG;
+          data.cell.styles.textColor = RECREATION_FG;
+          data.cell.styles.fontStyle = "bold";
+          return;
+        }
+
+        if (text.trim() === "-") {
+          data.cell.styles.textColor = TEXT_MUTED;
+        }
       },
     });
 

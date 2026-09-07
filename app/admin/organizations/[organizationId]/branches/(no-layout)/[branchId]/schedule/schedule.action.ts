@@ -1014,6 +1014,16 @@ export const getScheduleOptionsAction = action.handler(
       return [];
     }
 
+    const schoolYear = await prisma.schoolYear.findFirst({
+      where: {
+        branchId: ctx.branchId,
+        branch: { organizationId: ctx.organizationId },
+        isCurrentYear: true,
+        isArchived: false,
+      },
+      select: { id: true },
+    });
+
     const classes = await prisma.classe.findMany({
       where: {
         branchId: ctx.branchId,
@@ -1025,6 +1035,19 @@ export const getScheduleOptionsAction = action.handler(
       include: {
         option: {
           include: { section: true },
+        },
+        teaching: {
+          where: {
+            schoolYearId: schoolYear?.id ?? "__none__",
+            OR: [{ statusTeaching: true }, { statusTeaching: null }],
+          },
+          select: {
+            _count: {
+              select: {
+                Schedule: { where: { isArchived: false } },
+              },
+            },
+          },
         },
       },
       orderBy: { nameClasse: "asc" },
@@ -1042,6 +1065,7 @@ export const getScheduleOptionsAction = action.handler(
     const groups = new Map<string, Group>();
 
     for (const classe of classes) {
+      const { teaching, ...classeRow } = classe;
       const cycle = normalizeCycle(classe.cycle);
       const optionCode = classe.option?.codeOption ?? "";
       const isLevelOption =
@@ -1063,7 +1087,11 @@ export const getScheduleOptionsAction = action.handler(
 
       const existing = groups.get(groupId);
       const mappedClasse: IClasse = {
-        ...classe,
+        ...classeRow,
+        slotCount: teaching.reduce(
+          (sum, row) => sum + row._count.Schedule,
+          0,
+        ),
         optionId: classe.optionId ?? "",
         creneauId: classe.creneauId ?? "",
         statusClasse: classe.statusClasse ?? true,
@@ -1133,7 +1161,12 @@ export const getScheduleOptionsAction = action.handler(
         statuSection: true,
         classes: group.classes
           .slice()
-          .sort(compareClassesByLevel)
+          .sort((a, b) => {
+            const aHas = (a.slotCount ?? 0) > 0 ? 1 : 0;
+            const bHas = (b.slotCount ?? 0) > 0 ? 1 : 0;
+            if (aHas !== bHas) return bHas - aHas;
+            return compareClassesByLevel(a, b);
+          })
           .map((classe) => ({
           ...classe,
           nameOption: group.nameOption,
@@ -1675,7 +1708,20 @@ export const getScheduleReconduireSourcesAction = action
 
     return classes
       .slice()
-      .sort(compareClassesByLevel)
+      .sort((a, b) => {
+        const aSlots = a.teaching.reduce(
+          (sum, row) => sum + row._count.Schedule,
+          0,
+        );
+        const bSlots = b.teaching.reduce(
+          (sum, row) => sum + row._count.Schedule,
+          0,
+        );
+        const aHas = aSlots > 0 ? 1 : 0;
+        const bHas = bSlots > 0 ? 1 : 0;
+        if (aHas !== bHas) return bHas - aHas;
+        return compareClassesByLevel(a, b);
+      })
       .map((classe) => ({
         id: classe.id,
         nameClasse: classe.nameClasse,

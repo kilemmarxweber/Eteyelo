@@ -18,6 +18,8 @@ export interface IClasse {
   createdAt: Date;
   updatedAt: Date;
   studentsCount?: number;
+  /** Créneaux d'horaire non archivés pour l'année courante. */
+  slotCount?: number;
 }
 
 export const classeSchema = z.object({

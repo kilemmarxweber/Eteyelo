@@ -199,6 +199,18 @@ export function monthlySessionsFromWeeklyVolume(
   return total;
 }
 
+/** Brut enseignant à la séance : tarif × séances de l'horaire dans le mois. */
+export function monthlySessionGross(
+  sessionRate: number,
+  monthlySessions: number,
+  currency: CurrencyCode,
+) {
+  return roundCurrency(
+    Math.max(0, sessionRate) * Math.max(0, monthlySessions),
+    currency,
+  );
+}
+
 export function sessionGrossFromRate(
   ratePerMinute: number,
   durationMinutes: number,

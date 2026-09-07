@@ -14,15 +14,22 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { compareClassesByLevel } from "@/lib/class-structure";
+import { cn } from "@/lib/utils";
 
 import { getScheduleOptionsAction } from "../schedule.action";
-import { compareClassesByLevel } from "@/lib/class-structure";
 
 type OptionsData = NonNullable<
   Awaited<ReturnType<typeof getScheduleOptionsAction>>[0]
 >;
 
 const PAGE_SIZE = 8;
+const SCHEDULE_OPTIONS_UPDATED_EVENT = "eteyelo:schedule-options-updated";
+
+export function notifyScheduleOptionsUpdated() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(SCHEDULE_OPTIONS_UPDATED_EVENT));
+}
 
 export function OptionSidebar() {
   const [options, setOptions] = useState<OptionsData>([]);
@@ -37,15 +44,30 @@ export function OptionSidebar() {
   }>();
 
   useEffect(() => {
-    void (async () => {
+    let cancelled = false;
+
+    async function loadOptions() {
       const [result, error] = await getScheduleOptionsAction();
+      if (cancelled) return;
       if (error) {
         toast.error(error.message ?? "Impossible de charger les classes");
       } else {
         setOptions(result ?? []);
       }
       setLoading(false);
-    })();
+    }
+
+    void loadOptions();
+
+    function onUpdated() {
+      void loadOptions();
+    }
+    window.addEventListener(SCHEDULE_OPTIONS_UPDATED_EVENT, onUpdated);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(SCHEDULE_OPTIONS_UPDATED_EVENT, onUpdated);
+    };
   }, []);
 
   const classes = useMemo(
@@ -59,6 +81,8 @@ export function OptionSidebar() {
           sectionName: option.nameSection ?? "",
           cycle: classe.cycle ?? "",
           level: classe.level ?? "",
+          parallel: classe.parallel ?? "",
+          slotCount: classe.slotCount ?? 0,
         })),
       ),
     [options],
@@ -72,8 +96,18 @@ export function OptionSidebar() {
             .toLowerCase()
             .includes(search.toLowerCase()),
         )
-        .sort(compareClassesByLevel),
+        .sort((a, b) => {
+          const aHas = a.slotCount > 0 ? 1 : 0;
+          const bHas = b.slotCount > 0 ? 1 : 0;
+          if (aHas !== bHas) return bHas - aHas;
+          return compareClassesByLevel(a, b);
+        }),
     [classes, search],
+  );
+
+  const scheduledCount = useMemo(
+    () => filtered.filter((classe) => classe.slotCount > 0).length,
+    [filtered],
   );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -116,27 +150,40 @@ export function OptionSidebar() {
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
           {filtered.length} classe{filtered.length > 1 ? "s" : ""}
+          {scheduledCount > 0
+            ? ` · ${scheduledCount} avec horaire`
+            : ""}
         </p>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-2">
         {paginated.map((classe) => {
           const active = params.classeId === classe.id;
+          const hasSchedule = classe.slotCount > 0;
 
           return (
             <button
               key={classe.id}
               type="button"
               onClick={() => selectClass(classe.id)}
-              className={`mb-1 w-full rounded-lg border p-3 text-left transition ${
+              className={cn(
+                "mb-1 w-full rounded-lg border p-3 text-left transition",
                 active
                   ? "border-primary bg-primary/5 shadow-sm"
-                  : "hover:bg-muted"
-              }`}
+                  : hasSchedule
+                    ? "border-success/40 bg-success/10 hover:bg-success/15"
+                    : "hover:bg-muted",
+              )}
             >
               <div className="flex items-start justify-between gap-2">
                 <span className="font-medium">{classe.nameClasse}</span>
-                {active ? <Badge variant="success">Active</Badge> : null}
+                {active ? (
+                  <Badge variant="success">Active</Badge>
+                ) : hasSchedule ? (
+                  <Badge variant="success" size="xs">
+                    Planifié
+                  </Badge>
+                ) : null}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 {classe.codeClasse}

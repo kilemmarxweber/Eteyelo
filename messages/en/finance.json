@@ -298,7 +298,7 @@
   },
   "payroll": {
     "pageTitle": "Staff payroll",
-    "pageDescription": "Calculate and pay monthly payslips: teachers (grade-based lump sum + bonus) and staff (known lump sum), all together.",
+    "pageDescription": "Calculate and pay monthly payslips: staff (known gross salary) and teachers (gross from timetable sessions).",
     "badge": "Payroll V1",
     "status": {
       "draft": "Draft",

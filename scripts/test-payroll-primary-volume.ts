@@ -8,6 +8,8 @@ import {
   billableLateMinutes,
   isPayrollWeekendDate,
   monthlyMinutesFromWeeklyVolume,
+  monthlySessionGross,
+  monthlySessionsFromWeeklyVolume,
   payrollSessionAmount,
   personnelUnitRates,
   primaryUnitRates,
@@ -131,6 +133,19 @@ test("secondaire non matriculé : 1 500 / séance de 45 min, 1 min = 33", () => 
   assert.equal(sessionLossAmount(1_500, 45, 45, CurrencyCode.AOA), 1_500);
   assert.equal(sessionLossAmount(1_500, 1, 45, CurrencyCode.AOA), 33);
   assert.equal(sessionLossAmount(1_500, 0, 45, CurrencyCode.AOA), 0);
+});
+
+test("non matriculé : 1 500 × 10 séances du mois (horaire) = 15 000", () => {
+  const weekly = weeklyVolumeFromScheduleSlots([
+    { day: "Vendredi", durationMinutes: 45 },
+    { day: "Vendredi", durationMinutes: 45 },
+  ]);
+  assert.equal(weekly.sessions, 2);
+  assert.equal(monthlySessionsFromWeeklyVolume(weekly, 2026, 10), 10);
+  assert.equal(monthlySessionGross(1_500, 10, CurrencyCode.AOA), 15_000);
+  const settled = settlePayrollTotals(15_000, 0, CurrencyCode.AOA);
+  assert.equal(settled.gross, 15_000);
+  assert.equal(settled.net, 15_000);
 });
 
 test("secondaire matriculé : 30 % du montant de séance du barème", () => {

@@ -8,6 +8,9 @@ import type { SchoolReportContext } from "@/lib/reports/types";
  */
 export const REPORT_HEADER_CONTENT_TOP_MM = 58;
 
+/** Marge haute des pages suivantes quand l’en-tête n’est dessiné que sur la 1re page. */
+export const REPORT_CONTINUATION_CONTENT_TOP_MM = 12;
+
 export type DrawReportHeaderOptions = {
   title: string;
   /** Ligne secondaire sous le nom (ex. nom de branche). */

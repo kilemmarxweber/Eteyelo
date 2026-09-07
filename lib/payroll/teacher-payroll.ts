@@ -20,6 +20,7 @@ import {
   sessionGrossFromRate,
   weeklyVolumeFromScheduleSlots,
   monthlySessionsFromWeeklyVolume,
+  monthlySessionGross,
   payrollSessionAmount,
   type WeeklyPrimaryVolume,
 } from "@/lib/payroll/primary-volume";
@@ -116,6 +117,10 @@ export type TeacherPayrollResult = {
   weeklySessions: number;
   secondaryWeeklyPlannedMinutes: number;
   secondaryWeeklySessions: number;
+  /** Séances dues dans le mois (horaire Lun–Ven × occurrences). */
+  secondaryMonthlySessions: number;
+  /** Brut secondaire avant retenues (tarif × séances du mois). */
+  secondaryGross: number;
   maternelleWeeklyPlannedMinutes: number;
   maternelleWeeklySessions: number;
   /** Taux de retenue par minute. */
@@ -663,9 +668,10 @@ export async function calculateTeacherPayroll(input: {
           policy.secondarySessionMinutes,
           currencySnapshot.currency,
         );
-  if (teacher.employmentKind === "MATRICULE" && secondaryMonthlySessions > 0) {
-    secondaryGross = roundCurrency(
-      secondaryMonthlySessions * secondaryRates.ratePerSession,
+  if (secondaryMonthlySessions > 0) {
+    secondaryGross = monthlySessionGross(
+      secondaryRates.ratePerSession,
+      secondaryMonthlySessions,
       currencySnapshot.currency,
     );
     secondaryDeductions = 0;
@@ -768,6 +774,8 @@ export async function calculateTeacherPayroll(input: {
           : 0,
     ),
     secondaryWeeklySessions: secondaryWeekly.sessions,
+    secondaryMonthlySessions,
+    secondaryGross,
     maternelleWeeklyPlannedMinutes: roundInternal(maternelleWeeklyMinutes),
     maternelleWeeklySessions: maternelleWeekly.sessions,
     ratePerMinute: roundInternal(displayRatePerMinute * 1000) / 1000,
@@ -1005,13 +1013,16 @@ export async function persistTeacherPayroll(
         amount: maternelleGrossAmount,
       });
     }
-    if (result.details.some((detail) => detail.cycle === "SECONDAIRE")) {
+    if (result.secondaryGross > 0 || result.details.some((detail) => detail.cycle === "SECONDAIRE")) {
       const secondaryMinutes = result.details
         .filter((detail) => detail.cycle === "SECONDAIRE")
         .reduce((sum, detail) => sum + detail.durationMinutes, 0);
-      const secondaryGrossAmount = result.details
-        .filter((detail) => detail.cycle === "SECONDAIRE")
-        .reduce((sum, detail) => sum + detail.gross, 0);
+      const secondaryGrossAmount =
+        result.secondaryGross > 0
+          ? result.secondaryGross
+          : result.details
+              .filter((detail) => detail.cycle === "SECONDAIRE")
+              .reduce((sum, detail) => sum + detail.gross, 0);
       const secondaryRatesForLabel =
         result.employmentKind === "MATRICULE"
           ? secondaryMatriculeRates(
@@ -1025,8 +1036,12 @@ export async function persistTeacherPayroll(
               result.policy.secondarySessionMinutes,
               result.currency,
             );
+      const billedSessions =
+        result.secondaryMonthlySessions > 0
+          ? result.secondaryMonthlySessions
+          : result.details.filter((detail) => detail.cycle === "SECONDAIRE").length;
       const secondaryLabel =
-        ` · ${result.secondaryWeeklySessions > 0 ? `${result.secondaryWeeklySessions} séances/sem · ` : ""}${roundInternal(result.secondaryWeeklyPlannedMinutes)} min/sem · ${result.policy.secondarySessionMinutes} min/séance · ${result.employmentKind === "MATRICULE" ? `${result.policy.secondaryMatriculePrimePercent} % · ` : ""}${secondaryRatesForLabel.ratePerSession} /séance · ${secondaryRatesForLabel.ratePerMinute.toFixed(3)} /min`;
+        ` · ${billedSessions} séances du mois × ${secondaryRatesForLabel.ratePerSession}${result.secondaryWeeklySessions > 0 ? ` · ${result.secondaryWeeklySessions} séances/sem` : ""} · ${roundInternal(result.secondaryWeeklyPlannedMinutes)} min/sem · ${result.policy.secondarySessionMinutes} min/séance · ${result.employmentKind === "MATRICULE" ? `${result.policy.secondaryMatriculePrimePercent} % · ` : ""}${secondaryRatesForLabel.ratePerMinute.toFixed(3)} /min`;
       lines.unshift({
         payslipId: payslip.id,
         cycle: "SECONDAIRE",
@@ -1034,7 +1049,7 @@ export async function persistTeacherPayroll(
         occurredOn: undefined,
         sessionId: undefined,
         label: `${result.employmentKind === "MATRICULE" ? `Prime matriculé (${result.policy.secondaryMatriculePrimePercent} % du montant séance)` : "Secondaire à la séance (horaire)"}${secondaryLabel}`,
-        sessions: result.details.filter((detail) => detail.cycle === "SECONDAIRE").length,
+        sessions: billedSessions,
         minutes: secondaryMinutes,
         amount: secondaryGrossAmount,
       });

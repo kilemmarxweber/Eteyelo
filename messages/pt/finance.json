@@ -298,7 +298,7 @@
   },
   "payroll": {
     "pageTitle": "Salários do pessoal",
-    "pageDescription": "Calcule e pague os recibos do mês: docentes (forfait por grau + prémio) e pessoal (forfait conhecido), em conjunto.",
+    "pageDescription": "Calcule e pague os recibos do mês: pessoal (salário bruto conhecido) e docentes (bruto segundo as sessões do horário).",
     "badge": "Salários V1",
     "status": {
       "draft": "Rascunho",
