@@ -21,6 +21,7 @@ import { checkTeacherAttendanceNeeded } from "./attendance/attendance.action";
 const geoSchema = z.object({
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
+  accuracy: z.number().min(0).max(5000).optional(),
 });
 
 export type PresenceMonthSummary = {
@@ -215,6 +216,7 @@ export const checkInMyPersonnelAction = action
       branchId,
       latitude: input.latitude,
       longitude: input.longitude,
+      accuracy: input.accuracy,
     });
 
     if (await isBranchClosedOn(branchId)) {
@@ -289,6 +291,7 @@ export const checkOutMyPersonnelAction = action
       branchId,
       latitude: input.latitude,
       longitude: input.longitude,
+      accuracy: input.accuracy,
     });
 
     const now = nowLocal();

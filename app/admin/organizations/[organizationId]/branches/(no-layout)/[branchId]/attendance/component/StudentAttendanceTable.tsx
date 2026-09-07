@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { markStudentAttendance } from "../attendance.action";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
-import { getCurrentPosition } from "./attendance.client";
+import { getCurrentGeoCoords } from "./attendance.client";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -45,14 +45,15 @@ export default function StudentAttendanceTable({ session }: { session?: any }) {
   function mark(studentId: string, status: AttendanceStatus) {
     startTransition(async () => {
       try {
-        const position = await getCurrentPosition();
+        const coords = await getCurrentGeoCoords();
         await markStudentAttendance({
           sessionId: session.id,
           studentId,
           status,
           remark: remarks[studentId] ?? "",
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          accuracy: coords.accuracy,
         });
         router.refresh();
       } catch (error) {

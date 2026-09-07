@@ -21,9 +21,11 @@ import {
   resolvePersonnelStatusFromSchedule,
 } from "@/lib/branch-closed-days";
 import {
-  findStudentCheckInSession,
+  findStudentDayArrivalSession,
   getExpectedStudentSessionLabel,
-  listClassScheduleCandidates,
+  getStudentDayPointageLabel,
+  isStudentNormalCheckoutAllowed,
+  listClassDaySchedules,
 } from "@/lib/attendance-student-session";
 import {
   findTeacherCheckInSession,
@@ -77,6 +79,7 @@ const searchSchema = z.object({
 const geoCoordsSchema = z.object({
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
+  accuracy: z.number().min(0).max(5000).optional(),
 });
 
 type ScanTarget = AttendancePersonType | "any";
@@ -478,7 +481,7 @@ async function findSessionForStudent(
   studentId: string,
   branchId: string,
 ): Promise<AttendanceSessionWithTeaching | null> {
-  return findStudentCheckInSession(
+  return findStudentDayArrivalSession(
     studentId,
     branchId,
     sessionInclude(),
@@ -521,19 +524,23 @@ function buildNeedsCheckoutResult(
   status: AttendanceStatus,
   sessionLabel: string,
   checkedAt: Date,
+  normalCheckoutAllowed = true,
 ): AttendanceCheckInResult {
   const isKnownCheckInStatus = status === "PRESENT" || status === "LATE";
   return {
     ok: false,
     needsCheckout: true,
     attendanceId,
-    message: `${lookup.name} est déjà pointé(e) à l'arrivée. Encodez la sortie (normale ou anticipée avec motif).`,
+    message: normalCheckoutAllowed
+      ? `${lookup.name} est déjà pointé(e) à l'arrivée. Encodez la sortie (normale en fin de vacation, ou anticipée en cas d'incident).`
+      : `${lookup.name} est déjà pointé(e) à l'arrivée. Avant la dernière séance, seule une sortie anticipée (incident) est possible.`,
     personType: lookup.personType,
     person: lookup,
     status: isKnownCheckInStatus ? status : undefined,
     statusLabel: status === "LATE" ? "Retard" : status === "PRESENT" ? "Present" : undefined,
     sessionLabel,
     checkedAt: checkedAt.toISOString(),
+    normalCheckoutAllowed,
   };
 }
 
@@ -635,6 +642,7 @@ async function ensureCheckInWithinRadius(params: {
       branchId: params.branchId,
       latitude: params.coords.latitude,
       longitude: params.coords.longitude,
+      accuracy: params.coords.accuracy,
     });
     return null;
   } catch (error) {
@@ -648,6 +656,22 @@ async function ensureCheckInWithinRadius(params: {
       person: params.person,
     };
   }
+}
+
+async function findStudentAttendanceToday(
+  studentId: string,
+  branchId: string,
+) {
+  const today = startOfTodayParis();
+  return prisma.studentAttendance.findMany({
+    where: {
+      branchId,
+      studentId,
+      checkIn: { not: null },
+      session: { date: today },
+    },
+    orderBy: { recordedAt: "asc" },
+  });
 }
 
 async function performStudentCheckIn(
@@ -664,6 +688,56 @@ async function performStudentCheckIn(
     person: lookup,
   });
   if (geoError) return geoError;
+
+  const todayRows = await findStudentAttendanceToday(student.id, branchId);
+  const openToday = todayRows.find(
+    (row) => row.checkIn && !row.checkOut && !row.earlyExit,
+  );
+  const closedToday = todayRows.find(
+    (row) => row.checkIn && (row.checkOut || row.earlyExit),
+  );
+
+  if (openToday) {
+    const allowNormal = await isStudentNormalCheckoutAllowed(
+      student.id,
+      branchId,
+    );
+    const sessionLabel =
+      (await getStudentDayPointageLabel(student.id, branchId, "departure")) ??
+      "Sortie";
+    return buildNeedsCheckoutResult(
+      lookup,
+      openToday.id,
+      openToday.status,
+      sessionLabel,
+      openToday.checkIn ?? openToday.recordedAt,
+      allowNormal,
+    );
+  }
+
+  if (closedToday) {
+    const sessionLabel =
+      (await getStudentDayPointageLabel(student.id, branchId, "departure")) ??
+      "Vacation";
+    return {
+      ok: false,
+      message: `${lookup.name} a déjà pointé l'arrivée et la sortie aujourd'hui.`,
+      personType: "student",
+      person: lookup,
+      status:
+        closedToday.status === "LATE" || closedToday.status === "PRESENT"
+          ? closedToday.status
+          : undefined,
+      statusLabel:
+        closedToday.status === "LATE"
+          ? "Retard"
+          : closedToday.status === "PRESENT"
+            ? "Present"
+            : undefined,
+      sessionLabel,
+      checkedAt: (closedToday.checkIn ?? closedToday.recordedAt).toISOString(),
+    };
+  }
 
   const attendanceSession = await findSessionForStudent(student.id, branchId);
 
@@ -701,40 +775,9 @@ async function performStudentCheckIn(
 
   const status = resolveStatusFromTime(attendanceSession.startTime);
   const now = nowLocal();
-  const sessionLabel = formatSessionLabel(attendanceSession);
-
-  const existingAttendance = await prisma.studentAttendance.findUnique({
-    where: {
-      branchId_sessionId_studentId: {
-        branchId,
-        sessionId: attendanceSession.id,
-        studentId: student.id,
-      },
-    },
-  });
-
-  if (existingAttendance) {
-    if (
-      existingAttendance.checkIn &&
-      !existingAttendance.checkOut &&
-      !existingAttendance.earlyExit
-    ) {
-      return buildNeedsCheckoutResult(
-        lookup,
-        existingAttendance.id,
-        existingAttendance.status,
-        sessionLabel,
-        existingAttendance.checkIn ?? existingAttendance.recordedAt,
-      );
-    }
-
-    return buildAlreadyCheckedInResult(
-      lookup,
-      existingAttendance.status,
-      sessionLabel,
-      existingAttendance.checkIn ?? existingAttendance.recordedAt,
-    );
-  }
+  const sessionLabel =
+    (await getStudentDayPointageLabel(student.id, branchId, "arrival")) ??
+    formatSessionLabel(attendanceSession);
 
   await prisma.studentAttendance.upsert({
     where: {
@@ -759,6 +802,17 @@ async function performStudentCheckIn(
     },
   });
 
+  const saved = await prisma.studentAttendance.findUnique({
+    where: {
+      branchId_sessionId_studentId: {
+        branchId,
+        sessionId: attendanceSession.id,
+        studentId: student.id,
+      },
+    },
+    select: { id: true },
+  });
+
   void resolveAbsenceIfPresent({
     branchId,
     sourceKey: `student:${attendanceSession.id}:${student.id}`,
@@ -766,7 +820,10 @@ async function performStudentCheckIn(
     console.error("[performStudentCheckIn] absence sync", error);
   });
 
-  return buildSuccessResult(lookup, status, sessionLabel, now);
+  return {
+    ...buildSuccessResult(lookup, status, sessionLabel, now),
+    attendanceId: saved?.id,
+  };
 }
 
 async function performTeacherCheckIn(
@@ -1106,13 +1163,26 @@ export async function searchPeopleForCheckInAction(
   ]);
 
   const studentLookups = await Promise.all(
-    students.map(async (student) => ({
-      ...mapStudentLookup(student),
-      expectedSessionLabel: await getExpectedStudentSessionLabel(
+    students.map(async (student) => {
+      const todayRows = await findStudentAttendanceToday(student.id, branchId);
+      const openToday = todayRows.find(
+        (row) => row.checkIn && !row.checkOut && !row.earlyExit,
+      );
+      const anyToday = todayRows[0];
+      const state = attendanceOpenState(openToday ?? anyToday);
+      const label = await getStudentDayPointageLabel(
         student.id,
         branchId,
-      ),
-    })),
+        state.canCheckOut ? "departure" : "arrival",
+      );
+      return {
+        ...mapStudentLookup(student),
+        expectedSessionLabel:
+          label ??
+          (await getExpectedStudentSessionLabel(student.id, branchId)),
+        ...state,
+      };
+    }),
   );
 
   const teacherLookups = await Promise.all(
@@ -1279,12 +1349,17 @@ export async function findOpenCheckoutForPersonAction(
         person: lookup,
       };
     }
+    const allowNormal = await isStudentNormalCheckoutAllowed(personId, branchId);
+    const sessionLabel =
+      (await getStudentDayPointageLabel(personId, branchId, "departure")) ??
+      "Sortie";
     return buildNeedsCheckoutResult(
       lookup,
       open.id,
       open.status,
-      "Session du jour",
+      sessionLabel,
       open.checkIn,
+      allowNormal,
     );
   }
 
@@ -1810,17 +1885,14 @@ export async function listStudentsForClassCheckInAction(
     },
   });
 
-  const candidates = await listClassScheduleCandidates(
-    parsedClasseId,
-    branchId,
-  );
-  const best = candidates[0];
-  let sessionLabel: string | null = null;
-  let sessionId: string | null = null;
+  const daySchedules = await listClassDaySchedules(parsedClasseId, branchId);
+  const firstSlot = daySchedules[0];
+  const lastSlot = daySchedules[daySchedules.length - 1];
 
-  if (best) {
+  async function scheduleLabel(scheduleId?: string) {
+    if (!scheduleId) return null;
     const schedule = await prisma.schedule.findFirst({
-      where: { id: best.scheduleId },
+      where: { id: scheduleId },
       include: {
         teaching: {
           include: {
@@ -1830,46 +1902,55 @@ export async function listStudentsForClassCheckInAction(
         },
       },
     });
-    if (schedule?.hour && schedule.teaching) {
-      sessionLabel = formatExpectedSessionLabel(schedule.hour, schedule.teaching);
-      const existingSession = await prisma.attendanceSession.findFirst({
-        where: {
-          teachingId: best.teachingId,
-          date: startOfTodayParis(),
-          startTime: schedule.hour,
-          OR: [{ branchId }, { branchId: null }],
-        },
-        select: { id: true },
-      });
-      sessionId = existingSession?.id ?? null;
-    }
+    if (!schedule?.hour || !schedule.teaching) return null;
+    return formatExpectedSessionLabel(schedule.hour, schedule.teaching);
   }
+
+  const firstLabel = await scheduleLabel(firstSlot?.scheduleId);
+  const lastLabel = await scheduleLabel(lastSlot?.scheduleId);
+  const arrivalLabel = firstLabel ? `Arrivée · ${firstLabel}` : "Arrivée";
+  const departureLabel = lastLabel ? `Sortie · ${lastLabel}` : "Sortie";
 
   const studentIds = enrollments
     .map((row) => row.student?.id)
     .filter((id): id is string => Boolean(id));
 
-  const attendances =
-    sessionId && studentIds.length
-      ? await prisma.studentAttendance.findMany({
-          where: {
-            branchId,
-            sessionId,
-            studentId: { in: studentIds },
-          },
-          select: {
-            id: true,
-            studentId: true,
-            checkIn: true,
-            checkOut: true,
-            earlyExit: true,
-          },
-        })
-      : [];
+  const today = startOfTodayParis();
+  const attendances = studentIds.length
+    ? await prisma.studentAttendance.findMany({
+        where: {
+          branchId,
+          studentId: { in: studentIds },
+          checkIn: { not: null },
+          session: { date: today },
+        },
+        select: {
+          id: true,
+          studentId: true,
+          checkIn: true,
+          checkOut: true,
+          earlyExit: true,
+        },
+        orderBy: { recordedAt: "asc" },
+      })
+    : [];
 
-  const attendanceByStudent = new Map(
-    attendances.map((row) => [row.studentId, row]),
-  );
+  const attendanceByStudent = new Map<
+    string,
+    (typeof attendances)[number]
+  >();
+  for (const row of attendances) {
+    const existing = attendanceByStudent.get(row.studentId);
+    if (!existing) {
+      attendanceByStudent.set(row.studentId, row);
+      continue;
+    }
+    const existingOpen = !existing.checkOut && !existing.earlyExit;
+    const rowOpen = !row.checkOut && !row.earlyExit;
+    if (!existingOpen && rowOpen) {
+      attendanceByStudent.set(row.studentId, row);
+    }
+  }
 
   const classLabel = classe.nameClasse || classe.codeClasse;
 
@@ -1887,7 +1968,9 @@ export async function listStudentsForClassCheckInAction(
           roleLabel: classLabel,
           personType: "student" as const,
           image: user?.image ?? null,
-          expectedSessionLabel: sessionLabel,
+          expectedSessionLabel: state.canCheckOut
+            ? departureLabel
+            : arrivalLabel,
           classeId: parsedClasseId,
           ...state,
         },

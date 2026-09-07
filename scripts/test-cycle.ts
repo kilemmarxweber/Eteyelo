@@ -33,7 +33,7 @@ import {
   schoolCyclesForBranchForm,
   sameCycleSet,
 } from "../lib/cycle";
-import { toBranchFormValues } from "../lib/branch-form-values";
+import { isPinnedBranchGeo, toBranchFormValues } from "../lib/branch-form-values";
 import { matchesClassForLevel } from "../lib/class-enrollment/match-class-for-level";
 import { shouldHideSidebarHref } from "../lib/branch-route-guard";
 import {
@@ -646,7 +646,8 @@ test("toBranchFormValues : champs obligatoires et cycles issus des classes", () 
     "PRIMAIRE",
     "SECONDAIRE",
   ]);
-  assert.equal(values.pays, "RDC");
+  assert.equal(isPinnedBranchGeo(undefined, undefined), false);
+  assert.equal(isPinnedBranchGeo(-4.4419, 15.2663), true);
 });
 
 console.log("Cycle tests passed.");

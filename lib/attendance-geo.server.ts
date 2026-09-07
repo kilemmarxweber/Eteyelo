@@ -7,7 +7,8 @@ export async function assertWithinBranchAttendanceRadius(params: {
   branchId: string;
   latitude: number;
   longitude: number;
-}): Promise<{ distance: number; radius: number }> {
+  accuracy?: number | null;
+}): Promise<{ distance: number; radius: number; uncertainty: number }> {
   const branch = await prisma.branch.findUnique({
     where: { id: params.branchId },
     select: {
@@ -32,20 +33,21 @@ export async function assertWithinBranchAttendanceRadius(params: {
     );
   }
 
-  const radius = branch.attendanceRadius ?? 10;
-  const { allowed, distance } = verifyRadius(
+  const radius = branch.attendanceRadius ?? 50;
+  const { allowed, distance, uncertainty, effectiveRadius } = verifyRadius(
     params.latitude,
     params.longitude,
     branch.latitude,
     branch.longitude,
     radius,
+    params.accuracy,
   );
 
   if (!allowed) {
     throw new Error(
-      `Hors zone de pointage (${Math.round(distance)} m / ${radius} m autorises).`,
+      `Hors zone de pointage (${Math.round(distance)} m). Zone : ${radius} m autour du site, precision GPS prise en compte (${Math.round(effectiveRadius)} m). Recalez le point GPS de l'etablissement si besoin.`,
     );
   }
 
-  return { distance, radius };
+  return { distance, radius, uncertainty };
 }

@@ -6,13 +6,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { type FieldErrors, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
-  BadgeCheck,
   Building2,
   ChevronLeft,
   ChevronRight,
   IdCard,
   ImageIcon,
   Images,
+  Loader2,
   Mail,
   MapPin,
   Navigation,
@@ -21,7 +21,6 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -49,13 +48,6 @@ import { isExtendedBranch } from "@/lib/branch-capabilities";
 import { isSchoolBranchType } from "@/lib/education-system";
 import { getRegistrationFormLabels } from "@/lib/registration-form-labels";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   createBranchFormSchema,
   updateBranchFormSchema,
   type CreateBranchFormValues,
@@ -68,10 +60,12 @@ import {
 import type { BranchFormActionResult } from "@/app/components/inscription-ecole/ecole.action";
 import { uploadFile, uploadFiles } from "@/lib/upload-file";
 import { cn } from "@/lib/utils";
+import { getCurrentGeoCoords } from "@/lib/browser-geolocation";
 import {
   DEFAULT_BRANCH_ATTENDANCE_RADIUS,
   DEFAULT_BRANCH_LATITUDE,
   DEFAULT_BRANCH_LONGITUDE,
+  isPinnedBranchGeo,
 } from "@/lib/branch-form-values";
 import { useEffect, useState } from "react";
 import { writeLocaleCookie } from "@/lib/user-locale";
@@ -170,7 +164,8 @@ export function CreateBranchForm({
 }: CreateBranchFormProps) {
   const isRequestMode = submissionMode === "request";
   const router = useRouter();
-  const [showMapDialog, setShowMapDialog] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | undefined>();
   const [activeTab, setActiveTab] = useState<BranchFormTab>("identity");
   const [savedImages, setSavedImages] = useState<BranchImages>(
     defaultValues?.image ?? emptyBranchImages(),
@@ -204,8 +199,8 @@ export function CreateBranchForm({
       pays: defaultValues?.pays ?? "RDC",
       idnat: defaultValues?.idnat ?? "",
       tel: defaultValues?.tel ?? "",
-      latitude: defaultValues?.latitude ?? DEFAULT_BRANCH_LATITUDE,
-      longitude: defaultValues?.longitude ?? DEFAULT_BRANCH_LONGITUDE,
+      latitude: defaultValues?.latitude,
+      longitude: defaultValues?.longitude,
       attendanceRadius:
         defaultValues?.attendanceRadius ?? DEFAULT_BRANCH_ATTENDANCE_RADIUS,
       typebranch: defaultValues?.typebranch ?? "SECONDAIRE",
@@ -329,23 +324,28 @@ export function CreateBranchForm({
     }
   }
 
-  function useCurrentLocation() {
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
+  async function applySiteCoords(lat: number, lng: number) {
+    form.setValue("latitude", lat, { shouldValidate: true, shouldDirty: true });
+    form.setValue("longitude", lng, { shouldValidate: true, shouldDirty: true });
+    await reverseGeocode(lat, lng);
+  }
 
-        form.setValue("latitude", lat, { shouldValidate: true });
-        form.setValue("longitude", lng, { shouldValidate: true });
-
-        await reverseGeocode(lat, lng);
-
-        toast.success("Position récupérée avec succès.");
-      },
-      () => {
-        toast.error("Impossible de récupérer votre position.");
-      },
-    );
+  async function useCurrentLocation() {
+    setLocating(true);
+    try {
+      const coords = await getCurrentGeoCoords();
+      await applySiteCoords(coords.latitude, coords.longitude);
+      setGpsAccuracy(coords.accuracy);
+      toast.success(
+        coords.accuracy
+          ? `Position du site enregistrée (précision ~${Math.round(coords.accuracy)} m). Placez-vous sur le site.`
+          : "Position du site enregistrée. Placez-vous sur le site.",
+      );
+    } catch {
+      toast.error("Impossible de récupérer votre position.");
+    } finally {
+      setLocating(false);
+    }
   }
 
   async function buildFinalImages(): Promise<BranchImages> {
@@ -456,6 +456,13 @@ export function CreateBranchForm({
 
   const latitude = form.watch("latitude");
   const longitude = form.watch("longitude");
+  const hasPinnedLocation = isPinnedBranchGeo(latitude, longitude);
+  const mapLatitude = hasPinnedLocation
+    ? Number(latitude)
+    : DEFAULT_BRANCH_LATITUDE;
+  const mapLongitude = hasPinnedLocation
+    ? Number(longitude)
+    : DEFAULT_BRANCH_LONGITUDE;
 
   function setLogo(files: FileList | null) {
     const file = files?.[0];
@@ -839,7 +846,7 @@ export function CreateBranchForm({
                   <TabPanelHeader
                     icon={<MapPin className="size-4" />}
                     title="Localisation"
-                    description="Adresse, commune et position GPS utilisées pour les documents et le pointage."
+                    description="Adresse et GPS du site. Capturez la position sur place : elle sert au pointage. Un point pris depuis un autre PC place la zone au mauvais endroit."
                   />
 
                   <FormField
@@ -957,9 +964,14 @@ export function CreateBranchForm({
                                 step="any"
                                 placeholder="-4.4419"
                                 className="h-9 rounded-xl"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || locating}
+                                value={field.value ?? ""}
                                 onChange={(e) =>
-                                  field.onChange(Number(e.target.value))
+                                  field.onChange(
+                                    e.target.value === ""
+                                      ? undefined
+                                      : Number(e.target.value),
+                                  )
                                 }
                               />
                             </FormControl>
@@ -981,9 +993,14 @@ export function CreateBranchForm({
                                 step="any"
                                 placeholder="15.2663"
                                 className="h-9 rounded-xl"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || locating}
+                                value={field.value ?? ""}
                                 onChange={(e) =>
-                                  field.onChange(Number(e.target.value))
+                                  field.onChange(
+                                    e.target.value === ""
+                                      ? undefined
+                                      : Number(e.target.value),
+                                  )
                                 }
                               />
                             </FormControl>
@@ -1004,7 +1021,7 @@ export function CreateBranchForm({
                                 type="number"
                                 min={10}
                                 step={1}
-                                placeholder="100"
+                                placeholder="50"
                                 className="h-9 rounded-xl"
                                 disabled={isSubmitting}
                                 onChange={(e) =>
@@ -1018,32 +1035,58 @@ export function CreateBranchForm({
                       />
                     </div>
                     <FormDescription className="mt-2">
-                      Le rayon est exprimé en mètres pour valider une présence.
+                      Rayon en mètres (50 m recommandé : le GPS téléphone a
+                      souvent 20 à 50 m d&apos;erreur). Obligatoire : GPS sur le
+                      site ou clic sur la carte — Kinshasa n&apos;est plus
+                      enregistré par défaut.
                     </FormDescription>
 
-                    <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
                       <Button
                         size="sm"
                         type="button"
-                        onClick={useCurrentLocation}
+                        onClick={() => void useCurrentLocation()}
                         variant="outline"
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || locating}
                         className="rounded-full"
                       >
-                        <Navigation className="mr-1.5 size-3.5" />
-                        Utiliser ma position actuelle
+                        {locating ? (
+                          <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+                        ) : (
+                          <Navigation className="mr-1.5 size-3.5" />
+                        )}
+                        {locating
+                          ? "Capture GPS..."
+                          : "Utiliser ma position actuelle"}
                       </Button>
-
-                      <div className="flex h-9 items-center justify-between gap-3 rounded-full border bg-background px-3">
-                        <span className="text-sm font-medium">
-                          Utiliser la carte
+                      {hasPinnedLocation ? (
+                        <span className="text-xs text-muted-foreground">
+                          Point GPS défini
+                          {gpsAccuracy != null
+                            ? ` · précision ~${Math.round(gpsAccuracy)} m`
+                            : ""}
                         </span>
-                        <Switch
-                          checked={showMapDialog}
-                          onCheckedChange={setShowMapDialog}
-                        />
-                      </div>
+                      ) : (
+                        <span className="text-xs text-amber-700">
+                          Aucun point GPS. Capturez-le sur le site ou cliquez
+                          sur la carte.
+                        </span>
+                      )}
                     </div>
+
+                    <BranchMapPicker
+                      latitude={mapLatitude}
+                      longitude={mapLongitude}
+                      showMarker={hasPinnedLocation}
+                      className="mt-4 h-[280px] rounded-xl"
+                      onChange={async (lat, lng) => {
+                        setGpsAccuracy(undefined);
+                        await applySiteCoords(lat, lng);
+                      }}
+                    />
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {labels.mapDescription}
+                    </p>
                   </div>
                 </TabsContent>
 
@@ -1248,48 +1291,13 @@ export function CreateBranchForm({
             {isLastTab && !canCreate ? (
               <p className="mt-2 px-1 text-center text-xs text-muted-foreground">
                 {isRequestMode
-                  ? "Renseignez le nom, l’email de contact et le type d’établissement pour activer l’envoi."
-                  : "Renseignez le nom et le type d’établissement pour activer la création."}
+                  ? "Renseignez le nom, l’email de contact, le type et le GPS du site pour activer l’envoi."
+                  : "Renseignez le nom, le type et le GPS du site (onglet Localisation) pour activer la création."}
               </p>
             ) : null}
           </div>
         </form>
       </Form>
-      <Dialog open={showMapDialog} onOpenChange={setShowMapDialog}>
-        <DialogContent className="max-w-5xl rounded-2xl p-0">
-          <DialogHeader className="px-5 pt-5">
-            <DialogTitle className="text-lg font-semibold text-foreground">
-              {labels.mapTitle}
-            </DialogTitle>
-            <DialogDescription>{labels.mapDescription}</DialogDescription>
-          </DialogHeader>
-
-          <div className="px-4 pb-4">
-            <BranchMapPicker
-              latitude={Number(latitude)}
-              longitude={Number(longitude)}
-              onChange={async (lat, lng) => {
-                form.setValue("latitude", lat, { shouldValidate: true });
-                form.setValue("longitude", lng, { shouldValidate: true });
-
-                await reverseGeocode(lat, lng);
-              }}
-            />
-
-            <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
-              <div className="flex items-start gap-3 rounded-2xl bg-primary/5 p-4 text-foreground">
-                <BadgeCheck className="mt-0.5 size-5 shrink-0" />
-                <span>{labels.mapBenefit1}</span>
-              </div>
-
-              <div className="flex items-start gap-3 rounded-2xl bg-primary/5 p-4 text-foreground">
-                <MapPin className="mt-0.5 size-5 shrink-0" />
-                <span>{labels.mapBenefit2}</span>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

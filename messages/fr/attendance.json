@@ -5,9 +5,9 @@
   "checkIn": "Pointer",
   "nav": {
     "title": "Présences",
-    "dashboard": "Tableau de bord",
+    "dashboard": "Tableau",
     "checkIn": "Pointage",
-    "details": "Détail des présences",
+    "details": "Détails",
     "reports": "Rapports",
     "history": "Historique"
   },
@@ -125,7 +125,10 @@
     "noPersonnel": "Aucun personnel à afficher.",
     "checkedIn": "Pointé",
     "studentsCount": "{count}",
-    "searching": "Recherche…"
+    "searching": "Recherche…",
+    "pendingCount": "{count} à pointer",
+    "doneCount": "{count} pointé(s)",
+    "recentEmpty": "Aucun pointage pour l'instant."
   },
   "checkout": {
     "title": "Encoder la sortie",
@@ -137,6 +140,8 @@
     "notePlaceholder": "Ex. fièvre, urgence, autorisation parentale…",
     "normalHint": "La sortie sera enregistrée sans motif (fin de vacation / fin de cours / fin de journée).",
     "chooseMode": "Choisissez une fin normale ou une sortie anticipée avec motif.",
+    "incidentOnlyHint": "L'élève n'est pas encore à la dernière séance du créneau. Seule une sortie anticipée (incident) est possible.",
+    "normalTooEarly": "La fin normale n'est possible qu'à la dernière séance. Avant cela, enregistrez une sortie anticipée (incident).",
     "confirmCheckout": "Confirmer la sortie",
     "saving": "Enregistrement…",
     "normalSuccess": "Sortie normale enregistrée pour {personName}.",

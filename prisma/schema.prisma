@@ -1720,7 +1720,7 @@ model Branch {
   tel              String?
   latitude         Float
   longitude        Float
-  attendanceRadius Int             @default(10)
+  attendanceRadius Int             @default(50)
   organizationId   String
   typebranch       TypeBrache
   educationSystem  EducationSystem @default(CONGOLAIS)

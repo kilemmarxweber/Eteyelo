@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useTranslations } from "next-intl";
 import {
   IconCamera,
@@ -22,7 +29,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
   checkInByScanAction,
@@ -39,17 +45,13 @@ import type {
   AttendancePersonLookup,
   AttendancePersonType,
 } from "../attendance-scan-types";
-import { getCurrentPosition } from "../component/attendance.client";
+import { getCurrentGeoCoords } from "../component/attendance.client";
 import { AttendanceCheckoutDialog } from "./attendance-checkout-dialog";
 import { AttendanceQuickPersonRow } from "./attendance-quick-person-row";
 import { AttendanceScanDialog } from "./attendance-scanner";
 
 async function resolveCheckInCoords() {
-  const position = await getCurrentPosition();
-  return {
-    latitude: position.coords.latitude,
-    longitude: position.coords.longitude,
-  };
+  return getCurrentGeoCoords();
 }
 
 type RecentCheckIn = AttendanceCheckInResult & { id: string };
@@ -61,6 +63,7 @@ type CheckoutTarget = {
   attendanceId: string;
   personName: string;
   sessionLabel?: string | null;
+  requireEarlyExit?: boolean;
 };
 
 function looksLikeScanCode(value: string) {
@@ -73,6 +76,28 @@ function looksLikeScanCode(value: string) {
 
 function personKey(person: Pick<AttendancePersonLookup, "id" | "personType">) {
   return `${person.personType}-${person.id}`;
+}
+
+function LiveClock() {
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+    const id = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  return (
+    <time className="font-mono text-lg font-semibold tabular-nums tracking-tight text-foreground sm:text-xl">
+      {now
+        ? now.toLocaleTimeString(undefined, {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          })
+        : "--:--:--"}
+    </time>
+  );
 }
 
 export function AttendanceCheckInClient() {
@@ -302,6 +327,7 @@ export function AttendanceCheckInClient() {
         attendanceId: result.attendanceId,
         personName: result.person.name,
         sessionLabel: result.sessionLabel,
+        requireEarlyExit: result.normalCheckoutAllowed === false,
       });
       setScanOpen(false);
       toast.message(result.message);
@@ -316,28 +342,23 @@ export function AttendanceCheckInClient() {
         return;
       }
 
-      pushRecent(result);
-      if (result.ok) {
-        toast.success(result.message);
-        if (result.person) {
-          markPersonState(result.person, {
-            alreadyCheckedIn: true,
-            canCheckOut: true,
-            attendanceId: result.attendanceId ?? null,
-            expectedSessionLabel:
-              result.sessionLabel ?? result.person.expectedSessionLabel,
-          });
-        }
-        setScanOpen(false);
-      } else {
+      if (!result.ok) {
         toast.error(result.message);
-        if (result.person && result.statusLabel) {
-          markPersonState(result.person, {
-            alreadyCheckedIn: true,
-            canCheckOut: false,
-          });
-        }
+        return;
       }
+
+      pushRecent(result);
+      toast.success(result.message);
+      if (result.person) {
+        markPersonState(result.person, {
+          alreadyCheckedIn: true,
+          canCheckOut: true,
+          attendanceId: result.attendanceId ?? null,
+          expectedSessionLabel:
+            result.sessionLabel ?? result.person.expectedSessionLabel,
+        });
+      }
+      setScanOpen(false);
     },
     [markPersonState, openCheckoutFromResult, pushRecent],
   );
@@ -429,32 +450,44 @@ export function AttendanceCheckInClient() {
   function renderPersonList(people: AttendancePersonLookup[], emptyLabel: string) {
     if (people.length === 0) {
       return (
-        <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+        <div className="flex min-h-0 flex-1 items-center justify-center rounded-xl border border-dashed bg-muted/20 px-6 py-12 text-center text-sm text-muted-foreground">
           {emptyLabel}
-        </p>
+        </div>
       );
     }
 
     return (
-      <div className="max-h-[min(62vh,36rem)] space-y-2 overflow-y-auto pr-1">
-        {people.map((person) => (
-          <AttendanceQuickPersonRow
-            key={personKey(person)}
-            person={person}
-            pointerLabel={t("checkIn")}
-            checkoutLabel={t("checkInUi.checkOutDeparture")}
-            doneLabel={t("checkInUi.checkedIn")}
-            sessionLabel={
-              person.expectedSessionLabel
-                ? t("checkInUi.expectedSession", {
-                    session: person.expectedSessionLabel,
-                  })
-                : null
-            }
-            busy={pending && busyKey === personKey(person)}
-            onPointer={() => checkInPerson(person)}
-            onCheckout={() => checkOutPerson(person)}
-          />
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+        <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+          {people.map((person) => (
+            <AttendanceQuickPersonRow
+              key={personKey(person)}
+              person={person}
+              pointerLabel={t("checkIn")}
+              checkoutLabel={t("checkInUi.checkOutDeparture")}
+              doneLabel={t("checkInUi.checkedIn")}
+              sessionLabel={
+                person.expectedSessionLabel
+                  ? t("checkInUi.expectedSession", {
+                      session: person.expectedSessionLabel,
+                    })
+                  : null
+              }
+              busy={pending && busyKey === personKey(person)}
+              onPointer={() => checkInPerson(person)}
+              onCheckout={() => checkOutPerson(person)}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  function renderListSkeleton(count: number) {
+    return (
+      <div className="min-h-0 flex-1 space-y-2 overflow-hidden">
+        {Array.from({ length: count }, (_, index) => (
+          <Skeleton key={index} className="h-[4.5rem] w-full rounded-xl" />
         ))}
       </div>
     );
@@ -464,270 +497,317 @@ export function AttendanceCheckInClient() {
     ? (["teacher", "student", "personnel"] as const)
     : (["teacher", "student"] as const);
 
-  return (
-    <div className="mx-auto w-full max-w-7xl space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-xl font-semibold tracking-tight">
-            {t("checkInUi.title")}
-          </h2>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            {t("checkInUi.description")}
+  const visiblePeople = searching
+    ? searchResults
+    : tab === "teacher"
+      ? teachers
+      : tab === "student"
+        ? students
+        : personnel;
+  const checkedCount = visiblePeople.filter((person) => person.alreadyCheckedIn)
+    .length;
+  const pendingCount = Math.max(0, visiblePeople.length - checkedCount);
+
+  function renderRecentItem(item: RecentCheckIn) {
+    return (
+      <div
+        key={item.id}
+        className="rounded-lg border bg-background/80 px-3 py-2.5"
+      >
+        <div className="flex items-start justify-between gap-2">
+          <p className="truncate text-sm font-medium">
+            {item.person?.name ?? t("checkInUi.personFallback")}
           </p>
-        </div>
-        <Button
-          type="button"
-          className="w-full shrink-0 sm:w-auto"
-          onClick={() => setScanOpen(true)}
-        >
-          <IconCamera className="mr-2 size-4" />
-          {t("checkInUi.scanCard")}
-        </Button>
-      </div>
-
-      <div className="sticky top-0 z-10 space-y-3 rounded-xl border bg-card/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80">
-        <div className="relative">
-          <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="h-11 pl-9"
-            placeholder={t("checkInUi.searchPlaceholder")}
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && looksLikeScanCode(searchQuery)) {
-                event.preventDefault();
-                runScan(searchQuery);
-              }
-            }}
-          />
-        </div>
-
-        <Tabs
-          value={tab}
-          onValueChange={(value) => setTab(value as PointageTab)}
-        >
-          <TabsList
-            className={cn(
-              "grid h-auto min-h-11 w-full border border-primary/20 bg-primary/10",
-              visibleTabs.length === 3 ? "grid-cols-3" : "grid-cols-2",
-            )}
-          >
-            <TabsTrigger
-              value="teacher"
-              className="gap-1.5 py-2.5 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+          {item.statusLabel ? (
+            <Badge
+              variant={item.status === "LATE" ? "warning" : "success"}
+              className="shrink-0"
             >
-              <IconUserCheck size={16} className="shrink-0" />
-              {t("checkInUi.tabTeachers")}
-            </TabsTrigger>
-            <TabsTrigger
-              value="student"
-              className="gap-1.5 py-2.5 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-            >
-              <IconSchool size={16} className="shrink-0" />
-              {t("checkInUi.tabStudents")}
-            </TabsTrigger>
-            {canViewPersonnel ? (
-              <TabsTrigger
-                value="personnel"
-                className="gap-1.5 py-2.5 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-              >
-                <IconUsers size={16} className="shrink-0" />
-                {t("checkInUi.tabPersonnel")}
-              </TabsTrigger>
-            ) : null}
-          </TabsList>
-        </Tabs>
-      </div>
-
-      {searching ? (
-        renderPersonList(
-          searchResults,
-          pending ? t("checkInUi.searching") : t("checkInUi.noPersonFound"),
-        )
-      ) : (
-        <>
-          {tab === "teacher" ? (
-            bootstrapLoading ? (
-              <div className="space-y-2">
-                {[1, 2, 3, 4].map((item) => (
-                  <Skeleton key={item} className="h-16 w-full rounded-xl" />
-                ))}
-              </div>
-            ) : (
-              renderPersonList(teachers, t("checkInUi.noUpcomingTeachers"))
-            )
+              {item.statusLabel}
+            </Badge>
           ) : null}
+        </div>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+          {[item.person?.matricule, item.sessionLabel]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+      </div>
+    );
+  }
 
-          {tab === "student" ? (
-            bootstrapLoading ? (
-              <div className="space-y-2">
-                <Skeleton className="h-9 w-full rounded-lg" />
-                <Skeleton className="h-9 w-2/3 rounded-lg" />
-                {[1, 2, 3, 4].map((item) => (
-                  <Skeleton key={item} className="h-16 w-full rounded-xl" />
-                ))}
-              </div>
-            ) : (
-            <div className="space-y-3">
-              {cycles.length > 1 ? (
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                  {cycles.map((cycle) => (
-                    <Button
-                      key={cycle.key}
-                      type="button"
-                      size="sm"
-                      variant={cycle.key === selectedCycle?.key ? "default" : "outline"}
-                      onClick={() => {
-                        setCycleKey(cycle.key);
-                        const nextLevel = cycle.levels[0];
-                        setLevelKey(nextLevel?.key ?? "");
-                        const nextClass =
-                          nextLevel?.classes.find((item) => item.hasUpcomingSession) ??
-                          nextLevel?.classes[0];
-                        setClasseId(nextClass?.id ?? "");
-                      }}
-                    >
-                      {cycle.label}
-                    </Button>
-                  ))}
-                </div>
-              ) : null}
+  const studentFilters =
+    tab === "student" && !searching && !bootstrapLoading ? (
+      <div className="shrink-0 space-y-2">
+        {cycles.length > 1 ? (
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+            {cycles.map((cycle) => (
+              <Button
+                key={cycle.key}
+                type="button"
+                size="sm"
+                variant={cycle.key === selectedCycle?.key ? "default" : "outline"}
+                onClick={() => {
+                  setCycleKey(cycle.key);
+                  const nextLevel = cycle.levels[0];
+                  setLevelKey(nextLevel?.key ?? "");
+                  const nextClass =
+                    nextLevel?.classes.find((item) => item.hasUpcomingSession) ??
+                    nextLevel?.classes[0];
+                  setClasseId(nextClass?.id ?? "");
+                }}
+              >
+                {cycle.label}
+              </Button>
+            ))}
+          </div>
+        ) : null}
 
-              {selectedCycle?.levels.length ? (
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                  {selectedCycle.levels.map((level) => (
-                    <Button
-                      key={level.key}
-                      type="button"
-                      size="sm"
-                      variant={level.key === selectedLevel?.key ? "default" : "outline"}
-                      onClick={() => {
-                        setLevelKey(level.key);
-                        const nextClass =
-                          level.classes.find((item) => item.hasUpcomingSession) ??
-                          level.classes[0];
-                        setClasseId(nextClass?.id ?? "");
-                      }}
-                    >
-                      {level.label}
-                    </Button>
-                  ))}
-                </div>
-              ) : null}
+        {selectedCycle?.levels.length ? (
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+            {selectedCycle.levels.map((level) => (
+              <Button
+                key={level.key}
+                type="button"
+                size="sm"
+                variant={
+                  level.key === selectedLevel?.key ? "default" : "outline"
+                }
+                onClick={() => {
+                  setLevelKey(level.key);
+                  const nextClass =
+                    level.classes.find((item) => item.hasUpcomingSession) ??
+                    level.classes[0];
+                  setClasseId(nextClass?.id ?? "");
+                }}
+              >
+                {level.label}
+              </Button>
+            ))}
+          </div>
+        ) : null}
 
-              {selectedLevel?.classes.length ? (
-                <div className="flex flex-wrap gap-2">
-                  {selectedLevel.classes.map((classe) => (
-                    <button
-                      key={classe.id}
-                      type="button"
-                      onClick={() => setClasseId(classe.id)}
-                      className={cn(
-                        "rounded-full border px-3 py-1.5 text-left text-sm transition",
-                        classe.id === selectedClass?.id
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "hover:bg-muted/60",
-                      )}
-                    >
-                      <span className="font-medium">{classe.name}</span>
-                      <span
-                        className={cn(
-                          "ml-1.5 text-xs",
-                          classe.id === selectedClass?.id
-                            ? "text-primary-foreground/80"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        {t("checkInUi.studentsCount", { count: classe.studentCount })}
-                      </span>
-                      {classe.hasUpcomingSession ? (
-                        <span
-                          className={cn(
-                            "ml-1.5 inline-block size-1.5 rounded-full",
-                            classe.id === selectedClass?.id
-                              ? "bg-primary-foreground"
-                              : "bg-primary",
-                          )}
-                        />
-                      ) : null}
-                    </button>
-                  ))}
-                </div>
+        {selectedLevel?.classes.length ? (
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+            {selectedLevel.classes.map((classe) => (
+              <button
+                key={classe.id}
+                type="button"
+                onClick={() => setClasseId(classe.id)}
+                className={cn(
+                  "shrink-0 rounded-full border px-3 py-1.5 text-left text-sm transition",
+                  classe.id === selectedClass?.id
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "hover:bg-muted/60",
+                )}
+              >
+                <span className="font-medium">{classe.name}</span>
+                <span
+                  className={cn(
+                    "ml-1.5 text-xs",
+                    classe.id === selectedClass?.id
+                      ? "text-primary-foreground/80"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {t("checkInUi.studentsCount", { count: classe.studentCount })}
+                </span>
+                {classe.hasUpcomingSession ? (
+                  <span
+                    className={cn(
+                      "ml-1.5 inline-block size-1.5 rounded-full",
+                      classe.id === selectedClass?.id
+                        ? "bg-primary-foreground"
+                        : "bg-primary",
+                    )}
+                  />
+                ) : null}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-xl border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
+            {t("checkInUi.noClasses")}
+          </p>
+        )}
+      </div>
+    ) : null;
+
+  let listContent: ReactNode;
+  if (searching) {
+    listContent = renderPersonList(
+      searchResults,
+      pending ? t("checkInUi.searching") : t("checkInUi.noPersonFound"),
+    );
+  } else if (tab === "teacher") {
+    listContent = bootstrapLoading
+      ? renderListSkeleton(6)
+      : renderPersonList(teachers, t("checkInUi.noUpcomingTeachers"));
+  } else if (tab === "student") {
+    listContent = bootstrapLoading
+      ? renderListSkeleton(6)
+      : studentsLoading || (pending && students.length === 0)
+        ? renderListSkeleton(6)
+        : renderPersonList(students, t("checkInUi.noStudents"));
+  } else {
+    listContent =
+      !personnelLoaded && pending
+        ? renderListSkeleton(4)
+        : renderPersonList(personnel, t("checkInUi.noPersonnel"));
+  }
+
+  return (
+    <div className="flex h-full min-h-0 flex-1 flex-col gap-3">
+      <div className="shrink-0 space-y-2 rounded-xl border bg-card p-3 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative min-w-0 flex-1">
+            <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="h-12 pl-9 text-base"
+              placeholder={t("checkInUi.searchPlaceholder")}
+              value={searchQuery}
+              autoFocus
+              onChange={(event) => setSearchQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && looksLikeScanCode(searchQuery)) {
+                  event.preventDefault();
+                  runScan(searchQuery);
+                }
+              }}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="lg"
+              className="h-12 flex-1 touch-manipulation sm:flex-none"
+              onClick={() => setScanOpen(true)}
+            >
+              <IconCamera className="mr-2 size-4" />
+              {t("checkInUi.scanCard")}
+            </Button>
+            <div className="hidden rounded-lg border bg-muted/40 px-3 py-1.5 text-right sm:block">
+              <LiveClock />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="rounded-lg border bg-muted/40 px-3 py-1.5 sm:hidden">
+            <LiveClock />
+          </div>
+          {visiblePeople.length > 0 ? (
+            <div className="ml-auto flex items-center gap-1.5">
+              <Badge variant="outline">
+                {t("checkInUi.pendingCount", { count: pendingCount })}
+              </Badge>
+              <Badge variant="success">
+                {t("checkInUi.doneCount", { count: checkedCount })}
+              </Badge>
+            </div>
+          ) : null}
+        </div>
+
+        <div
+          role="tablist"
+          aria-label={t("checkInUi.title")}
+          className={cn(
+            "grid w-full gap-1 overflow-hidden rounded-lg bg-muted p-1",
+            visibleTabs.length === 3 ? "grid-cols-3" : "grid-cols-2",
+          )}
+        >
+          {(
+            [
+              {
+                value: "teacher" as const,
+                icon: IconUserCheck,
+                label: t("checkInUi.tabTeachers"),
+              },
+              {
+                value: "student" as const,
+                icon: IconSchool,
+                label: t("checkInUi.tabStudents"),
+              },
+              ...(canViewPersonnel
+                ? [
+                    {
+                      value: "personnel" as const,
+                      icon: IconUsers,
+                      label: t("checkInUi.tabPersonnel"),
+                    },
+                  ]
+                : []),
+            ]
+          ).map((item) => {
+            const Icon = item.icon;
+            const isActive = tab === item.value;
+            return (
+              <button
+                key={item.value}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setTab(item.value)}
+                className={cn(
+                  "inline-flex min-w-0 items-center justify-center gap-1.5 overflow-hidden rounded-md px-2 py-2.5 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Icon size={16} className="hidden shrink-0 sm:block" />
+                <span className="truncate">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="flex min-h-0 flex-col gap-2">
+          {studentFilters}
+          {listContent}
+        </div>
+
+        <aside className="hidden min-h-0 lg:flex">
+          <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <CardHeader className="shrink-0 pb-3">
+              <CardTitle className="text-base">
+                {t("checkInUi.recentTitle")}
+              </CardTitle>
+              <CardDescription>
+                {t("checkInUi.recentDescription")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="min-h-0 flex-1 space-y-2 overflow-y-auto">
+              {recent.length > 0 ? (
+                recent.map(renderRecentItem)
               ) : (
-                <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-                  {t("checkInUi.noClasses")}
+                <p className="rounded-lg border border-dashed px-3 py-8 text-center text-sm text-muted-foreground">
+                  {t("checkInUi.recentEmpty")}
                 </p>
               )}
-
-              {selectedClass ? (
-                studentsLoading || (pending && students.length === 0) ? (
-                  <div className="space-y-2">
-                    {[1, 2, 3, 4, 5].map((item) => (
-                      <Skeleton key={item} className="h-16 w-full rounded-xl" />
-                    ))}
-                  </div>
-                ) : (
-                  renderPersonList(students, t("checkInUi.noStudents"))
-                )
-              ) : null}
-            </div>
-            )
-          ) : null}
-
-          {tab === "personnel" && canViewPersonnel ? (
-            !personnelLoaded && pending ? (
-              <div className="space-y-2">
-                {[1, 2, 3].map((item) => (
-                  <Skeleton key={item} className="h-16 w-full rounded-xl" />
-                ))}
-              </div>
-            ) : (
-              renderPersonList(personnel, t("checkInUi.noPersonnel"))
-            )
-          ) : null}
-        </>
-      )}
+            </CardContent>
+          </Card>
+        </aside>
+      </div>
 
       {recent.length > 0 ? (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">{t("checkInUi.recentTitle")}</CardTitle>
-            <CardDescription>{t("checkInUi.recentDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {recent.map((item) => (
-              <div
-                key={item.id}
-                className="flex flex-wrap items-center gap-2 rounded-xl border bg-muted/20 px-4 py-3 text-sm"
-              >
-                <span className="font-medium">
-                  {item.person?.name ?? t("checkInUi.personFallback")}
-                </span>
-                {item.sessionLabel ? (
-                  <span className="text-primary">{item.sessionLabel}</span>
-                ) : null}
-                <span className="text-muted-foreground">
-                  {item.person?.matricule}
-                </span>
-                {item.personType ? (
-                  <Badge variant="outline">
-                    {personTypeLabels[item.personType]}
-                  </Badge>
-                ) : null}
-                {item.statusLabel ? (
-                  <Badge
-                    variant={item.status === "LATE" ? "warning" : "success"}
-                  >
-                    {item.statusLabel}
-                  </Badge>
-                ) : null}
-                <span className="text-xs text-muted-foreground">
-                  {item.message}
-                </span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <div className="flex shrink-0 gap-2 overflow-x-auto pb-0.5 lg:hidden">
+          {recent.map((item) => (
+            <div
+              key={item.id}
+              className="min-w-[12rem] rounded-lg border bg-card px-3 py-2"
+            >
+              <p className="truncate text-sm font-medium">
+                {item.person?.name ?? t("checkInUi.personFallback")}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {item.statusLabel ?? item.message}
+              </p>
+            </div>
+          ))}
+        </div>
       ) : null}
 
       <AttendanceScanDialog
@@ -747,6 +827,7 @@ export function AttendanceCheckInClient() {
           attendanceId={checkout.attendanceId}
           personName={checkout.personName}
           sessionLabel={checkout.sessionLabel}
+          requireEarlyExit={checkout.requireEarlyExit}
           onDone={(message) => {
             pushRecent({
               ok: true,

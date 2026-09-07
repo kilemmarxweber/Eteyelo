@@ -7,7 +7,7 @@
     "title": "Presenças",
     "dashboard": "Painel",
     "checkIn": "Marcação",
-    "details": "Detalhe das presenças",
+    "details": "Detalhes",
     "reports": "Relatórios",
     "history": "Histórico"
   },
@@ -125,7 +125,10 @@
     "noPersonnel": "Nenhum pessoal a mostrar.",
     "checkedIn": "Marcado",
     "studentsCount": "{count}",
-    "searching": "A pesquisar…"
+    "searching": "A pesquisar…",
+    "pendingCount": "{count} por marcar",
+    "doneCount": "{count} marcado(s)",
+    "recentEmpty": "Nenhuma marcação por agora."
   },
   "checkout": {
     "title": "Registar saída",
@@ -137,6 +140,8 @@
     "notePlaceholder": "Ex. febre, urgência, autorização parental…",
     "normalHint": "A saída será registada sem motivo (fim de turno / aula / dia).",
     "chooseMode": "Escolha um fim normal ou uma saída antecipada com motivo.",
+    "incidentOnlyHint": "O aluno ainda não está na última aula do horário. Só é possível uma saída antecipada (incidente).",
+    "normalTooEarly": "O fim normal só é possível na última aula. Antes disso, registe uma saída antecipada (incidente).",
     "confirmCheckout": "Confirmar saída",
     "saving": "A guardar…",
     "normalSuccess": "Saída normal registada para {personName}.",

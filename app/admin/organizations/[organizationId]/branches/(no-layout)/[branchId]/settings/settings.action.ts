@@ -81,19 +81,39 @@ export async function saveEventTypeAction(input: z.infer<typeof eventTypeSchema>
   return { ok: true, message: data.id ? "Type d'événement modifié." : "Type d'événement créé." };
 }
 
-const attendanceSettingsSchema = z.object({ attendanceRadius: z.coerce.number().int().min(10).max(5000) });
+const attendanceSettingsSchema = z.object({
+  attendanceRadius: z.coerce.number().int().min(10).max(5000),
+  latitude: z.coerce.number().min(-90).max(90),
+  longitude: z.coerce.number().min(-180).max(180),
+});
 
 export async function getAttendanceSettingsAction() {
   const { branchId } = await requireBranchContext();
-  return prisma.branch.findUniqueOrThrow({ where: { id: branchId }, select: { attendanceRadius: true, latitude: true, longitude: true } });
+  return prisma.branch.findUniqueOrThrow({
+    where: { id: branchId },
+    select: { attendanceRadius: true, latitude: true, longitude: true },
+  });
 }
 
-export async function saveAttendanceSettingsAction(input: { attendanceRadius: number }) {
+export async function saveAttendanceSettingsAction(input: {
+  attendanceRadius: number;
+  latitude: number;
+  longitude: number;
+}) {
   const context = await requireBranchContext();
   assertCanManage(context.session);
   const data = attendanceSettingsSchema.parse(input);
-  await prisma.branch.update({ where: { id: context.branchId }, data });
-  revalidatePath(`/admin/organizations/${context.organizationId}/branches/${context.branchId}/settings/attendance`);
+  await prisma.branch.update({
+    where: { id: context.branchId },
+    data: {
+      attendanceRadius: data.attendanceRadius,
+      latitude: data.latitude,
+      longitude: data.longitude,
+    },
+  });
+  revalidatePath(
+    `/admin/organizations/${context.organizationId}/branches/${context.branchId}/settings/attendance`,
+  );
   return { ok: true, message: "Paramètres de présence enregistrés." };
 }
 

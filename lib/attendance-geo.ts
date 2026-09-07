@@ -1,7 +1,13 @@
 export type AttendanceGeoCoords = {
   latitude: number;
   longitude: number;
+  accuracy?: number;
 };
+
+/** Erreur GPS typique entre deux appareils (téléphone / PC). */
+export const MIN_GPS_UNCERTAINTY_METERS = 40;
+/** Plafond pour éviter qu'une précision GPS déclarée à 5 km n'ouvre toute la ville. */
+export const MAX_GPS_UNCERTAINTY_METERS = 80;
 
 export function getDistanceInMeters(
   lat1: number,
@@ -25,17 +31,36 @@ export function getDistanceInMeters(
   return R * c;
 }
 
+export function clampGpsAccuracy(accuracy?: number | null): number {
+  if (accuracy == null || !Number.isFinite(accuracy) || accuracy < 0) {
+    return MIN_GPS_UNCERTAINTY_METERS;
+  }
+  return Math.min(
+    MAX_GPS_UNCERTAINTY_METERS,
+    Math.max(MIN_GPS_UNCERTAINTY_METERS, accuracy),
+  );
+}
+
+/**
+ * Le cercle d'incertitude GPS intersecte la zone autorisée.
+ * Sans ça, un pointage à 9 m du site est souvent rejeté (GPS téléphone 20–50 m).
+ */
 export function verifyRadius(
   userLat: number,
   userLng: number,
   schoolLat: number,
   schoolLng: number,
   radius: number,
+  accuracy?: number | null,
 ) {
   const distance = getDistanceInMeters(userLat, userLng, schoolLat, schoolLng);
+  const uncertainty = clampGpsAccuracy(accuracy);
+  const allowed = distance - uncertainty <= radius;
 
   return {
-    allowed: distance <= radius,
+    allowed,
     distance,
+    uncertainty,
+    effectiveRadius: radius + uncertainty,
   };
 }

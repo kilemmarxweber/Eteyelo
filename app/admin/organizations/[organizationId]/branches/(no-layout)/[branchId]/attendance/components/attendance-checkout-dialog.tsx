@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
@@ -45,6 +45,7 @@ type Props = {
   attendanceId: string;
   personName: string;
   sessionLabel?: string | null;
+  requireEarlyExit?: boolean;
   onDone?: (message: string) => void;
 };
 
@@ -55,20 +56,31 @@ export function AttendanceCheckoutDialog({
   attendanceId,
   personName,
   sessionLabel,
+  requireEarlyExit = false,
   onDone,
 }: Props) {
   const t = useTranslations("attendance");
   const tCommon = useTranslations("common");
-  const [mode, setMode] = useState<"normal" | "early">("normal");
+  const [mode, setMode] = useState<"normal" | "early">(
+    requireEarlyExit ? "early" : "normal",
+  );
   const [reasonCode, setReasonCode] =
     useState<AttendanceExitReason>("MALADIE");
   const [reasonNote, setReasonNote] = useState("");
   const [pending, setPending] = useState(false);
 
+  useEffect(() => {
+    if (open && requireEarlyExit) setMode("early");
+    if (open && !requireEarlyExit) setMode("normal");
+  }, [open, requireEarlyExit]);
+
   async function submit() {
     setPending(true);
     try {
       if (mode === "normal") {
+        if (requireEarlyExit) {
+          throw new Error(t("checkout.normalTooEarly"));
+        }
         const [data, error] = await recordNormalCheckoutAction({
           personType,
           attendanceId,
@@ -124,6 +136,7 @@ export function AttendanceCheckoutDialog({
             <Button
               type="button"
               variant={mode === "normal" ? "default" : "outline"}
+              disabled={requireEarlyExit}
               onClick={() => setMode("normal")}
             >
               {t("checkout.normalEnd")}
@@ -136,6 +149,12 @@ export function AttendanceCheckoutDialog({
               {t("checkout.earlyExit")}
             </Button>
           </div>
+
+          {requireEarlyExit ? (
+            <p className="text-sm text-amber-700 dark:text-amber-400">
+              {t("checkout.incidentOnlyHint")}
+            </p>
+          ) : null}
 
           {mode === "early" ? (
             <>

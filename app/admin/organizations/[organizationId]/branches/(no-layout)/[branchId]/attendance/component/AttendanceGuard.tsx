@@ -38,6 +38,7 @@ export default function AttendanceGuard() {
           res.branch.latitude,
           res.branch.longitude,
           res.branch.attendanceRadius,
+          position.coords.accuracy,
         );
 
         if (allowed) {

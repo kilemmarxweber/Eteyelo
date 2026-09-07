@@ -10,6 +10,26 @@ const branchImagesSchema = z.object({
   ecole: z.array(z.string()),
 });
 
+function requiredCoordinate(axis: "latitude" | "longitude") {
+  const bounds =
+    axis === "latitude"
+      ? { min: -90, max: 90, label: "La latitude" }
+      : { min: -180, max: 180, label: "La longitude" };
+  const required = `${bounds.label} est requise. Capturez le GPS sur le site ou cliquez sur la carte.`;
+
+  return z.preprocess((value) => {
+    if (value === "" || value == null) return undefined;
+    const parsed = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }, z
+    .number({
+      required_error: required,
+      invalid_type_error: required,
+    })
+    .min(bounds.min, `${bounds.label} doit être comprise entre ${bounds.min} et ${bounds.max}.`)
+    .max(bounds.max, `${bounds.label} doit être comprise entre ${bounds.min} et ${bounds.max}.`));
+}
+
 export const createBranchFormObjectSchema = z.object({
   name: z
     .string()
@@ -46,14 +66,8 @@ export const createBranchFormObjectSchema = z.object({
     .trim()
     .max(15, "Le numéro ne doit pas dépasser 15 caractères.")
     .optional(),
-  latitude: z.coerce
-    .number({ invalid_type_error: "La latitude est requise." })
-    .min(-90, "La latitude doit être comprise entre -90 et 90.")
-    .max(90, "La latitude doit être comprise entre -90 et 90."),
-  longitude: z.coerce
-    .number({ invalid_type_error: "La longitude est requise." })
-    .min(-180, "La longitude doit être comprise entre -180 et 180.")
-    .max(180, "La longitude doit être comprise entre -180 et 180."),
+  latitude: requiredCoordinate("latitude"),
+  longitude: requiredCoordinate("longitude"),
   attendanceRadius: z.coerce
     .number({ invalid_type_error: "Le rayon est requis." })
     .int("Le rayon doit être un nombre entier.")

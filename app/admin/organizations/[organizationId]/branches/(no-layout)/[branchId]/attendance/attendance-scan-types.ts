@@ -57,6 +57,8 @@ export type AttendanceCheckInResult = {
   /** Déjà pointé à l'arrivée : le client doit encoder la sortie. */
   needsCheckout?: boolean;
   attendanceId?: string;
+  /** False = seule une sortie anticipée (incident) est possible. */
+  normalCheckoutAllowed?: boolean;
 };
 
 /** @deprecated Use AttendancePersonLookup */

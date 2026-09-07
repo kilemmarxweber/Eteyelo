@@ -16,7 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { markTeacherAttendance } from "./attendance/attendance.action";
-import { getCurrentPosition } from "./attendance/component/attendance.client";
+import { getCurrentGeoCoords } from "./attendance/component/attendance.client";
 import {
   checkInMyPersonnelAction,
   checkOutMyPersonnelAction,
@@ -62,11 +62,7 @@ export function MyPresenceSection() {
   }, [load]);
 
   async function withGeo() {
-    const position = await getCurrentPosition();
-    return {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
-    };
+    return getCurrentGeoCoords();
   }
 
   async function clockTeacher() {
@@ -81,6 +77,7 @@ export function MyPresenceSection() {
         status: "PRESENT",
         latitude: coords.latitude,
         longitude: coords.longitude,
+        accuracy: coords.accuracy,
       });
       if (err) throw new Error(err.message);
       toast.success(t("checkedIn"));

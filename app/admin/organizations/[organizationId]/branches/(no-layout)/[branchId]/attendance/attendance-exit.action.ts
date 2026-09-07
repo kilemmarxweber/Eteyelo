@@ -14,9 +14,11 @@ import { AttendanceExitReason } from "@/prisma/generated/prisma/client";
 import {
   ATTENDANCE_EXIT_REASON_LABELS,
   combineDateWithCreneauTime,
+  formatDurationMinutes,
   formatSessionOrdinal,
   minutesBetween,
 } from "@/lib/attendance-exit";
+import { isStudentNormalCheckoutAllowed } from "@/lib/attendance-student-session";
 import { nowLocal } from "@/lib/timezone";
 import {
   buildSchoolReportContext,
@@ -270,6 +272,16 @@ export const closeStudentDayByVacationAction = action
         attendance.recordedAt,
       )) ?? nowLocal();
 
+    const allowNormal = await isStudentNormalCheckoutAllowed(
+      attendance.studentId,
+      branchId,
+    );
+    if (!allowNormal) {
+      throw new Error(
+        "La fin normale n'est possible qu'à la dernière séance du créneau. Avant cela, enregistrez une sortie anticipée (incident).",
+      );
+    }
+
     return prisma.studentAttendance.update({
       where: { id: attendance.id },
       data: {
@@ -312,7 +324,10 @@ export const closeTeacherSessionAction = action
     return prisma.teacherAttendance.update({
       where: { id: attendance.id },
       data: {
-        checkOut: attendance.session.endTime,
+        checkOut: combineDateWithCreneauTime(
+          attendance.date ?? nowLocal(),
+          attendance.session.endTime,
+        ),
         earlyExit: false,
       },
     });
@@ -359,6 +374,16 @@ export const recordNormalCheckoutAction = action
           branchId,
           attendance.recordedAt,
         )) ?? now;
+      const allowNormal = await isStudentNormalCheckoutAllowed(
+        attendance.studentId,
+        branchId,
+        now,
+      );
+      if (!allowNormal) {
+        throw new Error(
+          "La fin normale n'est possible qu'à la dernière séance du créneau. Avant cela, enregistrez une sortie anticipée (incident).",
+        );
+      }
       return prisma.studentAttendance.update({
         where: { id: attendance.id },
         data: { checkOut: expectedEnd, earlyExit: false },
@@ -384,7 +409,10 @@ export const recordNormalCheckoutAction = action
       return prisma.teacherAttendance.update({
         where: { id: attendance.id },
         data: {
-          checkOut: attendance.session.endTime,
+          checkOut: combineDateWithCreneauTime(
+            attendance.date ?? now,
+            attendance.session.endTime,
+          ),
           earlyExit: false,
         },
       });
@@ -606,10 +634,7 @@ export const getTeacherSessionReportAction = action
         actualStart: formatTime(actualStart),
         actualEnd: formatTime(actualEnd),
         minutesDone: minutes,
-        minutesLabel:
-          minutes == null
-            ? "—"
-            : `${Math.floor(minutes / 60) > 0 ? `${Math.floor(minutes / 60)} h ` : ""}${minutes % 60} min`.trim(),
+        minutesLabel: formatDurationMinutes(minutes),
         earlyExit: record.earlyExit,
         exitReason: record.exitReason,
         status: record.status,
@@ -800,10 +825,7 @@ export const getAttendanceDailyJournalAction = action
         actualStart: formatTime(actualStart),
         actualEnd: formatTime(actualEnd),
         minutesDone: minutes,
-        minutesLabel:
-          minutes == null
-            ? "—"
-            : `${Math.floor(minutes / 60) > 0 ? `${Math.floor(minutes / 60)} h ` : ""}${minutes % 60} min`.trim(),
+        minutesLabel: formatDurationMinutes(minutes),
         earlyExit: record.earlyExit,
         exitReason: record.exitReason,
         status: record.status,
@@ -1005,7 +1027,7 @@ export const getStudentRosterReportAction = action
             id: true,
             nameClasse: true,
             codeClasse: true,
-            creneau: { select: { endTime: true } },
+            creneau: { select: { startTime: true, endTime: true } },
           },
         },
         student: {
@@ -1045,7 +1067,7 @@ export const getStudentRosterReportAction = action
         earlyExit: true,
         exitReason: true,
         recordedAt: true,
-        session: { select: { date: true, endTime: true } },
+        session: { select: { date: true } },
       },
     });
 
@@ -1075,9 +1097,6 @@ export const getStudentRosterReportAction = action
       if (row.checkIn) entry.checkIns.push(row.checkIn);
       else entry.checkIns.push(row.recordedAt);
       if (row.checkOut) entry.checkOuts.push(row.checkOut);
-      else if (!row.earlyExit && row.session.endTime) {
-        entry.checkOuts.push(row.session.endTime);
-      }
       if (row.earlyExit) {
         entry.earlyExit = true;
         entry.exitReason = row.exitReason;
@@ -1104,11 +1123,14 @@ export const getStudentRosterReportAction = action
           : null;
 
         let checkOutDate: Date | null = null;
-        if (entry?.checkOuts.length) {
-          checkOutDate = new Date(
-            Math.max(...entry.checkOuts.map((d) => d.getTime())),
+        if (entry?.earlyExit) {
+          const realExits = (entry.checkOuts ?? []).filter(
+            (value) => value.getUTCFullYear() >= 1990,
           );
-        } else if (status !== "ABSENT" && !entry?.earlyExit) {
+          checkOutDate = realExits.length
+            ? new Date(Math.max(...realExits.map((value) => value.getTime())))
+            : vacationEnd;
+        } else if (status !== "ABSENT") {
           checkOutDate = vacationEnd;
         }
 

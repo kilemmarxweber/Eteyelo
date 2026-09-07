@@ -1,18 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { IconScan, IconUserCheck } from "@tabler/icons-react";
+import { IconUserCheck } from "@tabler/icons-react";
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { NotFoundView } from "@/components/not-found-view";
 import { useSession } from "@/lib/auth-client";
 import { canAccessTeachingArea } from "@/lib/auth/session-roles";
-import { AttendanceSidebarNav } from "./components/attendance-sidebar-nav";
+import { AttendanceTabsNav } from "./components/attendance-tabs-nav";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 
 export default function AttendanceLayout({
   children,
@@ -26,8 +24,10 @@ export default function AttendanceLayout({
   const params = useParams<{ organizationId: string; branchId: string }>();
   const pathname = usePathname();
   const basePath = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/attendance`;
-  const pointagePath = `${basePath}/pointage`;
-  const onPointagePage = pathname.startsWith(pointagePath);
+  const onPointagePage =
+    pathname === basePath ||
+    pathname === `${basePath}/` ||
+    pathname.startsWith(`${basePath}/pointage`);
 
   useEffect(() => {
     setHasMounted(true);
@@ -42,33 +42,33 @@ export default function AttendanceLayout({
       fixedHeight
       fadedBelow
       title={t("title")}
-      description={t("description")}
+      description={onPointagePage ? undefined : t("description")}
       badge={
         <Badge variant="outline-primary" icon={<IconUserCheck size={14} />}>
           {t("badge")}
         </Badge>
       }
-      actions={
-        !onPointagePage ? (
-          <Button asChild>
-            <Link href={pointagePath}>
-              <IconScan className="mr-2 size-4" />
-              {t("checkIn")}
-            </Link>
-          </Button>
-        ) : null
-      }
       contentClassName="flex min-h-0 flex-col"
     >
-      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="min-h-0">
-          <Card className="sticky top-4 overflow-hidden p-4">
-            <AttendanceSidebarNav basePath={basePath} />
-          </Card>
-        </aside>
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
+        <div className="shrink-0">
+          <AttendanceTabsNav basePath={basePath} />
+        </div>
 
-        <main className="min-h-0 min-w-0 overflow-auto">
-          <div className="animate-fade-in">{children}</div>
+        <main
+          className={cn(
+            "min-h-0 min-w-0 flex-1",
+            onPointagePage ? "overflow-hidden" : "overflow-auto",
+          )}
+        >
+          <div
+            className={cn(
+              "animate-fade-in",
+              onPointagePage && "flex h-full min-h-0 flex-col",
+            )}
+          >
+            {children}
+          </div>
         </main>
       </div>
     </BranchPageShell>

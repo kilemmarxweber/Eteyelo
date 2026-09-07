@@ -1,5 +1,5 @@
-import { AttendanceDashboardClient } from "./components/attendance-dashboard-client";
+import { AttendanceCheckInClient } from "./components/attendance-checkin-client";
 
 export default function AttendancePage() {
-  return <AttendanceDashboardClient />;
+  return <AttendanceCheckInClient />;
 }

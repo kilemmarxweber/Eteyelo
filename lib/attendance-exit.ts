@@ -1,4 +1,5 @@
 import type { AttendanceExitReason } from "@/prisma/generated/prisma/client";
+import { scheduleHourToMinutes, toMinutes } from "@/lib/timezone";
 
 export const ATTENDANCE_EXIT_REASON_LABELS: Record<
   AttendanceExitReason,
@@ -32,9 +33,17 @@ export function formatDurationMinutes(minutes: number | null | undefined): strin
   return `${h} h ${m.toString().padStart(2, "0")}`;
 }
 
+/** Heure du jour en minutes, que la Date soit un @db.Time (1970 UTC) ou un horodatage réel. */
+export function clockMinutesOf(date: Date): number {
+  if (date.getUTCFullYear() < 1990) {
+    return scheduleHourToMinutes(date);
+  }
+  return toMinutes(date);
+}
+
 export function minutesBetween(start: Date | null, end: Date | null): number | null {
   if (!start || !end) return null;
-  const diff = Math.round((end.getTime() - start.getTime()) / 60_000);
+  const diff = clockMinutesOf(end) - clockMinutesOf(start);
   return diff >= 0 ? diff : null;
 }
 

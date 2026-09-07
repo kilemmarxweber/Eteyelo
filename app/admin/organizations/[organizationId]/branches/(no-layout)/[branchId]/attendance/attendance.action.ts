@@ -47,6 +47,7 @@ import {
 const geoCoordsSchema = z.object({
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
+  accuracy: z.number().min(0).max(5000).optional(),
 });
 
 /** Fenêtre par défaut pour l'historique présences (évite un full scan). */
@@ -473,6 +474,7 @@ export const markStudentAttendance = action
       remark: z.string().optional(),
       latitude: geoCoordsSchema.shape.latitude,
       longitude: geoCoordsSchema.shape.longitude,
+      accuracy: geoCoordsSchema.shape.accuracy,
     }),
   )
   .handler(async ({ input }) => {
@@ -483,6 +485,7 @@ export const markStudentAttendance = action
       branchId,
       latitude: input.latitude,
       longitude: input.longitude,
+      accuracy: input.accuracy,
     });
 
     await assertStudentAttendanceWriteAccess({
@@ -671,6 +674,7 @@ export const markTeacherAttendance = action
       status: z.enum(["PRESENT", "ABSENT", "LATE"]),
       latitude: geoCoordsSchema.shape.latitude,
       longitude: geoCoordsSchema.shape.longitude,
+      accuracy: geoCoordsSchema.shape.accuracy,
     }),
   )
   .handler(async ({ input }) => {
@@ -681,6 +685,7 @@ export const markTeacherAttendance = action
       branchId,
       latitude: input.latitude,
       longitude: input.longitude,
+      accuracy: input.accuracy,
     });
 
     await assertTeacherAttendanceWriteAccess({

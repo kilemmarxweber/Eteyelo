@@ -5,9 +5,9 @@
   "checkIn": "Check in",
   "nav": {
     "title": "Attendance",
-    "dashboard": "Dashboard",
+    "dashboard": "Overview",
     "checkIn": "Check-in",
-    "details": "Attendance details",
+    "details": "Details",
     "reports": "Reports",
     "history": "History"
   },
@@ -125,7 +125,10 @@
     "noPersonnel": "No staff to display.",
     "checkedIn": "Checked in",
     "studentsCount": "{count}",
-    "searching": "Searching…"
+    "searching": "Searching…",
+    "pendingCount": "{count} remaining",
+    "doneCount": "{count} checked in",
+    "recentEmpty": "No check-ins yet."
   },
   "checkout": {
     "title": "Record departure",
@@ -137,6 +140,8 @@
     "notePlaceholder": "E.g. fever, emergency, parental authorisation…",
     "normalHint": "Departure will be recorded without a reason (end of shift / class / day).",
     "chooseMode": "Choose a normal end or early departure with reason.",
+    "incidentOnlyHint": "The student is not yet at the last period of the time slot. Only an early departure (incident) is allowed.",
+    "normalTooEarly": "A normal end is only possible at the last period. Before that, record an early departure (incident).",
     "confirmCheckout": "Confirm departure",
     "saving": "Saving…",
     "normalSuccess": "Normal departure recorded for {personName}.",

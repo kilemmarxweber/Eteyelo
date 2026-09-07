@@ -9,7 +9,19 @@ import { branchTypeSchema } from "@/lib/schemas/extended-branch";
 
 export const DEFAULT_BRANCH_LATITUDE = -4.4419;
 export const DEFAULT_BRANCH_LONGITUDE = 15.2663;
-export const DEFAULT_BRANCH_ATTENDANCE_RADIUS = 10;
+export const DEFAULT_BRANCH_ATTENDANCE_RADIUS = 50;
+
+export function isPinnedBranchGeo(
+  latitude: unknown,
+  longitude: unknown,
+): boolean {
+  return (
+    typeof latitude === "number" &&
+    typeof longitude === "number" &&
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude)
+  );
+}
 
 type BranchImageItem = {
   logo: string;

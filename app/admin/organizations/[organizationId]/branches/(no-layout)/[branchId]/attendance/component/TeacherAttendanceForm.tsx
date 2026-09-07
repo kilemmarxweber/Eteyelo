@@ -10,7 +10,7 @@ import {
   getActiveTeachersNow,
   markTeacherAttendance,
 } from "../attendance.action";
-import { getCurrentPosition } from "./attendance.client";
+import { getCurrentGeoCoords } from "./attendance.client";
 
 type SessionData = {
   teacherId: string;
@@ -143,13 +143,14 @@ export default function TeacherAttendanceForm({
 
     setLoading(true);
     try {
-      const position = await getCurrentPosition();
+      const coords = await getCurrentGeoCoords();
       await markTeacherAttendance({
         teacherId: resolved.teacherId,
         sessionId: resolved.sessionId,
         status: "PRESENT",
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        accuracy: coords.accuracy,
       });
       toast.success(t("teacherForm.presenceSaved"));
       onSuccess?.();
@@ -170,13 +171,14 @@ export default function TeacherAttendanceForm({
 
     setLoading(true);
     try {
-      const position = await getCurrentPosition();
+      const coords = await getCurrentGeoCoords();
       await markTeacherAttendance({
         teacherId: selected.id,
         sessionId: selected.activeSession.id,
         status: "PRESENT",
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        accuracy: coords.accuracy,
       });
       toast.success(t("teacherForm.presenceSaved"));
       setSelected(null);
