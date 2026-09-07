@@ -330,7 +330,7 @@ export function CreateBranchForm({
     await reverseGeocode(lat, lng);
   }
 
-  async function useCurrentLocation() {
+  async function captureCurrentLocation() {
     setLocating(true);
     try {
       const coords = await getCurrentGeoCoords();
@@ -1045,7 +1045,7 @@ export function CreateBranchForm({
                       <Button
                         size="sm"
                         type="button"
-                        onClick={() => void useCurrentLocation()}
+                        onClick={() => void captureCurrentLocation()}
                         variant="outline"
                         disabled={isSubmitting || locating}
                         className="rounded-full"
