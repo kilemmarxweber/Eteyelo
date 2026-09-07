@@ -45,6 +45,7 @@ import {
   canValidatePayroll,
 } from "@/lib/auth/session-roles";
 import { calendarYearForSchoolMonth } from "@/lib/payroll/calendar-year";
+import { formatPayrollAmount } from "@/lib/reports/format-amount";
 import { parsePersonnelScales, type PersonnelScale } from "@/lib/payroll/personnel-scales";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import {
@@ -175,12 +176,8 @@ type SchoolYearOption = {
   isCurrentYear: boolean;
 };
 
-function formatAmount(value: number, currency: string, localeTag: string) {
-  return new Intl.NumberFormat(localeTag, {
-    style: "currency",
-    currency,
-    maximumFractionDigits: currency === "USD" ? 2 : 0,
-  }).format(value);
+function formatAmount(value: number, currency: string, _localeTag?: string) {
+  return formatPayrollAmount(value, currency);
 }
 
 function statusLabel(status: string, t: ReturnType<typeof useTranslations>) {

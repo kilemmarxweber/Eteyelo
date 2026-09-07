@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
-import { canComputePayroll } from "@/lib/auth/session-roles";
+import { formatPayrollAmount } from "@/lib/reports/format-amount";
 import { exportTeacherPayslipPdf } from "./export-teacher-payslip-pdf";
 import {
   parsePayslipLineDetail,
@@ -124,11 +124,7 @@ const KIND_LABELS: Record<string, string> = {
 };
 
 function formatAmount(value: number, currency: string) {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: currency === "USD" ? 2 : 0,
-  }).format(value);
+  return formatPayrollAmount(value, currency);
 }
 
 function formatClock(iso: string | null | undefined) {
@@ -286,7 +282,7 @@ export default function PayslipDetailClient({
         <CardContent className="pt-5">
           <div className="grid gap-3 sm:grid-cols-3">
             <Metric
-              label="Brut"
+              label="Total brut"
               value={formatAmount(payslip.gross, payslip.currency)}
               tone="sky"
             />

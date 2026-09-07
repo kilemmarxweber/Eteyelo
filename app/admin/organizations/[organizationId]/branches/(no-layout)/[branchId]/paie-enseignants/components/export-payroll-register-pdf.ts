@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
-import { formatReportAmount } from "@/lib/reports/format-amount";
+import { formatPayrollAmount } from "@/lib/reports/format-amount";
 import {
   drawReportFooterOnAllPages,
   drawReportHeader,
@@ -95,7 +95,7 @@ const STATUS_LABELS: Record<string, string> = {
 type RowKind = "group" | "item" | "subtotal" | "total";
 
 function money(value: number, currency: string) {
-  return formatReportAmount(value, currency);
+  return formatPayrollAmount(value, currency);
 }
 
 function minutesLabel(value: number) {

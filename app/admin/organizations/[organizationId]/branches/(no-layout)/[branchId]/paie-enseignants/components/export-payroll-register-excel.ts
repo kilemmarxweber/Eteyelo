@@ -1,6 +1,6 @@
 import type ExcelJS from "exceljs";
 
-import { formatReportAmount } from "@/lib/reports/format-amount";
+import { formatPayrollAmount } from "@/lib/reports/format-amount";
 import { safePdfFilePart } from "@/lib/pdf/pdf-engine";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type {
@@ -235,7 +235,7 @@ export async function exportPayrollRegisterExcel(
     nextRow += 3;
     sheet.mergeCells(nextRow, 1, nextRow, COL_COUNT);
     sheet.getCell(nextRow, 1).value =
-      `Paie du mois : brut ${formatReportAmount(cash.payrollGross, currency)} · retenues ${formatReportAmount(cash.payrollDeductions, currency)} · à consommer ${formatReportAmount(cash.payrollConsume, currency)} · ${cash.unpaidCount} bulletin${cash.unpaidCount > 1 ? "s" : ""} non payé${cash.unpaidCount > 1 ? "s" : ""} · ${sessions} séance${sessions > 1 ? "s" : ""}`;
+      `Paie du mois : brut ${formatPayrollAmount(cash.payrollGross, currency)} · retenues ${formatPayrollAmount(cash.payrollDeductions, currency)} · à consommer ${formatPayrollAmount(cash.payrollConsume, currency)} · ${cash.unpaidCount} bulletin${cash.unpaidCount > 1 ? "s" : ""} non payé${cash.unpaidCount > 1 ? "s" : ""} · ${sessions} séance${sessions > 1 ? "s" : ""}`;
     sheet.getCell(nextRow, 1).font = {
       name: "Calibri",
       size: 9,
@@ -263,7 +263,7 @@ export async function exportPayrollRegisterExcel(
     const groupLost = group.rows.reduce((sum, row) => sum + row.deductions, 0);
     const groupNet = group.rows.reduce((sum, row) => sum + row.net, 0);
     const groupCell = sheet.getCell(rowIndex, 1);
-    groupCell.value = `${group.label}  ·  ${group.rows.length} agent${group.rows.length > 1 ? "s" : ""}  ·  brut ${formatReportAmount(groupGross, currency)}  ·  pertes ${formatReportAmount(groupLost, currency)}  ·  net ${formatReportAmount(groupNet, currency)}`;
+    groupCell.value = `${group.label}  ·  ${group.rows.length} agent${group.rows.length > 1 ? "s" : ""}  ·  brut ${formatPayrollAmount(groupGross, currency)}  ·  pertes ${formatPayrollAmount(groupLost, currency)}  ·  net ${formatPayrollAmount(groupNet, currency)}`;
     const groupFill = CYCLE_COLORS[group.cycleGroup] ?? CYCLE_COLORS.AUTRE;
     paintRange(sheet, rowIndex, 1, COL_COUNT, {
       font: { name: "Calibri", size: 9, bold: true, color: { argb: "FFFFFFFF" } },

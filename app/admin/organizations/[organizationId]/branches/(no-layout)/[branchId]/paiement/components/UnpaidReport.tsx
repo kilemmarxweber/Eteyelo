@@ -28,12 +28,21 @@ import {
 } from "../paiement.action";
 import { exportUnpaidReportPdf } from "./export-unpaid-pdf";
 import { formatReportAmount } from "@/lib/reports/format-amount";
+import type { SchoolReportContext } from "@/lib/reports/types";
 import { cycleLabel } from "@/lib/cycle";
 import { useTranslations } from "next-intl";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 type ClassOption = { id: string; name: string };
 type YearOption = { id: string; name: string };
+
+function asReportCurrency(
+  value: string | null | undefined,
+): SchoolReportContext["baseCurrency"] | undefined {
+  const code = value?.trim().toUpperCase();
+  if (code === "USD" || code === "CDF" || code === "AOA") return code;
+  return undefined;
+}
 
 type UnpaidReportProps = {
   refreshKey?: number;
@@ -76,12 +85,20 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
   const [error, setError] = useState<string | null>(null);
   const [filtersReady, setFiltersReady] = useState(false);
   const [baseCurrency, setBaseCurrency] = useState<string>("USD");
+  const [quoteCurrency, setQuoteCurrency] = useState<string | null>(null);
+  const [selectedRate, setSelectedRate] = useState<number | null>(null);
 
   useEffect(() => {
     void (async () => {
       const [context] = await getUnpaidReportContextAction();
       if (context?.baseCurrency) {
         setBaseCurrency(context.baseCurrency);
+      }
+      if (context?.quoteCurrency) {
+        setQuoteCurrency(context.quoteCurrency);
+      }
+      if (context?.selectedRate != null) {
+        setSelectedRate(context.selectedRate);
       }
     })();
   }, []);
@@ -167,6 +184,11 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
         });
         setSchoolYearLabel(data.schoolYearLabel);
         setByCycle(data.byCycle ?? []);
+        if (data.baseCurrency) {
+          setBaseCurrency(data.baseCurrency);
+        }
+        setQuoteCurrency(data.quoteCurrency ?? null);
+        setSelectedRate(data.selectedRate ?? null);
       }
 
       setLoading(false);
@@ -188,14 +210,30 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
         throw new Error(err?.message || t("unpaid.contextFailed"));
       }
 
-      await exportUnpaidReportPdf(rows, context, {
-        schoolYearLabel,
-        classeName: selectedClasseName,
-        emptyMessage:
-          rows.length === 0
-            ? t("unpaid.emptyPdf", { student: peopleLabels.studentLower })
-            : undefined,
-      });
+      const resolvedCurrency =
+        asReportCurrency(context.baseCurrency) ??
+        asReportCurrency(baseCurrency);
+
+      await exportUnpaidReportPdf(
+        rows,
+        {
+          ...context,
+          baseCurrency: resolvedCurrency,
+          quoteCurrency:
+            asReportCurrency(context.quoteCurrency) ??
+            asReportCurrency(quoteCurrency),
+          selectedRate: context.selectedRate ?? selectedRate,
+        },
+        {
+          schoolYearLabel,
+          classeName: selectedClasseName,
+          currency: resolvedCurrency ?? baseCurrency,
+          emptyMessage:
+            rows.length === 0
+              ? t("unpaid.emptyPdf", { student: peopleLabels.studentLower })
+              : undefined,
+        },
+      );
       if (context.baseCurrency) {
         setBaseCurrency(context.baseCurrency);
       }

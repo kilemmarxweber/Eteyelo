@@ -7,14 +7,44 @@ import {
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import type { SchoolReportContext } from "@/lib/reports/types";
-import { formatReportAmount } from "@/lib/reports/format-amount";
+import { formatReportAmount, formatReportNumber } from "@/lib/reports/format-amount";
 import type { UnpaidFinancialStatus, UnpaidReportRow } from "../paiement.action";
 
 export type UnpaidReportOptions = {
   schoolYearLabel?: string | null;
   classeName?: string | null;
   emptyMessage?: string;
+  currency?: string | null;
 };
+
+function resolveBaseCurrency(
+  context: SchoolReportContext,
+  options: UnpaidReportOptions = {},
+): NonNullable<SchoolReportContext["baseCurrency"]> {
+  const fromOptions = options.currency?.trim().toUpperCase();
+  const fromContext = context.baseCurrency?.trim().toUpperCase();
+  const code = fromOptions || fromContext;
+  if (code === "CDF" || code === "AOA" || code === "USD") return code;
+  return "USD";
+}
+
+function rateDetail(
+  context: SchoolReportContext,
+  currency: string,
+): string {
+  const quote = context.quoteCurrency?.trim().toUpperCase();
+  const rate = context.selectedRate;
+  if (
+    quote &&
+    quote !== currency &&
+    rate != null &&
+    Number.isFinite(rate) &&
+    rate > 0
+  ) {
+    return `Taux : 1 ${currency} = ${formatReportNumber(rate, quote)} ${quote}`;
+  }
+  return `Devise de base : ${currency}`;
+}
 
 function safeFilePart(value: string) {
   return value
@@ -98,7 +128,7 @@ export async function buildUnpaidReportPdf(
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
-  const currency = context.baseCurrency ?? "USD";
+  const currency = resolveBaseCurrency(context, options);
   const head = hasRemise
     ? [
         "Élève",
@@ -261,6 +291,7 @@ export async function buildUnpaidReportPdf(
         subtitle: context.branchName,
         details: [
           ...filterLabels,
+          rateDetail(context, currency),
           rows.length > 0
             ? `${rows.length} élève(s) — À jour ${counts.aJour} · Partiel ${counts.partiel} · En retard ${counts.enRetard}${
                 hasRemise

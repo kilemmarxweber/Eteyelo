@@ -79,6 +79,7 @@ export type BuildSchoolReportContextOptions = {
   exchangeRateUsdCdf?: number;
   baseCurrency?: SchoolReportContext["baseCurrency"];
   quoteCurrency?: SchoolReportContext["quoteCurrency"];
+  selectedRate?: SchoolReportContext["selectedRate"];
   showConversion?: boolean;
   receiptPrintFormat?: SchoolReportContext["receiptPrintFormat"];
   /** Si fourni, remplace le libellé année scolaire dérivé de la branche. */
@@ -112,6 +113,7 @@ export function buildSchoolReportContext(
     exchangeRateUsdCdf: options.exchangeRateUsdCdf,
     baseCurrency: options.baseCurrency,
     quoteCurrency: options.quoteCurrency,
+    selectedRate: options.selectedRate,
     showConversion: options.showConversion,
     receiptPrintFormat: options.receiptPrintFormat,
   };

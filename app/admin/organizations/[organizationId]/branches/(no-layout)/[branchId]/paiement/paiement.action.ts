@@ -1036,6 +1036,7 @@ export const createPaiementAction = action
         exchangeRateUsdCdf: usdCdfRate,
         baseCurrency,
         quoteCurrency: quoteCurrency ?? undefined,
+        selectedRate,
         showConversion: showReceiptConversion,
         receiptPrintFormat,
       });
@@ -1415,6 +1416,7 @@ export const getCashierReportContextAction = action.handler(async () => {
       exchangeRateUsdCdf: resolveUsdCdfRate(rates),
       baseCurrency,
       quoteCurrency: quoteCurrency ?? undefined,
+      selectedRate,
     }),
     selectedRate,
   };
@@ -1442,6 +1444,7 @@ export const getPaymentReportContextAction = action.handler(async () => {
       exchangeRateUsdCdf: resolveUsdCdfRate(rates),
       baseCurrency,
       quoteCurrency: quoteCurrency ?? undefined,
+      selectedRate,
       showConversion: showReceiptConversion,
       receiptPrintFormat,
     }),
@@ -2080,13 +2083,14 @@ function resolveUnpaidFinancialStatus(
 export const getUnpaidReportContextAction = action.handler(async () => {
   const { branchId, organizationId } = await requireFinanceOversightBranchContext();
 
-  const [branch, { rates, baseCurrency, quoteCurrency }] = await Promise.all([
-    prisma.branch.findFirst({
-      where: { id: branchId, organizationId },
-      select: schoolReportBranchSelect,
-    }),
-    loadOrgExchangeRates(organizationId),
-  ]);
+  const [branch, { rates, baseCurrency, quoteCurrency, selectedRate }] =
+    await Promise.all([
+      prisma.branch.findFirst({
+        where: { id: branchId, organizationId },
+        select: schoolReportBranchSelect,
+      }),
+      loadOrgExchangeRates(organizationId),
+    ]);
 
   if (!branch) {
     throw new Error("Contexte introuvable.");
@@ -2096,6 +2100,7 @@ export const getUnpaidReportContextAction = action.handler(async () => {
     exchangeRateUsdCdf: resolveUsdCdfRate(rates),
     baseCurrency,
     quoteCurrency: quoteCurrency ?? undefined,
+    selectedRate,
   });
 });
 
@@ -2109,6 +2114,8 @@ export const getUnpaidReportAction = action
   )
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await requireFinanceOversightBranchContext();
+    const { baseCurrency, quoteCurrency, selectedRate } =
+      await loadOrgExchangeRates(organizationId);
 
     const classeId = input.classeId?.trim() || null;
     const cycleFilter = input.cycle?.trim() || null;
@@ -2353,5 +2360,8 @@ export const getUnpaidReportAction = action
       totalReste: rows.reduce((sum, r) => sum + r.reste, 0),
       totalRemise: rows.reduce((sum, r) => sum + r.remise, 0),
       byCycle: Array.from(byCycleMap.values()),
+      baseCurrency,
+      quoteCurrency,
+      selectedRate,
     };
   });

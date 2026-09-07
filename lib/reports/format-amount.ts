@@ -47,3 +47,12 @@ export function formatReportNumber(
     "",
   );
 }
+
+/** Paie : AOA affiché `15.000 Kz` (point des milliers, ASCII sûr pour jsPDF). */
+export function formatPayrollAmount(value: number, currency: string = "AOA"): string {
+  const code = (currency || "AOA").trim().toUpperCase() || "USD";
+  if (code === "AOA") {
+    return `${formatReportNumber(value, "AOA")} Kz`;
+  }
+  return formatReportAmount(value, code);
+}

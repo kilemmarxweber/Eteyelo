@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { formatPayrollAmount } from "@/lib/reports/format-amount";
 import {
   parsePayslipLineDetail,
   type TeacherPayslipLineDetailSnapshot,
@@ -50,11 +51,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 function amount(value: number, currency: string) {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: currency === "USD" ? 2 : 0,
-  }).format(value);
+  return formatPayrollAmount(value, currency);
 }
 
 function clock(iso: string | null | undefined) {
@@ -79,6 +76,17 @@ function parseDetail(value: unknown): TeacherPayslipLineDetailSnapshot | null {
   return parsePayslipLineDetail(value);
 }
 
+function lastTableY(doc: jsPDF, fallback: number) {
+  return (
+    (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable
+      ?.finalY ?? fallback
+  );
+}
+
+function isSummaryGrossLine(line: PayslipForPdf["lines"][number]) {
+  return line.kind === "GROSS" && !line.occurredOn;
+}
+
 export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const user =
@@ -97,41 +105,51 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
   doc.text(`Période : ${String(payslip.month).padStart(2, "0")}/${payslip.year}`, 14, 24);
   doc.text(`Agent : ${teacherName || "Agent"}`, 14, 30);
   doc.text(`Statut : ${statusLabel}`, 14, 36);
-  doc.text(`Devise de base : ${payslip.currency}`, 14, 42);
+  doc.text(`Devise : ${payslip.currency === "AOA" ? "Kz" : payslip.currency}`, 14, 42);
+
+  const grossLines = payslip.lines.filter(isSummaryGrossLine);
+  const recapBody: string[][] = [
+    ...grossLines.map((line) => [
+      line.label,
+      line.sessions > 0 ? String(line.sessions) : "—",
+      amount(line.amount, payslip.currency),
+    ]),
+    ["Total brut", "", amount(payslip.gross, payslip.currency)],
+    ["Retenues", "", amount(payslip.deductions, payslip.currency)],
+    ["Net à payer", "", amount(payslip.net, payslip.currency)],
+  ];
+  const recapOffset = grossLines.length;
 
   autoTable(doc, {
     startY: 48,
-    head: [["Brut", "Retenues", "Net à payer", "Statut"]],
-    body: [[
-      amount(payslip.gross, payslip.currency),
-      amount(payslip.deductions, payslip.currency),
-      amount(payslip.net, payslip.currency),
-      payslip.status,
-    ]],
+    head: [["Libellé", "Séances", "Montant"]],
+    body: recapBody,
     theme: "grid",
     styles: { fontSize: 9 },
     headStyles: { fillColor: [30, 64, 175] },
+    columnStyles: {
+      1: { halign: "right", cellWidth: 28 },
+      2: { halign: "right", cellWidth: 42 },
+    },
+    didParseCell: (data) => {
+      if (data.section !== "body") return;
+      const rowIndex = data.row.index;
+      if (rowIndex === recapOffset) {
+        data.cell.styles.fontStyle = "bold";
+        data.cell.styles.fillColor = [219, 234, 254];
+      } else if (rowIndex === recapOffset + 1) {
+        data.cell.styles.textColor = [153, 27, 27];
+      } else if (rowIndex === recapOffset + 2) {
+        data.cell.styles.fontStyle = "bold";
+        data.cell.styles.fillColor = [209, 250, 229];
+      }
+    },
   });
 
   const detailRows = payslip.lines
+    .filter((line) => !isSummaryGrossLine(line))
     .map((line) => {
       const detail = parseDetail(line.detail);
-      if (line.kind === "GROSS" && !line.occurredOn && !detail) {
-        return [
-          "—",
-          "—",
-          "—",
-          minutes(line.minutes),
-          "—",
-          "—",
-          "—",
-          minutes(line.minutes),
-          "Forfait",
-          line.label,
-          amount(line.amount, payslip.currency),
-          "—",
-        ];
-      }
       const isLoss =
         line.kind === "ABSENCE" ||
         line.kind === "LATE" ||
@@ -162,7 +180,7 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
     });
 
   autoTable(doc, {
-    startY: 70,
+    startY: lastTableY(doc, 70) + 8,
     head: [[
       "Date",
       "Début",
@@ -178,12 +196,43 @@ export async function exportTeacherPayslipPdf(payslip: PayslipForPdf) {
       "Perte",
     ]],
     body: detailRows,
+    foot: [[
+      "Totaux",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      amount(payslip.gross, payslip.currency),
+      amount(payslip.deductions, payslip.currency),
+    ]],
     theme: "striped",
     styles: { fontSize: 7 },
     headStyles: { fillColor: [30, 64, 175] },
+    footStyles: {
+      fillColor: [219, 234, 254],
+      textColor: [15, 23, 42],
+      fontStyle: "bold",
+      fontSize: 8,
+    },
+    columnStyles: {
+      10: { halign: "right" },
+      11: { halign: "right" },
+    },
   });
 
+  const footerY = Math.min(200, lastTableY(doc, 190) + 10);
   doc.setFontSize(8);
+  doc.text(
+    `Total brut : ${amount(payslip.gross, payslip.currency)}    ·    Retenues : ${amount(payslip.deductions, payslip.currency)}    ·    Net à payer : ${amount(payslip.net, payslip.currency)}`,
+    148,
+    footerY,
+    { align: "center" },
+  );
   doc.text("Document généré par Eteyelo / KlamboCore", 148, 200, { align: "center" });
   const safeName = (teacherName || "enseignant").replace(/[^\p{L}\p{N}]+/gu, "-");
   doc.save(`bulletin-paie-${safeName}-${payslip.year}-${String(payslip.month).padStart(2, "0")}.pdf`);
