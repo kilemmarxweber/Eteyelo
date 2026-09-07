@@ -38,21 +38,19 @@ import {
   type GlobalSchedulePdfTable,
 } from "./export-global-schedule-pdf";
 import { GlobalScheduleGrid } from "./global-schedule-grid";
+import {
+  alignSaturdayHours,
+  teacherScheduleClock,
+  unionWorkingDays,
+} from "./saturday-clock";
 import type {
   GlobalScheduleByCycle,
-  GlobalScheduleCreneau,
   GlobalScheduleCycleOption,
   GlobalScheduleTeacher,
 } from "./types";
 import type { Cycle } from "@/lib/cycle";
 
 type ViewMode = "teachers" | "grid";
-
-function unionWorkingDays(creneaux: GlobalScheduleCreneau[]) {
-  const days = new Set(creneaux.flatMap((creneau) => creneau.workingDays));
-  if (days.size === 0) return [...DEFAULT_CRENEAU_WORKING_DAYS];
-  return DEFAULT_CRENEAU_WORKING_DAYS.filter((day) => days.has(day));
-}
 
 function teacherPrintTable(
   teacher: GlobalScheduleTeacher,
@@ -65,27 +63,20 @@ function teacherPrintTable(
           teacher.creneauIds.includes(creneau.id),
         )
       : schedule.creneaux;
-  const hours = [
-    ...new Set([
-      ...(teacherCreneaux.length > 0
-        ? teacherCreneaux.flatMap((creneau) => creneau.slots)
-        : []),
-      ...teacher.entries.map((entry) => entry.hour),
-    ]),
-  ].sort();
+  const clock = teacherScheduleClock({
+    teacherCreneaux,
+    fallbackHours: teacher.entries.map((entry) => entry.hour),
+    allCreneaux: schedule.creneaux,
+  });
   return {
     title: teacher.name,
     subtitle: meta,
-    hours,
-    workingDays: unionWorkingDays(
-      teacherCreneaux.length > 0 ? teacherCreneaux : schedule.creneaux,
-    ),
-    recreationHour:
-      teacherCreneaux.length === 1 ? teacherCreneaux[0]?.recreationHour : "",
-    endTime:
-      teacherCreneaux.length === 1
-        ? teacherCreneaux[0]?.endTime
-        : teacherCreneaux.map((creneau) => creneau.endTime).sort().at(-1) ?? "",
+    hours: clock.hours,
+    workingDays: clock.workingDays,
+    recreationHour: clock.recreationHour,
+    endTime: clock.endTime,
+    saturdayHours: clock.saturdayHours,
+    saturdayEndTime: clock.saturdayEndTime,
     entries: teacher.entries,
     showTeacher: false,
   };
@@ -232,20 +223,23 @@ export function HoraireGlobalClient() {
                 },
               ]
             : [
-                ...schedule.creneaux.map((creneau) => ({
-                  title: t("vacation", { name: creneau.nameCreneau }),
-                  subtitle: `${creneau.startTime} – ${creneau.endTime} · ${t("vacationClasses", { count: creneau.classeCount })}`,
-                  hours: creneau.slots,
-                  workingDays: creneau.workingDays,
-                  recreationHour: creneau.recreationHour,
-                  endTime: creneau.endTime,
-                  saturdayHours: creneau.saturdaySlots,
-                  saturdayEndTime: creneau.saturdayEndTime,
-                  entries: schedule.entries.filter(
-                    (entry) => entry.creneauId === creneau.id,
-                  ),
-                  showTeacher: true,
-                })),
+                ...schedule.creneaux.map((creneau) => {
+                  const saturday = alignSaturdayHours(creneau.slots, [creneau]);
+                  return {
+                    title: t("vacation", { name: creneau.nameCreneau }),
+                    subtitle: `${creneau.startTime} – ${creneau.endTime} · ${t("vacationClasses", { count: creneau.classeCount })}`,
+                    hours: creneau.slots,
+                    workingDays: creneau.workingDays,
+                    recreationHour: creneau.recreationHour,
+                    endTime: creneau.endTime,
+                    saturdayHours: saturday.saturdayHours,
+                    saturdayEndTime: saturday.saturdayEndTime,
+                    entries: schedule.entries.filter(
+                      (entry) => entry.creneauId === creneau.id,
+                    ),
+                    showTeacher: true,
+                  };
+                }),
                 ...(schedule.entries.some((entry) => !entry.creneauId)
                   ? [
                       {
@@ -453,7 +447,11 @@ export function HoraireGlobalClient() {
                   />
                 ) : (
                   <>
-                    {schedule.creneaux.map((creneau) => (
+                    {schedule.creneaux.map((creneau) => {
+                      const saturday = alignSaturdayHours(creneau.slots, [
+                        creneau,
+                      ]);
+                      return (
                     <section key={creneau.id} className="space-y-3">
                       <div>
                         <h3 className="text-base font-semibold">
@@ -469,8 +467,8 @@ export function HoraireGlobalClient() {
                         workingDays={creneau.workingDays}
                         recreationHour={creneau.recreationHour}
                         endTime={creneau.endTime}
-                        saturdayHours={creneau.saturdaySlots}
-                        saturdayEndTime={creneau.saturdayEndTime}
+                        saturdayHours={saturday.saturdayHours}
+                        saturdayEndTime={saturday.saturdayEndTime}
                         entries={schedule.entries.filter(
                           (entry) => entry.creneauId === creneau.id,
                         )}
@@ -481,7 +479,8 @@ export function HoraireGlobalClient() {
                         }
                       />
                     </section>
-                    ))}
+                      );
+                    })}
                     {schedule.entries.some((entry) => !entry.creneauId) ? (
                       <section className="space-y-3">
                         <h3 className="text-base font-semibold">
@@ -528,29 +527,11 @@ export function HoraireGlobalClient() {
                           teacher.creneauIds.includes(creneau.id),
                         )
                       : schedule.creneaux;
-                  const hours = [
-                    ...new Set([
-                      ...(teacherCreneaux.length > 0
-                        ? teacherCreneaux.flatMap((creneau) => creneau.slots)
-                        : []),
-                      ...teacher.entries.map((entry) => entry.hour),
-                    ]),
-                  ].sort();
-                  const workingDays = unionWorkingDays(
-                    teacherCreneaux.length > 0
-                      ? teacherCreneaux
-                      : schedule.creneaux,
-                  );
-                  const singleCreneau =
-                    teacherCreneaux.length === 1 ? teacherCreneaux[0] : null;
-                  const recreationHour = singleCreneau?.recreationHour ?? "";
-                  const endTime =
-                    singleCreneau?.endTime ??
-                    teacherCreneaux
-                      .map((creneau) => creneau.endTime)
-                      .sort()
-                      .at(-1) ??
-                    "";
+                  const clock = teacherScheduleClock({
+                    teacherCreneaux,
+                    fallbackHours: teacher.entries.map((entry) => entry.hour),
+                    allCreneaux: schedule.creneaux,
+                  });
 
                   return (
                     <section key={teacher.id || teacher.name} className="space-y-3">
@@ -569,10 +550,12 @@ export function HoraireGlobalClient() {
                         </div>
                       </div>
                       <GlobalScheduleGrid
-                        hours={hours}
-                        workingDays={workingDays}
-                        recreationHour={recreationHour}
-                        endTime={endTime}
+                        hours={clock.hours}
+                        workingDays={clock.workingDays}
+                        recreationHour={clock.recreationHour}
+                        endTime={clock.endTime}
+                        saturdayHours={clock.saturdayHours}
+                        saturdayEndTime={clock.saturdayEndTime}
                         entries={teacher.entries}
                         showTeacher={false}
                         emptyLabel={t("empty")}

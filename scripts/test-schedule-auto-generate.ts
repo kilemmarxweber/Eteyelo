@@ -1,4 +1,5 @@
 import type { Day } from "../prisma/generated/prisma/client";
+import { generateCourseStartSlotsForDay } from "../lib/creneau-saturday";
 import {
   generateCourseStartSlots,
   maxSessionsPerSpreadDay,
@@ -264,4 +265,108 @@ const angolanCandidates: PlacementCandidate[] = [
   );
   assert(packed.failures.length === 0, "7a 1350 min: des cours n'ont pas été casés");
   console.log("OK 7a angolais 270×5 = 1350 : grille 3+3 remplie (4 d'affilée recasés en 3+1)");
+}
+
+{
+  const afternoonVacation = {
+    startTime: "12:30",
+    endTime: "17:15",
+    recreationHour: "14:45",
+    recreationDuration: 15,
+    durationCourse: 45,
+  };
+  const weekdaySlots = generateCourseStartSlotsForDay(
+    afternoonVacation,
+    "Lundi",
+  );
+  const saturdaySlots = generateCourseStartSlotsForDay(
+    afternoonVacation,
+    "Samedi",
+  );
+  const lunSam: Day[] = [
+    "Lundi",
+    "Mardi",
+    "Mercredi",
+    "Jeudi",
+    "Vendredi",
+    "Samedi",
+  ];
+  const courseSlotsByDay = Object.fromEntries(
+    lunSam.map((day) => [
+      day,
+      day === "Samedi" ? saturdaySlots : weekdaySlots,
+    ]),
+  ) as Partial<Record<Day, string[]>>;
+
+  const saturdayPreferred = placeTeachingsGreedy({
+    candidates: [
+      {
+        ...baseCandidate,
+        preferredDays: ["Samedi"],
+        sessionsNeeded: 2,
+        consecutiveSlots: 1,
+        weeklyMinutes: 90,
+      },
+    ],
+    courseSlots: weekdaySlots,
+    courseSlotsByDay,
+    durationCourseMinutes: duration,
+    occupiedClassSlots: new Set(),
+    occupiedTeacherIntervals: new Map(),
+    workDays: lunSam,
+  });
+  assert(
+    saturdayPreferred.failures.length === 0,
+    `samedi préféré: placement incomplet ${JSON.stringify(saturdayPreferred.failures)}`,
+  );
+  assert(
+    saturdayPreferred.placed.length === 2,
+    `samedi préféré: 2 séances, reçu ${saturdayPreferred.placed.length}`,
+  );
+  assert(
+    saturdayPreferred.placed.every((row) => row.day === "Samedi"),
+    "samedi préféré: toutes les séances doivent être le samedi",
+  );
+  assert(
+    saturdayPreferred.placed.every((row) => saturdaySlots.includes(row.hourHm)),
+    `samedi après-midi → heures du matin, reçu ${saturdayPreferred.placed.map((row) => row.hourHm).join(" ")}`,
+  );
+  assert(
+    saturdayPreferred.placed.every((row) => !weekdaySlots.includes(row.hourHm)),
+    "samedi ne doit pas réutiliser les heures d'après-midi de semaine",
+  );
+
+  const spread = placeTeachingsGreedy({
+    candidates: [
+      {
+        ...baseCandidate,
+        preferredDays: [],
+        sessionsNeeded: 6,
+        consecutiveSlots: 1,
+        weeklyMinutes: 270,
+      },
+    ],
+    courseSlots: weekdaySlots,
+    courseSlotsByDay,
+    durationCourseMinutes: duration,
+    occupiedClassSlots: new Set(),
+    occupiedTeacherIntervals: new Map(),
+    workDays: lunSam,
+  });
+  assert(spread.failures.length === 0, "lun–sam: placement incomplet");
+  assert(
+    spread.placed.some((row) => row.day === "Samedi"),
+    `lun–sam: le samedi doit recevoir au moins une séance, jours=${[...countByDay(spread.placed).keys()].join(",")}`,
+  );
+  assert(
+    spread.placed
+      .filter((row) => row.day === "Samedi")
+      .every((row) => saturdaySlots.includes(row.hourHm)),
+    "lun–sam: les séances du samedi utilisent les heures du matin",
+  );
+  console.log(
+    "OK samedi inclus (après-midi →",
+    saturdaySlots.join(" · "),
+    ")",
+  );
 }

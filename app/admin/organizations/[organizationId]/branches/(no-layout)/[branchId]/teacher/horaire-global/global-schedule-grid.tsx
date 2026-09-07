@@ -147,6 +147,13 @@ export function GlobalScheduleGrid({
                         heure,
                         displayHours[index + 1] || endTime,
                       )}
+                      {showSaturdayClock && saturdayDisplayHours[index]
+                        ? ` · Sam. ${saturdayDisplayHours[index]} – ${
+                            saturdayDisplayHours[index + 1] ||
+                            saturdayEndTime ||
+                            endTime
+                          }`
+                        : ""}
                     </span>
                   </TableCell>
                 </TableRow>

@@ -9,7 +9,11 @@ import {
 } from "@/lib/reports/pdf-header-footer";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type { GlobalScheduleEntry } from "./types";
-import { slotHourOnDay } from "@/lib/creneau-saturday";
+import {
+  SATURDAY_SESSION_START,
+  SATURDAY_SESSION_END,
+  slotHourOnDay,
+} from "@/lib/creneau-saturday";
 
 export type GlobalSchedulePdfTable = {
   title: string;
@@ -85,6 +89,12 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const pageHeight = doc.internal.pageSize.getHeight();
 
+  const hasSaturdayMorning = tables.some((table) =>
+    (table.saturdayHours ?? []).some(
+      (hour, index) => hour && hour !== table.hours[index],
+    ),
+  );
+
   const drawHeader = () => {
     drawReportHeader(doc, context, {
       title,
@@ -92,6 +102,9 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
       details: [
         ...details,
         context.academicYearLabel ? `Année : ${context.academicYearLabel}` : "",
+        hasSaturdayMorning
+          ? `Samedi : ${SATURDAY_SESSION_START} – ${SATURDAY_SESSION_END}`
+          : "",
       ].filter(Boolean),
       logoDataUrl: logo,
     });
@@ -112,24 +125,50 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
     doc.setTextColor(15, 23, 42);
     doc.text(table.title, 10, startY);
     startY += 5;
-    if (table.subtitle) {
+    const saturdayHours = table.saturdayHours ?? [];
+    const showSaturdayClock = saturdayHours.some(
+      (hour, index) => hour && hour !== table.hours[index],
+    );
+    const saturdayEnd = table.saturdayEndTime || SATURDAY_SESSION_END;
+    const tableSubtitle = [
+      table.subtitle,
+      showSaturdayClock
+        ? `Samedi : ${SATURDAY_SESSION_START} – ${saturdayEnd}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
+    if (tableSubtitle) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
       doc.setTextColor(71, 85, 105);
-      doc.text(table.subtitle, 10, startY);
+      doc.text(tableSubtitle, 10, startY);
       startY += 4;
     }
 
     const body = table.hours.map((hour, index) => {
       const nextTime = table.hours[index + 1] || table.endTime || "";
+      const saturdayHour = saturdayHours[index] || "";
+      const saturdayNext =
+        saturdayHours[index + 1] || table.saturdayEndTime || nextTime;
+      const saturdayRange =
+        showSaturdayClock && saturdayHour && saturdayHour !== hour
+          ? `${saturdayHour} - ${saturdayNext}`
+          : "";
+      const hoursCell = saturdayRange
+        ? `${hour} - ${nextTime}\nSam. ${saturdayRange}`
+        : `${hour} - ${nextTime}`;
+
       if (table.recreationHour && hour === table.recreationHour) {
-        return [
-          `${hour} - ${nextTime}`,
-          ...table.workingDays.map(() => recreationLabel),
-        ];
+        const recLabel = saturdayRange
+          ? `${recreationLabel}\nSam. ${saturdayRange}`
+          : recreationLabel;
+        return [hoursCell, ...table.workingDays.map(() => recLabel)];
       }
+
       return [
-        `${hour} - ${nextTime}`,
+        hoursCell,
         ...table.workingDays.map((day) =>
           formatCell(
             entriesForCell(
@@ -139,7 +178,7 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
                 day,
                 weekdaySlot: hour,
                 weekdaySlots: table.hours,
-                saturdaySlots: table.saturdayHours ?? [],
+                saturdaySlots: saturdayHours,
               }),
             ),
             table.showTeacher,
@@ -150,7 +189,16 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
 
     autoTable(doc, {
       startY,
-      head: [[hoursLabel, ...table.workingDays]],
+      head: [
+        [
+          hoursLabel,
+          ...table.workingDays.map((day) =>
+            showSaturdayClock && day === "Samedi"
+              ? `${day}\n${SATURDAY_SESSION_START} – ${saturdayEnd}`
+              : day,
+          ),
+        ],
+      ],
       body,
       theme: "grid",
       margin: {
@@ -172,7 +220,7 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
         fontStyle: "bold",
         fontSize: 8,
       },
-      columnStyles: { 0: { cellWidth: 24, fontStyle: "bold" } },
+      columnStyles: { 0: { cellWidth: 28, fontStyle: "bold" } },
       didParseCell: (data) => {
         if (data.section !== "body") return;
         const text = Array.isArray(data.cell.text)

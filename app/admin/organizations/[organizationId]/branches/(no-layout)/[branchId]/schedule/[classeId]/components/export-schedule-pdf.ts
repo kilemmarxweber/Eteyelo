@@ -88,8 +88,17 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
       ];
     }
 
+    const saturdayNext =
+      saturdayTimeSlots[index + 1] || saturdayEndTime || nextTime;
+    const saturdayRange =
+      saturdayTimeSlots[index] && saturdayTimeSlots[index] !== hour
+        ? `${saturdayTimeSlots[index]} - ${saturdayNext}`
+        : "";
+
     return [
-      `${hour} - ${nextTime}`,
+      saturdayRange
+        ? `${hour} - ${nextTime}\nSam. ${saturdayRange}`
+        : `${hour} - ${nextTime}`,
       ...days.map((day) => {
         const cellHour = slotHourOnDay({
           day,
@@ -99,9 +108,11 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
         });
         const cellEntries = entriesForCell(entries, day, cellHour);
         if (!cellEntries.length) return "-";
-        const content = cellEntries.map((entry) =>
-          [entry.courseName, entry.teacherName].filter(Boolean).join("\n"),
-        ).join("\n---\n");
+        const content = cellEntries
+          .map((entry) =>
+            [entry.courseName, entry.teacherName].filter(Boolean).join("\n"),
+          )
+          .join("\n---\n");
         return cellEntries.length > 1 ? `CONFLIT\n${content}` : content;
       }),
     ];
