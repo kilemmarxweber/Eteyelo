@@ -478,12 +478,12 @@ export const updatePersonnelFullAction = action
       });
 
       // 3. UPDATE PERSONNEL (si tu veux tracer update)
-      const personnel = await tx.personnel.update({
+      const updatedPersonnel = await tx.personnel.update({
         where: { id: personnelId },
         data: {},
       });
 
-      return { user, member, personnel };
+      return { user, member, personnel: updatedPersonnel };
     });
 
     return result;
