@@ -196,4 +196,25 @@ test("proprietaire org reste sur l accueil organisation", () => {
   );
 });
 
+test("proprietaire avec un autre role reste sur l accueil organisation", () => {
+  for (const membershipRole of [
+    `${ORG_ROLE.OWNER},${ORG_ROLE.TEACHER}`,
+    `${ORG_ROLE.TEACHER},${ORG_ROLE.OWNER}`,
+    `${ORG_ROLE.OWNER},${ORG_ROLE.CAISSIER}`,
+    `${ORG_ROLE.OWNER},${ORG_ROLE.GESTIONNAIRE}`,
+    `${ORG_ROLE.OWNER},${ORG_ROLE.DIRECTEUR}`,
+    `${ORG_ROLE.OWNER},secretaire-general`,
+  ]) {
+    assert.equal(
+      resolveMembershipPostLoginPath({
+        organizationId: ORG_ID,
+        membershipRole,
+        branchId: BRANCH_ID,
+        branchCount: 2,
+      }),
+      `/admin/organizations/${ORG_ID}`,
+    );
+  }
+});
+
 console.log("\nTous les tests routage post-login sont passes.");

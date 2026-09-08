@@ -56,7 +56,26 @@ export function normalizeMemberRole(
 export function isOrganizationOwnerMember(
   memberRole: string | null | undefined,
 ): boolean {
-  return normalizeMemberRole(memberRole) === ORG_ROLE.OWNER;
+  return memberRolesInclude(memberRole, ORG_ROLE.OWNER);
+}
+
+/**
+ * Le propriétaire garde toujours `owner`, même si on lui assigne un autre rôle
+ * (DAC, enseignant, directeur, etc.). `owner` reste en tête pour l’affichage.
+ */
+export function preserveOrganizationOwnerRole(
+  currentRole: string | null | undefined,
+  nextRole: string,
+): string {
+  const next = (nextRole ?? "")
+    .split(",")
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+  const extras = next.filter((role) => role !== ORG_ROLE.OWNER);
+  if (isOrganizationOwnerMember(currentRole) || next.includes(ORG_ROLE.OWNER)) {
+    return [ORG_ROLE.OWNER, ...extras].join(",");
+  }
+  return extras.join(",") || nextRole.trim();
 }
 
 /**

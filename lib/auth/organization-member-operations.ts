@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { preserveOrganizationOwnerRole } from "@/lib/auth/role-labels";
 import { prisma } from "@/lib/prisma";
 
 type RequestHeaders = Awaited<ReturnType<typeof import("next/headers").headers>>;
@@ -14,16 +15,19 @@ export async function updateOrganizationMemberRole(
 ) {
   const { organizationId, memberId, role, bypassBetterAuthMembership } = input;
 
-  if (bypassBetterAuthMembership) {
-    const member = await prisma.member.findFirst({
-      where: { id: memberId, organizationId },
-    });
-    if (!member) {
-      throw new Error("Membre introuvable.");
-    }
+  const member = await prisma.member.findFirst({
+    where: { id: memberId, organizationId },
+  });
+  if (!member) {
+    throw new Error("Membre introuvable.");
+  }
+
+  const nextRole = preserveOrganizationOwnerRole(member.role, role);
+
+  if (bypassBetterAuthMembership || nextRole.includes(",")) {
     await prisma.member.update({
       where: { id: memberId },
-      data: { role },
+      data: { role: nextRole },
     });
     return;
   }
@@ -32,7 +36,7 @@ export async function updateOrganizationMemberRole(
     body: {
       memberId,
       organizationId,
-      role: role as "owner",
+      role: nextRole as "owner",
     },
     headers: requestHeaders,
   });

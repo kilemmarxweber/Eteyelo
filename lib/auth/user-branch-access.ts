@@ -185,6 +185,10 @@ export async function getUserBranchMembershipsForLogin(
   }
 
   const roles = splitRoles(membershipRole);
+  if (roles.includes(ORG_ROLE.OWNER)) {
+    return scoped;
+  }
+
   const isBranchLoginRole = roles.some((role) =>
     BRANCH_LOGIN_ORG_ROLES.has(role),
   );

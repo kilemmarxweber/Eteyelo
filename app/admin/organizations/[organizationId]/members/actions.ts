@@ -36,7 +36,7 @@ import { organizationRoleExists } from "@/lib/org/assignable-org-roles";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { orgRoleToBranchRole } from "@/lib/auth/org-role-to-branch-role";
 import { ensureBranchMemberRoleProfiles } from "@/lib/auth/ensure-branch-member-profile";
-import { memberHasImplicitAllBranchAccess } from "@/lib/auth/role-labels";
+import { memberHasImplicitAllBranchAccess, preserveOrganizationOwnerRole } from "@/lib/auth/role-labels";
 import { ORG_ROLE } from "@/lib/permissions";
 import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import {
@@ -515,7 +515,17 @@ export async function updateOrganizationMemberAction(
     return { ok: false, message: "Rôle d’organisation invalide." };
   }
 
-  const implicitAllBranches = memberHasImplicitAllBranchAccess(orgRole);
+  const currentMember = await prisma.member.findFirst({
+    where: { id: memberId, organizationId },
+    select: { role: true },
+  });
+  if (!currentMember) {
+    return { ok: false, message: "Membre introuvable." };
+  }
+
+  const implicitAllBranches = memberHasImplicitAllBranchAccess(
+    preserveOrganizationOwnerRole(currentMember.role, orgRole),
+  );
   let syncedBranchIds: string[] = [];
   if (!implicitAllBranches) {
     const branches = await resolveValidBranchIds(

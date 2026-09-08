@@ -13,7 +13,7 @@ import {
   canListAllOrganizations,
   canManageOrganizationAsAppAdmin,
 } from "../lib/auth/organization-access";
-import { isOrganizationOwnerMember, isOrganizationManagerMember, memberHasImplicitAllBranchAccess } from "../lib/auth/role-labels";
+import { isOrganizationOwnerMember, isOrganizationManagerMember, memberHasImplicitAllBranchAccess, preserveOrganizationOwnerRole } from "../lib/auth/role-labels";
 import { buildOrganizationsApiPayload } from "../lib/auth/post-login-routing";
 import {
   APP_ROLE,
@@ -246,14 +246,36 @@ test("canManageOrganizationAsAppAdmin cible le role admin", () => {
 test("isOrganizationOwnerMember detecte owner membre", () => {
   assert.equal(isOrganizationOwnerMember(ORG_ROLE.OWNER), true);
   assert.equal(isOrganizationOwnerMember(ORG_ROLE.GESTIONNAIRE), false);
+  assert.equal(isOrganizationOwnerMember("teacher,owner"), true);
+  assert.equal(isOrganizationOwnerMember("owner,directeur"), true);
 });
 
 test("proprietaire org a acces implicite a toutes les branches", () => {
   assert.equal(memberHasImplicitAllBranchAccess(ORG_ROLE.OWNER), true);
   assert.equal(memberHasImplicitAllBranchAccess("owner,gestionnaire"), true);
+  assert.equal(memberHasImplicitAllBranchAccess("teacher,owner"), true);
   assert.equal(memberHasImplicitAllBranchAccess(ORG_ROLE.GESTIONNAIRE), false);
   assert.equal(memberHasImplicitAllBranchAccess(ORG_ROLE.PREFET), false);
   assert.equal(memberHasImplicitAllBranchAccess(null), false);
+});
+
+test("preserveOrganizationOwnerRole garde owner en tete", () => {
+  assert.equal(
+    preserveOrganizationOwnerRole(ORG_ROLE.OWNER, ORG_ROLE.DIRECTEUR),
+    `${ORG_ROLE.OWNER},${ORG_ROLE.DIRECTEUR}`,
+  );
+  assert.equal(
+    preserveOrganizationOwnerRole(ORG_ROLE.OWNER, "secretaire-general"),
+    `${ORG_ROLE.OWNER},secretaire-general`,
+  );
+  assert.equal(
+    preserveOrganizationOwnerRole(ORG_ROLE.TEACHER, ORG_ROLE.DIRECTEUR),
+    ORG_ROLE.DIRECTEUR,
+  );
+  assert.equal(
+    preserveOrganizationOwnerRole(ORG_ROLE.OWNER, ORG_ROLE.OWNER),
+    ORG_ROLE.OWNER,
+  );
 });
 
 test("isOrganizationManagerMember accepte owner gestionnaire et roles CRU", () => {

@@ -8,6 +8,7 @@ import { canAccessOrganizationAdminHome } from "@/lib/auth/organization-admin-ho
 import { ORGANIZATION_PICKER_PATH } from "@/lib/auth/post-login-redirect";
 import { resolveUserOrganizationFallbackPath } from "@/lib/auth/resolve-user-organization-path";
 import { getOrganizationAuthContext } from "@/lib/auth/require-organization-permission";
+import { isOrganizationOwnerMember } from "@/lib/auth/role-labels";
 import {
   isAppAdminRole,
   isPlatformOwnerRole,
@@ -165,8 +166,11 @@ export async function enforceAdminRouteAccess(pathname: string) {
       return context;
     }
 
-    // Chef établissement + études + gestion : hub org OK (unit-08 / unit-09).
-    if (canAccessOrganizationAdminHome(orgMembership.role)) {
+    // Propriétaire : toujours le hub org, même avec un autre rôle.
+    if (
+      isOrganizationOwnerMember(orgMembership.role) ||
+      canAccessOrganizationAdminHome(orgMembership.role)
+    ) {
       return context;
     }
 

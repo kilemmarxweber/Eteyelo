@@ -74,6 +74,11 @@ export async function resolveUserOrganizationFallbackPath(
   }
 
   const roles = splitRoles(membership.role);
+
+  if (roles.some((memberRole) => ORG_HOME_ROLES.has(memberRole))) {
+    return base;
+  }
+
   const branchMemberships = await getUserBranchMembershipsForLogin(
     userId,
     membership.organizationId,
@@ -104,10 +109,6 @@ export async function resolveUserOrganizationFallbackPath(
 
   if (roles.some((memberRole) => SUPPORT_ORG_ROLES.has(memberRole))) {
     return `${base}/support`;
-  }
-
-  if (roles.some((memberRole) => ORG_HOME_ROLES.has(memberRole))) {
-    return base;
   }
 
   return base;

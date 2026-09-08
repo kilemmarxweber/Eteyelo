@@ -21,6 +21,7 @@ import {
   sessionCanViewAllDirectoryUsers,
 } from "@/lib/auth/cycle-scope";
 import { requireBranchContext, requireHrWriteBranchContext } from "@/lib/auth/require-branch-context";
+import { preserveOrganizationOwnerRole } from "@/lib/auth/role-labels";
 import { canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import {
@@ -464,7 +465,10 @@ export const updatePersonnelFullAction = action
       const member = await tx.member.update({
         where: { id: memberId },
         data: {
-          role: orgRole,
+          role: preserveOrganizationOwnerRole(
+            personnel.branchMember?.member?.role,
+            orgRole,
+          ),
         },
       });
 

@@ -68,6 +68,11 @@ export function resolveMembershipPostLoginPath(input: {
     BRANCH_LOGIN_ORG_ROLES.has(role),
   );
 
+  // Propriétaire organisation : toujours l’accueil org, même avec d’autres rôles.
+  if (roles.some((role) => ORG_HOME_ROLES.has(role))) {
+    return base;
+  }
+
   // Caissier / enseignant / parent / élève → toujours leur branche (ou picker).
   if (isBranchLoginRole) {
     if (input.branchId) {
@@ -82,11 +87,6 @@ export function resolveMembershipPostLoginPath(input: {
   // Gestionnaire → établissement(s) qu’il gère (1 branche ou liste).
   if (isGestionnaireBranchLandingRole(input.membershipRole)) {
     return buildGestionnaireLandingPath(input.organizationId, input.branchId);
-  }
-
-  // Propriétaire organisation : accueil org (pas le picker ni une branche).
-  if (roles.some((role) => ORG_HOME_ROLES.has(role))) {
-    return base;
   }
 
   if (input.branchId) {

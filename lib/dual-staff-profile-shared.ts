@@ -35,7 +35,7 @@ export function removeMemberOrgRoles(
   ...toRemove: string[]
 ): string {
   const remove = new Set(toRemove.flatMap((r) => splitSessionRoles(r)));
-  return splitSessionRoles(current)
-    .filter((role) => !remove.has(role))
-    .join(",");
+  remove.delete(ORG_ROLE.OWNER);
+  const next = splitSessionRoles(current).filter((role) => !remove.has(role));
+  return next.join(",");
 }
