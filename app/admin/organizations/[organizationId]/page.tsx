@@ -4,15 +4,16 @@ import { notFound, redirect } from "next/navigation";
 import { getOrganizationAccessAction } from "@/app/admin/organizations/actions";
 import { OrganizationHomeView } from "./organization-home-view";
 import { auth } from "@/lib/auth";
-import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
+import { getOrganizationMembership } from "@/lib/auth/org-membership";
 import { enforceOrganizationManagerPage } from "@/lib/auth/require-organization-permission";
+import { isOrganizationOwnerMember } from "@/lib/auth/role-labels";
 import {
   BRANCH_LOGIN_ORG_ROLES,
   buildGestionnaireLandingPath,
   isGestionnaireBranchLandingRole,
   resolveActiveBranchId,
 } from "@/lib/auth/user-branch-access";
-import { ORG_ROLE } from "@/lib/permissions";
+import { isAppAdminRole, ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 function splitRoles(value: string | null | undefined) {
@@ -32,13 +33,16 @@ export default async function AdminOrganizationHomePage({
   const session = await auth.api.getSession({ headers: await headers() });
   const membership =
     session?.user?.id != null
-      ? await getUserOrganizationMembership(session.user.id)
+      ? await getOrganizationMembership(session.user.id, organizationId)
       : null;
 
   const membershipRoles = splitRoles(membership?.role);
+  const staysOnOrganizationHome =
+    isOrganizationOwnerMember(membership?.role) ||
+    isAppAdminRole(session?.user?.role);
 
   // Support établissement : workspace tickets / escalades (pas le hub manager).
-  if (membershipRoles.includes(ORG_ROLE.SUPPORT)) {
+  if (membershipRoles.includes(ORG_ROLE.SUPPORT) && !staysOnOrganizationHome) {
     redirect(`/admin/organizations/${organizationId}/support`);
   }
 
@@ -47,7 +51,8 @@ export default async function AdminOrganizationHomePage({
   );
 
   // Caissier / enseignant / parent / élève : jamais l'accueil org (404 manager).
-  if (isBranchLoginRole && session?.user?.id) {
+  // Propriétaire org (même avec un rôle extra) et compte Admin : restent sur le hub.
+  if (isBranchLoginRole && !staysOnOrganizationHome && session?.user?.id) {
     const branchId = await resolveActiveBranchId(
       session.user.id,
       organizationId,

@@ -1,5 +1,5 @@
 import { memberHasImplicitAllBranchAccess } from "@/lib/auth/role-labels";
-import { isPlatformOwnerRole } from "@/lib/permissions";
+import { isAppAdminRole, isPlatformOwnerRole } from "@/lib/permissions";
 
 export function canUseOrganizationBranchesList(session: unknown): boolean {
   const value = session as {
@@ -8,6 +8,7 @@ export function canUseOrganizationBranchesList(session: unknown): boolean {
   } | null;
 
   if (isPlatformOwnerRole(value?.user?.role)) return true;
+  if (isAppAdminRole(value?.user?.role)) return true;
   return memberHasImplicitAllBranchAccess(value?.organization?.role);
 }
 

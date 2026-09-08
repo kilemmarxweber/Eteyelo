@@ -36,6 +36,7 @@ import { organizationRoleExists } from "@/lib/org/assignable-org-roles";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { orgRoleToBranchRole } from "@/lib/auth/org-role-to-branch-role";
 import { ensureBranchMemberRoleProfiles } from "@/lib/auth/ensure-branch-member-profile";
+import { ensureOwnerPersonnelInAllBranches } from "@/lib/auth/ensure-owner-personnel-in-branches";
 import { memberHasImplicitAllBranchAccess, preserveOrganizationOwnerRole } from "@/lib/auth/role-labels";
 import { ORG_ROLE } from "@/lib/permissions";
 import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
@@ -462,6 +463,11 @@ export async function createOrganizationMemberAction(
       if (!synced.ok) {
         return synced;
       }
+    } else if (implicitAllBranches) {
+      await ensureOwnerPersonnelInAllBranches({
+        organizationId,
+        memberId: member.id,
+      });
     }
 
     if (options?.revalidateMembersPage) {
@@ -561,6 +567,11 @@ export async function updateOrganizationMemberAction(
       if (!synced.ok) {
         return synced;
       }
+    } else {
+      await ensureOwnerPersonnelInAllBranches({
+        organizationId,
+        memberId,
+      });
     }
 
     const memberRow = await prisma.member.findFirst({

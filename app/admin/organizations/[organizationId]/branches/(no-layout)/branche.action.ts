@@ -31,6 +31,7 @@ import { persistActivatedBranchCycles } from "@/lib/persist-branch-cycles";
 import { upsertClassCatalogForBranch } from "@/lib/class-catalog-sync";
 import { purgeBranchCompletely } from "@/lib/purge-branch";
 import { isRestrictedGestionnaire } from "@/lib/auth/role-labels";
+import { ensureOwnerPersonnelInBranch } from "@/lib/auth/ensure-owner-personnel-in-branches";
 import {
   isSchoolCycle,
   principalTypebranchFromSchoolCycles,
@@ -214,6 +215,11 @@ export async function createBranchAction(
   ) {
     await upsertAngolaPrimaryCoursesForBranch(branch.id);
   }
+
+  await ensureOwnerPersonnelInBranch({
+    organizationId,
+    branchId: branch.id,
+  });
 
   revalidatePath(`/admin/organizations/${organizationId}/branches`);
 

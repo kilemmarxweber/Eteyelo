@@ -228,17 +228,21 @@ export async function buildBranchMemberDirectoryWhere(params: {
       { id: params.viewerBranchMemberId },
       {
         member: {
-          role: {
-            in: [
-              ORG_ROLE.OWNER,
-              ORG_ROLE.GESTIONNAIRE,
-              ORG_ROLE.AGENT_BUREAU,
-              "owner",
-              "gestionnaire",
-              "agent_bureau",
-              "membre_bureau",
-            ],
-          },
+          OR: [
+            ORG_ROLE.OWNER,
+            ORG_ROLE.GESTIONNAIRE,
+            ORG_ROLE.AGENT_BUREAU,
+            "owner",
+            "gestionnaire",
+            "agent_bureau",
+            "membre_bureau",
+            "admin",
+          ].flatMap((slug) => [
+            { role: slug },
+            { role: { startsWith: `${slug},` } },
+            { role: { contains: `,${slug},` } },
+            { role: { endsWith: `,${slug}` } },
+          ]),
         },
       },
       cycles.length > 0

@@ -71,7 +71,7 @@ async function ensureActiveTeacherProfile(branchMemberId: string) {
   }
 }
 
-async function ensureActivePersonnelProfile(branchMemberId: string) {
+export async function ensureActivePersonnelProfile(branchMemberId: string) {
   const existing = await prisma.personnel.findUnique({
     where: { branchMemberId },
     select: { id: true, isActive: true },

@@ -5,6 +5,7 @@ import {
   resolveBranchesNavHref,
 } from "../lib/auth/branches-nav";
 import { APP_ROLE, ORG_ROLE } from "../lib/permissions";
+import { getOrganizationAccessRoleLabel } from "../lib/auth/role-labels";
 
 function test(name: string, assertion: () => void) {
   assertion();
@@ -35,6 +36,30 @@ test("proprietaire organisation → liste des branches", () => {
       organization: { role: ORG_ROLE.OWNER },
     }),
     true,
+  );
+});
+
+test("admin user + proprietaire org → liste des branches de l'organisation", () => {
+  assert.equal(
+    canUseOrganizationBranchesList({
+      user: { role: APP_ROLE.ADMIN },
+      organization: { role: `${ORG_ROLE.OWNER},${ORG_ROLE.TEACHER}` },
+    }),
+    true,
+  );
+  assert.equal(
+    canUseOrganizationBranchesList({
+      user: { role: APP_ROLE.ADMIN },
+      organization: { role: ORG_ROLE.GESTIONNAIRE },
+    }),
+    true,
+  );
+  assert.equal(
+    getOrganizationAccessRoleLabel(
+      APP_ROLE.ADMIN,
+      `${ORG_ROLE.OWNER},${ORG_ROLE.TEACHER}`,
+    ),
+    "Propriétaire",
   );
 });
 

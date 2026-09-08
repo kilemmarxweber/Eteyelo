@@ -26,6 +26,10 @@ export function getOrganizationAccessRoleLabel(
     return APP_ROLE_LABEL[APP_ROLE.OWNER];
   }
 
+  if (isOrganizationOwnerMember(memberRole)) {
+    return APP_ROLE_LABEL[APP_ROLE.OWNER];
+  }
+
   if (normalizedAppRole === APP_ROLE.ADMIN) {
     return APP_ROLE_LABEL[APP_ROLE.ADMIN];
   }
@@ -86,6 +90,20 @@ export function memberHasImplicitAllBranchAccess(
   memberRole: string | null | undefined,
 ): boolean {
   return isOrganizationOwnerMember(memberRole);
+}
+
+/**
+ * Uniquement le propriétaire d’organisation dont le compte `user.role`
+ * est `admin`. Le rôle membre `owner` seul n’apparaît pas au personnel.
+ */
+export function memberShouldAppearAsPersonnelInAllBranches(
+  memberRole: string | null | undefined,
+  appRole?: string | null,
+): boolean {
+  return (
+    isOrganizationOwnerMember(memberRole) &&
+    isAppAdminRole(appRole)
+  );
 }
 
 const ORG_MANAGER_MEMBER_ROLES = new Set<string>([

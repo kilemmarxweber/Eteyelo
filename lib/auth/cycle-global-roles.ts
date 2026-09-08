@@ -22,25 +22,29 @@ export type CycleGlobalRole = (typeof CYCLE_GLOBAL_ROLES)[number];
 export type UserDirectoryGlobalRole =
   (typeof USER_DIRECTORY_GLOBAL_ROLES)[number];
 
+function memberRoleSlugs(role: string | null | undefined): string[] {
+  return (role ?? "")
+    .split(",")
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 export function isCycleGlobalRole(
   role: string | null | undefined,
-): role is CycleGlobalRole {
-  if (!role) return false;
-  return (CYCLE_GLOBAL_ROLES as readonly string[]).includes(role);
+): boolean {
+  return memberRoleSlugs(role).some((slug) =>
+    (CYCLE_GLOBAL_ROLES as readonly string[]).includes(slug),
+  );
 }
 
 export function canViewAllDirectoryUsers(
   role: string | null | undefined,
-): role is UserDirectoryGlobalRole {
-  if (!role) return false;
-  const normalized = role.trim().toLowerCase();
-  return (
-    (USER_DIRECTORY_GLOBAL_ROLES as readonly string[]).includes(role) ||
-    normalized === "owner" ||
-    normalized === "proprietaire" ||
-    normalized === "gestionnaire" ||
-    normalized === "agent_bureau" ||
-    normalized === "membre_bureau" ||
-    normalized === "agent de bureau"
+): boolean {
+  return memberRoleSlugs(role).some(
+    (slug) =>
+      (USER_DIRECTORY_GLOBAL_ROLES as readonly string[]).includes(slug) ||
+      slug === "proprietaire" ||
+      slug === "membre_bureau" ||
+      slug === "agent de bureau",
   );
 }

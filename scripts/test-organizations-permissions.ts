@@ -13,7 +13,7 @@ import {
   canListAllOrganizations,
   canManageOrganizationAsAppAdmin,
 } from "../lib/auth/organization-access";
-import { isOrganizationOwnerMember, isOrganizationManagerMember, memberHasImplicitAllBranchAccess, preserveOrganizationOwnerRole } from "../lib/auth/role-labels";
+import { isOrganizationOwnerMember, isOrganizationManagerMember, memberHasImplicitAllBranchAccess, memberShouldAppearAsPersonnelInAllBranches, preserveOrganizationOwnerRole } from "../lib/auth/role-labels";
 import { buildOrganizationsApiPayload } from "../lib/auth/post-login-routing";
 import {
   APP_ROLE,
@@ -257,6 +257,43 @@ test("proprietaire org a acces implicite a toutes les branches", () => {
   assert.equal(memberHasImplicitAllBranchAccess(ORG_ROLE.GESTIONNAIRE), false);
   assert.equal(memberHasImplicitAllBranchAccess(ORG_ROLE.PREFET), false);
   assert.equal(memberHasImplicitAllBranchAccess(null), false);
+});
+
+test("seul le proprietaire org avec user.role admin apparait comme personnel partout", () => {
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches(ORG_ROLE.OWNER, APP_ROLE.ADMIN),
+    true,
+  );
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches("owner,admin", APP_ROLE.ADMIN),
+    true,
+  );
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches("owner,gestionnaire"),
+    false,
+  );
+  assert.equal(memberShouldAppearAsPersonnelInAllBranches("owner,admin"), false);
+  assert.equal(memberShouldAppearAsPersonnelInAllBranches(ORG_ROLE.OWNER), false);
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches(ORG_ROLE.GESTIONNAIRE, APP_ROLE.ADMIN),
+    false,
+  );
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches("admin", APP_ROLE.ADMIN),
+    false,
+  );
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches("owner,teacher", APP_ROLE.ADMIN),
+    true,
+  );
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches(ORG_ROLE.OWNER, APP_ROLE.OWNER),
+    false,
+  );
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches(ORG_ROLE.OWNER, APP_ROLE.USER),
+    false,
+  );
 });
 
 test("preserveOrganizationOwnerRole garde owner en tete", () => {

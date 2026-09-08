@@ -6,6 +6,11 @@ import {
   resolveStaticAppRolePostLoginPath,
 } from "../lib/auth/post-login-routing";
 import { APP_ROLE, ORG_ROLE } from "../lib/permissions";
+import { memberShouldAppearAsPersonnelInAllBranches } from "../lib/auth/role-labels";
+import {
+  canViewAllDirectoryUsers,
+  isCycleGlobalRole,
+} from "../lib/auth/cycle-global-roles";
 
 function test(name: string, assertion: () => void) {
   assertion();
@@ -215,6 +220,52 @@ test("proprietaire avec un autre role reste sur l accueil organisation", () => {
       `/admin/organizations/${ORG_ID}`,
     );
   }
+});
+
+test("seul le proprietaire org avec user.role admin apparait comme personnel partout", () => {
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches(ORG_ROLE.OWNER, APP_ROLE.ADMIN),
+    true,
+  );
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches("owner,admin", APP_ROLE.ADMIN),
+    true,
+  );
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches("owner,gestionnaire"),
+    false,
+  );
+  assert.equal(memberShouldAppearAsPersonnelInAllBranches("owner,admin"), false);
+  assert.equal(memberShouldAppearAsPersonnelInAllBranches(ORG_ROLE.OWNER), false);
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches(
+      ORG_ROLE.GESTIONNAIRE,
+      APP_ROLE.ADMIN,
+    ),
+    false,
+  );
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches("admin", APP_ROLE.ADMIN),
+    false,
+  );
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches("owner,teacher", APP_ROLE.ADMIN),
+    true,
+  );
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches(ORG_ROLE.OWNER, APP_ROLE.OWNER),
+    false,
+  );
+  assert.equal(
+    memberShouldAppearAsPersonnelInAllBranches(ORG_ROLE.OWNER, APP_ROLE.USER),
+    false,
+  );
+});
+
+test("owner,admin reste role global pour l'annuaire et les cycles", () => {
+  assert.equal(canViewAllDirectoryUsers("owner,admin"), true);
+  assert.equal(isCycleGlobalRole("owner,admin"), true);
+  assert.equal(canViewAllDirectoryUsers(ORG_ROLE.TEACHER), false);
 });
 
 console.log("\nTous les tests routage post-login sont passes.");

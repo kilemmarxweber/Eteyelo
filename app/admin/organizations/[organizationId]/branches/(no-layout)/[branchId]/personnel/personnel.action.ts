@@ -21,7 +21,12 @@ import {
   sessionCanViewAllDirectoryUsers,
 } from "@/lib/auth/cycle-scope";
 import { requireBranchContext, requireHrWriteBranchContext } from "@/lib/auth/require-branch-context";
-import { preserveOrganizationOwnerRole } from "@/lib/auth/role-labels";
+import {
+  isOrganizationOwnerMember,
+  preserveOrganizationOwnerRole,
+} from "@/lib/auth/role-labels";
+import { isAppAdminRole } from "@/lib/permissions";
+import { ensureOwnerPersonnelInAllBranches } from "@/lib/auth/ensure-owner-personnel-in-branches";
 import { canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import {
@@ -556,6 +561,12 @@ export const getPersonnelsAction = action.handler(
     const { branchId, organizationId, userId, session } =
       await requireBranchContext();
 
+    try {
+      await ensureOwnerPersonnelInAllBranches({ organizationId });
+    } catch {
+      // L’annuaire reste lisible même si le rattrapage propriétaire échoue.
+    }
+
     const [orgMember, branchMember] = await Promise.all([
       prisma.member.findFirst({
         where: { userId, organizationId },
@@ -614,7 +625,13 @@ export const getPersonnelsAction = action.handler(
       },
     });
 
-    return personnels.map((personnel) => {
+    return personnels
+      .filter((personnel) => {
+        const member = personnel.branchMember?.member;
+        if (!isOrganizationOwnerMember(member?.role)) return true;
+        return isAppAdminRole(member?.user?.role);
+      })
+      .map((personnel) => {
       const member = personnel.branchMember?.member;
       const user = member?.user;
       const alsoTeacher = (personnel.branchMember?.teacher ?? []).some(
