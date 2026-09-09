@@ -6,6 +6,7 @@ import {
   drawReportHeader,
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import { formatReportAmount, formatReportNumber } from "@/lib/reports/format-amount";
 import type { UnpaidFinancialStatus, UnpaidReportRow } from "../paiement.action";
@@ -109,6 +110,7 @@ export async function buildUnpaidReportPdf(
   context: SchoolReportContext,
   options: UnpaidReportOptions = {},
 ) {
+  const fonts = pdfFontsFromContext(context);
   const title = buildUnpaidReportTitle(options);
   const filterLabels = buildUnpaidReportFilterLabels(options);
   const emptyMessage =
@@ -225,7 +227,7 @@ export async function buildUnpaidReportPdf(
     showFoot: rows.length > 0 ? "lastPage" : "never",
     styles: {
       font: "helvetica",
-      fontSize: 8,
+      fontSize: fonts.body,
       cellPadding: 2,
       overflow: "linebreak",
       valign: "middle",
@@ -235,12 +237,13 @@ export async function buildUnpaidReportPdf(
       textColor: 255,
       fontStyle: "bold",
       halign: "center",
+      fontSize: fonts.head,
     },
     footStyles: {
       fillColor: [226, 232, 240],
       textColor: [15, 23, 42],
       fontStyle: "bold",
-      fontSize: 8,
+      fontSize: fonts.head,
     },
     alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: hasRemise

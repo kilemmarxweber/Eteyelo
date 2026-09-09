@@ -5,7 +5,7 @@ import {
   requiresStudentImport,
 } from "@/lib/branch-capabilities";
 import { normalizeBranchType } from "@/lib/academic-structure";
-import { assertImportableSchoolStudent } from "@/lib/atelier-student-access";
+import { assertImportableSchoolStudent, secondaryCycleCurrentEnrollmentWhere } from "@/lib/atelier-student-access";
 import { appendStudentToOpenClassFiches } from "@/lib/sync-fiche-students";
 
 export type ImportSearchResult = {
@@ -18,6 +18,9 @@ export type ImportSearchResult = {
   sourceBranchId: string;
   sourceBranchName: string;
   sourceBranchType: string;
+  className: string | null;
+  classCode: string | null;
+  optionName: string | null;
   alreadyLinked: boolean;
 };
 
@@ -84,11 +87,11 @@ export async function searchOrganizationStudentsForBranchImport(params: {
           organizationId: params.organizationId,
           isActive: true,
           id: { not: params.targetBranchId },
-          ...(linkOnly
-            ? { typebranch: { in: ["PRIMAIRE", "SECONDAIRE"] } }
-            : {}),
         },
       },
+      ...(linkOnly
+        ? { classEnrollment: { some: secondaryCycleCurrentEnrollmentWhere() } }
+        : {}),
       ...buildSearchFilter(search),
     },
     take: limit,
@@ -101,6 +104,24 @@ export async function searchOrganizationStudentsForBranchImport(params: {
         },
         select: { id: true },
       },
+      classEnrollment: {
+        where: linkOnly
+          ? secondaryCycleCurrentEnrollmentWhere()
+          : {
+              statusEnrollment: true,
+              schoolYear: { isCurrentYear: true, isArchived: false },
+            },
+        take: 1,
+        include: {
+          classe: {
+            select: {
+              nameClasse: true,
+              codeClasse: true,
+              option: { select: { nameOption: true } },
+            },
+          },
+        },
+      },
       branchMember: {
         include: {
           branch: { select: { id: true, name: true, typebranch: true } },
@@ -112,6 +133,7 @@ export async function searchOrganizationStudentsForBranchImport(params: {
 
   return students.map((student) => {
     const user = student.branchMember.member.user;
+    const enrollment = student.classEnrollment[0];
     return {
       id: student.id,
       nom: user?.name ?? "",
@@ -122,6 +144,9 @@ export async function searchOrganizationStudentsForBranchImport(params: {
       sourceBranchId: student.branchMember.branch.id,
       sourceBranchName: student.branchMember.branch.name,
       sourceBranchType: student.branchMember.branch.typebranch,
+      className: enrollment?.classe?.nameClasse ?? null,
+      classCode: enrollment?.classe?.codeClasse ?? null,
+      optionName: enrollment?.classe?.option?.nameOption ?? null,
       alreadyLinked: student.branchLinks.length > 0,
     };
   });

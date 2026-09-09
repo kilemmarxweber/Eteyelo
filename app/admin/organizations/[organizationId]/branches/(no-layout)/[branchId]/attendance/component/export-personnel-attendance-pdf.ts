@@ -7,6 +7,7 @@ import {
   drawReportHeader,
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type {
   PersonnelAttendanceDetailRow,
@@ -77,6 +78,7 @@ export async function buildPersonnelAttendanceReportPdf(
   labels: AttendancePdfLabels,
   options: PersonnelAttendanceReportOptions = {},
 ) {
+  const fonts = pdfFontsFromContext(context);
   const includeDetail = options.includeDetail !== false;
   const title = buildPersonnelAttendanceReportTitle(labels);
   const filterLabels = buildPersonnelAttendanceReportFilterLabels(labels, report);
@@ -119,7 +121,7 @@ export async function buildPersonnelAttendanceReportPdf(
     theme: "grid",
     styles: {
       font: "helvetica",
-      fontSize: 9,
+      fontSize: fonts.body,
       cellPadding: 2.5,
       halign: "center",
       valign: "middle",
@@ -128,6 +130,7 @@ export async function buildPersonnelAttendanceReportPdf(
       fillColor: [30, 64, 175],
       textColor: 255,
       fontStyle: "bold",
+      fontSize: fonts.head,
     },
     didDrawPage: () => {
       drawReportHeader(doc, context, {
@@ -183,7 +186,7 @@ export async function buildPersonnelAttendanceReportPdf(
       showHead: "everyPage",
       styles: {
         font: "helvetica",
-        fontSize: 8,
+        fontSize: fonts.body,
         cellPadding: 2,
         overflow: "linebreak",
         valign: "middle",
@@ -193,6 +196,7 @@ export async function buildPersonnelAttendanceReportPdf(
         textColor: 255,
         fontStyle: "bold",
        halign: "center",
+        fontSize: fonts.head,
       },
       alternateRowStyles: { fillColor: [239, 246, 255] },
       columnStyles: {

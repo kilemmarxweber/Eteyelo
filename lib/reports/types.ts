@@ -26,4 +26,6 @@ export type SchoolReportContext = {
   showConversion?: boolean;
   /** Modèle d'impression du reçu (A4 ou ticket POS 80 mm). */
   receiptPrintFormat?: "A4" | "POS_80MM";
+  /** Taille de police des rapports PDF (10, 12, 14, 16…). */
+  pdfFontSize?: number;
 };

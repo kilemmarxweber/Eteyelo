@@ -14,6 +14,10 @@ import {
   drawReportHeader,
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
+import {
+  pdfFontsFromContext,
+  type ReportPdfFonts,
+} from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type { CurrencyCode } from "@/prisma/generated/prisma/enums";
 import type { OverviewReport } from "@/lib/reports/org/overview";
@@ -56,6 +60,7 @@ type HeaderOpts = {
 type Layout = {
   doc: jsPDF;
   context: SchoolReportContext;
+  fonts: ReportPdfFonts;
   logo: string | null;
   currency: CurrencyCode;
   money: (v: number) => string;
@@ -68,30 +73,32 @@ type Layout = {
 const MARGIN_X = 14;
 const FOOTER_GAP = 18;
 
-const TABLE_THEME = {
-  theme: "striped" as const,
-  styles: {
-    font: "helvetica" as const,
-    fontSize: 8,
-    cellPadding: 2.2,
-    overflow: "linebreak" as const,
-    valign: "middle" as const,
-    textColor: [30, 41, 59] as [number, number, number],
-    lineColor: [226, 232, 240] as [number, number, number],
-    lineWidth: 0.2,
-  },
-  headStyles: {
-    fillColor: [30, 64, 175] as [number, number, number],
-    textColor: 255,
-    fontStyle: "bold" as const,
-    fontSize: 8,
-    halign: "left" as const,
-  },
-  alternateRowStyles: {
-    fillColor: [248, 250, 252] as [number, number, number],
-  },
-  showHead: "everyPage" as const,
-};
+function tableTheme(fonts: ReportPdfFonts) {
+  return {
+    theme: "striped" as const,
+    styles: {
+      font: "helvetica" as const,
+      fontSize: fonts.body,
+      cellPadding: 2.2,
+      overflow: "linebreak" as const,
+      valign: "middle" as const,
+      textColor: [30, 41, 59] as [number, number, number],
+      lineColor: [226, 232, 240] as [number, number, number],
+      lineWidth: 0.2,
+    },
+    headStyles: {
+      fillColor: [30, 64, 175] as [number, number, number],
+      textColor: 255,
+      fontStyle: "bold" as const,
+      fontSize: fonts.head,
+      halign: "left" as const,
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252] as [number, number, number],
+    },
+    showHead: "everyPage" as const,
+  };
+}
 
 function scopeLabel(meta: ReportMeta) {
   if (meta.selectedBranchIds.length === 0) return "Toutes les branches";
@@ -152,7 +159,7 @@ function ensureY(layout: Layout, needed: number): void {
 function sectionTitle(layout: Layout, title: string) {
   ensureY(layout, 14);
   layout.doc.setFont("helvetica", "bold");
-  layout.doc.setFontSize(11);
+  layout.doc.setFontSize(layout.fonts.title);
   layout.doc.setTextColor(30, 64, 175);
   layout.doc.text(title, MARGIN_X, layout.y + 4);
   layout.doc.setDrawColor(191, 219, 254);
@@ -188,11 +195,11 @@ function drawKpis(
     layout.doc.setDrawColor(203, 213, 225);
     layout.doc.roundedRect(x, rowY, cardW, cardH, 1.5, 1.5, "FD");
     layout.doc.setFont("helvetica", "normal");
-    layout.doc.setFontSize(7);
+    layout.doc.setFontSize(layout.fonts.small);
     layout.doc.setTextColor(100, 116, 139);
     layout.doc.text(kpi.label, x + 2.5, rowY + 5, { maxWidth: cardW - 5 });
     layout.doc.setFont("helvetica", "bold");
-    layout.doc.setFontSize(10);
+    layout.doc.setFontSize(layout.fonts.body);
     layout.doc.setTextColor(15, 23, 42);
     layout.doc.text(kpi.value, x + 2.5, rowY + 11.5, {
       maxWidth: cardW - 5,
@@ -249,7 +256,7 @@ function drawTable(
     },
     head: [head],
     body: rows,
-    ...TABLE_THEME,
+    ...tableTheme(layout.fonts),
     didDrawPage: (hook) => {
       // Ne redessiner l'en-tête que sur les pages suivantes (évite le chevauchement page 1).
       if (hook.pageNumber > 1) {
@@ -1181,6 +1188,7 @@ export async function buildRapportCompletPdf(
   payload: RapportCompletPdfPayload,
   context: SchoolReportContext,
 ) {
+  const fonts = pdfFontsFromContext(context);
   const currency = payload.meta.currency.baseCurrency;
   const money = (value: number) => formatReportAmount(value, currency);
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -1191,6 +1199,7 @@ export async function buildRapportCompletPdf(
   const layout: Layout = {
     doc,
     context,
+    fonts,
     logo,
     currency,
     money,
@@ -1304,6 +1313,7 @@ export async function buildRapportEffectifsPdf(
   data: RapportEffectifsPdfData,
   context: SchoolReportContext,
 ) {
+  const fonts = pdfFontsFromContext(context);
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   drawReportHeader(doc, context, {
@@ -1320,7 +1330,7 @@ export async function buildRapportEffectifsPdf(
       ["Enseignants", data.summary.teachers],
       ["Parents", data.summary.parents],
     ],
-    ...TABLE_THEME,
+    ...tableTheme(fonts),
   });
   drawReportFooterOnAllPages(doc, context, {
     leftText: context.branchName || context.schoolName,

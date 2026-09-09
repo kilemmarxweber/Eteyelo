@@ -7,6 +7,7 @@ import {
   drawReportHeader,
   REPORT_CONTINUATION_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type { GlobalScheduleEntry } from "./types";
 import {
@@ -98,6 +99,7 @@ function cellText(value: unknown) {
 export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
   const { context, title, details = [], hoursLabel, recreationLabel, tables } =
     input;
+  const fonts = pdfFontsFromContext(context);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -130,7 +132,7 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
     }
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
+    doc.setFontSize(fonts.title);
     doc.setTextColor(...TEXT_MAIN);
     doc.text(table.title, 10, startY);
     startY += 5;
@@ -150,7 +152,7 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
 
     if (tableSubtitle) {
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
+      doc.setFontSize(fonts.meta);
       doc.setTextColor(...TEXT_MUTED);
       doc.text(tableSubtitle, 10, startY);
       startY += 4;
@@ -219,7 +221,7 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
       },
       styles: {
         font: "helvetica",
-        fontSize: table.showTeacher ? 6.5 : 7.5,
+        fontSize: fonts.dense,
         cellPadding: 1.6,
         halign: "center",
         valign: "middle",
@@ -232,7 +234,7 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
         fillColor: HEADER_BLUE,
         textColor: 255,
         fontStyle: "bold",
-        fontSize: 8,
+        fontSize: fonts.head,
         halign: "center",
         valign: "middle",
       },

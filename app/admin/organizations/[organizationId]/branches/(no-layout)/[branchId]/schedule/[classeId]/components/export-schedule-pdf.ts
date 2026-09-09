@@ -7,6 +7,7 @@ import {
   drawReportHeader,
   REPORT_CONTINUATION_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import { slotHourOnDay } from "@/lib/creneau-saturday";
 
@@ -68,6 +69,7 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
     saturdayEndTime,
     entries,
   } = input;
+  const fonts = pdfFontsFromContext(context);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const title = `Horaire de la classe ${context.classeName}`;
@@ -139,7 +141,7 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
     },
     styles: {
       font: "helvetica",
-      fontSize: 7.5,
+      fontSize: fonts.dense,
       cellPadding: 2,
       halign: "center",
       valign: "middle",
@@ -147,7 +149,12 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
       lineColor: [191, 219, 254],
       lineWidth: 0.2,
     },
-    headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: "bold" },
+    headStyles: {
+      fillColor: [30, 64, 175],
+      textColor: 255,
+      fontStyle: "bold",
+      fontSize: fonts.head,
+    },
     alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: { 0: { cellWidth: 27, fontStyle: "bold" } },
     didParseCell: (data) => {

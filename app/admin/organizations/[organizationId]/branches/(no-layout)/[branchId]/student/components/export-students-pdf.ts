@@ -6,6 +6,7 @@ import {
   drawReportFooterOnAllPages,
   drawReportHeader,
 } from "@/lib/reports/pdf-header-footer";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import { studentAllowsExamCodes } from "@/lib/exam-export-meta";
 import { sortPeopleByName } from "@/lib/person-full-name";
@@ -262,6 +263,7 @@ export async function buildStudentsReportPdf(
   context: SchoolReportContext,
   options: StudentReportOptions,
 ) {
+  const fonts = pdfFontsFromContext(context);
   const { labels } = options;
   const selectedClass = options.selectedClass ?? null;
   const isClassReport = Boolean(selectedClass);
@@ -395,7 +397,7 @@ export async function buildStudentsReportPdf(
     showHead: "everyPage",
     styles: {
       font: "helvetica",
-      fontSize: 7.5,
+      fontSize: fonts.body,
       cellPadding: { top: 2.5, right: 1.5, bottom: 2.5, left: 1.5 },
       overflow: "linebreak",
       valign: "middle",
@@ -408,7 +410,7 @@ export async function buildStudentsReportPdf(
       textColor: 255,
       fontStyle: "bold",
       halign: "center",
-      fontSize: 7.5,
+      fontSize: fonts.head,
       cellPadding: { top: 3, right: 1.5, bottom: 3, left: 1.5 },
     },
     alternateRowStyles: { fillColor: [248, 250, 252] },

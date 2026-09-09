@@ -26,6 +26,7 @@ export interface IStudent extends Omit<
   langue?: string | null;
   classCode?: string | null;
   className?: string | null;
+  optionName?: string | null;
   classLevel?: string | null;
   classCycle?: string | null;
   schoolYearId?: string | null;
@@ -39,6 +40,7 @@ export interface IStudent extends Omit<
     schoolYearName: string;
     classCode: string | null;
     className: string | null;
+    optionName?: string | null;
     classLevel?: string | null;
     classCycle?: string | null;
     e13?: string | null;

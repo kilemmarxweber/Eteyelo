@@ -308,6 +308,32 @@ export function useStudentColumns(
     },
   },
   {
+    accessorKey: "optionName",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title={t("option")} />
+    ),
+    cell: ({ row, table }) => {
+      const yearFilter = table.getColumn("schoolYearId")?.getFilterValue();
+      const selectedYears = Array.isArray(yearFilter)
+        ? yearFilter.map(String)
+        : [];
+      const enrollment =
+        selectedYears.length === 1
+          ? row.original.enrollments?.find(
+              (item) => item.schoolYearId === selectedYears[0],
+            )
+          : null;
+      const optionLabel =
+        enrollment?.optionName ?? row.original.optionName ?? null;
+
+      return (
+        <span className="text-foreground/80">
+          {optionLabel || "—"}
+        </span>
+      );
+    },
+  },
+  {
     id: "age",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={t("age")} />

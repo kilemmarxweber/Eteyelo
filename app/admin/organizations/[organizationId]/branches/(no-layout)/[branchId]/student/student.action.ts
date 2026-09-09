@@ -28,7 +28,11 @@ import {
   isUniversiteBranch,
   requiresStudentImport,
 } from "@/lib/branch-capabilities";
-import { buildStudentAccessWhere } from "@/lib/atelier-student-access";
+import {
+  buildStudentAccessWhere,
+  isAtelierImportableClass,
+  secondaryCycleCurrentEnrollmentWhere,
+} from "@/lib/atelier-student-access";
 import { resolveStudentParentId } from "@/lib/centre-default-parent";
 import { canIssueBranchDocuments } from "@/lib/branch-document-permissions";
 import {
@@ -369,6 +373,7 @@ function mapStudentRecord(
         nameClasse: string;
         level?: string | null;
         cycle?: string | null;
+        option?: { nameOption: string; codeOption?: string | null } | null;
       } | null;
       schoolYear?: {
         id: string;
@@ -396,6 +401,8 @@ function mapStudentRecord(
         isCurrentYear: year.isCurrentYear,
         classCode: enrollment.classe?.codeClasse ?? null,
         className: enrollment.classe?.nameClasse ?? null,
+        optionName: enrollment.classe?.option?.nameOption ?? null,
+        optionCode: enrollment.classe?.option?.codeOption ?? null,
         classLevel: enrollment.classe?.level ?? null,
         classCycle: enrollment.classe?.cycle ?? null,
         e13: enrollment.e13 ?? null,
@@ -412,6 +419,8 @@ function mapStudentRecord(
         isCurrentYear: boolean;
         classCode: string | null;
         className: string | null;
+        optionName: string | null;
+        optionCode: string | null;
         classLevel: string | null;
         classCycle: string | null;
         e13: string | null;
@@ -420,10 +429,31 @@ function mapStudentRecord(
       } => Boolean(enrollment),
     );
 
-  const preferredEnrollment =
-    enrollments.find((enrollment) => enrollment.isCurrentYear) ??
-    enrollments[0] ??
-    null;
+  const isImportableEnrollment = (enrollment: {
+    classCycle: string | null;
+    classLevel: string | null;
+    optionName: string | null;
+    optionCode: string | null;
+  }) =>
+    isAtelierImportableClass({
+      cycle: enrollment.classCycle,
+      level: enrollment.classLevel,
+      optionName: enrollment.optionName,
+      optionCode: enrollment.optionCode,
+    });
+
+  const preferredEnrollment = extras?.isLinkedStudent
+    ? (enrollments.find(
+        (enrollment) =>
+          enrollment.isCurrentYear && isImportableEnrollment(enrollment),
+      ) ??
+      enrollments.find((enrollment) => isImportableEnrollment(enrollment)) ??
+      enrollments.find((enrollment) => enrollment.isCurrentYear) ??
+      enrollments[0] ??
+      null)
+    : (enrollments.find((enrollment) => enrollment.isCurrentYear) ??
+      enrollments[0] ??
+      null);
 
   return {
     id: student.id,
@@ -448,6 +478,7 @@ function mapStudentRecord(
     langue: student.langue,
     classCode: preferredEnrollment?.classCode ?? null,
     className: preferredEnrollment?.className ?? null,
+    optionName: preferredEnrollment?.optionName ?? null,
     classLevel: preferredEnrollment?.classLevel ?? null,
     classCycle: preferredEnrollment?.classCycle ?? null,
     schoolYearId: preferredEnrollment?.schoolYearId ?? null,
@@ -460,6 +491,7 @@ function mapStudentRecord(
       schoolYearName: enrollment.schoolYearName,
       classCode: enrollment.classCode,
       className: enrollment.className,
+      optionName: enrollment.optionName,
       classLevel: enrollment.classLevel,
       classCycle: enrollment.classCycle,
       e13: enrollment.e13,
@@ -507,7 +539,11 @@ const classEnrollmentListInclude = {
     statusEnrollment: true,
   },
   include: {
-    classe: true,
+    classe: {
+      include: {
+        option: { select: { nameOption: true, codeOption: true } },
+      },
+    },
     schoolYear: {
       select: {
         id: true,
@@ -607,15 +643,16 @@ export const getStudentsAction = action.handler(
         where: {
           targetBranchId: branchId,
           isActive: true,
-          student: { classEnrollment: enrollmentInAccessibleCycle },
+          student: {
+            classEnrollment: {
+              some: secondaryCycleCurrentEnrollmentWhere(),
+            },
+          },
         },
         include: {
           sourceBranch: { select: { id: true, name: true } },
           student: {
-            include: {
-              ...studentListInclude,
-              classEnrollment: classEnrollmentForBranch(branchId),
-            },
+            include: studentListInclude,
           },
         },
         orderBy: { enrolledAt: "desc" },

@@ -7,6 +7,7 @@ import {
   drawReportHeader,
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import { formatDurationMinutes } from "@/lib/attendance-exit";
 import type {
@@ -37,6 +38,7 @@ export async function exportTeacherSessionReportPdf(
   context: SchoolReportContext,
   labels: AttendancePdfLabels,
 ) {
+  const fonts = pdfFontsFromContext(context);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const title = labels.teacherSessionsTitle;
@@ -105,7 +107,7 @@ export async function exportTeacherSessionReportPdf(
     theme: "grid",
     styles: {
       font: "helvetica",
-      fontSize: 7.5,
+      fontSize: fonts.body,
       cellPadding: 1.6,
       overflow: "linebreak",
       valign: "middle",
@@ -115,6 +117,7 @@ export async function exportTeacherSessionReportPdf(
       textColor: 255,
       fontStyle: "bold",
       halign: "center",
+      fontSize: fonts.head,
     },
     alternateRowStyles: { fillColor: [239, 246, 255] },
     didDrawPage: () => {
@@ -142,6 +145,7 @@ export async function exportAttendanceDailyJournalPdf(
   context: SchoolReportContext,
   labels: AttendancePdfLabels,
 ) {
+  const fonts = pdfFontsFromContext(context);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const dayLabel = formatReportDate(journal.date);
@@ -199,7 +203,7 @@ export async function exportAttendanceDailyJournalPdf(
     theme: "grid",
     styles: {
       font: "helvetica",
-      fontSize: 8,
+      fontSize: fonts.body,
       cellPadding: 1.8,
       overflow: "linebreak",
     },
@@ -207,6 +211,7 @@ export async function exportAttendanceDailyJournalPdf(
       fillColor: [30, 64, 175],
       textColor: 255,
       fontStyle: "bold",
+      fontSize: fonts.head,
     },
     didDrawPage: () => {
       drawReportHeader(doc, context, {
@@ -251,7 +256,7 @@ export async function exportAttendanceDailyJournalPdf(
     theme: "grid",
     styles: {
       font: "helvetica",
-      fontSize: 8,
+      fontSize: fonts.body,
       cellPadding: 1.8,
       overflow: "linebreak",
     },
@@ -259,6 +264,7 @@ export async function exportAttendanceDailyJournalPdf(
       fillColor: [180, 83, 9],
       textColor: 255,
       fontStyle: "bold",
+      fontSize: fonts.head,
     },
   });
 
@@ -275,6 +281,7 @@ export async function exportPersonRosterReportPdf(
   labels: AttendancePdfLabels,
   options: { title: string; filePrefix: string },
 ) {
+  const fonts = pdfFontsFromContext(context);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const filters = [
@@ -336,7 +343,7 @@ export async function exportPersonRosterReportPdf(
     theme: "grid",
     styles: {
       font: "helvetica",
-      fontSize: 7.5,
+      fontSize: fonts.body,
       cellPadding: 1.6,
       overflow: "linebreak",
       valign: "middle",
@@ -346,6 +353,7 @@ export async function exportPersonRosterReportPdf(
       textColor: 255,
       fontStyle: "bold",
       halign: "center",
+      fontSize: fonts.head,
     },
     alternateRowStyles: { fillColor: [239, 246, 255] },
     didParseCell: (data) => {

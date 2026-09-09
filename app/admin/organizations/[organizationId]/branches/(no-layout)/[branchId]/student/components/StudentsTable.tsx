@@ -306,10 +306,18 @@ const StudentsList = ({
             studentLower: peopleLabels.studentLower,
           })}
           mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}
-          mobileCardSubtitle={(row) => row.username ?? ""}
+          mobileCardSubtitle={(row) =>
+            [row.optionName, row.className ?? row.classCode, row.username]
+              .filter(Boolean)
+              .join(" · ")
+          }
           onRowClick={handleStudentRowClick}
           initialColumnVisibility={{
             registeredPeriod: false,
+            optionName: !(
+              requiresImport ||
+              session?.branch?.typebranch === "SECONDAIRE"
+            ),
             ...(examCodesContext.showExamCodeColumns
               ? { e13: false, e80: false }
               : {}),

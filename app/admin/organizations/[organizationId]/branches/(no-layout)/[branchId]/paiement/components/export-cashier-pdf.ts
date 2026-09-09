@@ -7,6 +7,7 @@ import {
   drawReportHeader,
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import { formatReportAmount } from "@/lib/reports/format-amount";
 import { groupCashierPaymentsByMethod, formatCashierDateTime } from "./group-cashier-payments";
@@ -79,6 +80,7 @@ export async function buildCashierReportPdf(
   context: SchoolReportContext,
   options: CashierReportPdfOptions,
 ) {
+  const fonts = pdfFontsFromContext(context);
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const title = "Rapport de Caisse";
@@ -174,7 +176,7 @@ export async function buildCashierReportPdf(
     showHead: "everyPage",
     styles: {
       font: "helvetica",
-      fontSize: 8,
+      fontSize: fonts.body,
       cellPadding: 2,
       overflow: "linebreak",
       valign: "middle",
@@ -184,6 +186,7 @@ export async function buildCashierReportPdf(
       textColor: 255,
       fontStyle: "bold",
       halign: "center",
+      fontSize: fonts.head,
     },
     columnStyles: {
       0: { cellWidth: usableWidth * 0.16, halign: "center" },
@@ -255,7 +258,7 @@ export async function buildCashierReportPdf(
     didDrawPage: (hookData) => {
       drawHeader();
       if (hookData.pageNumber === 1) {
-        doc.setFontSize(10);
+        doc.setFontSize(fonts.title);
         doc.setTextColor(15, 23, 42);
         doc.setFont("helvetica", "bold");
         doc.text("Détail des Encaissements", marginX, REPORT_HEADER_CONTENT_TOP_MM - 2);
@@ -284,7 +287,7 @@ export async function buildCashierReportPdf(
       money(e.amount),
     ]);
 
-    doc.setFontSize(10);
+    doc.setFontSize(fonts.title);
     doc.setTextColor(15, 23, 42);
     doc.setFont("helvetica", "bold");
     doc.text("Détail des dépenses / sorties de fond", marginX, finalY + 10);
@@ -298,7 +301,7 @@ export async function buildCashierReportPdf(
       theme: "grid",
       styles: {
         font: "helvetica",
-        fontSize: 8,
+        fontSize: fonts.body,
         cellPadding: 2,
         overflow: "linebreak",
         valign: "middle",
@@ -308,6 +311,7 @@ export async function buildCashierReportPdf(
         textColor: 255,
         fontStyle: "bold",
         halign: "center",
+        fontSize: fonts.head,
       },
       columnStyles: {
         0: { cellWidth: usableWidth * 0.2, halign: "center" },
@@ -341,12 +345,12 @@ export async function buildCashierReportPdf(
   doc.setDrawColor(203, 213, 225);
   doc.roundedRect(boxX, finalY, boxWidth, 42, 2, 2, "FD");
 
-  doc.setFontSize(10);
+  doc.setFontSize(fonts.title);
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
   doc.text("Récapitulatif", labelX, finalY + 6);
 
-  doc.setFontSize(9);
+  doc.setFontSize(fonts.body);
   doc.setFont("helvetica", "normal");
 
   const opening = data.openingBalance ?? 0;

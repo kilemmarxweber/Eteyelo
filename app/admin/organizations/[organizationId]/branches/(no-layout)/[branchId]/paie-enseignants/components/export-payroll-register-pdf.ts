@@ -9,6 +9,7 @@ import {
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import { safePdfFilePart } from "@/lib/pdf/pdf-engine";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 
 export type PayrollRegisterRow = {
@@ -124,6 +125,7 @@ export async function exportPayrollRegisterPdf(
   context: SchoolReportContext,
   options: PayrollRegisterOptions,
 ) {
+  const fonts = pdfFontsFromContext(context);
   const monthName = MONTHS[options.month - 1] ?? String(options.month);
   const periodLabel = `${monthName} ${options.year}`;
   const currency = cash?.currency ?? rows[0]?.currency ?? context.baseCurrency ?? "USD";
@@ -227,7 +229,7 @@ export async function exportPayrollRegisterPdf(
     theme: "grid",
     styles: {
       font: "helvetica",
-      fontSize: 8,
+      fontSize: fonts.body,
       cellPadding: 2.2,
       halign: "center",
       valign: "middle",
@@ -236,7 +238,7 @@ export async function exportPayrollRegisterPdf(
       fillColor: [30, 64, 175],
       textColor: 255,
       fontStyle: "bold",
-      fontSize: 7.5,
+      fontSize: fonts.head,
     },
     bodyStyles: {
       fontStyle: "bold",
@@ -257,7 +259,7 @@ export async function exportPayrollRegisterPdf(
   if (cash) {
     const kpiY = lastTableY(doc);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
+    doc.setFontSize(fonts.small);
     doc.setTextColor(100, 116, 139);
     doc.text(
       `Paie du mois : brut ${money(cash.payrollGross, currency)}  ·  retenues ${money(cash.payrollDeductions, currency)}  ·  à consommer ${money(cash.payrollConsume, currency)}  ·  ${sessions} séance${sessions > 1 ? "s" : ""}`,
@@ -362,7 +364,7 @@ export async function exportPayrollRegisterPdf(
     showHead: "everyPage",
     styles: {
       font: "helvetica",
-      fontSize: 6.5,
+      fontSize: fonts.dense,
       cellPadding: 1.4,
       overflow: "linebreak",
       valign: "middle",
@@ -371,7 +373,7 @@ export async function exportPayrollRegisterPdf(
       fillColor: [30, 64, 175],
       textColor: 255,
       fontStyle: "bold",
-      fontSize: 6.4,
+      fontSize: fonts.head,
       halign: "center",
       overflow: "linebreak",
     },
@@ -402,7 +404,7 @@ export async function exportPayrollRegisterPdf(
           data.cell.styles.textColor = 255;
           data.cell.styles.fontStyle = "bold";
           data.cell.styles.halign = "left";
-          data.cell.styles.fontSize = 7.5;
+          data.cell.styles.fontSize = fonts.small;
         } else {
           data.cell.styles.cellWidth = 0;
           data.cell.text = [];

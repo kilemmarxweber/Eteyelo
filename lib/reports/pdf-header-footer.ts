@@ -1,4 +1,5 @@
 import type jsPDF from "jspdf";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 
 /**
@@ -63,6 +64,7 @@ export function drawReportHeader(
   context: SchoolReportContext,
   options: DrawReportHeaderOptions,
 ): number {
+  const fonts = pdfFontsFromContext(context);
   const pageWidth = doc.internal.pageSize.getWidth();
   const { title, subtitle, details = [], logoDataUrl } = options;
   const marginX = 14;
@@ -94,7 +96,7 @@ export function drawReportHeader(
     doc.setFillColor(248, 250, 252);
     doc.roundedRect(logoX, logoY, logoSize, logoSize, 2, 2, "FD");
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
+    doc.setFontSize(fonts.meta);
     doc.setTextColor(100, 116, 139);
     doc.text(
       schoolInitials(context.schoolName || "E") || "E",
@@ -108,7 +110,7 @@ export function drawReportHeader(
 
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
+  doc.setFontSize(fonts.school);
   doc.text(context.schoolName || "Établissement", textX, textY, {
     maxWidth: textMaxWidth,
   });
@@ -116,7 +118,7 @@ export function drawReportHeader(
 
   if (subtitle?.trim() && subtitle.trim() !== (context.schoolName || "").trim()) {
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+    doc.setFontSize(fonts.subtitle);
     doc.setTextColor(71, 85, 105);
     doc.text(subtitle.trim(), textX, textY, {
       maxWidth: textMaxWidth,
@@ -132,7 +134,7 @@ export function drawReportHeader(
   if (contactLine) {
     doc.setFont("helvetica", "normal");
     doc.setTextColor(100, 116, 139);
-    doc.setFontSize(8);
+    doc.setFontSize(fonts.meta);
     doc.text(contactLine, textX, textY, {
       maxWidth: textMaxWidth,
     });
@@ -142,7 +144,7 @@ export function drawReportHeader(
   if (context.academicYearLabel) {
     doc.setFont("helvetica", "normal");
     doc.setTextColor(100, 116, 139);
-    doc.setFontSize(8);
+    doc.setFontSize(fonts.meta);
     doc.text(`Année scolaire : ${context.academicYearLabel}`, textX, textY, {
       maxWidth: textMaxWidth,
     });
@@ -158,7 +160,7 @@ export function drawReportHeader(
 
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 64, 175);
-  doc.setFontSize(12);
+  doc.setFontSize(fonts.title);
   doc.text(title, pageWidth / 2, y, {
     align: "center",
     maxWidth: pageWidth - marginX * 2,
@@ -177,7 +179,7 @@ export function drawReportHeader(
   if (meta) {
     doc.setFont("helvetica", "normal");
     doc.setTextColor(100, 116, 139);
-    doc.setFontSize(8);
+    doc.setFontSize(fonts.meta);
     doc.text(meta, pageWidth / 2, y, {
       align: "center",
       maxWidth: pageWidth - marginX * 2,
@@ -200,6 +202,7 @@ export function drawReportFooter(
   context: SchoolReportContext,
   options: DrawReportFooterOptions = {},
 ): void {
+  const fonts = pdfFontsFromContext(context);
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const {
@@ -213,7 +216,7 @@ export function drawReportFooter(
   doc.line(14, pageHeight - 10, pageWidth - 14, pageHeight - 10);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
+  doc.setFontSize(fonts.footer);
   doc.setTextColor(100);
 
   if (leftText) {

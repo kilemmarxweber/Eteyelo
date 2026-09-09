@@ -16,6 +16,7 @@ import {
   receiptItemStatusLabel,
   type ReceiptSettlementStatus,
 } from "@/lib/reports/receipt-settlement";
+import { reportPdfFonts } from "@/lib/reports/pdf-font-scale";
 
 export type FacturePaymentStudentData = {
   invoiceNumber: string;
@@ -64,6 +65,8 @@ export type FacturePaymentStudentData = {
   showConversion?: boolean;
   /** Modèle d'impression : A4 (tableau) ou ticket POS 80 mm. */
   receiptPrintFormat?: "A4" | "POS_80MM";
+  /** Taille de police (paramètre organisation). */
+  pdfFontSize?: number;
 };
 
 export function formatReceiptClasseCode(
@@ -130,6 +133,7 @@ function generateFacturePaymentStudentPosPDF(
     selectedRate,
     showConversion = true,
   } = data;
+  const fonts = reportPdfFonts(data.pdfFontSize);
   const pageWidth = 80;
   const margin = 4;
   const contentWidth = pageWidth - margin * 2;
@@ -171,24 +175,24 @@ function generateFacturePaymentStudentPosPDF(
       }
     }
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
+    doc.setFontSize(fonts.body);
     const nameLines = doc.splitTextToSize(schoolName, contentWidth);
     doc.text(nameLines, pageWidth / 2, y, { align: "center" });
     y += nameLines.length * 4 + 2;
 
     if (sender.address?.trim()) {
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(7);
+      doc.setFontSize(fonts.small);
       const addrLines = doc.splitTextToSize(sender.address.trim(), contentWidth);
       doc.text(addrLines, pageWidth / 2, y, { align: "center" });
       y += addrLines.length * 3.2 + 2;
     }
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
+    doc.setFontSize(fonts.small);
     doc.text("REÇU DE PAIEMENT", pageWidth / 2, y, { align: "center" });
     y += 5;
-    doc.setFontSize(9);
+    doc.setFontSize(fonts.body);
     doc.text(`N° ${invoiceNumber}`, pageWidth / 2, y, { align: "center" });
     y += 5;
 
@@ -198,7 +202,7 @@ function generateFacturePaymentStudentPosPDF(
     y += 5;
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
+    doc.setFontSize(fonts.small);
     doc.text(`Parent : ${recipient.name || "-"}`, margin, y);
     y += lineH;
     const issuedLine = issuedPlace?.trim()
@@ -213,7 +217,7 @@ function generateFacturePaymentStudentPosPDF(
 
     for (const item of items) {
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(8);
+      doc.setFontSize(fonts.small);
       const studentNameLines = doc.splitTextToSize(
         formatReceiptStudentName(item),
         contentWidth - 28,
@@ -227,7 +231,7 @@ function generateFacturePaymentStudentPosPDF(
       );
       y += studentNameLines.length * 3.4 + 0.5;
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(7);
+      doc.setFontSize(fonts.small);
       const descLines = doc.splitTextToSize(item.description, contentWidth);
       doc.text(descLines, margin, y);
       y += descLines.length * 3.1;
@@ -259,7 +263,7 @@ function generateFacturePaymentStudentPosPDF(
     doc.line(margin, y, pageWidth - margin, y);
     y += 5;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
+    doc.setFontSize(fonts.body);
     doc.text(`Total ${base}`, margin, y);
     doc.text(formatReceiptCurrency(totalBase, base), pageWidth - margin, y, {
       align: "right",
@@ -278,7 +282,7 @@ function generateFacturePaymentStudentPosPDF(
 
     y += 6;
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(7);
+    doc.setFontSize(fonts.small);
     doc.text("Signature", pageWidth / 2, y, { align: "center" });
     y += 8;
     doc.text("Merci · Conservez ce reçu", pageWidth / 2, y, {
@@ -321,6 +325,7 @@ export function generateFacturePaymentStudentPDF(
     selectedRate,
     showConversion = true,
   } = data;
+  const fonts = reportPdfFonts(data.pdfFontSize);
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const primaryColor = "#000000";
@@ -360,7 +365,7 @@ export function generateFacturePaymentStudentPDF(
     }
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
+    doc.setFontSize(fonts.school);
     doc.setTextColor(primaryColor);
     const nameY = logoY + logoSize / 2 + 1.5;
     doc.text(schoolName, textX, nameY);
@@ -368,7 +373,7 @@ export function generateFacturePaymentStudentPDF(
     doc.setLineWidth(0.3);
     doc.line(textX, nameY + 1.5, textX + textWidth, nameY + 1.5);
 
-    doc.setFontSize(9);
+    doc.setFontSize(fonts.body);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(primaryColor);
     doc.text(`Facture N°: ${invoiceNumber}`, 14, 40);
@@ -404,7 +409,7 @@ export function generateFacturePaymentStudentPDF(
       startY,
       margin: { left: 14, right: 14 },
       theme: "plain",
-      styles: { fontSize: 5, cellPadding: 3, textColor: "#000" },
+      styles: { fontSize: fonts.body, cellPadding: 3, textColor: "#000" },
       headStyles: {
         fillColor: [0, 0, 0],
         textColor: [255, 255, 255],
@@ -476,7 +481,7 @@ export function generateFacturePaymentStudentPDF(
       : 14 + 30 + 56 + 14 + 18 + 22 + 22;
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
+    doc.setFontSize(fonts.body);
     doc.text(`Total ${base} :`, tableRightX - 45, yAfterTable);
     doc.text(formatReceiptCurrency(totalBase, base), tableRightX, yAfterTable, {
       align: "right",
@@ -496,7 +501,7 @@ export function generateFacturePaymentStudentPDF(
 
     const currentDate = new Date().toLocaleDateString("fr-FR");
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+    doc.setFontSize(fonts.body);
     const issuedLine = placeLabel
       ? `Fait à ${placeLabel}, le ${currentDate}`
       : `Fait le ${currentDate}`;

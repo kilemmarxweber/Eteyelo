@@ -3,6 +3,7 @@ import {
   formatReceiptStudentName,
   type FacturePaymentStudentData,
 } from "@/components/FacturePaymentStudent";
+import { reportPdfFonts } from "@/lib/reports/pdf-font-scale";
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import { cn } from "@/lib/utils";
 import {
@@ -59,15 +60,18 @@ export function ReceiptPos80Body({
     timeStyle: "short",
   });
 
+  const fonts = reportPdfFonts(data.pdfFontSize);
+
   return (
     <div
       className={cn(
-        "flex flex-col gap-2 bg-white text-[11px] leading-snug text-black",
+        "flex flex-col gap-2 bg-white leading-snug text-black",
         className,
       )}
+      style={{ fontSize: `${fonts.body}pt` }}
     >
       <header className="border-b border-dashed border-black/40 pb-2 text-center">
-        <p className="text-[9px] font-semibold tracking-[0.18em] uppercase">
+        <p className="font-semibold tracking-[0.18em] uppercase">
           Reçu de paiement
         </p>
         <p className="mt-1 font-mono text-xs font-bold">

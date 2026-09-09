@@ -9,6 +9,7 @@ import {
   REPORT_CONTINUATION_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import { safePdfFilePart } from "@/lib/pdf/pdf-engine";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import {
   parsePayslipLineDetail,
@@ -115,6 +116,7 @@ export async function exportTeacherPayslipPdf(
   payslip: PayslipForPdf,
   context: SchoolReportContext,
 ) {
+  const fonts = pdfFontsFromContext(context);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const user =
@@ -169,8 +171,13 @@ export async function exportTeacherPayslipPdf(
     head: [["Libellé", "Séances", "Montant"]],
     body: recapBody,
     theme: "grid",
-    styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
-    headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: "bold" },
+    styles: { font: "helvetica", fontSize: fonts.body, cellPadding: 2 },
+    headStyles: {
+      fillColor: [30, 64, 175],
+      textColor: 255,
+      fontStyle: "bold",
+      fontSize: fonts.head,
+    },
     columnStyles: {
       1: { halign: "right", cellWidth: 28 },
       2: { halign: "right", cellWidth: 42 },
@@ -257,13 +264,18 @@ export async function exportTeacherPayslipPdf(
       amount(payslip.deductions, payslip.currency),
     ]],
     theme: "grid",
-    styles: { font: "helvetica", fontSize: 7, cellPadding: 1.6 },
-    headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: "bold" },
+    styles: { font: "helvetica", fontSize: fonts.dense, cellPadding: 1.6 },
+    headStyles: {
+      fillColor: [30, 64, 175],
+      textColor: 255,
+      fontStyle: "bold",
+      fontSize: fonts.head,
+    },
     footStyles: {
       fillColor: [219, 234, 254],
       textColor: [15, 23, 42],
       fontStyle: "bold",
-      fontSize: 8,
+      fontSize: fonts.head,
     },
     columnStyles: {
       10: { halign: "right" },

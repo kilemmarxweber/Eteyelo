@@ -9,6 +9,7 @@ import {
   drawReportHeader,
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type { IPersonnel } from "@/src/interfaces/Personnel";
 
@@ -122,6 +123,7 @@ export async function buildPersonnelReportPdf(
   context: SchoolReportContext,
   options: PersonnelReportOptions,
 ) {
+  const fonts = pdfFontsFromContext(context);
   const { labels } = options;
   const title = buildPersonnelReportTitle(options);
   const filterLabels = buildPersonnelReportFilterLabels(options);
@@ -163,7 +165,7 @@ export async function buildPersonnelReportPdf(
     showHead: "everyPage",
     styles: {
       font: "helvetica",
-      fontSize: 8,
+      fontSize: fonts.body,
       cellPadding: 2,
       overflow: "linebreak",
       valign: "middle",
@@ -173,6 +175,7 @@ export async function buildPersonnelReportPdf(
       textColor: 255,
       fontStyle: "bold",
       halign: "center",
+      fontSize: fonts.head,
     },
     alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: {

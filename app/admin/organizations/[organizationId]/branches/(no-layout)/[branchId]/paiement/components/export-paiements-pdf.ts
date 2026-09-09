@@ -10,6 +10,7 @@ import {
   drawReportHeader,
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import {
   DEFAULT_EXCHANGE_RATE_USD_CDF,
   type SchoolReportContext,
@@ -165,6 +166,7 @@ export async function buildPaiementsReportPdf(
   context: SchoolReportContext,
   options: PaiementReportOptions = {},
 ) {
+  const fonts = pdfFontsFromContext(context);
   const title = buildPaiementsReportTitle(options);
   const filterLabels = buildPaiementsReportFilterLabels(options);
   const exchangeRate = resolveExchangeRate(context);
@@ -212,7 +214,7 @@ export async function buildPaiementsReportPdf(
     showHead: "everyPage",
     styles: {
       font: "helvetica",
-      fontSize: 8,
+      fontSize: fonts.body,
       cellPadding: 2,
       overflow: "linebreak",
       valign: "middle",
@@ -222,6 +224,7 @@ export async function buildPaiementsReportPdf(
       textColor: 255,
       fontStyle: "bold",
       halign: "center",
+      fontSize: fonts.head,
     },
     alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: {

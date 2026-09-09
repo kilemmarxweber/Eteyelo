@@ -7,6 +7,7 @@ import {
   drawReportHeader,
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 
 export type FicheNotesReportInfo = {
@@ -56,6 +57,7 @@ export async function buildFicheNotesReportPdf(
   context: SchoolReportContext,
   ficheInfo: FicheNotesReportInfo,
 ) {
+  const fonts = pdfFontsFromContext(context);
   const title = buildFicheNotesTitle(ficheInfo);
   const details = buildFicheNotesDetails(ficheInfo);
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -83,7 +85,7 @@ export async function buildFicheNotesReportPdf(
     showHead: "everyPage",
     styles: {
       font: "helvetica",
-      fontSize: 9,
+      fontSize: fonts.body,
       cellPadding: 2,
       overflow: "linebreak",
       valign: "middle",
@@ -93,6 +95,7 @@ export async function buildFicheNotesReportPdf(
       textColor: 255,
       fontStyle: "bold",
       halign: "center",
+      fontSize: fonts.head,
     },
     alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: {

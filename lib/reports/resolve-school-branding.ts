@@ -1,5 +1,6 @@
 import { extractBulletinBranchLogo } from "@/lib/bulletin-context";
 import { branchDocumentName } from "@/lib/branch-document-name";
+import { parsePdfFontSize } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 
 export type SchoolBrandingBranchRecord = {
@@ -18,6 +19,7 @@ export type SchoolBrandingBranchRecord = {
     id?: string;
     name: string;
     logo?: string | null;
+    pdfFontSize?: number | null;
   };
   schoolYear?: Array<{ nameYear: string | null }>;
 };
@@ -82,6 +84,7 @@ export type BuildSchoolReportContextOptions = {
   selectedRate?: SchoolReportContext["selectedRate"];
   showConversion?: boolean;
   receiptPrintFormat?: SchoolReportContext["receiptPrintFormat"];
+  pdfFontSize?: number;
   /** Si fourni, remplace le libellé année scolaire dérivé de la branche. */
   academicYearLabel?: string;
 };
@@ -116,6 +119,9 @@ export function buildSchoolReportContext(
     selectedRate: options.selectedRate,
     showConversion: options.showConversion,
     receiptPrintFormat: options.receiptPrintFormat,
+    pdfFontSize: parsePdfFontSize(
+      options.pdfFontSize ?? branch.organization.pdfFontSize,
+    ),
   };
 }
 
@@ -132,7 +138,7 @@ export const schoolReportBranchSelect = {
   pays: true,
   tel: true,
   image: true,
-  organization: { select: { id: true, name: true, logo: true } },
+  organization: { select: { id: true, name: true, logo: true, pdfFontSize: true } },
   schoolYear: {
     where: { isCurrentYear: true, isArchived: false },
     select: { nameYear: true },

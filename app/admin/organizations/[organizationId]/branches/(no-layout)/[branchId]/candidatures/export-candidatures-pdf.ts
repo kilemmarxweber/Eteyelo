@@ -15,6 +15,10 @@ import {
   drawReportHeader,
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
+import {
+  pdfFontsFromContext,
+  type ReportPdfFonts,
+} from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type { JobApplicationListItem } from "@/src/interfaces/JobApplication";
 
@@ -202,6 +206,7 @@ export async function buildCandidaturesReportPdf(
   labels: CandidaturePdfLabels,
   options: CandidatureReportOptions = {},
 ) {
+  const fonts = pdfFontsFromContext(context);
   const title = buildCandidaturesReportTitle(labels, options);
   const filterLabels = buildCandidaturesReportFilterLabels(labels, options);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
@@ -237,7 +242,7 @@ export async function buildCandidaturesReportPdf(
     head: [head],
     body,
     styles: {
-      fontSize: 8,
+      fontSize: fonts.body,
       cellPadding: 2,
       overflow: "linebreak",
       valign: "middle",
@@ -246,7 +251,7 @@ export async function buildCandidaturesReportPdf(
       fillColor: [30, 64, 175],
       textColor: 255,
       fontStyle: "bold",
-      fontSize: 8,
+      fontSize: fonts.head,
     },
     alternateRowStyles: { fillColor: [248, 250, 252] },
     columnStyles: {
@@ -298,9 +303,14 @@ export async function exportCandidaturesReportPdf(
   doc.save(`${reportName}-${date}.pdf`);
 }
 
-function drawSectionTitle(doc: jsPDF, title: string, y: number): number {
+function drawSectionTitle(
+  doc: jsPDF,
+  title: string,
+  y: number,
+  fonts: ReportPdfFonts,
+): number {
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
+  doc.setFontSize(fonts.title);
   doc.setTextColor(30, 64, 175);
   doc.text(title, 14, y);
   doc.setDrawColor(226, 232, 240);
@@ -316,13 +326,14 @@ function drawField(
   x: number,
   y: number,
   maxWidth: number,
+  fonts: ReportPdfFonts,
 ): number {
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
+  doc.setFontSize(fonts.meta);
   doc.setTextColor(100, 116, 139);
   doc.text(label.toUpperCase(), x, y);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
+  doc.setFontSize(fonts.body);
   doc.setTextColor(15, 23, 42);
   const lines = doc.splitTextToSize(value || "-", maxWidth);
   doc.text(lines, x, y + 5);
@@ -335,6 +346,7 @@ function drawParagraph(
   value: string,
   y: number,
   pageHeight: number,
+  fonts: ReportPdfFonts,
 ): number {
   if (!value?.trim()) return y;
   let cursor = y;
@@ -342,9 +354,9 @@ function drawParagraph(
     doc.addPage();
     cursor = 20;
   }
-  cursor = drawSectionTitle(doc, label, cursor);
+  cursor = drawSectionTitle(doc, label, cursor, fonts);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
+  doc.setFontSize(fonts.body);
   doc.setTextColor(15, 23, 42);
   const lines = doc.splitTextToSize(value.trim(), 182);
   for (const line of lines) {
@@ -363,6 +375,7 @@ export async function buildCandidatureDossierPdf(
   context: SchoolReportContext,
   labels: CandidaturePdfLabels,
 ): Promise<PdfOutput> {
+  const fonts = pdfFontsFromContext(context);
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -400,7 +413,7 @@ export async function buildCandidatureDossierPdf(
   doc.roundedRect(14, y, pageWidth - 28, 12, 2, 2, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
+  doc.setFontSize(fonts.title);
   doc.text(
     labels.statusBanner.replace("{status}", statusLabel.toUpperCase()),
     pageWidth / 2,
@@ -409,9 +422,9 @@ export async function buildCandidatureDossierPdf(
   );
   y += 18;
 
-  y = drawSectionTitle(doc, labels.candidateIdentity, y);
+  y = drawSectionTitle(doc, labels.candidateIdentity, y, fonts);
   const colWidth = (pageWidth - 28 - 8) / 2;
-  const leftY = drawField(doc, labels.fullName, fullName, 14, y, colWidth);
+  const leftY = drawField(doc, labels.fullName, fullName, 14, y, colWidth, fonts);
   const rightY = drawField(
     doc,
     labels.columns.type,
@@ -419,10 +432,11 @@ export async function buildCandidatureDossierPdf(
     14 + colWidth + 8,
     y,
     colWidth,
+    fonts,
   );
   y = Math.max(leftY, rightY);
 
-  const leftY2 = drawField(doc, "Email", application.email, 14, y, colWidth);
+  const leftY2 = drawField(doc, "Email", application.email, 14, y, colWidth, fonts);
   const rightY2 = drawField(
     doc,
     labels.phone,
@@ -430,6 +444,7 @@ export async function buildCandidatureDossierPdf(
     14 + colWidth + 8,
     y,
     colWidth,
+    fonts,
   );
   y = Math.max(leftY2, rightY2);
 
@@ -443,6 +458,7 @@ export async function buildCandidatureDossierPdf(
       14,
       y,
       colWidth,
+      fonts,
     );
     const rightY3 = drawField(
       doc,
@@ -451,15 +467,16 @@ export async function buildCandidatureDossierPdf(
       14 + colWidth + 8,
       y,
       colWidth,
+      fonts,
     );
     y = Math.max(leftY3, rightY3);
   }
 
   if (application.address) {
-    y = drawField(doc, labels.address, application.address, 14, y, pageWidth - 28);
+    y = drawField(doc, labels.address, application.address, 14, y, pageWidth - 28, fonts);
   }
 
-  y = drawSectionTitle(doc, labels.profileSought, y + 2);
+  y = drawSectionTitle(doc, labels.profileSought, y + 2, fonts);
   y = drawField(
     doc,
     labels.profileRole,
@@ -467,6 +484,7 @@ export async function buildCandidatureDossierPdf(
     14,
     y,
     pageWidth - 28,
+    fonts,
   );
   if (application.yearsOfExperience != null) {
     y = drawField(
@@ -476,6 +494,7 @@ export async function buildCandidatureDossierPdf(
       14,
       y,
       colWidth,
+      fonts,
     );
   }
   if (application.availability) {
@@ -486,6 +505,7 @@ export async function buildCandidatureDossierPdf(
       14,
       y,
       pageWidth - 28,
+      fonts,
     );
   }
 
@@ -495,6 +515,7 @@ export async function buildCandidatureDossierPdf(
     application.experienceSummary ?? "",
     y,
     pageHeight,
+    fonts,
   );
   y = drawParagraph(
     doc,
@@ -502,14 +523,16 @@ export async function buildCandidatureDossierPdf(
     application.educationSummary ?? "",
     y,
     pageHeight,
+    fonts,
   );
-  y = drawParagraph(doc, labels.skills, application.skills ?? "", y, pageHeight);
+  y = drawParagraph(doc, labels.skills, application.skills ?? "", y, pageHeight, fonts);
   y = drawParagraph(
     doc,
     labels.motivation,
     application.motivation ?? "",
     y,
     pageHeight,
+    fonts,
   );
 
   if (application.status === "REJECTED" && application.rejectedReason) {
@@ -519,6 +542,7 @@ export async function buildCandidatureDossierPdf(
       application.rejectedReason,
       y,
       pageHeight,
+      fonts,
     );
   }
 
@@ -562,9 +586,9 @@ export async function buildCandidatureDossierPdf(
     doc.addPage();
     y = 20;
   }
-  y = drawSectionTitle(doc, labels.timelineTitle, y + 2);
+  y = drawSectionTitle(doc, labels.timelineTitle, y + 2, fonts);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
+  doc.setFontSize(fonts.body);
   doc.setTextColor(15, 23, 42);
   for (const line of timeline) {
     doc.text(`•  ${line}`, 16, y);

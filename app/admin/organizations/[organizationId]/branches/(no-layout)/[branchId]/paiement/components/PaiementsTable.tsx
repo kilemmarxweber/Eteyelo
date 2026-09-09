@@ -163,6 +163,7 @@ function mapGroupedToReceipt(
     selectedRate: branding.selectedRate,
     showConversion: branding.showConversion !== false,
     receiptPrintFormat: branding.receiptPrintFormat,
+    pdfFontSize: branding.pdfFontSize,
   };
 }
 

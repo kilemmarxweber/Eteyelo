@@ -17,6 +17,7 @@ import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
+import { parsePdfFontSize } from "@/lib/reports/pdf-font-scale";
 import {
   convertAmount,
   getBaseCurrency,
@@ -82,6 +83,7 @@ async function loadOrgExchangeRates(organizationId: string): Promise<{
   showReceiptConversion: boolean;
   notifyParentOnPayment: boolean;
   receiptPrintFormat: "A4" | "POS_80MM";
+  pdfFontSize: number;
 }> {
   const [rows, org] = await Promise.all([
     prisma.exchangeRate.findMany({
@@ -94,6 +96,7 @@ async function loadOrgExchangeRates(organizationId: string): Promise<{
         showReceiptConversion: true,
         notifyParentOnPayment: true,
         receiptPrintFormat: true,
+        pdfFontSize: true,
       },
     }),
   ]);
@@ -113,6 +116,7 @@ async function loadOrgExchangeRates(organizationId: string): Promise<{
     showReceiptConversion: org?.showReceiptConversion ?? true,
     notifyParentOnPayment: org?.notifyParentOnPayment ?? true,
     receiptPrintFormat: org?.receiptPrintFormat === "POS_80MM" ? "POS_80MM" : "A4",
+    pdfFontSize: parsePdfFontSize(org?.pdfFontSize),
   };
 }
 
@@ -242,6 +246,7 @@ type ReceiptPayload = {
   /** Si false, le PDF / aperçu n'affiche pas la 2e devise. */
   showConversion?: boolean;
   receiptPrintFormat?: "A4" | "POS_80MM";
+  pdfFontSize?: number;
 };
 
 /* ======================================================
@@ -601,6 +606,7 @@ export const createPaiementAction = action
       selectedRate,
       showReceiptConversion,
       receiptPrintFormat,
+      pdfFontSize,
     } = await loadOrgExchangeRates(organizationId);
     const usdCdfRate = resolveUsdCdfRate(exchangeRates);
 
@@ -1039,6 +1045,7 @@ export const createPaiementAction = action
         selectedRate,
         showConversion: showReceiptConversion,
         receiptPrintFormat,
+        pdfFontSize,
       });
 
       const receiptCurrency =
@@ -1108,6 +1115,7 @@ export const createPaiementAction = action
         selectedRate,
         showConversion: showReceiptConversion,
         receiptPrintFormat,
+        pdfFontSize,
       };
 
       /* ======================================================
@@ -1426,7 +1434,7 @@ export const getCashierReportContextAction = action.handler(async () => {
 export const getPaymentReportContextAction = action.handler(async () => {
   const { branchId, organizationId } = await requireFinanceReadBranchContext();
 
-  const [branch, { rates, baseCurrency, quoteCurrency, selectedRate, showReceiptConversion, receiptPrintFormat }] =
+  const [branch, { rates, baseCurrency, quoteCurrency, selectedRate, showReceiptConversion, receiptPrintFormat, pdfFontSize }] =
     await Promise.all([
       prisma.branch.findFirst({
         where: { id: branchId, organizationId },
@@ -1447,6 +1455,7 @@ export const getPaymentReportContextAction = action.handler(async () => {
       selectedRate,
       showConversion: showReceiptConversion,
       receiptPrintFormat,
+      pdfFontSize,
     }),
     selectedRate,
     showConversion: showReceiptConversion,

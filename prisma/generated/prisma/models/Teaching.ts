@@ -2107,8 +2107,8 @@ export type $TeachingPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     titulaire: boolean | null
     statusTeaching: boolean | null
     /**
-     * Volume hebdomadaire en minutes pour cette affectation (ex. 135).
-     * Nombre de séances = ceil(weeklyHours / durationCourse de la vacation).
+     * Volume hebdomadaire en minutes = durée de séance (créneau) × interventions
+     * dans la semaine (ex. 45 × 4 = 180). La pondération n'intervient pas.
      */
     weeklyHours: number | null
     /**

@@ -8,6 +8,7 @@ import {
   drawReportHeader,
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 
 export type TeacherAssignmentStatus = "assigned" | "unassigned";
@@ -169,6 +170,7 @@ export async function buildTeachersReportPdf(
   context: SchoolReportContext,
   options: TeacherReportOptions,
 ) {
+  const fonts = pdfFontsFromContext(context);
   const { labels } = options;
   const title = buildTeachersReportTitle(options);
   const filterLabels = buildTeachersReportFilterLabels(options);
@@ -207,7 +209,7 @@ export async function buildTeachersReportPdf(
     showHead: "everyPage",
     styles: {
       font: "helvetica",
-      fontSize: 8,
+      fontSize: fonts.body,
       cellPadding: 2,
       overflow: "linebreak",
       valign: "middle",
@@ -217,6 +219,7 @@ export async function buildTeachersReportPdf(
       textColor: 255,
       fontStyle: "bold",
       halign: "center",
+      fontSize: fonts.head,
     },
     alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: {

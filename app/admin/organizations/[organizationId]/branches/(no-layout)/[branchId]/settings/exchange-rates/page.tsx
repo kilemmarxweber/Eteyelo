@@ -24,6 +24,7 @@ import {
   parseReceiptPrintFormat,
   type ReceiptPrintFormat,
 } from "@/components/reports/receipt-format";
+import { PDF_FONT_SIZE_OPTIONS, parsePdfFontSize } from "@/lib/reports/pdf-font-scale";
 
 type RateRow = {
   id: string;
@@ -51,6 +52,7 @@ export default function ExchangeRatesSettingsPage() {
   const [notifyParentOnPayment, setNotifyParentOnPayment] = useState(true);
   const [receiptPrintFormat, setReceiptPrintFormat] =
     useState<ReceiptPrintFormat>("A4");
+  const [pdfFontSize, setPdfFontSize] = useState(10);
   const [savingDisplay, setSavingDisplay] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -76,6 +78,7 @@ export default function ExchangeRatesSettingsPage() {
         setShowReceiptConversion(display.showReceiptConversion);
         setNotifyParentOnPayment(display.notifyParentOnPayment);
         setReceiptPrintFormat(parseReceiptPrintFormat(display.receiptPrintFormat));
+        setPdfFontSize(parsePdfFontSize(display.pdfFontSize));
       }
       const list = data ?? [];
       setRows(list);
@@ -180,16 +183,19 @@ export default function ExchangeRatesSettingsPage() {
     showReceiptConversion?: boolean;
     notifyParentOnPayment?: boolean;
     receiptPrintFormat?: ReceiptPrintFormat;
+    pdfFontSize?: number;
   }) {
     const nextConversion = patch.showReceiptConversion ?? showReceiptConversion;
     const nextNotify = patch.notifyParentOnPayment ?? notifyParentOnPayment;
     const nextFormat = patch.receiptPrintFormat ?? receiptPrintFormat;
+    const nextFontSize = parsePdfFontSize(patch.pdfFontSize ?? pdfFontSize);
     setSavingDisplay(true);
     try {
       const [saved, err] = await updateFinanceDisplaySettingsAction({
         showReceiptConversion: nextConversion,
         notifyParentOnPayment: nextNotify,
         receiptPrintFormat: nextFormat,
+        pdfFontSize: nextFontSize,
       });
       if (err) {
         toast.error(err.message);
@@ -199,6 +205,7 @@ export default function ExchangeRatesSettingsPage() {
         setShowReceiptConversion(saved.showReceiptConversion);
         setNotifyParentOnPayment(saved.notifyParentOnPayment);
         setReceiptPrintFormat(parseReceiptPrintFormat(saved.receiptPrintFormat));
+        setPdfFontSize(parsePdfFontSize(saved.pdfFontSize));
       }
       toast.success("Option enregistrée.");
     } catch (error) {
@@ -313,6 +320,32 @@ export default function ExchangeRatesSettingsPage() {
                 </span>
               </Label>
             </RadioGroup>
+          </div>
+          <div className="space-y-3 border-t pt-3">
+            <div className="space-y-1">
+              <p className="font-medium">Taille des rapports PDF</p>
+              <p className="text-sm text-muted-foreground">
+                Police de tous les PDF : reçus, horaires, listes d&apos;élèves,
+                situation caisse, situation financière, paie du personnel,
+                bulletin de paie, présences, etc.
+              </p>
+            </div>
+            <select
+              className="h-9 w-full max-w-xs rounded-md border bg-background px-3 text-sm"
+              value={pdfFontSize}
+              disabled={savingDisplay}
+              onChange={(event) => {
+                const next = parsePdfFontSize(event.target.value);
+                setPdfFontSize(next);
+                void saveDisplaySettings({ pdfFontSize: next });
+              }}
+            >
+              {PDF_FONT_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>
+                  {size} pt{size === 10 ? " (recommandé)" : ""}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

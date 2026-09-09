@@ -66,10 +66,10 @@ const IMPORT_COPY: Record<
   { title: string; description: string; emptyMessage: string; alreadyLinked: string }
 > = {
   school_only: {
-    title: "Importer un eleve scolaire",
+    title: "Importer un eleve des humanites",
     description:
-      "Recherchez un eleve inscrit dans une branche primaire ou secondaire de la meme organisation.",
-    emptyMessage: "Aucun eleve scolaire trouve.",
+      "Recherchez un eleve inscrit en humanites (pas le tronc commun, le primaire ni la maternelle).",
+    emptyMessage: "Aucun eleve des humanites trouve.",
     alreadyLinked: "Cet eleve est deja present dans cette branche",
   },
   organization: {
@@ -382,6 +382,11 @@ export function ImportStudentDialog({
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {student.username} · {student.sourceBranchName}
+                    </p>
+                    <p className="mt-1 text-xs text-foreground/80">
+                      {[student.optionName, student.className ?? student.classCode]
+                        .filter(Boolean)
+                        .join(" · ") || "Classe non renseignee"}
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <BranchTypeBadge typebranch={student.sourceBranchType} />

@@ -7923,6 +7923,7 @@ export const OrganizationScalarFieldEnum = {
   showReceiptConversion: 'showReceiptConversion',
   receiptPrintFormat: 'receiptPrintFormat',
   notifyParentOnPayment: 'notifyParentOnPayment',
+  pdfFontSize: 'pdfFontSize',
   whatsappEnabled: 'whatsappEnabled',
   whatsappApiKey: 'whatsappApiKey',
   whatsappTemplate: 'whatsappTemplate',

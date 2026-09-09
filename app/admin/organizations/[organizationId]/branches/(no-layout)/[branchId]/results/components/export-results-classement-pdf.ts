@@ -7,6 +7,7 @@ import {
   drawReportHeader,
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
+import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type { StudentType } from "@/lib/types";
 
@@ -156,6 +157,7 @@ export async function buildResultsClassementReportPdf(
     );
   }
 
+  const fonts = pdfFontsFromContext(context);
   const title = buildResultsClassementReportTitle(options);
   const filterLabels = buildResultsClassementFilterLabels(options);
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -184,7 +186,7 @@ export async function buildResultsClassementReportPdf(
     showHead: "everyPage",
     styles: {
       font: "helvetica",
-      fontSize: 9,
+      fontSize: fonts.body,
       cellPadding: 2.5,
       overflow: "linebreak",
       valign: "middle",
@@ -194,6 +196,7 @@ export async function buildResultsClassementReportPdf(
       textColor: 255,
       fontStyle: "bold",
       halign: "center",
+      fontSize: fonts.head,
     },
     alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: {
