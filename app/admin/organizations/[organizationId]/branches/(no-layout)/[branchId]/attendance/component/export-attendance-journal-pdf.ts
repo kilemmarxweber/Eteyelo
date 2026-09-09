@@ -86,7 +86,7 @@ export async function exportTeacherSessionReportPdf(
           row.subject,
           row.classeName,
           row.actualStart ?? row.plannedStart,
-          row.actualEnd ?? row.plannedEnd,
+          row.actualEnd || "—",
           row.minutesLabel,
           row.statusLabel,
           row.earlyExit
@@ -362,6 +362,8 @@ export async function exportPersonRosterReportPdf(
       if (!row) return;
       if (row.status === "ABSENT") {
         data.cell.styles.textColor = [185, 28, 28];
+      } else if (row.status === "IN_CLASS" || row.status === "IN_PROGRESS") {
+        data.cell.styles.textColor = [21, 128, 61];
       } else if (row.earlyExit) {
         data.cell.styles.textColor = [180, 83, 9];
       }

@@ -25,7 +25,7 @@ import {
   isTeacherNormalCheckoutAllowed,
   teacherUsesDayLevelPunch,
 } from "@/lib/attendance-teacher-session";
-import { nowLocal } from "@/lib/timezone";
+import { nowLocal, startOfTodayParis } from "@/lib/timezone";
 import {
   buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
@@ -584,6 +584,8 @@ const STATUS_LABELS: Record<string, string> = {
   ABSENT: "Absent",
   LATE: "Retard",
   EXCUSED: "Excusé",
+  IN_CLASS: "En classe",
+  IN_PROGRESS: "En cours",
 };
 
 export const getAttendanceReportContextAction = action.handler(async () => {
@@ -607,14 +609,11 @@ export const getTeacherSessionReportAction = action
   )
   .handler(async ({ input }): Promise<TeacherSessionReport> => {
     const { branchId } = await requireAttendanceScanContext();
-
-    const start = new Date(input.startDate);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(input.endDate);
-    end.setHours(23, 59, 59, 999);
-    if (end < start) {
-      throw new Error("La date de fin doit être postérieure à la date de début.");
-    }
+    const now = nowLocal();
+    const { start, endDay, queryEnd } = reportDayRange(
+      input.startDate,
+      input.endDate,
+    );
 
     const teacherId = input.teacherId?.trim() || null;
     const classeId = input.classeId?.trim() || null;
@@ -622,7 +621,7 @@ export const getTeacherSessionReportAction = action
     const records = await prisma.teacherAttendance.findMany({
       where: {
         branchId,
-        date: { gte: start, lte: end },
+        date: { gte: start, lte: queryEnd },
         ...(teacherId ? { teacherId } : {}),
         ...(classeId
           ? { session: { teaching: { classeId } } }
@@ -656,15 +655,23 @@ export const getTeacherSessionReportAction = action
     const rows: TeacherSessionReportRow[] = [];
 
     for (const record of records) {
-      const dayKey = `${record.teacherId}:${record.date.toISOString().slice(0, 10)}`;
+      const dayKey = `${record.teacherId}:${calendarDayIso(record.date)}`;
       const index = byTeacherDay.get(dayKey) ?? 0;
       byTeacherDay.set(dayKey, index + 1);
 
       const actualStart = record.checkIn ?? record.createdAt;
-      const actualEnd =
-        record.checkOut ??
-        (record.earlyExit ? null : record.session.endTime);
+      const periodEnd = combineDateWithCreneauTime(
+        record.date ?? now,
+        record.session.endTime,
+      );
+      const stillOpen =
+        Boolean(actualStart) &&
+        !record.checkOut &&
+        !record.earlyExit &&
+        now.getTime() < periodEnd.getTime();
+      const actualEnd = record.checkOut ?? null;
       const minutes = minutesBetween(actualStart, actualEnd);
+      const status = stillOpen ? "IN_PROGRESS" : record.status;
 
       const classe = record.session.teaching?.classe;
       rows.push({
@@ -690,8 +697,8 @@ export const getTeacherSessionReportAction = action
         minutesLabel: formatDurationMinutes(minutes),
         earlyExit: record.earlyExit,
         exitReason: record.exitReason,
-        status: record.status,
-        statusLabel: STATUS_LABELS[record.status] ?? record.status,
+        status,
+        statusLabel: STATUS_LABELS[status] ?? status,
       });
     }
 
@@ -717,7 +724,7 @@ export const getTeacherSessionReportAction = action
 
     return {
       dateStart: start.toISOString(),
-      dateEnd: end.toISOString(),
+      dateEnd: endDay.toISOString(),
       teacherId,
       teacherName,
       classeId,
@@ -1012,24 +1019,94 @@ function bumpRosterSummary(
   earlyExit: boolean,
 ) {
   summary.total += 1;
-  if (status === "PRESENT") summary.present += 1;
-  else if (status === "LATE") summary.late += 1;
+  if (status === "PRESENT" || status === "IN_CLASS" || status === "IN_PROGRESS") {
+    summary.present += 1;
+  } else if (status === "LATE") summary.late += 1;
   else if (status === "EXCUSED") summary.excused += 1;
   else summary.absent += 1;
   if (earlyExit) summary.earlyExits += 1;
 }
 
+function calendarDayIso(date: Date): string {
+  return startOfTodayParis(date).toISOString().slice(0, 10);
+}
+
+function reportDayRange(startDate: Date, endDate: Date) {
+  const start = startOfTodayParis(startDate);
+  const endDay = startOfTodayParis(endDate);
+  if (endDay.getTime() < start.getTime()) {
+    throw new Error("La date de fin doit être postérieure à la date de début.");
+  }
+  const queryEnd = new Date(endDay);
+  queryEnd.setUTCHours(23, 59, 59, 999);
+  return { start, endDay, queryEnd };
+}
+
 function eachDay(start: Date, end: Date): Date[] {
   const days: Date[] = [];
-  const cursor = new Date(start);
-  cursor.setHours(0, 0, 0, 0);
-  const last = new Date(end);
-  last.setHours(0, 0, 0, 0);
-  while (cursor <= last) {
+  const cursor = startOfTodayParis(start);
+  const last = startOfTodayParis(end);
+  while (cursor.getTime() <= last.getTime()) {
     days.push(new Date(cursor));
-    cursor.setDate(cursor.getDate() + 1);
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
   return days;
+}
+
+function pickTime(dates: Date[], which: "min" | "max"): Date | null {
+  const valid = dates.filter(
+    (value) =>
+      Number.isFinite(value.getTime()) && value.getUTCFullYear() >= 1990,
+  );
+  if (!valid.length) return null;
+  const ts = valid.map((value) => value.getTime());
+  return new Date(which === "min" ? Math.min(...ts) : Math.max(...ts));
+}
+
+function resolveOpenRosterStatus(params: {
+  baseStatus: "PRESENT" | "LATE" | "EXCUSED" | "ABSENT";
+  checkIn: Date | null;
+  checkOut: Date | null;
+  earlyExit: boolean;
+  periodEnd: Date | null;
+  openStatus: "IN_CLASS" | "IN_PROGRESS";
+}) {
+  const base =
+    params.checkIn && params.baseStatus === "ABSENT"
+      ? "PRESENT"
+      : params.baseStatus;
+
+  if (!params.checkIn) {
+    return {
+      status: "ABSENT" as const,
+      statusLabel: STATUS_LABELS.ABSENT,
+      checkOut: null as Date | null,
+    };
+  }
+
+  if (params.earlyExit || params.checkOut) {
+    return {
+      status: base,
+      statusLabel: STATUS_LABELS[base] ?? base,
+      checkOut: params.checkOut,
+    };
+  }
+
+  const now = nowLocal();
+  const periodEnded = params.periodEnd ? now.getTime() >= params.periodEnd.getTime() : false;
+  if (!periodEnded) {
+    return {
+      status: params.openStatus,
+      statusLabel: STATUS_LABELS[params.openStatus],
+      checkOut: null,
+    };
+  }
+
+  return {
+    status: base,
+    statusLabel: STATUS_LABELS[base] ?? base,
+    checkOut: null,
+  };
 }
 
 function resolveDayStatus(
@@ -1054,13 +1131,10 @@ export const getStudentRosterReportAction = action
   )
   .handler(async ({ input }): Promise<PersonRosterReport> => {
     const { branchId } = await requireAttendanceScanContext();
-    const start = new Date(input.startDate);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(input.endDate);
-    end.setHours(23, 59, 59, 999);
-    if (end < start) {
-      throw new Error("La date de fin doit être postérieure à la date de début.");
-    }
+    const { start, endDay, queryEnd } = reportDayRange(
+      input.startDate,
+      input.endDate,
+    );
 
     const classeId = input.classeId?.trim() || null;
     let classeName: string | null = null;
@@ -1114,7 +1188,7 @@ export const getStudentRosterReportAction = action
       where: {
         branchId,
         session: {
-          date: { gte: start, lte: end },
+          date: { gte: start, lte: queryEnd },
           ...(classeId ? { teaching: { classeId } } : {}),
         },
       },
@@ -1144,7 +1218,7 @@ export const getStudentRosterReportAction = action
     >();
 
     for (const row of attendance) {
-      const dayKey = `${row.studentId}:${row.session.date.toISOString().slice(0, 10)}`;
+      const dayKey = `${row.studentId}:${calendarDayIso(row.session.date)}`;
       const entry = byStudentDay.get(dayKey) ?? {
         statuses: [],
         checkIns: [],
@@ -1165,38 +1239,32 @@ export const getStudentRosterReportAction = action
       byStudentDay.set(dayKey, entry);
     }
 
-    const days = eachDay(start, end);
+    const days = eachDay(start, endDay);
     const rows: PersonRosterRow[] = [];
     const summary = emptyRosterSummary();
 
     for (const day of days) {
-      const dayIso = day.toISOString().slice(0, 10);
+      const dayIso = calendarDayIso(day);
       for (const enrollment of enrollments) {
         const student = enrollment.student;
         const classe = enrollment.classe;
         if (!student || !classe) continue;
         const key = `${student.id}:${dayIso}`;
         const entry = byStudentDay.get(key);
-        const status = resolveDayStatus(entry?.statuses ?? []);
+        const baseStatus = resolveDayStatus(entry?.statuses ?? []);
         const vacationEnd = classe.creneau?.endTime
           ? combineDateWithCreneauTime(day, classe.creneau.endTime)
           : null;
-
-        let checkOutDate: Date | null = null;
-        if (entry?.earlyExit) {
-          const realExits = (entry.checkOuts ?? []).filter(
-            (value) => value.getUTCFullYear() >= 1990,
-          );
-          checkOutDate = realExits.length
-            ? new Date(Math.max(...realExits.map((value) => value.getTime())))
-            : vacationEnd;
-        } else if (status !== "ABSENT") {
-          checkOutDate = vacationEnd;
-        }
-
-        const checkInDate = entry?.checkIns.length
-          ? new Date(Math.min(...entry.checkIns.map((d) => d.getTime())))
-          : null;
+        const checkInDate = pickTime(entry?.checkIns ?? [], "min");
+        const checkOutDate = pickTime(entry?.checkOuts ?? [], "max");
+        const resolved = resolveOpenRosterStatus({
+          baseStatus,
+          checkIn: checkInDate,
+          checkOut: checkOutDate,
+          earlyExit: Boolean(entry?.earlyExit),
+          periodEnd: vacationEnd,
+          openStatus: "IN_CLASS",
+        });
 
         const row: PersonRosterRow = {
           id: entry?.attendanceId ?? `${student.id}-${dayIso}`,
@@ -1209,15 +1277,15 @@ export const getStudentRosterReportAction = action
             classe.nameClasse?.trim() ||
             classe.codeClasse?.trim() ||
             "Classe",
-          status,
-          statusLabel: STATUS_LABELS[status] ?? status,
+          status: resolved.status,
+          statusLabel: resolved.statusLabel,
           checkIn: formatTime(checkInDate),
-          checkOut: formatTime(checkOutDate),
+          checkOut: formatTime(resolved.checkOut),
           earlyExit: Boolean(entry?.earlyExit),
           exitReason: entry?.exitReason ?? null,
         };
         rows.push(row);
-        bumpRosterSummary(summary, status, row.earlyExit);
+        bumpRosterSummary(summary, resolved.status, row.earlyExit);
       }
     }
 
@@ -1231,7 +1299,7 @@ export const getStudentRosterReportAction = action
 
     return {
       dateStart: start.toISOString(),
-      dateEnd: end.toISOString(),
+      dateEnd: endDay.toISOString(),
       classeId,
       classeName,
       rows,
@@ -1249,13 +1317,10 @@ export const getPersonnelRosterReportAction = action
   )
   .handler(async ({ input }): Promise<PersonRosterReport> => {
     const { branchId } = await requireAttendanceScanContext();
-    const start = new Date(input.startDate);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(input.endDate);
-    end.setHours(23, 59, 59, 999);
-    if (end < start) {
-      throw new Error("La date de fin doit être postérieure à la date de début.");
-    }
+    const { start, endDay, queryEnd } = reportDayRange(
+      input.startDate,
+      input.endDate,
+    );
 
     const personnelList = await prisma.personnel.findMany({
       where: { branchMember: { branchId } },
@@ -1280,7 +1345,7 @@ export const getPersonnelRosterReportAction = action
     const attendance = await prisma.personnelAttendance.findMany({
       where: {
         branchId,
-        date: { gte: start, lte: end },
+        date: { gte: start, lte: queryEnd },
       },
       select: {
         id: true,
@@ -1297,27 +1362,35 @@ export const getPersonnelRosterReportAction = action
     const byPersonDay = new Map<string, (typeof attendance)[number]>();
     for (const row of attendance) {
       byPersonDay.set(
-        `${row.personnelId}:${row.date.toISOString().slice(0, 10)}`,
+        `${row.personnelId}:${calendarDayIso(row.date)}`,
         row,
       );
     }
 
-    const days = eachDay(start, end);
+    const days = eachDay(start, endDay);
     const rows: PersonRosterRow[] = [];
     const summary = emptyRosterSummary();
 
     for (const day of days) {
-      const dayIso = day.toISOString().slice(0, 10);
+      const dayIso = calendarDayIso(day);
       for (const person of personnelList) {
         if (memberIsAttendanceOwner(person.branchMember?.member)) {
           continue;
         }
         const record = byPersonDay.get(`${person.id}:${dayIso}`);
-        const status = (record?.status ?? "ABSENT") as
+        const baseStatus = (record?.status ?? "ABSENT") as
           | "PRESENT"
           | "LATE"
           | "EXCUSED"
           | "ABSENT";
+        const resolved = resolveOpenRosterStatus({
+          baseStatus,
+          checkIn: record?.checkIn ?? null,
+          checkOut: record?.checkOut ?? null,
+          earlyExit: Boolean(record?.earlyExit),
+          periodEnd: null,
+          openStatus: "IN_PROGRESS",
+        });
         const role = person.branchMember?.member?.role;
         const row: PersonRosterRow = {
           id: record?.id ?? `${person.id}-${dayIso}`,
@@ -1327,15 +1400,15 @@ export const getPersonnelRosterReportAction = action
             person.branchMember?.member?.user ?? null,
           ),
           contextLabel: role ? String(role) : "Personnel",
-          status,
-          statusLabel: STATUS_LABELS[status] ?? status,
+          status: resolved.status,
+          statusLabel: resolved.statusLabel,
           checkIn: formatTime(record?.checkIn ?? null),
-          checkOut: formatTime(record?.checkOut ?? null),
+          checkOut: formatTime(resolved.checkOut),
           earlyExit: Boolean(record?.earlyExit),
           exitReason: record?.exitReason ?? null,
         };
         rows.push(row);
-        bumpRosterSummary(summary, status, row.earlyExit);
+        bumpRosterSummary(summary, resolved.status, row.earlyExit);
       }
     }
 
@@ -1347,7 +1420,7 @@ export const getPersonnelRosterReportAction = action
 
     return {
       dateStart: start.toISOString(),
-      dateEnd: end.toISOString(),
+      dateEnd: endDay.toISOString(),
       classeId: null,
       classeName: null,
       rows,

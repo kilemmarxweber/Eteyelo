@@ -744,6 +744,8 @@ function RosterTable({
                   className={
                     row.status === "ABSENT"
                       ? "border-t bg-red-50/60 dark:bg-red-950/20"
+                      : row.status === "IN_CLASS" || row.status === "IN_PROGRESS"
+                        ? "border-t bg-emerald-50/60 dark:bg-emerald-950/20"
                       : row.earlyExit
                         ? "border-t bg-amber-50/60 dark:bg-amber-950/20"
                         : "border-t"

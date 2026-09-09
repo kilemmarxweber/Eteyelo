@@ -16,6 +16,8 @@
     "ABSENT": "Absent",
     "LATE": "Retard",
     "EXCUSED": "Excusé",
+    "IN_CLASS": "En classe",
+    "IN_PROGRESS": "En cours",
     "checkout": "Sortie"
   },
   "personType": {
