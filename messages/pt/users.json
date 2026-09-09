@@ -599,7 +599,9 @@
       "printSuccess": "O PDF do horário global foi gerado.",
       "printFailed": "Não foi possível gerar o PDF do horário global.",
       "printPdfTitle": "Horário global · {cycle}",
-      "recreationPdf": "Intervalo"
+      "recreationPdf": "Intervalo",
+      "yearLabel": "Ano: {year}",
+      "saturdayLabel": "Sábado: {range}"
     }
   },
   "staff": {

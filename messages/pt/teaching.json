@@ -301,7 +301,17 @@
     "reconduireNothing": "Nenhuma sessão foi reconduzida",
     "reconduireNothingPlaced": "Nenhuma sessão colocada ({occupied} já ocupada(s), {conflicts} conflito(s), {unassigned} curso(s) sem professor aqui).",
     "reconduireSuccess": "{placed} sessão(ões) reconduzida(s) de {source}.",
-    "reconduireSkipped": "{occupied} célula(s) ocupada(s) ignorada(s). {conflicts} conflito(s) de professor ignorado(s). {unassigned} curso(s) sem professor nesta turma ignorado(s)."
+    "reconduireSkipped": "{occupied} célula(s) ocupada(s) ignorada(s). {conflicts} conflito(s) de professor ignorado(s). {unassigned} curso(s) sem professor nesta turma ignorado(s).",
+    "pdf": {
+      "title": "Horário da turma {className}",
+      "vacation": "Turno:",
+      "code": "Código:",
+      "saturday": "Sábado:",
+      "recreation": "INTERVALO",
+      "conflict": "CONFLITO",
+      "generated": "O relatório PDF foi gerado.",
+      "generateFailed": "Não foi possível gerar o relatório PDF."
+    }
   },
   "vacation": {
     "title": "Horários",

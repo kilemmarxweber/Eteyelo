@@ -4,11 +4,11 @@ import autoTable from "jspdf-autotable";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import {
   finalizePdfDocument,
-  formatFrenchDate,
   safePdfFilePart,
   downloadPdfOutput,
   type PdfOutput,
 } from "@/lib/pdf/pdf-engine";
+import { formatDocumentDate } from "@/lib/reports/document-locale";
 import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
   drawReportFooterOnAllPages,
@@ -55,6 +55,7 @@ export type CandidaturePdfLabels = {
   genderFemale: string;
   birthDate: string;
   address: string;
+  email: string;
   profileSought: string;
   profileRole: string;
   yearsExperience: string;
@@ -147,11 +148,14 @@ function formatPoste(
     : formatType(item.applicationType, labels);
 }
 
-function formatDate(value: Date | string | null | undefined): string {
+function formatDate(
+  value: Date | string | null | undefined,
+  locale?: unknown,
+): string {
   if (!value) return "-";
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
-  return formatFrenchDate(date);
+  return formatDocumentDate(date, locale);
 }
 
 function statusFilterLabel(
@@ -228,7 +232,7 @@ export async function buildCandidaturesReportPdf(
     formatType(application.applicationType, labels),
     formatPoste(application, labels),
     labels.statusLabels[application.status] ?? application.status,
-    formatDate(application.createdAt),
+    formatDate(application.createdAt, context.locale),
   ]);
 
   autoTable(doc, {
@@ -392,7 +396,7 @@ export async function buildCandidatureDossierPdf(
       labels.statusLabel.replace("{status}", statusLabel),
       labels.depositedOn.replace(
         "{date}",
-        formatDate(application.createdAt),
+        formatDate(application.createdAt, context.locale),
       ),
     ],
     logoDataUrl: logo,
@@ -436,7 +440,7 @@ export async function buildCandidatureDossierPdf(
   );
   y = Math.max(leftY, rightY);
 
-  const leftY2 = drawField(doc, "Email", application.email, 14, y, colWidth, fonts);
+  const leftY2 = drawField(doc, labels.email, application.email, 14, y, colWidth, fonts);
   const rightY2 = drawField(
     doc,
     labels.phone,
@@ -463,7 +467,7 @@ export async function buildCandidatureDossierPdf(
     const rightY3 = drawField(
       doc,
       labels.birthDate,
-      formatDate(application.dateOfBirth),
+      formatDate(application.dateOfBirth, context.locale),
       14 + colWidth + 8,
       y,
       colWidth,
@@ -549,14 +553,14 @@ export async function buildCandidatureDossierPdf(
   const timeline: string[] = [
     labels.timelineDeposit.replace(
       "{date}",
-      formatDate(application.createdAt),
+      formatDate(application.createdAt, context.locale),
     ),
   ];
   if (application.reviewedAt) {
     timeline.push(
       labels.timelineReview.replace(
         "{date}",
-        formatDate(application.reviewedAt),
+        formatDate(application.reviewedAt, context.locale),
       ),
     );
   }
@@ -564,20 +568,20 @@ export async function buildCandidatureDossierPdf(
     timeline.push(
       labels.timelineAccept.replace(
         "{date}",
-        formatDate(application.acceptedAt),
+        formatDate(application.acceptedAt, context.locale),
       ),
     );
   }
   if (application.hiredAt) {
     timeline.push(
-      labels.timelineHire.replace("{date}", formatDate(application.hiredAt)),
+      labels.timelineHire.replace("{date}", formatDate(application.hiredAt, context.locale)),
     );
   }
   if (application.status === "REJECTED") {
     timeline.push(
       labels.timelineReject.replace(
         "{date}",
-        formatDate(application.reviewedAt ?? application.createdAt),
+        formatDate(application.reviewedAt ?? application.createdAt, context.locale),
       ),
     );
   }

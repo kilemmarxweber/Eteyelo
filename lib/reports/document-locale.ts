@@ -167,3 +167,137 @@ export function formatDocumentDateTime(value: string, locale?: unknown): string 
     minute: "2-digit",
   }).format(date);
 }
+
+const CYCLE_LABELS: Record<UserLocale, Record<string, string>> = {
+  fr: {
+    MATERNELLE: "Maternelle",
+    PRIMAIRE: "Primaire",
+    SECONDAIRE: "Secondaire",
+    ATELIER: "Atelier",
+    CENTRE_FORMATION: "Centre de formation",
+    UNIVERSITE: "Université",
+    MIXTE: "Mixte",
+    PERSONNEL: "Personnel",
+    AUTRE: "Autre",
+  },
+  en: {
+    MATERNELLE: "Preschool",
+    PRIMAIRE: "Primary",
+    SECONDAIRE: "Secondary",
+    ATELIER: "Workshop",
+    CENTRE_FORMATION: "Training centre",
+    UNIVERSITE: "University",
+    MIXTE: "Mixed",
+    PERSONNEL: "Staff",
+    AUTRE: "Other",
+  },
+  pt: {
+    MATERNELLE: "Maternal",
+    PRIMAIRE: "Primário",
+    SECONDAIRE: "Secundário",
+    ATELIER: "Atelier",
+    CENTRE_FORMATION: "Centro de formação",
+    UNIVERSITE: "Universidade",
+    MIXTE: "Misto",
+    PERSONNEL: "Pessoal",
+    AUTRE: "Outro",
+  },
+};
+
+export function cycleDocumentLabel(cycle: string, locale?: unknown): string {
+  return CYCLE_LABELS[documentLocaleFrom(locale)][cycle] ?? cycle;
+}
+
+const PAYROLL_STATUS: Record<UserLocale, Record<string, string>> = {
+  fr: {
+    DRAFT: "Brouillon",
+    VALIDATED: "Validé",
+    PAID: "Payé",
+    CANCELLED: "Annulé",
+  },
+  en: {
+    DRAFT: "Draft",
+    VALIDATED: "Validated",
+    PAID: "Paid",
+    CANCELLED: "Cancelled",
+  },
+  pt: {
+    DRAFT: "Rascunho",
+    VALIDATED: "Validado",
+    PAID: "Pago",
+    CANCELLED: "Cancelado",
+  },
+};
+
+export function payrollStatusLabel(status: string, locale?: unknown): string {
+  return PAYROLL_STATUS[documentLocaleFrom(locale)][status] ?? status;
+}
+
+const PAYROLL_HEADERS: Record<UserLocale, string[]> = {
+  fr: [
+    "Agent",
+    "Cycle / rôle",
+    "Branche",
+    "Classes",
+    "Contrat",
+    "Séances",
+    "Brut",
+    "Pertes",
+    "Min. perdues",
+    "Net",
+    "Différence",
+    "Bulletin",
+  ],
+  en: [
+    "Staff",
+    "Cycle / role",
+    "Branch",
+    "Classes",
+    "Contract",
+    "Sessions",
+    "Gross",
+    "Deductions",
+    "Lost min.",
+    "Net",
+    "Difference",
+    "Payslip",
+  ],
+  pt: [
+    "Agente",
+    "Ciclo / função",
+    "Filial",
+    "Turmas",
+    "Contrato",
+    "Sessões",
+    "Bruto",
+    "Descontos",
+    "Min. perdidos",
+    "Líquido",
+    "Diferença",
+    "Recibo",
+  ],
+};
+
+export function payrollDocumentCopy(locale?: unknown) {
+  const loc = documentLocaleFrom(locale);
+  const chrome = documentChrome(loc);
+  return {
+    title:
+      loc === "en"
+        ? "Payslips"
+        : loc === "pt"
+          ? "Recibos de vencimento"
+          : "Bulletins de paie",
+    sheetName:
+      loc === "en" ? "Payslips" : loc === "pt" ? "Recibos" : "Bulletins de paie",
+    academicYear: chrome.academicYear,
+    headers: PAYROLL_HEADERS[loc],
+    draft:
+      loc === "en" ? "draft" : loc === "pt" ? "rascunho" : "brouillon",
+    validated:
+      loc === "en" ? "validated" : loc === "pt" ? "validado" : "validé",
+    paid: loc === "en" ? "paid" : loc === "pt" ? "pago" : "payé",
+    slips:
+      loc === "en" ? "payslip(s)" : loc === "pt" ? "recibo(s)" : "bulletin(s)",
+  };
+}

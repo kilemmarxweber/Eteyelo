@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarClock } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Card } from "@/components/ui/card";
 import {
@@ -17,16 +18,25 @@ import {
 } from "@/lib/student-schedule-types";
 import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
 import { slotHourOnDay } from "@/lib/creneau-saturday";
+import {
+  weekdayLabel,
+  weekdayShortLabel,
+} from "@/lib/reports/document-locale";
+import { normalizeUserLocale } from "@/lib/user-locale";
 
 type StudentScheduleSectionProps = {
   schedule: StudentScheduleData | null;
 };
 
 export function StudentScheduleSection({ schedule }: StudentScheduleSectionProps) {
+  const t = useTranslations("teaching.schedule");
+  const locale = normalizeUserLocale(useLocale());
+  const saturdayShort = weekdayShortLabel("Samedi", locale);
+
   if (!schedule) {
     return (
       <Card className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-        Aucune classe assignee pour afficher l&apos;horaire de cours.
+        {t("emptyReadOnly")}
       </Card>
     );
   }
@@ -54,7 +64,7 @@ export function StudentScheduleSection({ schedule }: StudentScheduleSectionProps
       <div className="mb-4 flex items-center gap-2">
         <CalendarClock className="size-4 text-primary" />
         <div>
-          <h3 className="text-sm font-semibold">Horaire de cours</h3>
+          <h3 className="text-sm font-semibold">{t("weeklyTitle")}</h3>
           <p className="text-xs text-muted-foreground">
             {classLabel}
             {classCode ? ` · ${classCode}` : ""}
@@ -66,10 +76,10 @@ export function StudentScheduleSection({ schedule }: StudentScheduleSectionProps
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[150px]">Heures</TableHead>
+              <TableHead className="w-[150px]">{t("hoursColumn")}</TableHead>
               {days.map((day) => (
                 <TableHead key={day}>
-                  {day}
+                  {weekdayLabel(day, locale)}
                   {showSaturdayClock && day === "Samedi" ? (
                     <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
                       07:30 – {saturdayEndTime || "12:30"}
@@ -98,7 +108,7 @@ export function StudentScheduleSection({ schedule }: StudentScheduleSectionProps
                       className="text-center"
                     >
                       <span className="text-base tracking-widest text-muted-foreground">
-                        R E C R E A T I O N ({hour} -{" "}
+                        {t("pdf.recreation")} ({hour} -{" "}
                         {timeSlots[index + 1] || endTime})
                       </span>
                     </TableCell>
@@ -109,7 +119,7 @@ export function StudentScheduleSection({ schedule }: StudentScheduleSectionProps
                       <span>{`${hour} - ${timeSlots[index + 1] || endTime}`}</span>
                       {showSaturdayClock && saturdayTimeSlots[index] ? (
                         <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
-                          Sam. {saturdayTimeSlots[index]} -{" "}
+                          {saturdayShort} {saturdayTimeSlots[index]} -{" "}
                           {saturdayTimeSlots[index + 1] ||
                             saturdayEndTime ||
                             endTime}

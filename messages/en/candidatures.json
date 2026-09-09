@@ -21,6 +21,16 @@
   "listTitle": "Received applications",
   "reportPdf": "PDF report",
   "emptyFilter": "No applications for this filter.",
+  "emptySearch": "No applications match your search.",
+  "searchPlaceholder": "Search by name, email, reference…",
+  "deletePermanently": "Delete permanently",
+  "deleteDialogTitle": "Permanently delete this application?",
+  "deleteDialogDescription": "This action cannot be undone. The file {name} ({reference}) will be permanently deleted.",
+  "confirmDelete": "Delete permanently",
+  "deleted": "Application permanently deleted.",
+  "paginationRange": "{from}–{to} of {total}",
+  "prevPage": "Previous",
+  "nextPage": "Next",
   "applicationType": {
     "TEACHER": "Teacher",
     "STAFF": "Staff"

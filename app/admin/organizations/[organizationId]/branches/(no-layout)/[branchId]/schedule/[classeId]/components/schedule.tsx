@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback, HTMLAttributes } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -62,6 +62,11 @@ import {
   slotHourOnDay,
 } from "@/lib/creneau-saturday";
 import { ReconduireScheduleDialog } from "./reconduire-schedule-dialog";
+import {
+  weekdayLabel,
+  weekdayShortLabel,
+} from "@/lib/reports/document-locale";
+import { normalizeUserLocale } from "@/lib/user-locale";
 
 export const Day = {
   Lundi: "Lundi",
@@ -132,6 +137,7 @@ export default function Schedule({
 }: ScheduleUpFormProps) {
   const t = useTranslations("teaching.schedule");
   const tc = useTranslations("common");
+  const locale = normalizeUserLocale(useLocale());
   const params = useParams<{ organizationId: string; branchId: string }>();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -437,7 +443,7 @@ export default function Schedule({
     setExporting(true);
     try {
       await exportSchedulePdf({
-        context: reportContext,
+        context: { ...reportContext, locale },
         days: joursList,
         timeSlots: displayHeuresDebut,
         recreationHour,
@@ -445,11 +451,20 @@ export default function Schedule({
         saturdayTimeSlots: showSaturdayClock ? saturdayDisplayHeures : [],
         saturdayEndTime: saturdayEndTime || undefined,
         entries: reportEntries,
+        labels: {
+          title: t("pdf.title", { className: reportContext.classeName }),
+          vacation: t("pdf.vacation"),
+          code: t("pdf.code"),
+          saturday: t("pdf.saturday"),
+          hours: t("hoursColumn"),
+          recreation: t("pdf.recreation"),
+          conflict: t("pdf.conflict"),
+        },
       });
-      toast.success("Le rapport PDF a ete genere.");
+      toast.success(t("pdf.generated"));
     } catch (error) {
       console.error(error);
-      toast.error("Impossible de generer le rapport PDF.");
+      toast.error(t("pdf.generateFailed"));
     } finally {
       setExporting(false);
     }
@@ -653,7 +668,7 @@ export default function Schedule({
                     <TableHead className="w-[150px]">{t("hoursColumn")}</TableHead>
                     {joursList.map((jour) => (
                       <TableHead key={jour}>
-                        {jour}
+                        {weekdayLabel(jour, locale)}
                         {showSaturdayClock && jour === "Samedi" ? (
                           <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
                             07:30 – {saturdayEndTime || "12:30"}
@@ -677,7 +692,7 @@ export default function Schedule({
                               end: displayHeuresDebut[index + 1] || endTime,
                             })}
                             {showSaturdayClock && saturdayDisplayHeures[index]
-                              ? ` · Sam. ${saturdayDisplayHeures[index]} – ${
+                              ? ` · ${weekdayShortLabel("Samedi", locale)} ${saturdayDisplayHeures[index]} – ${
                                   saturdayDisplayHeures[index + 1] ||
                                   saturdayEndTime ||
                                   endTime
@@ -699,7 +714,7 @@ export default function Schedule({
                           </span>
                           {showSaturdayClock && saturdayDisplayHeures[index] ? (
                             <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
-                              Sam.{" "}
+                              {weekdayShortLabel("Samedi", locale)}{" "}
                               {formatSlotRange(
                                 saturdayDisplayHeures[index]!,
                                 saturdayDisplayHeures,

@@ -15,6 +15,11 @@ import {
   SATURDAY_SESSION_END,
   slotHourOnDay,
 } from "@/lib/creneau-saturday";
+import {
+  intlLocaleFromUnknown,
+  weekdayLabel,
+  weekdayShortLabel,
+} from "@/lib/reports/document-locale";
 
 export type GlobalSchedulePdfTable = {
   title: string;
@@ -35,6 +40,8 @@ type GlobalSchedulePdfInput = {
   details?: string[];
   hoursLabel: string;
   recreationLabel: string;
+  yearLabel: string;
+  saturdayLabel: string;
   tables: GlobalSchedulePdfTable[];
 };
 
@@ -60,13 +67,15 @@ function entriesForCell(
   entries: GlobalScheduleEntry[],
   day: string,
   hour: string,
+  locale?: unknown,
 ) {
+  const collator = intlLocaleFromUnknown(locale);
   return entries
     .filter((entry) => entry.day === day && entry.hour === hour)
     .sort(
       (a, b) =>
-        a.teacher.name.localeCompare(b.teacher.name, "fr") ||
-        a.classe.codeClasse.localeCompare(b.classe.codeClasse, "fr"),
+        a.teacher.name.localeCompare(b.teacher.name, collator) ||
+        a.classe.codeClasse.localeCompare(b.classe.codeClasse, collator),
     );
 }
 
@@ -97,9 +106,20 @@ function cellText(value: unknown) {
 }
 
 export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
-  const { context, title, details = [], hoursLabel, recreationLabel, tables } =
-    input;
+  const {
+    context,
+    title,
+    details = [],
+    hoursLabel,
+    recreationLabel,
+    yearLabel,
+    saturdayLabel,
+    tables,
+  } = input;
   const fonts = pdfFontsFromContext(context);
+  const locale = context.locale;
+  const saturdayShort = weekdayShortLabel("Samedi", locale);
+  const saturdayRangeText = `${SATURDAY_SESSION_START} – ${SATURDAY_SESSION_END}`;
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -115,9 +135,11 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
     subtitle: context.branchName,
     details: [
       ...details,
-      context.academicYearLabel ? `Année : ${context.academicYearLabel}` : "",
+      context.academicYearLabel
+        ? yearLabel.replace("{year}", context.academicYearLabel)
+        : "",
       hasSaturdayMorning
-        ? `Samedi : ${SATURDAY_SESSION_START} – ${SATURDAY_SESSION_END}`
+        ? saturdayLabel.replace("{range}", saturdayRangeText)
         : "",
     ].filter(Boolean),
     logoDataUrl: logo,
@@ -144,7 +166,10 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
     const tableSubtitle = [
       table.subtitle,
       showSaturdayClock
-        ? `Samedi : ${SATURDAY_SESSION_START} – ${saturdayEnd}`
+        ? saturdayLabel.replace(
+            "{range}",
+            `${SATURDAY_SESSION_START} – ${saturdayEnd}`,
+          )
         : "",
     ]
       .filter(Boolean)
@@ -168,12 +193,12 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
           ? `${saturdayHour} - ${saturdayNext}`
           : "";
       const hoursCell = saturdayRange
-        ? `${hour} - ${nextTime}\nSam. ${saturdayRange}`
+        ? `${hour} - ${nextTime}\n${saturdayShort} ${saturdayRange}`
         : `${hour} - ${nextTime}`;
 
       if (table.recreationHour && hour === table.recreationHour) {
         const recLabel = saturdayRange
-          ? `${recreationLabel}\nSam. ${saturdayRange}`
+          ? `${recreationLabel}\n${saturdayShort} ${saturdayRange}`
           : recreationLabel;
         return [hoursCell, ...table.workingDays.map(() => recLabel)];
       }
@@ -191,6 +216,7 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
                 weekdaySlots: table.hours,
                 saturdaySlots: saturdayHours,
               }),
+              locale,
             ),
             table.showTeacher,
           ),
@@ -205,8 +231,8 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
           hoursLabel,
           ...table.workingDays.map((day) =>
             showSaturdayClock && day === "Samedi"
-              ? `${day}\n${SATURDAY_SESSION_START} – ${saturdayEnd}`
-              : day,
+              ? `${weekdayLabel(day, locale)}\n${SATURDAY_SESSION_START} – ${saturdayEnd}`
+              : weekdayLabel(day, locale),
           ),
         ],
       ],

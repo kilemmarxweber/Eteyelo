@@ -301,7 +301,17 @@
     "reconduireNothing": "No slot was copied",
     "reconduireNothingPlaced": "No slot placed ({occupied} already occupied, {conflicts} conflict(s), {unassigned} course(s) with no teacher here).",
     "reconduireSuccess": "{placed} slot(s) copied from {source}.",
-    "reconduireSkipped": "{occupied} occupied cell(s) skipped. {conflicts} teacher conflict(s) skipped. {unassigned} course(s) with no teacher in this class skipped."
+    "reconduireSkipped": "{occupied} occupied cell(s) skipped. {conflicts} teacher conflict(s) skipped. {unassigned} course(s) with no teacher in this class skipped.",
+    "pdf": {
+      "title": "Class timetable {className}",
+      "vacation": "Shift:",
+      "code": "Code:",
+      "saturday": "Saturday:",
+      "recreation": "BREAK",
+      "conflict": "CONFLICT",
+      "generated": "The PDF report has been generated.",
+      "generateFailed": "Could not generate the PDF report."
+    }
   },
   "vacation": {
     "title": "Time slots",

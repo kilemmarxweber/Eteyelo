@@ -21,6 +21,16 @@
   "listTitle": "Candidatures reçues",
   "reportPdf": "Rapport PDF",
   "emptyFilter": "Aucune candidature pour ce filtre.",
+  "emptySearch": "Aucune candidature ne correspond à votre recherche.",
+  "searchPlaceholder": "Rechercher par nom, email, référence…",
+  "deletePermanently": "Supprimer définitivement",
+  "deleteDialogTitle": "Supprimer définitivement cette candidature ?",
+  "deleteDialogDescription": "Cette action est irréversible. Le dossier {name} ({reference}) sera définitivement supprimé.",
+  "confirmDelete": "Supprimer définitivement",
+  "deleted": "Candidature supprimée définitivement.",
+  "paginationRange": "{from}–{to} sur {total}",
+  "prevPage": "Précédent",
+  "nextPage": "Suivant",
   "applicationType": {
     "TEACHER": "Enseignant",
     "STAFF": "Personnel"

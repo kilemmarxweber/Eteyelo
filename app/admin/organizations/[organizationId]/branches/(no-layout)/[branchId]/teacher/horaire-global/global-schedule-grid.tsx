@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useLocale } from "next-intl";
 import {
   Table,
   TableBody,
@@ -13,6 +14,12 @@ import { DEFAULT_CRENEAU_WORKING_DAYS } from "@/lib/creneau-working-days";
 import { slotHourOnDay } from "@/lib/creneau-saturday";
 import { cn } from "@/lib/utils";
 import type { GlobalScheduleEntry } from "./types";
+import {
+  intlLocaleFromUnknown,
+  weekdayLabel,
+  weekdayShortLabel,
+} from "@/lib/reports/document-locale";
+import { normalizeUserLocale } from "@/lib/user-locale";
 
 function timeToMinutes(value: string) {
   const [hours, minutes] = value.split(":").map(Number);
@@ -61,6 +68,9 @@ export function GlobalScheduleGrid({
   hoursLabel,
   recreationLabel,
 }: GlobalScheduleGridProps) {
+  const locale = normalizeUserLocale(useLocale());
+  const saturdayShort = weekdayShortLabel("Samedi", locale);
+  const collator = intlLocaleFromUnknown(locale);
   const days =
     workingDays && workingDays.length > 0
       ? workingDays
@@ -98,13 +108,13 @@ export function GlobalScheduleGrid({
     for (const list of map.values()) {
       list.sort(
         (a, b) =>
-          a.teacher.name.localeCompare(b.teacher.name, "fr") ||
-          a.classe.codeClasse.localeCompare(b.classe.codeClasse, "fr") ||
-          a.cours.nameCours.localeCompare(b.cours.nameCours, "fr"),
+          a.teacher.name.localeCompare(b.teacher.name, collator) ||
+          a.classe.codeClasse.localeCompare(b.classe.codeClasse, collator) ||
+          a.cours.nameCours.localeCompare(b.cours.nameCours, collator),
       );
     }
     return map;
-  }, [entries]);
+  }, [entries, collator]);
 
   return (
     <div className="overflow-x-auto rounded-xl border">
@@ -114,7 +124,7 @@ export function GlobalScheduleGrid({
             <TableHead className="w-[140px]">{hoursLabel}</TableHead>
             {days.map((day) => (
               <TableHead key={day} className="min-w-[140px] text-center">
-                {day}
+                {weekdayLabel(day, locale)}
                 {showSaturdayClock && day === "Samedi" ? (
                   <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
                     07:30 – {saturdayEndTime || "12:30"}
@@ -148,7 +158,7 @@ export function GlobalScheduleGrid({
                         displayHours[index + 1] || endTime,
                       )}
                       {showSaturdayClock && saturdayDisplayHours[index]
-                        ? ` · Sam. ${saturdayDisplayHours[index]} – ${
+                        ? ` · ${saturdayShort} ${saturdayDisplayHours[index]} – ${
                             saturdayDisplayHours[index + 1] ||
                             saturdayEndTime ||
                             endTime
@@ -165,7 +175,7 @@ export function GlobalScheduleGrid({
                     </span>
                     {showSaturdayClock && saturdayDisplayHours[index] ? (
                       <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
-                        Sam.{" "}
+                        {saturdayShort}{" "}
                         {formatSlotRange(
                           saturdayDisplayHours[index]!,
                           saturdayDisplayHours,

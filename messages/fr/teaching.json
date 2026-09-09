@@ -301,7 +301,17 @@
     "reconduireNothing": "Aucun créneau n'a été reconduit",
     "reconduireNothingPlaced": "Aucun créneau placé ({occupied} déjà occupé(s), {conflicts} conflit(s), {unassigned} cours non affecté(s) ici).",
     "reconduireSuccess": "{placed} créneau(x) reconduit(s) depuis {source}.",
-    "reconduireSkipped": "{occupied} case(s) occupée(s) ignorée(s). {conflicts} conflit(s) enseignant ignoré(s). {unassigned} cours sans enseignant dans cette classe ignoré(s)."
+    "reconduireSkipped": "{occupied} case(s) occupée(s) ignorée(s). {conflicts} conflit(s) enseignant ignoré(s). {unassigned} cours sans enseignant dans cette classe ignoré(s).",
+    "pdf": {
+      "title": "Horaire de la classe {className}",
+      "vacation": "Vacation :",
+      "code": "Code :",
+      "saturday": "Samedi :",
+      "recreation": "RÉCRÉATION",
+      "conflict": "CONFLIT",
+      "generated": "Le rapport PDF a été généré.",
+      "generateFailed": "Impossible de générer le rapport PDF."
+    }
   },
   "vacation": {
     "title": "Vacations",

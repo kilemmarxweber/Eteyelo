@@ -7,12 +7,15 @@ import { intlLocaleFromUserLocale, normalizeUserLocale } from "@/lib/user-locale
 import {
   Briefcase,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   Download,
   Eye,
   FileDown,
-  FileText,
   Loader2,
+  Search,
+  Trash2,
   UserCheck,
   XCircle,
 } from "lucide-react";
@@ -42,6 +45,7 @@ import {
 import type { JobApplicationListItem } from "@/src/interfaces/JobApplication";
 import {
   acceptJobApplicationAction,
+  deleteRejectedJobApplicationAction,
   getJobApplicationDetailAction,
   getJobApplicationReportContextAction,
   getJobApplicationsAction,
@@ -72,6 +76,8 @@ const STATUS_CARD_VALUES = [
   "HIRED",
   "REJECTED",
 ] as const;
+
+const PAGE_SIZE = 10;
 
 function buildPdfLabels(
   t: ReturnType<typeof useTranslations<"candidatures">>,
@@ -106,6 +112,7 @@ function buildPdfLabels(
     genderFemale: tCommon("person.female"),
     birthDate: t("pdf.birthDate"),
     address: t("pdf.address"),
+    email: tCommon("person.email"),
     profileSought: t("pdf.profileSought"),
     profileRole: t("pdf.profileRole"),
     yearsExperience: t("pdf.yearsExperience"),
@@ -237,11 +244,18 @@ export function CandidaturesView({
   const [actionId, setActionId] = useState("");
   const [statusFilter, setStatusFilter] =
     useState<CandidatureStatusFilter>("ALL");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [exportingDossier, setExportingDossier] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [rejectTargetId, setRejectTargetId] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    name: string;
+    reference: string;
+  } | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detail, setDetail] = useState<any>(null);
   const [docViewer, setDocViewer] = useState<"cv" | "coverLetter" | null>(null);
@@ -264,9 +278,49 @@ export function CandidaturesView({
   }, [applications]);
 
   const filteredApplications = useMemo(() => {
-    if (statusFilter === "ALL") return applications;
-    return applications.filter((item) => item.status === statusFilter);
-  }, [applications, statusFilter]);
+    const q = search.trim().toLowerCase();
+    return applications.filter((item) => {
+      if (statusFilter !== "ALL" && item.status !== statusFilter) return false;
+      if (!q) return true;
+      const haystack = [
+        item.prenom,
+        item.nom,
+        item.postnom,
+        item.email,
+        item.telephone,
+        item.reference,
+        item.desiredSubjects,
+        item.desiredLevels,
+        item.desiredOrgRole ? orgRoleLabel(item.desiredOrgRole) : "",
+        item.applicationType === "TEACHER"
+          ? t("applicationType.TEACHER")
+          : t("applicationType.STAFF"),
+        statusLabel(item.status),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [applications, statusFilter, search, t, statusLabel]);
+
+  const pageCount = Math.max(
+    1,
+    Math.ceil(filteredApplications.length / PAGE_SIZE),
+  );
+  const safePage = Math.min(page, pageCount);
+  const pageApplications = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filteredApplications.slice(start, start + PAGE_SIZE);
+  }, [filteredApplications, safePage]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, statusFilter]);
+
+  useEffect(() => {
+    if (page > pageCount) setPage(pageCount);
+  }, [page, pageCount]);
 
   const loadApplications = useCallback(async (opts?: { soft?: boolean }) => {
     if (!opts?.soft) setLoading(true);
@@ -362,6 +416,31 @@ export function CandidaturesView({
           });
           setDetail(updated);
         }
+      })();
+    });
+  }
+
+  function confirmPermanentDelete() {
+    if (!deleteTarget) return;
+    const applicationId = deleteTarget.id;
+    setActionId(applicationId);
+    startTransition(() => {
+      void (async () => {
+        const [, error] = await deleteRejectedJobApplicationAction({
+          applicationId,
+        });
+        setActionId("");
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
+        toast.success(t("deleted"));
+        setDeleteTarget(null);
+        if (detail?.id === applicationId) {
+          setDetailOpen(false);
+          setDetail(null);
+        }
+        await loadApplications({ soft: true });
       })();
     });
   }
@@ -467,6 +546,17 @@ export function CandidaturesView({
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="relative w-full min-w-0">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder={t("searchPlaceholder")}
+              className="h-10 rounded-lg pl-10"
+              aria-label={tCommon("search")}
+            />
+          </div>
+
           <div className="flex flex-wrap gap-2">
             {statusFilters.map((filter) => (
               <Button
@@ -488,10 +578,12 @@ export function CandidaturesView({
           {loading ? (
             <p className="text-sm text-muted-foreground">{tCommon("loading")}</p>
           ) : filteredApplications.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("emptyFilter")}</p>
+            <p className="text-sm text-muted-foreground">
+              {search.trim() ? t("emptySearch") : t("emptyFilter")}
+            </p>
           ) : (
             <div className="grid gap-3">
-              {filteredApplications.map((application) => {
+              {pageApplications.map((application) => {
                 const tone = statusTone(application.status);
                 return (
                   <div
@@ -618,12 +710,75 @@ export function CandidaturesView({
                           {t("reject")}
                         </Button>
                       ) : null}
+
+                      {application.status === "REJECTED" ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="destructive"
+                          disabled={actionId === application.id || isPending}
+                          onClick={() =>
+                            setDeleteTarget({
+                              id: application.id,
+                              name: `${application.prenom} ${application.nom} ${application.postnom}`.trim(),
+                              reference: application.reference,
+                            })
+                          }
+                        >
+                          <Trash2 className="mr-2 size-4" />
+                          {t("deletePermanently")}
+                        </Button>
+                      ) : null}
                     </div>
                   </div>
                 );
               })}
             </div>
           )}
+
+          {!loading && filteredApplications.length > 0 ? (
+            <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs tabular-nums text-muted-foreground">
+                {t("paginationRange", {
+                  from: (safePage - 1) * PAGE_SIZE + 1,
+                  to: Math.min(
+                    safePage * PAGE_SIZE,
+                    filteredApplications.length,
+                  ),
+                  total: filteredApplications.length,
+                })}
+              </p>
+              {pageCount > 1 ? (
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={safePage <= 1}
+                    onClick={() => setPage((current) => Math.max(1, current - 1))}
+                  >
+                    <ChevronLeft className="mr-1 size-4" />
+                    {t("prevPage")}
+                  </Button>
+                  <span className="min-w-16 text-center text-xs tabular-nums text-muted-foreground">
+                    {safePage} / {pageCount}
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={safePage >= pageCount}
+                    onClick={() =>
+                      setPage((current) => Math.min(pageCount, current + 1))
+                    }
+                  >
+                    {t("nextPage")}
+                    <ChevronRight className="ml-1 size-4" />
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
@@ -820,6 +975,24 @@ export function CandidaturesView({
             >
               {tCommon("close")}
             </Button>
+            {detail?.status === "REJECTED" ? (
+              <Button
+                type="button"
+                variant="destructive"
+                className="w-full sm:w-auto"
+                disabled={actionId === detail.id || isPending}
+                onClick={() =>
+                  setDeleteTarget({
+                    id: detail.id,
+                    name: `${detail.prenom} ${detail.nom} ${detail.postnom}`.trim(),
+                    reference: detail.reference,
+                  })
+                }
+              >
+                <Trash2 className="mr-2 size-4" />
+                {t("deletePermanently")}
+              </Button>
+            ) : null}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -868,6 +1041,50 @@ export function CandidaturesView({
               }}
             >
               {t("confirmReject")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open && actionId !== deleteTarget?.id) setDeleteTarget(null);
+        }}
+      >
+        <DialogContent
+          size="lg"
+          className="flex max-h-[min(92dvh,28rem)] w-[min(calc(100vw-1rem),36rem)] flex-col gap-0 overflow-hidden p-0 sm:w-[min(calc(100vw-2rem),40rem)]"
+        >
+          <DialogHeader className="shrink-0 space-y-1 border-b px-4 py-3 text-left sm:px-5">
+            <DialogTitle>{t("deleteDialogTitle")}</DialogTitle>
+            <DialogDescription>
+              {deleteTarget
+                ? t("deleteDialogDescription", {
+                    name: deleteTarget.name,
+                    reference: deleteTarget.reference,
+                  })
+                : tCommon("irreversible")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="shrink-0 gap-2 border-t px-4 py-3 sm:flex-row sm:justify-end sm:space-x-0 sm:px-5">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-auto"
+              disabled={Boolean(deleteTarget && actionId === deleteTarget.id)}
+              onClick={() => setDeleteTarget(null)}
+            >
+              {tCommon("cancel")}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="w-full sm:w-auto"
+              disabled={!deleteTarget || isPending}
+              onClick={() => confirmPermanentDelete()}
+            >
+              {t("confirmDelete")}
             </Button>
           </DialogFooter>
         </DialogContent>

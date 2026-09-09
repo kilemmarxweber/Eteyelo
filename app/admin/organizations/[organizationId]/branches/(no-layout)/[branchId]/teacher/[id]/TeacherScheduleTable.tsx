@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -9,6 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { weekdayLabel } from "@/lib/reports/document-locale";
+import { normalizeUserLocale } from "@/lib/user-locale";
 
 /* =========================
    TYPES
@@ -65,6 +68,9 @@ export default function TeacherScheduleTable({
   hoursFromProps = [],
   workingDays,
 }: Props) {
+  const t = useTranslations("users.teachers.schedule");
+  const tHours = useTranslations("users.teachers.globalSchedule");
+  const locale = normalizeUserLocale(useLocale());
   const DAYS =
     workingDays && workingDays.length > 0 ? workingDays : DEFAULT_DAYS;
   /* =========================
@@ -123,10 +129,10 @@ export default function TeacherScheduleTable({
         {/* HEADER */}
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[140px]">Heures</TableHead>
+            <TableHead className="w-[140px]">{tHours("hoursColumn")}</TableHead>
             {DAYS.map((day) => (
               <TableHead key={day} className="text-center">
-                {day}
+                {weekdayLabel(day, locale)}
               </TableHead>
             ))}
           </TableRow>
@@ -137,7 +143,7 @@ export default function TeacherScheduleTable({
           {hours.length === 0 ? (
             <TableRow>
               <TableCell colSpan={DAYS.length + 1} className="text-center text-gray-500">
-                Aucun emploi du temps
+                {t("noSchedule")}
               </TableCell>
             </TableRow>
           ) : (

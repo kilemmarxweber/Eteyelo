@@ -11,6 +11,12 @@ import {
 import { safePdfFilePart } from "@/lib/pdf/pdf-engine";
 import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
+import {
+  cycleDocumentLabel,
+  monthLabel,
+  payrollDocumentCopy,
+  payrollStatusLabel,
+} from "@/lib/reports/document-locale";
 
 export type PayrollRegisterRow = {
   teacherName: string;
@@ -47,33 +53,6 @@ export type PayrollRegisterOptions = {
   schoolYearLabel?: string;
 };
 
-const MONTHS = [
-  "Janvier",
-  "Février",
-  "Mars",
-  "Avril",
-  "Mai",
-  "Juin",
-  "Juillet",
-  "Août",
-  "Septembre",
-  "Octobre",
-  "Novembre",
-  "Décembre",
-];
-
-const CYCLE_LABELS: Record<string, string> = {
-  MATERNELLE: "Maternelle",
-  PRIMAIRE: "Primaire",
-  SECONDAIRE: "Secondaire",
-  ATELIER: "Atelier",
-  CENTRE_FORMATION: "Centre de formation",
-  UNIVERSITE: "Université",
-  MIXTE: "Mixte",
-  PERSONNEL: "Personnel",
-  AUTRE: "Autre",
-};
-
 const CYCLE_COLORS: Record<string, [number, number, number]> = {
   MATERNELLE: [219, 39, 119],
   PRIMAIRE: [2, 132, 199],
@@ -86,13 +65,6 @@ const CYCLE_COLORS: Record<string, [number, number, number]> = {
   AUTRE: [71, 85, 105],
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  DRAFT: "Brouillon",
-  VALIDATED: "Validé",
-  PAID: "Payé",
-  CANCELLED: "Annulé",
-};
-
 type RowKind = "group" | "item" | "subtotal" | "total";
 
 function money(value: number, currency: string) {
@@ -102,14 +74,6 @@ function money(value: number, currency: string) {
 function minutesLabel(value: number) {
   if (!value) return "—";
   return `${value.toFixed(value % 1 === 0 ? 0 : 1)} min`;
-}
-
-function cycleLabel(code: string) {
-  return CYCLE_LABELS[code] ?? code;
-}
-
-function statusLabel(status: string) {
-  return STATUS_LABELS[status] ?? status;
 }
 
 function lastTableY(doc: jsPDF) {
@@ -126,10 +90,12 @@ export async function exportPayrollRegisterPdf(
   options: PayrollRegisterOptions,
 ) {
   const fonts = pdfFontsFromContext(context);
-  const monthName = MONTHS[options.month - 1] ?? String(options.month);
+  const locale = context.locale;
+  const copy = payrollDocumentCopy(locale);
+  const monthName = monthLabel(options.month, locale);
   const periodLabel = `${monthName} ${options.year}`;
   const currency = cash?.currency ?? rows[0]?.currency ?? context.baseCurrency ?? "USD";
-  const title = `Bulletins de paie — ${periodLabel}`;
+  const title = `${copy.title} — ${periodLabel}`;
 
   const draftCount = rows.filter((row) => row.status === "DRAFT").length;
   const validatedCount = rows.filter((row) => row.status === "VALIDATED").length;
@@ -153,7 +119,7 @@ export async function exportPayrollRegisterPdf(
     } else {
       groups.push({
         cycleGroup: row.cycleGroup,
-        label: cycleLabel(row.cycleGroup),
+        label: cycleDocumentLabel(row.cycleGroup, locale),
         rows: [row],
       });
     }
@@ -179,9 +145,9 @@ export async function exportPayrollRegisterPdf(
     usableWidth - colWidths.reduce((sum, value) => sum + value, 0);
 
   const headerDetails = [
-    options.schoolYearLabel ? `Année scolaire : ${options.schoolYearLabel}` : "",
-    `${rows.length} bulletin${rows.length > 1 ? "s" : ""}`,
-    `${draftCount} brouillon${draftCount > 1 ? "s" : ""} · ${validatedCount} validé${validatedCount > 1 ? "s" : ""} · ${paidCount} payé${paidCount > 1 ? "s" : ""}`,
+    options.schoolYearLabel ? `${copy.academicYear} : ${options.schoolYearLabel}` : "",
+    `${rows.length} ${copy.slips}`,
+    `${draftCount} ${copy.draft} · ${validatedCount} ${copy.validated} · ${paidCount} ${copy.paid}`,
     `Net à payer : ${money(net, currency)}`,
   ].filter(Boolean);
 
@@ -296,9 +262,9 @@ export async function exportPayrollRegisterPdf(
 
     for (const row of group.rows) {
       body.push([
-        row.teacherName || "Agent",
+        row.teacherName || copy.headers[0],
         (row.cycles.length > 0 ? row.cycles : [row.cycleGroup || "AUTRE"])
-          .map(cycleLabel)
+          .map((cycle) => cycleDocumentLabel(cycle, locale))
           .join(", "),
         row.branchName || "—",
         row.classes.length > 0 ? row.classes.join(" · ") : "—",
@@ -309,7 +275,7 @@ export async function exportPayrollRegisterPdf(
         minutesLabel(row.lostMinutes),
         money(row.net, row.currency || currency),
         money(row.difference, row.currency || currency),
-        statusLabel(row.status),
+        payrollStatusLabel(row.status, locale),
       ]);
       rowKinds.push("item");
       rowCycleGroups.push(group.cycleGroup);
@@ -345,20 +311,7 @@ export async function exportPayrollRegisterPdf(
     },
     tableWidth: usableWidth,
     horizontalPageBreak: false,
-    head: [[
-      "Agent",
-      "Cycle / rôle",
-      "Branche",
-      "Classes",
-      "Contrat",
-      "Séances",
-      "Brut",
-      "Pertes",
-      "Min. perdues",
-      "Net",
-      "Différence",
-      "Bulletin",
-    ]],
+    head: [copy.headers],
     body,
     theme: "grid",
     showHead: "everyPage",

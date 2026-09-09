@@ -606,6 +606,29 @@ export const rejectJobApplicationAction = action
     return { applicationId: input.applicationId };
   });
 
+export const deleteRejectedJobApplicationAction = action
+  .input(z.object({ applicationId: z.string().min(1) }))
+  .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireJobApplicationContext();
+
+    const deleted = await prisma.jobApplication.deleteMany({
+      where: {
+        id: input.applicationId,
+        branchId,
+        organizationId,
+        status: "REJECTED",
+      },
+    });
+
+    if (deleted.count !== 1) {
+      throw new Error(
+        "Seules les candidatures refusées peuvent être supprimées définitivement.",
+      );
+    }
+
+    return { applicationId: input.applicationId };
+  });
+
 export const hireJobApplicationAction = action
   .input(z.object({ applicationId: z.string().min(1) }))
   .handler(async ({ input }) => {

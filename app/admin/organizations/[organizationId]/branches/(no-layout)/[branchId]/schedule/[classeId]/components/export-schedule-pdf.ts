@@ -9,6 +9,10 @@ import {
 } from "@/lib/reports/pdf-header-footer";
 import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
+import {
+  weekdayLabel,
+  weekdayShortLabel,
+} from "@/lib/reports/document-locale";
 import { slotHourOnDay } from "@/lib/creneau-saturday";
 
 export type ScheduleReportContext = SchoolReportContext & {
@@ -25,6 +29,16 @@ export type ScheduleReportEntry = {
   teacherName: string;
 };
 
+export type SchedulePdfLabels = {
+  title: string;
+  vacation: string;
+  code: string;
+  saturday: string;
+  hours: string;
+  recreation: string;
+  conflict: string;
+};
+
 type SchedulePdfInput = {
   context: ScheduleReportContext;
   days: string[];
@@ -34,6 +48,7 @@ type SchedulePdfInput = {
   saturdayTimeSlots?: string[];
   saturdayEndTime?: string;
   entries: ScheduleReportEntry[];
+  labels: SchedulePdfLabels;
 };
 
 function safeFilePart(value: string) {
@@ -68,16 +83,19 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
     saturdayTimeSlots = [],
     saturdayEndTime,
     entries,
+    labels,
   } = input;
   const fonts = pdfFontsFromContext(context);
+  const locale = context.locale;
+  const saturdayShort = weekdayShortLabel("Samedi", locale);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
-  const title = `Horaire de la classe ${context.classeName}`;
+  const title = labels.title;
   const details = [
-    context.creneauName ? `Vacation : ${context.creneauName}` : "",
-    context.classeCode ? `Code : ${context.classeCode}` : "",
+    context.creneauName ? `${labels.vacation} ${context.creneauName}` : "",
+    context.classeCode ? `${labels.code} ${context.classeCode}` : "",
     saturdayTimeSlots.length
-      ? `Samedi : 07:30 – ${saturdayEndTime || "12:30"}`
+      ? `${labels.saturday} 07:30 – ${saturdayEndTime || "12:30"}`
       : "",
   ].filter(Boolean);
 
@@ -86,7 +104,7 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
     if (hour === recreationHour) {
       return [
         `${hour} - ${nextTime}`,
-        ...days.map(() => "RECREATION"),
+        ...days.map(() => labels.recreation),
       ];
     }
 
@@ -99,7 +117,7 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
 
     return [
       saturdayRange
-        ? `${hour} - ${nextTime}\nSam. ${saturdayRange}`
+        ? `${hour} - ${nextTime}\n${saturdayShort} ${saturdayRange}`
         : `${hour} - ${nextTime}`,
       ...days.map((day) => {
         const cellHour = slotHourOnDay({
@@ -115,7 +133,7 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
             [entry.courseName, entry.teacherName].filter(Boolean).join("\n"),
           )
           .join("\n---\n");
-        return cellEntries.length > 1 ? `CONFLIT\n${content}` : content;
+        return cellEntries.length > 1 ? `${labels.conflict}\n${content}` : content;
       }),
     ];
   });
@@ -129,7 +147,7 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
 
   autoTable(doc, {
     startY: headerBottomY,
-    head: [["Heures", ...days]],
+    head: [[labels.hours, ...days.map((day) => weekdayLabel(day, locale))]],
     body,
     theme: "grid",
     showHead: "everyPage",
@@ -163,11 +181,11 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
       if (data.column.index === 0) {
         data.cell.styles.fillColor = [219, 234, 254];
       }
-      if (text.includes("RECREATION")) {
+      if (text.includes(labels.recreation)) {
         data.cell.styles.fillColor = [254, 243, 199];
         data.cell.styles.textColor = [146, 64, 14];
         data.cell.styles.fontStyle = "bold";
-      } else if (text.includes("CONFLIT")) {
+      } else if (text.includes(labels.conflict)) {
         data.cell.styles.fillColor = [254, 226, 226];
         data.cell.styles.textColor = [153, 27, 27];
         data.cell.styles.fontStyle = "bold";

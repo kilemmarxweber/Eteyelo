@@ -3,38 +3,17 @@ import type ExcelJS from "exceljs";
 import { formatPayrollAmount } from "@/lib/reports/format-amount";
 import { safePdfFilePart } from "@/lib/pdf/pdf-engine";
 import type { SchoolReportContext } from "@/lib/reports/types";
+import {
+  cycleDocumentLabel,
+  monthLabel,
+  payrollDocumentCopy,
+  payrollStatusLabel,
+} from "@/lib/reports/document-locale";
 import type {
   PayrollRegisterCash,
   PayrollRegisterOptions,
   PayrollRegisterRow,
 } from "./export-payroll-register-pdf";
-
-const MONTHS = [
-  "Janvier",
-  "Février",
-  "Mars",
-  "Avril",
-  "Mai",
-  "Juin",
-  "Juillet",
-  "Août",
-  "Septembre",
-  "Octobre",
-  "Novembre",
-  "Décembre",
-];
-
-const CYCLE_LABELS: Record<string, string> = {
-  MATERNELLE: "Maternelle",
-  PRIMAIRE: "Primaire",
-  SECONDAIRE: "Secondaire",
-  ATELIER: "Atelier",
-  CENTRE_FORMATION: "Centre de formation",
-  UNIVERSITE: "Université",
-  MIXTE: "Mixte",
-  PERSONNEL: "Personnel",
-  AUTRE: "Autre",
-};
 
 const CYCLE_COLORS: Record<string, string> = {
   MATERNELLE: "FFDB2777",
@@ -48,29 +27,7 @@ const CYCLE_COLORS: Record<string, string> = {
   AUTRE: "FF475569",
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  DRAFT: "Brouillon",
-  VALIDATED: "Validé",
-  PAID: "Payé",
-  CANCELLED: "Annulé",
-};
-
-const HEADERS = [
-  "Agent",
-  "Cycle / rôle",
-  "Branche",
-  "Classes",
-  "Contrat",
-  "Séances",
-  "Brut",
-  "Pertes",
-  "Min. perdues",
-  "Net",
-  "Différence",
-  "Bulletin",
-] as const;
-
-const COL_COUNT = HEADERS.length;
+const COL_COUNT = 12;
 const THIN: ExcelJS.Borders = {
   top: { style: "thin", color: { argb: "FFCBD5E1" } },
   left: { style: "thin", color: { argb: "FFCBD5E1" } },
@@ -78,14 +35,6 @@ const THIN: ExcelJS.Borders = {
   right: { style: "thin", color: { argb: "FFCBD5E1" } },
   diagonal: {},
 };
-
-function cycleLabel(code: string) {
-  return CYCLE_LABELS[code] ?? code;
-}
-
-function statusLabel(status: string) {
-  return STATUS_LABELS[status] ?? status;
-}
 
 function moneyFormat(currency: string) {
   return currency === "USD" ? '#,##0.00 "USD"' : `#,##0 "${currency}"`;
@@ -127,7 +76,9 @@ export async function exportPayrollRegisterExcel(
   workbook.creator = "Eteyelo";
   workbook.created = new Date();
 
-  const monthName = MONTHS[options.month - 1] ?? String(options.month);
+  const locale = context.locale;
+  const copy = payrollDocumentCopy(locale);
+  const monthName = monthLabel(options.month, locale);
   const periodLabel = `${monthName} ${options.year}`;
   const currency =
     cash?.currency ?? rows[0]?.currency ?? context.baseCurrency ?? "USD";
@@ -154,13 +105,13 @@ export async function exportPayrollRegisterExcel(
     else {
       groups.push({
         cycleGroup: row.cycleGroup,
-        label: cycleLabel(row.cycleGroup),
+        label: cycleDocumentLabel(row.cycleGroup, locale),
         rows: [row],
       });
     }
   }
 
-  const sheet = workbook.addWorksheet("Bulletins de paie", {
+  const sheet = workbook.addWorksheet(copy.sheetName, {
     views: [{ showGridLines: false, state: "frozen", ySplit: cash ? 11 : 7 }],
     pageSetup: {
       paperSize: 9,
@@ -173,7 +124,7 @@ export async function exportPayrollRegisterExcel(
 
   sheet.mergeCells(1, 1, 1, COL_COUNT);
   const titleCell = sheet.getCell(1, 1);
-  titleCell.value = `Bulletins de paie — ${periodLabel}`;
+  titleCell.value = `${copy.title} — ${periodLabel}`;
   titleCell.font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF1E40AF" } };
   titleCell.alignment = { vertical: "middle" };
   sheet.getRow(1).height = 22;
@@ -183,9 +134,9 @@ export async function exportPayrollRegisterExcel(
   sheet.getCell(2, 1).font = { name: "Calibri", size: 11, bold: true, color: { argb: "FF0F172A" } };
 
   const metaParts = [
-    options.schoolYearLabel ? `Année scolaire : ${options.schoolYearLabel}` : "",
-    `${rows.length} bulletin${rows.length > 1 ? "s" : ""}`,
-    `${draftCount} brouillon${draftCount > 1 ? "s" : ""} · ${validatedCount} validé${validatedCount > 1 ? "s" : ""} · ${paidCount} payé${paidCount > 1 ? "s" : ""}`,
+    options.schoolYearLabel ? `${copy.academicYear} : ${options.schoolYearLabel}` : "",
+    `${rows.length} ${copy.slips}`,
+    `${draftCount} ${copy.draft} · ${validatedCount} ${copy.validated} · ${paidCount} ${copy.paid}`,
   ].filter(Boolean);
   sheet.mergeCells(3, 1, 3, COL_COUNT);
   sheet.getCell(3, 1).value = metaParts.join("  ·  ");
@@ -245,7 +196,7 @@ export async function exportPayrollRegisterExcel(
   }
 
   const headerRowIndex = nextRow;
-  HEADERS.forEach((label, index) => {
+  copy.headers.forEach((label, index) => {
     const cell = sheet.getCell(headerRowIndex, index + 1);
     cell.value = label;
     cell.font = { name: "Calibri", size: 9, bold: true, color: { argb: "FFFFFFFF" } };
@@ -277,7 +228,7 @@ export async function exportPayrollRegisterExcel(
       const values: Array<string | number> = [
         row.teacherName || "Agent",
         (row.cycles.length > 0 ? row.cycles : [row.cycleGroup || "AUTRE"])
-          .map(cycleLabel)
+          .map((cycle) => cycleDocumentLabel(cycle, locale))
           .join(", "),
         row.branchName || "—",
         row.classes.length > 0 ? row.classes.join(" · ") : "—",
@@ -288,7 +239,7 @@ export async function exportPayrollRegisterExcel(
         row.lostMinutes,
         row.net,
         row.difference,
-        statusLabel(row.status),
+        payrollStatusLabel(row.status, locale),
       ];
       values.forEach((value, colIndex) => {
         const cell = sheet.getCell(rowIndex, colIndex + 1);

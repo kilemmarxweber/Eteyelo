@@ -270,6 +270,8 @@ export function HoraireGlobalClient() {
         details: [view === "teachers" ? t("viewTeachers") : t("viewGrid")],
         hoursLabel: t("hoursColumn"),
         recreationLabel: t("recreationPdf"),
+        yearLabel: String(t.raw("yearLabel")),
+        saturdayLabel: String(t.raw("saturdayLabel")),
         tables,
       });
       toast.success(t("printSuccess"));

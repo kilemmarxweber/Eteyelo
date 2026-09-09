@@ -1425,7 +1425,7 @@ export const getCashierReportContextAction = action.handler(async () => {
       baseCurrency,
       quoteCurrency: quoteCurrency ?? undefined,
       selectedRate,
-    }),
+    })),
     selectedRate,
   };
 });
@@ -1456,7 +1456,7 @@ export const getPaymentReportContextAction = action.handler(async () => {
       showConversion: showReceiptConversion,
       receiptPrintFormat,
       pdfFontSize,
-    }),
+    })),
     selectedRate,
     showConversion: showReceiptConversion,
     receiptPrintFormat,

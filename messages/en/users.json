@@ -599,7 +599,9 @@
       "printSuccess": "The global timetable PDF has been generated.",
       "printFailed": "Unable to generate the global timetable PDF.",
       "printPdfTitle": "Global timetable · {cycle}",
-      "recreationPdf": "Break"
+      "recreationPdf": "Break",
+      "yearLabel": "Year: {year}",
+      "saturdayLabel": "Saturday: {range}"
     }
   },
   "staff": {
