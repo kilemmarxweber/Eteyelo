@@ -20,6 +20,8 @@ import {
   getPersonnelRosterReportAction,
   getStudentRosterReportAction,
   getTeacherSessionReportAction,
+  type PersonRosterReport,
+  type TeacherSessionReport,
   recordNormalCheckoutAction,
   recordPersonnelEarlyExitAction,
   recordStudentEarlyExitAction,
@@ -27,6 +29,7 @@ import {
 } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/[branchId]/attendance/attendance-exit.action";
 import type { AttendancePersonType } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/[branchId]/attendance/attendance-scan-types";
 import type { AttendanceExitReason } from "@/prisma/generated/prisma/client";
+import type { SchoolReportContext } from "@/lib/reports/types";
 
 export async function kioskGetQuickCheckInBootstrapAction(branchId: string) {
   return runAttendanceKiosk(branchId, () => getQuickCheckInBootstrapAction());
@@ -156,16 +159,37 @@ export async function kioskRecordPersonnelEarlyExitAction(
   );
 }
 
+function unwrapZsaResult<T>(result: unknown, fallback: string): T {
+  const [data, error] = result as [T | null, { message?: string } | null];
+  if (error || !data) {
+    throw new Error(error?.message || fallback);
+  }
+  return data;
+}
+
 export async function kioskGetAttendanceReportContextAction(branchId: string) {
-  return runAttendanceKiosk(branchId, () => getAttendanceReportContextAction());
+  return runAttendanceKiosk(branchId, async () =>
+    unwrapZsaResult<SchoolReportContext>(
+      await getAttendanceReportContextAction(),
+      "Contexte PDF introuvable.",
+    ),
+  );
 }
 
 export async function kioskGetTeacherSessionReportAction(
   branchId: string,
-  input: { startDate: Date; endDate: Date; teacherId?: string | null; classeId?: string | null },
+  input: {
+    startDate: Date;
+    endDate: Date;
+    teacherId?: string | null;
+    classeId?: string | null;
+  },
 ) {
-  return runAttendanceKiosk(branchId, () =>
-    getTeacherSessionReportAction(input),
+  return runAttendanceKiosk(branchId, async () =>
+    unwrapZsaResult<TeacherSessionReport>(
+      await getTeacherSessionReportAction(input),
+      "Rapport enseignants introuvable.",
+    ),
   );
 }
 
@@ -173,8 +197,11 @@ export async function kioskGetStudentRosterReportAction(
   branchId: string,
   input: { startDate: Date; endDate: Date; classeId?: string | null },
 ) {
-  return runAttendanceKiosk(branchId, () =>
-    getStudentRosterReportAction(input),
+  return runAttendanceKiosk(branchId, async () =>
+    unwrapZsaResult<PersonRosterReport>(
+      await getStudentRosterReportAction(input),
+      "Rapport élèves introuvable.",
+    ),
   );
 }
 
@@ -182,7 +209,10 @@ export async function kioskGetPersonnelRosterReportAction(
   branchId: string,
   input: { startDate: Date; endDate: Date },
 ) {
-  return runAttendanceKiosk(branchId, () =>
-    getPersonnelRosterReportAction(input),
+  return runAttendanceKiosk(branchId, async () =>
+    unwrapZsaResult<PersonRosterReport>(
+      await getPersonnelRosterReportAction(input),
+      "Rapport personnel introuvable.",
+    ),
   );
 }

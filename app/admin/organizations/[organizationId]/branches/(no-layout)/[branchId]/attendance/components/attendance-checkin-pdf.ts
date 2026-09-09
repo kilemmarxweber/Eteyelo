@@ -6,7 +6,10 @@ import {
   getPersonnelRosterReportAction,
   getStudentRosterReportAction,
   getTeacherSessionReportAction,
+  type PersonRosterReport,
+  type TeacherSessionReport,
 } from "../attendance-exit.action";
+import type { SchoolReportContext } from "@/lib/reports/types";
 import {
   kioskGetAttendanceReportContextAction,
   kioskGetPersonnelRosterReportAction,
@@ -42,44 +45,39 @@ export async function downloadTodayAttendancePdf(options: {
   const t = options.t;
   const labels = buildAttendancePdfLabels(t);
 
-  const [context, contextError] = options.kioskBranchId
-    ? await kioskGetAttendanceReportContextAction(options.kioskBranchId)
-    : await getAttendanceReportContextAction();
-  if (contextError || !context) {
-    throw new Error(contextError?.message || t("reports.pdfContextFailed"));
-  }
+  const context = await loadReportContext(options.kioskBranchId, t);
 
   if (options.kind === "teachers") {
-    const [report, error] = options.kioskBranchId
+    const report = options.kioskBranchId
       ? await kioskGetTeacherSessionReportAction(options.kioskBranchId, {
           startDate: day,
           endDate: day,
         })
-      : await getTeacherSessionReportAction({
-          startDate: day,
-          endDate: day,
-        });
-    if (error || !report) {
-      throw new Error(error?.message || t("reports.loadSessionsFailed"));
-    }
+      : await unwrapReport<TeacherSessionReport>(
+          getTeacherSessionReportAction({
+            startDate: day,
+            endDate: day,
+          }),
+          t("reports.loadSessionsFailed"),
+        );
     await exportTeacherSessionReportPdf(report, context, labels);
     toast.success(t("reports.sessionsPdfSuccess"));
     return;
   }
 
   if (options.kind === "personnel") {
-    const [report, error] = options.kioskBranchId
+    const report = options.kioskBranchId
       ? await kioskGetPersonnelRosterReportAction(options.kioskBranchId, {
           startDate: day,
           endDate: day,
         })
-      : await getPersonnelRosterReportAction({
-          startDate: day,
-          endDate: day,
-        });
-    if (error || !report) {
-      throw new Error(error?.message || t("reports.loadPersonnelFailed"));
-    }
+      : await unwrapReport<PersonRosterReport>(
+          getPersonnelRosterReportAction({
+            startDate: day,
+            endDate: day,
+          }),
+          t("reports.loadPersonnelFailed"),
+        );
     await exportPersonRosterReportPdf(report, context, labels, {
       title: t("pdf.personnelRosterTitle"),
       filePrefix: "rapport-presence-personnel",
@@ -88,23 +86,44 @@ export async function downloadTodayAttendancePdf(options: {
     return;
   }
 
-  const [report, error] = options.kioskBranchId
+  const report = options.kioskBranchId
     ? await kioskGetStudentRosterReportAction(options.kioskBranchId, {
         startDate: day,
         endDate: day,
         classeId: options.classeId ?? null,
       })
-    : await getStudentRosterReportAction({
-        startDate: day,
-        endDate: day,
-        classeId: options.classeId ?? null,
-      });
-  if (error || !report) {
-    throw new Error(error?.message || t("reports.loadStudentsFailed"));
-  }
+    : await unwrapReport<PersonRosterReport>(
+        getStudentRosterReportAction({
+          startDate: day,
+          endDate: day,
+          classeId: options.classeId ?? null,
+        }),
+        t("reports.loadStudentsFailed"),
+      );
   await exportPersonRosterReportPdf(report, context, labels, {
     title: t("pdf.studentRosterTitle"),
     filePrefix: "rapport-presence-eleves",
   });
   toast.success(t("reports.studentsPdfSuccess"));
+}
+
+async function loadReportContext(kioskBranchId: string | undefined, t: Translate) {
+  if (kioskBranchId) {
+    return kioskGetAttendanceReportContextAction(kioskBranchId);
+  }
+  return unwrapReport<SchoolReportContext>(
+    getAttendanceReportContextAction(),
+    t("reports.pdfContextFailed"),
+  );
+}
+
+async function unwrapReport<T>(result: Promise<unknown>, fallback: string): Promise<T> {
+  const [data, error] = (await result) as [
+    T | null,
+    { message?: string } | null,
+  ];
+  if (error || !data) {
+    throw new Error(error?.message || fallback);
+  }
+  return data;
 }
