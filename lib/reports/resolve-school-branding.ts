@@ -2,6 +2,8 @@ import { extractBulletinBranchLogo } from "@/lib/bulletin-context";
 import { branchDocumentName } from "@/lib/branch-document-name";
 import { parsePdfFontSize } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
+import { resolvePreferredLocale } from "@/lib/resolve-preferred-locale";
+import type { UserLocale } from "@/lib/user-locale";
 
 export type SchoolBrandingBranchRecord = {
   id: string;
@@ -87,6 +89,7 @@ export type BuildSchoolReportContextOptions = {
   pdfFontSize?: number;
   /** Si fourni, remplace le libellé année scolaire dérivé de la branche. */
   academicYearLabel?: string;
+  locale?: UserLocale;
 };
 
 /**
@@ -105,6 +108,7 @@ export function buildSchoolReportContext(
     organizationId: branch.organization.id ?? branch.organizationId,
     branchId: branch.id,
     schoolName: documentName,
+    locale: options.locale,
     branchName: documentName,
     address: formatSchoolAddress(branch),
     city: branch.ville?.trim() || undefined,
@@ -123,6 +127,15 @@ export function buildSchoolReportContext(
       options.pdfFontSize ?? branch.organization.pdfFontSize,
     ),
   };
+}
+
+/** Ajoute la langue utilisateur (cookie / session) pour les libellés PDF / Excel. */
+export async function buildLocalizedSchoolReportContext(
+  branch: SchoolBrandingBranchRecord,
+  options: BuildSchoolReportContextOptions = {},
+): Promise<SchoolReportContext> {
+  const locale = options.locale ?? (await resolvePreferredLocale());
+  return buildSchoolReportContext(branch, { ...options, locale });
 }
 
 /** Select Prisma réutilisable pour peupler `SchoolBrandingBranchRecord`. */

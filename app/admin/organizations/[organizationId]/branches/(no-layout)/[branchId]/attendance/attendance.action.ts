@@ -40,7 +40,7 @@ import {
   signalEndedAbsencesForBranchDebounced,
 } from "@/lib/attendance-absence";
 import {
-  buildSchoolReportContext,
+  buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 
@@ -1352,7 +1352,7 @@ export const getStudentAttendanceReportContextAction = action.handler(
       throw new Error("Contexte introuvable.");
     }
 
-    return buildSchoolReportContext(branch);
+    return buildLocalizedSchoolReportContext(branch);
   },
 );
 
@@ -1536,7 +1536,7 @@ export const getTeacherAttendanceReportContextAction = action.handler(
       throw new Error("Contexte introuvable.");
     }
 
-    return buildSchoolReportContext(branch);
+    return buildLocalizedSchoolReportContext(branch);
   },
 );
 
@@ -1666,7 +1666,7 @@ export const getPersonnelAttendanceReportContextAction = action.handler(
       throw new Error("Contexte introuvable.");
     }
 
-    return buildSchoolReportContext(branch);
+    return buildLocalizedSchoolReportContext(branch);
   },
 );
 

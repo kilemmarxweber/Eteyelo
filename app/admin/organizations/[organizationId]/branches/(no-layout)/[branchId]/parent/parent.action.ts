@@ -27,7 +27,7 @@ import {
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import {
-  buildSchoolReportContext,
+  buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import {
@@ -582,7 +582,7 @@ export const getParentReportContextAction = action.handler(async () => {
 
   if (!branch) throw new Error("Branche active introuvable");
 
-  return buildSchoolReportContext(branch);
+  return buildLocalizedSchoolReportContext(branch);
 });
 
 export const updateParentAction = action

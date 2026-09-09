@@ -1,3 +1,5 @@
+import type { UserLocale } from "@/lib/user-locale";
+
 /** Taux USD→CDF par défaut tant qu'aucune config branche n'existe. */
 export const DEFAULT_EXCHANGE_RATE_USD_CDF = 2800;
 
@@ -5,6 +7,8 @@ export type SchoolReportContext = {
   organizationId: string;
   branchId: string;
   schoolName: string;
+  /** Langue des libellés PDF / Excel (FR / EN / PT). */
+  locale?: UserLocale;
   /** Nom de la branche (sous-titre header / pied de page). */
   branchName?: string;
   address?: string;

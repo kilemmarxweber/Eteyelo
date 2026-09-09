@@ -17,7 +17,7 @@ import { ICreneau } from "@/src/interfaces/creneau";
 import { IClasse } from "@/src/interfaces/Classe";
 import { z } from "zod";
 import {
-  buildSchoolReportContext,
+  buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { scheduleHourToMinutes } from "@/lib/timezone";
@@ -776,7 +776,7 @@ export const getScheduleReportContextAction = action
     if (!classe) throw new Error("Classe introuvable dans cette branche");
 
     return {
-      ...buildSchoolReportContext(classe.branch),
+      ...(await buildLocalizedSchoolReportContext(classe.branch)),
       classeName: classe.nameClasse,
       classeCode: classe.codeClasse,
       creneauName: classe.creneau?.nameCreneau ?? "",

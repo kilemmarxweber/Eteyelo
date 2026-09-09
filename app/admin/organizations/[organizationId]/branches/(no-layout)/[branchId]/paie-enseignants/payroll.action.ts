@@ -26,7 +26,7 @@ import { action } from "@/lib/zsa";
 import { StatusPaiement } from "@/src/interfaces/Paiement";
 import { getBaseCurrency } from "@/lib/exchange-rate";
 import {
-  buildSchoolReportContext,
+  buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 
@@ -1225,5 +1225,5 @@ export const getPayrollReportContextAction = action.handler(async () => {
     select: schoolReportBranchSelect,
   });
   if (!branch) throw new Error("Branche active introuvable");
-  return buildSchoolReportContext(branch);
+  return buildLocalizedSchoolReportContext(branch);
 });

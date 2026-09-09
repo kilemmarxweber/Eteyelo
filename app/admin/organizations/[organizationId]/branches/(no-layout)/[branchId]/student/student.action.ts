@@ -36,7 +36,7 @@ import {
 import { resolveStudentParentId } from "@/lib/centre-default-parent";
 import { canIssueBranchDocuments } from "@/lib/branch-document-permissions";
 import {
-  buildSchoolReportContext,
+  buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
@@ -788,7 +788,7 @@ export const getStudentReportContextAction = action.handler(async () => {
 
   if (!branch) throw new Error("Branche active introuvable");
 
-  return buildSchoolReportContext(branch);
+  return buildLocalizedSchoolReportContext(branch);
 });
 
 /* ======================================================

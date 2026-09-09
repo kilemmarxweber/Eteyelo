@@ -27,7 +27,7 @@ import { prisma } from "@/lib/prisma";
 import { getConfiguredCoursIdsForClasse } from "@/lib/course-ponderation";
 import { syncTeacherDossierExperienceYears } from "@/lib/teacher-assignment-years";
 import {
-  buildSchoolReportContext,
+  buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { requireCurrentSchoolYear } from "@/lib/school-year";
@@ -1115,7 +1115,7 @@ export const getTeacherReportContextAction = action.handler(async () => {
 
   if (!branch) throw new Error("Branche active introuvable");
 
-  return buildSchoolReportContext(branch);
+  return buildLocalizedSchoolReportContext(branch);
 });
 
 /** Droits page liste (bouton ajouter / import / actions tableau). */

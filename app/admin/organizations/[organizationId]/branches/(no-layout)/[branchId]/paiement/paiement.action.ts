@@ -14,7 +14,7 @@ import { resolveCashierSelfScope, isOrganizationOwnerSession } from "@/lib/auth/
 import { randomUUID } from "node:crypto";
 import { Prisma, CurrencyCode } from "@/prisma/generated/prisma/client";
 import {
-  buildSchoolReportContext,
+  buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { parsePdfFontSize } from "@/lib/reports/pdf-font-scale";
@@ -1038,7 +1038,7 @@ export const createPaiementAction = action
         throw new Error("Branche introuvable pour le reçu.");
       }
 
-      const branding = buildSchoolReportContext(branchRecord, {
+      const branding = await buildLocalizedSchoolReportContext(branchRecord, {
         exchangeRateUsdCdf: usdCdfRate,
         baseCurrency,
         quoteCurrency: quoteCurrency ?? undefined,
@@ -1420,7 +1420,7 @@ export const getCashierReportContextAction = action.handler(async () => {
   }
 
   return {
-    ...buildSchoolReportContext(branch, {
+    ...(await buildLocalizedSchoolReportContext(branch, {
       exchangeRateUsdCdf: resolveUsdCdfRate(rates),
       baseCurrency,
       quoteCurrency: quoteCurrency ?? undefined,
@@ -1448,7 +1448,7 @@ export const getPaymentReportContextAction = action.handler(async () => {
   }
 
   return {
-    ...buildSchoolReportContext(branch, {
+    ...(await buildLocalizedSchoolReportContext(branch, {
       exchangeRateUsdCdf: resolveUsdCdfRate(rates),
       baseCurrency,
       quoteCurrency: quoteCurrency ?? undefined,
@@ -2105,7 +2105,7 @@ export const getUnpaidReportContextAction = action.handler(async () => {
     throw new Error("Contexte introuvable.");
   }
 
-  return buildSchoolReportContext(branch, {
+  return buildLocalizedSchoolReportContext(branch, {
     exchangeRateUsdCdf: resolveUsdCdfRate(rates),
     baseCurrency,
     quoteCurrency: quoteCurrency ?? undefined,

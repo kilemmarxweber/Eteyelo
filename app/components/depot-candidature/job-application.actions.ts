@@ -19,7 +19,7 @@ import { generateSecurePassword } from "@/lib/generate-password";
 import { generateSlug } from "@/lib/generated-identifiers";
 import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-level";
 import {
-  buildSchoolReportContext,
+  buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { syncTeacherDossierExperienceYears } from "@/lib/teacher-assignment-years";
@@ -485,7 +485,7 @@ export const getJobApplicationReportContextAction = action.handler(async () => {
     select: schoolReportBranchSelect,
   });
   if (!branch) throw new Error("Branche active introuvable");
-  return buildSchoolReportContext(branch);
+  return buildLocalizedSchoolReportContext(branch);
 });
 
 export const getJobApplicationDetailAction = action

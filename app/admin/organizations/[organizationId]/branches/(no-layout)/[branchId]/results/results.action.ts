@@ -3,7 +3,7 @@
 import { requireBranchAreaContext } from "@/lib/auth/require-branch-context";
 import { prisma } from "@/lib/prisma";
 import {
-  buildSchoolReportContext,
+  buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { action } from "@/lib/zsa";
@@ -18,5 +18,5 @@ export const getResultsReportContextAction = action.handler(async () => {
 
   if (!branch) throw new Error("Branche active introuvable");
 
-  return buildSchoolReportContext(branch);
+  return buildLocalizedSchoolReportContext(branch);
 });

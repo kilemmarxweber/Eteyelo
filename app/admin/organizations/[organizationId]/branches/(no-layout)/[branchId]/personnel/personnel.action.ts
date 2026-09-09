@@ -30,7 +30,7 @@ import { ensureOwnerPersonnelInAllBranches } from "@/lib/auth/ensure-owner-perso
 import { canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import {
-  buildSchoolReportContext,
+  buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { ensureActiveBranchMember } from "@/lib/branch-member-status";
@@ -775,5 +775,5 @@ export const getPersonnelReportContextAction = action.handler(async () => {
 
   if (!branch) throw new Error("Branche active introuvable");
 
-  return buildSchoolReportContext(branch);
+  return buildLocalizedSchoolReportContext(branch);
 });

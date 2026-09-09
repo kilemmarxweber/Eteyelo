@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { RequireBranchOrgSettingsAccess } from "../components/require-branch-org-settings-access";
 import {
@@ -238,8 +245,8 @@ export default function ExchangeRatesSettingsPage() {
         </div>
 
         <div className="space-y-3 rounded-xl border p-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 space-y-1">
               <p className="font-medium">Conversion sur le reçu</p>
               <p className="text-sm text-muted-foreground">
                 Afficher la deuxième devise (taux de change) sur les reçus. Désactivez
@@ -255,8 +262,8 @@ export default function ExchangeRatesSettingsPage() {
               }}
             />
           </div>
-          <div className="flex items-start justify-between gap-4 border-t pt-3">
-            <div className="space-y-1">
+          <div className="flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 space-y-1">
               <p className="font-medium">Notifier le parent</p>
               <p className="text-sm text-muted-foreground">
                 Envoyer un e-mail et un WhatsApp (si le numéro est renseigné) au
@@ -330,22 +337,32 @@ export default function ExchangeRatesSettingsPage() {
                 bulletin de paie, présences, etc.
               </p>
             </div>
-            <select
-              className="h-9 w-full max-w-xs rounded-md border bg-background px-3 text-sm"
-              value={pdfFontSize}
+            <Select
+              value={String(pdfFontSize)}
               disabled={savingDisplay}
-              onChange={(event) => {
-                const next = parsePdfFontSize(event.target.value);
+              onValueChange={(value) => {
+                const next = parsePdfFontSize(value);
                 setPdfFontSize(next);
                 void saveDisplaySettings({ pdfFontSize: next });
               }}
             >
-              {PDF_FONT_SIZE_OPTIONS.map((size) => (
-                <option key={size} value={size}>
-                  {size} pt{size === 10 ? " (recommandé)" : ""}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                aria-label="Taille des rapports PDF"
+                className="h-11 w-full min-w-0"
+              >
+                <SelectValue placeholder="Choisir une taille" />
+              </SelectTrigger>
+              <SelectContent
+                position="popper"
+                className="w-[var(--radix-select-trigger-width)] max-w-[min(100vw-2rem,28rem)]"
+              >
+                {PDF_FONT_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size} pt{size === 10 ? " (recommandé)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -367,8 +384,91 @@ export default function ExchangeRatesSettingsPage() {
           )}
         </div>
 
-        <div className="overflow-hidden rounded-xl border">
-          <table className="w-full text-sm">
+        <div className="space-y-3 md:hidden">
+          {rows.map((row) => {
+            const draft = drafts[row.id];
+            const isSelected = Boolean(row.isSelected);
+            return (
+              <div
+                key={row.id}
+                className={`space-y-3 rounded-xl border p-3 ${
+                  isSelected ? "bg-primary/5" : ""
+                }`}
+              >
+                <div className="flex flex-wrap items-center gap-2 font-medium">
+                  <span>
+                    {row.fromCurrency} → {row.toCurrency}
+                  </span>
+                  {isSelected ? (
+                    <Badge variant="outline-primary">Sélectionné</Badge>
+                  ) : null}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  1 {CURRENCY_LABELS[row.fromCurrency]} = {draft?.rate || row.rate}{" "}
+                  {CURRENCY_LABELS[row.toCurrency]}
+                </p>
+                <div className="flex items-center justify-between gap-3">
+                  <Input
+                    className="h-11 min-w-0 flex-1"
+                    inputMode="decimal"
+                    value={draft?.rate ?? String(row.rate)}
+                    onChange={(event) =>
+                      updateDraft(row.id, { rate: event.target.value })
+                    }
+                  />
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Actif</span>
+                    <Switch
+                      checked={draft?.isActive ?? row.isActive}
+                      onCheckedChange={(checked) =>
+                        updateDraft(row.id, { isActive: checked })
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    className="h-11 w-full"
+                    variant={isSelected ? "default" : "outline"}
+                    disabled={
+                      isSelected ||
+                      !(draft?.isActive ?? row.isActive) ||
+                      selectingId === row.id
+                    }
+                    onClick={() => void selectRow(row)}
+                  >
+                    {selectingId === row.id
+                      ? "..."
+                      : isSelected
+                        ? "Base"
+                        : "Utiliser"}
+                  </Button>
+                  <Button
+                    type="button"
+                    className="h-11 w-full"
+                    variant={draft?.dirty ? "default" : "outline"}
+                    disabled={!draft?.dirty || savingId === row.id}
+                    onClick={() => void saveRow(row)}
+                  >
+                    <IconDeviceFloppy className="mr-1 size-4" />
+                    {savingId === row.id ? "..." : "Enregistrer"}
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+          {!rows.length ? (
+            <div className="rounded-xl border px-3 py-8 text-center text-sm text-muted-foreground">
+              {loading
+                ? "Chargement..."
+                : "Aucun taux configuré pour cette organisation."}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="hidden overflow-x-auto rounded-xl border md:block">
+          <table className="w-full min-w-[640px] text-sm">
             <thead className="bg-muted/50 text-left">
               <tr>
                 <th className="px-3 py-2">Paire</th>

@@ -17,10 +17,11 @@ import {
   type ReportTab,
 } from "@/lib/reports/org";
 import {
-  buildSchoolReportContext,
+  buildLocalizedSchoolReportContext,
   resolveReportLogoUrl,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
+import { resolvePreferredLocale } from "@/lib/resolve-preferred-locale";
 import { parseBranchIdsParam } from "@/lib/reports/org/scope";
 import { prisma } from "@/lib/prisma";
 
@@ -150,7 +151,7 @@ export async function getRapportReportContextAction({
       throw new Error("Établissement introuvable");
     }
 
-    return buildSchoolReportContext(branch);
+    return buildLocalizedSchoolReportContext(branch);
   }
 
   const organization = await prisma.organization.findFirst({
@@ -182,7 +183,7 @@ export async function getRapportReportContextAction({
 
   if (fallbackBranch) {
     return {
-      ...buildSchoolReportContext(fallbackBranch),
+      ...(await buildLocalizedSchoolReportContext(fallbackBranch)),
       branchName: branchLabel,
       branchId: "",
     };
@@ -192,6 +193,7 @@ export async function getRapportReportContextAction({
     organizationId: organization.id,
     branchId: "",
     schoolName: organization.name,
+    locale: await resolvePreferredLocale(),
     branchName: branchLabel,
     logoUrl: resolveReportLogoUrl(null, organization.logo),
     generatedAt: new Date().toISOString(),

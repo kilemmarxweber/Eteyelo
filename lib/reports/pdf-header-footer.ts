@@ -1,6 +1,10 @@
 import type jsPDF from "jspdf";
 import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
+import {
+  documentChrome,
+  formatDocumentDateTime,
+} from "@/lib/reports/document-locale";
 
 /**
  * Marge haute de secours (autotable). Préférer la valeur renvoyée par
@@ -26,18 +30,6 @@ export type DrawReportFooterOptions = {
   totalPages?: number;
   leftText?: string;
 };
-
-function formatGeneratedAt(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
 
 function detectImageFormat(dataUrl: string): "PNG" | "JPEG" | "WEBP" {
   if (dataUrl.startsWith("data:image/png")) return "PNG";
@@ -65,6 +57,7 @@ export function drawReportHeader(
   options: DrawReportHeaderOptions,
 ): number {
   const fonts = pdfFontsFromContext(context);
+  const chrome = documentChrome(context.locale);
   const pageWidth = doc.internal.pageSize.getWidth();
   const { title, subtitle, details = [], logoDataUrl } = options;
   const marginX = 14;
@@ -111,7 +104,7 @@ export function drawReportHeader(
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(fonts.school);
-  doc.text(context.schoolName || "Établissement", textX, textY, {
+  doc.text(context.schoolName || chrome.establishment, textX, textY, {
     maxWidth: textMaxWidth,
   });
   textY += 5;
@@ -145,7 +138,7 @@ export function drawReportHeader(
     doc.setFont("helvetica", "normal");
     doc.setTextColor(100, 116, 139);
     doc.setFontSize(fonts.meta);
-    doc.text(`Année scolaire : ${context.academicYearLabel}`, textX, textY, {
+    doc.text(`${chrome.academicYear} : ${context.academicYearLabel}`, textX, textY, {
       maxWidth: textMaxWidth,
     });
     textY += 3.8;
@@ -170,7 +163,7 @@ export function drawReportHeader(
   const meta = [
     ...details,
     context.generatedAt
-      ? `Généré le ${formatGeneratedAt(context.generatedAt)}`
+      ? `${chrome.generatedAt} ${formatDocumentDateTime(context.generatedAt, context.locale)}`
       : "",
   ]
     .filter(Boolean)
@@ -203,6 +196,7 @@ export function drawReportFooter(
   options: DrawReportFooterOptions = {},
 ): void {
   const fonts = pdfFontsFromContext(context);
+  const chrome = documentChrome(context.locale);
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const {
@@ -224,7 +218,7 @@ export function drawReportFooter(
   }
 
   if (pageNumber != null && totalPages != null) {
-    doc.text(`Page ${pageNumber} / ${totalPages}`, pageWidth - 14, pageHeight - 6, {
+    doc.text(`${chrome.page} ${pageNumber} / ${totalPages}`, pageWidth - 14, pageHeight - 6, {
       align: "right",
     });
   }

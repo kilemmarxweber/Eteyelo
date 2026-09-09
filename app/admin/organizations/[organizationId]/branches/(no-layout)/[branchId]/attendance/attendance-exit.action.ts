@@ -21,7 +21,7 @@ import {
 import { isStudentNormalCheckoutAllowed } from "@/lib/attendance-student-session";
 import { nowLocal } from "@/lib/timezone";
 import {
-  buildSchoolReportContext,
+  buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 
@@ -540,7 +540,7 @@ export const getAttendanceReportContextAction = action.handler(async () => {
     select: schoolReportBranchSelect,
   });
   if (!branch) throw new Error("Contexte introuvable.");
-  return buildSchoolReportContext(branch);
+  return buildLocalizedSchoolReportContext(branch);
 });
 
 export const getTeacherSessionReportAction = action
