@@ -18,11 +18,7 @@ import {
 import { nowLocal, startOfTodayParis } from "@/lib/timezone";
 import { checkTeacherAttendanceNeeded } from "./attendance/attendance.action";
 
-const geoSchema = z.object({
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-  accuracy: z.number().min(0).max(5000).optional(),
-});
+import { attendanceGeoCoordsSchema as geoSchema } from "@/lib/attendance-geo-schema";
 
 export type PresenceMonthSummary = {
   present: number;

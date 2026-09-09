@@ -42,7 +42,7 @@ export function AttendanceQuickPersonRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-xl border px-3 py-3 transition-colors",
+        "flex flex-col gap-3 rounded-xl border px-3 py-3 transition-colors sm:flex-row sm:items-center",
         done
           ? "border-emerald-500/25 bg-emerald-500/5"
           : canLeave
@@ -50,7 +50,8 @@ export function AttendanceQuickPersonRow({
             : "bg-card hover:bg-muted/50",
       )}
     >
-      <Avatar className="size-11 shrink-0">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+      <Avatar className="size-12 shrink-0 sm:size-11">
         {person.image ? <AvatarImage src={person.image} alt="" /> : null}
         <AvatarFallback className="text-sm font-medium">
           {initials(person.name)}
@@ -70,9 +71,10 @@ export function AttendanceQuickPersonRow({
           </p>
         ) : null}
       </div>
-      <div className="shrink-0">
+      </div>
+      <div className="shrink-0 sm:ml-0">
         {done ? (
-          <Badge variant="success" className="h-9 px-3 text-sm">
+          <Badge variant="success" className="h-11 w-full justify-center px-3 text-sm sm:h-9 sm:w-auto">
             {doneLabel}
           </Badge>
         ) : (
@@ -81,7 +83,7 @@ export function AttendanceQuickPersonRow({
             size="lg"
             variant={canLeave ? "outline" : "default"}
             disabled={busy}
-            className="h-11 min-w-[7.5rem] touch-manipulation px-4"
+            className="h-12 w-full touch-manipulation px-4 sm:h-11 sm:min-w-[7.5rem] sm:w-auto"
             onClick={canLeave ? onCheckout : onPointer}
           >
             {busy ? (

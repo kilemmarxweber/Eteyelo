@@ -2,25 +2,35 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { loadPublicAttendanceBranch } from "@/lib/auth/attendance-kiosk-context";
-import { AttendanceCheckInClient } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/[branchId]/attendance/components/attendance-checkin-client";
+import { AttendanceKioskShell } from "./attendance-kiosk-shell";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Pointage",
-  robots: {
-    index: false,
-    follow: false,
-    nocache: true,
-    googleBot: { index: false, follow: false, noimageindex: true },
-  },
+type PageProps = {
+  params: Promise<{ branchId: string }>;
 };
 
-export default async function PublicAttendancePage({
+export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ branchId: string }>;
-}) {
+}: PageProps): Promise<Metadata> {
+  const { branchId } = await params;
+  try {
+    const branch = await loadPublicAttendanceBranch(branchId);
+    return {
+      title: { absolute: `Pointage | ${branch.name}` },
+      robots: {
+        index: false,
+        follow: false,
+        nocache: true,
+        googleBot: { index: false, follow: false, noimageindex: true },
+      },
+    };
+  } catch {
+    return { title: { absolute: "Pointage" } };
+  }
+}
+
+export default async function PublicAttendancePage({ params }: PageProps) {
   const { branchId } = await params;
 
   let branch: Awaited<ReturnType<typeof loadPublicAttendanceBranch>>;
@@ -31,16 +41,6 @@ export default async function PublicAttendancePage({
   }
 
   return (
-    <div className="flex min-h-svh flex-col bg-background">
-      <header className="border-b px-4 py-3 sm:px-6">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Pointage
-        </p>
-        <h1 className="truncate text-lg font-semibold">{branch.name}</h1>
-      </header>
-      <div className="flex min-h-0 flex-1 flex-col p-3 sm:p-4">
-        <AttendanceCheckInClient kioskBranchId={branch.id} />
-      </div>
-    </div>
+    <AttendanceKioskShell branchId={branch.id} branchName={branch.name} />
   );
 }

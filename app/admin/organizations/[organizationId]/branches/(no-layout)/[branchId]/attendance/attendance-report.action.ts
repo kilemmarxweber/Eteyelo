@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { getTeacherAttendanceReadScope } from "@/lib/auth/data-scope";
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { memberIsAttendanceOwner } from "@/lib/attendance/owner-pointage";
 import { auth } from "@/lib/auth";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { resolvePreferredLocale } from "@/lib/resolve-preferred-locale";
@@ -258,7 +259,12 @@ function mapTeacherRecords(
     >
   >,
 ): UnifiedRecord[] {
-  return records.map((record) => {
+  return records
+    .filter(
+      (record) =>
+        !memberIsAttendanceOwner(record.teacher.branchMember?.member),
+    )
+    .map((record) => {
     const user = record.teacher.branchMember?.member?.user;
     const isAbsentLike =
       record.status === "ABSENT" || record.status === "EXCUSED";
@@ -304,7 +310,12 @@ function mapPersonnelRecords(
     >
   >,
 ): UnifiedRecord[] {
-  return records.map((record) => {
+  return records
+    .filter(
+      (record) =>
+        !memberIsAttendanceOwner(record.personnel.branchMember?.member),
+    )
+    .map((record) => {
     const user = record.personnel.branchMember?.member?.user;
     const member = record.personnel.branchMember?.member;
     const poste = member?.role ? orgRoleLabel(member.role) : "Personnel";

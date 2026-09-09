@@ -3,7 +3,7 @@ import "server-only";
 import { AsyncLocalStorage } from "node:async_hooks";
 
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { ORG_ROLE } from "@/lib/permissions";
+import { APP_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 export const ATTENDANCE_KIOSK_USER_ID = "attendance-kiosk";
@@ -54,9 +54,9 @@ export async function runAttendanceKiosk<T>(
 
 function kioskSession(organizationId: string) {
   return {
-    user: { id: ATTENDANCE_KIOSK_USER_ID, role: ORG_ROLE.OWNER },
-    organization: { id: organizationId, role: ORG_ROLE.OWNER },
-    member: { role: ORG_ROLE.OWNER },
+    user: { id: ATTENDANCE_KIOSK_USER_ID, role: APP_ROLE.ADMIN },
+    organization: { id: organizationId, role: APP_ROLE.ADMIN },
+    member: { role: APP_ROLE.ADMIN },
     session: {
       activeOrganizationId: organizationId,
     },

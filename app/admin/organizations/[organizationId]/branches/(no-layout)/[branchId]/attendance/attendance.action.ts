@@ -44,11 +44,7 @@ import {
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 
-const geoCoordsSchema = z.object({
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-  accuracy: z.number().min(0).max(5000).optional(),
-});
+import { attendanceGeoCoordsSchema as geoCoordsSchema } from "@/lib/attendance-geo-schema";
 
 /** Fenêtre par défaut pour l'historique présences (évite un full scan). */
 const ATTENDANCE_HISTORY_DAYS = 90;

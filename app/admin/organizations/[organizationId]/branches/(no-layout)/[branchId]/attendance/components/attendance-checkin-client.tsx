@@ -36,6 +36,7 @@ import {
   checkInPersonByIdAction,
   findOpenCheckoutForPersonAction,
   getQuickCheckInBootstrapAction,
+  getLiveCheckInStatesAction,
   listPersonnelForCheckInAction,
   listStudentsForClassCheckInAction,
   searchPeopleForCheckInAction,
@@ -45,6 +46,7 @@ import {
   kioskCheckInPersonByIdAction,
   kioskFindOpenCheckoutForPersonAction,
   kioskGetQuickCheckInBootstrapAction,
+  kioskGetLiveCheckInStatesAction,
   kioskListPersonnelForCheckInAction,
   kioskListStudentsForClassCheckInAction,
   kioskSearchPeopleForCheckInAction,
@@ -52,6 +54,7 @@ import {
 import type {
   AttendanceCheckInCycleGroup,
   AttendanceCheckInResult,
+  AttendanceLiveCheckInState,
   AttendancePersonLookup,
   AttendancePersonType,
 } from "../attendance-scan-types";
@@ -86,6 +89,29 @@ function looksLikeScanCode(value: string) {
 
 function personKey(person: Pick<AttendancePersonLookup, "id" | "personType">) {
   return `${person.personType}-${person.id}`;
+}
+
+function applyLiveStates(
+  people: AttendancePersonLookup[],
+  states: Map<string, AttendanceLiveCheckInState>,
+) {
+  return people.map((person) => {
+    const live = states.get(personKey(person));
+    if (!live) {
+      return {
+        ...person,
+        alreadyCheckedIn: false,
+        canCheckOut: false,
+        attendanceId: null,
+      };
+    }
+    return {
+      ...person,
+      alreadyCheckedIn: live.alreadyCheckedIn,
+      canCheckOut: live.canCheckOut,
+      attendanceId: live.attendanceId,
+    };
+  });
 }
 
 function LiveClock() {
@@ -270,15 +296,86 @@ export function AttendanceCheckInClient({
   useEffect(() => {
     const interval = window.setInterval(() => {
       void loadBootstrap().catch(() => undefined);
-      if (tab === "student" && classeId && !searching) {
-        void loadStudents(classeId).catch(() => undefined);
-      }
-      if (tab === "personnel" && personnelLoaded && !searching) {
-        void loadPersonnel().catch(() => undefined);
-      }
     }, 60_000);
     return () => window.clearInterval(interval);
-  }, [classeId, loadBootstrap, loadPersonnel, loadStudents, personnelLoaded, searching, tab]);
+  }, [loadBootstrap]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let inFlight = false;
+
+    async function refreshLive() {
+      if (
+        cancelled ||
+        inFlight ||
+        document.visibilityState === "hidden" ||
+        pending ||
+        busyKey ||
+        checkout
+      ) {
+        return;
+      }
+      inFlight = true;
+      try {
+        const snapshot = kioskBranchId
+          ? await kioskGetLiveCheckInStatesAction(kioskBranchId)
+          : await getLiveCheckInStatesAction();
+        if (cancelled) return;
+        const states = new Map(
+          snapshot.states.map((item) => [
+            `${item.personType}-${item.personId}`,
+            item,
+          ]),
+        );
+        setTeachers((people) => applyLiveStates(people, states));
+        setStudents((people) => applyLiveStates(people, states));
+        setPersonnel((people) => applyLiveStates(people, states));
+        setSearchResults((people) => applyLiveStates(people, states));
+        setRecent(
+          snapshot.recent.map((item) => ({
+            id: `${item.personType}-${item.personId}-${item.checkedAt}`,
+            ok: true,
+            message: "",
+            personType: item.personType,
+            person: {
+              id: item.personId,
+              name: item.personName,
+              matricule: "",
+              roleLabel: "",
+              personType: item.personType,
+            },
+            status: item.status,
+            statusLabel: item.statusLabel,
+            checkedAt: item.checkedAt,
+            attendanceId: item.attendanceId,
+          })),
+        );
+      } catch {
+        // Le kiosque continue d'afficher le dernier état connu.
+      } finally {
+        inFlight = false;
+      }
+    }
+
+    const intervalMs = kioskBranchId ? 3000 : 12_000;
+    const interval = window.setInterval(() => {
+      void refreshLive();
+    }, intervalMs);
+    void refreshLive();
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void refreshLive();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [busyKey, checkout, kioskBranchId, pending]);
 
   const selectedCycle = cycles.find((item) => item.key === cycleKey) ?? cycles[0];
   const selectedLevel =
@@ -701,10 +798,10 @@ export function AttendanceCheckInClient({
           <div className="relative min-w-0 flex-1">
             <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              className="h-12 pl-9 text-base"
+              className="h-12 pl-9 text-base md:h-14 md:text-[1.05rem]"
               placeholder={t("checkInUi.searchPlaceholder")}
               value={searchQuery}
-              autoFocus
+              autoFocus={!kioskBranchId}
               onChange={(event) => setSearchQuery(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" && looksLikeScanCode(searchQuery)) {
@@ -714,11 +811,11 @@ export function AttendanceCheckInClient({
               }}
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
             <Button
               type="button"
               size="lg"
-              className="h-12 flex-1 touch-manipulation sm:flex-none"
+              className="h-12 touch-manipulation md:h-14"
               onClick={() => {
                 setScanMode("card");
                 setScanOpen(true);
@@ -731,7 +828,7 @@ export function AttendanceCheckInClient({
               type="button"
               size="lg"
               variant="outline"
-              className="h-12 flex-1 touch-manipulation sm:flex-none"
+              className="h-12 touch-manipulation md:h-14"
               onClick={() => {
                 setScanMode("face");
                 setScanOpen(true);
@@ -740,16 +837,20 @@ export function AttendanceCheckInClient({
               <IconFaceId className="mr-2 size-4" />
               {t("checkInUi.scanFace")}
             </Button>
-            <div className="hidden rounded-lg border bg-muted/40 px-3 py-1.5 text-right sm:block">
-              <LiveClock />
-            </div>
+            {kioskBranchId ? null : (
+              <div className="hidden rounded-lg border bg-muted/40 px-3 py-1.5 text-right sm:block">
+                <LiveClock />
+              </div>
+            )}
           </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="rounded-lg border bg-muted/40 px-3 py-1.5 sm:hidden">
-            <LiveClock />
-          </div>
+          {kioskBranchId ? null : (
+            <div className="rounded-lg border bg-muted/40 px-3 py-1.5 sm:hidden">
+              <LiveClock />
+            </div>
+          )}
           {visiblePeople.length > 0 ? (
             <div className="ml-auto flex items-center gap-1.5">
               <Badge variant="outline">
@@ -809,7 +910,7 @@ export function AttendanceCheckInClient({
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <Icon size={16} className="hidden shrink-0 sm:block" />
+                <Icon size={16} className="shrink-0" />
                 <span className="truncate">{item.label}</span>
               </button>
             );
@@ -817,13 +918,13 @@ export function AttendanceCheckInClient({
         </div>
       </div>
 
-      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <div className="grid min-h-0 flex-1 gap-3 md:grid-cols-[minmax(0,1fr)_16rem] xl:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="flex min-h-0 flex-col gap-2">
           {studentFilters}
           {listContent}
         </div>
 
-        <aside className="hidden min-h-0 lg:flex">
+        <aside className="hidden min-h-0 md:flex">
           <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <CardHeader className="shrink-0 pb-3">
               <CardTitle className="text-base">
@@ -847,7 +948,7 @@ export function AttendanceCheckInClient({
       </div>
 
       {recent.length > 0 ? (
-        <div className="flex shrink-0 gap-2 overflow-x-auto pb-0.5 lg:hidden">
+        <div className="flex shrink-0 gap-2 overflow-x-auto pb-0.5 md:hidden">
           {recent.map((item) => (
             <div
               key={item.id}

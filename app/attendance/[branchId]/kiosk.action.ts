@@ -8,6 +8,7 @@ import {
   enrollFaceDescriptorAction,
   findOpenCheckoutForPersonAction,
   getQuickCheckInBootstrapAction,
+  getLiveCheckInStatesAction,
   listPersonnelForCheckInAction,
   listStudentsForClassCheckInAction,
   matchFaceDescriptorAction,
@@ -25,6 +26,10 @@ import type { AttendanceExitReason } from "@/prisma/generated/prisma/client";
 
 export async function kioskGetQuickCheckInBootstrapAction(branchId: string) {
   return runAttendanceKiosk(branchId, () => getQuickCheckInBootstrapAction());
+}
+
+export async function kioskGetLiveCheckInStatesAction(branchId: string) {
+  return runAttendanceKiosk(branchId, () => getLiveCheckInStatesAction());
 }
 
 export async function kioskSearchPeopleForCheckInAction(

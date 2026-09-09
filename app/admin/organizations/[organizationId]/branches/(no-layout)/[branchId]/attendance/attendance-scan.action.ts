@@ -14,6 +14,7 @@ import {
   hasSessionRole,
 } from "@/lib/auth/session-roles";
 import type { AttendanceGeoCoords } from "@/lib/attendance-geo";
+import { attendanceGeoCoordsSchema as geoCoordsSchema } from "@/lib/attendance-geo-schema";
 import { assertWithinBranchAttendanceRadius } from "@/lib/attendance-geo.server";
 import { formatExpectedSessionLabel } from "@/lib/attendance-schedule-label";
 import {
@@ -43,6 +44,10 @@ import {
 import { ORG_ROLE } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import {
+  ATTENDANCE_OWNER_BLOCKED_MESSAGE,
+  memberIsAttendanceOwner,
+} from "@/lib/attendance/owner-pointage";
+import {
   Day,
   type AttendanceStatus,
   type Prisma,
@@ -64,6 +69,7 @@ import type {
   AttendanceCheckInCycleGroup,
   AttendanceCheckInResult,
   AttendanceFaceMatchResult,
+  AttendanceLiveSnapshot,
   AttendancePersonLookup,
   AttendancePersonType,
   AttendanceQuickCheckInBootstrap,
@@ -80,12 +86,6 @@ const scanSchema = z.object({
 
 const searchSchema = z.object({
   query: z.string().trim().min(2, "Saisissez au moins 2 caracteres."),
-});
-
-const geoCoordsSchema = z.object({
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-  accuracy: z.number().min(0).max(5000).optional(),
 });
 
 type ScanTarget = AttendancePersonType | "any";
@@ -839,6 +839,15 @@ async function performTeacherCheckIn(
   const { branchId, session, userId } = await requireAttendanceScanContext();
   const lookup = mapTeacherLookup(teacher);
 
+  if (memberIsAttendanceOwner(teacher.branchMember?.member)) {
+    return {
+      ok: false,
+      message: ATTENDANCE_OWNER_BLOCKED_MESSAGE,
+      personType: "teacher",
+      person: lookup,
+    };
+  }
+
   const geoError = await ensureCheckInWithinRadius({
     branchId,
     coords,
@@ -975,6 +984,15 @@ async function performPersonnelCheckIn(
   const { branchId, session, userId } = await requireAttendanceScanContext();
 
   const lookup = mapPersonnelLookup(personnel);
+
+  if (memberIsAttendanceOwner(personnel.branchMember?.member)) {
+    return {
+      ok: false,
+      message: ATTENDANCE_OWNER_BLOCKED_MESSAGE,
+      personType: "personnel",
+      person: lookup,
+    };
+  }
 
   const myPersonnelId = await getPersonnelIdForUser(userId, branchId);
   if (
@@ -1203,8 +1221,13 @@ export async function searchPeopleForCheckInAction(
 
   return [
     ...studentLookups,
-    ...teacherLookups,
-    ...personnels.map(mapPersonnelLookup),
+    ...teacherLookups.filter(
+      (person, index) =>
+        !memberIsAttendanceOwner(teachers[index]?.branchMember?.member),
+    ),
+    ...personnels
+      .filter((personnel) => !memberIsAttendanceOwner(personnel.branchMember?.member))
+      .map(mapPersonnelLookup),
   ].slice(0, 8);
 }
 
@@ -1250,8 +1273,12 @@ export async function searchPeopleForFaceEnrollAction(
 
   return [
     ...students.map(mapStudentLookup),
-    ...teachers.map(mapTeacherLookup),
-    ...personnels.map(mapPersonnelLookup),
+    ...teachers
+      .filter((teacher) => !memberIsAttendanceOwner(teacher.branchMember?.member))
+      .map(mapTeacherLookup),
+    ...personnels
+      .filter((personnel) => !memberIsAttendanceOwner(personnel.branchMember?.member))
+      .map(mapPersonnelLookup),
   ].sort((left, right) => left.name.localeCompare(right.name, "fr"));
 }
 
@@ -1752,6 +1779,9 @@ export async function getQuickCheckInBootstrapAction(): Promise<AttendanceQuickC
   );
 
   const teachers = [...teacherBest.entries()]
+    .filter(
+      ([, row]) => !memberIsAttendanceOwner(row.teacher.branchMember?.member),
+    )
     .sort((a, b) => a[1].startMinutes - b[1].startMinutes)
     .map(([teacherId, row]) => {
       const state = attendanceOpenState(attendanceByTeacher.get(teacherId));
@@ -2074,6 +2104,7 @@ export async function listPersonnelForCheckInAction(): Promise<
   );
 
   return personnels
+    .filter((personnel) => !memberIsAttendanceOwner(personnel.branchMember?.member))
     .map((personnel) => ({
       ...mapPersonnelLookup(personnel),
       ...attendanceOpenState(attendanceByPersonnel.get(personnel.id)),
@@ -2219,3 +2250,173 @@ export async function enrollFaceDescriptorAction(input: {
     person,
   };
 }
+
+function liveUserName(user?: {
+  name: string;
+  postnom: string | null;
+  prenom: string | null;
+} | null) {
+  if (!user) return "Personne";
+  return getPersonName(user) || "Personne";
+}
+
+function liveStatusLabel(status: string): "Present" | "Retard" | undefined {
+  if (status === "LATE") return "Retard";
+  if (status === "PRESENT") return "Present";
+  return undefined;
+}
+
+export async function getLiveCheckInStatesAction(): Promise<AttendanceLiveSnapshot> {
+  const { branchId } = await requireAttendanceScanContext();
+  const today = startOfTodayParis();
+  const userSelect = {
+    select: { name: true, postnom: true, prenom: true },
+  } as const;
+  const memberUser = {
+    select: { member: { select: { user: userSelect } } },
+  } as const;
+
+  const [studentRows, teacherRows, personnelRows] = await Promise.all([
+    prisma.studentAttendance.findMany({
+      where: {
+        branchId,
+        checkIn: { not: null },
+        session: { date: today },
+      },
+      select: {
+        id: true,
+        studentId: true,
+        checkIn: true,
+        checkOut: true,
+        earlyExit: true,
+        status: true,
+        student: {
+          select: { branchMember: memberUser },
+        },
+      },
+      orderBy: { checkIn: "desc" },
+    }),
+    prisma.teacherAttendance.findMany({
+      where: { branchId, date: today, checkIn: { not: null } },
+      select: {
+        id: true,
+        teacherId: true,
+        checkIn: true,
+        checkOut: true,
+        earlyExit: true,
+        status: true,
+        teacher: {
+          select: { branchMember: memberUser },
+        },
+      },
+      orderBy: { checkIn: "desc" },
+    }),
+    prisma.personnelAttendance.findMany({
+      where: { branchId, date: today, checkIn: { not: null } },
+      select: {
+        id: true,
+        personnelId: true,
+        checkIn: true,
+        checkOut: true,
+        earlyExit: true,
+        status: true,
+        personnel: {
+          select: {
+            branchMember: {
+              select: {
+                member: {
+                  select: {
+                    role: true,
+                    user: { select: { name: true, postnom: true, prenom: true, role: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { checkIn: "desc" },
+    }),
+  ]);
+
+  function pickBest<T extends { id: string; checkOut: Date | null; earlyExit: boolean }>(
+    rows: T[],
+    key: (row: T) => string,
+  ) {
+    const best = new Map<string, T>();
+    for (const row of rows) {
+      const id = key(row);
+      const existing = best.get(id);
+      if (!existing) {
+        best.set(id, row);
+        continue;
+      }
+      const existingOpen = !existing.checkOut && !existing.earlyExit;
+      const rowOpen = !row.checkOut && !row.earlyExit;
+      if (!existingOpen && rowOpen) best.set(id, row);
+    }
+    return best;
+  }
+
+  const students = pickBest(studentRows, (row) => row.studentId);
+  const teachers = pickBest(teacherRows, (row) => row.teacherId);
+  const personnels = pickBest(
+    personnelRows.filter(
+      (row) => !memberIsAttendanceOwner(row.personnel?.branchMember?.member),
+    ),
+    (row) => row.personnelId,
+  );
+
+  const states = [
+    ...[...students.entries()].map(([personId, row]) => ({
+      personType: "student" as const,
+      personId,
+      ...attendanceOpenState(row),
+    })),
+    ...[...teachers.entries()].map(([personId, row]) => ({
+      personType: "teacher" as const,
+      personId,
+      ...attendanceOpenState(row),
+    })),
+    ...[...personnels.entries()].map(([personId, row]) => ({
+      personType: "personnel" as const,
+      personId,
+      ...attendanceOpenState(row),
+    })),
+  ];
+
+  const recentSource = [
+    ...studentRows.map((row) => ({
+      personType: "student" as const,
+      personId: row.studentId,
+      personName: liveUserName(row.student?.branchMember?.member?.user),
+      status: row.status === "LATE" ? ("LATE" as const) : ("PRESENT" as const),
+      statusLabel: liveStatusLabel(row.status),
+      checkedAt: (row.checkIn ?? new Date()).toISOString(),
+      attendanceId: row.id,
+    })),
+    ...teacherRows.map((row) => ({
+      personType: "teacher" as const,
+      personId: row.teacherId,
+      personName: liveUserName(row.teacher?.branchMember?.member?.user),
+      status: row.status === "LATE" ? ("LATE" as const) : ("PRESENT" as const),
+      statusLabel: liveStatusLabel(row.status),
+      checkedAt: (row.checkIn ?? new Date()).toISOString(),
+      attendanceId: row.id,
+    })),
+    ...[...personnels.values()].map((row) => ({
+      personType: "personnel" as const,
+      personId: row.personnelId,
+      personName: liveUserName(row.personnel?.branchMember?.member?.user),
+      status: row.status === "LATE" ? ("LATE" as const) : ("PRESENT" as const),
+      statusLabel: liveStatusLabel(row.status),
+      checkedAt: (row.checkIn ?? new Date()).toISOString(),
+      attendanceId: row.id,
+    })),
+  ]
+    .sort((a, b) => b.checkedAt.localeCompare(a.checkedAt))
+    .slice(0, 8);
+
+  return { states, recent: recentSource };
+}
+

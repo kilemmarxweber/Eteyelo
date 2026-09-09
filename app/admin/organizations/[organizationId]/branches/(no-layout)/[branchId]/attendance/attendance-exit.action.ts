@@ -10,6 +10,7 @@ import {
   assertTeacherAttendanceWriteAccess,
 } from "@/lib/auth/data-scope";
 import { canManageOrganization } from "@/lib/auth/session-roles";
+import { memberIsAttendanceOwner } from "@/lib/attendance/owner-pointage";
 import { AttendanceExitReason } from "@/prisma/generated/prisma/client";
 import {
   ATTENDANCE_EXIT_REASON_LABELS,
@@ -870,7 +871,12 @@ export const getAttendanceDailyJournalAction = action
         exitReason: row.exitReason || "—",
         statusLabel: STATUS_LABELS[row.status] ?? row.status,
       })),
-      ...personnels.map((row) => ({
+      ...personnels
+        .filter(
+          (row) =>
+            !memberIsAttendanceOwner(row.personnel?.branchMember?.member),
+        )
+        .map((row) => ({
         id: row.id,
         personType: "personnel" as const,
         personName: personName(
@@ -896,7 +902,9 @@ export const getAttendanceDailyJournalAction = action
         ),
         studentEarlyExits: students.length,
         teacherEarlyExits: teachers.length,
-        personnelEarlyExits: personnels.length,
+        personnelEarlyExits: earlyExits.filter(
+          (row) => row.personType === "personnel",
+        ).length,
       },
     };
   });
@@ -1207,7 +1215,7 @@ export const getPersonnelRosterReportAction = action
               select: {
                 role: true,
                 user: {
-                  select: { name: true, postnom: true, prenom: true },
+                  select: { name: true, postnom: true, prenom: true, role: true },
                 },
               },
             },
@@ -1249,6 +1257,9 @@ export const getPersonnelRosterReportAction = action
     for (const day of days) {
       const dayIso = day.toISOString().slice(0, 10);
       for (const person of personnelList) {
+        if (memberIsAttendanceOwner(person.branchMember?.member)) {
+          continue;
+        }
         const record = byPersonDay.get(`${person.id}:${dayIso}`);
         const status = (record?.status ?? "ABSENT") as
           | "PRESENT"

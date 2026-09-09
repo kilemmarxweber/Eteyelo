@@ -45,6 +45,29 @@ export type AttendanceQuickCheckInBootstrap = {
   canViewPersonnel: boolean;
 };
 
+export type AttendanceLiveCheckInState = {
+  personType: AttendancePersonType;
+  personId: string;
+  alreadyCheckedIn: boolean;
+  canCheckOut: boolean;
+  attendanceId: string | null;
+};
+
+export type AttendanceLiveRecentItem = {
+  personType: AttendancePersonType;
+  personId: string;
+  personName: string;
+  status?: "PRESENT" | "LATE";
+  statusLabel?: string;
+  checkedAt: string;
+  attendanceId?: string;
+};
+
+export type AttendanceLiveSnapshot = {
+  states: AttendanceLiveCheckInState[];
+  recent: AttendanceLiveRecentItem[];
+};
+
 export type AttendanceCheckInResult = {
   ok: boolean;
   message: string;
