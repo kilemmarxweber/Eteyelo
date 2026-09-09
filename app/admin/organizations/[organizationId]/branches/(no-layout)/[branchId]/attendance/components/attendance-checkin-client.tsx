@@ -40,6 +40,15 @@ import {
   listStudentsForClassCheckInAction,
   searchPeopleForCheckInAction,
 } from "../attendance-scan.action";
+import {
+  kioskCheckInByScanAction,
+  kioskCheckInPersonByIdAction,
+  kioskFindOpenCheckoutForPersonAction,
+  kioskGetQuickCheckInBootstrapAction,
+  kioskListPersonnelForCheckInAction,
+  kioskListStudentsForClassCheckInAction,
+  kioskSearchPeopleForCheckInAction,
+} from "@/app/attendance/[branchId]/kiosk.action";
 import type {
   AttendanceCheckInCycleGroup,
   AttendanceCheckInResult,
@@ -101,7 +110,11 @@ function LiveClock() {
   );
 }
 
-export function AttendanceCheckInClient() {
+export function AttendanceCheckInClient({
+  kioskBranchId,
+}: {
+  kioskBranchId?: string;
+} = {}) {
   const t = useTranslations("attendance");
   const personTypeLabels = useMemo(
     () => ({
@@ -140,12 +153,14 @@ export function AttendanceCheckInClient() {
   const searching = searchQuery.trim().length >= 2;
 
   const loadBootstrap = useCallback(async () => {
-    const data = await getQuickCheckInBootstrapAction();
+    const data = kioskBranchId
+      ? await kioskGetQuickCheckInBootstrapAction(kioskBranchId)
+      : await getQuickCheckInBootstrapAction();
     setTeachers(data.teachers);
     setCycles(data.cycles);
     setCanViewPersonnel(data.canViewPersonnel);
     return data;
-  }, []);
+  }, [kioskBranchId]);
 
   const fetchSearchResults = useCallback(async (query: string) => {
     const trimmed = query.trim();
@@ -153,9 +168,11 @@ export function AttendanceCheckInClient() {
       setSearchResults([]);
       return;
     }
-    const items = await searchPeopleForCheckInAction(trimmed);
+    const items = kioskBranchId
+      ? await kioskSearchPeopleForCheckInAction(kioskBranchId, trimmed)
+      : await searchPeopleForCheckInAction(trimmed);
     setSearchResults(items);
-  }, []);
+  }, [kioskBranchId]);
 
   const loadStudents = useCallback(async (nextClasseId: string) => {
     if (!nextClasseId) {
@@ -164,18 +181,22 @@ export function AttendanceCheckInClient() {
     }
     setStudentsLoading(true);
     try {
-      const items = await listStudentsForClassCheckInAction(nextClasseId);
+      const items = kioskBranchId
+        ? await kioskListStudentsForClassCheckInAction(kioskBranchId, nextClasseId)
+        : await listStudentsForClassCheckInAction(nextClasseId);
       setStudents(items);
     } finally {
       setStudentsLoading(false);
     }
-  }, []);
+  }, [kioskBranchId]);
 
   const loadPersonnel = useCallback(async () => {
-    const items = await listPersonnelForCheckInAction();
+    const items = kioskBranchId
+      ? await kioskListPersonnelForCheckInAction(kioskBranchId)
+      : await listPersonnelForCheckInAction();
     setPersonnel(items);
     setPersonnelLoaded(true);
-  }, []);
+  }, [kioskBranchId]);
 
   useEffect(() => {
     startTransition(async () => {
@@ -381,7 +402,9 @@ export function AttendanceCheckInClient() {
       startTransition(async () => {
         try {
           const coords = await resolveCheckInCoords();
-          const result = await checkInByScanAction(value, coords);
+          const result = kioskBranchId
+            ? await kioskCheckInByScanAction(kioskBranchId, value, coords)
+            : await checkInByScanAction(value, coords);
           if (!result) {
             toast.error(t("checkInUi.noInfoFound"));
             return;
@@ -396,7 +419,7 @@ export function AttendanceCheckInClient() {
         }
       });
     },
-    [handleCheckInResult, pending, t],
+    [handleCheckInResult, kioskBranchId, pending, t],
   );
 
   function checkInPerson(person: AttendancePersonLookup) {
@@ -405,11 +428,18 @@ export function AttendanceCheckInClient() {
     startTransition(async () => {
       try {
         const coords = await resolveCheckInCoords();
-        const result = await checkInPersonByIdAction(
-          person.personType,
-          person.id,
-          coords,
-        );
+        const result = kioskBranchId
+          ? await kioskCheckInPersonByIdAction(
+              kioskBranchId,
+              person.personType,
+              person.id,
+              coords,
+            )
+          : await checkInPersonByIdAction(
+              person.personType,
+              person.id,
+              coords,
+            );
         handleCheckInResult(result);
       } catch (error) {
         toast.error(
@@ -428,10 +458,16 @@ export function AttendanceCheckInClient() {
     setBusyKey(key);
     startTransition(async () => {
       try {
-        const result = await findOpenCheckoutForPersonAction(
-          person.personType,
-          person.id,
-        );
+        const result = kioskBranchId
+          ? await kioskFindOpenCheckoutForPersonAction(
+              kioskBranchId,
+              person.personType,
+              person.id,
+            )
+          : await findOpenCheckoutForPersonAction(
+              person.personType,
+              person.id,
+            );
         if (!result) {
           toast.error(t("checkInUi.noOpenPresence"));
           return;
@@ -831,6 +867,7 @@ export function AttendanceCheckInClient() {
       <AttendanceScanDialog
         open={scanOpen}
         initialMode={scanMode}
+        kioskBranchId={kioskBranchId}
         onOpenChange={setScanOpen}
         onScan={runScan}
         onFacePerson={(personType, personId) => {
@@ -862,6 +899,7 @@ export function AttendanceCheckInClient() {
       {checkout ? (
         <AttendanceCheckoutDialog
           open={Boolean(checkout)}
+          kioskBranchId={kioskBranchId}
           onOpenChange={(open) => {
             if (!open) setCheckout(null);
           }}

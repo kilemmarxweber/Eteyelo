@@ -18,6 +18,7 @@ import { getBranchCycles, type Cycle } from "@/lib/cycle";
 import { getBranchNameAction } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/branche.action";
 import { getSidebarPermissionFlagsAction } from "@/lib/auth/sidebar-permission-flags.action";
 import { NotificationBell } from "@/components/notification-bell";
+import { AttendanceKioskLink } from "@/components/attendance-kiosk-link";
 import { OwnerBranchesLink } from "@/components/owner-branches-link";
 import { Search } from "@/components/search";
 import { ThemeToggle } from "@/src/theme/ThemeToggle";
@@ -257,6 +258,7 @@ export default function Sidebar({
           <div className="flex shrink-0 items-center gap-0.5">
             <ThemeToggle />
             <OwnerBranchesLink className="px-2" />
+            <AttendanceKioskLink />
             <NotificationBell />
             <Button
               variant="ghost"

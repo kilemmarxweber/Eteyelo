@@ -119,7 +119,9 @@ function RouteChangeLoaderInner() {
   }, []);
 
   const isTvScreen =
-    pathname.startsWith("/tv") || pathname.startsWith("/kiosk");
+    pathname.startsWith("/tv") ||
+    pathname.startsWith("/kiosk") ||
+    pathname.startsWith("/attendance");
 
   if (phase === "hidden") return null;
 

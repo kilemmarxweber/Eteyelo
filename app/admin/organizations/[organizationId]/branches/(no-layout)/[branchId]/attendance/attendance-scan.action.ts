@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { requireAttendanceScanContext } from "@/lib/auth/attendance-kiosk-context";
 import {
   assertStudentAttendanceWriteAccess,
   assertTeacherAttendanceWriteAccess,
@@ -576,7 +576,7 @@ async function authorizeScanActor(params: {
   personId: string;
   sessionId?: string;
 }): Promise<void> {
-  const { branchId, session, userId } = await requireBranchContext();
+  const { branchId, session, userId } = await requireAttendanceScanContext();
 
   if (canManageOrganization(session)) {
     return;
@@ -684,7 +684,7 @@ async function performStudentCheckIn(
   student: NonNullable<Awaited<ReturnType<typeof findStudentByScan>>>,
   coords: AttendanceGeoCoords,
 ): Promise<AttendanceCheckInResult> {
-  const { branchId, session, userId } = await requireBranchContext();
+  const { branchId, session, userId } = await requireAttendanceScanContext();
   const lookup = mapStudentLookup(student);
 
   const geoError = await ensureCheckInWithinRadius({
@@ -836,7 +836,7 @@ async function performTeacherCheckIn(
   teacher: NonNullable<Awaited<ReturnType<typeof findTeacherByScan>>>,
   coords: AttendanceGeoCoords,
 ): Promise<AttendanceCheckInResult> {
-  const { branchId, session, userId } = await requireBranchContext();
+  const { branchId, session, userId } = await requireAttendanceScanContext();
   const lookup = mapTeacherLookup(teacher);
 
   const geoError = await ensureCheckInWithinRadius({
@@ -972,7 +972,7 @@ async function performPersonnelCheckIn(
   personnel: NonNullable<Awaited<ReturnType<typeof findPersonnelByScan>>>,
   coords: AttendanceGeoCoords,
 ): Promise<AttendanceCheckInResult> {
-  const { branchId, session, userId } = await requireBranchContext();
+  const { branchId, session, userId } = await requireAttendanceScanContext();
 
   const lookup = mapPersonnelLookup(personnel);
 
@@ -1076,7 +1076,7 @@ export async function searchPeopleForCheckInAction(
   query: string,
 ): Promise<AttendancePersonLookup[]> {
   const { branchId, organizationId, session, userId } =
-    await requireBranchContext();
+    await requireAttendanceScanContext();
   const { query: search } = searchSchema.parse({ query });
   const teacherScope = await getTeacherAttendanceReadScope({
     session,
@@ -1212,7 +1212,7 @@ export async function searchPeopleForCheckInAction(
 export async function searchPeopleForFaceEnrollAction(
   query: string,
 ): Promise<AttendancePersonLookup[]> {
-  const { branchId, organizationId } = await requireBranchContext();
+  const { branchId, organizationId } = await requireAttendanceScanContext();
   const { query: search } = searchSchema.parse({ query });
 
   const userFilter = {
@@ -1264,7 +1264,7 @@ export async function checkInByScanAction(
   code: string,
   coords: AttendanceGeoCoords,
 ): Promise<AttendanceCheckInResult | null> {
-  const { branchId, organizationId } = await requireBranchContext();
+  const { branchId, organizationId } = await requireAttendanceScanContext();
   const { code: rawCode } = scanSchema.parse({ code });
   const parsedCoords = geoCoordsSchema.parse(coords);
   const parsed = parseScanCode(rawCode);
@@ -1302,7 +1302,7 @@ export async function checkInPersonByIdAction(
   personId: string,
   coords: AttendanceGeoCoords,
 ): Promise<AttendanceCheckInResult> {
-  const { branchId, organizationId } = await requireBranchContext();
+  const { branchId, organizationId } = await requireAttendanceScanContext();
   const parsedCoords = geoCoordsSchema.parse(coords);
 
   if (personType === "student") {
@@ -1365,7 +1365,7 @@ export async function findOpenCheckoutForPersonAction(
   personType: AttendancePersonType,
   personId: string,
 ): Promise<AttendanceCheckInResult | null> {
-  const { branchId, organizationId } = await requireBranchContext();
+  const { branchId, organizationId } = await requireAttendanceScanContext();
   const now = nowLocal();
   const today = new Date(now);
   today.setHours(0, 0, 0, 0);
@@ -1634,7 +1634,7 @@ async function listTodayWindowSchedules(branchId: string) {
 }
 
 export async function getQuickCheckInBootstrapAction(): Promise<AttendanceQuickCheckInBootstrap> {
-  const { branchId, session, userId } = await requireBranchContext();
+  const { branchId, session, userId } = await requireAttendanceScanContext();
   const teacherScope = await getTeacherAttendanceReadScope({
     session,
     userId,
@@ -1898,7 +1898,7 @@ export async function listStudentsForClassCheckInAction(
   classeId: string,
 ): Promise<AttendancePersonLookup[]> {
   const { branchId, session, userId } =
-    await requireBranchContext();
+    await requireAttendanceScanContext();
   const { classeId: parsedClasseId } = z
     .object({ classeId: z.string().min(1) })
     .parse({ classeId });
@@ -2036,7 +2036,7 @@ export async function listPersonnelForCheckInAction(): Promise<
   AttendancePersonLookup[]
 > {
   const { branchId, organizationId, session, userId } =
-    await requireBranchContext();
+    await requireAttendanceScanContext();
   const teacherScope = await getTeacherAttendanceReadScope({
     session,
     userId,
@@ -2123,7 +2123,7 @@ async function loadPersonLookup(params: {
 export async function matchFaceDescriptorAction(
   descriptor: number[],
 ): Promise<AttendanceFaceMatchResult> {
-  const { branchId, organizationId } = await requireBranchContext();
+  const { branchId, organizationId } = await requireAttendanceScanContext();
   const probe = parseFaceDescriptor(faceDescriptorSchema.parse(descriptor));
   if (!probe) {
     return { matched: false, reason: "none" };
@@ -2181,7 +2181,7 @@ export async function enrollFaceDescriptorAction(input: {
   personId: string;
   descriptor: number[];
 }): Promise<{ ok: boolean; message: string; person?: AttendancePersonLookup }> {
-  const { branchId, organizationId } = await requireBranchContext();
+  const { branchId, organizationId } = await requireAttendanceScanContext();
   const personType = personTypeSchema.parse(input.personType);
   const personId = z.string().min(1).parse(input.personId);
   const descriptor = faceDescriptorSchema.parse(input.descriptor);

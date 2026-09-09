@@ -4,7 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { notifyTeacherPayrollImpact } from "@/lib/payroll/teacher-payroll-notifications";
 import { action } from "@/lib/zsa";
-import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { requireAttendanceScanContext } from "@/lib/auth/attendance-kiosk-context";
 import {
   assertStudentAttendanceWriteAccess,
   assertTeacherAttendanceWriteAccess,
@@ -75,7 +75,7 @@ export const recordStudentEarlyExitAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, session, userId } = await requireBranchContext();
+    const { branchId, session, userId } = await requireAttendanceScanContext();
     const now = nowLocal();
 
     const attendance = await prisma.studentAttendance.findFirst({
@@ -131,7 +131,7 @@ export const recordTeacherEarlyExitAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session, userId } = await requireBranchContext();
+    const { branchId, organizationId, session, userId } = await requireAttendanceScanContext();
     const now = nowLocal();
 
     const attendance = await prisma.teacherAttendance.findFirst({
@@ -193,7 +193,7 @@ export const recordPersonnelEarlyExitAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, session } = await requireBranchContext();
+    const { branchId, session } = await requireAttendanceScanContext();
     if (!canManageOrganization(session)) {
       throw new Error("Seuls les responsables peuvent pointer le personnel.");
     }
@@ -238,7 +238,7 @@ export const closeStudentDayByVacationAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session, userId } = await requireBranchContext();
+    const { branchId, organizationId, session, userId } = await requireAttendanceScanContext();
 
     const attendance = await prisma.studentAttendance.findFirst({
       where: { id: input.attendanceId, branchId },
@@ -299,7 +299,7 @@ export const closeTeacherSessionAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, session, userId } = await requireBranchContext();
+    const { branchId, session, userId } = await requireAttendanceScanContext();
 
     const attendance = await prisma.teacherAttendance.findFirst({
       where: { id: input.attendanceId, branchId },
@@ -342,7 +342,7 @@ export const recordNormalCheckoutAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, session, userId } = await requireBranchContext();
+    const { branchId, session, userId } = await requireAttendanceScanContext();
     const now = nowLocal();
 
     if (input.personType === "student") {
@@ -534,7 +534,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export const getAttendanceReportContextAction = action.handler(async () => {
-  const { branchId, organizationId } = await requireBranchContext();
+  const { branchId, organizationId } = await requireAttendanceScanContext();
   const branch = await prisma.branch.findFirst({
     where: { id: branchId, organizationId },
     select: schoolReportBranchSelect,
@@ -553,7 +553,7 @@ export const getTeacherSessionReportAction = action
     }),
   )
   .handler(async ({ input }): Promise<TeacherSessionReport> => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireAttendanceScanContext();
 
     const start = new Date(input.startDate);
     start.setHours(0, 0, 0, 0);
@@ -685,7 +685,7 @@ export const getAttendanceDailyJournalAction = action
     }),
   )
   .handler(async ({ input }): Promise<AttendanceDailyJournal> => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireAttendanceScanContext();
     const start = new Date(input.date);
     start.setHours(0, 0, 0, 0);
     const end = new Date(input.date);
@@ -993,7 +993,7 @@ export const getStudentRosterReportAction = action
     }),
   )
   .handler(async ({ input }): Promise<PersonRosterReport> => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireAttendanceScanContext();
     const start = new Date(input.startDate);
     start.setHours(0, 0, 0, 0);
     const end = new Date(input.endDate);
@@ -1188,7 +1188,7 @@ export const getPersonnelRosterReportAction = action
     }),
   )
   .handler(async ({ input }): Promise<PersonRosterReport> => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireAttendanceScanContext();
     const start = new Date(input.startDate);
     start.setHours(0, 0, 0, 0);
     const end = new Date(input.endDate);

@@ -16,6 +16,11 @@ import {
   matchFaceDescriptorAction,
   searchPeopleForFaceEnrollAction,
 } from "../attendance-scan.action";
+import {
+  kioskEnrollFaceDescriptorAction,
+  kioskMatchFaceDescriptorAction,
+  kioskSearchPeopleForFaceEnrollAction,
+} from "@/app/attendance/[branchId]/kiosk.action";
 import type {
   AttendancePersonLookup,
   AttendancePersonType,
@@ -218,6 +223,7 @@ export function AttendanceScanDialog({
   onFacePerson,
   disabled = false,
   initialMode = "card",
+  kioskBranchId,
   labels,
 }: {
   open: boolean;
@@ -226,6 +232,7 @@ export function AttendanceScanDialog({
   onFacePerson: (personType: AttendancePersonType, personId: string) => void;
   disabled?: boolean;
   initialMode?: ScanMode;
+  kioskBranchId?: string;
   labels: {
     title: string;
     card: string;
@@ -287,19 +294,24 @@ export function AttendanceScanDialog({
       return;
     }
     const handle = window.setTimeout(() => {
-      void searchPeopleForFaceEnrollAction(trimmed)
+      void (kioskBranchId
+        ? kioskSearchPeopleForFaceEnrollAction(kioskBranchId, trimmed)
+        : searchPeopleForFaceEnrollAction(trimmed)
+      )
         .then(setResults)
         .catch(() => setResults([]));
     }, 250);
     return () => window.clearTimeout(handle);
-  }, [enrollDescriptor, query]);
+  }, [enrollDescriptor, kioskBranchId, query]);
 
   async function handleDescriptor(descriptor: number[]) {
     if (busy || disabled || enrollDescriptor) return;
     setBusy(true);
     setHint(null);
     try {
-      const match = await matchFaceDescriptorAction(descriptor);
+      const match = kioskBranchId
+        ? await kioskMatchFaceDescriptorAction(kioskBranchId, descriptor)
+        : await matchFaceDescriptorAction(descriptor);
       if (match.matched) {
         onFacePerson(match.personType, match.personId);
         return;
@@ -321,11 +333,17 @@ export function AttendanceScanDialog({
     if (!enrollDescriptor || busy) return;
     setBusy(true);
     try {
-      const result = await enrollFaceDescriptorAction({
-        personType: person.personType,
-        personId: person.id,
-        descriptor: enrollDescriptor,
-      });
+      const result = kioskBranchId
+        ? await kioskEnrollFaceDescriptorAction(kioskBranchId, {
+            personType: person.personType,
+            personId: person.id,
+            descriptor: enrollDescriptor,
+          })
+        : await enrollFaceDescriptorAction({
+            personType: person.personType,
+            personId: person.id,
+            descriptor: enrollDescriptor,
+          });
       if (!result.ok) {
         setHint(result.message);
         return;

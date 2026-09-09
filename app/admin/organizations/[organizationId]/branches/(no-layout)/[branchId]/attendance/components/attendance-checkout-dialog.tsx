@@ -29,6 +29,12 @@ import {
   recordStudentEarlyExitAction,
   recordTeacherEarlyExitAction,
 } from "../attendance-exit.action";
+import {
+  kioskRecordNormalCheckoutAction,
+  kioskRecordPersonnelEarlyExitAction,
+  kioskRecordStudentEarlyExitAction,
+  kioskRecordTeacherEarlyExitAction,
+} from "@/app/attendance/[branchId]/kiosk.action";
 import type { AttendancePersonType } from "../attendance-scan-types";
 
 const EXIT_REASONS: AttendanceExitReason[] = [
@@ -46,6 +52,7 @@ type Props = {
   personName: string;
   sessionLabel?: string | null;
   requireEarlyExit?: boolean;
+  kioskBranchId?: string;
   onDone?: (message: string) => void;
 };
 
@@ -57,6 +64,7 @@ export function AttendanceCheckoutDialog({
   personName,
   sessionLabel,
   requireEarlyExit = false,
+  kioskBranchId,
   onDone,
 }: Props) {
   const t = useTranslations("attendance");
@@ -81,10 +89,15 @@ export function AttendanceCheckoutDialog({
         if (requireEarlyExit) {
           throw new Error(t("checkout.normalTooEarly"));
         }
-        const [data, error] = await recordNormalCheckoutAction({
-          personType,
-          attendanceId,
-        });
+        const [data, error] = kioskBranchId
+          ? await kioskRecordNormalCheckoutAction(kioskBranchId, {
+              personType,
+              attendanceId,
+            })
+          : await recordNormalCheckoutAction({
+              personType,
+              attendanceId,
+            });
         if (error || !data) {
           throw new Error(error?.message || t("checkout.saveFailed"));
         }
@@ -96,8 +109,16 @@ export function AttendanceCheckoutDialog({
       }
 
       const payload = { attendanceId, reasonCode, reasonNote };
-      const action =
-        personType === "student"
+      const action = kioskBranchId
+        ? personType === "student"
+          ? (input: typeof payload) =>
+              kioskRecordStudentEarlyExitAction(kioskBranchId, input)
+          : personType === "teacher"
+            ? (input: typeof payload) =>
+                kioskRecordTeacherEarlyExitAction(kioskBranchId, input)
+            : (input: typeof payload) =>
+                kioskRecordPersonnelEarlyExitAction(kioskBranchId, input)
+        : personType === "student"
           ? recordStudentEarlyExitAction
           : personType === "teacher"
             ? recordTeacherEarlyExitAction

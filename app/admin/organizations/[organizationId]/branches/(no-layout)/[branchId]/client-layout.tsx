@@ -10,6 +10,7 @@ import { NotificationBell } from "@/components/notification-bell";
 import { MessagingDrawer } from "@/components/messaging/messaging-drawer";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { OwnerBranchesLink } from "@/components/owner-branches-link";
+import { AttendanceKioskLink } from "@/components/attendance-kiosk-link";
 import { AppIntlProvider } from "@/components/app-intl-provider";
 import { authClient } from "@/lib/auth-client";
 import { BranchSessionResume } from "@/components/branch-session-resume";
@@ -53,6 +54,7 @@ function BranchShell({ children }: { children: React.ReactNode }) {
           <Search className="md:flex-none" />
           <ThemeToggle />
           <OwnerBranchesLink />
+          <AttendanceKioskLink />
           <NotificationBell />
           <UserNav />
         </div>

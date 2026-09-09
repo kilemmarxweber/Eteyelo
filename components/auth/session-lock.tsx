@@ -29,6 +29,7 @@ function isIdleSkipPath(pathname: string) {
   return (
     pathname.startsWith("/kiosk") ||
     pathname.startsWith("/tv") ||
+    pathname.startsWith("/attendance") ||
     pathname.startsWith("/auth")
   );
 }

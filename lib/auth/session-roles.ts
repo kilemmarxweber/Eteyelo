@@ -98,6 +98,23 @@ export function canManageOrganization(
   );
 }
 
+/** Ouvre le kiosque de pointage public (sans session) pour la branche active. */
+export function canOpenAttendanceKiosk(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(
+    session,
+    [
+      ORG_ROLE.OWNER,
+      ORG_ROLE.PREFET,
+      ORG_ROLE.DIRECTEUR,
+      ORG_ROLE.DIRECTEUR_ETUDES,
+    ],
+    ...extraRoles,
+  );
+}
+
 /**
  * Chef d’établissement (`prefet` ↔ `directeur`) + superviseur.
  * Pas le directeur des études.
