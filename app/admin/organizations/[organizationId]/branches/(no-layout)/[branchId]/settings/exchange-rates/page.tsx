@@ -31,7 +31,11 @@ import {
   parseReceiptPrintFormat,
   type ReceiptPrintFormat,
 } from "@/components/reports/receipt-format";
-import { PDF_FONT_SIZE_OPTIONS, parsePdfFontSize } from "@/lib/reports/pdf-font-scale";
+import {
+  DEFAULT_PDF_FONT_SIZE,
+  PDF_FONT_SIZE_OPTIONS,
+  parsePdfFontSize,
+} from "@/lib/reports/pdf-font-scale";
 
 type RateRow = {
   id: string;
@@ -59,7 +63,7 @@ export default function ExchangeRatesSettingsPage() {
   const [notifyParentOnPayment, setNotifyParentOnPayment] = useState(true);
   const [receiptPrintFormat, setReceiptPrintFormat] =
     useState<ReceiptPrintFormat>("A4");
-  const [pdfFontSize, setPdfFontSize] = useState(10);
+  const [pdfFontSize, setPdfFontSize] = useState(DEFAULT_PDF_FONT_SIZE);
   const [savingDisplay, setSavingDisplay] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -358,7 +362,7 @@ export default function ExchangeRatesSettingsPage() {
               >
                 {PDF_FONT_SIZE_OPTIONS.map((size) => (
                   <SelectItem key={size} value={String(size)}>
-                    {size} pt{size === 10 ? " (recommandé)" : ""}
+                    {size} pt{size === DEFAULT_PDF_FONT_SIZE ? " (recommandé)" : ""}
                   </SelectItem>
                 ))}
               </SelectContent>

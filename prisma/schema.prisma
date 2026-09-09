@@ -1622,7 +1622,7 @@ model Organization {
   /// Notifier le parent (e-mail + WhatsApp + compte) à l'encaissement / modification / suppression.
   notifyParentOnPayment      Boolean                     @default(true)
   /// Taille de police des rapports PDF (reçus, listes, horaire, paie, caisse, etc.).
-  pdfFontSize                Int                        @default(10)
+  pdfFontSize                Int                        @default(12)
   /// Envoi WhatsApp (Zindua). Désactiver si le fournisseur n'est pas actif pour éviter les jobs en erreur.
   whatsappEnabled            Boolean                     @default(true)
   /// Clé API Zindua. Vide = env ZINDUA_API_KEY.

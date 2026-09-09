@@ -1,5 +1,5 @@
 /** Taille de police de base des rapports PDF (paramètre organisation). */
-export const DEFAULT_PDF_FONT_SIZE = 10;
+export const DEFAULT_PDF_FONT_SIZE = 12;
 
 export const PDF_FONT_SIZE_OPTIONS = [8, 9, 10, 11, 12, 14, 16, 18] as const;
 
@@ -31,7 +31,7 @@ export type ReportPdfFonts = {
 };
 
 /**
- * Hiérarchie de tailles à partir de la taille choisie (10, 12, 14, 16…).
+ * Hiérarchie de tailles à partir de la taille choisie (12, 14, 16…).
  * Le nombre du paramètre = taille du corps des tableaux.
  */
 export function reportPdfFonts(size?: number | null): ReportPdfFonts {
