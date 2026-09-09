@@ -12,6 +12,12 @@ export type AttendancePersonLookup = {
   canCheckOut?: boolean;
   /** False = pas de session du jour, le bouton Pointer est désactivé. */
   canCheckIn?: boolean;
+  /** True = avant la fin du créneau, seule une sortie anticipée est possible. */
+  requiresEarlyExit?: boolean;
+  /** Fin de vacation / cours / journée (ISO), pour griser le bouton côté client. */
+  periodEndAt?: string | null;
+  /** Heure réelle d'arrivée (ISO). */
+  checkInAt?: string | null;
   attendanceId?: string | null;
   classeId?: string | null;
 };
@@ -53,6 +59,10 @@ export type AttendanceLiveCheckInState = {
   alreadyCheckedIn: boolean;
   canCheckOut: boolean;
   attendanceId: string | null;
+  requiresEarlyExit?: boolean;
+  periodEndAt?: string | null;
+  checkInAt?: string | null;
+  canCheckIn?: boolean;
 };
 
 export type AttendanceLiveRecentItem = {

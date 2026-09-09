@@ -54,6 +54,8 @@ import {
 } from "@/lib/generated-identifiers";
 import { upsertClassCatalogForBranch } from "@/lib/class-catalog-sync";
 import { normalizeBranchType } from "@/lib/academic-structure";
+import { isAtelierBranch } from "@/lib/branch-capabilities";
+import { ensureWorkshopAcademicStructure } from "@/lib/workshop-academic-structure";
 import {
   isMaternelleCycle,
   normalizeCycle,
@@ -128,12 +130,17 @@ async function resolveClassIdentity(params: {
   });
 
   if (params.isLegacy) {
+    let optionId = validated.optionId ?? null;
+    if (!optionId && isAtelierBranch(params.typebranch)) {
+      optionId = (await ensureWorkshopAcademicStructure(prisma, params.branchId))
+        .option.id;
+    }
     return {
       nameClasse: validated.nameClasse!,
       codeBase: generateClassCode(validated.nameClasse!),
       level: undefined,
       parallel: validated.parallel ?? null,
-      optionId: validated.optionId ?? null,
+      optionId,
     };
   }
 
@@ -182,6 +189,9 @@ async function resolveClassIdentity(params: {
       .option;
   } else if (!option && isCtebLevel(validated.level ?? "")) {
     option = (await ensureSecondaryCtebStructure(prisma, params.branchId))
+      .option;
+  } else if (!option && isAtelierBranch(params.typebranch)) {
+    option = (await ensureWorkshopAcademicStructure(prisma, params.branchId))
       .option;
   }
 

@@ -5,6 +5,7 @@ import { isBranchClosedOn } from "@/lib/branch-closed-days";
 import {
   isAtOrAfterCreneauEnd,
   resolveCreneauClockHours,
+  combineDateWithCreneauTime,
   creneauStartTimeDate,
   creneauEndTimeDate,
 } from "@/lib/attendance-exit";
@@ -97,17 +98,14 @@ function rankTeacherScheduleCandidates(
   });
 }
 
-export async function listTeacherScheduleCandidates(
+export async function listTeacherDaySchedules(
   teacherId: string,
   branchId: string,
   now = nowLocal(),
-) {
+): Promise<TeacherScheduleCandidate[]> {
   if (await isBranchClosedOn(branchId, now)) return [];
 
-  const currentMinutes = toMinutes(now);
-  const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
   const today = getTodayDay(now);
-
   const teacher = await prisma.teacher.findFirst({
     where: {
       id: teacherId,
@@ -135,25 +133,33 @@ export async function listTeacherScheduleCandidates(
   for (const teaching of teacher.teaching) {
     for (const schedule of teaching.Schedule) {
       if (!schedule.hour) continue;
-
-      const startMinutes = scheduleHourToMinutes(schedule.hour);
-      if (
-        !isTeacherCheckInWindow(
-          currentMinutes,
-          startMinutes,
-          courseDurationMinutes,
-        )
-      ) {
-        continue;
-      }
-
       candidates.push({
         teachingId: teaching.id,
         scheduleId: schedule.id,
-        startMinutes,
+        startMinutes: scheduleHourToMinutes(schedule.hour),
       });
     }
   }
+
+  return candidates.sort((left, right) => left.startMinutes - right.startMinutes);
+}
+
+export async function listTeacherScheduleCandidates(
+  teacherId: string,
+  branchId: string,
+  now = nowLocal(),
+) {
+  const currentMinutes = toMinutes(now);
+  const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
+  const daySchedules = await listTeacherDaySchedules(teacherId, branchId, now);
+
+  const candidates = daySchedules.filter((candidate) =>
+    isTeacherCheckInWindow(
+      currentMinutes,
+      candidate.startMinutes,
+      courseDurationMinutes,
+    ),
+  );
 
   return rankTeacherScheduleCandidates(
     candidates,
@@ -484,17 +490,55 @@ export async function getTeacherDayPointageLabel(
   return getTeacherDayPointageLabelFromContext(context, phase, now);
 }
 
+export async function getTeacherDayPeriodEnd(
+  teacherId: string,
+  branchId: string,
+  now = nowLocal(),
+): Promise<Date | null> {
+  const context = await getTeacherDayPunchContext(teacherId, branchId, now);
+  if (context.usesDayLevel) {
+    if (context.creneau) {
+      return combineDateWithCreneauTime(
+        now,
+        creneauEndTimeDate(context.creneau, now),
+      );
+    }
+    if (!context.firstSchedule) return null;
+    const duration = await getBranchCourseDurationMinutes(branchId);
+    const endMinutes = context.firstSchedule.startMinutes + duration;
+    const end = new Date(now);
+    end.setHours(Math.floor(endMinutes / 60), endMinutes % 60, 0, 0);
+    return end;
+  }
+
+  const schedules = await listTeacherDaySchedules(teacherId, branchId, now);
+  const last = schedules[schedules.length - 1];
+  if (!last) return null;
+  const duration = await getBranchCourseDurationMinutes(branchId);
+  const endMinutes = last.startMinutes + duration;
+  const end = new Date(now);
+  end.setHours(Math.floor(endMinutes / 60), endMinutes % 60, 0, 0);
+  return end;
+}
+
 export async function isTeacherNormalCheckoutAllowed(
   teacherId: string,
   branchId: string,
   now = nowLocal(),
 ) {
   const context = await getTeacherDayPunchContext(teacherId, branchId, now);
-  if (!context.usesDayLevel) return true;
-  if (context.creneau) return isAtOrAfterCreneauEnd(context.creneau, now);
-  if (!context.firstSchedule) return true;
+  if (context.usesDayLevel) {
+    if (context.creneau) return isAtOrAfterCreneauEnd(context.creneau, now);
+    if (!context.firstSchedule) return true;
+    const duration = await getBranchCourseDurationMinutes(branchId);
+    return toMinutes(now) >= context.firstSchedule.startMinutes + duration;
+  }
+
+  const schedules = await listTeacherDaySchedules(teacherId, branchId, now);
+  const last = schedules[schedules.length - 1];
+  if (!last) return true;
   const duration = await getBranchCourseDurationMinutes(branchId);
-  return toMinutes(now) >= context.firstSchedule.startMinutes + duration;
+  return toMinutes(now) >= last.startMinutes + duration;
 }
 
 export async function getTeacherDayCreneauEnd(

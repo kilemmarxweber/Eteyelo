@@ -25,6 +25,8 @@ import {
 } from "@/lib/school-year";
 import { resolveCycle } from "@/lib/cycle";
 import { compareClassesByLevel } from "@/lib/class-structure";
+import { isAtelierBranch } from "@/lib/branch-capabilities";
+import { ensureWorkshopAcademicStructure } from "@/lib/workshop-academic-structure";
 import { randomUUID } from "crypto";
 import {
   canPermanentlyDeleteInformation,
@@ -219,7 +221,10 @@ export const updateTypeFraisAction = action
 
 export const getTypeFraisAction = action.handler(
   async (): Promise<ITypeFrais[]> => {
-    const { branchId } = await requireFinanceBranchContext();
+    const { branchId, typebranch } = await requireFinanceBranchContext();
+    if (isAtelierBranch(typebranch)) {
+      await ensureWorkshopAcademicStructure(prisma, branchId);
+    }
     const typeFrais = await prisma.typeFrais.findMany({
       where: {
         statusType: true,
@@ -243,7 +248,10 @@ export const getTypeFraisAction = action.handler(
 
 export const getTypeFraisSettingsAction = action.handler(
   async (): Promise<ITypeFrais[]> => {
-    const { branchId } = await requireFinanceOversightBranchContext();
+    const { branchId, typebranch } = await requireFinanceOversightBranchContext();
+    if (isAtelierBranch(typebranch)) {
+      await ensureWorkshopAcademicStructure(prisma, branchId);
+    }
     const typeFrais = await prisma.typeFrais.findMany({
       where: {
         branchId,

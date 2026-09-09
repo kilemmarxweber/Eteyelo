@@ -43,7 +43,14 @@ export const typeFraisSchema = z.object({
   description: z.string().optional(),
   statusType: z.boolean().optional(),
   cycle: z
-    .enum(["MATERNELLE", "PRIMAIRE", "SECONDAIRE"])
+    .enum([
+      "MATERNELLE",
+      "PRIMAIRE",
+      "SECONDAIRE",
+      "ATELIER",
+      "CENTRE_FORMATION",
+      "UNIVERSITE",
+    ])
     .optional()
     .nullable(),
 });

@@ -424,15 +424,6 @@ export function validateClassInput(params: {
       );
     }
 
-    if (
-      branchType === "ATELIER" &&
-      params.optionId
-    ) {
-      throw new Error(
-        "Les groupes d'atelier ne peuvent pas avoir d'option",
-      );
-    }
-
     return {
       nameClasse,
       optionId:
@@ -457,10 +448,6 @@ export function validateClassInput(params: {
     throw new Error("Niveau de classe invalide pour cette branche");
   }
 
-  if (branchType === "ATELIER" && params.optionId) {
-    throw new Error("Les groupes d'atelier ne peuvent pas avoir d'option");
-  }
-
   if (
     requiresOptionForClass(params.typebranch, level, params.educationSystem) &&
     !params.optionId
@@ -478,7 +465,7 @@ export function validateClassInput(params: {
   return {
     level,
     parallel,
-    optionId: params.optionId ?? undefined,
+    optionId: branchType === "ATELIER" ? undefined : params.optionId ?? undefined,
   };
 }
 

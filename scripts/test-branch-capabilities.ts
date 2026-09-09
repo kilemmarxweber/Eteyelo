@@ -12,6 +12,8 @@ import {
   isUniversiteBranch,
   requiresStudentImport,
   usesBulletinForBranch,
+  usesFinanceForBranch,
+  usesPonderationForBranch,
   usesReleveForBranch,
 } from "../lib/branch-capabilities";
 import {
@@ -44,6 +46,8 @@ test("atelier : import obligatoire, pas de creation directe", () => {
   assert.equal(requiresStudentImport("ATELIER"), true);
   assert.equal(canCreateStudentInBranch("ATELIER"), false);
   assert.equal(usesBulletinForBranch("ATELIER"), false);
+  assert.equal(usesFinanceForBranch("ATELIER"), true);
+  assert.equal(usesPonderationForBranch("ATELIER"), true);
 });
 
 test("centre de formation : creation ou import + brevet", () => {

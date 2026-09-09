@@ -8,6 +8,8 @@ import {
   getOrCreateTeacherAttendanceSession,
 } from "@/lib/attendance-teacher-session";
 import {
+  combineDateWithCreneauTime,
+  creneauEndTimeDate,
   resolveCreneauClockHours,
   isAtOrAfterCreneauEnd,
 } from "@/lib/attendance-exit";
@@ -451,6 +453,33 @@ async function ensureStudentDaySessionFromClasse(
       schoolYearId: teaching.schoolYearId,
     },
   });
+}
+
+export async function getStudentDayPeriodEnd(
+  studentId: string,
+  branchId: string,
+  now = nowLocal(),
+): Promise<Date | null> {
+  const enrollment = await getStudentEnrollmentClasse(studentId, branchId);
+  if (!enrollment) return null;
+
+  const creneau = enrollment.classe?.creneau;
+  if (creneau?.startTime && creneau.endTime) {
+    return combineDateWithCreneauTime(now, creneauEndTimeDate(creneau, now));
+  }
+
+  const schedules = await listClassDaySchedules(
+    enrollment.classeId,
+    branchId,
+    now,
+  );
+  const last = schedules[schedules.length - 1];
+  if (!last) return null;
+  const duration = await getBranchCourseDurationMinutes(branchId);
+  const end = new Date(now);
+  const endMinutes = last.startMinutes + duration;
+  end.setHours(Math.floor(endMinutes / 60), endMinutes % 60, 0, 0);
+  return end;
 }
 
 export async function isStudentNormalCheckoutAllowed(

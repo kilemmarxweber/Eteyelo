@@ -193,6 +193,11 @@ export function TypeFraisUpForm({
                       <SelectItem value="MATERNELLE">Maternelle</SelectItem>
                       <SelectItem value="PRIMAIRE">Primaire</SelectItem>
                       <SelectItem value="SECONDAIRE">Secondaire</SelectItem>
+                      <SelectItem value="ATELIER">Atelier</SelectItem>
+                      <SelectItem value="CENTRE_FORMATION">
+                        Centre de formation
+                      </SelectItem>
+                      <SelectItem value="UNIVERSITE">Université</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

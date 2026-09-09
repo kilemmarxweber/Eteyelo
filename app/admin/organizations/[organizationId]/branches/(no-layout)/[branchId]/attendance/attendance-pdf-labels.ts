@@ -58,6 +58,38 @@ export type AttendancePdfLabels = {
     total: string;
     personnel: string;
   };
+  frequentation: {
+    title: string;
+    schoolYear: string;
+    allClasses: string;
+    legendTitle: string;
+    markPresent: string;
+    markUnexcused: string;
+    markSick: string;
+    markLeave: string;
+    legendNote: string;
+    month: string;
+    colA: string;
+    colB: string;
+    colC: string;
+    colD: string;
+    colE: string;
+    colF: string;
+    formula: string;
+    monthOf: string;
+    studentNames: string;
+    attendanceBlock: string;
+    perDay: string;
+    observations: string;
+    observationsSub: string;
+    totalOf: string;
+    monthPresence: string;
+    previousPresence: string;
+    averagePresence: string;
+    monthDays: string;
+    previousClassDays: string;
+    schoolOpenDays: string;
+  };
 };
 
 type AttendanceTranslateFn = {
@@ -130,6 +162,38 @@ export function buildAttendancePdfLabels(t: AttendanceTranslateFn): AttendancePd
       excused: t("stats.excused"),
       total: t("stats.total"),
       personnel: t("pdf.columns.personnel"),
+    },
+    frequentation: {
+      title: t("frequentation.title"),
+      schoolYear: t("frequentation.schoolYear"),
+      allClasses: t("frequentation.allClasses"),
+      legendTitle: t("frequentation.legendTitle"),
+      markPresent: t("frequentation.markPresent"),
+      markUnexcused: t("frequentation.markUnexcused"),
+      markSick: t("frequentation.markSick"),
+      markLeave: t("frequentation.markLeave"),
+      legendNote: t("frequentation.legendNote"),
+      month: t("frequentation.month"),
+      colA: t("frequentation.colA"),
+      colB: t("frequentation.colB"),
+      colC: t("frequentation.colC"),
+      colD: t("frequentation.colD"),
+      colE: t("frequentation.colE"),
+      colF: t("frequentation.colF"),
+      formula: t("frequentation.formula"),
+      monthOf: pdfTemplate(t, "frequentation.monthOf"),
+      studentNames: t("frequentation.studentNames"),
+      attendanceBlock: t("frequentation.attendanceBlock"),
+      perDay: t("frequentation.perDay"),
+      observations: t("frequentation.observations"),
+      observationsSub: t("frequentation.observationsSub"),
+      totalOf: t("frequentation.totalOf"),
+      monthPresence: t("frequentation.monthPresence"),
+      previousPresence: t("frequentation.previousPresence"),
+      averagePresence: t("frequentation.averagePresence"),
+      monthDays: t("frequentation.monthDays"),
+      previousClassDays: t("frequentation.previousClassDays"),
+      schoolOpenDays: t("frequentation.schoolOpenDays"),
     },
   };
 }

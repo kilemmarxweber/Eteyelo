@@ -21,6 +21,8 @@ import {
 import { type Cycle } from "@/lib/cycle";
 import { compareClassesByLevel } from "@/lib/class-structure";
 import { DEFAULT_PONDERATION_LEVEL, normalizePonderationLevel } from "@/lib/course-ponderation";
+import { ensureWorkshopAcademicStructure } from "@/lib/workshop-academic-structure";
+import { isAtelierBranch } from "@/lib/branch-capabilities";
 import {
   primaryOrgRoleFromSession,
   resolveAccessibleCycles,
@@ -88,6 +90,7 @@ const PONDERATION_CYCLES = [
   "MATERNELLE",
   "PRIMAIRE",
   "SECONDAIRE",
+  "ATELIER",
 ] as const satisfies readonly Cycle[];
 
 async function resolveViewerPonderationCycles(params: {
@@ -167,8 +170,11 @@ async function assertViewerCanEditOptionCycles(params: {
 
 export const getCoursPonderationOptionPageDataAction = action.handler(
   async () => {
-    const { branchId, cycles, educationSystem, organizationId, userId, session } =
+    const { branchId, cycles, educationSystem, organizationId, userId, session, typebranch } =
       await requireBranchContext();
+    if (isAtelierBranch(typebranch) || cycles.includes("ATELIER")) {
+      await ensureWorkshopAcademicStructure(prisma, branchId);
+    }
     const activated = await resolveViewerPonderationCycles({
       branchId,
       organizationId,
@@ -283,7 +289,11 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
       ? options
           .filter((option) => {
             if (levelWeightedIds.has(option.id)) return false;
-            if (option.cycle === "MATERNELLE" || option.cycle === "PRIMAIRE") {
+            if (
+              option.cycle === "MATERNELLE" ||
+              option.cycle === "PRIMAIRE" ||
+              option.cycle === "ATELIER"
+            ) {
               return false;
             }
             return true;
@@ -294,6 +304,24 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
             displayName: option.nameOption,
             isLevelWeighted: false,
           }))
+      : [];
+
+    const atelierOptions: TaggedOption[] = activated.includes("ATELIER")
+      ? options
+          .filter(
+            (option) =>
+              option.cycle === "ATELIER" ||
+              option.section?.nameSection?.toUpperCase() === "ATELIER",
+          )
+          .map((row) => {
+            levelWeightedIds.add(row.id);
+            return {
+              ...row,
+              cycle: "ATELIER" as const,
+              displayName: row.nameOption,
+              isLevelWeighted: true,
+            };
+          })
       : [];
 
     const orderedOptions = [
@@ -310,11 +338,13 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
         ),
       ),
       ...secondaryOptions,
+      ...atelierOptions,
     ];
 
     const ponderationCycles = activated.filter((cycle) => {
       if (cycle === "MATERNELLE") return maternelleOptions.length > 0;
       if (cycle === "PRIMAIRE") return primaryOptions.length > 0;
+      if (cycle === "ATELIER") return atelierOptions.length > 0;
       return true;
     });
 

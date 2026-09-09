@@ -436,6 +436,7 @@
     "targetedLevels": "Targeted levels: {levels}.",
     "maternelleHint": "Weightings are defined by level (Nursery, 1st–3rd).",
     "primaireHint": "Weightings are defined by level (1st–6th).",
+    "atelierHint": "Weightings link courses to groups so teachers can be assigned.",
     "commonWeighting": "Shared weighting for all levels in this option.",
     "mergeProposal": "Suggested merge: copy {source} ({count} courses) to {destinations}.",
     "search": "Search a course…",

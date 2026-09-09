@@ -113,11 +113,11 @@ test("primaire et secondaire : bulletins inchanges", () => {
   assert.equal(getAcademicStructure("SECONDAIRE").periods.length, 6);
 });
 
-test("atelier : attestations uniquement, pas bulletin ni brevet", () => {
+test("atelier : attestations, finance et ponderation, pas bulletin ni brevet", () => {
   assert.equal(usesAttestationForBranch("ATELIER"), true);
   assert.equal(usesBulletinForBranch("ATELIER"), false);
   assert.equal(usesBrevetForBranch("ATELIER"), false);
-  assert.equal(usesFinanceForBranch("ATELIER"), false);
+  assert.equal(usesFinanceForBranch("ATELIER"), true);
 });
 
 test("centre : brevet sans bulletin", () => {

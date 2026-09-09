@@ -253,7 +253,7 @@ export function AttendanceCheckoutDialog({
             onClick={() => void submit()}
             disabled={pending}
           >
-            {pending ? t("checkout.saving") : t("checkout.confirmCheckout")}
+            {pending ? t("checkout.saving") : mode === "early" ? t("checkout.earlyExit") : t("checkout.confirmCheckout")}
           </Button>
         </DialogFooter>
       </DialogContent>

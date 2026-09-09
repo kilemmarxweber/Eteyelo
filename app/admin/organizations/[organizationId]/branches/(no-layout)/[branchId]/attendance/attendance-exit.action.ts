@@ -27,6 +27,11 @@ import {
 } from "@/lib/attendance-teacher-session";
 import { nowLocal, startOfTodayParis } from "@/lib/timezone";
 import {
+  getBranchLatestEndMinutes,
+  isPersonnelNormalCheckoutAllowed,
+  minutesToLocalDate,
+} from "@/lib/branch-closed-days";
+import {
   buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
@@ -485,6 +490,12 @@ export const recordNormalCheckoutAction = action
     if (attendance.earlyExit || attendance.checkOut) {
       throw new Error("Sortie déjà enregistrée.");
     }
+    const allowNormal = await isPersonnelNormalCheckoutAllowed(branchId, now);
+    if (!allowNormal) {
+      throw new Error(
+        "La fin normale n'est possible qu'à l'heure de fin du créneau. Avant cela, enregistrez une sortie anticipée avec justification.",
+      );
+    }
     return prisma.personnelAttendance.update({
       where: { id: attendance.id },
       data: { checkOut: now, earlyExit: false },
@@ -659,7 +670,7 @@ export const getTeacherSessionReportAction = action
       const index = byTeacherDay.get(dayKey) ?? 0;
       byTeacherDay.set(dayKey, index + 1);
 
-      const actualStart = record.checkIn ?? record.createdAt;
+      const actualStart = record.checkIn ?? null;
       const periodEnd = combineDateWithCreneauTime(
         record.date ?? now,
         record.session.endTime,
@@ -671,7 +682,13 @@ export const getTeacherSessionReportAction = action
         now.getTime() < periodEnd.getTime();
       const actualEnd = record.checkOut ?? null;
       const minutes = minutesBetween(actualStart, actualEnd);
-      const status = stillOpen ? "IN_PROGRESS" : record.status;
+      const status = !actualStart
+        ? now.getTime() >= periodEnd.getTime() || record.status === "ABSENT"
+          ? "ABSENT"
+          : record.status
+        : stillOpen
+          ? "IN_PROGRESS"
+          : record.status;
 
       const classe = record.session.teaching?.classe;
       rows.push({
@@ -859,11 +876,27 @@ export const getAttendanceDailyJournalAction = action
       const dayKey = `${record.teacherId}:${record.date.toISOString().slice(0, 10)}`;
       const index = byTeacherDay.get(dayKey) ?? 0;
       byTeacherDay.set(dayKey, index + 1);
-      const actualStart = record.checkIn ?? record.createdAt;
+      const actualStart = record.checkIn ?? null;
+      const periodEnd = combineDateWithCreneauTime(
+        record.date ?? nowLocal(),
+        record.session.endTime,
+      );
+      const stillOpen =
+        Boolean(actualStart) &&
+        !record.checkOut &&
+        !record.earlyExit &&
+        nowLocal().getTime() < periodEnd.getTime();
       const actualEnd =
         record.checkOut ??
         (record.earlyExit ? null : record.session.endTime);
       const minutes = minutesBetween(actualStart, actualEnd);
+      const status = !actualStart
+        ? nowLocal().getTime() >= periodEnd.getTime() || record.status === "ABSENT"
+          ? "ABSENT"
+          : record.status
+        : stillOpen
+          ? "IN_PROGRESS"
+          : record.status;
       const classe = record.session.teaching?.classe;
       teacherSessionRows.push({
         id: record.id,
@@ -888,8 +921,8 @@ export const getAttendanceDailyJournalAction = action
         minutesLabel: formatDurationMinutes(minutes),
         earlyExit: record.earlyExit,
         exitReason: record.exitReason,
-        status: record.status,
-        statusLabel: STATUS_LABELS[record.status] ?? record.status,
+        status,
+        statusLabel: STATUS_LABELS[status] ?? status,
       });
     }
 
@@ -907,7 +940,7 @@ export const getAttendanceDailyJournalAction = action
         ]
           .filter(Boolean)
           .join(" · "),
-        checkIn: formatTime(row.checkIn ?? row.recordedAt),
+        checkIn: formatTime(row.checkIn),
         checkOut: formatTime(row.checkOut),
         exitReason: row.exitReason || "—",
         statusLabel: STATUS_LABELS[row.status] ?? row.status,
@@ -925,7 +958,7 @@ export const getAttendanceDailyJournalAction = action
         ]
           .filter(Boolean)
           .join(" · "),
-        checkIn: formatTime(row.checkIn ?? row.createdAt),
+        checkIn: formatTime(row.checkIn),
         checkOut: formatTime(row.checkOut),
         exitReason: row.exitReason || "—",
         statusLabel: STATUS_LABELS[row.status] ?? row.status,
@@ -1229,7 +1262,6 @@ export const getStudentRosterReportAction = action
       };
       entry.statuses.push(row.status);
       if (row.checkIn) entry.checkIns.push(row.checkIn);
-      else entry.checkIns.push(row.recordedAt);
       if (row.checkOut) entry.checkOuts.push(row.checkOut);
       if (row.earlyExit) {
         entry.earlyExit = true;
@@ -1321,6 +1353,7 @@ export const getPersonnelRosterReportAction = action
       input.startDate,
       input.endDate,
     );
+    const dayEndMinutes = await getBranchLatestEndMinutes(branchId);
 
     const personnelList = await prisma.personnel.findMany({
       where: { branchMember: { branchId } },
@@ -1388,7 +1421,7 @@ export const getPersonnelRosterReportAction = action
           checkIn: record?.checkIn ?? null,
           checkOut: record?.checkOut ?? null,
           earlyExit: Boolean(record?.earlyExit),
-          periodEnd: null,
+          periodEnd: minutesToLocalDate(dayEndMinutes, day),
           openStatus: "IN_PROGRESS",
         });
         const role = person.branchMember?.member?.role;

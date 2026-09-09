@@ -436,6 +436,7 @@
     "targetedLevels": "Níveis visados: {levels}.",
     "maternelleHint": "As ponderações são definidas por nível (Berçário, 1.º–3.º).",
     "primaireHint": "As ponderações são definidas por nível (1.º–6.º).",
+    "atelierHint": "As ponderações ligam os cursos aos grupos para atribuir os professores.",
     "commonWeighting": "Ponderação comum a todos os níveis desta opção.",
     "mergeProposal": "Fusão proposta: copiar {source} ({count} cursos) para {destinations}.",
     "search": "Pesquisar um curso…",

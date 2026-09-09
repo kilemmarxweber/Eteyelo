@@ -436,6 +436,7 @@
     "targetedLevels": "Niveaux ciblés : {levels}.",
     "maternelleHint": "Les pondérations sont définies par niveau (Crèche, 1è–3è).",
     "primaireHint": "Les pondérations sont définies par niveau (1è–6è).",
+    "atelierHint": "Les pondérations lient les cours aux groupes pour affecter les enseignants.",
     "commonWeighting": "Pondération commune à tous les niveaux de cette option.",
     "mergeProposal": "Fusion proposée : copier {source} ({count} cours) vers {destinations}.",
     "search": "Rechercher un cours…",

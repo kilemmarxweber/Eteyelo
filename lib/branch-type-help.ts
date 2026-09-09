@@ -138,16 +138,20 @@ export function getBranchTypeHelpContent(typebranch: unknown): BranchTypeHelpCon
             title: "Parcours recommande",
             items: [
               "1. Importer ou creer les enseignants et le personnel depuis les autres branches.",
-              "2. Importer un eleve depuis une branche scolaire (primaire ou secondaire).",
-              "3. Inscrire l'eleve a un groupe atelier via ClassEnrollment.",
-              "4. Emettre une attestation de participation (apercu PDF + impression).",
+              "2. Importer un eleve depuis une branche scolaire (humanites).",
+              "3. Inscrire l'eleve a un groupe atelier.",
+              "4. Configurer les ponderations puis affecter les enseignants au groupe.",
+              "5. Creer les frais d'atelier, encaisser les paiements et suivre les transactions.",
+              "6. Emettre une attestation de participation (apercu PDF + impression).",
             ],
           },
           {
             title: "Bon a savoir",
             items: [
               "La creation directe d'eleves est desactivee : import obligatoire.",
-              "Les bulletins scolaires et la finance ne sont pas disponibles.",
+              "Les bulletins scolaires ne sont pas disponibles.",
+              "Les eleves importes paient les frais d'atelier via Frais, Paiement et Transactions.",
+              "La ponderation des cours permet d'affecter les enseignants a chaque groupe.",
               "L'archivage d'un eleve importe le retire de l'atelier sans supprimer son dossier scolaire.",
             ],
           },
@@ -155,6 +159,10 @@ export function getBranchTypeHelpContent(typebranch: unknown): BranchTypeHelpCon
         quickLinks: [
           { label: peopleLabels.studentPlural, href: "/admin/student" },
           { label: "Groupes", href: "/admin/classe" },
+          { label: "Ponderations", href: "/admin/coursPonderationOption" },
+          { label: "Frais", href: "/admin/frais" },
+          { label: "Paiement", href: "/admin/paiement" },
+          { label: "Transactions", href: "/admin/transactions" },
           { label: "Attestations", href: "/admin/attestations" },
         ],
       };

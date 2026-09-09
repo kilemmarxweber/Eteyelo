@@ -26,11 +26,14 @@ import {
   type PersonRosterReport,
   type TeacherSessionReport,
 } from "../attendance-exit.action";
+import { getStudentFrequentationRegisterAction } from "../attendance-frequentation.action";
+import type { FrequentationRegister } from "@/lib/attendance-frequentation-register";
 import {
   exportAttendanceDailyJournalPdf,
   exportPersonRosterReportPdf,
   exportTeacherSessionReportPdf,
 } from "../component/export-attendance-journal-pdf";
+import { exportFrequentationRegisterPdf } from "../component/export-frequentation-register-pdf";
 import { buildAttendancePdfLabels } from "../attendance-pdf-labels";
 import { intlLocaleFromUserLocale, normalizeUserLocale } from "@/lib/user-locale";
 
@@ -72,10 +75,13 @@ export function AttendanceReportsClient({
     useState<PersonRosterReport | null>(null);
   const [personnelRoster, setPersonnelRoster] =
     useState<PersonRosterReport | null>(null);
+  const [frequentation, setFrequentation] =
+    useState<FrequentationRegister | null>(null);
   const [loadingJournal, setLoadingJournal] = useState(true);
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [loadingStudents, setLoadingStudents] = useState(true);
   const [loadingPersonnel, setLoadingPersonnel] = useState(true);
+  const [loadingFrequentation, setLoadingFrequentation] = useState(true);
   const [exporting, setExporting] = useState(false);
 
   const loadJournal = async () => {
@@ -125,6 +131,20 @@ export function AttendanceReportsClient({
     setLoadingStudents(false);
   };
 
+  const loadFrequentation = async () => {
+    setLoadingFrequentation(true);
+    const [data, error] = await getStudentFrequentationRegisterAction({
+      classeId: studentClasseId === "all" ? null : studentClasseId,
+    });
+    if (error || !data) {
+      toast.error(error?.message || t("reports.loadFrequentationFailed"));
+      setFrequentation(null);
+    } else {
+      setFrequentation(data);
+    }
+    setLoadingFrequentation(false);
+  };
+
   const loadPersonnelRoster = async () => {
     setLoadingPersonnel(true);
     const [data, error] = await getPersonnelRosterReportAction({
@@ -155,6 +175,7 @@ export function AttendanceReportsClient({
   useEffect(() => {
     void loadStudentRoster();
     void loadPersonnelRoster();
+    void loadFrequentation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rosterStart, rosterEnd, studentClasseId]);
 
@@ -216,6 +237,21 @@ export function AttendanceReportsClient({
     }
   }
 
+  async function exportFrequentation() {
+    if (!frequentation) return;
+    setExporting(true);
+    try {
+      const [context, error] = await getAttendanceReportContextAction();
+      if (error || !context) throw new Error(error?.message || t("reports.pdfContextFailed"));
+      await exportFrequentationRegisterPdf(frequentation, context, pdfLabels);
+      toast.success(t("reports.frequentationPdfSuccess"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("reports.pdfError"));
+    } finally {
+      setExporting(false);
+    }
+  }
+
   async function exportPersonnelRoster() {
     if (!personnelRoster) return;
     setExporting(true);
@@ -242,6 +278,110 @@ export function AttendanceReportsClient({
           {t("reports.pageDescription")}
         </p>
       </div>
+
+      <Card>
+        <CardHeader className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <CardTitle>{t("reports.frequentationTitle")}</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {t("reports.frequentationDescription")}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="space-y-1">
+              <Label className="text-xs">{t("filters.class")}</Label>
+              <Select
+                value={studentClasseId}
+                onValueChange={setStudentClasseId}
+              >
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder={t("filters.allClasses")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("filters.allClasses")}</SelectItem>
+                  {classes.map((classe) => (
+                    <SelectItem key={classe.id} value={classe.id}>
+                      {classe.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void loadFrequentation()}
+              disabled={loadingFrequentation}
+            >
+              <IconRefresh className="mr-1 size-4" />
+              {t("filters.refresh")}
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => void exportFrequentation()}
+              disabled={!frequentation || exporting}
+            >
+              <IconFileTypePdf className="mr-1 size-4" />
+              {t("reports.frequentationPdf")}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loadingFrequentation ? (
+            <p className="text-sm text-muted-foreground">{tCommon("loading")}</p>
+          ) : frequentation ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                {t("frequentation.schoolYear")}: {frequentation.schoolYearLabel}
+                {frequentation.classeName
+                  ? ` · ${frequentation.classeName}`
+                  : ` · ${t("frequentation.allClasses")}`}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                I — {t("frequentation.markPresent")} · O —{" "}
+                {t("frequentation.markUnexcused")} · M —{" "}
+                {t("frequentation.markSick")} · R —{" "}
+                {t("frequentation.markLeave")}
+              </p>
+              <div className="overflow-x-auto rounded-md border">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-muted/50 text-left">
+                    <tr>
+                      <th className="px-3 py-2">{t("frequentation.month")}</th>
+                      <th className="px-3 py-2">{t("frequentation.colA")}</th>
+                      <th className="px-3 py-2">{t("frequentation.colB")}</th>
+                      <th className="px-3 py-2">{t("frequentation.colC")}</th>
+                      <th className="px-3 py-2">{t("frequentation.colD")}</th>
+                      <th className="px-3 py-2">{t("frequentation.colE")}</th>
+                      <th className="px-3 py-2">{t("frequentation.colF")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {frequentation.averages.map((row) => (
+                      <tr key={`${row.year}-${row.month}`} className="border-t">
+                        <td className="px-3 py-2 font-medium">{row.monthLabel}</td>
+                        <td className="px-3 py-2">{row.enrolled}</td>
+                        <td className="px-3 py-2">{row.classDaysMonth}</td>
+                        <td className="px-3 py-2">{row.classDaysYear}</td>
+                        <td className="px-3 py-2">{row.presenceMonth}</td>
+                        <td className="px-3 py-2">{row.presenceYear}</td>
+                        <td className="px-3 py-2">
+                          {row.average == null ? dash : row.average.toFixed(1)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("frequentation.formula")}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">{t("reports.noData")}</p>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -313,6 +453,7 @@ export function AttendanceReportsClient({
                       <th className="px-3 py-2">{t("reports.columns.subject")}</th>
                       <th className="px-3 py-2">{t("reports.columns.class")}</th>
                       <th className="px-3 py-2">{t("reports.columns.start")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.arrival")}</th>
                       <th className="px-3 py-2">{t("reports.columns.end")}</th>
                       <th className="px-3 py-2">{t("reports.columns.duration")}</th>
                       <th className="px-3 py-2">{t("reports.columns.status")}</th>
@@ -322,7 +463,7 @@ export function AttendanceReportsClient({
                     {journal.teacherSessions.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={8}
+                          colSpan={9}
                           className="px-3 py-4 text-center text-muted-foreground"
                         >
                           {t("reports.noTeacherSessionToday")}
@@ -335,9 +476,8 @@ export function AttendanceReportsClient({
                           <td className="px-3 py-2">{row.teacherName}</td>
                           <td className="px-3 py-2">{row.subject}</td>
                           <td className="px-3 py-2">{row.classeName}</td>
-                          <td className="px-3 py-2">
-                            {row.actualStart ?? row.plannedStart}
-                          </td>
+                          <td className="px-3 py-2">{row.plannedStart}</td>
+                          <td className="px-3 py-2">{row.actualStart || dash}</td>
                           <td className="px-3 py-2">
                             {row.actualEnd ?? row.plannedEnd}
                           </td>
@@ -507,6 +647,7 @@ export function AttendanceReportsClient({
                       <th className="px-3 py-2">{t("reports.columns.subject")}</th>
                       <th className="px-3 py-2">{t("reports.columns.class")}</th>
                       <th className="px-3 py-2">{t("reports.columns.start")}</th>
+                      <th className="px-3 py-2">{t("reports.columns.arrival")}</th>
                       <th className="px-3 py-2">{t("reports.columns.end")}</th>
                       <th className="px-3 py-2">{t("reports.columns.duration")}</th>
                       <th className="px-3 py-2">{t("reports.columns.reason")}</th>
@@ -516,7 +657,7 @@ export function AttendanceReportsClient({
                     {sessions.rows.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={9}
+                          colSpan={10}
                           className="px-3 py-4 text-center text-muted-foreground"
                         >
                           {t("reports.noSessionPeriod")}
@@ -532,9 +673,8 @@ export function AttendanceReportsClient({
                           <td className="px-3 py-2">{row.teacherName}</td>
                           <td className="px-3 py-2">{row.subject}</td>
                           <td className="px-3 py-2">{row.classeName}</td>
-                          <td className="px-3 py-2">
-                            {row.actualStart ?? row.plannedStart}
-                          </td>
+                          <td className="px-3 py-2">{row.plannedStart}</td>
+                          <td className="px-3 py-2">{row.actualStart || dash}</td>
                           <td className="px-3 py-2">
                             {row.actualEnd ?? row.plannedEnd}
                           </td>

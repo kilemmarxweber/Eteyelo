@@ -107,7 +107,8 @@ export default function CoursPonderationOptionPage() {
     !isSecondary &&
     (isLevelWeighted ||
       activeCycle === "PRIMAIRE" ||
-      activeCycle === "MATERNELLE");
+      activeCycle === "MATERNELLE" ||
+      activeCycle === "ATELIER");
   const secondaryLevels = useMemo(() => {
     if (!isSecondary) return [];
     return getSecondaryPonderationLevels({
@@ -674,7 +675,9 @@ export default function CoursPonderationOptionPage() {
                       })
                     : activeCycle === "MATERNELLE"
                       ? t("maternelleHint")
-                      : t("primaireHint")}
+                      : activeCycle === "ATELIER"
+                        ? t("atelierHint")
+                        : t("primaireHint")}
                 </p>
               ) : isSecondary ? (
                 <p className="mt-1 text-muted-foreground">

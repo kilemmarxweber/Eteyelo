@@ -220,9 +220,9 @@ function mapStudentRecords(
       id: record.id,
       date: record.recordedAt,
       status: record.status,
-      arrivalAt: isAbsentLike
+              arrivalAt: isAbsentLike
         ? null
-        : (record.checkIn ?? record.recordedAt),
+        : record.checkIn,
       // Préfère la sortie réelle (checkOut), sinon fin de séance si pas anticipée.
       departureAt: isAbsentLike
         ? null
@@ -275,7 +275,7 @@ function mapTeacherRecords(
       status: record.status,
       arrivalAt: isAbsentLike
         ? null
-        : (record.checkIn ?? record.session?.startTime ?? record.createdAt),
+        : record.checkIn,
       departureAt: isAbsentLike
         ? null
         : (record.checkOut ??

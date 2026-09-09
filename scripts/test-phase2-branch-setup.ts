@@ -24,12 +24,15 @@ function test(name: string, assertion: () => void) {
 const ORG_ID = "org-test";
 const BRANCH_ID = "branch-test";
 
-test("atelier masque sections, fiches, ponderations et finance", () => {
+test("atelier masque sections et fiches, autorise ponderations et finance", () => {
   assert.equal(shouldHideSidebarHref("/admin/section", "ATELIER"), true);
   assert.equal(shouldHideSidebarHref("/admin/fiches", "ATELIER"), true);
-  assert.equal(shouldHideSidebarHref("/admin/coursPonderationOption", "ATELIER"), true);
-  assert.equal(shouldHideSidebarHref("/admin/frais", "ATELIER"), true);
-  assert.equal(usesFinanceForBranch("ATELIER"), false);
+  assert.equal(shouldHideSidebarHref("/admin/coursPonderationOption", "ATELIER"), false);
+  assert.equal(shouldHideSidebarHref("/admin/frais", "ATELIER"), false);
+  assert.equal(shouldHideSidebarHref("/admin/paiement", "ATELIER"), false);
+  assert.equal(shouldHideSidebarHref("/admin/transactions", "ATELIER"), false);
+  assert.equal(usesFinanceForBranch("ATELIER"), true);
+  assert.equal(usesPonderationForBranch("ATELIER"), true);
 });
 
 test("universite autorise sections mais pas bulletins", () => {
@@ -90,10 +93,10 @@ test("sidebar renomme classe en auditoire pour universite", () => {
     .flatMap((item) => item.sub ?? [])
     .find((item) => item.href.endsWith("/classe"));
 
-  assert.equal(classesMenu?.title, "Auditoires");
+  assert.equal(classesMenu?.title, "auditorium");
 });
 
-test("sidebar masque finance pour atelier", () => {
+test("sidebar affiche finance pour atelier", () => {
   const links = buildStaticSideLinks(
     {
       user: { role: "owner" },
@@ -104,8 +107,16 @@ test("sidebar masque finance pour atelier", () => {
     "ATELIER",
   );
 
-  const financeMenu = links.find((item) => item.title === "Finance");
-  assert.equal(financeMenu, undefined);
+  const financeMenu = links.find((item) => item.title === "finance");
+  assert.ok(financeMenu);
+  const financeHrefs = (financeMenu?.sub ?? []).map((item) => item.href);
+  assert.ok(financeHrefs.some((href) => href.endsWith("/frais")));
+  assert.ok(financeHrefs.some((href) => href.endsWith("/paiement")));
+  assert.ok(financeHrefs.some((href) => href.endsWith("/transactions")));
+
+  const teachingMenu = links.find((item) => item.title === "teaching");
+  const teachingHrefs = (teachingMenu?.sub ?? []).map((item) => item.href);
+  assert.ok(teachingHrefs.some((href) => href.endsWith("/coursPonderationOption")));
 });
 
 test("structures academiques bootstrap par type", () => {

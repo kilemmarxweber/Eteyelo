@@ -18,13 +18,16 @@ import { attendanceGeoCoordsSchema as geoCoordsSchema } from "@/lib/attendance-g
 import { assertWithinBranchAttendanceRadius } from "@/lib/attendance-geo.server";
 import { formatExpectedSessionLabel } from "@/lib/attendance-schedule-label";
 import {
+  getBranchDayEndDate,
   isBranchClosedOn,
+  isPersonnelNormalCheckoutAllowed,
   resolvePersonnelStatusFromSchedule,
 } from "@/lib/branch-closed-days";
 import {
   classHasDayArrivalSession,
   findStudentDayArrivalSession,
   getExpectedStudentSessionLabel,
+  getStudentDayPeriodEnd,
   getStudentDayPointageLabel,
   isStudentNormalCheckoutAllowed,
   listClassDaySchedules,
@@ -35,6 +38,7 @@ import {
   findTeacherDayArrivalSession,
   getBranchCourseDurationMinutes,
   getExpectedTeacherSessionLabel,
+  getTeacherDayPeriodEnd,
   getTeacherDayPointageLabel,
   isTeacherNormalCheckoutAllowed,
   listTeacherScheduleCandidates,
@@ -64,6 +68,7 @@ import {
   nowLocal,
   scheduleHourToMinutes,
   startOfTodayParis,
+  TEACHER_COURSE_DURATION_MINUTES,
   toMinutes,
 } from "@/lib/timezone";
 import { z } from "zod";
@@ -85,6 +90,7 @@ import {
   parseFaceDescriptor,
   type FacePersonType,
 } from "@/lib/face-descriptor";
+import { combineDateWithCreneauTime } from "@/lib/attendance-exit";
 
 const scanSchema = z.object({
   code: z.string().trim().min(1, "Code vide."),
@@ -758,6 +764,15 @@ async function performStudentCheckIn(
     };
   }
 
+  if (await isStudentNormalCheckoutAllowed(student.id, branchId)) {
+    return {
+      ok: false,
+      message: `${lookup.name} n'a pas pointé : la vacation est terminée. Statut absent.`,
+      personType: "student",
+      person: { ...lookup, canCheckIn: false },
+    };
+  }
+
   const attendanceSession = await findSessionForStudent(student.id, branchId);
 
   if (!attendanceSession) {
@@ -939,6 +954,15 @@ async function performTeacherCheckIn(
         checkedAt: (closedToday.checkIn ?? closedToday.date).toISOString(),
       };
     }
+  }
+
+  if (await isTeacherNormalCheckoutAllowed(teacher.id, branchId)) {
+    return {
+      ok: false,
+      message: `${lookup.name} n'a pas pointé : le cours est terminé. Statut absent.`,
+      personType: "teacher",
+      person: { ...lookup, canCheckIn: false },
+    };
   }
 
   const attendanceSession = await findSessionForTeacher(teacher.id, branchId);
@@ -1140,6 +1164,7 @@ async function performPersonnelCheckIn(
         existingAttendance.status,
         "Presence journaliere",
         existingAttendance.checkIn,
+        await isPersonnelNormalCheckoutAllowed(branchId),
       );
     }
 
@@ -1149,6 +1174,15 @@ async function performPersonnelCheckIn(
       "Presence journaliere",
       existingAttendance.checkIn,
     );
+  }
+
+  if (await isPersonnelNormalCheckoutAllowed(branchId)) {
+    return {
+      ok: false,
+      message: `${lookup.name} n'a pas pointé : la journée est terminée. Statut absent.`,
+      personType: "personnel",
+      person: { ...lookup, canCheckIn: false },
+    };
   }
 
   await prisma.personnelAttendance.upsert({
@@ -1291,6 +1325,11 @@ export async function searchPeopleForCheckInAction(
         student.id,
         branchId,
       );
+      const periodEnd = await getStudentDayPeriodEnd(student.id, branchId);
+      const periodEnded = await isStudentNormalCheckoutAllowed(
+        student.id,
+        branchId,
+      );
       const label = canCheckIn
         ? await getStudentDayPointageLabel(
             student.id,
@@ -1298,22 +1337,33 @@ export async function searchPeopleForCheckInAction(
             state.canCheckOut ? "departure" : "arrival",
           )
         : null;
-      return {
-        ...mapStudentLookup(student),
-        expectedSessionLabel:
-          label ??
-          (canCheckIn
-            ? await getExpectedStudentSessionLabel(student.id, branchId)
-            : null),
-        canCheckIn,
-        ...state,
-      };
+      return withPeriodPunchState(
+        {
+          ...mapStudentLookup(student),
+          expectedSessionLabel:
+            label ??
+            (canCheckIn
+              ? await getExpectedStudentSessionLabel(student.id, branchId)
+              : null),
+          ...state,
+        },
+        {
+          periodEnd,
+          periodEnded,
+          arrivalOpen: canCheckIn,
+        },
+      );
     }),
   );
 
   const teacherLookups = await Promise.all(
     teachers.map(async (teacher) => {
       const dayLevel = await teacherUsesDayLevelPunch(teacher.id, branchId);
+      const periodEnd = await getTeacherDayPeriodEnd(teacher.id, branchId);
+      const periodEnded = await isTeacherNormalCheckoutAllowed(
+        teacher.id,
+        branchId,
+      );
       if (dayLevel) {
         const todayRows = await findTeacherAttendanceToday(teacher.id, branchId);
         const openToday = todayRows.find(
@@ -1326,21 +1376,39 @@ export async function searchPeopleForCheckInAction(
           branchId,
           state.canCheckOut ? "departure" : "arrival",
         );
-        return {
-          ...mapTeacherLookup(teacher),
-          expectedSessionLabel: label,
-          ...state,
-        };
+        return withPeriodPunchState(
+          {
+            ...mapTeacherLookup(teacher),
+            expectedSessionLabel: label,
+            ...state,
+          },
+          {
+            periodEnd,
+            periodEnded,
+            arrivalOpen: !periodEnded,
+          },
+        );
       }
-      return {
-        ...mapTeacherLookup(teacher),
-        expectedSessionLabel: await getExpectedTeacherSessionLabel(
-          teacher.id,
-          branchId,
-        ),
-      };
+      const candidates = await listTeacherScheduleCandidates(teacher.id, branchId);
+      return withPeriodPunchState(
+        {
+          ...mapTeacherLookup(teacher),
+          expectedSessionLabel: await getExpectedTeacherSessionLabel(
+            teacher.id,
+            branchId,
+          ),
+        },
+        {
+          periodEnd,
+          periodEnded,
+          arrivalOpen: candidates.length > 0,
+        },
+      );
     }),
   );
+
+  const personnelPeriodEnd = await getBranchDayEndDate(branchId);
+  const personnelPeriodEnded = await isPersonnelNormalCheckoutAllowed(branchId);
 
   return [
     ...studentLookups,
@@ -1350,7 +1418,13 @@ export async function searchPeopleForCheckInAction(
     ),
     ...personnels
       .filter((personnel) => !memberIsAttendanceOwner(personnel.branchMember?.member))
-      .map(mapPersonnelLookup),
+      .map((personnel) =>
+        withPeriodPunchState(mapPersonnelLookup(personnel), {
+          periodEnd: personnelPeriodEnd,
+          periodEnded: personnelPeriodEnded,
+          arrivalOpen: true,
+        }),
+      ),
   ].slice(0, 8);
 }
 
@@ -1643,6 +1717,7 @@ export async function findOpenCheckoutForPersonAction(
     open.status,
     "Presence journaliere",
     open.checkIn,
+    await isPersonnelNormalCheckoutAllowed(branchId),
   );
 }
 
@@ -1677,6 +1752,7 @@ function attendanceOpenState(row?: {
       alreadyCheckedIn: false,
       canCheckOut: false,
       attendanceId: null as string | null,
+      checkInAt: null as string | null,
     };
   }
 
@@ -1685,6 +1761,25 @@ function attendanceOpenState(row?: {
     alreadyCheckedIn: true,
     canCheckOut,
     attendanceId: canCheckOut ? row.id : null,
+    checkInAt: row.checkIn.toISOString(),
+  };
+}
+
+function withPeriodPunchState<T extends AttendancePersonLookup>(
+  person: T,
+  options: {
+    periodEnd: Date | null;
+    periodEnded: boolean;
+    arrivalOpen: boolean;
+  },
+): T {
+  const canCheckIn =
+    !person.alreadyCheckedIn && options.arrivalOpen && !options.periodEnded;
+  return {
+    ...person,
+    canCheckIn,
+    requiresEarlyExit: Boolean(person.canCheckOut) && !options.periodEnded,
+    periodEndAt: options.periodEnd?.toISOString() ?? null,
   };
 }
 
@@ -1719,6 +1814,7 @@ async function listTodayWindowSchedules(branchId: string) {
     return {
       currentMinutes: toMinutes(now),
       startOfDay: startOfTodayParis(now),
+      courseDurationMinutes: TEACHER_COURSE_DURATION_MINUTES,
       items: [] as WindowSchedule[],
     };
   }
@@ -1755,15 +1851,6 @@ async function listTodayWindowSchedules(branchId: string) {
   for (const schedule of schedules) {
     if (!schedule.hour || !schedule.teaching) continue;
     const startMinutes = scheduleHourToMinutes(schedule.hour);
-    if (
-      !isTeacherCheckInWindow(
-        currentMinutes,
-        startMinutes,
-        courseDurationMinutes,
-      )
-    ) {
-      continue;
-    }
 
     const teacher = schedule.teaching.teacher;
     if (teacher?.branchMember?.branchId && teacher.branchMember.branchId !== branchId) {
@@ -1784,6 +1871,7 @@ async function listTodayWindowSchedules(branchId: string) {
   return {
     currentMinutes,
     startOfDay: startOfTodayParis(now),
+    courseDurationMinutes,
     items,
   };
 }
@@ -1796,9 +1884,8 @@ export async function getQuickCheckInBootstrapAction(): Promise<AttendanceQuickC
     branchId,
   });
 
-  const { currentMinutes, startOfDay, items } = await listTodayWindowSchedules(
-    branchId,
-  );
+  const { currentMinutes, startOfDay, courseDurationMinutes, items } =
+    await listTodayWindowSchedules(branchId);
 
   const teacherBest = new Map<
     string,
@@ -1916,6 +2003,20 @@ export async function getQuickCheckInBootstrapAction(): Promise<AttendanceQuickC
         .sort((a, b) => a[1].startMinutes - b[1].startMinutes)
         .map(async ([teacherId, row]) => {
           const dayLevel = await teacherUsesDayLevelPunch(teacherId, branchId);
+          const periodEnd = await getTeacherDayPeriodEnd(teacherId, branchId);
+          const periodEnded = await isTeacherNormalCheckoutAllowed(
+            teacherId,
+            branchId,
+          );
+          const inWindow = items.some(
+            (item) =>
+              item.teacherId === teacherId &&
+              isTeacherCheckInWindow(
+                currentMinutes,
+                item.startMinutes,
+                courseDurationMinutes,
+              ),
+          );
           if (dayLevel) {
             const todayRows = await findTeacherAttendanceToday(
               teacherId,
@@ -1931,18 +2032,32 @@ export async function getQuickCheckInBootstrapAction(): Promise<AttendanceQuickC
               branchId,
               state.canCheckOut ? "departure" : "arrival",
             );
-            return {
-              ...mapTeacherLookup(row.teacher),
-              expectedSessionLabel: label ?? row.sessionLabel,
-              ...state,
-            };
+            return withPeriodPunchState(
+              {
+                ...mapTeacherLookup(row.teacher),
+                expectedSessionLabel: label ?? row.sessionLabel,
+                ...state,
+              },
+              {
+                periodEnd,
+                periodEnded,
+                arrivalOpen: inWindow || (!periodEnded && !state.alreadyCheckedIn),
+              },
+            );
           }
           const state = attendanceOpenState(attendanceByTeacher.get(teacherId));
-          return {
-            ...mapTeacherLookup(row.teacher),
-            expectedSessionLabel: row.sessionLabel,
-            ...state,
-          };
+          return withPeriodPunchState(
+            {
+              ...mapTeacherLookup(row.teacher),
+              expectedSessionLabel: row.sessionLabel,
+              ...state,
+            },
+            {
+              periodEnd,
+              periodEnded,
+              arrivalOpen: inWindow,
+            },
+          );
         }),
     )
   );
@@ -2150,6 +2265,29 @@ export async function listStudentsForClassCheckInAction(
     parsedClasseId,
     branchId,
   );
+  const classeWithCreneau = await prisma.classe.findFirst({
+    where: { id: parsedClasseId, branchId },
+    select: {
+      creneau: { select: { startTime: true, endTime: true } },
+    },
+  });
+  const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
+  const periodEnd = classeWithCreneau?.creneau?.endTime
+    ? combineDateWithCreneauTime(
+        nowLocal(),
+        classeWithCreneau.creneau.endTime,
+      )
+    : lastSlot
+      ? (() => {
+          const end = new Date();
+          const endMinutes = lastSlot.startMinutes + courseDurationMinutes;
+          end.setHours(Math.floor(endMinutes / 60), endMinutes % 60, 0, 0);
+          return end;
+        })()
+      : null;
+  const periodEnded = periodEnd
+    ? nowLocal().getTime() >= periodEnd.getTime()
+    : false;
   const arrivalLabel = firstLabel ? `Arrivée · ${firstLabel}` : "Arrivée";
   const departureLabel = lastLabel ? `Sortie · ${lastLabel}` : "Sortie";
 
@@ -2203,22 +2341,28 @@ export async function listStudentsForClassCheckInAction(
       const user = student.branchMember?.member?.user;
       const state = attendanceOpenState(attendanceByStudent.get(student.id));
       return [
-        {
-          id: student.id,
-          name: user ? getPersonName(user) : "Eleve",
-          matricule: user?.username ?? student.id.slice(-8).toUpperCase(),
-          roleLabel: classLabel,
-          personType: "student" as const,
-          image: user?.image ?? null,
-          expectedSessionLabel: state.canCheckOut
-            ? departureLabel
-            : canCheckInToday
-              ? arrivalLabel
-              : null,
-          classeId: parsedClasseId,
-          canCheckIn: canCheckInToday,
-          ...state,
-        },
+        withPeriodPunchState(
+          {
+            id: student.id,
+            name: user ? getPersonName(user) : "Eleve",
+            matricule: user?.username ?? student.id.slice(-8).toUpperCase(),
+            roleLabel: classLabel,
+            personType: "student" as const,
+            image: user?.image ?? null,
+            expectedSessionLabel: state.canCheckOut
+              ? departureLabel
+              : canCheckInToday && !periodEnded
+                ? arrivalLabel
+                : null,
+            classeId: parsedClasseId,
+            ...state,
+          },
+          {
+            periodEnd,
+            periodEnded,
+            arrivalOpen: canCheckInToday,
+          },
+        ),
       ];
     })
     .sort((left, right) => left.name.localeCompare(right.name, "fr"));
@@ -2265,12 +2409,24 @@ export async function listPersonnelForCheckInAction(): Promise<
     attendances.map((row) => [row.personnelId, row]),
   );
 
+  const periodEnd = await getBranchDayEndDate(branchId);
+  const periodEnded = await isPersonnelNormalCheckoutAllowed(branchId);
+
   return personnels
     .filter((personnel) => !memberIsAttendanceOwner(personnel.branchMember?.member))
-    .map((personnel) => ({
-      ...mapPersonnelLookup(personnel),
-      ...attendanceOpenState(attendanceByPersonnel.get(personnel.id)),
-    }))
+    .map((personnel) =>
+      withPeriodPunchState(
+        {
+          ...mapPersonnelLookup(personnel),
+          ...attendanceOpenState(attendanceByPersonnel.get(personnel.id)),
+        },
+        {
+          periodEnd,
+          periodEnded,
+          arrivalOpen: true,
+        },
+      ),
+    )
     .sort((left, right) => left.name.localeCompare(right.name, "fr"));
 }
 

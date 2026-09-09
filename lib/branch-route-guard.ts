@@ -254,7 +254,7 @@ export function getBranchTypeDescription(typebranch: unknown): string {
     case "SECONDAIRE":
       return "Ecole secondaire avec sections, options, classes et bulletins semestriels.";
     case "ATELIER":
-      return "Formation pratique : importez eleves, enseignants et personnels depuis les autres branches de l'organisation. Les parents ne sont pas geres ici.";
+      return "Formation pratique : importez eleves, enseignants et personnels depuis les autres branches. Les eleves paient les frais d'atelier. Affectez les enseignants aux groupes via les ponderations.";
     case "CENTRE_FORMATION":
       return "Formation certifiante avec programmes, sessions et emission de brevet. Les apprenants sont rattaches automatiquement a un parent systeme.";
     case "UNIVERSITE":

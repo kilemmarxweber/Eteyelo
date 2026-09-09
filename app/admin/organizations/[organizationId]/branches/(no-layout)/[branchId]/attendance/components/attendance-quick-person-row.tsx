@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { IconLoader2, IconLogout, IconUserCheck } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,11 +18,31 @@ function initials(name: string) {
     .toUpperCase();
 }
 
+function formatArrival(iso?: string | null) {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function periodHasEnded(periodEndAt?: string | null, now = Date.now()) {
+  if (!periodEndAt) return false;
+  const end = new Date(periodEndAt).getTime();
+  return Number.isFinite(end) && now >= end;
+}
+
 export function AttendanceQuickPersonRow({
   person,
   pointerLabel,
   checkoutLabel,
+  earlyExitLabel,
+  endOfClassLabel,
   doneLabel,
+  absentLabel,
+  arrivalLabel,
   sessionLabel,
   blockedReason,
   busy,
@@ -31,16 +52,38 @@ export function AttendanceQuickPersonRow({
   person: AttendancePersonLookup;
   pointerLabel: string;
   checkoutLabel: string;
+  earlyExitLabel: string;
+  endOfClassLabel: string;
   doneLabel: string;
+  absentLabel: string;
+  arrivalLabel: string;
   sessionLabel?: string | null;
   blockedReason?: string | null;
   busy: boolean;
   onPointer: () => void;
   onCheckout: () => void;
 }) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const ended = periodHasEnded(person.periodEndAt, now);
   const done = person.alreadyCheckedIn && !person.canCheckOut;
   const canLeave = Boolean(person.canCheckOut);
-  const canPointer = person.canCheckIn !== false;
+  const requiresEarlyExit =
+    person.requiresEarlyExit !== false && canLeave && !ended;
+  const canPointer =
+    person.canCheckIn !== false && !person.alreadyCheckedIn && !ended;
+  const markedAbsent = !person.alreadyCheckedIn && ended;
+  const arrival = formatArrival(person.checkInAt);
+  const actionLabel = canLeave
+    ? requiresEarlyExit
+      ? earlyExitLabel
+      : endOfClassLabel || checkoutLabel
+    : pointerLabel;
 
   return (
     <div
@@ -48,11 +91,13 @@ export function AttendanceQuickPersonRow({
         "flex flex-col gap-3 rounded-xl border px-3 py-3 transition-colors sm:flex-row sm:items-center",
         done
           ? "border-emerald-500/25 bg-emerald-500/5"
-          : canLeave
-            ? "border-amber-500/25 bg-amber-500/5"
-            : !canPointer
-              ? "bg-muted/30 opacity-80"
-              : "bg-card hover:bg-muted/50",
+          : markedAbsent
+            ? "border-rose-500/20 bg-rose-500/5 opacity-80"
+            : canLeave
+              ? "border-amber-500/25 bg-amber-500/5"
+              : !canPointer
+                ? "bg-muted/30 opacity-80"
+                : "bg-card hover:bg-muted/50",
       )}
     >
       <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -69,10 +114,15 @@ export function AttendanceQuickPersonRow({
         <p className="truncate text-xs text-muted-foreground">
           {person.matricule}
           {person.roleLabel ? ` · ${person.roleLabel}` : ""}
+          {arrival ? ` · ${arrivalLabel} ${arrival}` : ""}
         </p>
-        {sessionLabel ? (
+        {sessionLabel && !markedAbsent ? (
           <p className="mt-0.5 truncate text-xs font-medium text-primary">
             {sessionLabel}
+          </p>
+        ) : markedAbsent ? (
+          <p className="mt-0.5 text-xs font-medium text-rose-700 dark:text-rose-400">
+            {absentLabel}
           </p>
         ) : blockedReason ? (
           <p className="mt-0.5 text-xs font-medium text-muted-foreground">
@@ -86,11 +136,15 @@ export function AttendanceQuickPersonRow({
           <Badge variant="success" className="h-11 w-full justify-center px-3 text-sm sm:h-9 sm:w-auto">
             {doneLabel}
           </Badge>
+        ) : markedAbsent ? (
+          <Badge variant="destructive" className="h-11 w-full justify-center px-3 text-sm sm:h-9 sm:w-auto">
+            {absentLabel}
+          </Badge>
         ) : (
           <Button
             type="button"
             size="lg"
-            variant={canLeave ? "outline" : "default"}
+            variant={canLeave ? (requiresEarlyExit ? "outline" : "default") : "default"}
             disabled={busy || (!canLeave && !canPointer)}
             className="h-12 w-full touch-manipulation px-4 sm:h-11 sm:min-w-[7.5rem] sm:w-auto"
             onClick={canLeave ? onCheckout : onPointer}
@@ -102,7 +156,7 @@ export function AttendanceQuickPersonRow({
             ) : (
               <IconUserCheck className="size-4" />
             )}
-            {canLeave ? checkoutLabel : pointerLabel}
+            {actionLabel}
           </Button>
         )}
       </div>

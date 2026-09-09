@@ -108,6 +108,10 @@ function applyLiveStates(
       alreadyCheckedIn: live.alreadyCheckedIn,
       canCheckOut: live.canCheckOut,
       attendanceId: live.attendanceId,
+      canCheckIn: live.canCheckIn ?? person.canCheckIn,
+      requiresEarlyExit: live.requiresEarlyExit ?? person.requiresEarlyExit,
+      periodEndAt: live.periodEndAt ?? person.periodEndAt,
+      checkInAt: live.checkInAt ?? person.checkInAt,
     };
   });
 }
@@ -128,6 +132,9 @@ function mergePeople(
       canCheckOut: existing.canCheckOut,
       attendanceId: existing.attendanceId,
       canCheckIn: person.canCheckIn ?? existing.canCheckIn,
+      requiresEarlyExit: person.requiresEarlyExit ?? existing.requiresEarlyExit,
+      periodEndAt: person.periodEndAt ?? existing.periodEndAt,
+      checkInAt: person.checkInAt ?? existing.checkInAt,
     };
   });
 }
@@ -545,6 +552,7 @@ export function AttendanceCheckInClient({
           alreadyCheckedIn: true,
           canCheckOut: true,
           attendanceId: result.attendanceId ?? null,
+          checkInAt: result.checkedAt ?? new Date().toISOString(),
           expectedSessionLabel:
             result.sessionLabel ?? result.person.expectedSessionLabel,
         });
@@ -617,6 +625,10 @@ export function AttendanceCheckInClient({
 
   function checkInPerson(person: AttendancePersonLookup) {
     if (person.canCheckIn === false) return;
+    if (person.periodEndAt) {
+      const end = new Date(person.periodEndAt).getTime();
+      if (Number.isFinite(end) && Date.now() >= end) return;
+    }
     const key = personKey(person);
     setBusyKey(key);
     startTransition(async () => {
@@ -697,7 +709,15 @@ export function AttendanceCheckInClient({
               person={person}
               pointerLabel={t("checkIn")}
               checkoutLabel={t("checkInUi.checkOutDeparture")}
+              earlyExitLabel={t("checkout.earlyExit")}
+              endOfClassLabel={
+                person.personType === "personnel"
+                  ? t("checkout.normalEnd")
+                  : t("checkInUi.endOfClass")
+              }
               doneLabel={t("checkInUi.checkedIn")}
+              absentLabel={t("status.ABSENT")}
+              arrivalLabel={t("reports.columns.arrival")}
               sessionLabel={
                 person.expectedSessionLabel
                   ? t("checkInUi.expectedSession", {
@@ -743,9 +763,15 @@ export function AttendanceCheckInClient({
         : personnel;
   const checkedCount = visiblePeople.filter((person) => person.alreadyCheckedIn)
     .length;
-  const pendingCount = visiblePeople.filter(
-    (person) => !person.alreadyCheckedIn && person.canCheckIn !== false,
-  ).length;
+  const pendingCount = visiblePeople.filter((person) => {
+    if (person.alreadyCheckedIn) return false;
+    if (person.canCheckIn === false) return false;
+    if (person.periodEndAt) {
+      const end = new Date(person.periodEndAt).getTime();
+      if (Number.isFinite(end) && Date.now() >= end) return false;
+    }
+    return true;
+  }).length;
 
   function renderRecentItem(item: RecentCheckIn) {
     return (

@@ -69,6 +69,7 @@ export async function exportTeacherSessionReportPdf(
     labels.columns.subject,
     labels.columns.class,
     labels.columns.start,
+    labels.columns.arrival,
     labels.columns.end,
     labels.columns.duration,
     labels.columns.status,
@@ -77,7 +78,7 @@ export async function exportTeacherSessionReportPdf(
 
   const body =
     report.rows.length === 0
-      ? [[labels.noSessionPeriod, "", "", "", "", "", "", "", "", "", ""]]
+      ? [[labels.noSessionPeriod, "", "", "", "", "", "", "", "", "", "", ""]]
       : report.rows.map((row, index) => [
           String(index + 1),
           formatReportDate(row.date),
@@ -85,7 +86,8 @@ export async function exportTeacherSessionReportPdf(
           row.teacherName,
           row.subject,
           row.classeName,
-          row.actualStart ?? row.plannedStart,
+          row.plannedStart,
+          row.actualStart || "—",
           row.actualEnd || "—",
           row.minutesLabel,
           row.statusLabel,
@@ -178,6 +180,7 @@ export async function exportAttendanceDailyJournalPdf(
         labels.columns.subject,
         labels.columns.class,
         labels.columns.start,
+        labels.columns.arrival,
         labels.columns.end,
         labels.columns.duration,
         labels.columns.status,
@@ -185,13 +188,14 @@ export async function exportAttendanceDailyJournalPdf(
     ],
     body:
       journal.teacherSessions.length === 0
-        ? [[labels.noTeacherSessionToday, "", "", "", "", "", "", ""]]
+        ? [[labels.noTeacherSessionToday, "", "", "", "", "", "", "", ""]]
         : journal.teacherSessions.map((row) => [
             row.sessionLabel,
             row.teacherName,
             row.subject,
             row.classeName,
-            row.actualStart ?? row.plannedStart,
+            row.plannedStart,
+            row.actualStart || "—",
             row.actualEnd ?? row.plannedEnd,
             row.minutesLabel,
             row.earlyExit

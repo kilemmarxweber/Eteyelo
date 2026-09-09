@@ -25,6 +25,8 @@ import { syncTeacherDossierExperienceYears } from "@/lib/teacher-assignment-year
 import { assertTeacherFreeAt } from "@/lib/teacher-availability";
 import { cycleLabel, resolveCycle, type Cycle } from "@/lib/cycle";
 import { compareClassesByLevel } from "@/lib/class-structure";
+import { isAtelierBranch } from "@/lib/branch-capabilities";
+import { ensureWorkshopAcademicStructure } from "@/lib/workshop-academic-structure";
 import {
   classeCycleWhere,
   isCycleGlobalRole,
@@ -175,8 +177,11 @@ async function requireConfiguredCoursesForClasse(params: {
 }
 
 export const getTeachingWorkspaceAction = action.handler(async () => {
-  const { branchId, organizationId, userId, session } =
+  const { branchId, organizationId, userId, session, typebranch } =
     await requireBranchContext();
+  if (isAtelierBranch(typebranch)) {
+    await ensureWorkshopAcademicStructure(prisma, branchId);
+  }
 
   const [orgMember, viewerBm] = await Promise.all([
     prisma.member.findFirst({
