@@ -8,7 +8,10 @@ import {
   getOrCreateTeacherAttendanceSession,
 } from "@/lib/attendance-teacher-session";
 import {
-  TEACHER_CHECK_IN_MINUTES_BEFORE,
+  resolveCreneauClockHours,
+  isAtOrAfterCreneauEnd,
+} from "@/lib/attendance-exit";
+import {
   TEACHER_COURSE_DURATION_MINUTES,
   getParisWeekday,
   isTeacherCheckInWindow,
@@ -17,10 +20,7 @@ import {
   startOfTodayParis,
   toMinutes,
 } from "@/lib/timezone";
-import {
-  hmToUtcTimeDate,
-  resolveVacationHoursForDay,
-} from "@/lib/creneau-saturday";
+import { hmToUtcTimeDate } from "@/lib/creneau-saturday";
 
 const DAY_BY_WEEKDAY = {
   0: Day.Dimanche,
@@ -40,25 +40,6 @@ type StudentScheduleCandidate = {
 
 function getTodayDay(date = nowLocal()) {
   return DAY_BY_WEEKDAY[getParisWeekday(date) as keyof typeof DAY_BY_WEEKDAY];
-}
-
-function dateToHm(value: Date | null | undefined) {
-  if (!value) return "";
-  return `${String(value.getUTCHours()).padStart(2, "0")}:${String(value.getUTCMinutes()).padStart(2, "0")}`;
-}
-
-function resolveCreneauHoursForNow(
-  creneau: { startTime: Date; endTime: Date },
-  date = nowLocal(),
-) {
-  return resolveVacationHoursForDay(
-    {
-      startTime: dateToHm(creneau.startTime),
-      endTime: dateToHm(creneau.endTime),
-      durationCourse: 45,
-    },
-    getTodayDay(date),
-  );
 }
 
 function teachingBranchWhere(branchId: string, classeId: string) {
@@ -284,6 +265,54 @@ export async function listClassDaySchedules(
     .sort((left, right) => left.startMinutes - right.startMinutes);
 }
 
+/** Lecture seule : le pointage élève du jour aurait une session (sans la créer). */
+export async function classHasDayArrivalSession(
+  classeId: string,
+  branchId: string,
+  now = nowLocal(),
+) {
+  if (await isBranchClosedOn(branchId, now)) return false;
+
+  const schedules = await listClassDaySchedules(classeId, branchId, now);
+  if (schedules.length > 0) return true;
+
+  const teachingWhere = teachingBranchWhere(branchId, classeId);
+  let teaching = await prisma.teaching.findFirst({
+    where: teachingWhere,
+    select: { id: true },
+    orderBy: { createdAt: "asc" },
+  });
+  if (!teaching) {
+    teaching = await prisma.teaching.findFirst({
+      where: {
+        classeId,
+        OR: [{ branchId }, { branchId: null, classe: { branchId } }],
+      },
+      select: { id: true },
+      orderBy: { createdAt: "asc" },
+    });
+  }
+  if (!teaching) return false;
+
+  const classe = await prisma.classe.findFirst({
+    where: { id: classeId, branchId },
+    select: {
+      creneau: { select: { startTime: true, endTime: true } },
+    },
+  });
+  return Boolean(classe?.creneau?.startTime && classe?.creneau?.endTime);
+}
+
+export async function studentHasDayArrivalSession(
+  studentId: string,
+  branchId: string,
+  now = nowLocal(),
+) {
+  const enrollment = await getStudentEnrollmentClasse(studentId, branchId);
+  if (!enrollment) return false;
+  return classHasDayArrivalSession(enrollment.classeId, branchId, now);
+}
+
 async function getStudentEnrollmentClasse(
   studentId: string,
   branchId: string,
@@ -390,7 +419,7 @@ async function ensureStudentDaySessionFromClasse(
   const endTime = classe?.creneau?.endTime;
   if (!startTime || !endTime) return null;
 
-  const resolved = resolveCreneauHoursForNow({ startTime, endTime });
+  const resolved = resolveCreneauClockHours({ startTime, endTime });
   const sessionStart = hmToUtcTimeDate(resolved.startTime) ?? startTime;
   const sessionEnd = hmToUtcTimeDate(resolved.endTime) ?? endTime;
 
@@ -432,19 +461,16 @@ export async function isStudentNormalCheckoutAllowed(
   const enrollment = await getStudentEnrollmentClasse(studentId, branchId);
   if (!enrollment) return false;
 
-  const currentMinutes = toMinutes(now);
-  const schedules = await listClassDaySchedules(enrollment.classeId, branchId);
-  const last = schedules[schedules.length - 1];
-  if (last) {
-    return currentMinutes >= last.startMinutes - TEACHER_CHECK_IN_MINUTES_BEFORE;
+  const creneau = enrollment.classe?.creneau;
+  if (creneau?.startTime && creneau.endTime) {
+    return isAtOrAfterCreneauEnd(creneau, now);
   }
 
-  const endTime = enrollment.classe?.creneau?.endTime;
-  if (!endTime) return true;
-  const startTime = enrollment.classe?.creneau?.startTime ?? endTime;
-  const resolved = resolveCreneauHoursForNow({ startTime, endTime }, now);
-  const resolvedEnd = hmToUtcTimeDate(resolved.endTime) ?? endTime;
-  return currentMinutes >= scheduleHourToMinutes(resolvedEnd) - 15;
+  const schedules = await listClassDaySchedules(enrollment.classeId, branchId, now);
+  const last = schedules[schedules.length - 1];
+  if (!last) return true;
+  const duration = await getBranchCourseDurationMinutes(branchId);
+  return toMinutes(now) >= last.startMinutes + duration;
 }
 
 export async function getStudentDayPointageLabel(
@@ -456,14 +482,21 @@ export async function getStudentDayPointageLabel(
   const enrollment = await getStudentEnrollmentClasse(studentId, branchId);
   if (!enrollment) return null;
 
+  const creneau = enrollment.classe?.creneau;
+  if (creneau?.startTime && creneau.endTime) {
+    const resolved = resolveCreneauClockHours(creneau, now);
+    return phase === "arrival"
+      ? `Arrivée · ${resolved.startTime}`
+      : `Sortie · ${resolved.endTime}`;
+  }
+
   const schedules = await listClassDaySchedules(
     enrollment.classeId,
     branchId,
     now,
   );
-  const slot = phase === "arrival" ? schedules[0] : schedules[schedules.length - 1];
-  const creneau = enrollment.classe?.creneau;
 
+  const slot = phase === "arrival" ? schedules[0] : schedules[schedules.length - 1];
   if (slot) {
     const schedule = await prisma.schedule.findFirst({
       where: { id: slot.scheduleId },
@@ -484,11 +517,5 @@ export async function getStudentDayPointageLabel(
     }
   }
 
-  if (!creneau) return phase === "arrival" ? "Arrivée" : "Sortie";
-  const resolved = resolveCreneauHoursForNow(creneau, now);
-  const start = resolved.startTime;
-  const end = resolved.endTime;
-  const name = creneau.nameCreneau?.trim();
-  const range = name ? `${name} ${start}–${end}` : `${start}–${end}`;
-  return phase === "arrival" ? `Arrivée · ${range}` : `Sortie · ${range}`;
+  return phase === "arrival" ? "Arrivée" : "Sortie";
 }

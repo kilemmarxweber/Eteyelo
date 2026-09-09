@@ -22,17 +22,23 @@ import {
   resolvePersonnelStatusFromSchedule,
 } from "@/lib/branch-closed-days";
 import {
+  classHasDayArrivalSession,
   findStudentDayArrivalSession,
   getExpectedStudentSessionLabel,
   getStudentDayPointageLabel,
   isStudentNormalCheckoutAllowed,
   listClassDaySchedules,
+  studentHasDayArrivalSession,
 } from "@/lib/attendance-student-session";
 import {
   findTeacherCheckInSession,
+  findTeacherDayArrivalSession,
   getBranchCourseDurationMinutes,
   getExpectedTeacherSessionLabel,
+  getTeacherDayPointageLabel,
+  isTeacherNormalCheckoutAllowed,
   listTeacherScheduleCandidates,
+  teacherUsesDayLevelPunch,
 } from "@/lib/attendance-teacher-session";
 import { compareClassesByLevel } from "@/lib/class-structure";
 import {
@@ -498,6 +504,13 @@ async function findSessionForTeacher(
   teacherId: string,
   branchId: string,
 ): Promise<AttendanceSessionWithTeaching | null> {
+  if (await teacherUsesDayLevelPunch(teacherId, branchId)) {
+    return findTeacherDayArrivalSession(
+      teacherId,
+      branchId,
+      sessionInclude(),
+    ) as Promise<AttendanceSessionWithTeaching | null>;
+  }
   return findTeacherCheckInSession(
     teacherId,
     branchId,
@@ -538,8 +551,8 @@ function buildNeedsCheckoutResult(
     needsCheckout: true,
     attendanceId,
     message: normalCheckoutAllowed
-      ? `${lookup.name} est déjà pointé(e) à l'arrivée. Encodez la sortie (normale en fin de vacation, ou anticipée en cas d'incident).`
-      : `${lookup.name} est déjà pointé(e) à l'arrivée. Avant la dernière séance, seule une sortie anticipée (incident) est possible.`,
+      ? `${lookup.name} est déjà pointé(e) à l'arrivée. Encodez la sortie (normale à l'heure de fin du créneau, ou anticipée avec justification).`
+      : `${lookup.name} est déjà pointé(e) à l'arrivée. Avant l'heure de fin du créneau, seule une sortie anticipée (justification) est possible.`,
     personType: lookup.personType,
     person: lookup,
     status: isKnownCheckInStatus ? status : undefined,
@@ -832,6 +845,24 @@ async function performStudentCheckIn(
   };
 }
 
+async function findTeacherAttendanceToday(
+  teacherId: string,
+  branchId: string,
+) {
+  const today = startOfTodayParis();
+  const end = new Date(today);
+  end.setHours(23, 59, 59, 999);
+  return prisma.teacherAttendance.findMany({
+    where: {
+      branchId,
+      teacherId,
+      date: { gte: today, lte: end },
+      checkIn: { not: null },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
 async function performTeacherCheckIn(
   teacher: NonNullable<Awaited<ReturnType<typeof findTeacherByScan>>>,
   coords: AttendanceGeoCoords,
@@ -856,13 +887,68 @@ async function performTeacherCheckIn(
   });
   if (geoError) return geoError;
 
+  const dayLevel = await teacherUsesDayLevelPunch(teacher.id, branchId);
+
+  if (dayLevel) {
+    const todayRows = await findTeacherAttendanceToday(teacher.id, branchId);
+    const openToday = todayRows.find(
+      (row) => row.checkIn && !row.checkOut && !row.earlyExit,
+    );
+    const closedToday = todayRows.find(
+      (row) => row.checkIn && (row.checkOut || row.earlyExit),
+    );
+
+    if (openToday) {
+      const allowNormal = await isTeacherNormalCheckoutAllowed(
+        teacher.id,
+        branchId,
+      );
+      const sessionLabel =
+        (await getTeacherDayPointageLabel(teacher.id, branchId, "departure")) ??
+        "Sortie";
+      return buildNeedsCheckoutResult(
+        lookup,
+        openToday.id,
+        openToday.status,
+        sessionLabel,
+        openToday.checkIn ?? openToday.date,
+        allowNormal,
+      );
+    }
+
+    if (closedToday) {
+      const sessionLabel =
+        (await getTeacherDayPointageLabel(teacher.id, branchId, "departure")) ??
+        "Vacation";
+      return {
+        ok: false,
+        message: `${lookup.name} a déjà pointé l'arrivée et la sortie aujourd'hui.`,
+        personType: "teacher",
+        person: lookup,
+        status:
+          closedToday.status === "LATE" || closedToday.status === "PRESENT"
+            ? closedToday.status
+            : undefined,
+        statusLabel:
+          closedToday.status === "LATE"
+            ? "Retard"
+            : closedToday.status === "PRESENT"
+              ? "Present"
+              : undefined,
+        sessionLabel,
+        checkedAt: (closedToday.checkIn ?? closedToday.date).toISOString(),
+      };
+    }
+  }
+
   const attendanceSession = await findSessionForTeacher(teacher.id, branchId);
 
   if (!attendanceSession) {
     return {
       ok: false,
-      message:
-        "Aucune session de cours disponible pour cet enseignant maintenant. Le pointage est ouvert a partir de 15 minutes avant le debut du cours.",
+      message: dayLevel
+        ? "Aucune vacation disponible pour cet enseignant aujourd'hui."
+        : "Aucune session de cours disponible pour cet enseignant maintenant. Le pointage est ouvert a partir de 15 minutes avant le debut du cours.",
       personType: "teacher",
       person: lookup,
     };
@@ -909,7 +995,10 @@ async function performTeacherCheckIn(
 
   const status = resolveTeacherStatusFromTime(hydratedSession.startTime);
   const now = nowLocal();
-  const sessionLabel = formatSessionLabel(hydratedSession);
+  const sessionLabel = dayLevel
+    ? ((await getTeacherDayPointageLabel(teacher.id, branchId, "arrival")) ??
+      formatSessionLabel(hydratedSession))
+    : formatSessionLabel(hydratedSession);
 
   const existingAttendance = await prisma.teacherAttendance.findUnique({
     where: {
@@ -927,12 +1016,16 @@ async function performTeacherCheckIn(
       !existingAttendance.checkOut &&
       !existingAttendance.earlyExit
     ) {
+      const allowNormal = dayLevel
+        ? await isTeacherNormalCheckoutAllowed(teacher.id, branchId)
+        : true;
       return buildNeedsCheckoutResult(
         lookup,
         existingAttendance.id,
         existingAttendance.status,
         sessionLabel,
         existingAttendance.checkIn ?? existingAttendance.date,
+        allowNormal,
       );
     }
 
@@ -1194,29 +1287,59 @@ export async function searchPeopleForCheckInAction(
       );
       const anyToday = todayRows[0];
       const state = attendanceOpenState(openToday ?? anyToday);
-      const label = await getStudentDayPointageLabel(
+      const canCheckIn = await studentHasDayArrivalSession(
         student.id,
         branchId,
-        state.canCheckOut ? "departure" : "arrival",
       );
+      const label = canCheckIn
+        ? await getStudentDayPointageLabel(
+            student.id,
+            branchId,
+            state.canCheckOut ? "departure" : "arrival",
+          )
+        : null;
       return {
         ...mapStudentLookup(student),
         expectedSessionLabel:
           label ??
-          (await getExpectedStudentSessionLabel(student.id, branchId)),
+          (canCheckIn
+            ? await getExpectedStudentSessionLabel(student.id, branchId)
+            : null),
+        canCheckIn,
         ...state,
       };
     }),
   );
 
   const teacherLookups = await Promise.all(
-    teachers.map(async (teacher) => ({
-      ...mapTeacherLookup(teacher),
-      expectedSessionLabel: await getExpectedTeacherSessionLabel(
-        teacher.id,
-        branchId,
-      ),
-    })),
+    teachers.map(async (teacher) => {
+      const dayLevel = await teacherUsesDayLevelPunch(teacher.id, branchId);
+      if (dayLevel) {
+        const todayRows = await findTeacherAttendanceToday(teacher.id, branchId);
+        const openToday = todayRows.find(
+          (row) => row.checkIn && !row.checkOut && !row.earlyExit,
+        );
+        const anyToday = todayRows[0];
+        const state = attendanceOpenState(openToday ?? anyToday);
+        const label = await getTeacherDayPointageLabel(
+          teacher.id,
+          branchId,
+          state.canCheckOut ? "departure" : "arrival",
+        );
+        return {
+          ...mapTeacherLookup(teacher),
+          expectedSessionLabel: label,
+          ...state,
+        };
+      }
+      return {
+        ...mapTeacherLookup(teacher),
+        expectedSessionLabel: await getExpectedTeacherSessionLabel(
+          teacher.id,
+          branchId,
+        ),
+      };
+    }),
   );
 
   return [
@@ -1473,12 +1596,17 @@ export async function findOpenCheckoutForPersonAction(
         person: lookup,
       };
     }
+    const allowNormal = await isTeacherNormalCheckoutAllowed(personId, branchId);
+    const sessionLabel =
+      (await getTeacherDayPointageLabel(personId, branchId, "departure")) ??
+      "Cours du jour";
     return buildNeedsCheckoutResult(
       lookup,
       open.id,
       open.status,
-      "Cours du jour",
+      sessionLabel,
       open.checkIn,
+      allowNormal,
     );
   }
 
@@ -1778,19 +1906,46 @@ export async function getQuickCheckInBootstrapAction(): Promise<AttendanceQuickC
     teacherAttendances.map((row) => [row.teacherId, row]),
   );
 
-  const teachers = [...teacherBest.entries()]
-    .filter(
-      ([, row]) => !memberIsAttendanceOwner(row.teacher.branchMember?.member),
+  const teachers = (
+    await Promise.all(
+      [...teacherBest.entries()]
+        .filter(
+          ([, row]) =>
+            !memberIsAttendanceOwner(row.teacher.branchMember?.member),
+        )
+        .sort((a, b) => a[1].startMinutes - b[1].startMinutes)
+        .map(async ([teacherId, row]) => {
+          const dayLevel = await teacherUsesDayLevelPunch(teacherId, branchId);
+          if (dayLevel) {
+            const todayRows = await findTeacherAttendanceToday(
+              teacherId,
+              branchId,
+            );
+            const openToday = todayRows.find(
+              (item) => item.checkIn && !item.checkOut && !item.earlyExit,
+            );
+            const anyToday = todayRows[0];
+            const state = attendanceOpenState(openToday ?? anyToday);
+            const label = await getTeacherDayPointageLabel(
+              teacherId,
+              branchId,
+              state.canCheckOut ? "departure" : "arrival",
+            );
+            return {
+              ...mapTeacherLookup(row.teacher),
+              expectedSessionLabel: label ?? row.sessionLabel,
+              ...state,
+            };
+          }
+          const state = attendanceOpenState(attendanceByTeacher.get(teacherId));
+          return {
+            ...mapTeacherLookup(row.teacher),
+            expectedSessionLabel: row.sessionLabel,
+            ...state,
+          };
+        }),
     )
-    .sort((a, b) => a[1].startMinutes - b[1].startMinutes)
-    .map(([teacherId, row]) => {
-      const state = attendanceOpenState(attendanceByTeacher.get(teacherId));
-      return {
-        ...mapTeacherLookup(row.teacher),
-        expectedSessionLabel: row.sessionLabel,
-        ...state,
-      };
-    });
+  );
 
   const classWhere = {
     branchId,
@@ -1991,6 +2146,10 @@ export async function listStudentsForClassCheckInAction(
 
   const firstLabel = await scheduleLabel(firstSlot?.scheduleId);
   const lastLabel = await scheduleLabel(lastSlot?.scheduleId);
+  const canCheckInToday = await classHasDayArrivalSession(
+    parsedClasseId,
+    branchId,
+  );
   const arrivalLabel = firstLabel ? `Arrivée · ${firstLabel}` : "Arrivée";
   const departureLabel = lastLabel ? `Sortie · ${lastLabel}` : "Sortie";
 
@@ -2053,8 +2212,11 @@ export async function listStudentsForClassCheckInAction(
           image: user?.image ?? null,
           expectedSessionLabel: state.canCheckOut
             ? departureLabel
-            : arrivalLabel,
+            : canCheckInToday
+              ? arrivalLabel
+              : null,
           classeId: parsedClasseId,
+          canCheckIn: canCheckInToday,
           ...state,
         },
       ];

@@ -8,6 +8,28 @@ export type AttendanceGeoCoords = {
 export const MIN_GPS_UNCERTAINTY_METERS = 40;
 /** Plafond pour éviter qu'une précision GPS déclarée à 5 km n'ouvre toute la ville. */
 export const MAX_GPS_UNCERTAINTY_METERS = 80;
+/**
+ * Au-delà, ce n'est plus un fix GNSS (Wi‑Fi, IP, indoor). Windows/Chrome
+ * annoncent souvent 40–500 m tout en plaçant le point à des km.
+ * On n'applique le rayon que si le GPS est vraiment précis.
+ */
+export const PRECISE_GPS_ACCURACY_METERS = 25;
+
+export function isPreciseGpsFix(accuracy?: number | null): boolean {
+  return (
+    accuracy != null &&
+    Number.isFinite(accuracy) &&
+    accuracy > 0 &&
+    accuracy <= PRECISE_GPS_ACCURACY_METERS
+  );
+}
+
+/** GPS flou : ne pas refuser le pointage (kiosque, PC de la branche, tablette). */
+export function shouldSkipAttendanceGeofence(
+  accuracy?: number | null,
+): boolean {
+  return !isPreciseGpsFix(accuracy);
+}
 
 export function getDistanceInMeters(
   lat1: number,

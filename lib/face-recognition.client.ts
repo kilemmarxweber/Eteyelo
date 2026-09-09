@@ -104,33 +104,51 @@ export async function loadFaceApi(): Promise<FaceApiGlobal> {
   return modelsReady;
 }
 
-const CAMERA_CONSTRAINTS: MediaStreamConstraints[] = [
-  {
-    audio: false,
-    video: {
-      facingMode: { ideal: "environment" },
-      width: { ideal: 1920, min: 640 },
-      height: { ideal: 1080, min: 480 },
-    },
-  },
-  {
-    audio: false,
-    video: {
-      facingMode: { ideal: "user" },
-      width: { ideal: 1280 },
-      height: { ideal: 720 },
-    },
-  },
-  { audio: false, video: true },
-];
+export type AttendanceCameraFacing = "user" | "environment";
 
-export async function openAttendanceCameraStream(): Promise<MediaStream> {
+function cameraConstraintSets(
+  facing: AttendanceCameraFacing,
+): MediaStreamConstraints[] {
+  const fallback: AttendanceCameraFacing =
+    facing === "user" ? "environment" : "user";
+  const size =
+    facing === "user"
+      ? { width: { ideal: 1280 }, height: { ideal: 720 } }
+      : {
+          width: { ideal: 1920, min: 640 },
+          height: { ideal: 1080, min: 480 },
+        };
+
+  return [
+    {
+      audio: false,
+      video: { facingMode: { ideal: facing }, ...size },
+    },
+    {
+      audio: false,
+      video: { facingMode: facing, ...size },
+    },
+    {
+      audio: false,
+      video: {
+        facingMode: { ideal: fallback },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+    },
+    { audio: false, video: true },
+  ];
+}
+
+export async function openAttendanceCameraStream(
+  facing: AttendanceCameraFacing = "user",
+): Promise<MediaStream> {
   if (!navigator.mediaDevices?.getUserMedia) {
     throw new Error("Camera non disponible sur cet appareil.");
   }
 
   let lastError: unknown;
-  for (const constraints of CAMERA_CONSTRAINTS) {
+  for (const constraints of cameraConstraintSets(facing)) {
     try {
       return await navigator.mediaDevices.getUserMedia(constraints);
     } catch (error) {

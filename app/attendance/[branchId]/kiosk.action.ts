@@ -16,6 +16,10 @@ import {
   searchPeopleForFaceEnrollAction,
 } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/[branchId]/attendance/attendance-scan.action";
 import {
+  getAttendanceReportContextAction,
+  getPersonnelRosterReportAction,
+  getStudentRosterReportAction,
+  getTeacherSessionReportAction,
   recordNormalCheckoutAction,
   recordPersonnelEarlyExitAction,
   recordStudentEarlyExitAction,
@@ -149,5 +153,36 @@ export async function kioskRecordPersonnelEarlyExitAction(
 ) {
   return runAttendanceKiosk(branchId, () =>
     Promise.resolve(recordPersonnelEarlyExitAction(input)),
+  );
+}
+
+export async function kioskGetAttendanceReportContextAction(branchId: string) {
+  return runAttendanceKiosk(branchId, () => getAttendanceReportContextAction());
+}
+
+export async function kioskGetTeacherSessionReportAction(
+  branchId: string,
+  input: { startDate: Date; endDate: Date; teacherId?: string | null; classeId?: string | null },
+) {
+  return runAttendanceKiosk(branchId, () =>
+    getTeacherSessionReportAction(input),
+  );
+}
+
+export async function kioskGetStudentRosterReportAction(
+  branchId: string,
+  input: { startDate: Date; endDate: Date; classeId?: string | null },
+) {
+  return runAttendanceKiosk(branchId, () =>
+    getStudentRosterReportAction(input),
+  );
+}
+
+export async function kioskGetPersonnelRosterReportAction(
+  branchId: string,
+  input: { startDate: Date; endDate: Date },
+) {
+  return runAttendanceKiosk(branchId, () =>
+    getPersonnelRosterReportAction(input),
   );
 }

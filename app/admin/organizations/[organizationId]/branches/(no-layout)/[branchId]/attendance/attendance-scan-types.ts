@@ -10,6 +10,8 @@ export type AttendancePersonLookup = {
   image?: string | null;
   alreadyCheckedIn?: boolean;
   canCheckOut?: boolean;
+  /** False = pas de session du jour, le bouton Pointer est désactivé. */
+  canCheckIn?: boolean;
   attendanceId?: string | null;
   classeId?: string | null;
 };

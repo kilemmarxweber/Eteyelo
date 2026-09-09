@@ -1,5 +1,71 @@
 import type { AttendanceExitReason } from "@/prisma/generated/prisma/client";
-import { scheduleHourToMinutes, toMinutes } from "@/lib/timezone";
+import {
+  getParisWeekday,
+  nowLocal,
+  scheduleHourToMinutes,
+  toMinutes,
+} from "@/lib/timezone";
+import {
+  hmToUtcTimeDate,
+  resolveVacationHoursForDay,
+} from "@/lib/creneau-saturday";
+
+const DAY_BY_WEEKDAY = {
+  0: "Dimanche",
+  1: "Lundi",
+  2: "Mardi",
+  3: "Mercredi",
+  4: "Jeudi",
+  5: "Vendredi",
+  6: "Samedi",
+} as const;
+
+function dateToHm(value: Date | null | undefined) {
+  if (!value) return "";
+  return `${String(value.getUTCHours()).padStart(2, "0")}:${String(value.getUTCMinutes()).padStart(2, "0")}`;
+}
+
+export function resolveCreneauClockHours(
+  creneau: { startTime: Date; endTime: Date },
+  now = nowLocal(),
+) {
+  const day = DAY_BY_WEEKDAY[getParisWeekday(now) as keyof typeof DAY_BY_WEEKDAY];
+  return resolveVacationHoursForDay(
+    {
+      startTime: dateToHm(creneau.startTime),
+      endTime: dateToHm(creneau.endTime),
+      durationCourse: 45,
+    },
+    day,
+  );
+}
+
+/** Sortie normale = à l'heure de fin du créneau (pas avant). */
+export function isAtOrAfterCreneauEnd(
+  creneau: { startTime: Date; endTime: Date },
+  now = nowLocal(),
+) {
+  const resolved = resolveCreneauClockHours(creneau, now);
+  const end = hmToUtcTimeDate(resolved.endTime);
+  if (!end) return true;
+  return toMinutes(now) >= scheduleHourToMinutes(end);
+}
+
+export function creneauStartTimeDate(
+  creneau: { startTime: Date; endTime: Date },
+  now = nowLocal(),
+) {
+  const resolved = resolveCreneauClockHours(creneau, now);
+  return hmToUtcTimeDate(resolved.startTime) ?? creneau.startTime;
+}
+
+export function creneauEndTimeDate(
+  creneau: { startTime: Date; endTime: Date },
+  now = nowLocal(),
+) {
+  const resolved = resolveCreneauClockHours(creneau, now);
+  return hmToUtcTimeDate(resolved.endTime) ?? creneau.endTime;
+}
 
 export const ATTENDANCE_EXIT_REASON_LABELS: Record<
   AttendanceExitReason,

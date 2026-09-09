@@ -142,22 +142,41 @@ export function AttendanceCheckoutDialog({
     }
   }
 
-  const description = `${personName}${sessionLabel ? ` — ${sessionLabel}` : ""}. ${t("checkout.chooseMode")}`;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t("checkout.title")}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+      <DialogContent
+        size="sm"
+        className="flex max-h-[min(100dvh-1.25rem,40rem)] w-[min(calc(100vw-1.25rem),28rem)] flex-col gap-4 overflow-hidden p-4 sm:p-6"
+      >
+        <DialogHeader className="shrink-0 space-y-2 pr-8 text-left">
+          <DialogTitle className="text-base font-semibold leading-snug sm:text-lg">
+            {t("checkout.title")}
+          </DialogTitle>
+          <DialogDescription asChild>
+            <div className="space-y-1.5 text-left font-normal">
+              <p className="text-sm font-medium leading-snug text-foreground break-words">
+                {personName}
+                {sessionLabel ? (
+                  <span className="font-normal text-muted-foreground">
+                    {" — "}
+                    {sessionLabel}
+                  </span>
+                ) : null}
+              </p>
+              <p className="text-sm font-normal leading-relaxed text-muted-foreground">
+                {t("checkout.chooseMode")}
+              </p>
+            </div>
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 py-2">
+        <div className="min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto">
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
               variant={mode === "normal" ? "default" : "outline"}
               disabled={requireEarlyExit}
+              className="h-11 min-w-0 whitespace-normal px-2 text-sm"
               onClick={() => setMode("normal")}
             >
               {t("checkout.normalEnd")}
@@ -165,6 +184,7 @@ export function AttendanceCheckoutDialog({
             <Button
               type="button"
               variant={mode === "early" ? "default" : "outline"}
+              className="h-11 min-w-0 whitespace-normal px-2 text-sm"
               onClick={() => setMode("early")}
             >
               {t("checkout.earlyExit")}
@@ -172,14 +192,14 @@ export function AttendanceCheckoutDialog({
           </div>
 
           {requireEarlyExit ? (
-            <p className="text-sm text-amber-700 dark:text-amber-400">
+            <p className="text-sm font-normal leading-relaxed text-amber-700 dark:text-amber-400">
               {t("checkout.incidentOnlyHint")}
             </p>
           ) : null}
 
           {mode === "early" ? (
             <>
-              <div className="space-y-1.5">
+              <div className="min-w-0 space-y-1.5">
                 <Label>{t("checkout.reason")}</Label>
                 <Select
                   value={reasonCode}
@@ -187,7 +207,7 @@ export function AttendanceCheckoutDialog({
                     setReasonCode(value as AttendanceExitReason)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 w-full min-w-0">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -199,33 +219,40 @@ export function AttendanceCheckoutDialog({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
+              <div className="min-w-0 space-y-1.5">
                 <Label>{t("checkout.noteOptional")}</Label>
                 <Textarea
                   value={reasonNote}
                   onChange={(event) => setReasonNote(event.target.value)}
                   placeholder={t("checkout.notePlaceholder")}
+                  className="min-h-[5.5rem] resize-y"
                   rows={3}
                 />
               </div>
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm font-normal leading-relaxed text-muted-foreground">
               {t("checkout.normalHint")}
             </p>
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0 gap-2 sm:space-x-0">
           <Button
             type="button"
             variant="outline"
+            className="h-11 w-full sm:w-auto"
             onClick={() => onOpenChange(false)}
             disabled={pending}
           >
             {tCommon("cancel")}
           </Button>
-          <Button type="button" onClick={() => void submit()} disabled={pending}>
+          <Button
+            type="button"
+            className="h-11 w-full sm:w-auto"
+            onClick={() => void submit()}
+            disabled={pending}
+          >
             {pending ? t("checkout.saving") : t("checkout.confirmCheckout")}
           </Button>
         </DialogFooter>

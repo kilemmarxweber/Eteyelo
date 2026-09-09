@@ -3,6 +3,13 @@ import { Day, type Prisma } from "@/prisma/generated/prisma/client";
 import { formatExpectedSessionLabel } from "@/lib/attendance-schedule-label";
 import { isBranchClosedOn } from "@/lib/branch-closed-days";
 import {
+  isAtOrAfterCreneauEnd,
+  resolveCreneauClockHours,
+  creneauStartTimeDate,
+  creneauEndTimeDate,
+} from "@/lib/attendance-exit";
+import { isPrimaryLikeCycle, resolveCycle } from "@/lib/cycle";
+import {
   getParisWeekday,
   isTeacherCheckInWindow,
   nowLocal,
@@ -259,6 +266,11 @@ export async function getExpectedTeacherSessionLabel(
   branchId: string,
   now = nowLocal(),
 ) {
+  const context = await getTeacherDayPunchContext(teacherId, branchId, now);
+  if (context.usesDayLevel) {
+    return getTeacherDayPointageLabelFromContext(context, "arrival", now);
+  }
+
   const candidates = await listTeacherScheduleCandidates(
     teacherId,
     branchId,
@@ -306,6 +318,282 @@ export async function findTeacherCheckInSession(
 
     return prisma.attendanceSession.findFirst({
       where: { id: session.id },
+      include,
+    });
+  }
+
+  return null;
+}
+
+type TeacherDayPunchContext = {
+  usesDayLevel: boolean;
+  creneau: {
+    nameCreneau: string | null;
+    startTime: Date;
+    endTime: Date;
+  } | null;
+  firstSchedule: {
+    teachingId: string;
+    scheduleId: string;
+    startMinutes: number;
+  } | null;
+  firstTeachingId: string | null;
+};
+
+async function loadTeacherDayTeachings(
+  teacherId: string,
+  branchId: string,
+  now = nowLocal(),
+) {
+  return prisma.teacher.findFirst({
+    where: {
+      id: teacherId,
+      branchMember: { branchId },
+    },
+    select: {
+      teaching: {
+        where: teachingBranchWhere(branchId),
+        select: {
+          id: true,
+          schoolYearId: true,
+          classe: {
+            select: {
+              cycle: true,
+              creneau: {
+                select: {
+                  nameCreneau: true,
+                  startTime: true,
+                  endTime: true,
+                },
+              },
+              branch: { select: { typebranch: true } },
+            },
+          },
+          Schedule: {
+            where: {
+              day: getTodayDay(now),
+              isArchived: false,
+            },
+            select: { id: true, hour: true },
+          },
+        },
+      },
+    },
+  });
+}
+
+export async function getTeacherDayPunchContext(
+  teacherId: string,
+  branchId: string,
+  now = nowLocal(),
+): Promise<TeacherDayPunchContext> {
+  const empty: TeacherDayPunchContext = {
+    usesDayLevel: false,
+    creneau: null,
+    firstSchedule: null,
+    firstTeachingId: null,
+  };
+  if (await isBranchClosedOn(branchId, now)) return empty;
+
+  const teacher = await loadTeacherDayTeachings(teacherId, branchId, now);
+  if (!teacher) return empty;
+
+  const primaryTeachings = [];
+  const secondaryToday = [];
+
+  for (const teaching of teacher.teaching) {
+    const cycle = resolveCycle(teaching.classe, teaching.classe?.branch);
+    const todaySchedules = teaching.Schedule.filter((row) => row.hour);
+    if (cycle === "SECONDAIRE" && todaySchedules.length > 0) {
+      secondaryToday.push(teaching);
+    }
+    if (isPrimaryLikeCycle(cycle)) {
+      primaryTeachings.push(teaching);
+    }
+  }
+
+  if (secondaryToday.length > 0 || primaryTeachings.length === 0) {
+    return empty;
+  }
+
+  const schedules = primaryTeachings
+    .flatMap((teaching) =>
+      teaching.Schedule.filter(
+        (row): row is typeof row & { hour: Date } => Boolean(row.hour),
+      ).map((row) => ({
+        teachingId: teaching.id,
+        scheduleId: row.id,
+        startMinutes: scheduleHourToMinutes(row.hour),
+        creneau: teaching.classe?.creneau ?? null,
+      })),
+    )
+    .sort((left, right) => left.startMinutes - right.startMinutes);
+
+  const firstSchedule = schedules[0]
+    ? {
+        teachingId: schedules[0].teachingId,
+        scheduleId: schedules[0].scheduleId,
+        startMinutes: schedules[0].startMinutes,
+      }
+    : null;
+
+  const creneau =
+    schedules[0]?.creneau ??
+    primaryTeachings.find((row) => row.classe?.creneau)?.classe?.creneau ??
+    null;
+
+  return {
+    usesDayLevel: true,
+    creneau: creneau?.startTime && creneau.endTime ? creneau : null,
+    firstSchedule,
+    firstTeachingId: firstSchedule?.teachingId ?? primaryTeachings[0]?.id ?? null,
+  };
+}
+
+export async function teacherUsesDayLevelPunch(
+  teacherId: string,
+  branchId: string,
+  now = nowLocal(),
+) {
+  const context = await getTeacherDayPunchContext(teacherId, branchId, now);
+  return context.usesDayLevel;
+}
+
+function getTeacherDayPointageLabelFromContext(
+  context: TeacherDayPunchContext,
+  phase: "arrival" | "departure",
+  now = nowLocal(),
+) {
+  if (context.creneau) {
+    const resolved = resolveCreneauClockHours(context.creneau, now);
+    return phase === "arrival"
+      ? `Arrivée · ${resolved.startTime}`
+      : `Sortie · ${resolved.endTime}`;
+  }
+  return phase === "arrival" ? "Arrivée" : "Sortie";
+}
+
+export async function getTeacherDayPointageLabel(
+  teacherId: string,
+  branchId: string,
+  phase: "arrival" | "departure",
+  now = nowLocal(),
+) {
+  const context = await getTeacherDayPunchContext(teacherId, branchId, now);
+  if (!context.usesDayLevel) return null;
+  return getTeacherDayPointageLabelFromContext(context, phase, now);
+}
+
+export async function isTeacherNormalCheckoutAllowed(
+  teacherId: string,
+  branchId: string,
+  now = nowLocal(),
+) {
+  const context = await getTeacherDayPunchContext(teacherId, branchId, now);
+  if (!context.usesDayLevel) return true;
+  if (context.creneau) return isAtOrAfterCreneauEnd(context.creneau, now);
+  if (!context.firstSchedule) return true;
+  const duration = await getBranchCourseDurationMinutes(branchId);
+  return toMinutes(now) >= context.firstSchedule.startMinutes + duration;
+}
+
+export async function getTeacherDayCreneauEnd(
+  teacherId: string,
+  branchId: string,
+  now = nowLocal(),
+) {
+  const context = await getTeacherDayPunchContext(teacherId, branchId, now);
+  if (!context.creneau) return null;
+  return creneauEndTimeDate(context.creneau, now);
+}
+
+async function ensureTeacherDaySessionFromCreneau(
+  teachingId: string,
+  schoolYearId: string,
+  branchId: string,
+  creneau: { startTime: Date; endTime: Date },
+) {
+  const sessionStart = creneauStartTimeDate(creneau);
+  const sessionEnd = creneauEndTimeDate(creneau);
+  const today = startOfTodayParis();
+  const existing = await prisma.attendanceSession.findFirst({
+    where: {
+      teachingId,
+      date: today,
+      startTime: sessionStart,
+    },
+  });
+  if (existing) {
+    if (existing.branchId !== branchId) {
+      return prisma.attendanceSession.update({
+        where: { id: existing.id },
+        data: { branchId },
+      });
+    }
+    return existing;
+  }
+
+  return prisma.attendanceSession.create({
+    data: {
+      teachingId,
+      branchId,
+      date: today,
+      startTime: sessionStart,
+      endTime: sessionEnd,
+      schoolYearId,
+    },
+  });
+}
+
+export async function findTeacherDayArrivalSession(
+  teacherId: string,
+  branchId: string,
+  include?: Prisma.AttendanceSessionInclude,
+) {
+  const context = await getTeacherDayPunchContext(teacherId, branchId);
+  if (!context.usesDayLevel) return null;
+
+  const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
+
+  if (context.firstSchedule) {
+    const session = await ensureAttendanceSessionForSchedule(
+      context.firstSchedule.teachingId,
+      context.firstSchedule.scheduleId,
+      branchId,
+      courseDurationMinutes,
+      { requireCheckInWindow: false },
+    );
+    if (session) {
+      if (context.creneau) {
+        const expectedEnd = creneauEndTimeDate(context.creneau);
+        if (session.endTime.getTime() !== expectedEnd.getTime()) {
+          await prisma.attendanceSession.update({
+            where: { id: session.id },
+            data: { endTime: expectedEnd },
+          });
+        }
+      }
+      return prisma.attendanceSession.findFirst({
+        where: { id: session.id },
+        include,
+      });
+    }
+  }
+
+  if (context.firstTeachingId && context.creneau) {
+    const teaching = await prisma.teaching.findFirst({
+      where: { id: context.firstTeachingId },
+      select: { schoolYearId: true },
+    });
+    if (!teaching?.schoolYearId) return null;
+    const fallback = await ensureTeacherDaySessionFromCreneau(
+      context.firstTeachingId,
+      teaching.schoolYearId,
+      branchId,
+      context.creneau,
+    );
+    return prisma.attendanceSession.findFirst({
+      where: { id: fallback.id },
       include,
     });
   }

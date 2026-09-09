@@ -6,7 +6,10 @@ import {
 } from "@/lib/email/send-absence-notification-email";
 import {
   ensureAttendanceSessionForSchedule,
+  findTeacherDayArrivalSession,
   getBranchCourseDurationMinutes,
+  getTeacherDayCreneauEnd,
+  teacherUsesDayLevelPunch,
 } from "@/lib/attendance-teacher-session";
 import { formatExpectedSessionLabel } from "@/lib/attendance-schedule-label";
 import { isBranchClosedOn } from "@/lib/branch-closed-days";
@@ -599,13 +602,36 @@ async function signalEndedSessionAbsences(branchId: string) {
       teaching: {
         include: {
           cours: { select: { nameCours: true } },
-          classe: { select: { id: true, codeClasse: true, nameClasse: true } },
+          classe: { select: { id: true, codeClasse: true, nameClasse: true, creneau: { select: { startTime: true, endTime: true } } } },
         },
       },
     },
   });
 
   let created = 0;
+  const dayLevelTeacherIds = new Set<string>();
+  const firstScheduleByClasse = new Map<string, { id: string; startMinutes: number }>();
+  for (const schedule of schedules) {
+    const classeId = schedule.teaching?.classeId;
+    if (!classeId || !schedule.hour) continue;
+    const startMinutes = scheduleHourToMinutes(schedule.hour);
+    const existing = firstScheduleByClasse.get(classeId);
+    if (!existing || startMinutes < existing.startMinutes) {
+      firstScheduleByClasse.set(classeId, { id: schedule.id, startMinutes });
+    }
+  }
+
+  const studentsPresentToday = await prisma.studentAttendance.findMany({
+    where: {
+      branchId,
+      checkIn: { not: null },
+      session: { date: today },
+    },
+    select: { studentId: true },
+  });
+  const presentStudentIds = new Set(
+    studentsPresentToday.map((row) => row.studentId),
+  );
 
   for (const schedule of schedules) {
     if (!schedule.teachingId || !schedule.hour || !schedule.teaching) continue;
@@ -629,6 +655,9 @@ async function signalEndedSessionAbsences(branchId: string) {
 
     const teacherId = schedule.teaching.teacherId;
     if (teacherId) {
+      if (await teacherUsesDayLevelPunch(teacherId, branchId, now)) {
+        dayLevelTeacherIds.add(teacherId);
+      } else {
       const existingTeacher = await prisma.teacherAttendance.findUnique({
         where: {
           teacherId_sessionId_branchId: {
@@ -670,10 +699,18 @@ async function signalEndedSessionAbsences(branchId: string) {
           created += 1;
         }
       }
+      }
     }
 
     const classeId = schedule.teaching.classeId;
     if (!classeId) continue;
+    if (firstScheduleByClasse.get(classeId)?.id !== schedule.id) continue;
+
+    const creneauEnd = schedule.teaching.classe?.creneau?.endTime;
+    if (creneauEnd) {
+      const vacationEnd = scheduleHourToMinutes(creneauEnd);
+      if (currentMinutes <= vacationEnd + ABSENCE_GRACE_MINUTES) continue;
+    }
 
     const enrollments = await prisma.classEnrollment.findMany({
       where: {
@@ -705,6 +742,7 @@ async function signalEndedSessionAbsences(branchId: string) {
     );
 
     for (const enrollment of enrollments) {
+      if (presentStudentIds.has(enrollment.studentId)) continue;
       const existing = byStudentId.get(enrollment.studentId);
       if (existing && isPresentLike(existing.status, existing.checkIn)) continue;
       if (existing?.status === "EXCUSED") continue;
@@ -736,6 +774,67 @@ async function signalEndedSessionAbsences(branchId: string) {
       });
       created += 1;
     }
+  }
+
+  for (const teacherId of dayLevelTeacherIds) {
+    const punched = await prisma.teacherAttendance.findFirst({
+      where: {
+        branchId,
+        teacherId,
+        date: today,
+        checkIn: { not: null },
+      },
+      select: { id: true },
+    });
+    if (punched) continue;
+
+    const creneauEnd = await getTeacherDayCreneauEnd(teacherId, branchId, now);
+    if (creneauEnd) {
+      if (currentMinutes <= scheduleHourToMinutes(creneauEnd) + ABSENCE_GRACE_MINUTES) {
+        continue;
+      }
+    }
+
+    const session = await findTeacherDayArrivalSession(teacherId, branchId);
+    if (!session) continue;
+
+    const existingTeacher = await prisma.teacherAttendance.findUnique({
+      where: {
+        teacherId_sessionId_branchId: {
+          teacherId,
+          sessionId: session.id,
+          branchId,
+        },
+      },
+    });
+    if (existingTeacher?.checkIn) continue;
+    if (existingTeacher?.status === "EXCUSED") continue;
+
+    const attendance =
+      existingTeacher ??
+      (await prisma.teacherAttendance.create({
+        data: {
+          teacherId,
+          sessionId: session.id,
+          status: "ABSENT",
+          date: today,
+          branchId,
+        },
+      }));
+    const user = await loadTeacherUser(teacherId, branchId);
+    if (!user) continue;
+    await syncTeacherAttendanceAbsence({
+      branchId,
+      organizationId: branch.organizationId,
+      teacherId,
+      sessionId: session.id,
+      attendanceId: attendance.id,
+      status: "ABSENT",
+      contextLabel: "Vacation du jour",
+      occurredOn: today,
+      user,
+    });
+    created += 1;
   }
 
   return created;

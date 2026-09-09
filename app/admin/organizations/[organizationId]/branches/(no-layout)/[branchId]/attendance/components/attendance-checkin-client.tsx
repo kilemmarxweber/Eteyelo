@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import {
   IconCamera,
   IconFaceId,
+  IconFileTypePdf,
   IconSearch,
   IconUserCheck,
   IconUsers,
@@ -60,6 +61,8 @@ import type {
 } from "../attendance-scan-types";
 import { getCurrentGeoCoords } from "../component/attendance.client";
 import { AttendanceCheckoutDialog } from "./attendance-checkout-dialog";
+import { AttendanceClassFilters } from "./attendance-class-filters";
+import { downloadTodayAttendancePdf } from "./attendance-checkin-pdf";
 import { AttendanceQuickPersonRow } from "./attendance-quick-person-row";
 import { AttendanceScanDialog } from "./attendance-scanner";
 
@@ -98,12 +101,7 @@ function applyLiveStates(
   return people.map((person) => {
     const live = states.get(personKey(person));
     if (!live) {
-      return {
-        ...person,
-        alreadyCheckedIn: false,
-        canCheckOut: false,
-        attendanceId: null,
-      };
+      return person;
     }
     return {
       ...person,
@@ -112,6 +110,59 @@ function applyLiveStates(
       attendanceId: live.attendanceId,
     };
   });
+}
+
+function mergePeople(
+  next: AttendancePersonLookup[],
+  previous: AttendancePersonLookup[],
+) {
+  const previousByKey = new Map(
+    previous.map((person) => [personKey(person), person]),
+  );
+  return next.map((person) => {
+    const existing = previousByKey.get(personKey(person));
+    if (!existing) return person;
+    return {
+      ...person,
+      alreadyCheckedIn: existing.alreadyCheckedIn,
+      canCheckOut: existing.canCheckOut,
+      attendanceId: existing.attendanceId,
+      canCheckIn: person.canCheckIn ?? existing.canCheckIn,
+    };
+  });
+}
+
+type StoredCheckInNav = {
+  tab?: PointageTab;
+  cycleKey?: string;
+  levelKey?: string;
+  classeId?: string;
+};
+
+function navStorageKey(kioskBranchId?: string) {
+  return `eteyelo:attendance-nav:${kioskBranchId ?? "session"}`;
+}
+
+function readStoredNav(kioskBranchId?: string): StoredCheckInNav | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(navStorageKey(kioskBranchId));
+    if (!raw) return null;
+    return JSON.parse(raw) as StoredCheckInNav;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredNav(kioskBranchId: string | undefined, nav: StoredCheckInNav) {
+  try {
+    window.sessionStorage.setItem(
+      navStorageKey(kioskBranchId),
+      JSON.stringify(nav),
+    );
+  } catch {
+    // sessionStorage peut être indisponible (kiosque verrouillé).
+  }
 }
 
 function LiveClock() {
@@ -170,11 +221,17 @@ export function AttendanceCheckInClient({
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [personnelLoaded, setPersonnelLoaded] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [pdfBusyKey, setPdfBusyKey] = useState<string | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [recent, setRecent] = useState<RecentCheckIn[]>([]);
   const [checkout, setCheckout] = useState<CheckoutTarget | null>(null);
   const [pending, startTransition] = useTransition();
   const lastScanRef = useRef<string>("");
   const lastScanAtRef = useRef(0);
+  const didInitNav = useRef(false);
+  const studentsByClassRef = useRef(new Map<string, AttendancePersonLookup[]>());
+  const classeIdRef = useRef(classeId);
+  classeIdRef.current = classeId;
 
   const searching = searchQuery.trim().length >= 2;
 
@@ -182,7 +239,7 @@ export function AttendanceCheckInClient({
     const data = kioskBranchId
       ? await kioskGetQuickCheckInBootstrapAction(kioskBranchId)
       : await getQuickCheckInBootstrapAction();
-    setTeachers(data.teachers);
+    setTeachers((previous) => mergePeople(data.teachers, previous));
     setCycles(data.cycles);
     setCanViewPersonnel(data.canViewPersonnel);
     return data;
@@ -194,10 +251,15 @@ export function AttendanceCheckInClient({
       setSearchResults([]);
       return;
     }
-    const items = kioskBranchId
-      ? await kioskSearchPeopleForCheckInAction(kioskBranchId, trimmed)
-      : await searchPeopleForCheckInAction(trimmed);
-    setSearchResults(items);
+    setSearchLoading(true);
+    try {
+      const items = kioskBranchId
+        ? await kioskSearchPeopleForCheckInAction(kioskBranchId, trimmed)
+        : await searchPeopleForCheckInAction(trimmed);
+      setSearchResults(items);
+    } finally {
+      setSearchLoading(false);
+    }
   }, [kioskBranchId]);
 
   const loadStudents = useCallback(async (nextClasseId: string) => {
@@ -205,11 +267,18 @@ export function AttendanceCheckInClient({
       setStudents([]);
       return;
     }
-    setStudentsLoading(true);
+    const cached = studentsByClassRef.current.get(nextClasseId);
+    if (cached) {
+      setStudents(cached);
+      setStudentsLoading(false);
+    } else {
+      setStudentsLoading(true);
+    }
     try {
       const items = kioskBranchId
         ? await kioskListStudentsForClassCheckInAction(kioskBranchId, nextClasseId)
         : await listStudentsForClassCheckInAction(nextClasseId);
+      studentsByClassRef.current.set(nextClasseId, items);
       setStudents(items);
     } finally {
       setStudentsLoading(false);
@@ -220,47 +289,70 @@ export function AttendanceCheckInClient({
     const items = kioskBranchId
       ? await kioskListPersonnelForCheckInAction(kioskBranchId)
       : await listPersonnelForCheckInAction();
-    setPersonnel(items);
+    setPersonnel((previous) =>
+      previous.length ? mergePeople(items, previous) : items,
+    );
     setPersonnelLoaded(true);
   }, [kioskBranchId]);
 
   useEffect(() => {
-    startTransition(async () => {
+    let cancelled = false;
+    void (async () => {
       try {
         const data = await loadBootstrap();
-        const firstCycle = data.cycles[0];
-        const firstLevel = firstCycle?.levels[0];
-        const firstClass =
-          firstLevel?.classes.find((item) => item.hasUpcomingSession) ??
-          firstLevel?.classes[0];
-        if (firstCycle) setCycleKey(firstCycle.key);
-        if (firstLevel) setLevelKey(firstLevel.key);
-        if (firstClass) setClasseId(firstClass.id);
+        if (cancelled || didInitNav.current) return;
+        didInitNav.current = true;
+        const stored = readStoredNav(kioskBranchId);
+        const cycle =
+          data.cycles.find((item) => item.key === stored?.cycleKey) ??
+          data.cycles[0];
+        const level =
+          cycle?.levels.find((item) => item.key === stored?.levelKey) ??
+          cycle?.levels[0];
+        const classe =
+          level?.classes.find((item) => item.id === stored?.classeId) ??
+          level?.classes.find((item) => item.hasUpcomingSession) ??
+          level?.classes[0];
+        if (
+          stored?.tab === "teacher" ||
+          stored?.tab === "student" ||
+          (stored?.tab === "personnel" && data.canViewPersonnel)
+        ) {
+          setTab(stored.tab);
+        }
+        if (cycle) setCycleKey(cycle.key);
+        if (level) setLevelKey(level.key);
+        if (classe) setClasseId(classe.id);
       } catch (error) {
         toast.error(
           error instanceof Error ? error.message : t("checkInUi.searchFailed"),
         );
       } finally {
-        setBootstrapLoading(false);
+        if (!cancelled) setBootstrapLoading(false);
       }
-    });
-  }, [loadBootstrap, t]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [kioskBranchId, loadBootstrap, t]);
+
+  useEffect(() => {
+    if (bootstrapLoading) return;
+    writeStoredNav(kioskBranchId, { tab, cycleKey, levelKey, classeId });
+  }, [bootstrapLoading, classeId, cycleKey, kioskBranchId, levelKey, tab]);
 
   useEffect(() => {
     if (!searching) {
       setSearchResults([]);
+      setSearchLoading(false);
       return;
     }
 
     const timeout = window.setTimeout(() => {
-      startTransition(async () => {
-        try {
-          await fetchSearchResults(searchQuery);
-        } catch (error) {
-          toast.error(
-            error instanceof Error ? error.message : t("checkInUi.searchFailed"),
-          );
-        }
+      void fetchSearchResults(searchQuery).catch((error) => {
+        toast.error(
+          error instanceof Error ? error.message : t("checkInUi.searchFailed"),
+        );
       });
     }, 300);
 
@@ -269,27 +361,19 @@ export function AttendanceCheckInClient({
 
   useEffect(() => {
     if (tab !== "student" || !classeId || searching) return;
-    startTransition(async () => {
-      try {
-        await loadStudents(classeId);
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : t("checkInUi.searchFailed"),
-        );
-      }
+    void loadStudents(classeId).catch((error) => {
+      toast.error(
+        error instanceof Error ? error.message : t("checkInUi.searchFailed"),
+      );
     });
   }, [classeId, loadStudents, searching, t, tab]);
 
   useEffect(() => {
     if (tab !== "personnel" || personnelLoaded || searching) return;
-    startTransition(async () => {
-      try {
-        await loadPersonnel();
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : t("checkInUi.searchFailed"),
-        );
-      }
+    void loadPersonnel().catch((error) => {
+      toast.error(
+        error instanceof Error ? error.message : t("checkInUi.searchFailed"),
+      );
     });
   }, [loadPersonnel, personnelLoaded, searching, t, tab]);
 
@@ -328,7 +412,14 @@ export function AttendanceCheckInClient({
           ]),
         );
         setTeachers((people) => applyLiveStates(people, states));
-        setStudents((people) => applyLiveStates(people, states));
+        setStudents((people) => {
+          const next = applyLiveStates(people, states);
+          const currentClasseId = classeIdRef.current;
+          if (currentClasseId) {
+            studentsByClassRef.current.set(currentClasseId, next);
+          }
+          return next;
+        });
         setPersonnel((people) => applyLiveStates(people, states));
         setSearchResults((people) => applyLiveStates(people, states));
         setRecent(
@@ -377,28 +468,8 @@ export function AttendanceCheckInClient({
     };
   }, [busyKey, checkout, kioskBranchId, pending]);
 
-  const selectedCycle = cycles.find((item) => item.key === cycleKey) ?? cycles[0];
-  const selectedLevel =
-    selectedCycle?.levels.find((item) => item.key === levelKey) ??
-    selectedCycle?.levels[0];
-  const selectedClass =
-    selectedLevel?.classes.find((item) => item.id === classeId) ??
-    selectedLevel?.classes[0];
-
-  useEffect(() => {
-    if (!selectedCycle) return;
-    if (selectedCycle.key !== cycleKey) setCycleKey(selectedCycle.key);
-  }, [cycleKey, selectedCycle]);
-
-  useEffect(() => {
-    if (!selectedLevel) return;
-    if (selectedLevel.key !== levelKey) setLevelKey(selectedLevel.key);
-  }, [levelKey, selectedLevel]);
-
-  useEffect(() => {
-    if (!selectedClass) return;
-    if (selectedClass.id !== classeId) setClasseId(selectedClass.id);
-  }, [classeId, selectedClass]);
+  const selectedCycle = cycles.find((item) => item.key === cycleKey);
+  const selectedLevel = selectedCycle?.levels.find((item) => item.key === levelKey);
 
   const pushRecent = useCallback((result: AttendanceCheckInResult) => {
     setRecent((items) =>
@@ -483,6 +554,31 @@ export function AttendanceCheckInClient({
     [markPersonState, openCheckoutFromResult, pushRecent],
   );
 
+  const printPdf = useCallback(
+    async (kind: "teachers" | "personnel" | "students", classeIdToPrint?: string) => {
+      const key =
+        kind === "students"
+          ? `class:${classeIdToPrint ?? ""}`
+          : kind;
+      setPdfBusyKey(key);
+      try {
+        await downloadTodayAttendancePdf({
+          kind,
+          classeId: classeIdToPrint,
+          kioskBranchId,
+          t,
+        });
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : t("reports.pdfError"),
+        );
+      } finally {
+        setPdfBusyKey(null);
+      }
+    },
+    [kioskBranchId, t],
+  );
+
   const runScan = useCallback(
     (code: string) => {
       const value = code.trim();
@@ -520,6 +616,7 @@ export function AttendanceCheckInClient({
   );
 
   function checkInPerson(person: AttendancePersonLookup) {
+    if (person.canCheckIn === false) return;
     const key = personKey(person);
     setBusyKey(key);
     startTransition(async () => {
@@ -608,6 +705,11 @@ export function AttendanceCheckInClient({
                     })
                   : null
               }
+              blockedReason={
+                person.canCheckIn === false && !person.canCheckOut
+                  ? t("checkInUi.noStudentSessionToday")
+                  : null
+              }
               busy={pending && busyKey === personKey(person)}
               onPointer={() => checkInPerson(person)}
               onCheckout={() => checkOutPerson(person)}
@@ -641,7 +743,9 @@ export function AttendanceCheckInClient({
         : personnel;
   const checkedCount = visiblePeople.filter((person) => person.alreadyCheckedIn)
     .length;
-  const pendingCount = Math.max(0, visiblePeople.length - checkedCount);
+  const pendingCount = visiblePeople.filter(
+    (person) => !person.alreadyCheckedIn && person.canCheckIn !== false,
+  ).length;
 
   function renderRecentItem(item: RecentCheckIn) {
     return (
@@ -673,106 +777,52 @@ export function AttendanceCheckInClient({
 
   const studentFilters =
     tab === "student" && !searching && !bootstrapLoading ? (
-      <div className="shrink-0 space-y-2">
-        {cycles.length > 1 ? (
-          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-            {cycles.map((cycle) => (
-              <Button
-                key={cycle.key}
-                type="button"
-                size="sm"
-                variant={cycle.key === selectedCycle?.key ? "default" : "outline"}
-                onClick={() => {
-                  setCycleKey(cycle.key);
-                  const nextLevel = cycle.levels[0];
-                  setLevelKey(nextLevel?.key ?? "");
-                  const nextClass =
-                    nextLevel?.classes.find((item) => item.hasUpcomingSession) ??
-                    nextLevel?.classes[0];
-                  setClasseId(nextClass?.id ?? "");
-                }}
-              >
-                {cycle.label}
-              </Button>
-            ))}
-          </div>
-        ) : null}
-
-        {selectedCycle?.levels.length ? (
-          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-            {selectedCycle.levels.map((level) => (
-              <Button
-                key={level.key}
-                type="button"
-                size="sm"
-                variant={
-                  level.key === selectedLevel?.key ? "default" : "outline"
-                }
-                onClick={() => {
-                  setLevelKey(level.key);
-                  const nextClass =
-                    level.classes.find((item) => item.hasUpcomingSession) ??
-                    level.classes[0];
-                  setClasseId(nextClass?.id ?? "");
-                }}
-              >
-                {level.label}
-              </Button>
-            ))}
-          </div>
-        ) : null}
-
-        {selectedLevel?.classes.length ? (
-          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-            {selectedLevel.classes.map((classe) => (
-              <button
-                key={classe.id}
-                type="button"
-                onClick={() => setClasseId(classe.id)}
-                className={cn(
-                  "shrink-0 rounded-full border px-3 py-1.5 text-left text-sm transition",
-                  classe.id === selectedClass?.id
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "hover:bg-muted/60",
-                )}
-              >
-                <span className="font-medium">{classe.name}</span>
-                <span
-                  className={cn(
-                    "ml-1.5 text-xs",
-                    classe.id === selectedClass?.id
-                      ? "text-primary-foreground/80"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  {t("checkInUi.studentsCount", { count: classe.studentCount })}
-                </span>
-                {classe.hasUpcomingSession ? (
-                  <span
-                    className={cn(
-                      "ml-1.5 inline-block size-1.5 rounded-full",
-                      classe.id === selectedClass?.id
-                        ? "bg-primary-foreground"
-                        : "bg-primary",
-                    )}
-                  />
-                ) : null}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <p className="rounded-xl border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
-            {t("checkInUi.noClasses")}
-          </p>
-        )}
-      </div>
+      <AttendanceClassFilters
+        cycles={cycles}
+        selectedCycle={selectedCycle}
+        selectedLevel={selectedLevel}
+        selectedClasseId={classeId}
+        printingClassId={
+          pdfBusyKey?.startsWith("class:")
+            ? pdfBusyKey.slice("class:".length)
+            : null
+        }
+        labels={{
+          cycle: t("checkInUi.filterCycle"),
+          level: t("checkInUi.filterLevel"),
+          classe: t("checkInUi.filterClass"),
+          studentsCount: (count) => t("checkInUi.studentsCount", { count }),
+          printPdf: t("checkInUi.printPdf"),
+          noClasses: t("checkInUi.noClasses"),
+        }}
+        onSelectCycle={(cycle) => {
+          setCycleKey(cycle.key);
+          const nextLevel = cycle.levels[0];
+          setLevelKey(nextLevel?.key ?? "");
+          const nextClass =
+            nextLevel?.classes.find((item) => item.hasUpcomingSession) ??
+            nextLevel?.classes[0];
+          setClasseId(nextClass?.id ?? "");
+        }}
+        onSelectLevel={(level) => {
+          setLevelKey(level.key);
+          const nextClass =
+            level.classes.find((item) => item.hasUpcomingSession) ??
+            level.classes[0];
+          setClasseId(nextClass?.id ?? "");
+        }}
+        onSelectClass={setClasseId}
+        onPrintClass={(nextClasseId) => {
+          void printPdf("students", nextClasseId);
+        }}
+      />
     ) : null;
 
   let listContent: ReactNode;
   if (searching) {
     listContent = renderPersonList(
       searchResults,
-      pending ? t("checkInUi.searching") : t("checkInUi.noPersonFound"),
+      searchLoading ? t("checkInUi.searching") : t("checkInUi.noPersonFound"),
     );
   } else if (tab === "teacher") {
     listContent = bootstrapLoading
@@ -781,12 +831,12 @@ export function AttendanceCheckInClient({
   } else if (tab === "student") {
     listContent = bootstrapLoading
       ? renderListSkeleton(6)
-      : studentsLoading || (pending && students.length === 0)
+      : studentsLoading && students.length === 0
         ? renderListSkeleton(6)
         : renderPersonList(students, t("checkInUi.noStudents"));
   } else {
     listContent =
-      !personnelLoaded && pending
+      !personnelLoaded && personnel.length === 0
         ? renderListSkeleton(4)
         : renderPersonList(personnel, t("checkInUi.noPersonnel"));
   }
@@ -851,16 +901,46 @@ export function AttendanceCheckInClient({
               <LiveClock />
             </div>
           )}
-          {visiblePeople.length > 0 ? (
-            <div className="ml-auto flex items-center gap-1.5">
-              <Badge variant="outline">
-                {t("checkInUi.pendingCount", { count: pendingCount })}
-              </Badge>
-              <Badge variant="success">
-                {t("checkInUi.doneCount", { count: checkedCount })}
-              </Badge>
-            </div>
-          ) : null}
+          <div className="ml-auto flex items-center gap-1.5">
+            {!searching && tab === "teacher" ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-10 text-red-600 hover:bg-red-500/10 hover:text-red-600"
+                aria-label={t("checkInUi.printPdf")}
+                title={t("checkInUi.printPdf")}
+                disabled={pdfBusyKey === "teachers"}
+                onClick={() => void printPdf("teachers")}
+              >
+                <IconFileTypePdf className="size-5" />
+              </Button>
+            ) : null}
+            {!searching && tab === "personnel" ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-10 text-red-600 hover:bg-red-500/10 hover:text-red-600"
+                aria-label={t("checkInUi.printPdf")}
+                title={t("checkInUi.printPdf")}
+                disabled={pdfBusyKey === "personnel"}
+                onClick={() => void printPdf("personnel")}
+              >
+                <IconFileTypePdf className="size-5" />
+              </Button>
+            ) : null}
+            {visiblePeople.length > 0 ? (
+              <>
+                <Badge variant="outline">
+                  {t("checkInUi.pendingCount", { count: pendingCount })}
+                </Badge>
+                <Badge variant="success">
+                  {t("checkInUi.doneCount", { count: checkedCount })}
+                </Badge>
+              </>
+            ) : null}
+          </div>
         </div>
 
         <div

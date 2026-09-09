@@ -29,9 +29,11 @@ import {
 } from "@/lib/auth/data-scope";
 import { assertWithinBranchAttendanceRadius } from "@/lib/attendance-geo.server";
 import {
+  findTeacherDayArrivalSession,
   getBranchCourseDurationMinutes,
   getOrCreateTeacherAttendanceSession,
   listTeacherScheduleCandidates,
+  teacherUsesDayLevelPunch,
 } from "@/lib/attendance-teacher-session";
 import {
   afterPersonnelAttendanceWrite,
@@ -1205,6 +1207,46 @@ export async function checkTeacherAttendanceNeeded({
     });
 
     if (!teacher) return null;
+
+    if (await teacherUsesDayLevelPunch(teacher.id, branchId)) {
+      const today = startOfTodayParis();
+      const already = await prisma.teacherAttendance.findFirst({
+        where: {
+          branchId,
+          teacherId: teacher.id,
+          date: today,
+          checkIn: { not: null },
+        },
+        select: { id: true },
+      });
+      if (already) return null;
+
+      const attendanceSession = await findTeacherDayArrivalSession(
+        teacher.id,
+        branchId,
+      );
+      if (!attendanceSession) return null;
+
+      const teaching = await prisma.teaching.findFirst({
+        where: { id: attendanceSession.teachingId },
+        include: {
+          cours: { select: { nameCours: true } },
+          classe: { select: { nameClasse: true, codeClasse: true } },
+        },
+      });
+
+      return {
+        teacherId: teacher.id,
+        teachingId: attendanceSession.teachingId,
+        sessionId: attendanceSession.id,
+        cours: teaching?.cours?.nameCours ?? null,
+        classe:
+          teaching?.classe?.nameClasse ??
+          teaching?.classe?.codeClasse ??
+          null,
+        branch,
+      };
+    }
 
     const courseDurationMinutes =
       await getBranchCourseDurationMinutes(branchId);

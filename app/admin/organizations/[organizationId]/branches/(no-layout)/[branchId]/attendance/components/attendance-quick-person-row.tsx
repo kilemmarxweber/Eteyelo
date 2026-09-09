@@ -23,6 +23,7 @@ export function AttendanceQuickPersonRow({
   checkoutLabel,
   doneLabel,
   sessionLabel,
+  blockedReason,
   busy,
   onPointer,
   onCheckout,
@@ -32,12 +33,14 @@ export function AttendanceQuickPersonRow({
   checkoutLabel: string;
   doneLabel: string;
   sessionLabel?: string | null;
+  blockedReason?: string | null;
   busy: boolean;
   onPointer: () => void;
   onCheckout: () => void;
 }) {
   const done = person.alreadyCheckedIn && !person.canCheckOut;
   const canLeave = Boolean(person.canCheckOut);
+  const canPointer = person.canCheckIn !== false;
 
   return (
     <div
@@ -47,7 +50,9 @@ export function AttendanceQuickPersonRow({
           ? "border-emerald-500/25 bg-emerald-500/5"
           : canLeave
             ? "border-amber-500/25 bg-amber-500/5"
-            : "bg-card hover:bg-muted/50",
+            : !canPointer
+              ? "bg-muted/30 opacity-80"
+              : "bg-card hover:bg-muted/50",
       )}
     >
       <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -69,6 +74,10 @@ export function AttendanceQuickPersonRow({
           <p className="mt-0.5 truncate text-xs font-medium text-primary">
             {sessionLabel}
           </p>
+        ) : blockedReason ? (
+          <p className="mt-0.5 text-xs font-medium text-muted-foreground">
+            {blockedReason}
+          </p>
         ) : null}
       </div>
       </div>
@@ -82,7 +91,7 @@ export function AttendanceQuickPersonRow({
             type="button"
             size="lg"
             variant={canLeave ? "outline" : "default"}
-            disabled={busy}
+            disabled={busy || (!canLeave && !canPointer)}
             className="h-12 w-full touch-manipulation px-4 sm:h-11 sm:min-w-[7.5rem] sm:w-auto"
             onClick={canLeave ? onCheckout : onPointer}
           >

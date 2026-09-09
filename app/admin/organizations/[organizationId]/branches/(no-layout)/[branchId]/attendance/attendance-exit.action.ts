@@ -20,6 +20,11 @@ import {
   minutesBetween,
 } from "@/lib/attendance-exit";
 import { isStudentNormalCheckoutAllowed } from "@/lib/attendance-student-session";
+import {
+  getTeacherDayCreneauEnd,
+  isTeacherNormalCheckoutAllowed,
+  teacherUsesDayLevelPunch,
+} from "@/lib/attendance-teacher-session";
 import { nowLocal } from "@/lib/timezone";
 import {
   buildLocalizedSchoolReportContext,
@@ -279,7 +284,7 @@ export const closeStudentDayByVacationAction = action
     );
     if (!allowNormal) {
       throw new Error(
-        "La fin normale n'est possible qu'à la dernière séance du créneau. Avant cela, enregistrez une sortie anticipée (incident).",
+        "La fin normale n'est possible qu'à l'heure de fin du créneau. Avant cela, enregistrez une sortie anticipée avec justification.",
       );
     }
 
@@ -322,13 +327,37 @@ export const closeTeacherSessionAction = action
       teacherId: attendance.teacherId,
     });
 
+    const dayLevel = await teacherUsesDayLevelPunch(
+      attendance.teacherId,
+      branchId,
+    );
+    if (dayLevel) {
+      const allowNormal = await isTeacherNormalCheckoutAllowed(
+        attendance.teacherId,
+        branchId,
+      );
+      if (!allowNormal) {
+        throw new Error(
+          "La fin normale n'est possible qu'à l'heure de fin du créneau. Avant cela, enregistrez une sortie anticipée avec justification.",
+        );
+      }
+    }
+
+    const checkoutAt = dayLevel
+      ? ((await getTeacherDayCreneauEnd(attendance.teacherId, branchId)) ??
+        combineDateWithCreneauTime(
+          attendance.date ?? nowLocal(),
+          attendance.session.endTime,
+        ))
+      : combineDateWithCreneauTime(
+          attendance.date ?? nowLocal(),
+          attendance.session.endTime,
+        );
+
     return prisma.teacherAttendance.update({
       where: { id: attendance.id },
       data: {
-        checkOut: combineDateWithCreneauTime(
-          attendance.date ?? nowLocal(),
-          attendance.session.endTime,
-        ),
+        checkOut: checkoutAt,
         earlyExit: false,
       },
     });
@@ -380,11 +409,11 @@ export const recordNormalCheckoutAction = action
         branchId,
         now,
       );
-      if (!allowNormal) {
-        throw new Error(
-          "La fin normale n'est possible qu'à la dernière séance du créneau. Avant cela, enregistrez une sortie anticipée (incident).",
-        );
-      }
+    if (!allowNormal) {
+      throw new Error(
+        "La fin normale n'est possible qu'à l'heure de fin du créneau. Avant cela, enregistrez une sortie anticipée avec justification.",
+      );
+    }
       return prisma.studentAttendance.update({
         where: { id: attendance.id },
         data: { checkOut: expectedEnd, earlyExit: false },
@@ -407,13 +436,36 @@ export const recordNormalCheckoutAction = action
         sessionId: attendance.sessionId,
         teacherId: attendance.teacherId,
       });
+      const dayLevel = await teacherUsesDayLevelPunch(
+        attendance.teacherId,
+        branchId,
+      );
+      if (dayLevel) {
+        const allowNormal = await isTeacherNormalCheckoutAllowed(
+          attendance.teacherId,
+          branchId,
+          now,
+        );
+        if (!allowNormal) {
+          throw new Error(
+            "La fin normale n'est possible qu'à l'heure de fin du créneau. Avant cela, enregistrez une sortie anticipée avec justification.",
+          );
+        }
+      }
+      const checkoutAt = dayLevel
+        ? ((await getTeacherDayCreneauEnd(attendance.teacherId, branchId)) ??
+          combineDateWithCreneauTime(
+            attendance.date ?? now,
+            attendance.session.endTime,
+          ))
+        : combineDateWithCreneauTime(
+            attendance.date ?? now,
+            attendance.session.endTime,
+          );
       return prisma.teacherAttendance.update({
         where: { id: attendance.id },
         data: {
-          checkOut: combineDateWithCreneauTime(
-            attendance.date ?? now,
-            attendance.session.endTime,
-          ),
+          checkOut: checkoutAt,
           earlyExit: false,
         },
       });
