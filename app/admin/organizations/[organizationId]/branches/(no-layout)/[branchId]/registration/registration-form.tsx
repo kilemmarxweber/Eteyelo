@@ -478,6 +478,7 @@ export function RegistrationForm({
       level,
       sectionId,
       optionId,
+      classeId: chosenClasseId,
       creneauId,
       photoUrl,
     };
@@ -616,6 +617,7 @@ export function RegistrationForm({
       if (typeof p.level === "string") setLevel(p.level);
       if (typeof p.sectionId === "string") setSectionId(p.sectionId);
       if (typeof p.optionId === "string") setOptionId(p.optionId);
+      if (typeof p.classeId === "string") setChosenClasseId(p.classeId);
       if (typeof p.creneauId === "string") setCreneauId(p.creneauId);
       if (typeof p.photoUrl === "string") setPhotoUrl(p.photoUrl);
       setDraftSavedAt(draft.savedAt);
@@ -651,6 +653,7 @@ export function RegistrationForm({
     level,
     sectionId,
     optionId,
+    chosenClasseId,
     creneauId,
     photoUrl,
     branchId,
@@ -1168,8 +1171,10 @@ export function RegistrationForm({
     [selectedClasses, schoolYearId],
   );
   const predictedClass = useMemo(() => {
-    if (historyOutcome === "changeClass") {
-      const selectedId = chosenClasseId || currentEnrollmentClasseId;
+    const selectedId =
+      chosenClasseId ||
+      (historyOutcome === "changeClass" ? currentEnrollmentClasseId : "");
+    if (selectedId) {
       return (
         classStats.find((classe: { id: string }) => classe.id === selectedId) ??
         null
@@ -1201,11 +1206,10 @@ export function RegistrationForm({
   );
   const needsClassAction =
     Boolean(level) &&
-    (historyOutcome === "changeClass"
-      ? selectedClasses.length === 0 ||
-        classesNeedingCapacity ||
-        selectedClasses.length < 2
-      : !predictedClass);
+    (selectedClasses.length === 0 ||
+      classesNeedingCapacity ||
+      selectedClasses.length < 2 ||
+      (!chosenClasseId && allClassesFull));
   const selectedStudent = useMemo(() => {
     if (!studentId) return null;
     return (
@@ -1221,7 +1225,7 @@ export function RegistrationForm({
     );
   }, [parentResults, parentId, parent]);
   const hasCreneaux = (options.creneaux?.length ?? 0) > 0;
-  const discountClassId = predictedClass?.id ?? selectedClasses[0]?.id ?? "";
+  const discountClassId = chosenClasseId || predictedClass?.id || selectedClasses[0]?.id || "";
   const showDiscountFields = !hidesParent && parentMode === "new";
   const discountEligibleTotal = useMemo(() => {
     if (parent.discountPercentage <= 0) return 0;
@@ -1537,50 +1541,64 @@ export function RegistrationForm({
     setFeeDebtMessage("");
     setHistoryOutcome(outcome);
     applySuggestedClass(suggestion);
+    setChosenClasseId(outcome === "changeClass" ? suggestion.classeId ?? "" : "");
     if (outcome === "changeClass") {
-      const classeId = suggestion.classeId ?? "";
-      setCurrentEnrollmentClasseId(classeId);
-      setChosenClasseId(classeId);
+      setCurrentEnrollmentClasseId(suggestion.classeId ?? "");
       if (classStepIndex >= 0) setStep(classStepIndex);
     } else {
       setCurrentEnrollmentClasseId("");
-      setChosenClasseId("");
     }
     toast.success(suggestion.reason);
   }
 
   async function chooseParallelClass(classeId: string) {
-    if (historyOutcome !== "changeClass" || !studentId || transferringClass) {
+    const target = classStats.find((classe: { id: string }) => classe.id === classeId);
+    if (!target) return;
+
+    if (historyOutcome === "changeClass") {
+      if (!studentId || transferringClass) return;
+      setTransferringClass(true);
+      try {
+        const [result, error] = await transferStudentClassCurrentYearAction({
+          studentId,
+          targetClasseId: classeId,
+        });
+        if (error || !result) {
+          toast.error(error?.message || tReg("changeClassFailed"));
+          return;
+        }
+        setChosenClasseId(result.classeId);
+        setCurrentEnrollmentClasseId(result.classeId);
+        if (result.unchanged) {
+          toast.message(
+            tReg("changeClassAlreadyThere", { name: result.classeName }),
+          );
+          return;
+        }
+        toast.success(
+          tReg("changeClassSuccess", {
+            from: result.fromClass,
+            to: result.toClass,
+          }),
+        );
+        stopAndClearAdminDraft();
+        resetAdminRegistrationForm();
+        draftReadyRef.current = true;
+        await loadRegistrationOptions(true);
+      } finally {
+        setTransferringClass(false);
+      }
       return;
     }
-    setTransferringClass(true);
-    try {
-      const [result, error] = await transferStudentClassCurrentYearAction({
-        studentId,
-        targetClasseId: classeId,
-      });
-      if (error || !result) {
-        toast.error(error?.message || tReg("changeClassFailed"));
-        return;
-      }
-      setChosenClasseId(result.classeId);
-      setCurrentEnrollmentClasseId(result.classeId);
-      if (result.unchanged) {
-        toast.message(
-          tReg("changeClassAlreadyThere", { name: result.classeName }),
-        );
-        return;
-      }
-      toast.success(
-        tReg("changeClassSuccess", {
-          from: result.fromClass,
-          to: result.toClass,
-        }),
-      );
-      await loadRegistrationOptions(false);
-    } finally {
-      setTransferringClass(false);
+
+    if (target.full) {
+      toast.error(tReg("parallelFull", { name: target.nameClasse }));
+      return;
     }
+    setChosenClasseId(classeId);
+    toast.success(
+      tReg("parallelChosen", { name: target.nameClasse }),
+    );
   }
   function updatePerson<T>(
     current: T,
@@ -1639,9 +1657,20 @@ export function RegistrationForm({
         return toast.error(
           `Définissez la capacité de l'${classLabelLower} avant de continuer.`,
         );
-      if (allClassesFull || !predictedClass)
+      if (!chosenClasseId)
+        return toast.error(tReg("parallelPickRequired"));
+      if (allClassesFull && !chosenClasseId)
         return toast.error(
           "Toutes les parallèles sont pleines. Créez la prochaine parallèle avant de continuer.",
+        );
+      const chosen = classStats.find(
+        (classe: { id: string; full?: boolean }) => classe.id === chosenClasseId,
+      );
+      if (!chosen)
+        return toast.error(tReg("parallelPickRequired"));
+      if (chosen.full)
+        return toast.error(
+          "Cette parallèle est pleine. Choisissez une autre ou créez-en une.",
         );
       if (
         !hidesParent &&
@@ -1671,6 +1700,10 @@ export function RegistrationForm({
   }
   async function submit() {
     setLoading(true);
+    if (historyOutcome !== "changeClass" && !chosenClasseId) {
+      setLoading(false);
+      return toast.error(tReg("parallelPickRequired"));
+    }
     let resolvedPhotoUrl = photoUrl;
     if (studentMode === "new" && photoFile) {
       const uploaded = await uploadFile(photoFile);
@@ -1714,6 +1747,7 @@ export function RegistrationForm({
       studentExtra,
       familyExtra: hidesParent ? undefined : familyExtra,
       historyOutcome,
+      classeId: chosenClasseId || undefined,
       photoUrl: studentMode === "new" ? resolvedPhotoUrl || undefined : undefined,
     });
     setLoading(false);
@@ -1826,7 +1860,7 @@ export function RegistrationForm({
       return toast.error(
         `Choisissez d'abord l'${schoolYearLabelLower} et l'${classLabelLower} demandé(e).`,
       );
-    if (predictedClass && historyOutcome !== "changeClass") {
+    if (predictedClass && selectedClasses.length === 0) {
       toast.success(
         `${predictedClass.nameClasse} a encore des places. L'élève y sera inscrit.`,
       );
@@ -1856,7 +1890,7 @@ export function RegistrationForm({
       optionId: allowsOption ? optionId || undefined : undefined,
       creneauId,
       capacity,
-      forceNewParallel: historyOutcome === "changeClass",
+      forceNewParallel: selectedClasses.length >= 1,
     });
     setCreatingClass(false);
     if (error) {
@@ -2833,6 +2867,7 @@ export function RegistrationForm({
                               setLevel("");
                               setSectionId("");
                               setOptionId("");
+                              setChosenClasseId("");
                             }}
                           />
                         ))}
@@ -2845,7 +2880,10 @@ export function RegistrationForm({
                     <Field label={tReg("fields.schoolYearRequired", { yearLabel: schoolYearLabel })}>
                       <Select
                         value={schoolYearId || undefined}
-                        onValueChange={setSchoolYearId}
+                        onValueChange={(value) => {
+                          setSchoolYearId(value);
+                          setChosenClasseId("");
+                        }}
                         disabled={historyOutcome === "changeClass"}
                       >
                         <SelectTrigger>
@@ -2866,6 +2904,7 @@ export function RegistrationForm({
                         key={structureType || "no-cycle"}
                         value={level || undefined}
                         onValueChange={(value: string) => {
+                          setChosenClasseId("");
                           setLevel(value);
                           const lockCteb = isCtebLevel(value);
                           const lockNucleo =
@@ -2953,6 +2992,7 @@ export function RegistrationForm({
                                 onValueChange={(value: string) => {
                                   setSectionId(value);
                                   setOptionId("");
+                                  setChosenClasseId("");
                                 }}
                                 disabled={
                                   historyOutcome === "changeClass" || !level
@@ -2993,7 +3033,10 @@ export function RegistrationForm({
                             <Select
                               key={`option-${structureType}-${level}-${sectionId}`}
                               value={optionSelectValue}
-                              onValueChange={setOptionId}
+                              onValueChange={(value: string) => {
+                                setOptionId(value);
+                                setChosenClasseId("");
+                              }}
                               disabled={
                                 historyOutcome === "changeClass" ||
                                 !level ||
@@ -3045,9 +3088,10 @@ export function RegistrationForm({
                                 ? undefined
                                 : "none")
                             }
-                            onValueChange={(value: string) =>
-                              setOptionId(value === "none" ? "" : value)
-                            }
+                            onValueChange={(value: string) => {
+                              setOptionId(value === "none" ? "" : value);
+                              setChosenClasseId("");
+                            }}
                             disabled={historyOutcome === "changeClass"}
                           >
                             <SelectTrigger>
@@ -3160,12 +3204,12 @@ export function RegistrationForm({
                     <AlertTitle>
                       {historyOutcome === "changeClass"
                         ? tReg("changeClassManualTitle")
-                        : tReg("autoAssignTitle")}
+                        : tReg("parallelPickTitle")}
                     </AlertTitle>
                     <AlertDescription>
                       {historyOutcome === "changeClass"
                         ? tReg("changeClassManualDesc", { classLabel })
-                        : tReg("autoAssignDesc", { classLabel })}
+                        : tReg("parallelPickDesc", { classLabel })}
                     </AlertDescription>
                   </Alert>
                   <div>
@@ -3196,11 +3240,12 @@ export function RegistrationForm({
                                 key={classe.id}
                                 classe={classe}
                                 tReg={tReg}
-                                selectable={historyOutcome === "changeClass"}
+                                selectable
                                 selected={
-                                  historyOutcome === "changeClass" &&
                                   (chosenClasseId ||
-                                    currentEnrollmentClasseId) === classe.id
+                                    (historyOutcome === "changeClass"
+                                      ? currentEnrollmentClasseId
+                                      : "")) === classe.id
                                 }
                                 current={
                                   historyOutcome === "changeClass" &&
@@ -3244,14 +3289,21 @@ export function RegistrationForm({
                             <AlertTitle>
                               {historyOutcome === "changeClass"
                                 ? tReg("changeClassCurrentTitle")
-                                : tReg("plannedAssignTitle")}
+                                : chosenClasseId
+                                  ? tReg("parallelChosenTitle")
+                                  : tReg("plannedAssignTitle")}
                             </AlertTitle>
                             <AlertDescription>
                               {historyOutcome === "changeClass"
                                 ? tReg("changeClassCurrentDesc", {
                                     className: predictedClass.nameClasse,
                                   })
-                                : tReg("plannedAssignDesc", {
+                                : chosenClasseId
+                                  ? tReg("parallelChosenDesc", {
+                                      student: peopleLabels.studentLower,
+                                      className: predictedClass.nameClasse,
+                                    })
+                                  : tReg("plannedAssignDesc", {
                                     student: peopleLabels.studentLower,
                                     className: predictedClass.nameClasse,
                                     occupied: predictedClass.occupied + 1,

@@ -41,6 +41,7 @@ export const registrationSchema = z
       .optional(),
     level: z.string().min(1, "Niveau requis"),
     optionId: z.string().optional(),
+    classeId: z.string().optional(),
     studentMode: z.enum(["existing", "new"]),
     studentId: z.string().optional(),
     student: personSchema

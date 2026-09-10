@@ -34,6 +34,7 @@ export type AdminRegistrationDraftPayload = {
   level: string;
   sectionId: string;
   optionId: string;
+  classeId?: string;
   creneauId: string;
   photoUrl: string;
 };

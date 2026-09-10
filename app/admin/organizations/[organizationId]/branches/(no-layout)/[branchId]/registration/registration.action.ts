@@ -1924,15 +1924,74 @@ export const createRegistrationFlowAction = action
           throw new Error(`Cet ${peopleLabels.studentLower} est déjà inscrit pour cette année scolaire.`);
         }
 
-        const classe = await findAvailableClassForLevel(tx, {
-          branchId,
-          schoolYearId: input.schoolYearId,
-          level: input.level,
-          optionId: selectedOption?.id ?? null,
-          typebranch: academicCycle,
-          optionName: selectedOption?.nameOption ?? null,
-          cycle: academicCycle,
-        });
+        const classe = input.classeId
+          ? await (async () => {
+              const chosen = await tx.classe.findFirst({
+                where: {
+                  id: input.classeId,
+                  branchId,
+                  OR: [{ statusClasse: true }, { statusClasse: null }],
+                },
+                select: {
+                  id: true,
+                  nameClasse: true,
+                  level: true,
+                  optionId: true,
+                  cycle: true,
+                  capacity: true,
+                  option: { select: { id: true, nameOption: true } },
+                  _count: {
+                    select: {
+                      classEnrollment: {
+                        where: {
+                          schoolYearId: input.schoolYearId,
+                          statusEnrollment: true,
+                          branchId,
+                        },
+                      },
+                    },
+                  },
+                },
+              });
+              if (!chosen) {
+                throw new Error("La parallèle choisie est introuvable.");
+              }
+              if (
+                !matchesClassForLevel(chosen, {
+                  typebranch: academicCycle,
+                  educationSystem,
+                  level: input.level,
+                  optionId: selectedOption?.id ?? null,
+                  optionName: selectedOption?.nameOption ?? null,
+                  cycle: academicCycle,
+                })
+              ) {
+                throw new Error(
+                  "La parallèle choisie ne correspond pas au niveau ou à l'option.",
+                );
+              }
+              if (chosen.capacity == null || chosen.capacity <= 0) {
+                throw new Error(
+                  `Définissez la capacité de ${chosen.nameClasse} avant d'inscrire.`,
+                );
+              }
+              if (chosen._count.classEnrollment >= chosen.capacity) {
+                throw new Error(`${chosen.nameClasse} est plein.`);
+              }
+              return {
+                id: chosen.id,
+                nameClasse: chosen.nameClasse,
+              };
+            })()
+          : await findAvailableClassForLevel(tx, {
+              branchId,
+              schoolYearId: input.schoolYearId,
+              level: input.level,
+              optionId: selectedOption?.id ?? null,
+              typebranch: academicCycle,
+              optionName: selectedOption?.nameOption ?? null,
+              cycle: academicCycle,
+            });
         if (!classe) throw new Error(`Aucune classe disponible pour le niveau ${input.level}. Créez la prochaine parallèle.`);
         const enrollment = await tx.classEnrollment.create({ data: { branchId, schoolYearId: input.schoolYearId, studentId, classeId: classe.id, statusEnrollment: true } });
         if (request) {
