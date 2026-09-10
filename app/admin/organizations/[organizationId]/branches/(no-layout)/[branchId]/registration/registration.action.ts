@@ -889,6 +889,7 @@ export const createNextParallelForRegistrationAction = action
       optionId: z.string().optional(),
       creneauId: z.string().min(1, "La vacation est obligatoire."),
       capacity: z.number().int().positive().optional(),
+      forceNewParallel: z.boolean().optional(),
     }),
   )
   .handler(async ({ input }) => {
@@ -991,9 +992,11 @@ export const createNextParallelForRegistrationAction = action
     const needsCapacity = (classe: (typeof existing)[number]) =>
       classe.capacity == null || classe.capacity <= 0;
 
+    const forceNewParallel = Boolean(input.forceNewParallel);
+
     // Classes catalogue sans capacité : définir la capacité avant d'ouvrir une parallèle.
     if (existing.length > 0 && existing.some(needsCapacity)) {
-      if (existing.some(hasFreeSeats)) {
+      if (!forceNewParallel && existing.some(hasFreeSeats)) {
         const free = existing.find(hasFreeSeats)!;
         return {
           id: free.id,
@@ -1020,7 +1023,7 @@ export const createNextParallelForRegistrationAction = action
 
     if (existing.length === 0) {
       parallel = undefined;
-    } else if (existing.some(hasFreeSeats)) {
+    } else if (!forceNewParallel && existing.some(hasFreeSeats)) {
       const free = existing.find(hasFreeSeats)!;
       return {
         id: free.id,
@@ -1318,9 +1321,10 @@ export const findStudentHistoryAction = action
   });
 
 export const suggestNextClassAction = action
-  .input(z.object({ studentId: z.string(), outcome: z.enum(["passed", "failed", "returning"]), manualLevel: z.string().optional() }))
+  .input(z.object({ studentId: z.string(), outcome: z.enum(["passed", "failed", "returning", "changeClass"]), manualLevel: z.string().optional() }))
   .handler(async ({ input }) => {
     const { branchId, typebranch, educationSystem } = await requireRegistrationContext();
+    const peopleLabels = getPeopleLabels(typebranch);
     if (input.outcome === "returning") {
       if (!input.manualLevel) throw new Error("Choisissez manuellement le niveau de retour.");
       return {
@@ -1328,7 +1332,53 @@ export const suggestNextClassAction = action
         optionId: null as string | null,
         sectionId: null as string | null,
         cycle: null as string | null,
+        classeId: null as string | null,
+        classeName: null as string | null,
         reason: "Niveau de retour choisi manuellement",
+      };
+    }
+    if (input.outcome === "changeClass") {
+      const currentYear = await prisma.schoolYear.findFirst({
+        where: { branchId, isCurrentYear: true, isArchived: false },
+        select: { id: true, nameYear: true },
+      });
+      if (!currentYear) {
+        throw new Error("Aucune année scolaire en cours.");
+      }
+      const enrollment = await prisma.classEnrollment.findFirst({
+        where: {
+          studentId: input.studentId,
+          branchId,
+          schoolYearId: currentYear.id,
+          OR: [{ statusEnrollment: true }, { statusEnrollment: null }],
+        },
+        select: {
+          classeId: true,
+          classe: {
+            select: {
+              nameClasse: true,
+              level: true,
+              optionId: true,
+              cycle: true,
+              option: { select: { sectionId: true } },
+            },
+          },
+        },
+      });
+      const currentLevel = enrollment?.classe?.level;
+      if (!enrollment || !currentLevel) {
+        throw new Error(
+          `Cet ${peopleLabels.studentLower} n'est pas inscrit pour l'année en cours. Utilisez Réussi, Échoué ou Retour après absence.`,
+        );
+      }
+      return {
+        level: currentLevel,
+        optionId: enrollment.classe?.optionId ?? null,
+        sectionId: enrollment.classe?.option?.sectionId ?? null,
+        cycle: resolveCycle(enrollment.classe, { typebranch }),
+        classeId: enrollment.classeId,
+        classeName: enrollment.classe?.nameClasse ?? null,
+        reason: `Parallèle actuelle : ${enrollment.classe?.nameClasse ?? "—"} — ${currentYear.nameYear}. Cliquez A ou B pour transférer.`,
       };
     }
     const previous = await findLatestStudentEnrollment(
@@ -1347,6 +1397,8 @@ export const suggestNextClassAction = action
         optionId: previous.classe?.optionId ?? null,
         sectionId: previous.classe?.option?.sectionId ?? null,
         cycle: classCycle,
+        classeId: null as string | null,
+        classeName: null as string | null,
         reason: "Même niveau après échec — année actuelle",
       };
     }
@@ -1403,11 +1455,136 @@ export const suggestNextClassAction = action
     };
   });
 
+export const transferStudentClassCurrentYearAction = action
+  .input(
+    z.object({
+      studentId: z.string().min(1),
+      targetClasseId: z.string().min(1),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, typebranch } =
+      await requireRegistrationContext();
+    const peopleLabels = getPeopleLabels(typebranch);
+
+    const currentYear = await prisma.schoolYear.findFirst({
+      where: { branchId, isCurrentYear: true, isArchived: false },
+      select: { id: true, nameYear: true },
+    });
+    if (!currentYear) {
+      throw new Error("Aucune année scolaire en cours.");
+    }
+
+    const enrollment = await prisma.classEnrollment.findFirst({
+      where: {
+        branchId,
+        studentId: input.studentId,
+        schoolYearId: currentYear.id,
+        OR: [{ statusEnrollment: true }, { statusEnrollment: null }],
+      },
+      select: {
+        id: true,
+        classeId: true,
+        classe: {
+          select: {
+            nameClasse: true,
+            level: true,
+            optionId: true,
+          },
+        },
+      },
+    });
+    if (!enrollment) {
+      throw new Error(
+        `Cet ${peopleLabels.studentLower} n'est pas inscrit pour l'année en cours.`,
+      );
+    }
+
+    if (enrollment.classeId === input.targetClasseId) {
+      return {
+        unchanged: true,
+        fromClass: enrollment.classe?.nameClasse ?? "",
+        toClass: enrollment.classe?.nameClasse ?? "",
+        classeName: enrollment.classe?.nameClasse ?? "",
+        yearName: currentYear.nameYear,
+        classeId: enrollment.classeId,
+      };
+    }
+
+    const target = await prisma.classe.findFirst({
+      where: { id: input.targetClasseId, branchId },
+      select: {
+        id: true,
+        nameClasse: true,
+        level: true,
+        optionId: true,
+        capacity: true,
+        classEnrollment: {
+          where: {
+            schoolYearId: currentYear.id,
+            OR: [{ statusEnrollment: true }, { statusEnrollment: null }],
+          },
+          select: { studentId: true },
+        },
+      },
+    });
+    if (!target) throw new Error("Classe introuvable dans cette branche.");
+    if (target.level !== enrollment.classe?.level) {
+      throw new Error("Choisissez une parallèle du même niveau.");
+    }
+    if ((target.optionId ?? null) !== (enrollment.classe?.optionId ?? null)) {
+      throw new Error("Choisissez une parallèle de la même option.");
+    }
+
+    const occupied = target.classEnrollment.filter(
+      (row) => row.studentId !== input.studentId,
+    ).length;
+    if (
+      target.capacity != null &&
+      target.capacity > 0 &&
+      occupied >= target.capacity
+    ) {
+      throw new Error(`${target.nameClasse} est plein.`);
+    }
+
+    await prisma.classEnrollment.update({
+      where: { id: enrollment.id },
+      data: { classeId: target.id },
+    });
+
+    await appendStudentToOpenClassFiches({
+      branchId,
+      classId: target.id,
+      schoolYearId: currentYear.id,
+      studentId: input.studentId,
+    });
+
+    const base = `/admin/organizations/${organizationId}/branches/${branchId}`;
+    revalidatePath(`${base}/registration`);
+    revalidatePath(`${base}/student`);
+    revalidatePath(`${base}/classEnrollment`);
+    revalidatePath(`${base}/classe`);
+
+    return {
+      unchanged: false,
+      fromClass: enrollment.classe?.nameClasse ?? "",
+      toClass: target.nameClasse,
+      classeName: target.nameClasse,
+      yearName: currentYear.nameYear,
+      classeId: target.id,
+    };
+  });
+
 export const createRegistrationFlowAction = action
   .input(registrationSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, typebranch, educationSystem, userId, cycles } = await requireRegistrationContext();
     const peopleLabels = getPeopleLabels(typebranch);
+    if (input.historyOutcome === "changeClass") {
+      throw new Error(
+        "Pour changer de classe, cliquez la parallèle A ou B de l'année en cours.",
+      );
+    }
     const parentValidationError = validateRegistrationParentInput(typebranch, input);
     if (parentValidationError) {
       throw new Error(parentValidationError);

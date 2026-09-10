@@ -77,7 +77,7 @@ async function sendAbsenceMail(input: {
 
   try {
     await sendMail({
-      to: email || "undisclosed@klambocore.com",
+      to: email || "",
       whatsappTo: input.phone,
       whatsappName: input.recipientName,
       organizationId: input.organizationId,

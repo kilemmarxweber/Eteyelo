@@ -1,3 +1,4 @@
+import { isDeliverableMailbox } from "./deliverable-mailbox";
 import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
@@ -116,7 +117,8 @@ export async function sendNewUserCredentialsEmail(input: {
     },
   });
 
-  // Email seul — WhatsApp dédié (comme le reset MDP)
+  // Email seul — WhatsApp dédié (comme le reset MDP).
+  // Les @klambocore.com générés ne reçoivent pas de SMTP (boîtes inexistantes).
   await sendMail({
     to,
     subject,
@@ -140,5 +142,5 @@ export async function sendNewUserCredentialsEmail(input: {
     whatsappSent = Boolean(wa?.success);
   }
 
-  return { emailSent: true, whatsappSent };
+  return { emailSent: isDeliverableMailbox(to), whatsappSent };
 }

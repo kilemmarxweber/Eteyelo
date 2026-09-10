@@ -28,6 +28,7 @@ import { buildVacationDisplaySlots } from "@/lib/creneau-saturday";
 import {
   CRENEAU_WEEKDAY_OPTIONS,
   DEFAULT_CRENEAU_WORKING_DAYS,
+  PRIMARY_CRENEAU_WORKING_DAYS,
   normalizeCreneauWorkingDays,
 } from "@/lib/creneau-working-days";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -120,6 +121,7 @@ function useStructurePresets(): StructurePreset[] {
           durationCourse: 40,
           recreationHour: "10:10",
           recreationDuration: 20,
+          workingDays: [...PRIMARY_CRENEAU_WORKING_DAYS],
         },
       },
     ],

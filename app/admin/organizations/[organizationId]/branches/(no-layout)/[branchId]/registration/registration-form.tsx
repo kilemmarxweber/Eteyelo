@@ -68,6 +68,7 @@ import {
   getRegistrationRequestForPrefillAction,
   getActiveFraisForDiscountPreviewAction,
   suggestNextClassAction,
+  transferStudentClassCurrentYearAction,
   updateRegistrationClassCapacityAction,
 } from "./registration.action";
 import { generateSlug } from "@/lib/generated-identifiers";
@@ -414,8 +415,12 @@ export function RegistrationForm({
   studentIdRef.current = studentId;
   parentIdRef.current = parentId;
   const [historyOutcome, setHistoryOutcome] = useState<
-    "new" | "passed" | "failed" | "returning"
+    "new" | "passed" | "failed" | "returning" | "changeClass"
   >("new");
+  const [currentEnrollmentClasseId, setCurrentEnrollmentClasseId] =
+    useState("");
+  const [chosenClasseId, setChosenClasseId] = useState("");
+  const [transferringClass, setTransferringClass] = useState(false);
   const [feeDebtMessage, setFeeDebtMessage] = useState("");
   const [schoolYearId, setSchoolYearId] = useState("");
   const [academicCycle, setAcademicCycle] = useState("");
@@ -514,6 +519,8 @@ export function RegistrationForm({
     setStudentResults([]);
     setParentResults([]);
     setHistoryOutcome("new");
+    setCurrentEnrollmentClasseId("");
+    setChosenClasseId("");
     setFeeDebtMessage("");
     setSchoolYearId("");
     setAcademicCycle("");
@@ -599,7 +606,8 @@ export function RegistrationForm({
         p.historyOutcome === "new" ||
         p.historyOutcome === "passed" ||
         p.historyOutcome === "failed" ||
-        p.historyOutcome === "returning"
+        p.historyOutcome === "returning" ||
+        p.historyOutcome === "changeClass"
       ) {
         setHistoryOutcome(p.historyOutcome);
       }
@@ -762,12 +770,14 @@ export function RegistrationForm({
   const currentTone = stepTone[currentStepKey];
   const lastStepIndex = registrationStepKeys.length - 1;
   const studentStepIndex = registrationStepKeys.indexOf("student");
+  const classStepIndex = registrationStepKeys.indexOf("class");
   const historyLabels = useMemo(
     () => ({
       new: tReg("history.new", { student: peopleLabels.studentLower }),
       passed: tReg("history.passed"),
       failed: tReg("history.failed"),
       returning: tReg("history.returning"),
+      changeClass: tReg("history.changeClass"),
     }),
     [peopleLabels.studentLower, tReg],
   );
@@ -1157,8 +1167,15 @@ export function RegistrationForm({
       }),
     [selectedClasses, schoolYearId],
   );
-  const predictedClass = useMemo(
-    () =>
+  const predictedClass = useMemo(() => {
+    if (historyOutcome === "changeClass") {
+      const selectedId = chosenClasseId || currentEnrollmentClasseId;
+      return (
+        classStats.find((classe: { id: string }) => classe.id === selectedId) ??
+        null
+      );
+    }
+    return (
       [...classStats]
         .sort((left, right) =>
           (left.parallel ?? "").localeCompare(right.parallel ?? "", "fr", {
@@ -1166,9 +1183,9 @@ export function RegistrationForm({
             sensitivity: "base",
           }),
         )
-        .find((classe) => classe.available) ?? null,
-    [classStats],
-  );
+        .find((classe) => classe.available) ?? null
+    );
+  }, [classStats, chosenClasseId, currentEnrollmentClasseId, historyOutcome]);
   const classesNeedingCapacity = useMemo(
     () => classStats.some((classe: { hasCapacity: boolean }) => !classe.hasCapacity),
     [classStats],
@@ -1182,7 +1199,13 @@ export function RegistrationForm({
       ),
     [classStats],
   );
-  const needsClassAction = Boolean(level) && !predictedClass;
+  const needsClassAction =
+    Boolean(level) &&
+    (historyOutcome === "changeClass"
+      ? selectedClasses.length === 0 ||
+        classesNeedingCapacity ||
+        selectedClasses.length < 2
+      : !predictedClass);
   const selectedStudent = useMemo(() => {
     if (!studentId) return null;
     return (
@@ -1275,6 +1298,8 @@ export function RegistrationForm({
     setStudentResults([]);
     setParentResults([]);
     setHistoryOutcome("new");
+    setCurrentEnrollmentClasseId("");
+    setChosenClasseId("");
     setFeeDebtMessage("");
     setAcademicCycle("");
     setLevel("");
@@ -1378,6 +1403,8 @@ export function RegistrationForm({
     setStudentId(item.id);
     setHistoryOutcome("returning");
     setFeeDebtMessage("");
+    setCurrentEnrollmentClasseId("");
+    setChosenClasseId("");
     setLevel("");
     setSectionId("");
     setOptionId("");
@@ -1468,7 +1495,9 @@ export function RegistrationForm({
     setSectionId(fromSuggestion || fromOptions || "");
   }
 
-  async function applyHistory(outcome: "passed" | "failed" | "returning") {
+  async function applyHistory(
+    outcome: "passed" | "failed" | "returning" | "changeClass",
+  ) {
     ensureCurrentSchoolYear();
 
     if (!studentId) {
@@ -1478,6 +1507,8 @@ export function RegistrationForm({
     if (outcome === "returning") {
       setFeeDebtMessage("");
       setHistoryOutcome(outcome);
+      setCurrentEnrollmentClasseId("");
+      setChosenClasseId("");
       setLevel("");
       setSectionId("");
       setOptionId("");
@@ -1506,7 +1537,50 @@ export function RegistrationForm({
     setFeeDebtMessage("");
     setHistoryOutcome(outcome);
     applySuggestedClass(suggestion);
+    if (outcome === "changeClass") {
+      const classeId = suggestion.classeId ?? "";
+      setCurrentEnrollmentClasseId(classeId);
+      setChosenClasseId(classeId);
+      if (classStepIndex >= 0) setStep(classStepIndex);
+    } else {
+      setCurrentEnrollmentClasseId("");
+      setChosenClasseId("");
+    }
     toast.success(suggestion.reason);
+  }
+
+  async function chooseParallelClass(classeId: string) {
+    if (historyOutcome !== "changeClass" || !studentId || transferringClass) {
+      return;
+    }
+    setTransferringClass(true);
+    try {
+      const [result, error] = await transferStudentClassCurrentYearAction({
+        studentId,
+        targetClasseId: classeId,
+      });
+      if (error || !result) {
+        toast.error(error?.message || tReg("changeClassFailed"));
+        return;
+      }
+      setChosenClasseId(result.classeId);
+      setCurrentEnrollmentClasseId(result.classeId);
+      if (result.unchanged) {
+        toast.message(
+          tReg("changeClassAlreadyThere", { name: result.classeName }),
+        );
+        return;
+      }
+      toast.success(
+        tReg("changeClassSuccess", {
+          from: result.fromClass,
+          to: result.toClass,
+        }),
+      );
+      await loadRegistrationOptions(false);
+    } finally {
+      setTransferringClass(false);
+    }
   }
   function updatePerson<T>(
     current: T,
@@ -1541,6 +1615,9 @@ export function RegistrationForm({
         "Complétez toutes les informations obligatoires du parent.",
       );
     if (currentStepKey === "class") {
+      if (historyOutcome === "changeClass") {
+        return toast.message(tReg("changeClassClickHint"));
+      }
       if (isMultiCycle && !academicCycle) {
         return toast.error(tReg("chooseCycleHint"));
       }
@@ -1580,6 +1657,10 @@ export function RegistrationForm({
     setStep((current) => current + 1);
   }
   function goPrevious() {
+    if (historyOutcome === "changeClass" && currentStepKey === "class") {
+      setStep(Math.max(0, studentStepIndex));
+      return;
+    }
     setStep((current) => Math.max(0, current - 1));
   }
   function advanceAfterLastOptional(expectedStep: number, ready: boolean) {
@@ -1745,7 +1826,7 @@ export function RegistrationForm({
       return toast.error(
         `Choisissez d'abord l'${schoolYearLabelLower} et l'${classLabelLower} demandé(e).`,
       );
-    if (predictedClass) {
+    if (predictedClass && historyOutcome !== "changeClass") {
       toast.success(
         `${predictedClass.nameClasse} a encore des places. L'élève y sera inscrit.`,
       );
@@ -1775,6 +1856,7 @@ export function RegistrationForm({
       optionId: allowsOption ? optionId || undefined : undefined,
       creneauId,
       capacity,
+      forceNewParallel: historyOutcome === "changeClass",
     });
     setCreatingClass(false);
     if (error) {
@@ -2441,6 +2523,8 @@ export function RegistrationForm({
                 onValueChange={(value: string) => {
                   setStudentMode(value as any);
                   setHistoryOutcome(value === "new" ? "new" : "returning");
+                  setCurrentEnrollmentClasseId("");
+                  setChosenClasseId("");
                 }}
               >
                 <ModeChoice
@@ -2537,6 +2621,18 @@ export function RegistrationForm({
                           >
                             {tReg("actions.returning")}
                           </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={
+                              historyOutcome === "changeClass"
+                                ? "default"
+                                : "outline"
+                            }
+                            onClick={() => void applyHistory("changeClass")}
+                          >
+                            {tReg("actions.changeClass")}
+                          </Button>
                         </div>
                         {feeDebtMessage ? (
                           <Alert variant="destructive" className="mt-2">
@@ -2546,7 +2642,8 @@ export function RegistrationForm({
                           </Alert>
                         ) : null}
                         {historyOutcome === "passed" ||
-                        historyOutcome === "failed" ? (
+                        historyOutcome === "failed" ||
+                        historyOutcome === "changeClass" ? (
                           <p className="mt-2 text-xs text-muted-foreground">
                             {tReg("expectedLevel")}{" "}
                             <span className="font-medium text-foreground">
@@ -2731,6 +2828,7 @@ export function RegistrationForm({
                                     : tReg("fields.cycleHintOther")
                             }
                             onSelect={() => {
+                              if (historyOutcome === "changeClass") return;
                               setAcademicCycle(cycle);
                               setLevel("");
                               setSectionId("");
@@ -2748,6 +2846,7 @@ export function RegistrationForm({
                       <Select
                         value={schoolYearId || undefined}
                         onValueChange={setSchoolYearId}
+                        disabled={historyOutcome === "changeClass"}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder={tReg("placeholders.chooseYear")} />
@@ -2809,7 +2908,10 @@ export function RegistrationForm({
                           setSectionId("");
                           setOptionId("");
                         }}
-                        disabled={isMultiCycle && !academicCycle}
+                        disabled={
+                          historyOutcome === "changeClass" ||
+                          (isMultiCycle && !academicCycle)
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue
@@ -2852,7 +2954,9 @@ export function RegistrationForm({
                                   setSectionId(value);
                                   setOptionId("");
                                 }}
-                                disabled={!level}
+                                disabled={
+                                  historyOutcome === "changeClass" || !level
+                                }
                               >
                                 <SelectTrigger>
                                   <SelectValue placeholder={tReg("placeholders.chooseSection")} />
@@ -2891,6 +2995,7 @@ export function RegistrationForm({
                               value={optionSelectValue}
                               onValueChange={setOptionId}
                               disabled={
+                                historyOutcome === "changeClass" ||
                                 !level ||
                                 isCtebLevel(level) ||
                                 angolaNucleoLevel ||
@@ -2943,6 +3048,7 @@ export function RegistrationForm({
                             onValueChange={(value: string) =>
                               setOptionId(value === "none" ? "" : value)
                             }
+                            disabled={historyOutcome === "changeClass"}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder={tReg("placeholders.chooseOption")} />
@@ -3051,9 +3157,15 @@ export function RegistrationForm({
                   ) : null}
                   <Alert>
                     <IconSchool className="h-4 w-4" />
-                    <AlertTitle>{tReg("autoAssignTitle")}</AlertTitle>
+                    <AlertTitle>
+                      {historyOutcome === "changeClass"
+                        ? tReg("changeClassManualTitle")
+                        : tReg("autoAssignTitle")}
+                    </AlertTitle>
                     <AlertDescription>
-                      {tReg("autoAssignDesc", { classLabel })}
+                      {historyOutcome === "changeClass"
+                        ? tReg("changeClassManualDesc", { classLabel })
+                        : tReg("autoAssignDesc", { classLabel })}
                     </AlertDescription>
                   </Alert>
                   <div>
@@ -3084,6 +3196,20 @@ export function RegistrationForm({
                                 key={classe.id}
                                 classe={classe}
                                 tReg={tReg}
+                                selectable={historyOutcome === "changeClass"}
+                                selected={
+                                  historyOutcome === "changeClass" &&
+                                  (chosenClasseId ||
+                                    currentEnrollmentClasseId) === classe.id
+                                }
+                                current={
+                                  historyOutcome === "changeClass" &&
+                                  currentEnrollmentClasseId === classe.id
+                                }
+                                disabled={transferringClass}
+                                onSelect={() => {
+                                  void chooseParallelClass(classe.id);
+                                }}
                                 onSaveCapacity={async (value) => {
                                   await saveClassCapacity(classe.id, value);
                                 }}
@@ -3115,14 +3241,22 @@ export function RegistrationForm({
                         {predictedClass ? (
                           <Alert className="mt-2">
                             <IconCheck className="h-4 w-4" />
-                            <AlertTitle>{tReg("plannedAssignTitle")}</AlertTitle>
+                            <AlertTitle>
+                              {historyOutcome === "changeClass"
+                                ? tReg("changeClassCurrentTitle")
+                                : tReg("plannedAssignTitle")}
+                            </AlertTitle>
                             <AlertDescription>
-                              {tReg("plannedAssignDesc", {
-                                student: peopleLabels.studentLower,
-                                className: predictedClass.nameClasse,
-                                occupied: predictedClass.occupied + 1,
-                                capacity: predictedClass.capacity,
-                              })}
+                              {historyOutcome === "changeClass"
+                                ? tReg("changeClassCurrentDesc", {
+                                    className: predictedClass.nameClasse,
+                                  })
+                                : tReg("plannedAssignDesc", {
+                                    student: peopleLabels.studentLower,
+                                    className: predictedClass.nameClasse,
+                                    occupied: predictedClass.occupied + 1,
+                                    capacity: predictedClass.capacity,
+                                  })}
                             </AlertDescription>
                           </Alert>
                         ) : null}
@@ -3324,6 +3458,11 @@ export function RegistrationForm({
             {tReg("actions.previous")}
           </Button>
           {step < lastStepIndex ? (
+            historyOutcome === "changeClass" && currentStepKey === "class" ? (
+              <p className="max-w-[220px] text-right text-[11px] leading-snug text-muted-foreground">
+                {tReg("changeClassClickHint")}
+              </p>
+            ) : (
             <Button
               disabled={Boolean(feeDebtMessage) || loading}
               onClick={goNext}
@@ -3331,6 +3470,7 @@ export function RegistrationForm({
               {tReg("actions.continue")}
               <IconArrowRight className="ml-2 h-4 w-4" />
             </Button>
+            )
           ) : (
             <Button disabled={loading} onClick={submit}>
               {loading ? tReg("actions.saving") : tReg("actions.confirm")}
@@ -3432,6 +3572,11 @@ function Field({
 function ParallelCapacityCard({
   classe,
   tReg,
+  selectable = false,
+  selected = false,
+  current = false,
+  disabled = false,
+  onSelect,
   onSaveCapacity,
 }: {
   classe: {
@@ -3444,6 +3589,11 @@ function ParallelCapacityCard({
     available: boolean;
   };
   tReg: (key: string, values?: Record<string, string | number>) => string;
+  selectable?: boolean;
+  selected?: boolean;
+  current?: boolean;
+  disabled?: boolean;
+  onSelect?: () => void;
   onSaveCapacity: (value: string) => Promise<void>;
 }) {
   const [draft, setDraft] = useState(
@@ -3478,8 +3628,28 @@ function ParallelCapacityCard({
 
   return (
     <div
+      role={selectable ? "button" : undefined}
+      tabIndex={selectable && !disabled ? 0 : undefined}
+      onClick={
+        selectable && !disabled && onSelect
+          ? () => onSelect()
+          : undefined
+      }
+      onKeyDown={
+        selectable && !disabled && onSelect
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onSelect();
+              }
+            }
+          : undefined
+      }
       className={cn(
         "rounded-md border p-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm",
+        selectable && !disabled && "cursor-pointer",
+        selectable && disabled && "cursor-wait opacity-70",
+        selected && "ring-2 ring-primary ring-offset-2",
         classe.available
           ? "border-emerald-300/80 bg-emerald-50/70 dark:border-emerald-800 dark:bg-emerald-950/25"
           : classe.hasCapacity
@@ -3496,26 +3666,33 @@ function ParallelCapacityCard({
             </p>
           ) : null}
         </div>
-        <Badge
-          variant={
-            classe.available
-              ? "secondary"
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          {current ? (
+            <Badge variant="default" className="text-[10px]">
+              {tReg("changeClassCurrentBadge")}
+            </Badge>
+          ) : null}
+          <Badge
+            variant={
+              classe.available
+                ? "secondary"
+                : classe.hasCapacity
+                  ? "destructive"
+                  : "outline"
+            }
+            className={
+              classe.available
+                ? "border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100"
+                : undefined
+            }
+          >
+            {classe.available
+              ? tReg("available")
               : classe.hasCapacity
-                ? "destructive"
-                : "outline"
-          }
-          className={
-            classe.available
-              ? "border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100"
-              : undefined
-          }
-        >
-          {classe.available
-            ? tReg("available")
-            : classe.hasCapacity
-              ? tReg("full")
-              : tReg("capacityMissing")}
-        </Badge>
+                ? tReg("full")
+                : tReg("capacityMissing")}
+          </Badge>
+        </div>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">
         {classe.hasCapacity && classe.capacity != null
@@ -3534,7 +3711,11 @@ function ParallelCapacityCard({
           value={Math.min(100, (classe.occupied / classe.capacity) * 100)}
         />
       ) : null}
-      <div className="mt-2 flex items-center gap-1.5">
+      <div
+        className="mt-2 flex items-center gap-1.5"
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => event.stopPropagation()}
+      >
         <Label
           htmlFor={`capacity-${classe.id}`}
           className="shrink-0 text-[10px] text-muted-foreground"

@@ -89,7 +89,13 @@ export const registrationSchema = z
       secteurOrigine: z.string().trim().max(120).optional().or(z.literal("")),
       villageOrigine: z.string().trim().max(120).optional().or(z.literal("")),
     }).optional(),
-    historyOutcome: z.enum(["new", "passed", "failed", "returning"]),
+    historyOutcome: z.enum([
+      "new",
+      "passed",
+      "failed",
+      "returning",
+      "changeClass",
+    ]),
     photoUrl: z.string().trim().min(1).optional().or(z.literal("")),
     studentExtra: z
       .object({

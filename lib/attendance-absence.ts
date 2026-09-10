@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { isDeliverableMailbox } from "@/lib/email/deliverable-mailbox";
 import { getBranchAbsenceReviewers } from "@/lib/email/get-branch-manager-emails";
 import {
   sendAbsenceLifecycleEmail,
@@ -91,9 +92,7 @@ function subjectLabel(type: AttendanceSubjectType) {
 }
 
 function isDeliverableEmail(email: string | null | undefined) {
-  const value = email?.trim() ?? "";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return false;
-  return !value.toLowerCase().endsWith(".local");
+  return isDeliverableMailbox(email);
 }
 
 async function getParentContactForStudent(

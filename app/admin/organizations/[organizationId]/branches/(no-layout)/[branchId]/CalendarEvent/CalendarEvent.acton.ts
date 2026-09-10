@@ -138,6 +138,18 @@ function buildEventData(
   };
 }
 
+function revalidateCalendarPages(organizationId: string, branchId: string) {
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/settings/calendar`,
+  );
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/attendance/rapports`,
+  );
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/attendance`,
+  );
+}
+
 function mapEvent(event: {
   id: string;
   title: string | null;
@@ -202,9 +214,7 @@ export const createCalendarEvent = action
         data: buildEventData(input, branchId, userId, currentSchoolYear.id),
       });
 
-      revalidatePath(
-        `/admin/organizations/${organizationId}/branches/${branchId}/settings/calendar`,
-      );
+      revalidateCalendarPages(organizationId, branchId);
 
       return {
         success: true,
@@ -282,9 +292,7 @@ export const updateCalendarEvent = action
       ),
     });
 
-    revalidatePath(
-      `/admin/organizations/${organizationId}/branches/${branchId}/settings/calendar`,
-    );
+    revalidateCalendarPages(organizationId, branchId);
 
     return updated;
   });
@@ -304,9 +312,7 @@ export const archiveCalendarEvent = action
       data: buildIsArchivedUpdate(userId),
     });
 
-    revalidatePath(
-      `/admin/organizations/${organizationId}/branches/${branchId}/settings/calendar`,
-    );
+    revalidateCalendarPages(organizationId, branchId);
 
     return archived;
   });

@@ -1,5 +1,5 @@
 import type { Prisma } from "@/prisma/generated/prisma/client";
-import { DEFAULT_CRENEAU_WORKING_DAYS } from "@/lib/creneau-working-days";
+import { DEFAULT_CRENEAU_WORKING_DAYS, PRIMARY_CRENEAU_WORKING_DAYS } from "@/lib/creneau-working-days";
 import { normalizeEducationSystem } from "@/lib/education-system";
 
 type CreneauDb = Pick<Prisma.TransactionClient, "creneau">;
@@ -18,8 +18,14 @@ export async function ensureDefaultCreneaux(
   db: CreneauDb,
   branchId: string,
   educationSystem?: unknown,
+  typebranch?: unknown,
 ) {
   const isAngola = normalizeEducationSystem(educationSystem) === "ANGOLAIS";
+  const isPrimary =
+    typebranch === "PRIMAIRE" || typebranch === "MATERNELLE";
+  const workingDays = isPrimary
+    ? [...PRIMARY_CRENEAU_WORKING_DAYS]
+    : [...DEFAULT_CRENEAU_WORKING_DAYS];
   const defaults = isAngola
     ? [
         {
@@ -62,7 +68,7 @@ export async function ensureDefaultCreneaux(
           branchId,
           durationCourse: 45,
           recreationDuration: 15,
-          workingDays: [...DEFAULT_CRENEAU_WORKING_DAYS],
+          workingDays,
           isArchived: false,
         },
       });

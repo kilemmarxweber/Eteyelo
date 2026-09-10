@@ -5,7 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { action } from "@/lib/zsa";
 import { requireAttendanceScanContext } from "@/lib/auth/attendance-kiosk-context";
 import { listBranchClosedDayKeys } from "@/lib/branch-closed-days";
-import { getAppWeekday, nowLocal, startOfTodayParis } from "@/lib/timezone";
+import { isAttendanceSchoolDay, resolveAttendanceSchoolCalendar } from "@/lib/attendance-school-days";
+import { nowLocal, startOfTodayParis } from "@/lib/timezone";
 import {
   buildObservation,
   formatFrequentationTime,
@@ -70,10 +71,6 @@ function daysInUtcMonth(year: number, month: number): number {
 
 function utcDay(year: number, month: number, day: number): Date {
   return new Date(Date.UTC(year, month - 1, day));
-}
-
-function isSunday(date: Date): boolean {
-  return getAppWeekday(date) === 0;
 }
 
 export const getStudentFrequentationRegisterAction = action
@@ -152,6 +149,10 @@ export const getStudentFrequentationRegisterAction = action
       start,
       new Date(queryEnd.getTime() + 1),
     );
+    const { workingDays, weekendClosed } = await resolveAttendanceSchoolCalendar({
+      branchId,
+      classeId,
+    });
 
     const attendance = await prisma.studentAttendance.findMany({
       where: {
@@ -245,7 +246,13 @@ export const getStudentFrequentationRegisterAction = action
       for (let day = 1; day <= dim; day += 1) {
         const date = utcDay(spec.year, spec.month, day);
         const iso = calendarDayIso(date);
-        const schoolDay = !isSunday(date) && !closedDays.has(iso);
+        const schoolDay = isAttendanceSchoolDay({
+          date,
+          workingDays,
+          closedDayKeys: closedDays,
+          dayIso: iso,
+          weekendClosed,
+        });
         const isFuture = iso > todayIso;
         if (schoolDay && iso <= todayIso) openDays += 1;
 

@@ -10,6 +10,17 @@ export const DEFAULT_CRENEAU_WORKING_DAYS: Day[] = [
   "Samedi",
 ];
 
+/** Primaire / maternelle : pas d'horaire le week-end. */
+export const PRIMARY_CRENEAU_WORKING_DAYS: Day[] = [
+  "Lundi",
+  "Mardi",
+  "Mercredi",
+  "Jeudi",
+  "Vendredi",
+];
+
+export const ATTENDANCE_WEEKEND_DAYS = new Set<Day>(["Samedi", "Dimanche"]);
+
 export const CRENEAU_WEEKDAY_OPTIONS: Array<{ value: Day; label: string; short: string }> = [
   { value: "Lundi", label: "Lundi", short: "Lun" },
   { value: "Mardi", label: "Mardi", short: "Mar" },
@@ -52,8 +63,8 @@ export function formatCreneauWorkingDaysLabel(
     return "Lun–Sam";
   }
   if (
-    normalized.length === 5 &&
-    normalized.every((d, i) => d === DEFAULT_CRENEAU_WORKING_DAYS[i])
+    normalized.length === PRIMARY_CRENEAU_WORKING_DAYS.length &&
+    PRIMARY_CRENEAU_WORKING_DAYS.every((d, i) => d === normalized[i])
   ) {
     return "Lun–Ven";
   }
@@ -61,4 +72,31 @@ export function formatCreneauWorkingDaysLabel(
     CRENEAU_WEEKDAY_OPTIONS.map((d) => [d.value, d.short]),
   );
   return normalized.map((d) => shorts.get(d) ?? d).join(", ");
+}
+
+const WEEKDAY_INDEX_TO_DAY: Record<number, Day> = {
+  0: "Dimanche",
+  1: "Lundi",
+  2: "Mardi",
+  3: "Mercredi",
+  4: "Jeudi",
+  5: "Vendredi",
+  6: "Samedi",
+};
+
+export function unionCreneauWorkingDays(
+  lists: Array<unknown[] | null | undefined>,
+  fallback: Day[] = DEFAULT_CRENEAU_WORKING_DAYS,
+): Day[] {
+  const unique = new Set<Day>();
+  let found = false;
+  for (const list of lists) {
+    if (!Array.isArray(list) || list.length === 0) continue;
+    found = true;
+    for (const day of normalizeCreneauWorkingDays(list)) {
+      unique.add(day);
+    }
+  }
+  if (!found) return [...fallback];
+  return normalizeCreneauWorkingDays([...unique]);
 }

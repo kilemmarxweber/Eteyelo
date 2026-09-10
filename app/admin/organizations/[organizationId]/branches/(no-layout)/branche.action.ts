@@ -182,6 +182,7 @@ export async function createBranchAction(
       tx,
       createdBranch.id,
       parsed.data.educationSystem,
+      typebranch,
     );
     await persistActivatedBranchCycles(tx, createdBranch.id, activatedCycles);
 

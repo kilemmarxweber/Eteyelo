@@ -14,6 +14,8 @@ function revalidateCreneauPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/creneau`);
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/classe`);
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/schedule`);
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/attendance/rapports`);
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/attendance`);
 }
 
 // ACTION POUR CRÉER UNE NOUVELLE CRENEAU

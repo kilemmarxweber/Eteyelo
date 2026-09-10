@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import Mail from "nodemailer/lib/mailer";
+import { isDeliverableMailbox } from "./deliverable-mailbox";
 import { buildKlambocoreEmailLogoAttachment } from "./email-logo";
 
 export type MailPayload = {
@@ -76,6 +77,16 @@ export async function deliverMail({
   text,
   html,
 }: MailPayload) {
+  if (!isDeliverableMailbox(to)) {
+    if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
+      console.info(
+        `[deliverMail] boîte inexistante — skip SMTP to=${to} subject=${subject}`,
+      );
+    }
+    return;
+  }
+
   const t = createTransporter();
   if (!t) {
     throw new Error("Le transporteur d'email n'a pas pu être initialisé.");
@@ -151,6 +162,17 @@ export async function sendMail(payload: MailPayload): Promise<void> {
       // eslint-disable-next-line no-console
       console.info(
         `[sendMail] email invalide/absent — WhatsApp only subject=${payload.subject}`,
+      );
+    }
+    return;
+  }
+
+  // Identifiants @klambocore.com générés (sauf contact@ / kilem@) : pas de SMTP.
+  if (!isDeliverableMailbox(emailTo)) {
+    if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
+      console.info(
+        `[sendMail] boîte inexistante — WhatsApp only to=${emailTo} subject=${payload.subject}`,
       );
     }
     return;
