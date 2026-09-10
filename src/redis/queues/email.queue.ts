@@ -29,11 +29,7 @@ export function getEmailQueue() {
     _emailQueue = new Queue<EmailJobPayload>(EMAIL_QUEUE_NAME, {
       connection: getRedisConnection() as any,
       defaultJobOptions: {
-        attempts: 5,
-        backoff: {
-          type: "exponential",
-          delay: 3000,
-        },
+        attempts: 1,
         removeOnComplete: 100,
         removeOnFail: 200,
       },

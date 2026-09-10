@@ -2,6 +2,11 @@ import nodemailer from "nodemailer";
 import Mail from "nodemailer/lib/mailer";
 import { isDeliverableMailbox } from "./deliverable-mailbox";
 import { buildKlambocoreEmailLogoAttachment } from "./email-logo";
+import {
+  applySmtpFailure,
+  isSmtpOutboundSuspended,
+  logSmtpSkip,
+} from "./smtp-circuit";
 
 export type MailPayload = {
   from?: string;
@@ -37,6 +42,9 @@ function createTransporter() {
       host,
       port,
       secure,
+      pool: true,
+      maxConnections: 1,
+      maxMessages: 20,
       auth: {
         user,
         pass,
@@ -47,6 +55,16 @@ function createTransporter() {
   }
 
   throw new Error("SMTP non configuré.");
+}
+
+export function resetMailTransporter() {
+  if (!transporter) return;
+  try {
+    transporter.close();
+  } catch {
+    // ignore
+  }
+  transporter = null;
 }
 
 export function getDefaultMailFrom() {
@@ -78,12 +96,15 @@ export async function deliverMail({
   html,
 }: MailPayload) {
   if (!isDeliverableMailbox(to)) {
-    if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
-      console.info(
-        `[deliverMail] boîte inexistante — skip SMTP to=${to} subject=${subject}`,
-      );
-    }
+    // eslint-disable-next-line no-console
+    console.info(
+      `[deliverMail] boîte inexistante — skip SMTP to=${to} subject=${subject}`,
+    );
+    return;
+  }
+
+  if (isSmtpOutboundSuspended()) {
+    logSmtpSkip(to, subject);
     return;
   }
 
@@ -100,15 +121,24 @@ export async function deliverMail({
 
   const logoAttachment = html ? buildKlambocoreEmailLogoAttachment() : null;
 
-  return t.sendMail({
-    from: mailFrom,
-    to,
-    replyTo,
-    subject,
-    text,
-    html,
-    attachments: logoAttachment ? [logoAttachment] : undefined,
-  });
+  try {
+    return await t.sendMail({
+      from: mailFrom,
+      to,
+      replyTo,
+      subject,
+      text,
+      html,
+      attachments: logoAttachment ? [logoAttachment] : undefined,
+    });
+  } catch (err) {
+    if (applySmtpFailure(err)) {
+      resetMailTransporter();
+      logSmtpSkip(to, subject);
+      return;
+    }
+    throw err;
+  }
 }
 
 function queueWhatsAppMirror(payload: MailPayload): void {
@@ -169,12 +199,15 @@ export async function sendMail(payload: MailPayload): Promise<void> {
 
   // Identifiants @klambocore.com générés (sauf contact@ / kilem@) : pas de SMTP.
   if (!isDeliverableMailbox(emailTo)) {
-    if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
-      console.info(
-        `[sendMail] boîte inexistante — WhatsApp only to=${emailTo} subject=${payload.subject}`,
-      );
-    }
+    // eslint-disable-next-line no-console
+    console.info(
+      `[sendMail] boîte inexistante — WhatsApp only to=${emailTo} subject=${payload.subject}`,
+    );
+    return;
+  }
+
+  if (isSmtpOutboundSuspended()) {
+    logSmtpSkip(emailTo, payload.subject);
     return;
   }
 

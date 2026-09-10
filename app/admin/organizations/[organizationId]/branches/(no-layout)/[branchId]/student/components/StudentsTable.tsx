@@ -123,26 +123,48 @@ const StudentsList = ({
     examCodesContext,
   );
 
+  const toolbarExtrasRef = useRef({
+    canManageStudents,
+    requiresImport,
+    supportsImport,
+    importScope,
+    peopleLabels,
+    classLabel: classLabel ?? t("class"),
+    typebranch: examCodesContext.typebranch,
+    educationSystem: examCodesContext.educationSystem,
+  });
+  toolbarExtrasRef.current = {
+    canManageStudents,
+    requiresImport,
+    supportsImport,
+    importScope,
+    peopleLabels,
+    classLabel: classLabel ?? t("class"),
+    typebranch: examCodesContext.typebranch,
+    educationSystem: examCodesContext.educationSystem,
+  };
+
   const StudentToolbar = useMemo(() => {
     function Toolbar(props: { table: Table<IStudent> }) {
+      const extras = toolbarExtrasRef.current;
       return (
         <DataTableToolbar
           {...props}
-          canManageStudents={canManageStudents}
-          requiresImport={requiresImport}
-          supportsImport={supportsImport}
-          importScope={importScope}
-          peopleLabels={peopleLabels}
-          classLabel={classLabel ?? t("class")}
-          typebranch={examCodesContext.typebranch}
-          educationSystem={examCodesContext.educationSystem}
+          canManageStudents={extras.canManageStudents}
+          requiresImport={extras.requiresImport}
+          supportsImport={extras.supportsImport}
+          importScope={extras.importScope}
+          peopleLabels={extras.peopleLabels}
+          classLabel={extras.classLabel}
+          typebranch={extras.typebranch}
+          educationSystem={extras.educationSystem}
           onOpenImport={() => setImportOpen(true)}
         />
       );
     }
 
     return Toolbar;
-  }, [canManageStudents, classLabel, examCodesContext, importScope, peopleLabels, requiresImport, supportsImport]);
+  }, []);
 
   const fetchStudents = useCallback(async () => {
     const isInitialLoad = !hasLoadedOnce.current;

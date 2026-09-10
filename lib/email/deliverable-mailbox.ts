@@ -16,6 +16,24 @@ const REAL_KLAMBOCORE_MAILBOXES = [
 const GENERATED_GMAIL_RE =
   /^(student|parent|teacher|personnel)\.[^@]+@gmail\.com$/i;
 
+const BLOCKED_DOMAINS = new Set([
+  "exemple.com",
+  "example.com",
+  "example.org",
+  "example.net",
+  "example.fr",
+  "demoinbox.net",
+  "test.com",
+  "invalid",
+  "localhost",
+  "mailinator.com",
+  "guerrillamail.com",
+  "yopmail.com",
+  "tempmail.com",
+]);
+
+const BLOCKED_TLDS = new Set(["test", "invalid", "example", "localhost"]);
+
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
@@ -38,7 +56,7 @@ function extraAllowlistedMailboxes(): string[] {
 /**
  * True seulement si l'adresse peut réellement recevoir un email.
  * - @klambocore.com : contact@, kilem@, plus SMTP_USER / CONTACT_EMAIL / KLAMBOCORE_MAILBOX_ALLOWLIST
- * - *.local : jamais (identifiants internes)
+ * - *.local / exemple.com / demoinbox.net / yopmail… : jamais
  * - student.|parent.|teacher.|personnel.*@gmail.com : jamais (placeholders RH)
  */
 export function isDeliverableMailbox(
@@ -51,6 +69,10 @@ export function isDeliverableMailbox(
   const domain = normalized.split("@")[1] ?? "";
 
   if (domain.endsWith(".local")) return false;
+  if (BLOCKED_DOMAINS.has(domain)) return false;
+
+  const tld = domain.split(".").pop() ?? "";
+  if (BLOCKED_TLDS.has(tld)) return false;
 
   if (domain === "klambocore.com") {
     const allowlist = new Set<string>([
