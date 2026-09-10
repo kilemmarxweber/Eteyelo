@@ -414,12 +414,14 @@ export function RegistrationForm({
   const parentIdRef = useRef(parentId);
   studentIdRef.current = studentId;
   parentIdRef.current = parentId;
+  const chosenClasseIdRef = useRef("");
   const [historyOutcome, setHistoryOutcome] = useState<
     "new" | "passed" | "failed" | "returning" | "changeClass"
   >("new");
   const [currentEnrollmentClasseId, setCurrentEnrollmentClasseId] =
     useState("");
   const [chosenClasseId, setChosenClasseId] = useState("");
+  chosenClasseIdRef.current = chosenClasseId;
   const [transferringClass, setTransferringClass] = useState(false);
   const [feeDebtMessage, setFeeDebtMessage] = useState("");
   const [schoolYearId, setSchoolYearId] = useState("");
@@ -1596,10 +1598,9 @@ export function RegistrationForm({
       return;
     }
     if (chosenClasseId === classeId) {
-      setChosenClasseId("");
-      toast.message(tReg("parallelAutoHint"));
       return;
     }
+    chosenClasseIdRef.current = classeId;
     setChosenClasseId(classeId);
     toast.success(
       tReg("parallelChosen", { name: target.nameClasse }),
@@ -1748,7 +1749,7 @@ export function RegistrationForm({
       studentExtra,
       familyExtra: hidesParent ? undefined : familyExtra,
       historyOutcome,
-      classeId: chosenClasseId || undefined,
+      classeId: chosenClasseIdRef.current || undefined,
       photoUrl: studentMode === "new" ? resolvedPhotoUrl || undefined : undefined,
     });
     setLoading(false);
@@ -2864,6 +2865,7 @@ export function RegistrationForm({
                             }
                             onSelect={() => {
                               if (historyOutcome === "changeClass") return;
+                              if (academicCycle === cycle) return;
                               setAcademicCycle(cycle);
                               setLevel("");
                               setSectionId("");
@@ -2882,6 +2884,7 @@ export function RegistrationForm({
                       <Select
                         value={schoolYearId || undefined}
                         onValueChange={(value) => {
+                          if (value === schoolYearId) return;
                           setSchoolYearId(value);
                           setChosenClasseId("");
                         }}
@@ -2905,6 +2908,7 @@ export function RegistrationForm({
                         key={structureType || "no-cycle"}
                         value={level || undefined}
                         onValueChange={(value: string) => {
+                          if (value === level) return;
                           setChosenClasseId("");
                           setLevel(value);
                           const lockCteb = isCtebLevel(value);
@@ -2991,6 +2995,7 @@ export function RegistrationForm({
                                     : undefined
                                 }
                                 onValueChange={(value: string) => {
+                                  if (value === sectionId) return;
                                   setSectionId(value);
                                   setOptionId("");
                                   setChosenClasseId("");
@@ -3035,6 +3040,7 @@ export function RegistrationForm({
                               key={`option-${structureType}-${level}-${sectionId}`}
                               value={optionSelectValue}
                               onValueChange={(value: string) => {
+                                if (value === optionId) return;
                                 setOptionId(value);
                                 setChosenClasseId("");
                               }}
@@ -3090,7 +3096,9 @@ export function RegistrationForm({
                                 : "none")
                             }
                             onValueChange={(value: string) => {
-                              setOptionId(value === "none" ? "" : value);
+                              const next = value === "none" ? "" : value;
+                              if (next === optionId) return;
+                              setOptionId(next);
                               setChosenClasseId("");
                             }}
                             disabled={historyOutcome === "changeClass"}
@@ -3262,6 +3270,20 @@ export function RegistrationForm({
                               />
                             ))}
                           </div>
+                        ) : null}
+
+                        {historyOutcome !== "changeClass" && chosenClasseId ? (
+                          <button
+                            type="button"
+                            className="text-left text-[11px] text-muted-foreground underline-offset-2 hover:underline"
+                            onClick={() => {
+                              chosenClasseIdRef.current = "";
+                              setChosenClasseId("");
+                              toast.message(tReg("parallelAutoHint"));
+                            }}
+                          >
+                            {tReg("parallelUseAuto")}
+                          </button>
                         ) : null}
 
                         {needsClassAction
@@ -3679,29 +3701,13 @@ function ParallelCapacityCard({
     }
   }
 
+  const canSelect = Boolean(selectable && !disabled && onSelect);
+
   return (
     <div
-      role={selectable ? "button" : undefined}
-      tabIndex={selectable && !disabled ? 0 : undefined}
-      onClick={
-        selectable && !disabled && onSelect
-          ? () => onSelect()
-          : undefined
-      }
-      onKeyDown={
-        selectable && !disabled && onSelect
-          ? (event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                onSelect();
-              }
-            }
-          : undefined
-      }
       className={cn(
         "rounded-md border p-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm",
-        selectable && !disabled && "cursor-pointer",
-        selectable && disabled && "cursor-wait opacity-70",
+        selectable && disabled && "opacity-70",
         selected && "ring-2 ring-primary ring-offset-2",
         classe.available
           ? "border-emerald-300/80 bg-emerald-50/70 dark:border-emerald-800 dark:bg-emerald-950/25"
@@ -3764,11 +3770,21 @@ function ParallelCapacityCard({
           value={Math.min(100, (classe.occupied / classe.capacity) * 100)}
         />
       ) : null}
-      <div
-        className="mt-2 flex items-center gap-1.5"
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={(event) => event.stopPropagation()}
-      >
+      {selectable && onSelect ? (
+        <Button
+          type="button"
+          size="sm"
+          variant={selected ? "default" : "outline"}
+          className="mt-2 h-8 w-full text-[11px]"
+          disabled={!canSelect}
+          onClick={() => onSelect()}
+        >
+          {selected
+            ? tReg("parallelSelectedButton")
+            : tReg("parallelChooseButton")}
+        </Button>
+      ) : null}
+      <div className="mt-2 flex items-center gap-1.5">
         <Label
           htmlFor={`capacity-${classe.id}`}
           className="shrink-0 text-[10px] text-muted-foreground"

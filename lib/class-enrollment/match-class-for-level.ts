@@ -17,7 +17,7 @@ function escapeRegex(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function classMatchesLevel(classe: ClassForLevelMatch, level: string) {
+export function classMatchesLevel(classe: ClassForLevelMatch, level: string) {
   const classLevel = classe.level?.trim();
   if (classLevel) {
     if (classLevel === level) return true;

@@ -10,7 +10,10 @@ import { canAccessRegistrationArea } from "@/lib/auth/session-roles";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { findAvailableClassForLevel } from "@/lib/class-enrollment/find-available-class";
 import { appendStudentToOpenClassFiches } from "@/lib/sync-fiche-students";
-import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-level";
+import {
+  classMatchesLevel,
+  matchesClassForLevel,
+} from "@/lib/class-enrollment/match-class-for-level";
 import { getClassLevelsForBranch, requiresOptionForClass, allowsOptionForBranch, isCtebLevel } from "@/lib/class-structure";
 import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import { ensureAngolaSecondaryStructure } from "@/lib/angola-secondary-bootstrap";
@@ -1930,7 +1933,6 @@ export const createRegistrationFlowAction = action
                 where: {
                   id: input.classeId,
                   branchId,
-                  OR: [{ statusClasse: true }, { statusClasse: null }],
                 },
                 select: {
                   id: true,
@@ -1956,18 +1958,9 @@ export const createRegistrationFlowAction = action
               if (!chosen) {
                 throw new Error("La parallèle choisie est introuvable.");
               }
-              if (
-                !matchesClassForLevel(chosen, {
-                  typebranch: academicCycle,
-                  educationSystem,
-                  level: input.level,
-                  optionId: selectedOption?.id ?? null,
-                  optionName: selectedOption?.nameOption ?? null,
-                  cycle: academicCycle,
-                })
-              ) {
+              if (!classMatchesLevel(chosen, input.level)) {
                 throw new Error(
-                  "La parallèle choisie ne correspond pas au niveau ou à l'option.",
+                  "La parallèle choisie ne correspond pas au niveau.",
                 );
               }
               if (chosen.capacity == null || chosen.capacity <= 0) {
