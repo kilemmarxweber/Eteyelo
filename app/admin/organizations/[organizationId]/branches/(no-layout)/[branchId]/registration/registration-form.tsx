@@ -1595,6 +1595,11 @@ export function RegistrationForm({
       toast.error(tReg("parallelFull", { name: target.nameClasse }));
       return;
     }
+    if (chosenClasseId === classeId) {
+      setChosenClasseId("");
+      toast.message(tReg("parallelAutoHint"));
+      return;
+    }
     setChosenClasseId(classeId);
     toast.success(
       tReg("parallelChosen", { name: target.nameClasse }),
@@ -1657,21 +1662,21 @@ export function RegistrationForm({
         return toast.error(
           `Définissez la capacité de l'${classLabelLower} avant de continuer.`,
         );
-      if (!chosenClasseId)
-        return toast.error(tReg("parallelPickRequired"));
-      if (allClassesFull && !chosenClasseId)
+      if (chosenClasseId) {
+        const chosen = classStats.find(
+          (classe: { id: string; full?: boolean }) =>
+            classe.id === chosenClasseId,
+        );
+        if (!chosen || chosen.full) {
+          return toast.error(
+            "Cette parallèle est pleine. Choisissez une autre, ou laissez l'affectation automatique.",
+          );
+        }
+      } else if (allClassesFull || !predictedClass) {
         return toast.error(
           "Toutes les parallèles sont pleines. Créez la prochaine parallèle avant de continuer.",
         );
-      const chosen = classStats.find(
-        (classe: { id: string; full?: boolean }) => classe.id === chosenClasseId,
-      );
-      if (!chosen)
-        return toast.error(tReg("parallelPickRequired"));
-      if (chosen.full)
-        return toast.error(
-          "Cette parallèle est pleine. Choisissez une autre ou créez-en une.",
-        );
+      }
       if (
         !hidesParent &&
         parentMode === "new" &&
@@ -1700,10 +1705,6 @@ export function RegistrationForm({
   }
   async function submit() {
     setLoading(true);
-    if (historyOutcome !== "changeClass" && !chosenClasseId) {
-      setLoading(false);
-      return toast.error(tReg("parallelPickRequired"));
-    }
     let resolvedPhotoUrl = photoUrl;
     if (studentMode === "new" && photoFile) {
       const uploaded = await uploadFile(photoFile);
