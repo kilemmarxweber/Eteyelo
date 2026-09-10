@@ -126,7 +126,7 @@
   "autoAssignTitle": "Automatic assignment",
   "autoAssignDesc": "The first {classLabel} is created without a letter. When full, it becomes A and the new {classLabel} becomes B, then C, etc.",
   "parallelPickTitle": "Choose the parallel (optional)",
-  "parallelPickDesc": "Click “Choose this parallel” on A or B. If you skip, the student is assigned automatically to the first {classLabel} that still has a seat.",
+  "parallelPickDesc": "Click the circle or anywhere on card A or B. If you skip, the student is assigned automatically to the first {classLabel} that still has a seat.",
   "parallelPickRequired": "Click a parallel (A or B) before continuing.",
   "parallelChosen": "Parallel selected: {name}",
   "parallelChosenTitle": "Selected parallel",

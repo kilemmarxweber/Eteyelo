@@ -126,7 +126,7 @@
   "autoAssignTitle": "Affectation automatique",
   "autoAssignDesc": "Le premier {classLabel} est créé sans lettre. Lorsqu'il est plein, il devient A et le nouveau {classLabel} devient B, puis C, etc.",
   "parallelPickTitle": "Choisissez la parallèle (optionnel)",
-  "parallelPickDesc": "Cliquez « Choisir » sur A ou B. Sans choix, l'élève va automatiquement dans le premier {classLabel} qui a encore de la place.",
+  "parallelPickDesc": "Cliquez le rond ou n'importe où sur la carte A ou B. Sans choix, l'élève va automatiquement dans le premier {classLabel} qui a encore de la place.",
   "parallelPickRequired": "Cliquez une parallèle (A ou B) avant de continuer.",
   "parallelChosen": "Parallèle choisie : {name}",
   "parallelChosenTitle": "Parallèle sélectionnée",

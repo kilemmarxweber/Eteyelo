@@ -1206,6 +1206,18 @@ export function RegistrationForm({
       ),
     [classStats],
   );
+  useEffect(() => {
+    if (!chosenClasseId) return;
+    if (
+      classStats.some(
+        (classe: { id: string }) => classe.id === chosenClasseId,
+      )
+    ) {
+      return;
+    }
+    chosenClasseIdRef.current = "";
+    setChosenClasseId("");
+  }, [classStats, chosenClasseId]);
   const needsClassAction =
     Boolean(level) &&
     (selectedClasses.length === 0 ||
@@ -1554,8 +1566,7 @@ export function RegistrationForm({
   }
 
   async function chooseParallelClass(classeId: string) {
-    const target = classStats.find((classe: { id: string }) => classe.id === classeId);
-    if (!target) return;
+    if (!classeId) return;
 
     if (historyOutcome === "changeClass") {
       if (!studentId || transferringClass) return;
@@ -1569,6 +1580,7 @@ export function RegistrationForm({
           toast.error(error?.message || tReg("changeClassFailed"));
           return;
         }
+        chosenClasseIdRef.current = result.classeId;
         setChosenClasseId(result.classeId);
         setCurrentEnrollmentClasseId(result.classeId);
         if (result.unchanged) {
@@ -1593,7 +1605,10 @@ export function RegistrationForm({
       return;
     }
 
-    if (target.full) {
+    const target = classStats.find(
+      (classe: { id: string }) => classe.id === classeId,
+    );
+    if (target?.full) {
       toast.error(tReg("parallelFull", { name: target.nameClasse }));
       return;
     }
@@ -1603,7 +1618,9 @@ export function RegistrationForm({
     chosenClasseIdRef.current = classeId;
     setChosenClasseId(classeId);
     toast.success(
-      tReg("parallelChosen", { name: target.nameClasse }),
+      tReg("parallelChosen", {
+        name: target?.nameClasse ?? "",
+      }),
     );
   }
   function updatePerson<T>(
@@ -2886,7 +2903,6 @@ export function RegistrationForm({
                         onValueChange={(value) => {
                           if (value === schoolYearId) return;
                           setSchoolYearId(value);
-                          setChosenClasseId("");
                         }}
                         disabled={historyOutcome === "changeClass"}
                       >
@@ -2909,7 +2925,6 @@ export function RegistrationForm({
                         value={level || undefined}
                         onValueChange={(value: string) => {
                           if (value === level) return;
-                          setChosenClasseId("");
                           setLevel(value);
                           const lockCteb = isCtebLevel(value);
                           const lockNucleo =
@@ -2998,7 +3013,6 @@ export function RegistrationForm({
                                   if (value === sectionId) return;
                                   setSectionId(value);
                                   setOptionId("");
-                                  setChosenClasseId("");
                                 }}
                                 disabled={
                                   historyOutcome === "changeClass" || !level
@@ -3042,7 +3056,6 @@ export function RegistrationForm({
                               onValueChange={(value: string) => {
                                 if (value === optionId) return;
                                 setOptionId(value);
-                                setChosenClasseId("");
                               }}
                               disabled={
                                 historyOutcome === "changeClass" ||
@@ -3099,7 +3112,6 @@ export function RegistrationForm({
                               const next = value === "none" ? "" : value;
                               if (next === optionId) return;
                               setOptionId(next);
-                              setChosenClasseId("");
                             }}
                             disabled={historyOutcome === "changeClass"}
                           >
@@ -3243,7 +3255,20 @@ export function RegistrationForm({
                     ) : (
                       <>
                         {classStats.length > 0 ? (
-                          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                          <RadioGroup
+                            className="grid gap-2 pb-4 md:grid-cols-2 xl:grid-cols-3"
+                            value={
+                              chosenClasseId ||
+                              (historyOutcome === "changeClass"
+                                ? currentEnrollmentClasseId
+                                : "") ||
+                              undefined
+                            }
+                            disabled={transferringClass}
+                            onValueChange={(classeId) => {
+                              void chooseParallelClass(classeId);
+                            }}
+                          >
                             {classStats.map((classe: any) => (
                               <ParallelCapacityCard
                                 key={classe.id}
@@ -3260,16 +3285,17 @@ export function RegistrationForm({
                                   historyOutcome === "changeClass" &&
                                   currentEnrollmentClasseId === classe.id
                                 }
-                                disabled={transferringClass}
-                                onSelect={() => {
-                                  void chooseParallelClass(classe.id);
-                                }}
+                                disabled={
+                                  transferringClass ||
+                                  (historyOutcome !== "changeClass" &&
+                                    classe.full)
+                                }
                                 onSaveCapacity={async (value) => {
                                   await saveClassCapacity(classe.id, value);
                                 }}
                               />
                             ))}
-                          </div>
+                          </RadioGroup>
                         ) : null}
 
                         {historyOutcome !== "changeClass" && chosenClasseId ? (
@@ -3651,7 +3677,6 @@ function ParallelCapacityCard({
   selected = false,
   current = false,
   disabled = false,
-  onSelect,
   onSaveCapacity,
 }: {
   classe: {
@@ -3668,7 +3693,6 @@ function ParallelCapacityCard({
   selected?: boolean;
   current?: boolean;
   disabled?: boolean;
-  onSelect?: () => void;
   onSaveCapacity: (value: string) => Promise<void>;
 }) {
   const [draft, setDraft] = useState(
@@ -3677,6 +3701,7 @@ function ParallelCapacityCard({
       : "",
   );
   const [saving, setSaving] = useState(false);
+  const radioId = `parallel-choice-${classe.id}`;
 
   useEffect(() => {
     setDraft(
@@ -3701,13 +3726,10 @@ function ParallelCapacityCard({
     }
   }
 
-  const canSelect = Boolean(selectable && !disabled && onSelect);
-
   return (
     <div
       className={cn(
-        "rounded-md border p-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm",
-        selectable && disabled && "opacity-70",
+        "rounded-md border p-2.5",
         selected && "ring-2 ring-primary ring-offset-2",
         classe.available
           ? "border-emerald-300/80 bg-emerald-50/70 dark:border-emerald-800 dark:bg-emerald-950/25"
@@ -3716,74 +3738,121 @@ function ParallelCapacityCard({
             : "border-amber-300/80 bg-amber-50/70 dark:border-amber-900 dark:bg-amber-950/25",
       )}
     >
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <b className="truncate">{classe.nameClasse}</b>
-          {classe.parallel ? (
-            <p className="text-xs text-muted-foreground">
-              {tReg("parallel", { letter: classe.parallel })}
-            </p>
-          ) : null}
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          {current ? (
-            <Badge variant="default" className="text-[10px]">
-              {tReg("changeClassCurrentBadge")}
-            </Badge>
-          ) : null}
-          <Badge
-            variant={
-              classe.available
-                ? "secondary"
-                : classe.hasCapacity
-                  ? "destructive"
-                  : "outline"
-            }
-            className={
-              classe.available
-                ? "border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100"
-                : undefined
-            }
-          >
-            {classe.available
-              ? tReg("available")
-              : classe.hasCapacity
-                ? tReg("full")
-                : tReg("capacityMissing")}
-          </Badge>
-        </div>
-      </div>
-      <p className="mt-1 text-xs text-muted-foreground">
-        {classe.hasCapacity && classe.capacity != null
-          ? tReg("places", {
-              occupied: classe.occupied,
-              capacity: classe.capacity,
-            })
-          : tReg("enrollmentsNoCapacity", { count: classe.occupied })}
-      </p>
-      {classe.hasCapacity && classe.capacity != null ? (
-        <Progress
+      {selectable ? (
+        <Label
+          htmlFor={radioId}
           className={cn(
-            "mt-1.5 h-1.5",
-            classe.available ? "[&>div]:bg-emerald-500" : "[&>div]:bg-rose-500",
+            "flex cursor-pointer items-start gap-2 font-normal",
+            disabled && "cursor-not-allowed opacity-70",
           )}
-          value={Math.min(100, (classe.occupied / classe.capacity) * 100)}
-        />
-      ) : null}
-      {selectable && onSelect ? (
-        <Button
-          type="button"
-          size="sm"
-          variant={selected ? "default" : "outline"}
-          className="mt-2 h-8 w-full text-[11px]"
-          disabled={!canSelect}
-          onClick={() => onSelect()}
         >
-          {selected
-            ? tReg("parallelSelectedButton")
-            : tReg("parallelChooseButton")}
-        </Button>
-      ) : null}
+          <RadioGroupItem
+            id={radioId}
+            value={classe.id}
+            disabled={disabled}
+            className="mt-1"
+          />
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center justify-between gap-2">
+              <span className="min-w-0">
+                <b className="block truncate">{classe.nameClasse}</b>
+                {classe.parallel ? (
+                  <span className="block text-xs text-muted-foreground">
+                    {tReg("parallel", { letter: classe.parallel })}
+                  </span>
+                ) : null}
+              </span>
+              <span className="flex shrink-0 flex-col items-end gap-1">
+                {current ? (
+                  <Badge variant="default" className="text-[10px]">
+                    {tReg("changeClassCurrentBadge")}
+                  </Badge>
+                ) : null}
+                <Badge
+                  variant={
+                    classe.available
+                      ? "secondary"
+                      : classe.hasCapacity
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className={
+                    classe.available
+                      ? "border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100"
+                      : undefined
+                  }
+                >
+                  {classe.available
+                    ? tReg("available")
+                    : classe.hasCapacity
+                      ? tReg("full")
+                      : tReg("capacityMissing")}
+                </Badge>
+              </span>
+            </span>
+            <span className="mt-1 block text-xs text-muted-foreground">
+              {classe.hasCapacity && classe.capacity != null
+                ? tReg("places", {
+                    occupied: classe.occupied,
+                    capacity: classe.capacity,
+                  })
+                : tReg("enrollmentsNoCapacity", { count: classe.occupied })}
+            </span>
+            {classe.hasCapacity && classe.capacity != null ? (
+              <Progress
+                className={cn(
+                  "mt-1.5 h-1.5",
+                  classe.available
+                    ? "[&>div]:bg-emerald-500"
+                    : "[&>div]:bg-rose-500",
+                )}
+                value={Math.min(100, (classe.occupied / classe.capacity) * 100)}
+              />
+            ) : null}
+            <span className="mt-2 block text-xs font-semibold text-primary">
+              {selected
+                ? tReg("parallelSelectedButton")
+                : tReg("parallelChooseButton")}
+            </span>
+          </span>
+        </Label>
+      ) : (
+        <>
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <b className="truncate">{classe.nameClasse}</b>
+              {classe.parallel ? (
+                <p className="text-xs text-muted-foreground">
+                  {tReg("parallel", { letter: classe.parallel })}
+                </p>
+              ) : null}
+            </div>
+            <Badge
+              variant={
+                classe.available
+                  ? "secondary"
+                  : classe.hasCapacity
+                    ? "destructive"
+                    : "outline"
+              }
+            >
+              {classe.available
+                ? tReg("available")
+                : classe.hasCapacity
+                  ? tReg("full")
+                  : tReg("capacityMissing")}
+            </Badge>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {classe.hasCapacity && classe.capacity != null
+              ? tReg("places", {
+                  occupied: classe.occupied,
+                  capacity: classe.capacity,
+                })
+              : tReg("enrollmentsNoCapacity", { count: classe.occupied })}
+          </p>
+        </>
+      )}
       <div className="mt-2 flex items-center gap-1.5">
         <Label
           htmlFor={`capacity-${classe.id}`}
