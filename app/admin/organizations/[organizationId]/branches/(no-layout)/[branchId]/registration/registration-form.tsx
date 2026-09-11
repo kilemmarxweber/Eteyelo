@@ -139,6 +139,7 @@ import {
 } from "@/lib/creneau-working-days";
 import { Checkbox } from "@/components/ui/checkbox";
 import { computeScopedDiscountAmount } from "@/lib/payment-discount";
+import { RegistrationStatsCard } from "./registration-stats-card";
 
 type RegistrationStepKey = "student" | "parent" | "class" | "confirm";
 
@@ -2458,10 +2459,11 @@ export function RegistrationForm({
           };
         }}
       />
-      <Card
-        padding="none"
-        className="h-fit overflow-hidden border-sky-200/70 bg-gradient-to-b from-sky-50/80 to-card shadow-sm xl:sticky xl:top-3 dark:border-sky-900/40 dark:from-sky-950/30"
-      >
+      <div className="flex h-fit flex-col gap-3 xl:sticky xl:top-3">
+        <Card
+          padding="none"
+          className="h-fit overflow-hidden border-sky-200/70 bg-gradient-to-b from-sky-50/80 to-card shadow-sm dark:border-sky-900/40 dark:from-sky-950/30"
+        >
         <CardHeader className="gap-0.5 space-y-0 border-b border-sky-100/80 !p-4 !pb-3 dark:border-sky-900/40">
           <CardTitle className="flex flex-wrap items-center gap-2 text-base font-semibold text-sky-950 dark:text-sky-100">
             {tReg("progress")}
@@ -2526,6 +2528,11 @@ export function RegistrationForm({
           })}
         </CardContent>
       </Card>
+      <RegistrationStatsCard
+        stats={options.registrationStats}
+        loading={loadingOptions}
+      />
+      </div>
 
       <Card
         padding="none"

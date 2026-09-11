@@ -10,7 +10,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
 import { orgRoleLabel } from "@/lib/org-role-labels";
-import { isCycleGlobalRole } from "@/lib/auth/cycle-global-roles";
 import { memberHasImplicitAllBranchAccess } from "@/lib/auth/role-labels";
 import { formatPersonFullName } from "@/lib/person-full-name";
 import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
@@ -102,7 +101,7 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
   const orgRole = useWatch({ control: form.control, name: "orgRole" }) ?? "";
   const fullName = formatPersonFullName({ name: nom, postnom, prenom });
   const implicitAllBranches = memberHasImplicitAllBranchAccess(orgRole);
-  const showCycles = !implicitAllBranches && !isCycleGlobalRole(orgRole);
+  const showCycles = !implicitAllBranches;
   const orgRoleDisplay =
     orgRoles.find((r) => r.slug === orgRole)?.label || orgRoleLabel(orgRole);
 
@@ -145,9 +144,7 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
   function validateCycles(
     selected: string[],
     cycles: Record<string, string[]>,
-    role: string,
   ): string | undefined {
-    if (isCycleGlobalRole(role)) return undefined;
     for (const branchId of selected) {
       const branch = branches.find((b) => b.id === branchId);
       if (!branch?.isMultiCycle) continue;
@@ -169,7 +166,6 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
     const cycleErr = validateCycles(
       selected,
       values.branchCycles ?? {},
-      values.orgRole,
     );
     if (cycleErr) {
       setCyclesError(cycleErr);
@@ -364,7 +360,13 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
             <Label htmlFor="create-role">Rôle dans l’organisation</Label>
             <select
               id="create-role"
-              {...form.register("orgRole")}
+              value={orgRole}
+              onChange={(event) =>
+                form.setValue("orgRole", event.target.value, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+              }
               disabled={pending}
               className={memberFieldClass + " border bg-background px-3"}
             >
@@ -387,7 +389,7 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
             title="Affectation"
             description={
               showCycles
-                ? "Choisissez la ou les branches, puis le(s) cycle(s) pour chaque établissement multi-cycle."
+                ? "Cochez un établissement multi-cycle : les cycles s’ouvrent pour tous les rôles."
                 : "Le membre ne pourra ouvrir que les établissements cochés."
             }
           >
@@ -395,7 +397,10 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
               branches={branches}
               value={branchIds}
               onChange={(ids) =>
-                form.setValue("branchIds", ids, { shouldDirty: true })
+                form.setValue("branchIds", ids, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                })
               }
               branchCycles={branchCycles}
               onBranchCyclesChange={(next) => {

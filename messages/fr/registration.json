@@ -4,6 +4,16 @@
   "badge": "Inscription unifiée",
   "progress": "Progression",
   "fourSteps": "Quatre étapes.",
+  "stats": {
+    "title": "Effectifs",
+    "subtitle": "Inscrits aujourd’hui et total de la branche.",
+    "today": "Aujourd’hui",
+    "total": "Total branche",
+    "chart": "Inscriptions · 7 derniers jours",
+    "tooltip": "{count, plural, one {# inscription} other {# inscriptions}}",
+    "shareLabel": "Part du jour",
+    "share": "{pct} % du total"
+  },
   "requiredHint": "* = obligatoire",
   "chooseClassHint": "Choisissez le {classLabel} demandé(e).",
   "chooseCycleHint": "Choisissez d’abord le type de branche (maternelle, primaire ou secondaire).",

@@ -15,6 +15,7 @@ import { AttendanceExitReason } from "@/prisma/generated/prisma/client";
 import {
   ATTENDANCE_EXIT_REASON_LABELS,
   combineDateWithCreneauTime,
+  creneauStartTimeDate,
   formatDurationMinutes,
   formatSessionOrdinal,
   minutesBetween,
@@ -25,9 +26,16 @@ import {
   isTeacherNormalCheckoutAllowed,
   teacherUsesDayLevelPunch,
 } from "@/lib/attendance-teacher-session";
-import { nowLocal, startOfTodayParis } from "@/lib/timezone";
 import {
-  getBranchLatestEndMinutes,
+  formatClockTime,
+  minutesToUtcWallClock,
+  nowLocal,
+  resolveCheckInStatus,
+  startOfTodayParis,
+} from "@/lib/timezone";
+import {
+    getBranchEarliestStartMinutes,
+    getBranchLatestEndMinutes,
   isPersonnelNormalCheckoutAllowed,
   minutesToLocalDate,
 } from "@/lib/branch-closed-days";
@@ -567,11 +575,7 @@ export type AttendanceDailyJournal = {
 };
 
 function formatTime(date: Date | null | undefined): string | null {
-  if (!date) return null;
-  return date.toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatClockTime(date);
 }
 
 function formatDateIso(date: Date): string {
@@ -682,13 +686,24 @@ export const getTeacherSessionReportAction = action
         now.getTime() < periodEnd.getTime();
       const actualEnd = record.checkOut ?? null;
       const minutes = minutesBetween(actualStart, actualEnd);
+      const derived = derivedCheckInStatus({
+        stored:
+          record.status === "EXCUSED" ||
+          record.status === "ABSENT" ||
+          record.status === "LATE" ||
+          record.status === "PRESENT"
+            ? record.status
+            : "PRESENT",
+        checkIn: actualStart,
+        start: record.session.startTime,
+      });
       const status = !actualStart
         ? now.getTime() >= periodEnd.getTime() || record.status === "ABSENT"
           ? "ABSENT"
-          : record.status
+          : derived
         : stillOpen
           ? "IN_PROGRESS"
-          : record.status;
+          : derived;
 
       const classe = record.session.teaching?.classe;
       rows.push({
@@ -890,13 +905,24 @@ export const getAttendanceDailyJournalAction = action
         record.checkOut ??
         (record.earlyExit ? null : record.session.endTime);
       const minutes = minutesBetween(actualStart, actualEnd);
+      const derived = derivedCheckInStatus({
+        stored:
+          record.status === "EXCUSED" ||
+          record.status === "ABSENT" ||
+          record.status === "LATE" ||
+          record.status === "PRESENT"
+            ? record.status
+            : "PRESENT",
+        checkIn: actualStart,
+        start: record.session.startTime,
+      });
       const status = !actualStart
         ? nowLocal().getTime() >= periodEnd.getTime() || record.status === "ABSENT"
           ? "ABSENT"
-          : record.status
+          : derived
         : stillOpen
           ? "IN_PROGRESS"
-          : record.status;
+          : derived;
       const classe = record.session.teaching?.classe;
       teacherSessionRows.push({
         id: record.id,
@@ -1142,6 +1168,19 @@ function resolveOpenRosterStatus(params: {
   };
 }
 
+function derivedCheckInStatus(params: {
+  stored: "PRESENT" | "LATE" | "EXCUSED" | "ABSENT";
+  checkIn: Date | null;
+  start: Date | null;
+}): "PRESENT" | "LATE" | "EXCUSED" | "ABSENT" {
+  if (params.stored === "EXCUSED") return "EXCUSED";
+  if (!params.checkIn) return params.stored === "ABSENT" ? "ABSENT" : params.stored;
+  if (!params.start) {
+    return params.stored === "ABSENT" ? "PRESENT" : params.stored;
+  }
+  return resolveCheckInStatus(params.start, params.checkIn);
+}
+
 function resolveDayStatus(
   statuses: string[],
 ): "PRESENT" | "LATE" | "EXCUSED" | "ABSENT" {
@@ -1283,12 +1322,20 @@ export const getStudentRosterReportAction = action
         if (!student || !classe) continue;
         const key = `${student.id}:${dayIso}`;
         const entry = byStudentDay.get(key);
-        const baseStatus = resolveDayStatus(entry?.statuses ?? []);
+        const checkInDate = pickTime(entry?.checkIns ?? [], "min");
+        const checkOutDate = pickTime(entry?.checkOuts ?? [], "max");
+        const startRef =
+          classe.creneau?.startTime && classe.creneau?.endTime
+            ? creneauStartTimeDate(classe.creneau, day)
+            : null;
+        const baseStatus = derivedCheckInStatus({
+          stored: resolveDayStatus(entry?.statuses ?? []),
+          checkIn: checkInDate,
+          start: startRef,
+        });
         const vacationEnd = classe.creneau?.endTime
           ? combineDateWithCreneauTime(day, classe.creneau.endTime)
           : null;
-        const checkInDate = pickTime(entry?.checkIns ?? [], "min");
-        const checkOutDate = pickTime(entry?.checkOuts ?? [], "max");
         const resolved = resolveOpenRosterStatus({
           baseStatus,
           checkIn: checkInDate,
@@ -1354,6 +1401,7 @@ export const getPersonnelRosterReportAction = action
       input.endDate,
     );
     const dayEndMinutes = await getBranchLatestEndMinutes(branchId);
+    const dayStartMinutes = await getBranchEarliestStartMinutes(branchId);
 
     const personnelList = await prisma.personnel.findMany({
       where: { branchMember: { branchId } },
@@ -1411,11 +1459,16 @@ export const getPersonnelRosterReportAction = action
           continue;
         }
         const record = byPersonDay.get(`${person.id}:${dayIso}`);
-        const baseStatus = (record?.status ?? "ABSENT") as
-          | "PRESENT"
-          | "LATE"
-          | "EXCUSED"
-          | "ABSENT";
+        const startRef = minutesToUtcWallClock(dayStartMinutes);
+        const baseStatus = derivedCheckInStatus({
+          stored: (record?.status ?? "ABSENT") as
+            | "PRESENT"
+            | "LATE"
+            | "EXCUSED"
+            | "ABSENT",
+          checkIn: record?.checkIn ?? null,
+          start: startRef,
+        });
         const resolved = resolveOpenRosterStatus({
           baseStatus,
           checkIn: record?.checkIn ?? null,

@@ -4,6 +4,16 @@
   "badge": "Registo unificado",
   "progress": "Progresso",
   "fourSteps": "Quatro etapas.",
+  "stats": {
+    "title": "Efetivos",
+    "subtitle": "Inscritos hoje e total da filial.",
+    "today": "Hoje",
+    "total": "Total da filial",
+    "chart": "Inscrições · últimos 7 dias",
+    "tooltip": "{count, plural, one {# inscrição} other {# inscrições}}",
+    "shareLabel": "Parte do dia",
+    "share": "{pct} % do total"
+  },
   "requiredHint": "* = obrigatório",
   "chooseClassHint": "Escolha o(a) {classLabel} pedido(a).",
   "chooseCycleHint": "Escolha primeiro o tipo de estabelecimento (maternal, primário ou secundário).",

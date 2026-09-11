@@ -41,8 +41,10 @@ export function MemberBranchPicker({
   cyclesError,
 }: Props) {
   function toggle(id: string, checked: boolean) {
+    if (disabled) return;
     if (checked) {
-      onChange([...value, id]);
+      const nextIds = value.includes(id) ? value : [...value, id];
+      onChange(nextIds);
       const branch = branches.find((b) => b.id === id);
       if (!branch || !onBranchCyclesChange) return;
       if (!branch.isMultiCycle && branch.cycles[0]) {
@@ -85,6 +87,11 @@ export function MemberBranchPicker({
         {branches.map((branch) => {
           const checked = value.includes(branch.id);
           const cycleValues = branch.cycles.map((c) => c.value);
+          const showCyclePicker =
+            showCycles &&
+            checked &&
+            branch.isMultiCycle &&
+            branch.cycles.length > 1;
           return (
             <div
               key={branch.id}
@@ -93,16 +100,24 @@ export function MemberBranchPicker({
                 checked
                   ? "border-primary bg-primary/5"
                   : "border-border hover:bg-muted/40",
-                disabled && "pointer-events-none opacity-60",
+                disabled && "opacity-60",
+                showCyclePicker && "sm:col-span-2",
               )}
             >
-              <label className="flex cursor-pointer items-start gap-3">
+              <div className="flex items-start gap-3">
                 <Checkbox
                   checked={checked}
                   onCheckedChange={(v) => toggle(branch.id, v === true)}
                   disabled={disabled}
+                  aria-label={branch.name}
+                  className="mt-0.5"
                 />
-                <span className="min-w-0 flex-1">
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => toggle(branch.id, !checked)}
+                  className="min-w-0 flex-1 cursor-pointer text-left disabled:cursor-not-allowed"
+                >
                   <span className="flex items-center gap-1.5 font-medium leading-snug">
                     <Building2 className="size-4 shrink-0 text-muted-foreground" />
                     <span className="whitespace-normal break-words leading-snug">
@@ -128,10 +143,10 @@ export function MemberBranchPicker({
                       </span>
                     ) : null}
                   </span>
-                </span>
-              </label>
+                </button>
+              </div>
 
-              {showCycles && checked && branch.isMultiCycle ? (
+              {showCyclePicker ? (
                 <div className="mt-3 border-t border-border/60 pt-3 pl-7">
                   <MemberCyclesField
                     options={branch.cycles}

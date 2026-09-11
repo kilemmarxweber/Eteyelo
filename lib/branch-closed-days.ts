@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { resolveCreneauClockHours } from "@/lib/attendance-exit";
+import { parseHmToMinutes } from "@/lib/schedule-auto-generate";
 import {
+  minutesToUtcWallClock,
   nowLocal,
-  scheduleHourToMinutes,
+  resolveCheckInStatus,
   startOfTodayInTimezone,
   toMinutes,
 } from "@/lib/timezone";
@@ -69,32 +72,51 @@ export async function listBranchClosedDayKeys(
   return keys;
 }
 
+async function listActiveBranchCreneaux(branchId: string) {
+  return prisma.creneau.findMany({
+    where: { branchId, isArchived: false },
+    select: { startTime: true, endTime: true },
+  });
+}
+
+/** Fenêtre de pointage du jour (samedi inclus : horaires décalés). */
+export async function getBranchPointageWindowMinutes(
+  branchId: string,
+  now: Date = nowLocal(),
+): Promise<{ startMinutes: number; endMinutes: number }> {
+  const creneaux = await listActiveBranchCreneaux(branchId);
+  if (creneaux.length === 0) {
+    return { startMinutes: 8 * 60, endMinutes: 16 * 60 };
+  }
+  const windows = creneaux.map((row) => {
+    const resolved = resolveCreneauClockHours(row, now);
+    return {
+      startMinutes: parseHmToMinutes(resolved.startTime),
+      endMinutes: parseHmToMinutes(resolved.endTime),
+    };
+  });
+  return {
+    startMinutes: Math.min(...windows.map((row) => row.startMinutes)),
+    endMinutes: Math.max(...windows.map((row) => row.endMinutes)),
+  };
+}
+
 /** Début d'horaire le plus tôt parmi les créneaux actifs (minutes depuis minuit). */
 export async function getBranchEarliestStartMinutes(
   branchId: string,
+  now: Date = nowLocal(),
 ): Promise<number> {
-  const creneaux = await prisma.creneau.findMany({
-    where: { branchId, isArchived: false },
-    select: { startTime: true },
-  });
-  if (creneaux.length === 0) return 8 * 60;
-  return Math.min(
-    ...creneaux.map((row) => scheduleHourToMinutes(row.startTime)),
-  );
+  const { startMinutes } = await getBranchPointageWindowMinutes(branchId, now);
+  return startMinutes;
 }
 
 /** Fin d'horaire la plus tardive parmi les créneaux actifs (minutes depuis minuit). */
 export async function getBranchLatestEndMinutes(
   branchId: string,
+  now: Date = nowLocal(),
 ): Promise<number> {
-  const creneaux = await prisma.creneau.findMany({
-    where: { branchId, isArchived: false },
-    select: { endTime: true },
-  });
-  if (creneaux.length === 0) return 16 * 60;
-  return Math.max(
-    ...creneaux.map((row) => scheduleHourToMinutes(row.endTime)),
-  );
+  const { endMinutes } = await getBranchPointageWindowMinutes(branchId, now);
+  return endMinutes;
 }
 
 export function minutesToLocalDate(minutes: number, day = nowLocal()): Date {
@@ -107,7 +129,7 @@ export async function getBranchDayEndDate(
   branchId: string,
   now = nowLocal(),
 ): Promise<Date> {
-  const endMinutes = await getBranchLatestEndMinutes(branchId);
+  const endMinutes = await getBranchLatestEndMinutes(branchId, now);
   return minutesToLocalDate(endMinutes, now);
 }
 
@@ -116,15 +138,15 @@ export async function isPersonnelNormalCheckoutAllowed(
   branchId: string,
   now = nowLocal(),
 ): Promise<boolean> {
-  const endMinutes = await getBranchLatestEndMinutes(branchId);
+  const endMinutes = await getBranchLatestEndMinutes(branchId, now);
   return toMinutes(now) >= endMinutes;
 }
 
-/** Présent / retard personnel selon le début du créneau (+10 min de tolérance). */
+/** Présent si arrivée ≤ heure de début du créneau ; retard après. */
 export async function resolvePersonnelStatusFromSchedule(
   branchId: string,
   now: Date = nowLocal(),
 ): Promise<"PRESENT" | "LATE"> {
-  const startMinutes = await getBranchEarliestStartMinutes(branchId);
-  return toMinutes(now) > startMinutes + 10 ? "LATE" : "PRESENT";
+  const startMinutes = await getBranchEarliestStartMinutes(branchId, now);
+  return resolveCheckInStatus(minutesToUtcWallClock(startMinutes), now);
 }

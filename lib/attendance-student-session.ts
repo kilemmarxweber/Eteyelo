@@ -10,6 +10,7 @@ import {
 import {
   combineDateWithCreneauTime,
   creneauEndTimeDate,
+  creneauStartTimeDate,
   resolveCreneauClockHours,
   isAtOrAfterCreneauEnd,
 } from "@/lib/attendance-exit";
@@ -453,6 +454,21 @@ async function ensureStudentDaySessionFromClasse(
       schoolYearId: teaching.schoolYearId,
     },
   });
+}
+
+/** Heure de début de pointage du jour (créneau, samedi inclus). */
+export async function getStudentPointageStart(
+  studentId: string,
+  branchId: string,
+  fallback: Date,
+  now = nowLocal(),
+): Promise<Date> {
+  const enrollment = await getStudentEnrollmentClasse(studentId, branchId);
+  const creneau = enrollment?.classe?.creneau;
+  if (creneau?.startTime && creneau.endTime) {
+    return creneauStartTimeDate(creneau, now);
+  }
+  return fallback;
 }
 
 export async function getStudentDayPeriodEnd(

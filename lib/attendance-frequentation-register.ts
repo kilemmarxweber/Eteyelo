@@ -1,3 +1,5 @@
+import { formatClockTime } from "@/lib/timezone";
+
 export type FrequentationMark = "" | "I" | "O" | "M" | "R";
 
 export type FrequentationDayCell = {
@@ -74,11 +76,7 @@ export function frequentationMark(params: {
 }
 
 export function formatFrequentationTime(date: Date | null | undefined): string | null {
-  if (!date) return null;
-  return date.toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatClockTime(date);
 }
 
 export function buildObservation(params: {

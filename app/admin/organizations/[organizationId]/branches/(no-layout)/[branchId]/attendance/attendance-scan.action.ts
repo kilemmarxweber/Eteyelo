@@ -29,6 +29,7 @@ import {
   getExpectedStudentSessionLabel,
   getStudentDayPeriodEnd,
   getStudentDayPointageLabel,
+  getStudentPointageStart,
   isStudentNormalCheckoutAllowed,
   listClassDaySchedules,
   studentHasDayArrivalSession,
@@ -40,6 +41,7 @@ import {
   getExpectedTeacherSessionLabel,
   getTeacherDayPeriodEnd,
   getTeacherDayPointageLabel,
+  getTeacherPointageStart,
   isTeacherNormalCheckoutAllowed,
   listTeacherScheduleCandidates,
   teacherUsesDayLevelPunch,
@@ -66,6 +68,7 @@ import {
   getParisWeekday,
   isTeacherCheckInWindow,
   nowLocal,
+  resolveCheckInStatus,
   scheduleHourToMinutes,
   startOfTodayParis,
   TEACHER_COURSE_DURATION_MINUTES,
@@ -456,18 +459,8 @@ function mapPersonnelLookup(
   };
 }
 
-function resolveStatusFromTime(reference: Date) {
-  const now = nowLocal();
-  const lateThreshold = scheduleHourToMinutes(reference) + 10;
-  return toMinutes(now) > lateThreshold ? ("LATE" as const) : ("PRESENT" as const);
-}
-
-/** Enseignant : 1 minute après le début = retard (signalé). La franchise paie est séparée. */
-function resolveTeacherStatusFromTime(reference: Date) {
-  const now = nowLocal();
-  return toMinutes(now) > scheduleHourToMinutes(reference)
-    ? ("LATE" as const)
-    : ("PRESENT" as const);
+function resolveStatusFromTime(reference: Date, at = nowLocal()) {
+  return resolveCheckInStatus(reference, at);
 }
 
 function sessionInclude() {
@@ -807,8 +800,14 @@ async function performStudentCheckIn(
     };
   }
 
-  const status = resolveStatusFromTime(attendanceSession.startTime);
   const now = nowLocal();
+  const pointageStart = await getStudentPointageStart(
+    student.id,
+    branchId,
+    attendanceSession.startTime,
+    now,
+  );
+  const status = resolveStatusFromTime(pointageStart, now);
   const sessionLabel =
     (await getStudentDayPointageLabel(student.id, branchId, "arrival")) ??
     formatSessionLabel(attendanceSession);
@@ -1017,8 +1016,14 @@ async function performTeacherCheckIn(
     };
   }
 
-  const status = resolveTeacherStatusFromTime(hydratedSession.startTime);
   const now = nowLocal();
+  const pointageStart = await getTeacherPointageStart(
+    teacher.id,
+    branchId,
+    hydratedSession.startTime,
+    now,
+  );
+  const status = resolveStatusFromTime(pointageStart, now);
   const sessionLabel = dayLevel
     ? ((await getTeacherDayPointageLabel(teacher.id, branchId, "arrival")) ??
       formatSessionLabel(hydratedSession))

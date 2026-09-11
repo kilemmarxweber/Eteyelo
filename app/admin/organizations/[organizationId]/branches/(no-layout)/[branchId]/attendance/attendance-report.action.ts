@@ -12,6 +12,13 @@ import { getServerTranslator } from "@/lib/i18n-server";
 import { resolvePreferredLocale } from "@/lib/resolve-preferred-locale";
 import { intlLocaleFromUserLocale } from "@/lib/user-locale";
 import { AttendanceStatus } from "@/prisma/generated/prisma/client";
+import { getBranchEarliestStartMinutes } from "@/lib/branch-closed-days";
+import {
+  clockMinutesOf,
+  formatClockTime,
+  minutesToUtcWallClock,
+  resolveCheckInStatus,
+} from "@/lib/timezone";
 import {
   CHART_WEEKDAY_INDICES,
   getAttendanceStatusLabel,
@@ -38,20 +45,11 @@ function formatTime(
   date: Date | null | undefined,
   locale: string,
 ): string | null {
-  if (!date) return null;
-  return date.toLocaleTimeString(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  return formatClockTime(date, { withSeconds: true, locale });
 }
 
 function formatShortTime(date: Date | null | undefined, locale: string): string {
-  if (!date) return "--:--";
-  return date.toLocaleTimeString(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatClockTime(date, { locale }) ?? "--:--";
 }
 
 function formatDate(date: Date, locale: string): string {
@@ -91,6 +89,16 @@ function getInitials(name: string) {
   if (!parts.length) return "?";
   if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
   return `${parts[0][0] ?? ""}${parts[parts.length - 1][0] ?? ""}`.toUpperCase();
+}
+
+function reportCheckInStatus(
+  stored: AttendanceStatus,
+  checkIn: Date | null | undefined,
+  start: Date | null | undefined,
+): AttendanceStatus {
+  if (stored === "EXCUSED" || stored === "ABSENT") return stored;
+  if (!checkIn || !start) return stored;
+  return resolveCheckInStatus(start, checkIn);
 }
 
 function getDateRange(filters: AttendanceReportFilters) {
@@ -186,7 +194,7 @@ function buildHourStats(records: Array<{ arrivalAt: Date | null }>): AttendanceH
 
   for (const record of records) {
     if (!record.arrivalAt) continue;
-    const hour = record.arrivalAt.getHours();
+    const hour = Math.floor(clockMinutesOf(record.arrivalAt) / 60);
     if (hour < 6 || hour > 18) continue;
     counts.set(hour, (counts.get(hour) ?? 0) + 1);
   }
@@ -219,7 +227,11 @@ function mapStudentRecords(
     return {
       id: record.id,
       date: record.recordedAt,
-      status: record.status,
+      status: reportCheckInStatus(
+        record.status,
+        record.checkIn,
+        record.session.startTime,
+      ),
               arrivalAt: isAbsentLike
         ? null
         : record.checkIn,
@@ -272,7 +284,11 @@ function mapTeacherRecords(
     return {
       id: record.id,
       date: record.date,
-      status: record.status,
+      status: reportCheckInStatus(
+        record.status,
+        record.checkIn,
+        record.session?.startTime,
+      ),
       arrivalAt: isAbsentLike
         ? null
         : record.checkIn,
@@ -309,6 +325,7 @@ function mapPersonnelRecords(
       }>
     >
   >,
+  pointageStart: Date | null,
 ): UnifiedRecord[] {
   return records
     .filter(
@@ -323,7 +340,11 @@ function mapPersonnelRecords(
     return {
       id: record.id,
       date: record.date,
-      status: record.status,
+      status: reportCheckInStatus(
+        record.status,
+        record.checkIn,
+        pointageStart,
+      ),
       arrivalAt: record.checkIn ?? (record.status === "PRESENT" || record.status === "LATE" ? record.createdAt : null),
       departureAt: record.checkOut,
       sortAt: record.checkIn ?? record.createdAt,
@@ -467,10 +488,14 @@ export async function getAttendanceReportAction(
         : prisma.personnel.count({ where: { branchMember: { branchId } } }),
     ]);
 
+  const personnelStart = minutesToUtcWallClock(
+    await getBranchEarliestStartMinutes(branchId),
+  );
+
   const records = [
     ...mapStudentRecords(students),
     ...mapTeacherRecords(teachers),
-    ...mapPersonnelRecords(personnels),
+    ...mapPersonnelRecords(personnels, personnelStart),
   ].sort((a, b) => b.sortAt.getTime() - a.sortAt.getTime());
 
   const totalExpected = totalStudents + totalTeachers + totalPersonnel;

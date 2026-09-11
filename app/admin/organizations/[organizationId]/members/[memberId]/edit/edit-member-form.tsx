@@ -7,7 +7,6 @@ import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { Building2, KeyRound, Shield, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { orgRoleLabel } from "@/lib/org-role-labels";
-import { isCycleGlobalRole } from "@/lib/auth/cycle-global-roles";
 import { memberHasImplicitAllBranchAccess } from "@/lib/auth/role-labels";
 import { formatPersonFullName } from "@/lib/person-full-name";
 import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
@@ -102,7 +101,7 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
   const [confirmRemove, setConfirmRemove] = useState(false);
 
   const implicitAllBranches = memberHasImplicitAllBranchAccess(role);
-  const showCycles = !implicitAllBranches && !isCycleGlobalRole(role);
+  const showCycles = !implicitAllBranches;
 
   const load = useCallback(async () => {
     try {

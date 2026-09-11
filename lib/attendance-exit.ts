@@ -1,5 +1,6 @@
 import type { AttendanceExitReason } from "@/prisma/generated/prisma/client";
 import {
+  clockMinutesOf,
   getParisWeekday,
   nowLocal,
   scheduleHourToMinutes,
@@ -9,6 +10,8 @@ import {
   hmToUtcTimeDate,
   resolveVacationHoursForDay,
 } from "@/lib/creneau-saturday";
+
+export { clockMinutesOf } from "@/lib/timezone";
 
 const DAY_BY_WEEKDAY = {
   0: "Dimanche",
@@ -97,14 +100,6 @@ export function formatDurationMinutes(minutes: number | null | undefined): strin
   if (h <= 0) return `${m} min`;
   if (m === 0) return `${h} h`;
   return `${h} h ${m.toString().padStart(2, "0")}`;
-}
-
-/** Heure du jour en minutes, que la Date soit un @db.Time (1970 UTC) ou un horodatage réel. */
-export function clockMinutesOf(date: Date): number {
-  if (date.getUTCFullYear() < 1990) {
-    return scheduleHourToMinutes(date);
-  }
-  return toMinutes(date);
 }
 
 export function minutesBetween(start: Date | null, end: Date | null): number | null {

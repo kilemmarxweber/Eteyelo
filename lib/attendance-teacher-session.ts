@@ -490,6 +490,20 @@ export async function getTeacherDayPointageLabel(
   return getTeacherDayPointageLabelFromContext(context, phase, now);
 }
 
+/** Heure de début de pointage : créneau du jour si primaire, sinon séance. */
+export async function getTeacherPointageStart(
+  teacherId: string,
+  branchId: string,
+  fallback: Date,
+  now = nowLocal(),
+): Promise<Date> {
+  const context = await getTeacherDayPunchContext(teacherId, branchId, now);
+  if (context.usesDayLevel && context.creneau) {
+    return creneauStartTimeDate(context.creneau, now);
+  }
+  return fallback;
+}
+
 export async function getTeacherDayPeriodEnd(
   teacherId: string,
   branchId: string,

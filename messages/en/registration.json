@@ -4,6 +4,16 @@
   "badge": "Unified registration",
   "progress": "Progress",
   "fourSteps": "Four steps.",
+  "stats": {
+    "title": "Headcount",
+    "subtitle": "Registered today and the branch total.",
+    "today": "Today",
+    "total": "Branch total",
+    "chart": "Registrations · last 7 days",
+    "tooltip": "{count, plural, one {# registration} other {# registrations}}",
+    "shareLabel": "Today’s share",
+    "share": "{pct}% of total"
+  },
   "requiredHint": "* = required",
   "chooseClassHint": "Choose the requested {classLabel}.",
   "chooseCycleHint": "Choose the branch type first (kindergarten, primary or secondary).",

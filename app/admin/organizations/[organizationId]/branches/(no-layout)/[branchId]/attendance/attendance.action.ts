@@ -8,6 +8,8 @@ import {
   getParisWeekday,
   isTeacherCheckInWindow,
   nowLocal,
+  resolveCheckInStatus,
+  minutesToUtcWallClock,
   scheduleHourToMinutes,
   startOfTodayParis,
   TEACHER_COURSE_DURATION_MINUTES,
@@ -32,6 +34,7 @@ import {
   findTeacherDayArrivalSession,
   getBranchCourseDurationMinutes,
   getOrCreateTeacherAttendanceSession,
+  getTeacherPointageStart,
   listTeacherScheduleCandidates,
   teacherUsesDayLevelPunch,
 } from "@/lib/attendance-teacher-session";
@@ -47,6 +50,7 @@ import {
 } from "@/lib/reports/resolve-school-branding";
 
 import { attendanceGeoCoordsSchema as geoCoordsSchema } from "@/lib/attendance-geo-schema";
+import { getBranchEarliestStartMinutes } from "@/lib/branch-closed-days";
 
 /** Fenêtre par défaut pour l'historique présences (évite un full scan). */
 const ATTENDANCE_HISTORY_DAYS = 90;
@@ -714,12 +718,17 @@ export const markTeacherAttendance = action
       throw new Error("Presence enseignant impossible dans cette branche");
     }
 
+    const now = nowLocal();
+    const pointageStart = await getTeacherPointageStart(
+      input.teacherId,
+      branchId,
+      attendanceSession.startTime,
+      now,
+    );
     const status =
       input.status === "ABSENT"
         ? input.status
-        : toMinutes(nowLocal()) > scheduleHourToMinutes(attendanceSession.startTime)
-          ? "LATE"
-          : "PRESENT";
+        : resolveCheckInStatus(pointageStart, now);
 
     const attendance = await prisma.teacherAttendance.upsert({
       where: {
@@ -732,14 +741,14 @@ export const markTeacherAttendance = action
       update: {
         status,
         checkIn:
-          status === "ABSENT" ? undefined : nowLocal(),
+          status === "ABSENT" ? undefined : now,
       },
       create: {
         teacherId: input.teacherId,
         sessionId: input.sessionId,
         status,
-        date: nowLocal(),
-        checkIn: status === "ABSENT" ? undefined : nowLocal(),
+        date: now,
+        checkIn: status === "ABSENT" ? undefined : now,
         branchId,
       },
     });
@@ -1342,6 +1351,16 @@ function emptyAttendanceCounts(): StudentAttendanceStatusCounts {
   return { present: 0, absent: 0, late: 0, excused: 0, total: 0 };
 }
 
+function reportStatusFromCheckIn(
+  stored: string,
+  checkIn: Date | null | undefined,
+  start: Date | null | undefined,
+): string {
+  if (stored === "EXCUSED" || stored === "ABSENT") return stored;
+  if (!checkIn || !start) return stored;
+  return resolveCheckInStatus(start, checkIn);
+}
+
 function bumpAttendanceStatus(
   counts: StudentAttendanceStatusCounts,
   status: string,
@@ -1496,7 +1515,12 @@ export const getStudentAttendanceReportAction = action
     const byStudent = new Map<string, StudentAttendanceDetailRow>();
 
     for (const record of records) {
-      bumpAttendanceStatus(summary, record.status);
+      const status = reportStatusFromCheckIn(
+        record.status,
+        record.checkIn,
+        record.session.startTime,
+      );
+      bumpAttendanceStatus(summary, status);
 
       const user = record.student?.branchMember?.member?.user ?? null;
       const classe = record.session?.teaching?.classe;
@@ -1521,7 +1545,7 @@ export const getStudentAttendanceReportAction = action
         byStudent.set(record.studentId, entry);
       }
 
-      bumpAttendanceStatus(entry, record.status);
+      bumpAttendanceStatus(entry, status);
     }
 
     const details = Array.from(byStudent.values()).sort((a, b) => {
@@ -1629,6 +1653,7 @@ export const getTeacherAttendanceReportAction = action
             },
           },
         },
+        session: { select: { startTime: true } },
       },
       orderBy: [{ date: "asc" }],
     });
@@ -1637,7 +1662,12 @@ export const getTeacherAttendanceReportAction = action
     const byTeacher = new Map<string, TeacherAttendanceDetailRow>();
 
     for (const record of records) {
-      bumpAttendanceStatus(summary, record.status);
+      const status = reportStatusFromCheckIn(
+        record.status,
+        record.checkIn,
+        record.session?.startTime,
+      );
+      bumpAttendanceStatus(summary, status);
 
       const user = record.teacher?.branchMember?.member?.user ?? null;
 
@@ -1655,7 +1685,7 @@ export const getTeacherAttendanceReportAction = action
         byTeacher.set(record.teacherId, entry);
       }
 
-      bumpAttendanceStatus(entry, record.status);
+      bumpAttendanceStatus(entry, status);
     }
 
     const details = Array.from(byTeacher.values()).sort((a, b) =>
@@ -1762,9 +1792,17 @@ export const getPersonnelAttendanceReportAction = action
 
     const summary = emptyAttendanceCounts();
     const byPersonnel = new Map<string, PersonnelAttendanceDetailRow>();
+    const personnelStart = minutesToUtcWallClock(
+      await getBranchEarliestStartMinutes(branchId),
+    );
 
     for (const record of records) {
-      bumpAttendanceStatus(summary, record.status);
+      const status = reportStatusFromCheckIn(
+        record.status,
+        record.checkIn,
+        personnelStart,
+      );
+      bumpAttendanceStatus(summary, status);
 
       const user = record.personnel?.branchMember?.member?.user ?? null;
 
@@ -1782,7 +1820,7 @@ export const getPersonnelAttendanceReportAction = action
         byPersonnel.set(record.personnelId, entry);
       }
 
-      bumpAttendanceStatus(entry, record.status);
+      bumpAttendanceStatus(entry, status);
     }
 
     const details = Array.from(byPersonnel.values()).sort((a, b) =>

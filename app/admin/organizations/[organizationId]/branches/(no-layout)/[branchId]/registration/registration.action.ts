@@ -55,6 +55,7 @@ import {
   getBestDiscountInfo,
 } from "@/lib/payment-discount";
 import { isFraisChargedOnAccount } from "@/lib/optional-frais";
+import { APP_TIMEZONE } from "@/lib/timezone";
 
 function formatFeeAmount(value: number) {
   return new Intl.NumberFormat("fr-FR", {
@@ -682,6 +683,84 @@ export const findParentForRegistrationAction = action
     });
   });
 
+const REGISTRATION_STATS_DAYS = 7;
+
+function appCalendarDate(date: Date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: APP_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+function utcDayBounds(isoDate: string) {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return {
+    start: new Date(Date.UTC(year!, month! - 1, day!)),
+    end: new Date(Date.UTC(year!, month! - 1, day! + 1)),
+  };
+}
+
+function shiftIsoDate(isoDate: string, days: number) {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return new Date(Date.UTC(year!, month! - 1, day! + days))
+    .toISOString()
+    .slice(0, 10);
+}
+
+export type BranchRegistrationStats = {
+  todayCount: number;
+  totalCount: number;
+  series: Array<{ date: string; count: number }>;
+};
+
+async function loadBranchRegistrationStats(
+  branchId: string,
+): Promise<BranchRegistrationStats> {
+  const todayIso = appCalendarDate(new Date());
+  const fromIso = shiftIsoDate(todayIso, -(REGISTRATION_STATS_DAYS - 1));
+  const { start: rangeStart } = utcDayBounds(fromIso);
+  const { end: rangeEnd } = utcDayBounds(todayIso);
+
+  const [totalCount, recent] = await Promise.all([
+    prisma.student.count({
+      where: {
+        branchMember: { branchId, isActive: true },
+      },
+    }),
+    prisma.classEnrollment.findMany({
+      where: {
+        branchId,
+        statusEnrollment: true,
+        createdAt: { gte: rangeStart, lt: rangeEnd },
+      },
+      select: { studentId: true, createdAt: true },
+    }),
+  ]);
+
+  const byDay = new Map<string, Set<string>>();
+  for (let i = 0; i < REGISTRATION_STATS_DAYS; i++) {
+    byDay.set(shiftIsoDate(fromIso, i), new Set());
+  }
+  for (const row of recent) {
+    const key = appCalendarDate(row.createdAt);
+    const bucket = byDay.get(key);
+    if (bucket) bucket.add(row.studentId);
+  }
+
+  const series = [...byDay.entries()].map(([date, students]) => ({
+    date,
+    count: students.size,
+  }));
+
+  return {
+    todayCount: byDay.get(todayIso)?.size ?? 0,
+    totalCount,
+    series,
+  };
+}
+
 export const getRegistrationOptionsAction = action.handler(async () => {
   const { branchId, typebranch, educationSystem, cycles } =
     await requireRegistrationContext();
@@ -707,7 +786,7 @@ export const getRegistrationOptionsAction = action.handler(async () => {
   const maternelleStructure = cycles.includes("MATERNELLE")
     ? await ensureMaternelleAcademicStructure(prisma, branchId)
     : null;
-  const [schoolYears, classes, options, sections, branch, annualCounts, creneaux, typeFrais] = await Promise.all([
+  const [schoolYears, classes, options, sections, branch, annualCounts, creneaux, typeFrais, registrationStats] = await Promise.all([
     prisma.schoolYear.findMany({
       where: { branchId, isArchived: false },
       orderBy: { startYear: "desc" },
@@ -772,6 +851,7 @@ export const getRegistrationOptionsAction = action.handler(async () => {
       orderBy: { nameType: "asc" },
       select: { id: true, nameType: true, codeType: true },
     }),
+    loadBranchRegistrationStats(branchId),
   ]);
   return {
     schoolYears,
@@ -791,6 +871,7 @@ export const getRegistrationOptionsAction = action.handler(async () => {
     annualStudentCounts: Object.fromEntries(
       annualCounts.map((item) => [item.schoolYearId, item._count.studentId]),
     ),
+    registrationStats,
   };
 });
 

@@ -1,5 +1,6 @@
 /** Fuseau horaire des établissements (RDC). Surcharge possible via APP_TIMEZONE. */
-const TIMEZONE = process.env.APP_TIMEZONE ?? "Africa/Kinshasa";
+export const APP_TIMEZONE = process.env.APP_TIMEZONE ?? "Africa/Kinshasa";
+const TIMEZONE = APP_TIMEZONE;
 
 export const TEACHER_CHECK_IN_MINUTES_BEFORE = 15;
 export const TEACHER_CHECK_IN_MINUTES_AFTER_START = 10;
@@ -83,4 +84,56 @@ export const startOfTodayParis = startOfTodayInTimezone;
 
 export function nowLocal() {
   return new Date();
+}
+
+/**
+ * Prisma @db.Time → 1970-01-01 UTC ; hmToUtcTimeDate → 2000-02-01 UTC.
+ * Ce ne sont pas des instants réels : l'heure UTC *est* l'heure affichée.
+ */
+export function isUtcWallClockTime(date: Date): boolean {
+  return date.getUTCFullYear() < 2010;
+}
+
+/** Minutes depuis minuit, que la Date soit un Time UTC ou un horodatage réel. */
+export function clockMinutesOf(date: Date): number {
+  return isUtcWallClockTime(date)
+    ? scheduleHourToMinutes(date)
+    : toMinutes(date);
+}
+
+/** Présent si pointage ≤ heure de début ; retard dès la minute suivante. */
+export function resolveCheckInStatus(
+  start: Date,
+  at: Date = nowLocal(),
+): "PRESENT" | "LATE" {
+  return clockMinutesOf(at) > clockMinutesOf(start) ? "LATE" : "PRESENT";
+}
+
+export function formatClockTime(
+  date: Date | null | undefined,
+  options?: { withSeconds?: boolean; locale?: string },
+): string | null {
+  if (!date) return null;
+  const locale = options?.locale ?? "fr-FR";
+  if (isUtcWallClockTime(date)) {
+    const h = String(date.getUTCHours()).padStart(2, "0");
+    const m = String(date.getUTCMinutes()).padStart(2, "0");
+    if (!options?.withSeconds) return `${h}:${m}`;
+    const s = String(date.getUTCSeconds()).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  }
+  return date.toLocaleTimeString(locale, {
+    timeZone: TIMEZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+    ...(options?.withSeconds ? { second: "2-digit" as const } : {}),
+  });
+}
+
+/** Time-only Date (année 2000 UTC) à partir de minutes depuis minuit. */
+export function minutesToUtcWallClock(minutes: number): Date {
+  const safe = Math.max(0, Math.round(minutes));
+  return new Date(
+    Date.UTC(2000, 1, 1, Math.floor(safe / 60), safe % 60),
+  );
 }
