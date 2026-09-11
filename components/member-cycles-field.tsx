@@ -12,6 +12,7 @@ export function MemberCyclesField({
   onChange,
   isMultiCycle,
   required = true,
+  compact = false,
   className,
 }: {
   options: CycleOption[];
@@ -19,6 +20,7 @@ export function MemberCyclesField({
   onChange: (next: string[]) => void;
   isMultiCycle: boolean;
   required?: boolean;
+  compact?: boolean;
   className?: string;
 }) {
   if (!isMultiCycle || options.length <= 1) {
@@ -43,7 +45,12 @@ export function MemberCyclesField({
         L&apos;utilisateur ne verra que les données de ces cycles (hors caisse
         et inscriptions).
       </p>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <div
+        className={cn(
+          "grid gap-2",
+          compact ? "grid-cols-1" : "sm:grid-cols-2 lg:grid-cols-3",
+        )}
+      >
         {options.map((option) => {
           const checked = value.includes(option.value);
           return (

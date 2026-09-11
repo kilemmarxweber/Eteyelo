@@ -83,7 +83,7 @@ export function MemberBranchPicker({
 
   return (
     <div className="space-y-2">
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid items-start gap-2 sm:grid-cols-2">
         {branches.map((branch) => {
           const checked = value.includes(branch.id);
           const cycleValues = branch.cycles.map((c) => c.value);
@@ -96,12 +96,11 @@ export function MemberBranchPicker({
             <div
               key={branch.id}
               className={cn(
-                "rounded-xl border p-3 transition-colors",
+                "min-w-0 rounded-xl border p-3 transition-colors",
                 checked
                   ? "border-primary bg-primary/5"
                   : "border-border hover:bg-muted/40",
                 disabled && "opacity-60",
-                showCyclePicker && "sm:col-span-2",
               )}
             >
               <div className="flex items-start gap-3">
@@ -147,12 +146,13 @@ export function MemberBranchPicker({
               </div>
 
               {showCyclePicker ? (
-                <div className="mt-3 border-t border-border/60 pt-3 pl-7">
+                <div className="mt-3 border-t border-border/60 pt-3">
                   <MemberCyclesField
                     options={branch.cycles}
                     value={branchCycles[branch.id] ?? []}
                     onChange={(next) => setCyclesForBranch(branch.id, next)}
                     isMultiCycle={branch.isMultiCycle}
+                    compact
                   />
                 </div>
               ) : null}
