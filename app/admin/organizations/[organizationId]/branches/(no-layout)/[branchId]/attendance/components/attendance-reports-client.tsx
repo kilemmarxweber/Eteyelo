@@ -48,6 +48,8 @@ function firstDayOfMonthIso() {
     .slice(0, 10);
 }
 
+const SESSION_PAGE_SIZE = 10;
+
 export function AttendanceReportsClient({
   teachers,
   classes,
@@ -79,6 +81,7 @@ export function AttendanceReportsClient({
     useState<FrequentationRegister | null>(null);
   const [loadingJournal, setLoadingJournal] = useState(true);
   const [loadingSessions, setLoadingSessions] = useState(true);
+  const [sessionsPage, setSessionsPage] = useState(0);
   const [loadingStudents, setLoadingStudents] = useState(true);
   const [loadingPersonnel, setLoadingPersonnel] = useState(true);
   const [loadingFrequentation, setLoadingFrequentation] = useState(true);
@@ -111,6 +114,7 @@ export function AttendanceReportsClient({
       setSessions(null);
     } else {
       setSessions(data);
+      setSessionsPage(0);
     }
     setLoadingSessions(false);
   };
@@ -187,6 +191,27 @@ export function AttendanceReportsClient({
         personnel: t("personType.personnel"),
       }) as const,
     [t],
+  );
+
+  const sessionRows = sessions?.rows ?? [];
+  const sessionTotalPages = Math.max(
+    1,
+    Math.ceil(sessionRows.length / SESSION_PAGE_SIZE),
+  );
+  const sessionSafePage = Math.min(sessionsPage, sessionTotalPages - 1);
+  const sessionPageRows = useMemo(
+    () =>
+      sessionRows.slice(
+        sessionSafePage * SESSION_PAGE_SIZE,
+        sessionSafePage * SESSION_PAGE_SIZE + SESSION_PAGE_SIZE,
+      ),
+    [sessionRows, sessionSafePage],
+  );
+  const sessionFrom =
+    sessionRows.length === 0 ? 0 : sessionSafePage * SESSION_PAGE_SIZE + 1;
+  const sessionTo = Math.min(
+    sessionRows.length,
+    (sessionSafePage + 1) * SESSION_PAGE_SIZE,
   );
 
   async function exportJournal() {
@@ -654,7 +679,7 @@ export function AttendanceReportsClient({
                     </tr>
                   </thead>
                   <tbody>
-                    {sessions.rows.length === 0 ? (
+                    {sessionRows.length === 0 ? (
                       <tr>
                         <td
                           colSpan={10}
@@ -664,7 +689,7 @@ export function AttendanceReportsClient({
                         </td>
                       </tr>
                     ) : (
-                      sessions.rows.map((row) => (
+                      sessionPageRows.map((row) => (
                         <tr key={row.id} className="border-t">
                           <td className="px-3 py-2">
                             {new Date(row.date).toLocaleDateString(locale)}
@@ -687,6 +712,17 @@ export function AttendanceReportsClient({
                     )}
                   </tbody>
                 </table>
+                <ReportTablePager
+                  page={sessionSafePage}
+                  totalPages={sessionTotalPages}
+                  from={sessionFrom}
+                  to={sessionTo}
+                  total={sessionRows.length}
+                  onPrev={() =>
+                    setSessionsPage((value) => Math.max(0, value - 1))
+                  }
+                  onNext={() => setSessionsPage((value) => value + 1)}
+                />
               </div>
             </div>
           ) : (
@@ -907,6 +943,61 @@ function RosterTable({
             )}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+function ReportTablePager({
+  page,
+  totalPages,
+  from,
+  to,
+  total,
+  onPrev,
+  onNext,
+}: {
+  page: number;
+  totalPages: number;
+  from: number;
+  to: number;
+  total: number;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const t = useTranslations("attendance");
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t px-3 py-3">
+      <div className="text-sm text-muted-foreground">
+        {t("detailTable.pagination.rows", { from, to, total })}
+      </div>
+      <div className="flex items-center space-x-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onPrev}
+          disabled={page === 0 || total === 0}
+        >
+          {t("detailTable.pagination.previous")}
+        </Button>
+        <div className="flex items-center space-x-1">
+          <span className="text-sm font-medium">
+            {t("detailTable.pagination.page")}
+          </span>
+          <span className="text-sm">
+            {page + 1} {t("detailTable.pagination.of")} {totalPages}
+          </span>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onNext}
+          disabled={page + 1 >= totalPages || total === 0}
+        >
+          {t("detailTable.pagination.next")}
+        </Button>
       </div>
     </div>
   );
