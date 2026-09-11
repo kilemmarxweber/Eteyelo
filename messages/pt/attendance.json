@@ -381,6 +381,13 @@
       "status": "Estado",
       "arrival": "Hora início",
       "departure": "Hora fim"
+    },
+    "pagination": {
+      "previous": "Anterior",
+      "next": "Seguinte",
+      "page": "Página",
+      "of": "de",
+      "rows": "{from}–{to} de {total} linha(s)."
     }
   },
   "frequentation": {

@@ -1,11 +1,15 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { IconListDetails } from "@tabler/icons-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { intlLocaleFromUserLocale, normalizeUserLocale } from "@/lib/user-locale";
 import type { AttendanceReportRow } from "../attendance-report-types";
+
+const PAGE_SIZE = 10;
 
 function statusVariant(status: AttendanceReportRow["status"]) {
   switch (status) {
@@ -23,6 +27,21 @@ function statusVariant(status: AttendanceReportRow["status"]) {
 export function AttendanceDetailTable({ rows }: { rows: AttendanceReportRow[] }) {
   const t = useTranslations("attendance");
   const locale = intlLocaleFromUserLocale(normalizeUserLocale(useLocale()));
+  const [page, setPage] = useState(0);
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+
+  useEffect(() => {
+    setPage(0);
+  }, [rows]);
+
+  const pageRows = useMemo(
+    () =>
+      rows.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE),
+    [rows, safePage],
+  );
+  const from = rows.length === 0 ? 0 : safePage * PAGE_SIZE + 1;
+  const to = Math.min(rows.length, (safePage + 1) * PAGE_SIZE);
 
   return (
     <Card className="overflow-hidden border-0 shadow-sm">
@@ -71,7 +90,7 @@ export function AttendanceDetailTable({ rows }: { rows: AttendanceReportRow[] })
                 </td>
               </tr>
             ) : (
-              rows.map((row) => (
+              pageRows.map((row) => (
                 <tr key={row.id} className="border-t">
                   <td className="px-5 py-4 align-top">
                     <p className="font-semibold">
@@ -109,6 +128,44 @@ export function AttendanceDetailTable({ rows }: { rows: AttendanceReportRow[] })
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t px-5 py-3">
+        <div className="text-sm text-muted-foreground">
+          {t("detailTable.pagination.rows", {
+            from,
+            to,
+            total: rows.length,
+          })}
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((value) => Math.max(0, value - 1))}
+            disabled={safePage === 0 || rows.length === 0}
+          >
+            {t("detailTable.pagination.previous")}
+          </Button>
+          <div className="flex items-center space-x-1">
+            <span className="text-sm font-medium">
+              {t("detailTable.pagination.page")}
+            </span>
+            <span className="text-sm">
+              {safePage + 1} {t("detailTable.pagination.of")} {totalPages}
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((value) => value + 1)}
+            disabled={safePage + 1 >= totalPages || rows.length === 0}
+          >
+            {t("detailTable.pagination.next")}
+          </Button>
+        </div>
       </div>
     </Card>
   );
