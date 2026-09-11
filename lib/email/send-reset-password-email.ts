@@ -18,7 +18,7 @@ export async function sendResetPasswordEmail(input: {
   loginUrl?: string;
   branchName?: string | null;
   organizationId?: string | null;
-}): Promise<{ emailSent: boolean; whatsappSent: boolean }> {
+}): Promise<{ emailSent: boolean; whatsappSent: boolean; whatsappError?: string }> {
   const { to, name, temporaryPassword } = input;
   const loginUrl = input.loginUrl ?? getSignInUrl();
 
@@ -74,6 +74,7 @@ export async function sendResetPasswordEmail(input: {
   });
 
   let whatsappSent = false;
+  let whatsappError: string | undefined;
   if (input.phone?.trim()) {
     const wa = await sendResetPasswordWhatsApp({
       to: input.phone,
@@ -84,8 +85,9 @@ export async function sendResetPasswordEmail(input: {
       branchName: input.branchName,
       organizationId: input.organizationId,
     });
-    whatsappSent = Boolean(wa?.success);
+    whatsappSent = wa.sent;
+    whatsappError = wa.error;
   }
 
-  return { emailSent: true, whatsappSent };
+  return { emailSent: true, whatsappSent, whatsappError };
 }

@@ -83,7 +83,9 @@ export function ResetUsersDialog({
                 );
               } else if (res.hasPhone) {
                 toast.success(
-                  "Mot de passe réinitialisé — email envoyé (WhatsApp non délivré, vérifiez Zindua).",
+                  res.whatsappError
+                    ? `Mot de passe réinitialisé — email envoyé (${res.whatsappError})`
+                    : "Mot de passe réinitialisé — email envoyé (WhatsApp non délivré, vérifiez Zindua).",
                 );
               } else {
                 toast.success(

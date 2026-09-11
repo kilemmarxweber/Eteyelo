@@ -1,5 +1,41 @@
 import { Zindua, type ZinduaSendResult } from "@zindua/sdk";
-import { getWhatsAppRuntimeConfig } from "@/lib/whatsapp-settings";
+import {
+  getWhatsAppRuntimeConfig,
+  isEnvWhatsAppEnabled,
+} from "@/lib/whatsapp-settings";
+
+export type WhatsAppSendOutcome = {
+  sent: boolean;
+  error?: string;
+};
+
+export type ZinduaWhatsAppChannelStatus = {
+  sendingEnabled: boolean;
+  envEnabled: boolean;
+  connected: boolean;
+  status: string | null;
+  setupUrl: string | null;
+  projectName: string | null;
+  error?: string;
+};
+
+export function formatZinduaError(error: unknown): string {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = String((error as { code: unknown }).code ?? "");
+    if (code === "WHATSAPP_NOT_CONNECTED") {
+      return "WhatsApp n'est pas connecté sur Zindua — ouvrez le dashboard et scannez le QR (statut pending_qr).";
+    }
+    if (
+      "message" in error &&
+      typeof (error as { message: unknown }).message === "string" &&
+      (error as { message: string }).message.trim()
+    ) {
+      return (error as { message: string }).message;
+    }
+  }
+  if (error instanceof Error && error.message.trim()) return error.message;
+  return "Échec d'envoi WhatsApp (Zindua).";
+}
 
 /** Destinataire WhatsApp de test (dev). Ne pas utiliser pour les notifs parents/élèves. */
 export const DEFAULT_WHATSAPP_TO = "+243971651881";
@@ -124,6 +160,8 @@ type SendWhatsAppOptions = {
   lang?: string;
   /** Organisation (toggle + template + URL). */
   organizationId?: string | null;
+  /** Ignore le toggle (test d'envoi depuis les paramètres). */
+  force?: boolean;
 };
 
 /**
@@ -134,7 +172,7 @@ export async function sendWhatsApp(
   options: SendWhatsAppOptions,
 ): Promise<ZinduaSendResult | null> {
   const config = await getWhatsAppRuntimeConfig(options.organizationId);
-  if (!config.enabled) {
+  if (!config.enabled && !options.force) {
     if (process.env.NODE_ENV === "development") {
       // eslint-disable-next-line no-console
       console.info(
@@ -224,10 +262,7 @@ export async function mirrorEmailToWhatsApp(
     return result;
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.warn(
-      "[mirrorEmailToWhatsApp] échec:",
-      error instanceof Error ? error.message : error,
-    );
+    console.warn("[mirrorEmailToWhatsApp] échec:", formatZinduaError(error));
     return null;
   }
 }
@@ -262,6 +297,41 @@ function buildWhatsAppBody(parts: Array<string | null | undefined>): string {
   );
 }
 
+/** Message transactionnel (paiement, absence, résultats) dans {{code}}. */
+export async function sendTransactionalWhatsApp(options: {
+  to: string;
+  organizationId?: string | null;
+  parts: Array<string | null | undefined>;
+}): Promise<WhatsAppSendOutcome> {
+  const to = resolveWhatsAppTo(options.to);
+  if (!to) {
+    return { sent: false, error: "Numéro WhatsApp invalide." };
+  }
+
+  try {
+    const result = await sendWhatsApp({
+      to,
+      organizationId: options.organizationId,
+      lang: "fr",
+      variables: {
+        code: buildWhatsAppBody(options.parts),
+      },
+    });
+    if (!result) {
+      return {
+        sent: false,
+        error: "Envoi WhatsApp désactivé (paramètres ou .env).",
+      };
+    }
+    return { sent: Boolean(result.success) };
+  } catch (error) {
+    const message = formatZinduaError(error);
+    // eslint-disable-next-line no-console
+    console.warn("[sendTransactionalWhatsApp] échec:", message);
+    return { sent: false, error: message };
+  }
+}
+
 /**
  * WhatsApp compte créé (parent/élève/…) — message complet dans {{code}}.
  */
@@ -275,14 +345,14 @@ export async function sendNewUserCredentialsWhatsApp(options: {
   branchName?: string | null;
   loginUrl?: string;
   organizationId?: string | null;
-}): Promise<ZinduaSendResult | null> {
+}): Promise<WhatsAppSendOutcome> {
   const to = resolveWhatsAppTo(options.to);
   if (!to) {
     // eslint-disable-next-line no-console
     console.warn(
       `[sendNewUserCredentialsWhatsApp] numéro invalide (« ${options.to} »)`,
     );
-    return null;
+    return { sent: false, error: "Numéro WhatsApp invalide." };
   }
 
   const loginUrl = resolveWhatsAppLoginUrl(options.loginUrl);
@@ -310,19 +380,22 @@ export async function sendNewUserCredentialsWhatsApp(options: {
         code: message,
       },
     });
-    if (!result) return null;
+    if (!result) {
+      return {
+        sent: false,
+        error: "Envoi WhatsApp désactivé (paramètres ou .env).",
+      };
+    }
     // eslint-disable-next-line no-console
     console.info(
       `[sendNewUserCredentialsWhatsApp] ok to=${to} logId=${result.logId} status=${result.status}`,
     );
-    return result;
+    return { sent: Boolean(result.success) };
   } catch (error) {
+    const message = formatZinduaError(error);
     // eslint-disable-next-line no-console
-    console.warn(
-      "[sendNewUserCredentialsWhatsApp] échec:",
-      error instanceof Error ? error.message : error,
-    );
-    return null;
+    console.warn("[sendNewUserCredentialsWhatsApp] échec:", message);
+    return { sent: false, error: message };
   }
 }
 
@@ -331,14 +404,14 @@ export async function sendNewUserCredentialsWhatsApp(options: {
  */
 export async function sendResetPasswordWhatsApp(
   options: ResetPasswordWhatsAppOptions,
-): Promise<ZinduaSendResult | null> {
+): Promise<WhatsAppSendOutcome> {
   const to = resolveWhatsAppTo(options.to);
   if (!to) {
     // eslint-disable-next-line no-console
     console.warn(
       `[sendResetPasswordWhatsApp] numéro invalide (« ${options.to} »)`,
     );
-    return null;
+    return { sent: false, error: "Numéro WhatsApp invalide." };
   }
   const loginUrl = resolveWhatsAppLoginUrl(options.loginUrl);
   const displayName = options.name.trim() || "Parent";
@@ -364,18 +437,90 @@ export async function sendResetPasswordWhatsApp(
         code: message,
       },
     });
-    if (!result) return null;
+    if (!result) {
+      return {
+        sent: false,
+        error: "Envoi WhatsApp désactivé (paramètres ou .env).",
+      };
+    }
     // eslint-disable-next-line no-console
     console.info(
       `[sendResetPasswordWhatsApp] ok to=${to} logId=${result.logId} status=${result.status}`,
     );
-    return result;
+    return { sent: Boolean(result.success) };
   } catch (error) {
+    const message = formatZinduaError(error);
     // eslint-disable-next-line no-console
-    console.warn(
-      "[sendResetPasswordWhatsApp] échec:",
-      error instanceof Error ? error.message : error,
-    );
-    return null;
+    console.warn("[sendResetPasswordWhatsApp] échec:", message);
+    return { sent: false, error: message };
+  }
+}
+
+export async function getZinduaWhatsAppStatus(
+  organizationId?: string | null,
+): Promise<ZinduaWhatsAppChannelStatus> {
+  const config = await getWhatsAppRuntimeConfig(organizationId);
+  const base: ZinduaWhatsAppChannelStatus = {
+    sendingEnabled: config.enabled,
+    envEnabled: isEnvWhatsAppEnabled(),
+    connected: false,
+    status: null,
+    setupUrl: null,
+    projectName: null,
+  };
+
+  if (!config.apiKey) {
+    return { ...base, error: "Clé API Zindua manquante." };
+  }
+
+  try {
+    const project = (await getZindua({
+      siteUrl: config.siteUrl,
+      apiKey: config.apiKey,
+    }).getProject()) as {
+      project?: { name?: string };
+      channels?: {
+        whatsapp?: { ready?: boolean; status?: string; setupUrl?: string };
+      };
+      checklist?: { canSendWhatsapp?: boolean };
+    };
+    const channel = project.channels?.whatsapp;
+    return {
+      ...base,
+      connected: Boolean(channel?.ready ?? project.checklist?.canSendWhatsapp),
+      status: channel?.status ?? null,
+      setupUrl: channel?.setupUrl ?? null,
+      projectName: project.project?.name ?? null,
+    };
+  } catch (error) {
+    return { ...base, error: formatZinduaError(error) };
+  }
+}
+
+export async function sendWhatsAppTest(options: {
+  to: string;
+  organizationId?: string | null;
+}): Promise<WhatsAppSendOutcome> {
+  const to = resolveWhatsAppTo(options.to);
+  if (!to) {
+    return { sent: false, error: "Numéro WhatsApp invalide." };
+  }
+
+  try {
+    const result = await sendWhatsApp({
+      to,
+      organizationId: options.organizationId,
+      force: true,
+      lang: "fr",
+      variables: {
+        code: "Test Klambocore — message de vérification Zindua. Ignorez si vous n'êtes pas concerné.",
+      },
+    });
+    if (!result) {
+      return { sent: false, error: "Envoi WhatsApp désactivé." };
+    }
+    return { sent: Boolean(result.success) };
+  } catch (error) {
+    return { sent: false, error: formatZinduaError(error) };
   }
 }

@@ -6,6 +6,7 @@ import {
   escapeHtml,
   getSignInUrl,
 } from "./email-layout";
+import { sendTransactionalWhatsApp } from "@/lib/zindua";
 
 const APP_NAME = DEFAULT_APP_NAME;
 
@@ -78,8 +79,6 @@ async function sendAbsenceMail(input: {
   try {
     await sendMail({
       to: email || "",
-      whatsappTo: input.phone,
-      whatsappName: input.recipientName,
       organizationId: input.organizationId,
       subject: input.subject,
       text,
@@ -88,6 +87,24 @@ async function sendAbsenceMail(input: {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error(`[sendAbsenceNotificationEmail] ${message}`);
+  }
+
+  if (input.phone?.trim()) {
+    await sendTransactionalWhatsApp({
+      to: input.phone,
+      organizationId: input.organizationId,
+      parts: [
+        input.rows.find((row) => row.label === "Établissement")?.value,
+        `Bonjour ${input.recipientName},`,
+        input.intro,
+        ...input.rows
+          .filter((row) => row.label !== "Établissement")
+          .map((row) => `${row.label} : ${row.value}`),
+        input.note,
+        `Espace : ${getSignInUrl()}`,
+        `— ${APP_NAME}`,
+      ],
+    });
   }
 }
 

@@ -26,6 +26,7 @@ export default function FiltersWrapper({
   setSelectedStudentId,
   onStatsUpdate,
   onClassementUpdate,
+  onNotifyContextChange,
 }: any) {
   const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState("");
@@ -86,6 +87,15 @@ export default function FiltersWrapper({
       return matchClass && matchStudent && matchYear && matchPeriod;
     });
   }, [data, selectedClassIds, selectedStudentId, selectedYear, selectedPeriod, role, allowedPeriods]);
+
+  useEffect(() => {
+    onNotifyContextChange?.({
+      classIds: selectedClassIds,
+      periodNames: allowedPeriods,
+      yearName: selectedYear,
+    });
+  }, [selectedClassIds, allowedPeriods, selectedYear, onNotifyContextChange]);
+
   // ================= GROUPING (TABLE) =================
   const groupedData = useMemo(() => {
     if (!filteredData?.length) return [];

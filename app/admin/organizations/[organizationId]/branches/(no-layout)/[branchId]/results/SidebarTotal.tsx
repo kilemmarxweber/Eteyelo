@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { IconFileTypePdf } from "@tabler/icons-react";
+import { IconBrandWhatsapp, IconFileTypePdf } from "@tabler/icons-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/custom/button";
@@ -13,7 +13,10 @@ import {
   type ClassementRow,
   type ResultsClassementReportOptions,
 } from "./components/export-results-classement-pdf";
-import { getResultsReportContextAction } from "./results.action";
+import {
+  getResultsReportContextAction,
+  sendResultsToParentsAction,
+} from "./results.action";
 
 export default function SidebarWithFilters({
   classOptions,
@@ -25,6 +28,12 @@ export default function SidebarWithFilters({
   const [totalPercentage, setTotalPercentage] = useState("0.0");
   const [stats, setStats] = useState<any>(null);
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [sendingParents, setSendingParents] = useState(false);
+  const [notifyContext, setNotifyContext] = useState<{
+    classIds: string[];
+    periodNames: string[];
+    yearName: string;
+  }>({ classIds: [], periodNames: [], yearName: "" });
   const [classementRows, setClassementRows] = useState<ClassementRow[]>([]);
   const [reportOptions, setReportOptions] =
     useState<ResultsClassementReportOptions>({ classLabels: [] });
@@ -40,15 +49,59 @@ export default function SidebarWithFilters({
   const displayStudent = selectedStudent ?? null;
   const hasClassement = classementRows.length > 0;
 
-  const sendResults = async () => {
-    try {
-      const res = await fetch("/apis/send-whatsapp", {
-        method: "POST",
-      });
+  const canNotifyParents = role !== "student" && role !== "parent";
 
-      await res.json();
+  const sendResults = async () => {
+    if (!notifyContext.classIds.length || !notifyContext.yearName) {
+      toast.error("Choisissez une classe et une année avant d'envoyer.");
+      return;
+    }
+    if (!notifyContext.periodNames.length) {
+      toast.error("Choisissez une période avant d'envoyer.");
+      return;
+    }
+
+    setSendingParents(true);
+    try {
+      const [res, err] = await sendResultsToParentsAction({
+        classIds: notifyContext.classIds,
+        periodNames: notifyContext.periodNames,
+        yearName: notifyContext.yearName,
+        studentId: selectedStudentId || undefined,
+      });
+      if (err) {
+        toast.error(err.message);
+        return;
+      }
+      if (!res) return;
+
+      if (res.notified === 0) {
+        toast.warning(
+          res.skippedNoContact
+            ? "Aucun parent n'a d'email ni de numéro WhatsApp."
+            : "Aucune note à envoyer pour cette sélection.",
+        );
+        return;
+      }
+
+      if (res.whatsappSent > 0) {
+        toast.success(
+          `Résultats envoyés (${res.notified} parent${res.notified > 1 ? "s" : ""} — ${res.whatsappSent} WhatsApp).`,
+        );
+      } else if (res.whatsappError) {
+        toast.success(
+          `Résultats envoyés par email (${res.notified}). WhatsApp : ${res.whatsappError}`,
+        );
+      } else {
+        toast.success(
+          `Résultats envoyés par email (${res.notified} parent${res.notified > 1 ? "s" : ""}).`,
+        );
+      }
     } catch (err) {
       console.error(err);
+      toast.error("Impossible d'envoyer les résultats.");
+    } finally {
+      setSendingParents(false);
     }
   };
 
@@ -152,6 +205,7 @@ export default function SidebarWithFilters({
             setSelectedStudentId={setSelectedStudentId}
             onStatsUpdate={handleStatsUpdate}
             onClassementUpdate={handleClassementUpdate}
+            onNotifyContextChange={setNotifyContext}
           />
         </div>
       </div>
@@ -167,12 +221,18 @@ export default function SidebarWithFilters({
         </button>
 
         <div className="flex flex-col gap-2">
-          <button
-            className="w-full border p-2 rounded-md hover:bg-gray-100 transition"
-            onClick={sendResults}
-          >
-            Montrer tous les détails
-          </button>
+          {canNotifyParents ? (
+            <Button
+              variant="outline"
+              className="w-full"
+              leftSection={<IconBrandWhatsapp size={16} />}
+              onClick={sendResults}
+              loading={sendingParents}
+              disabled={sendingParents}
+            >
+              {sendingParents ? "Envoi..." : "Notifier les parents"}
+            </Button>
+          ) : null}
           <Button
             variant="outline"
             className="w-full"

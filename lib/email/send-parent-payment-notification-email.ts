@@ -6,6 +6,7 @@ import {
   escapeHtml,
   getSignInUrl,
 } from "./email-layout";
+import { sendTransactionalWhatsApp } from "@/lib/zindua";
 
 const APP_NAME = DEFAULT_APP_NAME;
 
@@ -88,11 +89,27 @@ export async function sendParentPaymentNotificationEmail(input: {
 
   await sendMail({
     to: email,
-    whatsappTo: phone || null,
-    whatsappName: input.parentName,
     organizationId: input.organizationId,
     subject,
     text,
     html,
   });
+
+  if (phone) {
+    await sendTransactionalWhatsApp({
+      to: phone,
+      organizationId: input.organizationId,
+      parts: [
+        input.schoolName,
+        `Bonjour ${input.parentName},`,
+        copy.intro,
+        `Référence : ${input.reference}.`,
+        `Montant : ${input.amountLabel}.`,
+        input.studentNames ? `Élève(s) : ${input.studentNames}.` : null,
+        input.feeNames ? `Frais : ${input.feeNames}.` : null,
+        `Détail : ${getSignInUrl()}`,
+        `— ${input.schoolName || APP_NAME}`,
+      ],
+    });
+  }
 }

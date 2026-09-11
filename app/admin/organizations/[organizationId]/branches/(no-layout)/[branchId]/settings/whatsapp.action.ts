@@ -8,6 +8,11 @@ import { canAccessBranchOrgSettings } from "@/lib/auth/session-roles";
 import { action } from "@/lib/zsa";
 import { syncWhatsAppEnvFile, applyWhatsAppEnvRuntime } from "@/lib/whatsapp-env-file";
 import { getWhatsAppEnvDefaults } from "@/lib/whatsapp-settings";
+import {
+  getZinduaWhatsAppStatus,
+  sendWhatsAppTest,
+  type ZinduaWhatsAppChannelStatus,
+} from "@/lib/zindua";
 
 function assertCanManage(
   session: Awaited<ReturnType<typeof requireBranchContext>>["session"],
@@ -41,6 +46,33 @@ function presentSettings(org: {
   };
 }
 
+async function presentSettingsWithStatus(
+  org: {
+    whatsappEnabled: boolean;
+    whatsappApiKey: string | null;
+    whatsappTemplate: string | null;
+    whatsappSiteUrl: string | null;
+  },
+  organizationId: string,
+) {
+  const settings = presentSettings(org);
+  let zindua: ZinduaWhatsAppChannelStatus;
+  try {
+    zindua = await getZinduaWhatsAppStatus(organizationId);
+  } catch {
+    zindua = {
+      sendingEnabled: false,
+      envEnabled: true,
+      connected: false,
+      status: null,
+      setupUrl: null,
+      projectName: null,
+      error: "Impossible de joindre Zindua.",
+    };
+  }
+  return { ...settings, zindua };
+}
+
 export const getWhatsAppSettingsAction = action.handler(async () => {
   const { organizationId, session } = await requireBranchContext();
   assertCanManage(session);
@@ -57,16 +89,18 @@ export const getWhatsAppSettingsAction = action.handler(async () => {
 
   const defaults = getWhatsAppEnvDefaults();
   if (!org) {
+    const zindua = await getZinduaWhatsAppStatus(organizationId);
     return {
       enabled: defaults.enabled,
       apiKey: defaults.apiKey,
       template: defaults.template,
       siteUrl: defaults.siteUrl,
       providerConfigured: Boolean(defaults.apiKey),
+      zindua,
     };
   }
 
-  return presentSettings(org);
+  return presentSettingsWithStatus(org, organizationId);
 });
 
 export const updateWhatsAppSettingsAction = action
@@ -119,5 +153,25 @@ export const updateWhatsAppSettingsAction = action
       `/admin/organizations/${organizationId}/branches/${branchId}/settings/whatsapp`,
     );
 
-    return presentSettings(org);
+    return presentSettingsWithStatus(org, organizationId);
+  });
+
+const whatsappTestSchema = z.object({
+  to: z.string().trim().min(8).max(24),
+});
+
+export const sendWhatsAppTestAction = action
+  .input(whatsappTestSchema)
+  .handler(async ({ input }) => {
+    const { organizationId, session } = await requireBranchContext();
+    assertCanManage(session);
+
+    const result = await sendWhatsAppTest({
+      to: input.to,
+      organizationId,
+    });
+    if (!result.sent) {
+      throw new Error(result.error || "WhatsApp non délivré (Zindua).");
+    }
+    return { ok: true as const };
   });

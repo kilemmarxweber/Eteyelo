@@ -1259,7 +1259,7 @@ import { hashPassword } from "better-auth/crypto";
 export async function resetUserPasswordAction(
   input: ResetOrgMemberPasswordInput,
 ): Promise<
-  | { ok: true; whatsappSent: boolean; hasPhone: boolean }
+  | { ok: true; whatsappSent: boolean; hasPhone: boolean; whatsappError?: string }
   | { ok: false; message: string }
 > {
   const parsed = resetOrgMemberPasswordSchema.safeParse(input);
@@ -1352,6 +1352,7 @@ export async function resetUserPasswordAction(
       ok: true as const,
       whatsappSent: result.whatsappSent,
       hasPhone: Boolean(user.telephone?.trim()),
+      whatsappError: result.whatsappError,
     };
   } catch (e) {
     consumeAdminCreatedUserPlainPassword(email);

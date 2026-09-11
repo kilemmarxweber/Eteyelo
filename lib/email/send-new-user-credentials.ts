@@ -27,7 +27,7 @@ export async function sendNewUserCredentialsEmail(input: {
   branchAddress?: string;
   loginUrl?: string;
   organizationId?: string | null;
-}): Promise<{ emailSent: boolean; whatsappSent: boolean }> {
+}): Promise<{ emailSent: boolean; whatsappSent: boolean; whatsappError?: string }> {
   const { to, name, temporaryPassword } = input;
   const role = input.role?.trim() || "Utilisateur";
   const organizationName = input.organizationName?.trim();
@@ -127,6 +127,7 @@ export async function sendNewUserCredentialsEmail(input: {
   });
 
   let whatsappSent = false;
+  let whatsappError: string | undefined;
   if (input.phone?.trim()) {
     const wa = await sendNewUserCredentialsWhatsApp({
       to: input.phone,
@@ -139,8 +140,9 @@ export async function sendNewUserCredentialsEmail(input: {
       loginUrl,
       organizationId: input.organizationId,
     });
-    whatsappSent = Boolean(wa?.success);
+    whatsappSent = wa.sent;
+    whatsappError = wa.error;
   }
 
-  return { emailSent: isDeliverableMailbox(to), whatsappSent };
+  return { emailSent: isDeliverableMailbox(to), whatsappSent, whatsappError };
 }

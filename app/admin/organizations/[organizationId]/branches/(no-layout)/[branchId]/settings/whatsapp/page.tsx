@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
-import { IconBrandWhatsapp, IconDeviceFloppy } from "@tabler/icons-react";
+import { IconBrandWhatsapp, IconDeviceFloppy, IconSend } from "@tabler/icons-react";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,7 @@ import {
 import { RequireBranchOrgSettingsAccess } from "../components/require-branch-org-settings-access";
 import {
   getWhatsAppSettingsAction,
+  sendWhatsAppTestAction,
   updateWhatsAppSettingsAction,
 } from "../whatsapp.action";
 
@@ -29,6 +30,13 @@ export default function WhatsAppSettingsPage() {
   const [template, setTemplate] = useState("notification");
   const [siteUrl, setSiteUrl] = useState("");
   const [providerConfigured, setProviderConfigured] = useState(false);
+  const [zinduaConnected, setZinduaConnected] = useState<boolean | null>(null);
+  const [zinduaStatus, setZinduaStatus] = useState<string | null>(null);
+  const [zinduaSetupUrl, setZinduaSetupUrl] = useState<string | null>(null);
+  const [zinduaProject, setZinduaProject] = useState<string | null>(null);
+  const [zinduaError, setZinduaError] = useState<string | null>(null);
+  const [envEnabled, setEnvEnabled] = useState(true);
+  const [testTo, setTestTo] = useState("+243844952966");
   const [loaded, setLoaded] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -45,6 +53,12 @@ export default function WhatsAppSettingsPage() {
       setTemplate(data.template);
       setSiteUrl(data.siteUrl);
       setProviderConfigured(data.providerConfigured);
+      setZinduaConnected(data.zindua.connected);
+      setZinduaStatus(data.zindua.status);
+      setZinduaSetupUrl(data.zindua.setupUrl);
+      setZinduaProject(data.zindua.projectName);
+      setZinduaError(data.zindua.error ?? null);
+      setEnvEnabled(data.zindua.envEnabled);
       setLoaded(true);
     });
   }, []);
@@ -67,12 +81,31 @@ export default function WhatsAppSettingsPage() {
         setTemplate(saved.template);
         setSiteUrl(saved.siteUrl);
         setProviderConfigured(saved.providerConfigured);
+        setZinduaConnected(saved.zindua.connected);
+        setZinduaStatus(saved.zindua.status);
+        setZinduaSetupUrl(saved.zindua.setupUrl);
+        setZinduaProject(saved.zindua.projectName);
+        setZinduaError(saved.zindua.error ?? null);
+        setEnvEnabled(saved.zindua.envEnabled);
       }
       toast.success(
         enabled
           ? "Paramètres WhatsApp enregistrés."
           : "Envoi WhatsApp désactivé (config et .env).",
       );
+    });
+  }
+
+  function sendTest() {
+    startTransition(async () => {
+      const [ok, err] = await sendWhatsAppTestAction({ to: testTo });
+      if (err) {
+        toast.error(err.message);
+        return;
+      }
+      if (ok) {
+        toast.success(`Message de test envoyé à ${testTo}.`);
+      }
     });
   }
 
@@ -137,9 +170,11 @@ export default function WhatsAppSettingsPage() {
               ) : sendingWouldRun || providerConfigured ? (
                 <p>
                   <span className="font-medium text-emerald-700 dark:text-emerald-400">
-                    Prêt à envoyer.
+                    Clé API enregistrée.
                   </span>{" "}
-                  Les messages WhatsApp partiront avec cette configuration.
+                  {zinduaConnected
+                    ? "Les messages WhatsApp partiront avec cette configuration."
+                    : "La session WhatsApp Zindua doit encore être connectée (QR)."}
                 </p>
               ) : (
                 <p>
@@ -151,6 +186,50 @@ export default function WhatsAppSettingsPage() {
                 </p>
               )}
             </div>
+
+            {loaded && (
+              <div className="rounded-lg border px-4 py-3 text-sm">
+                {zinduaConnected ? (
+                  <p>
+                    <span className="font-medium text-emerald-700 dark:text-emerald-400">
+                      Session WhatsApp Zindua connectée
+                    </span>
+                    {zinduaProject ? ` (${zinduaProject}).` : "."}
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    <p>
+                      <span className="font-medium text-amber-700 dark:text-amber-400">
+                        WhatsApp Zindua non connecté
+                      </span>
+                      {zinduaStatus ? ` — statut ${zinduaStatus}.` : "."}{" "}
+                      La clé API est valide, mais aucun numéro n’est lié. Scannez
+                      le QR dans le dashboard.
+                    </p>
+                    {zinduaError ? (
+                      <p className="text-muted-foreground">{zinduaError}</p>
+                    ) : null}
+                    {zinduaSetupUrl ? (
+                      <a
+                        href={zinduaSetupUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-medium text-primary underline-offset-4 hover:underline"
+                      >
+                        Ouvrir le QR Zindua
+                      </a>
+                    ) : null}
+                    {!envEnabled ? (
+                      <p className="text-amber-700 dark:text-amber-400">
+                        L’envoi est aussi coupé dans le .env
+                        (ZINDUA_WHATSAPP_ENABLED=false). Activez le commutateur
+                        et enregistrez.
+                      </p>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="space-y-2">
               <label htmlFor="whatsapp-api-key" className="text-sm font-medium">
@@ -231,6 +310,39 @@ export default function WhatsAppSettingsPage() {
             >
               <IconDeviceFloppy className="mr-2 size-4" />
               {pending ? "Enregistrement..." : "Enregistrer les paramètres"}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Test d’envoi</CardTitle>
+            <CardDescription>
+              Envoie un message de vérification via Zindua, sans réinitialiser
+              de mot de passe.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="whatsapp-test-to" className="text-sm font-medium">
+                Numéro (E.164)
+              </label>
+              <Input
+                id="whatsapp-test-to"
+                value={testTo}
+                onChange={(event) => setTestTo(event.target.value)}
+                placeholder="+243844952966"
+                disabled={!loaded || pending}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={sendTest}
+              disabled={!loaded || pending || !testTo.trim()}
+            >
+              <IconSend className="mr-2 size-4" />
+              {pending ? "Envoi..." : "Envoyer un test"}
             </Button>
           </CardContent>
         </Card>
