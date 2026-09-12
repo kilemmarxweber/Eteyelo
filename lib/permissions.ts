@@ -362,7 +362,6 @@ function withActions(actions: readonly CrudAction[]): StatementShape {
 
 const CRU_ACTIONS = ["create", "read", "update"] as const;
 const CRUD_ACTIONS = ["create", "read", "update", "delete"] as const;
-const CREATE_READ_ACTIONS = ["create", "read"] as const;
 const READ_ACTIONS = ["read"] as const;
 
 /** Personnel / enseignants : lire, envoyer, créer un groupe. */
@@ -483,9 +482,7 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
   },
   [ORG_ROLE.TEACHER]: {
     ...organizationPluginMemberAc.statements,
-    ...withActions(CREATE_READ_ACTIONS),
-    student: ["read"],
-    teaching: ["read", "assign"],
+    ac: [],
     attendance: ["create", "read", "update"],
     notes: ["create", "read", "update"],
     results: ["create", "read", "update"],
@@ -493,7 +490,6 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     library: ["create", "read", "update"],
     fiches: ["create", "read", "update"],
     ficheCentrale: ["create", "read", "update"],
-    schedule: ["read"],
     ...MESSAGING_STAFF,
   },
   [ORG_ROLE.SUPERVISEUR]: {

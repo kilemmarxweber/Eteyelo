@@ -189,7 +189,7 @@ test("enseignant : notes OK ; pas Finance / Enseignement ; Tableau de bord mes c
   assert.ok(!titles.includes("Finance"));
   assert.equal(resolveDashboardVariant(sessionWithOrgRole(ORG_ROLE.TEACHER)), "teacher");
   assert.equal(getDashboardDataBlocks("teacher").revenue, false);
-  assertAreas(ORG_ROLE.TEACHER, ["notes", "schedule", "teaching", "library"], ["finance", "school_admin"]);
+  assertAreas(ORG_ROLE.TEACHER, ["notes", "library"], ["finance", "school_admin"]);
 });
 
 test("enseignant titulaire : fiches ; non-titulaire : pas Fiche Centrale", () => {

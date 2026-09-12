@@ -524,8 +524,10 @@ test("groupe Acces branche coherent avec statements caissier/teacher/student/par
     ) ?? false,
     false,
   );
-  assert.ok(
-    organizationRoleStatements[ORG_ROLE.TEACHER].teacher?.includes("create"),
+  assert.equal(
+    organizationRoleStatements[ORG_ROLE.TEACHER].teacher?.includes("create") ??
+      false,
+    false,
   );
   assert.ok(
     organizationRoleStatements[ORG_ROLE.STUDENT].member?.includes("read"),

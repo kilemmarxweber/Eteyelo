@@ -6,6 +6,7 @@
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getOrgRolePresetSeedRows } from "@/lib/org/role-presets";
+import { completePermissionMatrix } from "@/lib/auth/org-role-permission-shared";
 import { ORG_ROLE } from "@/lib/permissions";
 
 const LEADERSHIP_ROLE_SLUGS = [
@@ -117,6 +118,72 @@ export async function syncStaleLeadershipRolePresets(
     updated += 1;
   }
 
+  return updated;
+}
+
+/** Ancien preset enseignant : withActions + teaching/annuaire. */
+function hasOldTeacherDirectory(permission: Record<string, string[]>): boolean {
+  return (
+    (permission.teacher?.includes("create") ?? false) &&
+    (permission.personnel?.includes("create") ?? false) &&
+    (permission.teaching?.includes("read") ?? false)
+  );
+}
+
+/** `memberAc` laissait ac:read → menu Paramètres · Rôles & privilèges. */
+function teacherHasLeftoverRolesMenu(
+  permission: Record<string, string[]>,
+): boolean {
+  return (
+    (permission.ac?.includes("read") ?? false) &&
+    (permission.notes?.includes("create") ?? false)
+  );
+}
+
+/**
+ * Réaligne le preset système enseignant s'il ouvre encore Utilisateurs /
+ * Enseignement / Rôles & privilèges par défaut (matrice et octrois temporaires
+ * restent possibles).
+ */
+export async function syncStaleTeacherRolePreset(
+  organizationId: string,
+): Promise<number> {
+  const seed = getOrgRolePresetSeedRows().find(
+    (row) => row.slug === ORG_ROLE.TEACHER,
+  );
+  if (!seed) return 0;
+
+  const rows = await prisma.organizationRole.findMany({
+    where: {
+      organizationId,
+      role: ORG_ROLE.TEACHER,
+      isSystem: true,
+    },
+    select: { id: true, permission: true },
+  });
+
+  let updated = 0;
+  for (const row of rows) {
+    const permission = parsePermissionJson(row.permission);
+    const oldDirectory = hasOldTeacherDirectory(permission);
+    const leftoverAc = teacherHasLeftoverRolesMenu(permission);
+    if (!oldDirectory && !leftoverAc) continue;
+
+    const nextPermission = oldDirectory
+      ? seed.permission
+      : JSON.stringify(
+          completePermissionMatrix({
+            ...permission,
+            ac: [],
+          }),
+        );
+
+    await prisma.organizationRole.update({
+      where: { id: row.id },
+      data: { permission: nextPermission },
+    });
+    updated += 1;
+  }
   return updated;
 }
 

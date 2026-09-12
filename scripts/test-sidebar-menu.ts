@@ -1,6 +1,7 @@
 ﻿import assert from "node:assert/strict";
 
 import { SIDEBAR_HREF_BRANCH_AREA } from "../lib/auth/branch-area-permissions";
+import { canAccessBranchAreaFromPermissions } from "../lib/auth/resolve-branch-area-permission";
 import { ORG_ROLE } from "../lib/permissions";
 import { buildStaticSideLinks } from "../lib/sidebar-menu";
 
@@ -356,6 +357,94 @@ test("enseignant titulaire voit centralSheet / sheets", () => {
   });
   const cursus = cursusSubTitles(session);
   assertIncludes(cursus, ["centralSheet", "sheets", "grades", "results"], "titulaire");
+});
+
+test("DAC enseignant : pas utilisateurs / enseignement / finance sauf matrice", () => {
+  const prev = process.env.PERMISSIONS_FROM_DAC;
+  process.env.PERMISSIONS_FROM_DAC = "true";
+  try {
+    const session = sessionWithOrgRole(ORG_ROLE.TEACHER);
+    const hideHrefs = Object.entries(SIDEBAR_HREF_BRANCH_AREA)
+      .filter(
+        ([, area]) => !canAccessBranchAreaFromPermissions(area, session),
+      )
+      .map(([href]) => href);
+    const titles = buildStaticSideLinks(
+      session,
+      BRANCH_PATH,
+      "PRIMAIRE",
+      undefined,
+      { hideHrefs, dacReady: true, dacStrictMenu: true },
+    ).map((item) => item.title);
+
+    assertIncludes(
+      titles,
+      ["dashboard", "cursus", "myPresence", "help"],
+      "enseignant DAC",
+    );
+    assertExcludes(
+      titles,
+      ["users", "teaching", "finance", "classes", "registration"],
+      "enseignant DAC",
+    );
+
+    assert.equal(
+      canAccessBranchAreaFromPermissions("roles_privileges", session),
+      false,
+      "enseignant sans ac:read",
+    );
+
+    const grantedRoles = sessionWithOrgRole(ORG_ROLE.TEACHER, {
+      organization: {
+        role: ORG_ROLE.TEACHER,
+        rolePermissions: {
+          [ORG_ROLE.TEACHER]: {
+            ac: ["read"],
+            notes: ["create", "read", "update"],
+          },
+        },
+      },
+    });
+    assert.equal(
+      canAccessBranchAreaFromPermissions("roles_privileges", grantedRoles),
+      true,
+      "enseignant avec matrice ac:read",
+    );
+
+    const granted = sessionWithOrgRole(ORG_ROLE.TEACHER, {
+      organization: {
+        role: ORG_ROLE.TEACHER,
+        rolePermissions: {
+          [ORG_ROLE.TEACHER]: {
+            student: ["read"],
+            teaching: ["read"],
+            finance: ["read"],
+            notes: ["create", "read", "update"],
+          },
+        },
+      },
+    });
+    const grantedHide = Object.entries(SIDEBAR_HREF_BRANCH_AREA)
+      .filter(
+        ([, area]) => !canAccessBranchAreaFromPermissions(area, granted),
+      )
+      .map(([href]) => href);
+    const grantedTitles = buildStaticSideLinks(
+      granted,
+      BRANCH_PATH,
+      "PRIMAIRE",
+      undefined,
+      { hideHrefs: grantedHide, dacReady: true, dacStrictMenu: true },
+    ).map((item) => item.title);
+    assertIncludes(
+      grantedTitles,
+      ["users", "teaching", "finance"],
+      "enseignant avec matrice",
+    );
+  } finally {
+    if (prev == null) delete process.env.PERMISSIONS_FROM_DAC;
+    else process.env.PERMISSIONS_FROM_DAC = prev;
+  }
 });
 
 console.log("\nAll sidebar-menu smoke tests passed.");

@@ -1,6 +1,7 @@
 import {
   seedOrganizationRolePresets,
   syncStaleLeadershipRolePresets,
+  syncStaleTeacherRolePreset,
 } from "@/lib/auth/seed-organization-roles";
 import {
   parseOrganizationRolePermission,
@@ -27,6 +28,7 @@ export async function fetchOrganizationRoleStatements(
     });
   } else {
     await syncStaleLeadershipRolePresets(organizationId);
+    await syncStaleTeacherRolePreset(organizationId);
   }
 
   const rows = await prisma.organizationRole.findMany({

@@ -106,11 +106,17 @@ test("caissier finance+encaisser + inscription ; pas notes", () => {
   assert.deepEqual(c.student, ["read"]);
 });
 
-test("teacher a notes/attendance ; pas finance", () => {
+test("teacher a notes/attendance ; pas finance, annuaire ni enseignement", () => {
   const t = organizationRoleStatements[ORG_ROLE.TEACHER];
   assert.ok(t.notes?.includes("create"));
   assert.ok(t.attendance?.includes("create"));
   assert.equal(t.finance, undefined);
+  assert.equal(t.teaching, undefined);
+  assert.equal(t.student, undefined);
+  assert.equal(t.schedule, undefined);
+  assert.equal(t.teacher, undefined);
+  assert.equal(t.personnel, undefined);
+  assert.ok(!(t.ac?.includes("read") ?? false));
 });
 
 test("parent résultats read ; pas devoirs/library", () => {
