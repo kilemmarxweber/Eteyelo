@@ -167,8 +167,10 @@ async function getScheduleContext(): Promise<ScheduleContext> {
   const teacher = !canManageSchedules
     ? await prisma.teacher.findFirst({
         where: {
+          isActive: true,
           branchMember: {
             branchId,
+            isActive: true,
             member: { userId, organizationId },
           },
         },
@@ -240,6 +242,20 @@ const activeTeachingStatus: Prisma.TeachingWhereInput = {
   OR: [{ statusTeaching: true }, { statusTeaching: null }],
 };
 
+/** Enseignant actif rattaché à la branche courante (pas une autre branche, pas archivé). */
+function activeBranchTeacherWhere(
+  ctx: ScheduleContext,
+): Prisma.TeacherWhereInput {
+  return {
+    isActive: true,
+    branchMember: {
+      branchId: ctx.branchId,
+      isActive: true,
+      member: { organizationId: ctx.organizationId },
+    },
+  };
+}
+
 function scopedTeachingWhere(
   ctx: ScheduleContext,
   extra: Prisma.TeachingWhereInput = {},
@@ -264,12 +280,7 @@ function scopedTeachingWhere(
           isArchived: false,
           branch: { organizationId: ctx.organizationId },
         },
-        teacher: {
-          branchMember: {
-            branchId: ctx.branchId,
-            member: { organizationId: ctx.organizationId },
-          },
-        },
+        teacher: activeBranchTeacherWhere(ctx),
       },
     ],
   };
@@ -300,6 +311,7 @@ function globalScheduleTeachingWhere(
           isArchived: false,
           branch: { organizationId: ctx.organizationId },
         },
+        teacher: activeBranchTeacherWhere(ctx),
       },
     ],
   };
@@ -2345,7 +2357,10 @@ export const getGlobalScheduleByCycleAction = action
 
     if (missingUserIds.length > 0) {
       const fallbackTeachers = await prisma.teacher.findMany({
-        where: { id: { in: missingUserIds } },
+        where: {
+          id: { in: missingUserIds },
+          ...activeBranchTeacherWhere(ctx),
+        },
         select: {
           id: true,
           branchMember: {
