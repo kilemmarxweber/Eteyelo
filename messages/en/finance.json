@@ -322,6 +322,7 @@
       "scaleTitle": "Scale",
       "creditsTitle": "Credits",
       "monthlyTitle": "Monthly payslips",
+      "payslipTitle": "Payslip",
       "draft": "Draft",
       "scale": "Scale",
       "credits": "Credits",
@@ -369,6 +370,7 @@
       "net": "Net",
       "difference": "Difference",
       "payslip": "Payslip",
+      "detail": "Details",
       "actions": "Actions"
     },
     "delete": {
@@ -378,7 +380,8 @@
     },
     "state": {
       "loading": "Loading…",
-      "empty": "No payslip for this period. Recalculate to pay teachers and staff together."
+      "empty": "No payslip for this period. Recalculate to pay teachers and staff together.",
+      "emptySelf": "No payslip for this period."
     },
     "aria": {
       "selectAllDeletable": "Select all drafts and validated payslips"

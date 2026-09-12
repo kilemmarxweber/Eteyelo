@@ -5,7 +5,9 @@ import { action } from "@/lib/zsa";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { canReviewAbsenceJustifications } from "@/lib/auth/session-roles";
 import { prisma } from "@/lib/prisma";
+import { getBranchAreaMutationFlags } from "@/lib/auth/assert-branch-area-access";
 import {
+  ensureTeacherAttendanceAbsenceCase,
   getAbsenceCaseForUser,
   listMyAbsenceCases,
   listPendingAbsenceReviews,
@@ -129,6 +131,30 @@ export const getAbsenceCaseAction = action
     return { canReview: asReviewer, case: row };
   });
 
+export const ensureTeacherAttendanceAbsenceCaseAction = action
+  .input(
+    z.object({
+      attendanceId: z.string().min(1),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const { branchId, userId, session, organizationId } =
+      await requireBranchContext();
+    const pedagogyFlags = await getBranchAreaMutationFlags(
+      "pedagogy",
+      session,
+      organizationId,
+      branchId,
+    );
+    return ensureTeacherAttendanceAbsenceCase({
+      attendanceId: input.attendanceId,
+      branchId,
+      organizationId,
+      userId,
+      canManageTeachers: pedagogyFlags.canWrite,
+    });
+  });
+
 export const submitAbsenceJustificationAction = action
   .input(
     z.object({
@@ -137,12 +163,20 @@ export const submitAbsenceJustificationAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, userId } = await requireBranchContext();
+    const { branchId, userId, session, organizationId } =
+      await requireBranchContext();
+    const pedagogyFlags = await getBranchAreaMutationFlags(
+      "pedagogy",
+      session,
+      organizationId,
+      branchId,
+    );
     await submitAbsenceJustification({
       caseId: input.caseId,
       userId,
       branchId,
       justification: input.justification,
+      canManageTeachers: pedagogyFlags.canWrite,
     });
     return { ok: true };
   });

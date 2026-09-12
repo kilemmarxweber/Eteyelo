@@ -261,8 +261,7 @@ export default function PayrollClient() {
 
   function selectTab(value: string) {
     const next: PayrollTab =
-      value === "bareme" ||
-      ((value === "credit" || value === "logs") && isManager)
+      (value === "bareme" || value === "credit" || value === "logs") && isManager
         ? value
         : "brouillon";
     setTab(next);
@@ -312,12 +311,16 @@ export default function PayrollClient() {
   useEffect(() => {
     void getPayrollPolicyAction().then(([result, error]) => {
       if (!error && result) {
-        setPolicy(toPolicyForm(result));
         setPayrollCaps({
           compute: Boolean(result.canCompute),
           validate: Boolean(result.canValidate),
           pay: Boolean(result.canPay),
         });
+        if (result.canCompute && "secondarySessionMinutes" in result) {
+          setPolicy(
+            toPolicyForm(result as Parameters<typeof toPolicyForm>[0]),
+          );
+        }
       }
     });
   }, []);
@@ -357,7 +360,7 @@ export default function PayrollClient() {
 
   useEffect(() => {
     if (!hydrated || isPending || isManager) return;
-    if (tab !== "credit" && tab !== "logs") return;
+    if (tab !== "credit" && tab !== "logs" && tab !== "bareme") return;
     setTab("brouillon");
     const search = new URLSearchParams(window.location.search);
     search.delete("tab");
@@ -732,13 +735,16 @@ export default function PayrollClient() {
                 ? t("tabs.scaleTitle")
                 : tab === "credit"
                   ? t("tabs.creditsTitle")
-                  : t("tabs.monthlyTitle")}
+                  : isManager
+                    ? t("tabs.monthlyTitle")
+                    : t("tabs.payslipTitle")}
           </CardTitle>
+          {isManager ? (
           <Tabs value={tab} onValueChange={selectTab} className="w-full sm:w-auto">
             <TabsList
               className={cn(
                 "grid h-auto min-h-10 w-full border border-primary/20 bg-primary/10 sm:w-auto",
-                isManager ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-2",
+                "grid-cols-2 sm:grid-cols-4",
               )}
             >
               <TabsTrigger
@@ -771,6 +777,7 @@ export default function PayrollClient() {
               ) : null}
             </TabsList>
           </Tabs>
+          ) : null}
         </div>
         {tab === "brouillon" ? (
           <>
@@ -867,6 +874,8 @@ export default function PayrollClient() {
                 </Button>
               </>
             ) : null}
+            {isManager ? (
+              <>
             <Button
               variant="outline"
               size="sm"
@@ -887,6 +896,8 @@ export default function PayrollClient() {
               <IconFileSpreadsheet size={16} />
               {exporting === "excel" ? t("actions.exporting") : t("actions.excel")}
             </Button>
+              </>
+            ) : null}
           </div>
         </div>
         {isManager && selectedIds.size > 0 ? (
@@ -949,7 +960,7 @@ export default function PayrollClient() {
       </CardHeader>
       {tab === "brouillon" ? (
       <CardContent className="space-y-4">
-        {cash ? (
+        {cash && isManager ? (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <SummaryTile
               label={t("summary.income")}
@@ -982,8 +993,40 @@ export default function PayrollClient() {
           <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
         ) : rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            {t("state.empty")}
+            {isManager ? t("state.empty") : t("state.emptySelf")}
           </p>
+        ) : !isManager ? (
+          <div className="space-y-3">
+            {rows.map((row) => (
+              <button
+                key={row.id}
+                type="button"
+                className="flex w-full flex-col gap-2 rounded-xl border bg-card p-4 text-left shadow-sm transition hover:border-primary/40 hover:bg-muted/40"
+                onClick={() =>
+                  router.push(
+                    `/admin/organizations/${params.organizationId}/branches/${params.branchId}/paie-enseignants/${row.id}`,
+                  )
+                }
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-base font-semibold">
+                    {t("tabs.payslipTitle")}
+                  </span>
+                  <Badge variant="outline-primary">{t("table.detail")}</Badge>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                  <span>
+                    {months[row.month - 1]} {row.year}
+                  </span>
+                  <span>
+                    {t("table.net")}{" "}
+                    {formatAmount(row.net, row.currency, localeTag)}
+                  </span>
+                  <Badge variant="outline">{statusLabel(row.status, t)}</Badge>
+                </div>
+              </button>
+            ))}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1280px] text-sm">
@@ -1258,7 +1301,7 @@ export default function PayrollClient() {
         )}
       </CardContent>
       ) : null}
-      {tab === "bareme" && policy ? (
+      {tab === "bareme" && isManager && policy ? (
         <CardContent>
           <div className="mb-3 flex items-center justify-between gap-2">
             <div>

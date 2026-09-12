@@ -322,6 +322,7 @@
       "scaleTitle": "Barème",
       "creditsTitle": "Crédit",
       "monthlyTitle": "Bulletins mensuels",
+      "payslipTitle": "Bulletin de paie",
       "draft": "Brouillon",
       "scale": "Barème",
       "credits": "Crédit",
@@ -369,6 +370,7 @@
       "net": "Net",
       "difference": "Différence",
       "payslip": "Bulletin",
+      "detail": "Détail",
       "actions": "Actions"
     },
     "delete": {
@@ -378,7 +380,8 @@
     },
     "state": {
       "loading": "Chargement…",
-      "empty": "Aucun bulletin pour cette période. Lancez une régénération pour payer enseignants et personnels ensemble."
+      "empty": "Aucun bulletin pour cette période. Lancez une régénération pour payer enseignants et personnels ensemble.",
+      "emptySelf": "Aucun bulletin de paie pour cette période."
     },
     "aria": {
       "selectAllDeletable": "Sélectionner tous les brouillons et validés"

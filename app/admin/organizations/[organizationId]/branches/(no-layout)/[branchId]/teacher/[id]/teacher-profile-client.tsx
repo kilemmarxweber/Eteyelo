@@ -50,6 +50,7 @@ import TeacherScheduleTable, {
   type TeacherScheduleUI,
 } from "./TeacherScheduleTable";
 import { TeacherApplicationCompleteForm } from "./teacher-application-form";
+import { TeacherAttendanceHistory } from "./teacher-attendance-history";
 import { TeacherPhotoAvatar } from "./teacher-photo-avatar";
 import { TeacherProfileDocuments } from "./teacher-profile-documents";
 import { TeacherSelfProfileForm } from "./teacher-self-profile-form";
@@ -57,7 +58,6 @@ import { replaceTeacherApplicationDocumentAction } from "./teacher-application.a
 import { uploadDocument } from "@/lib/upload-file";
 import { toast } from "sonner";
 import type {
-  TeacherAttendanceStatus,
   TeacherProfileApplication,
   TeacherProfileData,
   TeacherProfileNote,
@@ -91,22 +91,6 @@ function numberNotesByCourse(notes: TeacherProfileNote[]) {
   }));
 }
 
-function statusMeta(
-  status: TeacherAttendanceStatus,
-  t: (key: string) => string,
-) {
-  switch (status) {
-    case "PRESENT":
-      return { label: t("present"), className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" };
-    case "ABSENT":
-      return { label: t("absent"), className: "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300" };
-    case "LATE":
-      return { label: t("late"), className: "border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300" };
-    default:
-      return { label: t("excused"), className: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300" };
-  }
-}
-
 function formatDate(iso: string, locale: string, withTime = false) {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "—";
@@ -116,13 +100,6 @@ function formatDate(iso: string, locale: string, withTime = false) {
     year: "numeric",
     ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
   });
-}
-
-function formatTime(iso: string | null, locale: string) {
-  if (!iso) return "—";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 }
 
 function ScoreRing({ value }: { value: number }) {
@@ -614,55 +591,15 @@ export function TeacherProfileClient({
                 </Card>
               ) : null}
 
-              <Card className="rounded-xl p-0 overflow-hidden">
-                <div className="flex items-center justify-between gap-2 border-b bg-muted/20 px-4 py-3">
-                  <div>
-                    <h3 className="text-sm font-semibold">{t("attendanceHistory")}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {t("recentCheckins", { teacherLower: profile.teacherLabelLower })}
-                    </p>
-                  </div>
-                  <Button asChild size="sm" variant="outline">
-                    <Link href={profile.attendanceHref}>{t("seeAll")}</Link>
-                  </Button>
-                </div>
-                <div className="divide-y">
-                  {profile.attendances.length ? (
-                    profile.attendances.map((row) => {
-                      const meta = statusMeta(row.status, t);
-                      return (
-                        <div
-                          key={row.id}
-                          className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
-                        >
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium">
-                              {row.courseName}
-                              {row.className ? ` · ${row.className}` : ""}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatDate(row.date, locale)} · {formatTime(row.checkIn, locale)} →{" "}
-                              {formatTime(row.checkOut, locale)}
-                            </p>
-                          </div>
-                          <span
-                            className={cn(
-                              "inline-flex rounded-md border px-2 py-0.5 text-[11px] font-medium",
-                              meta.className,
-                            )}
-                          >
-                            {meta.label}
-                          </span>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-                      {t("noAttendance")}
-                    </p>
-                  )}
-                </div>
-              </Card>
+              <TeacherAttendanceHistory
+                attendances={profile.attendances}
+                personName={profile.fullName}
+                teacherLabelLower={profile.teacherLabelLower}
+                attendanceHref={profile.attendanceHref}
+                canJustifyAbsences={profile.canJustifyAbsences}
+                canReviewAbsences={profile.canReviewAbsences}
+                locale={locale}
+              />
             </TabsContent>
 
             <TabsContent value="reunions" className="space-y-4">

@@ -7,7 +7,7 @@ import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getOrgRolePresetSeedRows } from "@/lib/org/role-presets";
 import { completePermissionMatrix } from "@/lib/auth/org-role-permission-shared";
-import { ORG_ROLE } from "@/lib/permissions";
+import { ORG_ROLE, STAFF_SELF_PAYROLL_ROLE_SLUGS } from "@/lib/permissions";
 
 const LEADERSHIP_ROLE_SLUGS = [
   ORG_ROLE.PREFET,
@@ -184,6 +184,46 @@ export async function syncStaleTeacherRolePreset(
     });
     updated += 1;
   }
+  return updated;
+}
+
+/**
+ * Ajoute `payroll:read` aux presets staff existants (bulletin personnel)
+ * sans retirer compute/validate/pay déjà octroyés dans la matrice.
+ */
+export async function ensureStaffSelfPayrollRead(
+  organizationId: string,
+): Promise<number> {
+  const rows = await prisma.organizationRole.findMany({
+    where: {
+      organizationId,
+      role: { in: [...STAFF_SELF_PAYROLL_ROLE_SLUGS] },
+      isSystem: true,
+    },
+    select: { id: true, permission: true },
+  });
+
+  let updated = 0;
+  for (const row of rows) {
+    const permission = parsePermissionJson(row.permission);
+    const payroll = new Set(permission.payroll ?? []);
+    if (payroll.has("read")) continue;
+    payroll.add("read");
+
+    await prisma.organizationRole.update({
+      where: { id: row.id },
+      data: {
+        permission: JSON.stringify(
+          completePermissionMatrix({
+            ...permission,
+            payroll: [...payroll],
+          }),
+        ),
+      },
+    });
+    updated += 1;
+  }
+
   return updated;
 }
 

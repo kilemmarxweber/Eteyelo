@@ -322,6 +322,7 @@
       "scaleTitle": "Tabela",
       "creditsTitle": "Crédito",
       "monthlyTitle": "Recibos mensais",
+      "payslipTitle": "Recibo de vencimento",
       "draft": "Rascunho",
       "scale": "Tabela",
       "credits": "Crédito",
@@ -369,6 +370,7 @@
       "net": "Líquido",
       "difference": "Diferença",
       "payslip": "Recibo",
+      "detail": "Detalhe",
       "actions": "Ações"
     },
     "delete": {
@@ -378,7 +380,8 @@
     },
     "state": {
       "loading": "A carregar…",
-      "empty": "Nenhum recibo neste período. Recalcule para pagar docentes e pessoal em conjunto."
+      "empty": "Nenhum recibo neste período. Recalcule para pagar docentes e pessoal em conjunto.",
+      "emptySelf": "Nenhum recibo de vencimento neste período."
     },
     "aria": {
       "selectAllDeletable": "Selecionar todos os rascunhos e validados"

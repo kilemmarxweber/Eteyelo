@@ -31,6 +31,16 @@ export type TeacherProfileNote = {
   createdAt: string;
 };
 
+export type TeacherProfileAbsenceCase = {
+  id: string;
+  status: string;
+  subjectType: string;
+  contextLabel: string;
+  occurredOn: string;
+  justification: string | null;
+  reviewComment: string | null;
+};
+
 export type TeacherProfileAttendance = {
   id: string;
   date: string;
@@ -40,6 +50,7 @@ export type TeacherProfileAttendance = {
   remark: string | null;
   courseName: string;
   className: string;
+  absenceCase: TeacherProfileAbsenceCase | null;
 };
 
 export type TeacherProfileMeeting = {
@@ -158,6 +169,8 @@ export type TeacherProfileData = {
   assignmentYearLabels: string[];
   /** Propriétaire : peut remplacer CV / lettre. */
   canEditApplicationDocuments: boolean;
+  canJustifyAbsences: boolean;
+  canReviewAbsences: boolean;
   profileDocuments: TeacherProfileDocument[];
   courses: TeacherProfileCourse[];
   classes: TeacherProfileClass[];

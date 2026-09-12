@@ -204,13 +204,28 @@ export async function notifyTeacherPayrollImpact(input: {
   estimate = roundCurrency(estimate, currency);
 
   const contextLabel = `${session.teaching.classe?.nameClasse ?? "Classe"} · ${session.teaching.cours.nameCours}`;
-  const href = `/admin/organizations/${input.organizationId}/branches/${input.branchId}/paie-enseignants`;
+  const year = session.date.getUTCFullYear();
+  const month = session.date.getUTCMonth() + 1;
+  const payslip = await prisma.teacherPayslip.findFirst({
+    where: {
+      branchId: input.branchId,
+      teacherId: input.teacherId,
+      year,
+      month,
+    },
+    orderBy: { updatedAt: "desc" },
+    select: { id: true },
+  });
+  const listHref = `/admin/organizations/${input.organizationId}/branches/${input.branchId}/paie-enseignants`;
+  const teacherHref = payslip
+    ? `${listHref}/${payslip.id}`
+    : listHref;
   const alreadyNotified = await prisma.appNotification.findFirst({
     where: {
       userId: user.id,
       branchId: input.branchId,
       type: "PAYROLL_DEDUCTION",
-      href,
+      href: teacherHref,
       createdAt: { gte: new Date(Date.now() - 5 * 60 * 1000) },
     },
     select: { id: true },
@@ -235,7 +250,7 @@ export async function notifyTeacherPayrollImpact(input: {
               ? "Retard signalé (franchise)"
               : "Retard avec impact paie",
       body,
-      href,
+      href: teacherHref,
     },
   });
 
@@ -276,7 +291,7 @@ export async function notifyTeacherPayrollImpact(input: {
           type: "PAYROLL_DEDUCTION",
           title: "Impact paie enseignant",
           body: `${user.name} · ${body}`,
-          href,
+          href: listHref,
         },
       });
     }

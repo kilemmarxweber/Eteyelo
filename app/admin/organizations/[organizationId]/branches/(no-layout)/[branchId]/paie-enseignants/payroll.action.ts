@@ -7,7 +7,6 @@ import {
   assertBranchAreaAccess,
   sessionAllowsPayrollAction,
 } from "@/lib/auth/assert-branch-area-access";
-import { getSessionRoles } from "@/lib/auth/session-roles";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
   calculateAndPersistStaffPayroll,
@@ -267,14 +266,40 @@ async function requirePayrollMutation(
   if (!allowed) throw new Error(message);
 }
 
-async function getTeacherForUser(branchId: string, userId: string) {
-  return prisma.teacher.findFirst({
-    where: {
-      isActive: true,
-      branchMember: { branchId, member: { userId } },
-    },
-    select: { id: true },
-  });
+async function isPayrollAdministrator(
+  context: Awaited<ReturnType<typeof getContext>>,
+) {
+  const [compute, validate, pay] = await Promise.all([
+    sessionAllowsPayrollAction(
+      context.session,
+      "compute",
+      context.organizationId,
+      context.branchId,
+    ),
+    sessionAllowsPayrollAction(
+      context.session,
+      "validate",
+      context.organizationId,
+      context.branchId,
+    ),
+    sessionAllowsPayrollAction(
+      context.session,
+      "pay",
+      context.organizationId,
+      context.branchId,
+    ),
+  ]);
+  return compute || validate || pay;
+}
+
+function ownPayslipScope(userId: string) {
+  return {
+    OR: [
+      { branchMember: { member: { userId } } },
+      { teacher: { branchMember: { member: { userId } } } },
+      { personnel: { branchMember: { member: { userId } } } },
+    ],
+  };
 }
 
 async function resolveSchoolYearId(
@@ -319,11 +344,6 @@ export const getPayrollSchoolYearsAction = action.handler(async () => {
 
 export const getPayrollPolicyAction = action.handler(async () => {
   const context = await getContext();
-  const policy = await prisma.branchPayrollPolicy.upsert({
-    where: { branchId: context.branchId },
-    create: { branchId: context.branchId },
-    update: {},
-  });
   const [canCompute, canValidate, canPay] = await Promise.all([
     sessionAllowsPayrollAction(
       context.session,
@@ -344,6 +364,14 @@ export const getPayrollPolicyAction = action.handler(async () => {
       context.branchId,
     ),
   ]);
+  if (!canCompute) {
+    return { canCompute, canValidate, canPay };
+  }
+  const policy = await prisma.branchPayrollPolicy.upsert({
+    where: { branchId: context.branchId },
+    create: { branchId: context.branchId },
+    update: {},
+  });
   return {
     ...policy,
     canCompute,
@@ -546,6 +574,13 @@ export const getPayrollCashSnapshotAction = action
   .input(periodSchema)
   .handler(async ({ input }) => {
     const context = await getContext();
+    const canCompute = await sessionAllowsPayrollAction(
+      context.session,
+      "compute",
+      context.organizationId,
+      context.branchId,
+    );
+    if (!canCompute) return null;
     const schoolYearId = await resolveSchoolYearId(
       context.branchId,
       input.schoolYearId,
@@ -617,10 +652,7 @@ export const getTeacherPayslipsAction = action
       context.branchId,
       input.schoolYearId,
     );
-    const teacher = await getTeacherForUser(context.branchId, context.userId);
-    const roles = getSessionRoles(context.session);
-    const isTeacher = roles.has("teacher");
-    if (isTeacher && !teacher) return [];
+    const admin = await isPayrollAdministrator(context);
 
     const rows = await prisma.teacherPayslip.findMany({
       where: {
@@ -628,7 +660,7 @@ export const getTeacherPayslipsAction = action
         year: input.year,
         month: input.month,
         ...(schoolYearId ? { schoolYearId } : {}),
-        ...(isTeacher && teacher ? { teacherId: teacher.id } : {}),
+        ...(admin ? {} : ownPayslipScope(context.userId)),
       },
       orderBy: { updatedAt: "desc" },
       include: {
@@ -841,14 +873,12 @@ export const getTeacherPayslipAction = action
   .input(payslipSchema)
   .handler(async ({ input }) => {
     const context = await getContext();
-    const teacher = await getTeacherForUser(context.branchId, context.userId);
-    const roles = getSessionRoles(context.session);
-    if (roles.has("teacher") && !teacher) throw new Error("Profil enseignant introuvable");
+    const admin = await isPayrollAdministrator(context);
     const row = await prisma.teacherPayslip.findFirst({
       where: {
         id: input.payslipId,
         branchId: context.branchId,
-        ...(roles.has("teacher") && teacher ? { teacherId: teacher.id } : {}),
+        ...(admin ? {} : ownPayslipScope(context.userId)),
       },
       include: {
         teacher: {

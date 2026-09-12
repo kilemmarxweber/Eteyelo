@@ -36,7 +36,22 @@ export default async function AttendanceReportsPage() {
         branchId,
         OR: [{ statusClasse: true }, { statusClasse: null }],
       },
-      select: { id: true, nameClasse: true, codeClasse: true },
+      select: {
+        id: true,
+        nameClasse: true,
+        codeClasse: true,
+        level: true,
+        parallel: true,
+        cycle: true,
+        option: {
+          select: {
+            id: true,
+            nameOption: true,
+            codeOption: true,
+            cycle: true,
+          },
+        },
+      },
       orderBy: [{ level: "asc" }, { nameClasse: "asc" }],
     }),
   ]);
@@ -58,6 +73,12 @@ export default async function AttendanceReportsPage() {
           classe.nameClasse?.trim() ||
           classe.codeClasse?.trim() ||
           t("reportCards.classFallback"),
+        nameClasse: classe.nameClasse,
+        codeClasse: classe.codeClasse,
+        level: classe.level,
+        parallel: classe.parallel,
+        cycle: classe.cycle,
+        option: classe.option,
       }))}
     />
   );

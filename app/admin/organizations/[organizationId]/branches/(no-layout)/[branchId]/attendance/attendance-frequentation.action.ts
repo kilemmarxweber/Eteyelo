@@ -73,10 +73,28 @@ function utcDay(year: number, month: number, day: number): Date {
   return new Date(Date.UTC(year, month - 1, day));
 }
 
+function parseClasseScope(input: {
+  classeId?: string | null;
+  classeIds?: string[] | null;
+}): string[] | null {
+  if (input.classeIds != null) {
+    const ids = [
+      ...input.classeIds,
+      ...(input.classeId?.trim() ? [input.classeId.trim()] : []),
+    ]
+      .map((id) => id.trim())
+      .filter(Boolean);
+    return [...new Set(ids)];
+  }
+  const single = input.classeId?.trim();
+  return single ? [single] : null;
+}
+
 export const getStudentFrequentationRegisterAction = action
   .input(
     z.object({
       classeId: z.string().optional().nullable(),
+      classeIds: z.array(z.string()).optional(),
     }),
   )
   .handler(async ({ input }): Promise<FrequentationRegister> => {
@@ -97,15 +115,37 @@ export const getStudentFrequentationRegisterAction = action
       throw new Error("Aucune année scolaire en cours.");
     }
 
-    const classeId = input.classeId?.trim() || null;
+    const classeIds = parseClasseScope(input);
+    let classeId: string | null =
+      classeIds && classeIds.length === 1 ? classeIds[0] : null;
     let classeName: string | null = null;
-    if (classeId) {
-      const classe = await prisma.classe.findFirst({
-        where: { id: classeId, branchId },
+    if (classeIds && classeIds.length > 0) {
+      const classes = await prisma.classe.findMany({
+        where: { id: { in: classeIds }, branchId },
         select: { nameClasse: true, codeClasse: true },
       });
+      const names = classes
+        .map(
+          (classe) =>
+            classe.nameClasse?.trim() || classe.codeClasse?.trim() || "Classe",
+        )
+        .filter(Boolean);
       classeName =
-        classe?.nameClasse?.trim() || classe?.codeClasse?.trim() || null;
+        names.length === 0
+          ? null
+          : names.length <= 3
+            ? names.join(", ")
+            : `${names.slice(0, 3).join(", ")} +${names.length - 3}`;
+    }
+
+    if (classeIds && classeIds.length === 0) {
+      return {
+        schoolYearLabel: schoolYear.nameYear,
+        classeId,
+        classeName,
+        months: [],
+        averages: [],
+      };
     }
 
     const enrollments = await prisma.classEnrollment.findMany({
@@ -113,7 +153,12 @@ export const getStudentFrequentationRegisterAction = action
         branchId,
         schoolYearId: schoolYear.id,
         OR: [{ statusEnrollment: true }, { statusEnrollment: null }],
-        ...(classeId ? { classeId } : {}),
+        ...(classeIds
+          ? {
+              classeId:
+                classeIds.length === 1 ? classeIds[0] : { in: classeIds },
+            }
+          : {}),
       },
       select: {
         studentId: true,
@@ -159,7 +204,14 @@ export const getStudentFrequentationRegisterAction = action
         branchId,
         session: {
           date: { gte: start, lte: queryEnd },
-          ...(classeId ? { teaching: { classeId } } : {}),
+          ...(classeIds
+            ? {
+                teaching: {
+                  classeId:
+                    classeIds.length === 1 ? classeIds[0] : { in: classeIds },
+                },
+              }
+            : {}),
         },
       },
       select: {

@@ -80,8 +80,8 @@ test("caissier : dashboard, registration, finance, users/student, help — pas c
     (item) => item.title === "finance",
   );
   const financeSubs = (finance?.sub ?? []).map((item) => item.title);
-  assertIncludes(financeSubs, ["payment"], "caissier finance");
-  assertExcludes(financeSubs, ["fees"], "caissier finance");
+  assertIncludes(financeSubs, ["payment", "teacherPayroll"], "caissier finance");
+  assertExcludes(financeSubs, ["fees", "transactions"], "caissier finance");
 });
 
 test("élève : dashboard, results, library — pas grades/schedule/sheets / finance", () => {
@@ -130,16 +130,19 @@ test("parent : dashboard + results — pas grades/schedule/homework/library / fi
   );
 });
 
-test("enseignant : pas teaching / users ; cursus grades/results/library ; dossier via dashboard", () => {
+test("enseignant : pas teaching / users ; finance = paie personnelle ; cursus grades/results/library", () => {
   const session = sessionWithOrgRole(ORG_ROLE.TEACHER);
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);
+  const finance = buildStaticSideLinks(session, BRANCH_PATH, "PRIMAIRE").find(
+    (item) => item.title === "finance",
+  );
+  const financeSubs = (finance?.sub ?? []).map((item) => item.title);
 
-  assertIncludes(titles, ["dashboard", "cursus", "myPresence", "help"], "enseignant");
+  assertIncludes(titles, ["dashboard", "cursus", "myPresence", "help", "finance"], "enseignant");
   assertExcludes(
     titles,
     [
-      "finance",
       "classes",
       "registration",
       "candidatures",
@@ -149,6 +152,12 @@ test("enseignant : pas teaching / users ; cursus grades/results/library ; dossie
     ],
     "enseignant",
   );
+  assertIncludes(financeSubs, ["teacherPayroll"], "enseignant paie");
+  assertExcludes(
+    financeSubs,
+    ["fees", "payment", "transactions"],
+    "enseignant paie sans caisse",
+  );
   assertIncludes(
     cursus,
     ["grades", "results", "library"],
@@ -157,61 +166,75 @@ test("enseignant : pas teaching / users ; cursus grades/results/library ; dossie
   assertExcludes(cursus, ["schedule"], "enseignant cursus");
 });
 
-test("préfet / directeur DAC : pédagogie — pas finance / inscription / candidatures", () => {
+test("préfet / directeur DAC : pédagogie + paie personnelle — pas caisse / inscription / candidatures", () => {
   const leadershipHide = [
     "/admin/registration",
     "/admin/candidatures",
     "/admin/frais",
     "/admin/paiement",
-    "/admin/paie-enseignants",
     "/admin/paie-enseignants/credits",
     "/admin/transactions",
   ];
 
   for (const role of [ORG_ROLE.PREFET, ORG_ROLE.DIRECTEUR] as const) {
-    const titles = buildStaticSideLinks(
+    const links = buildStaticSideLinks(
       sessionWithOrgRole(role),
       BRANCH_PATH,
       "PRIMAIRE",
       undefined,
       { hideHrefs: leadershipHide, dacReady: true, dacStrictMenu: true },
+    );
+    const titles = links.map((item) => item.title);
+    const financeSubs = (
+      links.find((item) => item.title === "finance")?.sub ?? []
     ).map((item) => item.title);
 
     assertIncludes(
       titles,
-      ["dashboard", "myPresence", "users", "teaching", "classes", "cursus", "help"],
+      ["dashboard", "myPresence", "users", "teaching", "classes", "cursus", "help", "finance"],
       role,
     );
-    assertExcludes(titles, ["finance", "registration", "candidatures"], role);
+    assertExcludes(titles, ["registration", "candidatures"], role);
+    assertIncludes(financeSubs, ["teacherPayroll"], role);
+    assertExcludes(financeSubs, ["fees", "payment", "transactions"], role);
   }
 });
 
-test("directeur des études DAC : pédagogie — pas finance / inscription / candidatures", () => {
+test("directeur des études DAC : pédagogie + paie personnelle — pas caisse / inscription / candidatures", () => {
   const leadershipHide = [
     "/admin/registration",
     "/admin/candidatures",
     "/admin/frais",
     "/admin/paiement",
-    "/admin/paie-enseignants",
     "/admin/paie-enseignants/credits",
     "/admin/transactions",
   ];
   const session = sessionWithOrgRole(ORG_ROLE.DIRECTEUR_ETUDES);
-  const titles = buildStaticSideLinks(session, BRANCH_PATH, "PRIMAIRE", undefined, {
+  const links = buildStaticSideLinks(session, BRANCH_PATH, "PRIMAIRE", undefined, {
     hideHrefs: leadershipHide,
     dacReady: true,
     dacStrictMenu: true,
-  }).map((item) => item.title);
+  });
+  const titles = links.map((item) => item.title);
+  const financeSubs = (
+    links.find((item) => item.title === "finance")?.sub ?? []
+  ).map((item) => item.title);
 
   assertIncludes(
     titles,
-    ["dashboard", "myPresence", "users", "teaching", "classes", "cursus", "help"],
+    ["dashboard", "myPresence", "users", "teaching", "classes", "cursus", "help", "finance"],
     "directeur des études",
   );
   assertExcludes(
     titles,
-    ["finance", "registration", "candidatures"],
+    ["registration", "candidatures"],
     "directeur des études",
+  );
+  assertIncludes(financeSubs, ["teacherPayroll"], "études paie");
+  assertExcludes(
+    financeSubs,
+    ["fees", "payment", "transactions"],
+    "études paie sans caisse",
   );
 });
 
@@ -359,7 +382,7 @@ test("enseignant titulaire voit centralSheet / sheets", () => {
   assertIncludes(cursus, ["centralSheet", "sheets", "grades", "results"], "titulaire");
 });
 
-test("DAC enseignant : pas utilisateurs / enseignement / finance sauf matrice", () => {
+test("DAC enseignant : paie personnelle ; pas utilisateurs / enseignement / caisse sauf matrice", () => {
   const prev = process.env.PERMISSIONS_FROM_DAC;
   process.env.PERMISSIONS_FROM_DAC = "true";
   try {
@@ -369,23 +392,33 @@ test("DAC enseignant : pas utilisateurs / enseignement / finance sauf matrice", 
         ([, area]) => !canAccessBranchAreaFromPermissions(area, session),
       )
       .map(([href]) => href);
-    const titles = buildStaticSideLinks(
+    const links = buildStaticSideLinks(
       session,
       BRANCH_PATH,
       "PRIMAIRE",
       undefined,
       { hideHrefs, dacReady: true, dacStrictMenu: true },
+    );
+    const titles = links.map((item) => item.title);
+    const financeSubs = (
+      links.find((item) => item.title === "finance")?.sub ?? []
     ).map((item) => item.title);
 
     assertIncludes(
       titles,
-      ["dashboard", "cursus", "myPresence", "help"],
+      ["dashboard", "cursus", "myPresence", "help", "finance"],
       "enseignant DAC",
     );
     assertExcludes(
       titles,
-      ["users", "teaching", "finance", "classes", "registration"],
+      ["users", "teaching", "classes", "registration"],
       "enseignant DAC",
+    );
+    assertIncludes(financeSubs, ["teacherPayroll"], "enseignant DAC paie");
+    assertExcludes(
+      financeSubs,
+      ["fees", "payment", "transactions"],
+      "enseignant DAC sans caisse",
     );
 
     assert.equal(

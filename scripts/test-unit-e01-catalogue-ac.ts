@@ -60,12 +60,13 @@ test("owner couvre finance + notes + student + paie + transactions", () => {
   assert.ok(owner.transactions?.includes("read"));
 });
 
-test("gestionnaire a finance CRU+encaisser sans delete member ni paie", () => {
+test("gestionnaire a finance CRU+encaisser sans delete member ; paie lecture seule", () => {
   const g = organizationRoleStatements[ORG_ROLE.GESTIONNAIRE];
   assert.ok(g.finance?.includes("encaisser"));
   assert.equal(g.finance?.includes("delete") ?? false, false);
   assert.equal(g.member?.includes("delete") ?? false, false);
-  assert.equal(g.payroll, undefined);
+  assert.deepEqual(g.payroll, ["read"]);
+  assert.equal(g.payroll?.includes("compute") ?? false, false);
   assert.equal(g.transactions, undefined);
 });
 
@@ -73,6 +74,7 @@ test("chef d'établissement sans finance ; avec notes", () => {
   for (const slug of [ORG_ROLE.PREFET, ORG_ROLE.DIRECTEUR] as const) {
     const s = organizationRoleStatements[slug];
     assert.equal(s.finance, undefined);
+    assert.deepEqual(s.payroll, ["read"]);
     assert.ok(s.notes?.includes("update"));
     assert.ok(s.attendance?.includes("create"));
     assert.equal(s.settings, undefined);
@@ -87,6 +89,7 @@ test("chef d'établissement sans finance ; avec notes", () => {
 test("directeur des études sans finance ; personnel read ; enseignants read", () => {
   const d = organizationRoleStatements[ORG_ROLE.DIRECTEUR_ETUDES];
   assert.equal(d.finance, undefined);
+  assert.deepEqual(d.payroll, ["read"]);
   assert.deepEqual(d.personnel, ["read"]);
   assert.deepEqual(d.teacher, ["read"]);
   assert.ok(d.notes?.includes("create"));
@@ -98,18 +101,21 @@ test("directeur des études sans finance ; personnel read ; enseignants read", (
   assert.ok(d.periods?.includes("read"));
 });
 
-test("caissier finance+encaisser + inscription ; pas notes", () => {
+test("caissier finance+encaisser + inscription ; bulletin paie ; pas notes", () => {
   const c = organizationRoleStatements[ORG_ROLE.CAISSIER];
   assert.deepEqual(c.finance, ["create", "read", "update", "encaisser"]);
   assert.ok(c.inscription?.includes("create"));
+  assert.deepEqual(c.payroll, ["read"]);
   assert.equal(c.notes, undefined);
   assert.deepEqual(c.student, ["read"]);
 });
 
-test("teacher a notes/attendance ; pas finance, annuaire ni enseignement", () => {
+test("teacher a notes/attendance + bulletin paie ; pas finance, annuaire ni enseignement", () => {
   const t = organizationRoleStatements[ORG_ROLE.TEACHER];
   assert.ok(t.notes?.includes("create"));
   assert.ok(t.attendance?.includes("create"));
+  assert.deepEqual(t.payroll, ["read"]);
+  assert.equal(t.payroll?.includes("compute") ?? false, false);
   assert.equal(t.finance, undefined);
   assert.equal(t.teaching, undefined);
   assert.equal(t.student, undefined);

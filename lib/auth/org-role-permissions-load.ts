@@ -2,6 +2,7 @@ import {
   seedOrganizationRolePresets,
   syncStaleLeadershipRolePresets,
   syncStaleTeacherRolePreset,
+  ensureStaffSelfPayrollRead,
 } from "@/lib/auth/seed-organization-roles";
 import {
   parseOrganizationRolePermission,
@@ -29,6 +30,7 @@ export async function fetchOrganizationRoleStatements(
   } else {
     await syncStaleLeadershipRolePresets(organizationId);
     await syncStaleTeacherRolePreset(organizationId);
+    await ensureStaffSelfPayrollRead(organizationId);
   }
 
   const rows = await prisma.organizationRole.findMany({

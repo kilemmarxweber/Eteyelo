@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 
-import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
+import {
+  assertBranchAreaAccess,
+  sessionAllowsPayrollAction,
+} from "@/lib/auth/assert-branch-area-access";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +15,16 @@ export default async function SalaryCreditsPage() {
     branchId: context.branchId,
   });
 
-  redirect(
-    `/admin/organizations/${context.organizationId}/branches/${context.branchId}/paie-enseignants?tab=credit`,
+  const canManage = await sessionAllowsPayrollAction(
+    context.session,
+    "compute",
+    context.organizationId,
+    context.branchId,
   );
+  const base = `/admin/organizations/${context.organizationId}/branches/${context.branchId}/paie-enseignants`;
+  if (!canManage) {
+    redirect(base);
+  }
+
+  redirect(`${base}?tab=credit`);
 }

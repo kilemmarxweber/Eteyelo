@@ -952,11 +952,101 @@ export async function signalEndedAbsencesForAllBranches() {
   return { created, branches: branches.length };
 }
 
+export async function ensureTeacherAttendanceAbsenceCase(params: {
+  attendanceId: string;
+  branchId: string;
+  organizationId: string;
+  userId: string;
+  canManageTeachers: boolean;
+}): Promise<AbsenceCaseView> {
+  const attendance = await prisma.teacherAttendance.findFirst({
+    where: {
+      id: params.attendanceId,
+      branchId: params.branchId,
+    },
+    include: {
+      absenceCase: { include: { user: { select: userContactSelect } } },
+      session: {
+        include: {
+          teaching: {
+            include: {
+              cours: { select: { nameCours: true } },
+              classe: { select: { nameClasse: true, codeClasse: true } },
+            },
+          },
+        },
+      },
+      teacher: {
+        select: {
+          branchMember: {
+            select: {
+              member: {
+                select: {
+                  userId: true,
+                  user: { select: userContactSelect },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!attendance) throw new Error("Présence introuvable.");
+
+  const ownerUserId = attendance.teacher.branchMember?.member?.userId;
+  const isSelf = ownerUserId === params.userId;
+  if (!isSelf && !params.canManageTeachers) {
+    throw new Error("Vous n'êtes pas habilité à justifier cette absence.");
+  }
+
+  if (attendance.absenceCase) {
+    return toView(attendance.absenceCase);
+  }
+
+  if (attendance.status !== "ABSENT") {
+    throw new Error("Seules les absences peuvent être justifiées.");
+  }
+
+  const user = attendance.teacher.branchMember?.member?.user;
+  if (!user) throw new Error("Compte enseignant introuvable.");
+
+  await syncTeacherAttendanceAbsence({
+    branchId: params.branchId,
+    organizationId: params.organizationId,
+    teacherId: attendance.teacherId,
+    sessionId: attendance.sessionId,
+    attendanceId: attendance.id,
+    status: "ABSENT",
+    checkIn: attendance.checkIn,
+    contextLabel: formatExpectedSessionLabel(
+      attendance.session.startTime,
+      attendance.session.teaching,
+    ),
+    occurredOn: attendance.date,
+    user,
+  });
+
+  const opened = await prisma.absenceCase.findFirst({
+    where: {
+      branchId: params.branchId,
+      teacherAttendanceId: attendance.id,
+    },
+    include: { user: { select: userContactSelect } },
+  });
+  if (!opened) {
+    throw new Error("Impossible d'ouvrir le dossier d'absence.");
+  }
+  return toView(opened);
+}
+
 export async function submitAbsenceJustification(params: {
   caseId: string;
   userId: string;
   branchId: string;
   justification: string;
+  canManageTeachers?: boolean;
 }) {
   const text = params.justification.trim();
   if (text.length < 8) {
@@ -972,6 +1062,9 @@ export async function submitAbsenceJustification(params: {
         { userId: params.userId },
         ...(parentStudentIds.length
           ? [{ studentId: { in: parentStudentIds } }]
+          : []),
+        ...(params.canManageTeachers
+          ? [{ subjectType: "TEACHER" as const }]
           : []),
       ],
     },

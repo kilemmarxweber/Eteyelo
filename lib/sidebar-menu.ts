@@ -72,8 +72,9 @@ const SCHOOL_ADMIN_ROLES = [
 ];
 
 /**
- * Finance : managers org + caissier.
- * Chef d’établissement (préfet/directeur) et directeur des études exclus.
+ * Finance (frais / paiement) : managers org + caissier.
+ * Chef d’établissement et directeur des études : pas de caisse, seulement
+ * leur bulletin via `SELF_PAYROLL_ROLES`.
  */
 const FINANCE_ROLES = [
   ...PLATFORM_MENU_ROLES,
@@ -92,17 +93,36 @@ const FINANCE_OVERSIGHT_ROLES = [
 
 const TEACHER_ROLES = [ORG_ROLE.TEACHER, "TEACHER", "teacher"];
 
-/** Paie : menu et gestion des mises à jour réservés au propriétaire. */
-const PAYROLL_ROLES = OWNER_ONLY_MENU_ROLES;
-
-const TEACHER_TITULAIRE_ROLE = "TEACHER_TITULAIRE";
-
 const CAISSIER_ROLES = [
   ORG_ROLE.CAISSIER,
   "CAISSIER",
   "ACCOUNTANT",
   "accountant",
 ];
+
+/** Paie admin (transactions) : propriétaire, ou matrice / octroi. */
+const PAYROLL_ROLES = OWNER_ONLY_MENU_ROLES;
+
+/**
+ * Bulletin de paie du user actif — tous les agents/rôles staff.
+ * Barème, crédits, transactions et caisse restent matrice / propriétaire.
+ */
+const SELF_PAYROLL_ROLES = [
+  ...SCHOOL_ADMIN_ROLES,
+  ...TEACHER_ROLES,
+  ...CAISSIER_ROLES,
+  ORG_ROLE.AGENT_BUREAU,
+  "agent_bureau",
+  ORG_ROLE.SUPPORT,
+  "SUPPORT",
+  "support",
+];
+
+const FINANCE_MENU_ROLES = [
+  ...new Set([...FINANCE_ROLES, ...SELF_PAYROLL_ROLES]),
+];
+
+const TEACHER_TITULAIRE_ROLE = "TEACHER_TITULAIRE";
 
 const STUDENT_ROLES = [ORG_ROLE.STUDENT, "STUDENT", "student"];
 const PARENT_ROLES = [ORG_ROLE.PARENT, "PARENT", "parent"];
@@ -320,7 +340,7 @@ const staticSidebarMenu: StaticMenuItem[] = [
     title: "finance",
     href: "#",
     icon: "finance",
-    roles: FINANCE_ROLES,
+    roles: FINANCE_MENU_ROLES,
     sub: [
       {
         title: "fees",
@@ -338,7 +358,7 @@ const staticSidebarMenu: StaticMenuItem[] = [
         title: "teacherPayroll",
         href: "/admin/paie-enseignants",
         icon: "finance",
-        roles: PAYROLL_ROLES,
+        roles: SELF_PAYROLL_ROLES,
       },
       {
         title: "transactions",
@@ -523,7 +543,13 @@ function mapMenuItem(
     isOwnerGatedSidebarHref(item.href) &&
     !isCanonicalOrganizationOwnerSession(session)
   ) {
-    if (!hideHrefsProvided || hideHrefs?.has(item.href)) return null;
+    if (hideHrefsProvided) {
+      if (hideHrefs?.has(item.href)) return null;
+    } else if (item.href === "/admin/paie-enseignants") {
+      if (!canSeeMenu(item, roles)) return null;
+    } else {
+      return null;
+    }
   }
 
   if (dacStrict) {

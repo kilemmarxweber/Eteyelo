@@ -176,7 +176,7 @@ test("settings : Rôles & privilèges réservés au propriétaire (pas au gestio
   assert.equal(canAccessBranchOrgSettings(sessionGestionnaire), true);
 });
 
-test("paie : propriétaire org/plateforme, pas admin de branche ni gestionnaire", () => {
+test("paie : propriétaire org/plateforme + staff (bulletin) ; pas admin de branche seul", () => {
   const sessionOwnerApp = { user: { role: APP_ROLE.OWNER } };
   const sessionOwnerOrg = { organization: { role: ORG_ROLE.OWNER } };
   const sessionBranchAdmin = {
@@ -191,7 +191,7 @@ test("paie : propriétaire org/plateforme, pas admin de branche ni gestionnaire"
   assert.equal(canAccessPayrollArea(sessionOwnerApp), true);
   assert.equal(canAccessPayrollArea(sessionOwnerOrg), true);
   assert.equal(canAccessPayrollArea(sessionBranchAdmin), false);
-  assert.equal(canAccessPayrollArea(sessionGestionnaire), false);
+  assert.equal(canAccessPayrollArea(sessionGestionnaire), true);
   assert.equal(
     canAccessPayrollArea({
       organization: {

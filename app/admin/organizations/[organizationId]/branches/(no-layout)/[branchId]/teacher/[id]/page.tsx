@@ -11,6 +11,7 @@ import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { getPeopleLabels } from "@/lib/people-labels";
 import {
   canAccessPedagogyArea,
+  canReviewAbsenceJustifications,
   hasSessionRole,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
@@ -169,6 +170,7 @@ const SingleTeacherPage = async ({
     attendanceSession,
     teacherBadge,
     attendanceRows,
+    attendanceByStatus,
     fiches,
     assignmentCount,
     meetings,
@@ -186,8 +188,19 @@ const SingleTeacherPage = async ({
     prisma.teacherAttendance.findMany({
       where: { teacherId: teacher.id, branchId },
       orderBy: { date: "desc" },
-      take: 24,
+      take: 300,
       include: {
+        absenceCase: {
+          select: {
+            id: true,
+            status: true,
+            subjectType: true,
+            contextLabel: true,
+            occurredOn: true,
+            justification: true,
+            reviewComment: true,
+          },
+        },
         session: {
           include: {
             teaching: {
@@ -199,6 +212,11 @@ const SingleTeacherPage = async ({
           },
         },
       },
+    }),
+    prisma.teacherAttendance.groupBy({
+      by: ["status"],
+      where: { teacherId: teacher.id, branchId },
+      _count: { _all: true },
     }),
     prisma.fiche.findMany({
       where: {
@@ -371,11 +389,14 @@ const SingleTeacherPage = async ({
     })),
   ).sort((a, b) => a.name.localeCompare(b.name, "fr"));
 
-  const present = attendanceRows.filter((row) => row.status === "PRESENT").length;
-  const absent = attendanceRows.filter((row) => row.status === "ABSENT").length;
-  const late = attendanceRows.filter((row) => row.status === "LATE").length;
-  const excused = attendanceRows.filter((row) => row.status === "EXCUSED").length;
-  const attendanceTotal = attendanceRows.length;
+  const statusCount = Object.fromEntries(
+    attendanceByStatus.map((row) => [row.status, row._count._all]),
+  ) as Partial<Record<string, number>>;
+  const present = statusCount.PRESENT ?? 0;
+  const absent = statusCount.ABSENT ?? 0;
+  const late = statusCount.LATE ?? 0;
+  const excused = statusCount.EXCUSED ?? 0;
+  const attendanceTotal = present + absent + late + excused;
   const presenceRate =
     attendanceTotal > 0
       ? Math.round(((present + excused) / attendanceTotal) * 100)
@@ -447,6 +468,8 @@ const SingleTeacherPage = async ({
     assignmentYearCount: assignmentYears.count,
     assignmentYearLabels: assignmentYears.yearLabels,
     canEditApplicationDocuments: isOrganizationOwnerSession(session),
+    canJustifyAbsences: isSelf || canManage,
+    canReviewAbsences: canReviewAbsenceJustifications(session),
     profileDocuments: profileDocuments.map((document) => ({
       ...document,
       createdAt: document.createdAt.toISOString(),
@@ -518,6 +541,17 @@ const SingleTeacherPage = async ({
         row.session?.teaching?.classe?.nameClasse ??
         row.session?.teaching?.classe?.codeClasse ??
         "",
+      absenceCase: row.absenceCase
+        ? {
+            id: row.absenceCase.id,
+            status: row.absenceCase.status,
+            subjectType: row.absenceCase.subjectType,
+            contextLabel: row.absenceCase.contextLabel,
+            occurredOn: row.absenceCase.occurredOn.toISOString(),
+            justification: row.absenceCase.justification,
+            reviewComment: row.absenceCase.reviewComment,
+          }
+        : null,
     })),
     meetings: meetings
       .map((event) => ({

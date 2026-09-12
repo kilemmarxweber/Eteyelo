@@ -17,6 +17,11 @@ import {
 } from "@/components/ui/select";
 import { formatDurationMinutes } from "@/lib/attendance-exit";
 import {
+  AttendanceClassFilterBar,
+  useAttendanceClassFilters,
+  type AttendanceReportClass,
+} from "./attendance-class-multi-filter";
+import {
   getAttendanceDailyJournalAction,
   getAttendanceReportContextAction,
   getPersonnelRosterReportAction,
@@ -49,13 +54,50 @@ function firstDayOfMonthIso() {
 }
 
 const SESSION_PAGE_SIZE = 10;
+const EMPTY_ROWS: never[] = [];
+
+function classeIdsPayload(ids: string[] | null) {
+  return ids == null ? undefined : ids;
+}
+
+function usePagedRows<T>(rows: T[] | undefined, resetKey: unknown) {
+  const list = rows ?? EMPTY_ROWS;
+  const [page, setPage] = useState(0);
+  const totalPages = Math.max(1, Math.ceil(list.length / SESSION_PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+
+  useEffect(() => {
+    setPage(0);
+  }, [resetKey]);
+
+  const pageRows = useMemo(
+    () =>
+      list.slice(
+        safePage * SESSION_PAGE_SIZE,
+        safePage * SESSION_PAGE_SIZE + SESSION_PAGE_SIZE,
+      ),
+    [list, safePage],
+  );
+  const from = list.length === 0 ? 0 : safePage * SESSION_PAGE_SIZE + 1;
+  const to = Math.min(list.length, (safePage + 1) * SESSION_PAGE_SIZE);
+
+  return {
+    page: safePage,
+    totalPages,
+    pageRows,
+    from,
+    to,
+    total: list.length,
+    setPage,
+  };
+}
 
 export function AttendanceReportsClient({
   teachers,
   classes,
 }: {
   teachers: Array<{ id: string; name: string }>;
-  classes: Array<{ id: string; name: string }>;
+  classes: AttendanceReportClass[];
 }) {
   const t = useTranslations("attendance");
   const tCommon = useTranslations("common");
@@ -66,8 +108,9 @@ export function AttendanceReportsClient({
   const [startDate, setStartDate] = useState(firstDayOfMonthIso);
   const [endDate, setEndDate] = useState(todayIso);
   const [teacherId, setTeacherId] = useState<string>("all");
-  const [classeId, setClasseId] = useState<string>("all");
-  const [studentClasseId, setStudentClasseId] = useState<string>("all");
+  const sessionClassFilter = useAttendanceClassFilters(classes);
+  const studentClassFilter = useAttendanceClassFilters(classes);
+  const frequentationClassFilter = useAttendanceClassFilters(classes);
   const [rosterStart, setRosterStart] = useState(todayIso);
   const [rosterEnd, setRosterEnd] = useState(todayIso);
 
@@ -81,7 +124,6 @@ export function AttendanceReportsClient({
     useState<FrequentationRegister | null>(null);
   const [loadingJournal, setLoadingJournal] = useState(true);
   const [loadingSessions, setLoadingSessions] = useState(true);
-  const [sessionsPage, setSessionsPage] = useState(0);
   const [loadingStudents, setLoadingStudents] = useState(true);
   const [loadingPersonnel, setLoadingPersonnel] = useState(true);
   const [loadingFrequentation, setLoadingFrequentation] = useState(true);
@@ -107,14 +149,13 @@ export function AttendanceReportsClient({
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       teacherId: teacherId === "all" ? null : teacherId,
-      classeId: classeId === "all" ? null : classeId,
+      classeIds: classeIdsPayload(sessionClassFilter.resolvedClasseIds),
     });
     if (error || !data) {
       toast.error(error?.message || t("reports.loadSessionsFailed"));
       setSessions(null);
     } else {
       setSessions(data);
-      setSessionsPage(0);
     }
     setLoadingSessions(false);
   };
@@ -124,7 +165,7 @@ export function AttendanceReportsClient({
     const [data, error] = await getStudentRosterReportAction({
       startDate: new Date(rosterStart),
       endDate: new Date(rosterEnd),
-      classeId: studentClasseId === "all" ? null : studentClasseId,
+      classeIds: classeIdsPayload(studentClassFilter.resolvedClasseIds),
     });
     if (error || !data) {
       toast.error(error?.message || t("reports.loadStudentsFailed"));
@@ -138,7 +179,7 @@ export function AttendanceReportsClient({
   const loadFrequentation = async () => {
     setLoadingFrequentation(true);
     const [data, error] = await getStudentFrequentationRegisterAction({
-      classeId: studentClasseId === "all" ? null : studentClasseId,
+      classeIds: classeIdsPayload(frequentationClassFilter.resolvedClasseIds),
     });
     if (error || !data) {
       toast.error(error?.message || t("reports.loadFrequentationFailed"));
@@ -174,14 +215,22 @@ export function AttendanceReportsClient({
   useEffect(() => {
     void loadSessions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, endDate, teacherId, classeId]);
+  }, [startDate, endDate, teacherId, sessionClassFilter.scopeKey]);
 
   useEffect(() => {
     void loadStudentRoster();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rosterStart, rosterEnd, studentClassFilter.scopeKey]);
+
+  useEffect(() => {
     void loadPersonnelRoster();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rosterStart, rosterEnd]);
+
+  useEffect(() => {
     void loadFrequentation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rosterStart, rosterEnd, studentClasseId]);
+  }, [frequentationClassFilter.scopeKey]);
 
   const personTypeLabel = useMemo(
     () =>
@@ -193,25 +242,15 @@ export function AttendanceReportsClient({
     [t],
   );
 
-  const sessionRows = sessions?.rows ?? [];
-  const sessionTotalPages = Math.max(
-    1,
-    Math.ceil(sessionRows.length / SESSION_PAGE_SIZE),
+  const sessionRows = sessions?.rows ?? EMPTY_ROWS;
+  const sessionPager = usePagedRows(sessionRows, sessions?.dateStart ?? "none");
+  const journalSessionPager = usePagedRows(
+    journal?.teacherSessions,
+    journal?.date ?? "none",
   );
-  const sessionSafePage = Math.min(sessionsPage, sessionTotalPages - 1);
-  const sessionPageRows = useMemo(
-    () =>
-      sessionRows.slice(
-        sessionSafePage * SESSION_PAGE_SIZE,
-        sessionSafePage * SESSION_PAGE_SIZE + SESSION_PAGE_SIZE,
-      ),
-    [sessionRows, sessionSafePage],
-  );
-  const sessionFrom =
-    sessionRows.length === 0 ? 0 : sessionSafePage * SESSION_PAGE_SIZE + 1;
-  const sessionTo = Math.min(
-    sessionRows.length,
-    (sessionSafePage + 1) * SESSION_PAGE_SIZE,
+  const journalExitPager = usePagedRows(
+    journal?.earlyExits,
+    `${journal?.date ?? "none"}-exits`,
   );
 
   async function exportJournal() {
@@ -313,25 +352,6 @@ export function AttendanceReportsClient({
             </p>
           </div>
           <div className="flex flex-wrap items-end gap-2">
-            <div className="space-y-1">
-              <Label className="text-xs">{t("filters.class")}</Label>
-              <Select
-                value={studentClasseId}
-                onValueChange={setStudentClasseId}
-              >
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder={t("filters.allClasses")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("filters.allClasses")}</SelectItem>
-                  {classes.map((classe) => (
-                    <SelectItem key={classe.id} value={classe.id}>
-                      {classe.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <Button
               variant="outline"
               size="sm"
@@ -351,7 +371,8 @@ export function AttendanceReportsClient({
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          <AttendanceClassFilterBar filter={frequentationClassFilter} />
           {loadingFrequentation ? (
             <p className="text-sm text-muted-foreground">{tCommon("loading")}</p>
           ) : frequentation ? (
@@ -495,7 +516,7 @@ export function AttendanceReportsClient({
                         </td>
                       </tr>
                     ) : (
-                      journal.teacherSessions.map((row) => (
+                      journalSessionPager.pageRows.map((row) => (
                         <tr key={row.id} className="border-t">
                           <td className="px-3 py-2">{row.sessionLabel}</td>
                           <td className="px-3 py-2">{row.teacherName}</td>
@@ -517,6 +538,17 @@ export function AttendanceReportsClient({
                     )}
                   </tbody>
                 </table>
+                <ReportTablePager
+                  page={journalSessionPager.page}
+                  totalPages={journalSessionPager.totalPages}
+                  from={journalSessionPager.from}
+                  to={journalSessionPager.to}
+                  total={journalSessionPager.total}
+                  onPrev={() =>
+                    journalSessionPager.setPage((value) => Math.max(0, value - 1))
+                  }
+                  onNext={() => journalSessionPager.setPage((value) => value + 1)}
+                />
               </div>
 
               <div>
@@ -546,7 +578,7 @@ export function AttendanceReportsClient({
                           </td>
                         </tr>
                       ) : (
-                        journal.earlyExits.map((row) => (
+                        journalExitPager.pageRows.map((row) => (
                           <tr key={row.id} className="border-t">
                             <td className="px-3 py-2">
                               {personTypeLabel[row.personType]}
@@ -563,6 +595,17 @@ export function AttendanceReportsClient({
                       )}
                     </tbody>
                   </table>
+                  <ReportTablePager
+                    page={journalExitPager.page}
+                    totalPages={journalExitPager.totalPages}
+                    from={journalExitPager.from}
+                    to={journalExitPager.to}
+                    total={journalExitPager.total}
+                    onPrev={() =>
+                      journalExitPager.setPage((value) => Math.max(0, value - 1))
+                    }
+                    onNext={() => journalExitPager.setPage((value) => value + 1)}
+                  />
                 </div>
               </div>
             </>
@@ -615,22 +658,6 @@ export function AttendanceReportsClient({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs">{t("filters.class")}</Label>
-              <Select value={classeId} onValueChange={setClasseId}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder={t("filters.allClasses")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("filters.allClasses")}</SelectItem>
-                  {classes.map((classe) => (
-                    <SelectItem key={classe.id} value={classe.id}>
-                      {classe.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <Button
               variant="outline"
               size="sm"
@@ -650,7 +677,8 @@ export function AttendanceReportsClient({
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          <AttendanceClassFilterBar filter={sessionClassFilter} />
           {loadingSessions ? (
             <p className="text-sm text-muted-foreground">{tCommon("loading")}</p>
           ) : sessions ? (
@@ -689,7 +717,7 @@ export function AttendanceReportsClient({
                         </td>
                       </tr>
                     ) : (
-                      sessionPageRows.map((row) => (
+                      sessionPager.pageRows.map((row) => (
                         <tr key={row.id} className="border-t">
                           <td className="px-3 py-2">
                             {new Date(row.date).toLocaleDateString(locale)}
@@ -713,15 +741,15 @@ export function AttendanceReportsClient({
                   </tbody>
                 </table>
                 <ReportTablePager
-                  page={sessionSafePage}
-                  totalPages={sessionTotalPages}
-                  from={sessionFrom}
-                  to={sessionTo}
-                  total={sessionRows.length}
+                  page={sessionPager.page}
+                  totalPages={sessionPager.totalPages}
+                  from={sessionPager.from}
+                  to={sessionPager.to}
+                  total={sessionPager.total}
                   onPrev={() =>
-                    setSessionsPage((value) => Math.max(0, value - 1))
+                    sessionPager.setPage((value) => Math.max(0, value - 1))
                   }
-                  onNext={() => setSessionsPage((value) => value + 1)}
+                  onNext={() => sessionPager.setPage((value) => value + 1)}
                 />
               </div>
             </div>
@@ -758,25 +786,6 @@ export function AttendanceReportsClient({
                 className="h-9 rounded-md border bg-background px-3 text-sm"
               />
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs">{t("filters.class")}</Label>
-              <Select
-                value={studentClasseId}
-                onValueChange={setStudentClasseId}
-              >
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder={t("filters.allClasses")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("filters.allClasses")}</SelectItem>
-                  {classes.map((classe) => (
-                    <SelectItem key={classe.id} value={classe.id}>
-                      {classe.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <Button
               variant="outline"
               size="sm"
@@ -796,7 +805,8 @@ export function AttendanceReportsClient({
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          <AttendanceClassFilterBar filter={studentClassFilter} />
           <RosterTable
             loading={loadingStudents}
             report={studentRoster}
@@ -864,6 +874,10 @@ function RosterTable({
   const tCommon = useTranslations("common");
   const locale = intlLocaleFromUserLocale(normalizeUserLocale(useLocale()));
   const dash = t("dash");
+  const pager = usePagedRows(
+    report?.rows,
+    `${report?.dateStart ?? "none"}-${report?.classeName ?? "all"}-${report?.rows.length ?? 0}`,
+  );
 
   if (loading) {
     return (
@@ -914,7 +928,7 @@ function RosterTable({
                 </td>
               </tr>
             ) : (
-              report.rows.map((row) => (
+              pager.pageRows.map((row) => (
                 <tr
                   key={row.id}
                   className={
@@ -943,6 +957,15 @@ function RosterTable({
             )}
           </tbody>
         </table>
+        <ReportTablePager
+          page={pager.page}
+          totalPages={pager.totalPages}
+          from={pager.from}
+          to={pager.to}
+          total={pager.total}
+          onPrev={() => pager.setPage((value) => Math.max(0, value - 1))}
+          onNext={() => pager.setPage((value) => value + 1)}
+        />
       </div>
     </div>
   );

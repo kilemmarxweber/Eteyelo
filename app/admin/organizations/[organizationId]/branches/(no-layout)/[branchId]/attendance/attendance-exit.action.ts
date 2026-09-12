@@ -603,6 +603,67 @@ const STATUS_LABELS: Record<string, string> = {
   IN_PROGRESS: "En cours",
 };
 
+const classeScopeInput = {
+  classeId: z.string().optional().nullable(),
+  classeIds: z.array(z.string()).optional(),
+};
+
+/** `null` = toutes les classes ; `[]` = aucune classe. */
+function parseClasseScope(input: {
+  classeId?: string | null;
+  classeIds?: string[] | null;
+}): string[] | null {
+  if (input.classeIds != null) {
+    const ids = [
+      ...input.classeIds,
+      ...(input.classeId?.trim() ? [input.classeId.trim()] : []),
+    ]
+      .map((id) => id.trim())
+      .filter(Boolean);
+    return [...new Set(ids)];
+  }
+  const single = input.classeId?.trim();
+  return single ? [single] : null;
+}
+
+function teachingClasseWhere(classeIds: string[] | null) {
+  if (!classeIds || classeIds.length === 0) return {};
+  return {
+    teaching: {
+      classeId: classeIds.length === 1 ? classeIds[0] : { in: classeIds },
+    },
+  };
+}
+
+async function classeScopeMeta(
+  branchId: string,
+  classeIds: string[] | null,
+): Promise<{ classeId: string | null; classeName: string | null }> {
+  if (!classeIds || classeIds.length === 0) {
+    return { classeId: null, classeName: null };
+  }
+  const classes = await prisma.classe.findMany({
+    where: { id: { in: classeIds }, branchId },
+    select: { nameClasse: true, codeClasse: true },
+  });
+  const names = classes
+    .map(
+      (classe) =>
+        classe.nameClasse?.trim() || classe.codeClasse?.trim() || "Classe",
+    )
+    .filter(Boolean);
+  const classeName =
+    names.length === 0
+      ? null
+      : names.length <= 3
+        ? names.join(", ")
+        : `${names.slice(0, 3).join(", ")} +${names.length - 3}`;
+  return {
+    classeId: classeIds.length === 1 ? classeIds[0] : null,
+    classeName,
+  };
+}
+
 export const getAttendanceReportContextAction = action.handler(async () => {
   const { branchId, organizationId } = await requireAttendanceScanContext();
   const branch = await prisma.branch.findFirst({
@@ -619,7 +680,7 @@ export const getTeacherSessionReportAction = action
       startDate: z.coerce.date(),
       endDate: z.coerce.date(),
       teacherId: z.string().optional().nullable(),
-      classeId: z.string().optional().nullable(),
+      ...classeScopeInput,
     }),
   )
   .handler(async ({ input }): Promise<TeacherSessionReport> => {
@@ -631,15 +692,29 @@ export const getTeacherSessionReportAction = action
     );
 
     const teacherId = input.teacherId?.trim() || null;
-    const classeId = input.classeId?.trim() || null;
+    const classeIds = parseClasseScope(input);
+    const { classeId, classeName } = await classeScopeMeta(branchId, classeIds);
+
+    if (classeIds && classeIds.length === 0) {
+      return {
+        dateStart: start.toISOString(),
+        dateEnd: endDay.toISOString(),
+        teacherId,
+        teacherName: null,
+        classeId,
+        classeName,
+        rows: [],
+        summary: { sessions: 0, minutesTotal: 0, earlyExits: 0 },
+      };
+    }
 
     const records = await prisma.teacherAttendance.findMany({
       where: {
         branchId,
         date: { gte: start, lte: queryEnd },
         ...(teacherId ? { teacherId } : {}),
-        ...(classeId
-          ? { session: { teaching: { classeId } } }
+        ...(classeIds
+          ? { session: teachingClasseWhere(classeIds) }
           : {}),
       },
       include: {
@@ -734,20 +809,9 @@ export const getTeacherSessionReportAction = action
       });
     }
 
-    let teacherName: string | null = null;
-    let classeName: string | null = null;
-    if (teacherId) {
-      teacherName =
-        rows.find((r) => r.teacherId === teacherId)?.teacherName ?? null;
-    }
-    if (classeId) {
-      const classe = await prisma.classe.findFirst({
-        where: { id: classeId, branchId },
-        select: { nameClasse: true, codeClasse: true },
-      });
-      classeName =
-        classe?.nameClasse?.trim() || classe?.codeClasse?.trim() || null;
-    }
+    const teacherName = teacherId
+      ? rows.find((r) => r.teacherId === teacherId)?.teacherName ?? null
+      : null;
 
     const minutesTotal = rows.reduce(
       (acc, row) => acc + (row.minutesDone ?? 0),
@@ -1198,7 +1262,7 @@ export const getStudentRosterReportAction = action
     z.object({
       startDate: z.coerce.date(),
       endDate: z.coerce.date(),
-      classeId: z.string().optional().nullable(),
+      ...classeScopeInput,
     }),
   )
   .handler(async ({ input }): Promise<PersonRosterReport> => {
@@ -1208,15 +1272,18 @@ export const getStudentRosterReportAction = action
       input.endDate,
     );
 
-    const classeId = input.classeId?.trim() || null;
-    let classeName: string | null = null;
-    if (classeId) {
-      const classe = await prisma.classe.findFirst({
-        where: { id: classeId, branchId },
-        select: { nameClasse: true, codeClasse: true },
-      });
-      classeName =
-        classe?.nameClasse?.trim() || classe?.codeClasse?.trim() || null;
+    const classeIds = parseClasseScope(input);
+    const { classeId, classeName } = await classeScopeMeta(branchId, classeIds);
+
+    if (classeIds && classeIds.length === 0) {
+      return {
+        dateStart: start.toISOString(),
+        dateEnd: endDay.toISOString(),
+        classeId,
+        classeName,
+        rows: [],
+        summary: emptyRosterSummary(),
+      };
     }
 
     const enrollments = await prisma.classEnrollment.findMany({
@@ -1224,7 +1291,12 @@ export const getStudentRosterReportAction = action
         branchId,
         OR: [{ statusEnrollment: true }, { statusEnrollment: null }],
         schoolYear: { branchId, isCurrentYear: true },
-        ...(classeId ? { classeId } : {}),
+        ...(classeIds
+          ? {
+              classeId:
+                classeIds.length === 1 ? classeIds[0] : { in: classeIds },
+            }
+          : {}),
       },
       select: {
         studentId: true,
@@ -1261,7 +1333,7 @@ export const getStudentRosterReportAction = action
         branchId,
         session: {
           date: { gte: start, lte: queryEnd },
-          ...(classeId ? { teaching: { classeId } } : {}),
+          ...teachingClasseWhere(classeIds),
         },
       },
       select: {
