@@ -4,6 +4,10 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { action } from "@/lib/zsa";
 import { requireAttendanceScanContext } from "@/lib/auth/attendance-kiosk-context";
+import {
+  getTeacherAttendanceReadScope,
+  intersectTeacherClassIds,
+} from "@/lib/auth/data-scope";
 import { listBranchClosedDayKeys } from "@/lib/branch-closed-days";
 import { isAttendanceSchoolDay, resolveAttendanceSchoolCalendar } from "@/lib/attendance-school-days";
 import { nowLocal, startOfTodayParis } from "@/lib/timezone";
@@ -98,7 +102,15 @@ export const getStudentFrequentationRegisterAction = action
     }),
   )
   .handler(async ({ input }): Promise<FrequentationRegister> => {
-    const { branchId } = await requireAttendanceScanContext();
+    const ctx = await requireAttendanceScanContext();
+    const { branchId } = ctx;
+    const teacherScope = ctx.isKiosk
+      ? null
+      : await getTeacherAttendanceReadScope({
+          session: ctx.session,
+          userId: ctx.userId,
+          branchId,
+        });
     const now = nowLocal();
     const todayIso = calendarDayIso(now);
 
@@ -115,7 +127,10 @@ export const getStudentFrequentationRegisterAction = action
       throw new Error("Aucune année scolaire en cours.");
     }
 
-    const classeIds = parseClasseScope(input);
+    const classeIds = intersectTeacherClassIds(
+      parseClasseScope(input),
+      teacherScope,
+    );
     let classeId: string | null =
       classeIds && classeIds.length === 1 ? classeIds[0] : null;
     let classeName: string | null = null;

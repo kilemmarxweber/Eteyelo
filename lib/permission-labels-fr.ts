@@ -67,6 +67,7 @@ const ACTION_LABELS_FR: Record<string, string> = {
   pay: "Payer",
   encaisser: "Encaisser",
   assign: "Affecter",
+  reports: "Rapports & historique (tous)",
   send: "Envoyer",
   group: "Groupe",
   manage: "Gérer",

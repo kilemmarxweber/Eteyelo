@@ -10,8 +10,10 @@ import { cn } from "@/lib/utils";
 
 export default function AttendanceLayout({
   children,
+  canViewSchoolReports = true,
 }: {
   children: React.ReactNode;
+  canViewSchoolReports?: boolean;
 }) {
   const t = useTranslations("attendance");
   const params = useParams<{ organizationId: string; branchId: string }>();
@@ -37,7 +39,10 @@ export default function AttendanceLayout({
     >
       <div className="flex min-h-0 flex-1 flex-col gap-3">
         <div className="shrink-0">
-          <AttendanceTabsNav basePath={basePath} />
+          <AttendanceTabsNav
+            basePath={basePath}
+            canViewSchoolReports={canViewSchoolReports}
+          />
         </div>
 
         <main

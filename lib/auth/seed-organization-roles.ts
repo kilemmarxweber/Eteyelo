@@ -7,7 +7,7 @@ import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getOrgRolePresetSeedRows } from "@/lib/org/role-presets";
 import { completePermissionMatrix } from "@/lib/auth/org-role-permission-shared";
-import { ORG_ROLE, STAFF_SELF_PAYROLL_ROLE_SLUGS } from "@/lib/permissions";
+import { ORG_ROLE, STAFF_SELF_PAYROLL_ROLE_SLUGS, ATTENDANCE_SCHOOL_REPORTS_ROLE_SLUGS } from "@/lib/permissions";
 
 const LEADERSHIP_ROLE_SLUGS = [
   ORG_ROLE.PREFET,
@@ -217,6 +217,46 @@ export async function ensureStaffSelfPayrollRead(
           completePermissionMatrix({
             ...permission,
             payroll: [...payroll],
+          }),
+        ),
+      },
+    });
+    updated += 1;
+  }
+
+  return updated;
+}
+
+/**
+ * Ajoute `attendance:reports` aux presets direction / gestion
+ * (rapports et historique globaux) sans toucher le rôle enseignant.
+ */
+export async function ensureAttendanceSchoolReports(
+  organizationId: string,
+): Promise<number> {
+  const rows = await prisma.organizationRole.findMany({
+    where: {
+      organizationId,
+      role: { in: [...ATTENDANCE_SCHOOL_REPORTS_ROLE_SLUGS] },
+      isSystem: true,
+    },
+    select: { id: true, permission: true },
+  });
+
+  let updated = 0;
+  for (const row of rows) {
+    const permission = parsePermissionJson(row.permission);
+    const attendance = new Set(permission.attendance ?? []);
+    if (!attendance.has("read") || attendance.has("reports")) continue;
+    attendance.add("reports");
+
+    await prisma.organizationRole.update({
+      where: { id: row.id },
+      data: {
+        permission: JSON.stringify(
+          completePermissionMatrix({
+            ...permission,
+            attendance: [...attendance],
           }),
         ),
       },

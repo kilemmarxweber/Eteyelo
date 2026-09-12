@@ -77,7 +77,7 @@ const PRESET_META: Record<string, Omit<OrgRolePresetMeta, "slug">> = {
   [ORG_ROLE.TEACHER]: {
     label: "Enseignant",
     description:
-      "Notes, devoirs, bibliothèque et pointage — sans annuaire, finance, enseignement ni rôles (matrice ou octroi temporaire).",
+      "Notes, devoirs, bibliothèque et pointage de ses classes / élèves — sans rapports ni historique des collègues (matrice : Présences · Rapports & historique).",
     isSystem: true,
     sortOrder: 50,
     locked: false,

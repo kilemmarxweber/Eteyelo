@@ -8,6 +8,8 @@ import { requireAttendanceScanContext } from "@/lib/auth/attendance-kiosk-contex
 import {
   assertStudentAttendanceWriteAccess,
   assertTeacherAttendanceWriteAccess,
+  getTeacherAttendanceReadScope,
+  intersectTeacherClassIds,
 } from "@/lib/auth/data-scope";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import { memberIsAttendanceOwner } from "@/lib/attendance/owner-pointage";
@@ -635,6 +637,31 @@ function teachingClasseWhere(classeIds: string[] | null) {
   };
 }
 
+function teachingIdInScope(teacherScope: { teachingIds: string[] } | null) {
+  if (!teacherScope) return {};
+  return {
+    session: {
+      teachingId: {
+        in: teacherScope.teachingIds.length
+          ? teacherScope.teachingIds
+          : ["__none__"],
+      },
+    },
+  };
+}
+
+async function loadAttendanceTeacherScope() {
+  const ctx = await requireAttendanceScanContext();
+  const teacherScope = ctx.isKiosk
+    ? null
+    : await getTeacherAttendanceReadScope({
+        session: ctx.session,
+        userId: ctx.userId,
+        branchId: ctx.branchId,
+      });
+  return { ...ctx, teacherScope };
+}
+
 async function classeScopeMeta(
   branchId: string,
   classeIds: string[] | null,
@@ -684,15 +711,20 @@ export const getTeacherSessionReportAction = action
     }),
   )
   .handler(async ({ input }): Promise<TeacherSessionReport> => {
-    const { branchId } = await requireAttendanceScanContext();
+    const { branchId, teacherScope } = await loadAttendanceTeacherScope();
     const now = nowLocal();
     const { start, endDay, queryEnd } = reportDayRange(
       input.startDate,
       input.endDate,
     );
 
-    const teacherId = input.teacherId?.trim() || null;
-    const classeIds = parseClasseScope(input);
+    const teacherId = teacherScope
+      ? teacherScope.teacherId
+      : input.teacherId?.trim() || null;
+    const classeIds = intersectTeacherClassIds(
+      parseClasseScope(input),
+      teacherScope,
+    );
     const { classeId, classeName } = await classeScopeMeta(branchId, classeIds);
 
     if (classeIds && classeIds.length === 0) {
@@ -841,7 +873,7 @@ export const getAttendanceDailyJournalAction = action
     }),
   )
   .handler(async ({ input }): Promise<AttendanceDailyJournal> => {
-    const { branchId } = await requireAttendanceScanContext();
+    const { branchId, teacherScope } = await loadAttendanceTeacherScope();
     const start = new Date(input.date);
     start.setHours(0, 0, 0, 0);
     const end = new Date(input.date);
@@ -856,6 +888,7 @@ export const getAttendanceDailyJournalAction = action
             { checkOut: { gte: start, lte: end } },
             { recordedAt: { gte: start, lte: end } },
           ],
+          ...teachingIdInScope(teacherScope),
         },
         include: {
           student: {
@@ -882,6 +915,7 @@ export const getAttendanceDailyJournalAction = action
           branchId,
           earlyExit: true,
           date: { gte: start, lte: end },
+          ...(teacherScope ? { teacherId: teacherScope.teacherId } : {}),
         },
         include: {
           teacher: {
@@ -903,7 +937,9 @@ export const getAttendanceDailyJournalAction = action
           },
         },
       }),
-      prisma.personnelAttendance.findMany({
+      teacherScope
+        ? Promise.resolve([])
+        : prisma.personnelAttendance.findMany({
         where: {
           branchId,
           earlyExit: true,
@@ -923,6 +959,7 @@ export const getAttendanceDailyJournalAction = action
         where: {
           branchId,
           date: { gte: start, lte: end },
+          ...(teacherScope ? { teacherId: teacherScope.teacherId } : {}),
         },
         include: {
           teacher: {
@@ -1266,13 +1303,16 @@ export const getStudentRosterReportAction = action
     }),
   )
   .handler(async ({ input }): Promise<PersonRosterReport> => {
-    const { branchId } = await requireAttendanceScanContext();
+    const { branchId, teacherScope } = await loadAttendanceTeacherScope();
     const { start, endDay, queryEnd } = reportDayRange(
       input.startDate,
       input.endDate,
     );
 
-    const classeIds = parseClasseScope(input);
+    const classeIds = intersectTeacherClassIds(
+      parseClasseScope(input),
+      teacherScope,
+    );
     const { classeId, classeName } = await classeScopeMeta(branchId, classeIds);
 
     if (classeIds && classeIds.length === 0) {
@@ -1467,11 +1507,21 @@ export const getPersonnelRosterReportAction = action
     }),
   )
   .handler(async ({ input }): Promise<PersonRosterReport> => {
-    const { branchId } = await requireAttendanceScanContext();
+    const { branchId, teacherScope } = await loadAttendanceTeacherScope();
     const { start, endDay, queryEnd } = reportDayRange(
       input.startDate,
       input.endDate,
     );
+    if (teacherScope) {
+      return {
+        dateStart: start.toISOString(),
+        dateEnd: endDay.toISOString(),
+        classeId: null,
+        classeName: null,
+        rows: [],
+        summary: emptyRosterSummary(),
+      };
+    }
     const dayEndMinutes = await getBranchLatestEndMinutes(branchId);
     const dayStartMinutes = await getBranchEarliestStartMinutes(branchId);
 

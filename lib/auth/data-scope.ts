@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import {
   assertStudentIdInScope,
@@ -8,17 +8,20 @@ import {
 } from "@/lib/auth/cursus-scope";
 import { listTeacherScheduleCandidates } from "@/lib/attendance-teacher-session";
 import { canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
+import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
   canAccessStudentDirectory,
   canAccessTeachingArea,
   canAccessTitulaireFichesArea,
   canManageOrganization,
+  canViewAttendanceSchoolReports,
   hasSessionRole,
 } from "@/lib/auth/session-roles";
 import { ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 export { assertStudentIdInScope };
+export { canViewAttendanceSchoolReports } from "@/lib/auth/session-roles";
 
 function teachingBranchFilter(branchId: string) {
   return {
@@ -109,13 +112,13 @@ export async function getTeacherAssignedClassIds(
   return rows.map((row) => row.classeId);
 }
 
-/** Scope lecture présence pour un enseignant (non-manager). */
+/** Scope lecture présence pour un enseignant (non-manager, sans `attendance:reports`). */
 export async function getTeacherAttendanceReadScope(params: {
   session: unknown;
   userId: string;
   branchId: string;
 }): Promise<{ teacherId: string; teachingIds: string[]; classIds: string[] } | null> {
-  if (canManageOrganization(params.session)) {
+  if (canViewAttendanceSchoolReports(params.session)) {
     return null;
   }
 
@@ -132,6 +135,32 @@ export async function getTeacherAttendanceReadScope(params: {
   ]);
 
   return { teacherId, teachingIds, classIds };
+}
+
+export function intersectTeacherClassIds(
+  classeIds: string[] | null,
+  teacherScope: { classIds: string[] } | null,
+): string[] | null {
+  if (!teacherScope) return classeIds;
+  if (teacherScope.classIds.length === 0) return [];
+  if (classeIds == null) return teacherScope.classIds;
+  const allowed = new Set(teacherScope.classIds);
+  return classeIds.filter((id) => allowed.has(id));
+}
+
+export async function assertAttendanceSchoolReportsPage() {
+  const { session, userId, branchId, organizationId } = await requireBranchContext({
+    onMissing: "redirect",
+  });
+  const teacherScope = await getTeacherAttendanceReadScope({
+    session,
+    userId,
+    branchId,
+  });
+  if (!teacherScope) return;
+  redirect(
+    `/admin/organizations/${organizationId}/branches/${branchId}/attendance`,
+  );
 }
 
 /**

@@ -102,6 +102,26 @@ export function canManageOrganization(
   );
 }
 
+/** Rapports / historique globaux (collègues). Direction par défaut ; enseignant via matrice `attendance:reports`. */
+export function canViewAttendanceSchoolReports(
+  session: unknown,
+  ...extraRoles: unknown[]
+): boolean {
+  if (
+    canManageOrganization(session, ...extraRoles) ||
+    isOrganizationOwnerSession(session, ...extraRoles)
+  ) {
+    return true;
+  }
+  const map = statementsMapFromSession(session);
+  for (const slug of getSessionRoles(session, ...extraRoles)) {
+    const statements = getStatementsForRole(slug, map);
+    const have = new Set((statements?.attendance ?? []).map(String));
+    if (have.has("reports")) return true;
+  }
+  return false;
+}
+
 /** Ouvre le kiosque de pointage public (sans session) pour la branche active. */
 export function canOpenAttendanceKiosk(
   session: any,

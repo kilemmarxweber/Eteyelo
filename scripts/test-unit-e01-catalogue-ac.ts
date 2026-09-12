@@ -46,9 +46,10 @@ test("catalogue déclare les ressources scolaires P1", () => {
   }
 });
 
-test("finance expose encaisser ; teaching expose assign", () => {
+test("finance expose encaisser ; teaching expose assign ; attendance expose reports", () => {
   assert.ok(accessControlStatements.finance.includes("encaisser"));
   assert.ok(accessControlStatements.teaching.includes("assign"));
+  assert.ok(accessControlStatements.attendance.includes("reports"));
 });
 
 test("owner couvre finance + notes + student + paie + transactions", () => {
@@ -77,6 +78,7 @@ test("chef d'établissement sans finance ; avec notes", () => {
     assert.deepEqual(s.payroll, ["read"]);
     assert.ok(s.notes?.includes("update"));
     assert.ok(s.attendance?.includes("create"));
+    assert.ok(s.attendance?.includes("reports"));
     assert.equal(s.settings, undefined);
     assert.equal(s.schoolYear, undefined);
     assert.equal(s.structureCopy, undefined);
@@ -114,6 +116,7 @@ test("teacher a notes/attendance + bulletin paie ; pas finance, annuaire ni ense
   const t = organizationRoleStatements[ORG_ROLE.TEACHER];
   assert.ok(t.notes?.includes("create"));
   assert.ok(t.attendance?.includes("create"));
+  assert.equal(t.attendance?.includes("reports") ?? false, false);
   assert.deepEqual(t.payroll, ["read"]);
   assert.equal(t.payroll?.includes("compute") ?? false, false);
   assert.equal(t.finance, undefined);
@@ -141,7 +144,11 @@ test("élève résultats + devoirs + library ; pas notes menu", () => {
 });
 
 test("libellés FR finance encaisser", () => {
-  assert.equal(permissionLabelFr("finance", "encaisser"), "Finance · Encaisser");
+  assert.equal(permissionLabelFr("finance", "encaisser"), "Paiement · Encaisser");
+  assert.equal(
+    permissionLabelFr("attendance", "reports"),
+    "Présences · Rapports & historique (tous)",
+  );
   assert.ok(listCatalogPermissions().length >= ALL_PERMISSIONS.length);
 });
 

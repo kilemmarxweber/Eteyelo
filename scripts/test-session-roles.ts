@@ -16,6 +16,7 @@ import {
   canAccessTeachingArea,
   canManageHrDirectory,
   canManageOrganization,
+  canViewAttendanceSchoolReports,
   canPermanentlyDeleteInformation,
   canReadScheduleArea,
   canSeeCandidatureNotifications,
@@ -79,6 +80,24 @@ test("canManageOrganization inclut leadership et gestionnaire", () => {
   assert.equal(canManageOrganization(sessionPrefet), true);
   assert.equal(canManageOrganization(sessionGestionnaire), true);
   assert.equal(canManageOrganization(sessionTeacher), false);
+});
+
+test("rapports présence globaux : direction oui ; enseignant seulement via matrice reports", () => {
+  assert.equal(canViewAttendanceSchoolReports(sessionDirecteur), true);
+  assert.equal(canViewAttendanceSchoolReports(sessionPrefet), true);
+  assert.equal(canViewAttendanceSchoolReports(sessionGestionnaire), true);
+  assert.equal(canViewAttendanceSchoolReports(sessionTeacher), false);
+  assert.equal(
+    canViewAttendanceSchoolReports({
+      organization: {
+        role: ORG_ROLE.TEACHER,
+        rolePermissions: {
+          [ORG_ROLE.TEACHER]: { attendance: ["create", "read", "update", "reports"] },
+        },
+      },
+    }),
+    true,
+  );
 });
 
 test("canPermanentlyDeleteInformation refuse le gestionnaire, autorise owner et chef etablissement", () => {

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { assertAttendanceSchoolReportsPage } from "@/lib/auth/data-scope";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { AttendanceReportsClient } from "../components/attendance-reports-client";
@@ -6,6 +7,7 @@ import { AttendanceReportsClient } from "../components/attendance-reports-client
 export const dynamic = "force-dynamic";
 
 export default async function AttendanceReportsPage() {
+  await assertAttendanceSchoolReportsPage();
   const { branchId } = await requireBranchContext();
   const t = await getServerTranslator("attendance");
 

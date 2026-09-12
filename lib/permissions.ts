@@ -127,6 +127,17 @@ export const STAFF_SELF_PAYROLL_ROLE_SLUGS = [
   ORG_ROLE.SUPPORT,
 ] as const;
 
+/** Direction / gestion : rapports et historique de présence globaux. Pas l’enseignant. */
+export const ATTENDANCE_SCHOOL_REPORTS_ROLE_SLUGS = [
+  ORG_ROLE.OWNER,
+  ORG_ROLE.GESTIONNAIRE,
+  ORG_ROLE.AGENT_BUREAU,
+  ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.DIRECTEUR_ETUDES,
+  ORG_ROLE.SUPERVISEUR,
+] as const;
+
 export const accessControlStatements = {
   ...adminPluginSchemaStatements,
   ...organizationPluginSchemaStatements,
@@ -149,7 +160,7 @@ export const accessControlStatements = {
   fees: ["create", "read", "update", "delete"],
   /** Affectations enseignant ↔ cours. */
   teaching: ["create", "read", "update", "delete", "assign"],
-  attendance: ["create", "read", "update", "delete"],
+  attendance: ["create", "read", "update", "delete", "reports"],
   notes: ["create", "read", "update", "delete"],
   results: ["create", "read", "update", "delete"],
   devoirs: ["create", "read", "update", "delete"],
@@ -287,6 +298,10 @@ function withSchoolModuleActions(
     }
     if (resource === "teaching" && options?.includeTeachingAssign) {
       shape.teaching = [...actions, "assign"];
+      continue;
+    }
+    if (resource === "attendance" && actions.includes("read")) {
+      shape.attendance = [...new Set([...actions, "reports"])];
       continue;
     }
     shape[resource] = actions;
