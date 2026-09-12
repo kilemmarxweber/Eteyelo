@@ -1,6 +1,7 @@
 export const NOTIFICATION_EVENT_KEYS = [
   "attendance",
   "results",
+  "teacherSchedule",
   "payment",
   "accountCreate",
   "profileUpdate",
@@ -46,6 +47,11 @@ export const NOTIFICATION_EVENT_META: Array<{
     key: "results",
     label: "Résultats scolaires",
     hint: "Bouton « Notifier les parents » sur les résultats.",
+  },
+  {
+    key: "teacherSchedule",
+    label: "Horaire enseignants",
+    hint: "PDF de l'horaire envoyé aux enseignants depuis Horaire global (WhatsApp).",
   },
   {
     key: "payment",

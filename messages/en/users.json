@@ -601,7 +601,24 @@
       "printPdfTitle": "Global timetable · {cycle}",
       "recreationPdf": "Break",
       "yearLabel": "Year: {year}",
-      "saturdayLabel": "Saturday: {range}"
+      "saturdayLabel": "Saturday: {range}",
+      "whatsapp": "WhatsApp",
+      "whatsappAll": "Send WhatsApp",
+      "whatsappSending": "Sending…",
+      "whatsappConfirmTitle": "Send the timetable PDF by WhatsApp?",
+      "whatsappConfirmDescription": "{count, plural, one {The PDF will be sent to # selected teacher in the {cycle} cycle.} other {The PDF will be sent to # selected teachers in the {cycle} cycle.}}",
+      "whatsappConfirmSkipped": "{count, plural, one {# teacher has no contact and will be skipped.} other {# teachers have no contact and will be skipped.}}",
+      "whatsappSelectTeachers": "Teachers in this cycle",
+      "whatsappSelectPlaceholder": "Choose one or more teachers…",
+      "whatsappSelectCount": "{count, plural, one {# teacher selected} other {# teachers selected}}",
+      "whatsappNoSelection": "Select at least one teacher with a phone number.",
+      "whatsappConfirmAction": "Send",
+      "whatsappSuccess": "{sent, plural, one {Timetable sent to # teacher.} other {Timetable sent to # teachers.}}",
+      "whatsappPartial": "{sent, plural, one {# sent} other {# sent}} · {skipped} without contact · {failed} failed",
+      "whatsappFailed": "Unable to send timetables by WhatsApp.",
+      "whatsappNone": "No teacher has a WhatsApp number.",
+      "whatsappNoContact": "No contact",
+      "whatsappOneTitle": "Send timetable to {name}"
     }
   },
   "staff": {

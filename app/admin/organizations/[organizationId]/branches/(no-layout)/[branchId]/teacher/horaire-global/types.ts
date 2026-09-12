@@ -15,6 +15,7 @@ export type GlobalScheduleEntry = {
     postnom: string;
     prenom: string;
     name: string;
+    telephone: string;
   };
   classe: {
     id: string;
@@ -50,6 +51,7 @@ export type GlobalScheduleTeacher = {
   postnom: string;
   prenom: string;
   name: string;
+  telephone: string;
   classCount: number;
   courseCount: number;
   periodCount: number;

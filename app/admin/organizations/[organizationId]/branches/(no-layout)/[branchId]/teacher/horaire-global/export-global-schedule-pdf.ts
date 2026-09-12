@@ -9,17 +9,18 @@ import {
 } from "@/lib/reports/pdf-header-footer";
 import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
+import {
+  documentLocaleFrom,
+  intlLocaleFromUnknown,
+  weekdayLabel,
+  weekdayShortLabel,
+} from "@/lib/reports/document-locale";
 import type { GlobalScheduleEntry } from "./types";
 import {
   SATURDAY_SESSION_START,
   SATURDAY_SESSION_END,
   slotHourOnDay,
 } from "@/lib/creneau-saturday";
-import {
-  intlLocaleFromUnknown,
-  weekdayLabel,
-  weekdayShortLabel,
-} from "@/lib/reports/document-locale";
 
 export type GlobalSchedulePdfTable = {
   title: string;
@@ -43,6 +44,8 @@ type GlobalSchedulePdfInput = {
   yearLabel: string;
   saturdayLabel: string;
   tables: GlobalSchedulePdfTable[];
+  /** Si fourni, le fetch client de `context.logoUrl` est ignoré. */
+  logoDataUrl?: string | null;
 };
 
 const HEADER_BLUE: [number, number, number] = [30, 64, 175];
@@ -53,6 +56,47 @@ const RECREATION_FG: [number, number, number] = [146, 64, 14];
 const GRID_LINE: [number, number, number] = [191, 219, 254];
 const TEXT_MAIN: [number, number, number] = [15, 23, 42];
 const TEXT_MUTED: [number, number, number] = [100, 116, 139];
+
+export function globalSchedulePdfLabels(locale?: unknown) {
+  const loc = documentLocaleFrom(locale);
+  if (loc === "en") {
+    return {
+      hoursLabel: "Hours",
+      recreationLabel: "Break",
+      yearLabel: "Year: {year}",
+      saturdayLabel: "Saturday: {range}",
+      viewTeachers: "By teacher",
+      title: (cycle: string) => `Timetable · ${cycle}`,
+      classes: "classes",
+      courses: "courses",
+      periods: "periods",
+    };
+  }
+  if (loc === "pt") {
+    return {
+      hoursLabel: "Horas",
+      recreationLabel: "Intervalo",
+      yearLabel: "Ano: {year}",
+      saturdayLabel: "Sábado: {range}",
+      viewTeachers: "Por professor",
+      title: (cycle: string) => `Horário · ${cycle}`,
+      classes: "turmas",
+      courses: "disciplinas",
+      periods: "períodos",
+    };
+  }
+  return {
+    hoursLabel: "Heures",
+    recreationLabel: "Récréation",
+    yearLabel: "Année : {year}",
+    saturdayLabel: "Samedi : {range}",
+    viewTeachers: "Par enseignant",
+    title: (cycle: string) => `Horaire · ${cycle}`,
+    classes: "classes",
+    courses: "cours",
+    periods: "périodes",
+  };
+}
 
 function safeFilePart(value: string) {
   return value
@@ -105,7 +149,9 @@ function cellText(value: unknown) {
   return Array.isArray(value) ? value.join(" ") : String(value ?? "");
 }
 
-export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
+export async function renderGlobalSchedulePdf(
+  input: GlobalSchedulePdfInput,
+): Promise<jsPDF> {
   const {
     context,
     title,
@@ -121,7 +167,10 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
   const saturdayShort = weekdayShortLabel("Samedi", locale);
   const saturdayRangeText = `${SATURDAY_SESSION_START} – ${SATURDAY_SESSION_END}`;
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  const logo = await imageUrlToDataUrl(context.logoUrl);
+  const logo =
+    input.logoDataUrl !== undefined
+      ? input.logoDataUrl
+      : await imageUrlToDataUrl(context.logoUrl);
   const pageHeight = doc.internal.pageSize.getHeight();
 
   const hasSaturdayMorning = tables.some((table) =>
@@ -294,5 +343,14 @@ export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
     leftText: context.branchName || context.schoolName,
   });
 
-  doc.save(`horaire-global-${safeFilePart(title)}.pdf`);
+  return doc;
+}
+
+export function globalSchedulePdfFileName(title: string) {
+  return `horaire-${safeFilePart(title)}.pdf`;
+}
+
+export async function exportGlobalSchedulePdf(input: GlobalSchedulePdfInput) {
+  const doc = await renderGlobalSchedulePdf(input);
+  doc.save(globalSchedulePdfFileName(input.title));
 }

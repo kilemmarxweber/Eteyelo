@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   IconBook2,
+  IconBrandWhatsapp,
   IconCalendarTime,
   IconClockHour4,
   IconPrinter,
@@ -14,6 +15,15 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TableSkeleton } from "@/components/custom";
 import { EmptyTableState } from "@/components/custom";
+import { MultiSelect } from "../../paiement/components/MultiSelect";
 import { useSession } from "@/lib/auth-client";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { DEFAULT_CRENEAU_WORKING_DAYS } from "@/lib/creneau-working-days";
@@ -31,6 +42,7 @@ import {
   getGlobalScheduleByCycleAction,
   getGlobalScheduleCyclesAction,
 } from "../../schedule/schedule.action";
+import { sendGlobalScheduleWhatsAppAction } from "./horaire-global.action";
 import {
   exportGlobalSchedulePdf,
   type GlobalSchedulePdfTable,
@@ -41,6 +53,7 @@ import {
   teacherScheduleClock,
   unionWorkingDays,
 } from "./saturday-clock";
+import { teacherSchedulePdfTable } from "./teacher-schedule-pdf-table";
 import type {
   GlobalScheduleByCycle,
   GlobalScheduleCycleOption,
@@ -50,38 +63,17 @@ import type { Cycle } from "@/lib/cycle";
 
 type ViewMode = "teachers" | "grid";
 
-function teacherPrintTable(
-  teacher: GlobalScheduleTeacher,
-  schedule: GlobalScheduleByCycle,
-  meta: string,
-): GlobalSchedulePdfTable {
-  const teacherCreneaux =
-    teacher.creneauIds.length > 0
-      ? schedule.creneaux.filter((creneau) =>
-          teacher.creneauIds.includes(creneau.id),
-        )
-      : schedule.creneaux;
-  const clock = teacherScheduleClock({
-    teacherCreneaux,
-    fallbackHours: teacher.entries.map((entry) => entry.hour),
-    allCreneaux: schedule.creneaux,
-  });
-  return {
-    title: teacher.name,
-    subtitle: meta,
-    hours: clock.hours,
-    workingDays: clock.workingDays,
-    recreationHour: clock.recreationHour,
-    endTime: clock.endTime,
-    saturdayHours: clock.saturdayHours,
-    saturdayEndTime: clock.saturdayEndTime,
-    entries: teacher.entries,
-    showTeacher: false,
-  };
+function isAssignedTeacher(teacher: GlobalScheduleTeacher) {
+  return Boolean(teacher.id) && !teacher.id.startsWith("unassigned:");
+}
+
+function teacherHasContact(teacher: GlobalScheduleTeacher) {
+  return isAssignedTeacher(teacher) && Boolean(teacher.telephone?.trim());
 }
 
 export function HoraireGlobalClient() {
   const t = useTranslations("users.teachers.globalSchedule");
+  const tCommon = useTranslations("common");
   const peopleLabels = useBranchPeopleLabels();
   const params = useParams<{ organizationId: string; branchId: string }>();
   const { data: session, isPending } = useSession();
@@ -97,6 +89,11 @@ export function HoraireGlobalClient() {
   const [view, setView] = useState<ViewMode>("teachers");
   const [query, setQuery] = useState("");
   const [printing, setPrinting] = useState(false);
+  const [canSendWhatsApp, setCanSendWhatsApp] = useState(false);
+  const [whatsappConfirmOpen, setWhatsappConfirmOpen] = useState(false);
+  const [selectedTeacherIds, setSelectedTeacherIds] = useState<string[]>([]);
+  const [sendingAll, setSendingAll] = useState(false);
+  const [sendingTeacherId, setSendingTeacherId] = useState<string | null>(null);
 
   const listHref = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/teacher`;
 
@@ -115,11 +112,13 @@ export function HoraireGlobalClient() {
       if (cancelled) return;
       if (err || !data) {
         setCycles([]);
+        setCanSendWhatsApp(false);
         setError(t("loadError"));
         setLoadingCycles(false);
         return;
       }
       setCycles(data.cycles);
+      setCanSendWhatsApp(Boolean(data.canSendWhatsApp));
       setSelectedCycle((current) => {
         if (current && data.cycles.some((cycle) => cycle.value === current)) {
           return current;
@@ -155,11 +154,15 @@ export function HoraireGlobalClient() {
       if (cancelled) return;
       if (err || !data) {
         setSchedule(null);
+        setSelectedTeacherIds([]);
         setError(t("loadError"));
         setLoadingSchedule(false);
         return;
       }
       setSchedule(data);
+      setSelectedTeacherIds(
+        data.teachers.filter(teacherHasContact).map((teacher) => teacher.id),
+      );
       setLoadingSchedule(false);
     }
 
@@ -178,12 +181,135 @@ export function HoraireGlobalClient() {
     );
   }, [query, schedule?.teachers]);
 
+  const whatsappTargets = useMemo(() => {
+    const teachers = schedule?.teachers ?? [];
+    return {
+      assigned: teachers.filter(isAssignedTeacher),
+      withContact: teachers.filter(teacherHasContact),
+      withoutContact: teachers.filter(
+        (teacher) => isAssignedTeacher(teacher) && !teacher.telephone?.trim(),
+      ),
+    };
+  }, [schedule?.teachers]);
+
+  const selectedWhatsAppTargets = useMemo(() => {
+    const selected = new Set(selectedTeacherIds);
+    return {
+      withContact: whatsappTargets.withContact.filter((teacher) =>
+        selected.has(teacher.id),
+      ),
+      withoutContact: whatsappTargets.withoutContact.filter((teacher) =>
+        selected.has(teacher.id),
+      ),
+    };
+  }, [selectedTeacherIds, whatsappTargets]);
+
+  const teacherSelectOptions = useMemo(
+    () =>
+      whatsappTargets.assigned.map((teacher) => ({
+        value: teacher.id,
+        label: teacherHasContact(teacher)
+          ? teacher.name
+          : `${teacher.name} (${t("whatsappNoContact")})`,
+        disabled: !teacherHasContact(teacher),
+      })),
+    [t, whatsappTargets.assigned],
+  );
+
   const canPrint = Boolean(
     schedule &&
       schedule.periodCount > 0 &&
       !loadingSchedule &&
       (view !== "teachers" || filteredTeachers.length > 0),
   );
+
+  const canSendAllWhatsApp = Boolean(
+    canSendWhatsApp &&
+      schedule &&
+      schedule.periodCount > 0 &&
+      !loadingSchedule &&
+      whatsappTargets.withContact.length > 0,
+  );
+
+  function toastWhatsAppResult(result: {
+    sent: number;
+    skippedNoContact: number;
+    failed: number;
+    error?: string | null;
+  }) {
+    if (result.sent > 0 && result.failed === 0 && result.skippedNoContact === 0) {
+      toast.success(t("whatsappSuccess", { sent: result.sent }));
+      return;
+    }
+    if (result.sent > 0) {
+      toast.success(
+        t("whatsappPartial", {
+          sent: result.sent,
+          skipped: result.skippedNoContact,
+          failed: result.failed,
+        }),
+      );
+      if (result.error) toast.error(result.error);
+      return;
+    }
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
+    if (result.skippedNoContact > 0 && result.failed === 0) {
+      toast.error(t("whatsappNone"));
+      return;
+    }
+    toast.error(t("whatsappFailed"));
+  }
+
+  async function sendWhatsApp(teacherIds: string[]) {
+    if (!selectedCycle || teacherIds.length === 0) return;
+    const [result, err] = await sendGlobalScheduleWhatsAppAction({
+      cycle: selectedCycle as Cycle,
+      teacherIds,
+    });
+    if (err || !result) {
+      toast.error(err?.message || t("whatsappFailed"));
+      return;
+    }
+    toastWhatsAppResult(result);
+  }
+
+  function openWhatsAppDialog() {
+    setSelectedTeacherIds(whatsappTargets.withContact.map((teacher) => teacher.id));
+    setWhatsappConfirmOpen(true);
+  }
+
+  async function handleSendAllWhatsApp() {
+    const teacherIds = selectedWhatsAppTargets.withContact.map(
+      (teacher) => teacher.id,
+    );
+    if (teacherIds.length === 0) {
+      toast.error(t("whatsappNoSelection"));
+      return;
+    }
+    setSendingAll(true);
+    try {
+      await sendWhatsApp(teacherIds);
+      setWhatsappConfirmOpen(false);
+    } finally {
+      setSendingAll(false);
+    }
+  }
+
+  async function handleSendTeacherWhatsApp(teacher: GlobalScheduleTeacher) {
+    if (!teacherHasContact(teacher)) {
+      toast.error(t("whatsappNoContact"));
+      return;
+    }
+    setSendingTeacherId(teacher.id);
+    try {
+      await sendWhatsApp([teacher.id]);
+    } finally {
+      setSendingTeacherId(null);
+    }
+  }
 
   async function handlePrint() {
     if (!schedule || schedule.periodCount === 0) return;
@@ -198,7 +324,7 @@ export function HoraireGlobalClient() {
       const tables: GlobalSchedulePdfTable[] =
         view === "teachers"
           ? filteredTeachers.map((teacher) =>
-              teacherPrintTable(
+              teacherSchedulePdfTable(
                 teacher,
                 schedule,
                 t("teacherMeta", {
@@ -395,11 +521,26 @@ export function HoraireGlobalClient() {
                     />
                   </div>
                 ) : null}
+                {canSendWhatsApp ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => openWhatsAppDialog()}
+                    disabled={!canSendAllWhatsApp || sendingAll || printing}
+                    title={
+                      canSendAllWhatsApp ? t("whatsappAll") : t("whatsappNone")
+                    }
+                  >
+                    <IconBrandWhatsapp className="size-4" />
+                    {sendingAll ? t("whatsappSending") : t("whatsappAll")}
+                  </Button>
+                ) : null}
                 <Button
                   type="button"
                   size="sm"
                   onClick={() => void handlePrint()}
-                  disabled={!canPrint || printing}
+                  disabled={!canPrint || printing || sendingAll}
                 >
                   <IconPrinter className="size-4" />
                   {printing ? t("printing") : t("print")}
@@ -542,8 +683,30 @@ export function HoraireGlobalClient() {
                               courses: teacher.courseCount,
                               periods: teacher.periodCount,
                             })}
+                            {teacher.telephone?.trim()
+                              ? ` · ${teacher.telephone.trim()}`
+                              : ` · ${t("whatsappNoContact")}`}
                           </p>
                         </div>
+                        {canSendWhatsApp ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => void handleSendTeacherWhatsApp(teacher)}
+                            disabled={
+                              !teacherHasContact(teacher) ||
+                              sendingAll ||
+                              sendingTeacherId === teacher.id
+                            }
+                            title={t("whatsappOneTitle", { name: teacher.name })}
+                          >
+                            <IconBrandWhatsapp className="size-4" />
+                            {sendingTeacherId === teacher.id
+                              ? t("whatsappSending")
+                              : t("whatsapp")}
+                          </Button>
+                        ) : null}
                       </div>
                       <GlobalScheduleGrid
                         hours={clock.hours}
@@ -568,6 +731,63 @@ export function HoraireGlobalClient() {
           </CardContent>
         </Card>
       </div>
+      <AlertDialog
+        open={whatsappConfirmOpen}
+        onOpenChange={(open) => {
+          if (!sendingAll) setWhatsappConfirmOpen(open);
+        }}
+      >
+        <AlertDialogContent className="w-[min(calc(100vw-2rem),36rem)] bg-background">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("whatsappConfirmTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("whatsappConfirmDescription", {
+                count: selectedWhatsAppTargets.withContact.length,
+                cycle: schedule?.cycleLabel ?? "",
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium">{t("whatsappSelectTeachers")}</p>
+              <MultiSelect
+                options={teacherSelectOptions}
+                value={selectedTeacherIds}
+                onValueChange={setSelectedTeacherIds}
+                placeholder={t("whatsappSelectPlaceholder")}
+                selectedCountLabel={(count) =>
+                  t("whatsappSelectCount", { count })
+                }
+                maxCount={2}
+                showSelectAll
+                disabled={sendingAll}
+                className="w-full"
+              />
+            </div>
+            {selectedWhatsAppTargets.withoutContact.length > 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {t("whatsappConfirmSkipped", {
+                  count: selectedWhatsAppTargets.withoutContact.length,
+                })}
+              </p>
+            ) : null}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={sendingAll}>
+              {tCommon("cancel")}
+            </AlertDialogCancel>
+            <Button
+              type="button"
+              disabled={
+                sendingAll || selectedWhatsAppTargets.withContact.length === 0
+              }
+              onClick={() => void handleSendAllWhatsApp()}
+            >
+              {sendingAll ? t("whatsappSending") : t("whatsappConfirmAction")}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </BranchPageShell>
   );
 }

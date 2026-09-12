@@ -162,6 +162,8 @@ type SendWhatsAppOptions = {
   organizationId?: string | null;
   /** Ignore le toggle (test d'envoi depuis les paramètres). */
   force?: boolean;
+  /** Pièces jointes (email ; ignorées par Zindua sur WhatsApp). */
+  attachments?: Array<{ url: string; filename?: string }>;
 };
 
 /**
@@ -199,6 +201,9 @@ export async function sendWhatsApp(
     template,
     lang: options.lang ?? "fr",
     variables,
+    ...(options.attachments?.length
+      ? { attachments: options.attachments }
+      : {}),
   });
 }
 
@@ -302,6 +307,7 @@ export async function sendTransactionalWhatsApp(options: {
   to: string;
   organizationId?: string | null;
   parts: Array<string | null | undefined>;
+  attachments?: Array<{ url: string; filename?: string }>;
 }): Promise<WhatsAppSendOutcome> {
   const to = resolveWhatsAppTo(options.to);
   if (!to) {
@@ -316,6 +322,7 @@ export async function sendTransactionalWhatsApp(options: {
       variables: {
         code: buildWhatsAppBody(options.parts),
       },
+      attachments: options.attachments,
     });
     if (!result) {
       return {

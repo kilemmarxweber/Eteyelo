@@ -2007,12 +2007,16 @@ function generateSlotsFromHm(params: {
 }
 
 export const getGlobalScheduleCyclesAction = action.handler(
-  async (): Promise<{ cycles: GlobalScheduleCycleOption[] }> => {
+  async (): Promise<{
+    cycles: GlobalScheduleCycleOption[];
+    canSendWhatsApp: boolean;
+  }> => {
     const ctx = await getScheduleContext();
     if (!ctx.canManageSchedules && !ctx.teacherId && !ctx.canReadSchedules) {
-      return { cycles: [] };
+      return { cycles: [], canSendWhatsApp: false };
     }
     return {
+      canSendWhatsApp: ctx.canManageSchedules,
       cycles: [...ctx.accessibleCycles]
         .sort((a, b) => CYCLE_SORT_ORDER[a] - CYCLE_SORT_ORDER[b])
         .map((cycle) => ({
@@ -2192,6 +2196,7 @@ export const getGlobalScheduleByCycleAction = action
                                   name: true,
                                   postnom: true,
                                   prenom: true,
+                                  telephone: true,
                                 },
                               },
                             },
@@ -2235,6 +2240,7 @@ export const getGlobalScheduleByCycleAction = action
             postnom: user?.postnom || "",
             prenom: user?.prenom || "",
             name: formatTeacherFullName(user) || "Non assigné",
+            telephone: user?.telephone?.trim() || "",
           },
           classe: {
             id: classe?.id || "",
@@ -2263,6 +2269,7 @@ export const getGlobalScheduleByCycleAction = action
         postnom: string;
         prenom: string;
         name: string;
+        telephone: string;
         classIds: Set<string>;
         courseIds: Set<string>;
         creneauIds: Set<string>;
@@ -2280,12 +2287,16 @@ export const getGlobalScheduleByCycleAction = action
           postnom: entry.teacher.postnom,
           prenom: entry.teacher.prenom,
           name: entry.teacher.name,
+          telephone: entry.teacher.telephone,
           classIds: new Set(entry.classe.id ? [entry.classe.id] : []),
           courseIds: new Set(entry.cours.id ? [entry.cours.id] : []),
           creneauIds: new Set(entry.creneauId ? [entry.creneauId] : []),
           entries: [entry],
         });
         continue;
+      }
+      if (!existing.telephone && entry.teacher.telephone) {
+        existing.telephone = entry.teacher.telephone;
       }
       if (entry.classe.id) existing.classIds.add(entry.classe.id);
       if (entry.cours.id) existing.courseIds.add(entry.cours.id);
@@ -2301,6 +2312,7 @@ export const getGlobalScheduleByCycleAction = action
         postnom: teacher.postnom,
         prenom: teacher.prenom,
         name: teacher.name,
+        telephone: teacher.telephone,
         classCount: teacher.classIds.size,
         courseCount: teacher.courseIds.size,
         periodCount: teacher.entries.length,

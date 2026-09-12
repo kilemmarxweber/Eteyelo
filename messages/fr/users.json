@@ -601,7 +601,24 @@
       "printPdfTitle": "Horaire global · {cycle}",
       "recreationPdf": "Récréation",
       "yearLabel": "Année : {year}",
-      "saturdayLabel": "Samedi : {range}"
+      "saturdayLabel": "Samedi : {range}",
+      "whatsapp": "WhatsApp",
+      "whatsappAll": "Envoyer WhatsApp",
+      "whatsappSending": "Envoi…",
+      "whatsappConfirmTitle": "Envoyer l'horaire PDF par WhatsApp ?",
+      "whatsappConfirmDescription": "{count, plural, one {Le PDF sera envoyé à # enseignant sélectionné du cycle {cycle}.} other {Le PDF sera envoyé à # enseignants sélectionnés du cycle {cycle}.}}",
+      "whatsappConfirmSkipped": "{count, plural, one {# enseignant n'a pas de contact et sera ignoré.} other {# enseignants n'ont pas de contact et seront ignorés.}}",
+      "whatsappSelectTeachers": "Enseignants du cycle",
+      "whatsappSelectPlaceholder": "Choisir un ou plusieurs enseignants…",
+      "whatsappSelectCount": "{count, plural, one {# enseignant sélectionné} other {# enseignants sélectionnés}}",
+      "whatsappNoSelection": "Sélectionnez au moins un enseignant avec un numéro.",
+      "whatsappConfirmAction": "Envoyer",
+      "whatsappSuccess": "{sent, plural, one {Horaire envoyé à # enseignant.} other {Horaire envoyé à # enseignants.}}",
+      "whatsappPartial": "{sent, plural, one {# envoi réussi} other {# envois réussis}} · {skipped} sans contact · {failed} échec(s)",
+      "whatsappFailed": "Impossible d'envoyer les horaires par WhatsApp.",
+      "whatsappNone": "Aucun enseignant n'a de numéro WhatsApp.",
+      "whatsappNoContact": "Aucun contact",
+      "whatsappOneTitle": "Envoyer l'horaire à {name}"
     }
   },
   "staff": {
