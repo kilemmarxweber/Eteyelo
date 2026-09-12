@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -22,7 +22,7 @@ import { useSession } from "@/lib/auth-client";
 import { canComputePayroll } from "@/lib/auth/session-roles";
 import { formatPayrollAmount } from "@/lib/reports/format-amount";
 import { exportTeacherPayslipPdf } from "./export-teacher-payslip-pdf";
-import { getPayrollReportContextAction } from "../payroll.action";
+import { getPayrollPolicyAction, getPayrollReportContextAction } from "../payroll.action";
 import {
   parsePayslipLineDetail,
   type TeacherPayslipLineDetailSnapshot,
@@ -164,7 +164,17 @@ export default function PayslipDetailClient({
 }) {
   const router = useRouter();
   const { data: session } = useSession();
-  const canEdit = useMemo(() => canComputePayroll(session), [session]);
+  const [grantCompute, setGrantCompute] = useState(false);
+  const canEdit = useMemo(
+    () => canComputePayroll(session) || grantCompute,
+    [session, grantCompute],
+  );
+
+  useEffect(() => {
+    void getPayrollPolicyAction().then(([result, error]) => {
+      if (!error && result) setGrantCompute(Boolean(result.canCompute));
+    });
+  }, []);
   const [pendingWaiver, setPendingWaiver] = useState<{
     lineId: string;
     waive: boolean;

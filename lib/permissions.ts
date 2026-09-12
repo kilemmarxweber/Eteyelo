@@ -130,6 +130,8 @@ export const accessControlStatements = {
   finance: ["create", "read", "update", "delete", "encaisser"],
   /** Paie du personnel : consultation, calcul, validation et paiement. */
   payroll: ["read", "compute", "validate", "pay"],
+  /** Journal des transactions (paiements / dépenses). */
+  transactions: ["create", "read", "update", "delete"],
   /** Catalogue frais (affectation frais ↔ classe). */
   fees: ["create", "read", "update", "delete"],
   /** Affectations enseignant ↔ cours. */
@@ -421,6 +423,7 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     ...withSchoolModuleActions(CRUD_ACTIONS, { includeTeachingAssign: true }),
     ...withFinanceActions(CRUD_ACTIONS),
     payroll: ["read", "compute", "validate", "pay"],
+    transactions: ["create", "read", "update", "delete"],
     // Propriétaire org : update/archive, pas de suppression physique (owner plateforme seul).
     organization: ["update"],
     organizationSupport: ["create", "read", "update", "delete"],

@@ -2,7 +2,7 @@ import { getOrganizationAccessRoleLabel } from "@/lib/auth/role-labels";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
 import { shouldHideSidebarHref } from "@/lib/branch-route-guard";
-import { SIDEBAR_HREF_BRANCH_AREA } from "@/lib/auth/branch-area-permissions";
+import { SIDEBAR_HREF_BRANCH_AREA, isOwnerGatedSidebarHref } from "@/lib/auth/branch-area-permissions";
 import {
   getClassDisplayLabel,
   isUniversiteBranch,
@@ -14,7 +14,7 @@ import {
 } from "@/lib/people-variant";
 import { usesTrainingLabels } from "@/lib/training-labels";
 import { normalizeBranchType } from "@/lib/academic-structure";
-import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
+import { isCanonicalOrganizationOwnerSession, isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import type { SideLink } from "@/src/data/sidelinks";
 
 export type NavigationContext = "platform" | "organization" | "branch";
@@ -491,6 +491,9 @@ function mapMenuItem(
   /** Propriétaire org/branche : menus branche complets. */
   fullBranchAccess?: boolean,
   dacStrictMenu?: boolean,
+  session?: unknown,
+  /** true = hideHrefs a été fourni par les flags serveur (DAC / octrois). */
+  hideHrefsProvided?: boolean,
 ): SideLink | null {
   const dacStrict = Boolean(
     dacReady && dacStrictMenu && branchBasePath && !fullBranchAccess,
@@ -508,11 +511,20 @@ function mapMenuItem(
         dacReady,
         fullBranchAccess,
         dacStrictMenu,
+        session,
+        hideHrefsProvided,
       ),
     )
     .filter(Boolean) as SideLink[] | undefined;
 
   if (item.sub?.length && !sub?.length) return null;
+
+  if (
+    isOwnerGatedSidebarHref(item.href) &&
+    !isCanonicalOrganizationOwnerSession(session)
+  ) {
+    if (!hideHrefsProvided || hideHrefs?.has(item.href)) return null;
+  }
 
   if (dacStrict) {
     if (item.href === "#") {
@@ -530,7 +542,14 @@ function mapMenuItem(
     const dacGated = isDacMappedHref(item.href);
 
     if (fullBranchAccess) {
-      // Propriétaire org / branche : tous les menus de la branche active.
+      // Propriétaire org/plateforme : pas le pointage perso.
+      if (
+        item.href === "/admin/ma-presence" &&
+        isCanonicalOrganizationOwnerSession(session) &&
+        !canSeeMenu(item, roles)
+      ) {
+        return null;
+      }
     } else if (dacGated && dacReady && hideHrefs) {
       if (hideHrefs.has(item.href)) return null;
     } else {
@@ -623,6 +642,7 @@ export function buildStaticSideLinks(
   const branchBasePath = resolveBranchBasePath(pathname);
   const resolvedTypebranch = typebranch ?? session?.branch?.typebranch;
   const resolvedCycles = cycles ?? resolvedTypebranch;
+  const hideHrefsProvided = options?.hideHrefs != null;
   const hide = new Set(options?.hideHrefs ?? []);
   const dacReady = Boolean(options?.dacReady);
   const dacStrictMenu = Boolean(options?.dacStrictMenu);
@@ -647,6 +667,8 @@ export function buildStaticSideLinks(
         dacReady,
         fullBranchAccess,
         dacStrictMenu,
+        session,
+        hideHrefsProvided,
       );
     })
     .filter(Boolean) as SideLink[];

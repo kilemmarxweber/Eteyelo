@@ -1,5 +1,9 @@
 import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
 import { isBranchOwnerSession } from "@/lib/auth/branch-role-access";
+import {
+  getStatementsForRole,
+  statementsMapFromSession,
+} from "@/lib/auth/org-role-permission-shared";
 
 export function splitSessionRoles(value: unknown): string[] {
   if (Array.isArray(value)) {
@@ -213,30 +217,87 @@ export function canAccessFinanceOversight(
   );
 }
 
-/** Paie du personnel : lecture pour le propriétaire uniquement. */
+/**
+ * Propriétaire plateforme ou propriétaire d'organisation uniquement.
+ * Ne pas confondre avec `isOrganizationOwnerSession` (inclut l'admin de branche).
+ */
+export function isCanonicalOrganizationOwnerSession(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(
+    session,
+    [APP_ROLE.OWNER, ORG_ROLE.OWNER, "proprietaire"],
+    ...extraRoles,
+  );
+}
+
+function sessionAllowsResourceAction(
+  session: any,
+  resource: string,
+  action: string,
+  extraRoles: unknown[],
+): boolean {
+  const roles = getSessionRoles(session, ...extraRoles);
+  const map = statementsMapFromSession(session);
+
+  for (const slug of roles) {
+    const statements = getStatementsForRole(slug, map);
+    if ((statements?.[resource] ?? []).map(String).includes(action)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/** Paie du personnel : propriétaire, ou `payroll:read` (matrice / session). */
 export function canAccessPayrollArea(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
-  return isOrganizationOwnerSession(session, ...extraRoles);
+  return (
+    isCanonicalOrganizationOwnerSession(session, ...extraRoles) ||
+    sessionAllowsResourceAction(session, "payroll", "read", extraRoles)
+  );
+}
+
+/** Transactions : propriétaire, ou `transactions:read` (matrice / session). */
+export function canAccessTransactionsArea(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return (
+    isCanonicalOrganizationOwnerSession(session, ...extraRoles) ||
+    sessionAllowsResourceAction(session, "transactions", "read", extraRoles)
+  );
 }
 
 export function canComputePayroll(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
-  return isOrganizationOwnerSession(session, ...extraRoles);
+  return (
+    isCanonicalOrganizationOwnerSession(session, ...extraRoles) ||
+    sessionAllowsResourceAction(session, "payroll", "compute", extraRoles)
+  );
 }
 
 export function canValidatePayroll(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
-  return isOrganizationOwnerSession(session, ...extraRoles);
+  return (
+    isCanonicalOrganizationOwnerSession(session, ...extraRoles) ||
+    sessionAllowsResourceAction(session, "payroll", "validate", extraRoles)
+  );
 }
 
 export function canPayPayroll(session: any, ...extraRoles: unknown[]): boolean {
-  return isOrganizationOwnerSession(session, ...extraRoles);
+  return (
+    isCanonicalOrganizationOwnerSession(session, ...extraRoles) ||
+    sessionAllowsResourceAction(session, "payroll", "pay", extraRoles)
+  );
 }
 
 /**
@@ -393,11 +454,7 @@ export function isOrganizationOwnerSession(
   ...extraRoles: unknown[]
 ): boolean {
   if (isBranchOwnerSession(session, ...extraRoles)) return true;
-  return hasSessionRole(
-    session,
-    [APP_ROLE.OWNER, ORG_ROLE.OWNER, "proprietaire"],
-    ...extraRoles,
-  );
+  return isCanonicalOrganizationOwnerSession(session, ...extraRoles);
 }
 
 export const PERMANENT_DELETE_DENIED_MESSAGE =

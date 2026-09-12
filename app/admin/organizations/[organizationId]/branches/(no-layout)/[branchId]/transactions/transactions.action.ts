@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
+import { isCanonicalOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import { requireBranchAreaContext } from "@/lib/auth/require-branch-context";
 import { getBaseCurrency } from "@/lib/exchange-rate";
 import { prisma } from "@/lib/prisma";
@@ -355,7 +355,7 @@ export const getBranchTransactionsAction = action
 
     return {
       currency: getBaseCurrency(rates),
-      canDelete: isOrganizationOwnerSession(context.session),
+      canDelete: isCanonicalOrganizationOwnerSession(context.session),
       mode,
       day: mode === "day" ? (input.day ?? toDateInputValue()) : null,
       startDate: mode === "period" ? input.startDate ?? null : null,
@@ -477,7 +477,7 @@ export const deleteBranchTransactionAction = action
   )
   .handler(async ({ input }) => {
     const context = await requireBranchAreaContext("transactions");
-    if (!isOrganizationOwnerSession(context.session)) {
+    if (!isCanonicalOrganizationOwnerSession(context.session)) {
       throw new Error(
         "Seul le propriétaire peut supprimer définitivement une transaction.",
       );

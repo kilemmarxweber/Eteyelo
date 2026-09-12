@@ -4,6 +4,7 @@ import {
   canAccessFinanceArea,
   canAccessFinanceOversight,
   canAccessPayrollArea,
+  canAccessTransactionsArea,
   canAccessLibraryArea,
   canAccessNotesReadArea,
   canAccessPedagogyArea,
@@ -18,13 +19,17 @@ import {
   canAccessTeachingArea,
   canAccessTitulaireFichesArea,
   canManageHrDirectory,
+  isCanonicalOrganizationOwnerSession,
+  isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 import {
   canAccessBranchAreaFromPermissions,
   isPermissionsFromDacEnabled,
 } from "@/lib/auth/resolve-branch-area-permission";
-import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
-import type { BranchArea } from "@/lib/auth/branch-area-permissions";
+import {
+  isOwnerGatedBranchArea,
+  type BranchArea,
+} from "@/lib/auth/branch-area-permissions";
 
 export type { BranchArea };
 
@@ -40,6 +45,16 @@ export function canAccessBranchArea(
   area: BranchArea,
   session: unknown,
 ): boolean {
+  if (isOwnerGatedBranchArea(area)) {
+    if (isCanonicalOrganizationOwnerSession(session)) return true;
+    if (isPermissionsFromDacEnabled()) {
+      return canAccessBranchAreaFromPermissions(area, session);
+    }
+    return area === "transactions"
+      ? canAccessTransactionsArea(session)
+      : canAccessPayrollArea(session);
+  }
+
   if (isOrganizationOwnerSession(session)) return true;
 
   if (isPermissionsFromDacEnabled()) {
@@ -107,7 +122,7 @@ export function canAccessBranchArea(
     case "roles_privileges":
       return canAccessBranchOrgSettings(session);
     case "transactions":
-      return canAccessPayrollArea(session);
+      return canAccessTransactionsArea(session);
     case "parents":
       return canAccessPedagogyArea(session);
     case "documents":

@@ -5,6 +5,7 @@ import { loadOrganizationRoleStatements } from "@/lib/auth/org-role-permissions"
 import { canAccessBranchAreaFromPermissions } from "@/lib/auth/resolve-branch-area-permission";
 import {
   isPermissionsFromDacEnabled,
+  OWNER_GATED_SIDEBAR_HREFS,
   SETTINGS_HREF_BRANCH_AREA,
   SIDEBAR_HREF_BRANCH_AREA,
   type BranchArea,
@@ -15,6 +16,7 @@ import {
   canAccessSchoolOpsSettings,
   canAccessSchoolStructureSettings,
   canAccessSupportSettings,
+  isCanonicalOrganizationOwnerSession,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 import {
@@ -45,6 +47,36 @@ function defaultSettingsReads(allAllowed: boolean): Record<string, boolean> {
     out[key] = allAllowed;
   }
   return out;
+}
+
+async function ownerGatedHideHrefs(
+  session: unknown,
+  organizationId: string,
+  branchId: string | null,
+): Promise<string[]> {
+  if (isCanonicalOrganizationOwnerSession(session)) return [];
+
+  const hide = [...OWNER_GATED_SIDEBAR_HREFS];
+  const roleStatements = isPermissionsFromDacEnabled()
+    ? await loadOrganizationRoleStatements(organizationId)
+    : null;
+  const temporaryGrants = await loadActiveTemporaryGrants(
+    (session as { user?: { id?: string } }).user?.id ?? "",
+    organizationId,
+    branchId,
+  );
+
+  return hide.filter((href) => {
+    const area = SIDEBAR_HREF_BRANCH_AREA[href];
+    if (!area) return true;
+    const allowedByRole = canAccessBranchAreaFromPermissions(
+      area,
+      session,
+      roleStatements,
+    );
+    const allowedByGrant = grantsCoverBranchArea(temporaryGrants, area);
+    return !allowedByRole && !allowedByGrant;
+  });
 }
 
 /**
@@ -84,10 +116,16 @@ export async function getSidebarPermissionFlagsAction(
 
   await expireOutdatedGrants();
 
-  // Propriétaire org / plateforme / branche : tous les menus (hors directeur etc.).
+  // Propriétaire org / plateforme : tous les menus.
+  // Admin de branche : tous les menus sauf paie / transactions (sauf DAC ou octroi).
   if (isOrganizationOwnerSession(session)) {
+    const gatedHide = await ownerGatedHideHrefs(
+      session,
+      organizationId,
+      branchId,
+    );
     return {
-      hideHrefs: await hideMessagingIfDisabled(organizationId, []),
+      hideHrefs: await hideMessagingIfDisabled(organizationId, gatedHide),
       settingsReads: defaultSettingsReads(true),
       inscriptionRead: true,
       dacStrictMenu: false,

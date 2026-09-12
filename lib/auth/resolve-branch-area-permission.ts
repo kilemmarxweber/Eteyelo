@@ -5,11 +5,13 @@
 
 import {
   getSessionRoles,
+  isCanonicalOrganizationOwnerSession,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 import {
   BRANCH_AREA_PERMISSION,
   GRANT_BRANCH_AREA_PERMISSION,
+  isOwnerGatedBranchArea,
   isPermissionsFromDacEnabled,
   type BranchArea,
 } from "@/lib/auth/branch-area-permissions";
@@ -79,7 +81,8 @@ export function roleAllowsAreaAction(
 /**
  * True si un des rôles session couvre la permission de la zone.
  *
- * - Propriétaire org / plateforme / branche : accès complet (tous les menus).
+ * - Propriétaire org / plateforme : accès complet (tous les menus).
+ * - Paie / transactions : propriétaire uniquement, sauf matrice DAC.
  * - Directeur, gestionnaire, enseignant, etc. : matrice OrganizationRole (DB) uniquement.
  *
  * @param roleStatements Map DB (OrganizationRole). Si absente, lecture depuis
@@ -90,14 +93,18 @@ export function canAccessBranchAreaFromPermissions(
   session: unknown,
   roleStatements?: Map<string, RoleStatements> | null,
 ): boolean {
-  if (isOrganizationOwnerSession(session)) return true;
+  if (isOwnerGatedBranchArea(area)) {
+    if (isCanonicalOrganizationOwnerSession(session)) return true;
+  } else if (isOrganizationOwnerSession(session)) {
+    return true;
+  }
 
   const roles = getSessionRoles(session);
   const appRole = [...roles].find((r) =>
     ["owner", "admin", "platform_support", "user"].includes(r),
   );
   if (appRole && hasPlatformSupportPrivileges(appRole)) {
-    return true;
+    if (!isOwnerGatedBranchArea(area)) return true;
   }
 
   const required = BRANCH_AREA_PERMISSION[area];

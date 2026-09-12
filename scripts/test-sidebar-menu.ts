@@ -263,8 +263,37 @@ test("propriétaire de branche : tous les menus malgré le rôle organisation us
     ],
     "propriétaire de branche",
   );
-  assertIncludes(financeSubs, ["teacherPayroll", "transactions"], "paie propriétaire de branche");
-  assertExcludes(financeSubs, ["salaryCredits"], "paie propriétaire de branche");
+  assertExcludes(
+    financeSubs,
+    ["teacherPayroll", "transactions", "salaryCredits"],
+    "paie réservée au propriétaire org / octroi",
+  );
+});
+
+test("propriétaire org voit paie et transactions", () => {
+  const session = sessionWithOrgRole(ORG_ROLE.OWNER);
+  const finance = buildStaticSideLinks(session, BRANCH_PATH, "PRIMAIRE").find(
+    (item) => item.title === "finance",
+  );
+  const financeSubs = (finance?.sub ?? []).map((item) => item.title);
+  assertIncludes(financeSubs, ["teacherPayroll", "transactions"], "owner org");
+});
+
+test("paie / transactions visibles si hideHrefs ne les masque pas (DAC ou octroi)", () => {
+  const session = sessionWithOrgRole(ORG_ROLE.GESTIONNAIRE);
+  const finance = buildStaticSideLinks(
+    session,
+    BRANCH_PATH,
+    "PRIMAIRE",
+    undefined,
+    { hideHrefs: ["/admin/frais"], dacReady: true, dacStrictMenu: true },
+  ).find((item) => item.title === "finance");
+  const financeSubs = (finance?.sub ?? []).map((item) => item.title);
+  assertIncludes(
+    financeSubs,
+    ["teacherPayroll", "transactions", "payment"],
+    "gestionnaire avec accès paie/transactions",
+  );
 });
 
 test("directeur de branche : pas le bypass propriétaire (menus limités au rôle org)", () => {

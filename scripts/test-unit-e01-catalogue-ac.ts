@@ -33,6 +33,8 @@ const REQUIRED_RESOURCES = [
   "student",
   "teaching",
   "candidatures",
+  "payroll",
+  "transactions",
 ] as const;
 
 test("catalogue déclare les ressources scolaires P1", () => {
@@ -49,18 +51,22 @@ test("finance expose encaisser ; teaching expose assign", () => {
   assert.ok(accessControlStatements.teaching.includes("assign"));
 });
 
-test("owner couvre finance + notes + student", () => {
+test("owner couvre finance + notes + student + paie + transactions", () => {
   const owner = organizationRoleStatements[ORG_ROLE.OWNER];
   assert.ok(owner.finance?.includes("encaisser"));
   assert.ok(owner.notes?.includes("create"));
   assert.ok(owner.student?.includes("delete"));
+  assert.ok(owner.payroll?.includes("pay"));
+  assert.ok(owner.transactions?.includes("read"));
 });
 
-test("gestionnaire a finance CRU+encaisser sans delete member", () => {
+test("gestionnaire a finance CRU+encaisser sans delete member ni paie", () => {
   const g = organizationRoleStatements[ORG_ROLE.GESTIONNAIRE];
   assert.ok(g.finance?.includes("encaisser"));
   assert.equal(g.finance?.includes("delete") ?? false, false);
   assert.equal(g.member?.includes("delete") ?? false, false);
+  assert.equal(g.payroll, undefined);
+  assert.equal(g.transactions, undefined);
 });
 
 test("chef d'établissement sans finance ; avec notes", () => {

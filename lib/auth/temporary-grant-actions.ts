@@ -68,10 +68,21 @@ export function grantMatchesPermission(
   }
 
   // Paiement / caisse : create / update / delete autorisent l'encaissement.
-  return (
+  if (
     requestedAction === "encaisser" &&
     writeActionIncludesRead(grantAction) &&
     (grant.resource === "*" || grant.resource.toLowerCase() === "finance")
+  ) {
+    return true;
+  }
+
+  // Paie : un octroi d'écriture couvre calcul, validation et paiement.
+  return (
+    (requestedAction === "compute" ||
+      requestedAction === "validate" ||
+      requestedAction === "pay") &&
+    writeActionIncludesRead(grantAction) &&
+    (grant.resource === "*" || grant.resource.toLowerCase() === "payroll")
   );
 }
 

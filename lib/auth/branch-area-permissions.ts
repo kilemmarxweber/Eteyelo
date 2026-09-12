@@ -95,8 +95,8 @@ export const BRANCH_AREA_PERMISSION: Record<
   structure_copy: { structureCopy: ["read"] },
   roles_privileges: { ac: ["read"] },
   candidatures: { candidatures: ["read"] },
-  /** DAC : même privilège paie. Octroi temporaire : ressource `transactions`. */
-  transactions: { payroll: ["read"] },
+  /** Paie et transactions sont indépendants (matrice + octrois). */
+  transactions: { transactions: ["read"] },
   /** DAC : même privilège RH. Octroi temporaire : ressource `parent`. */
   parents: { personnel: ["read"] },
   documents: { documents: ["read"] },
@@ -123,6 +123,27 @@ export const GRANT_BRANCH_AREA_PERMISSION: Record<
 export function grantResourceForArea(area: BranchArea): string {
   const required = GRANT_BRANCH_AREA_PERMISSION[area];
   return Object.keys(required)[0] ?? area;
+}
+
+/** Zones visibles par défaut uniquement pour le propriétaire org / plateforme. */
+export const OWNER_GATED_BRANCH_AREAS = ["payroll", "transactions"] as const;
+
+export type OwnerGatedBranchArea = (typeof OWNER_GATED_BRANCH_AREAS)[number];
+
+export function isOwnerGatedBranchArea(
+  area: BranchArea,
+): area is OwnerGatedBranchArea {
+  return (OWNER_GATED_BRANCH_AREAS as readonly string[]).includes(area);
+}
+
+export const OWNER_GATED_SIDEBAR_HREFS = [
+  "/admin/paie-enseignants",
+  "/admin/paie-enseignants/credits",
+  "/admin/transactions",
+] as const;
+
+export function isOwnerGatedSidebarHref(href: string): boolean {
+  return (OWNER_GATED_SIDEBAR_HREFS as readonly string[]).includes(href);
 }
 
 /**

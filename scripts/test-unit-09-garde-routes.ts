@@ -254,9 +254,14 @@ test("directeur de branche → pas d’accès complet (contrairement au proprié
   );
 });
 
-test("paie → propriétaire uniquement", () => {
-  assert.equal(canAccessBranchArea("payroll", sessionBranchOwner), true);
+test("paie / transactions → propriétaire org, pas l'admin de branche", () => {
+  assert.equal(canAccessBranchArea("payroll", sessionBranchOwner), false);
+  assert.equal(canAccessBranchArea("transactions", sessionBranchOwner), false);
   assert.equal(canAccessBranchArea("payroll", sessionWithOrgRole(ORG_ROLE.OWNER)), true);
+  assert.equal(
+    canAccessBranchArea("transactions", sessionWithOrgRole(ORG_ROLE.OWNER)),
+    true,
+  );
   for (const role of [
     ORG_ROLE.GESTIONNAIRE,
     ORG_ROLE.DIRECTEUR,
@@ -268,6 +273,11 @@ test("paie → propriétaire uniquement", () => {
       canAccessBranchArea("payroll", sessionWithOrgRole(role)),
       false,
       `${role} ne doit pas accéder à la paie`,
+    );
+    assert.equal(
+      canAccessBranchArea("transactions", sessionWithOrgRole(role)),
+      false,
+      `${role} ne doit pas accéder aux transactions`,
     );
   }
 });
@@ -304,7 +314,7 @@ test("DAC seed : direction voit calendrier/périodes/communication, pas année n
   process.env.PERMISSIONS_FROM_DAC = "false";
 });
 
-test("paie avec DAC → un privilège payroll ne suffit pas sans propriétaire", () => {
+test("paie / transactions DAC : matrice indépendante, sans propriétaire", () => {
   process.env.PERMISSIONS_FROM_DAC = "true";
   const delegatedPayroll = {
     organization: {
@@ -316,8 +326,21 @@ test("paie avec DAC → un privilège payroll ne suffit pas sans propriétaire",
       },
     },
   };
+  const delegatedTransactions = {
+    organization: {
+      role: ORG_ROLE.GESTIONNAIRE,
+      rolePermissions: {
+        [ORG_ROLE.GESTIONNAIRE]: {
+          transactions: ["read"],
+        },
+      },
+    },
+  };
 
-  assert.equal(canAccessBranchArea("payroll", delegatedPayroll), false);
+  assert.equal(canAccessBranchArea("payroll", delegatedPayroll), true);
+  assert.equal(canAccessBranchArea("transactions", delegatedPayroll), false);
+  assert.equal(canAccessBranchArea("transactions", delegatedTransactions), true);
+  assert.equal(canAccessBranchArea("payroll", delegatedTransactions), false);
   assert.equal(
     canAccessBranchArea("payroll", {
       organization: { role: ORG_ROLE.OWNER, rolePermissions: {} },

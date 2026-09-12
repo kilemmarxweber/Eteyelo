@@ -2,8 +2,10 @@
 
 import { z } from "zod";
 
-import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
-import { canComputePayroll } from "@/lib/auth/session-roles";
+import {
+  assertBranchAreaAccess,
+  sessionAllowsPayrollAction,
+} from "@/lib/auth/assert-branch-area-access";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { prisma } from "@/lib/prisma";
 import { action } from "@/lib/zsa";
@@ -29,7 +31,14 @@ async function getPayrollLogsContext() {
     organizationId: context.organizationId,
     branchId: context.branchId,
   });
-  if (!canComputePayroll(context.session)) {
+  if (
+    !(await sessionAllowsPayrollAction(
+      context.session,
+      "compute",
+      context.organizationId,
+      context.branchId,
+    ))
+  ) {
     throw new Error("Vous n'avez pas le droit de gérer les logs de paie");
   }
   return context;

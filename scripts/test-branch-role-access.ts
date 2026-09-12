@@ -21,7 +21,7 @@ test("directeur_etudes + branch ADMIN : pas bypass propriétaire branche", () =>
   assert.equal(isOrganizationOwnerSession(session), false);
 });
 
-test("membre user + branch ADMIN : bypass propriétaire branche", () => {
+test("membre user + branch ADMIN : bypass propriétaire branche sauf paie / transactions", () => {
   const session = {
     user: { role: "user" },
     organization: { role: "user" },
@@ -30,6 +30,9 @@ test("membre user + branch ADMIN : bypass propriétaire branche", () => {
 
   assert.equal(isBranchOwnerSession(session), true);
   assert.equal(isOrganizationOwnerSession(session), true);
+  assert.equal(canAccessBranchAreaFromPermissions("finance", session), true);
+  assert.equal(canAccessBranchAreaFromPermissions("payroll", session), false);
+  assert.equal(canAccessBranchAreaFromPermissions("transactions", session), false);
 });
 
 test("directeur_etudes + branch ADMIN : finance/refus via DAC sans roleStatements owner", () => {

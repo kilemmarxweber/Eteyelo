@@ -225,6 +225,11 @@ export default function PayrollClient() {
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
   const [policy, setPolicy] = useState<Policy | null>(null);
+  const [payrollCaps, setPayrollCaps] = useState({
+    compute: false,
+    validate: false,
+    pay: false,
+  });
   const [hydrated, setHydrated] = useState(false);
   const [exporting, setExporting] = useState<"pdf" | "excel" | null>(null);
   const [branding, setBranding] = useState<SchoolReportContext | null>(null);
@@ -306,7 +311,14 @@ export default function PayrollClient() {
 
   useEffect(() => {
     void getPayrollPolicyAction().then(([result, error]) => {
-      if (!error && result) setPolicy(toPolicyForm(result));
+      if (!error && result) {
+        setPolicy(toPolicyForm(result));
+        setPayrollCaps({
+          compute: Boolean(result.canCompute),
+          validate: Boolean(result.canValidate),
+          pay: Boolean(result.canPay),
+        });
+      }
     });
   }, []);
 
@@ -331,16 +343,16 @@ export default function PayrollClient() {
   }, []);
 
   const isManager = useMemo(
-    () => hydrated && !isPending && canComputePayroll(session),
-    [hydrated, isPending, session],
+    () => hydrated && !isPending && (canComputePayroll(session) || payrollCaps.compute),
+    [hydrated, isPending, session, payrollCaps.compute],
   );
   const canValidate = useMemo(
-    () => hydrated && !isPending && canValidatePayroll(session),
-    [hydrated, isPending, session],
+    () => hydrated && !isPending && (canValidatePayroll(session) || payrollCaps.validate),
+    [hydrated, isPending, session, payrollCaps.validate],
   );
   const canPay = useMemo(
-    () => hydrated && !isPending && canPayPayroll(session),
-    [hydrated, isPending, session],
+    () => hydrated && !isPending && (canPayPayroll(session) || payrollCaps.pay),
+    [hydrated, isPending, session, payrollCaps.pay],
   );
 
   useEffect(() => {

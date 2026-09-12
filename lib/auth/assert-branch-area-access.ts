@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth/branch-area-access";
 import {
   grantResourceForArea,
+  isOwnerGatedBranchArea,
   isPermissionsFromDacEnabled,
 } from "@/lib/auth/branch-area-permissions";
 import { getCachedSession } from "@/lib/auth/get-session-cached";
@@ -17,8 +18,12 @@ import {
   roleAllowsAreaAction,
 } from "@/lib/auth/resolve-branch-area-permission";
 import {
+  canComputePayroll,
   canManageOrganization,
+  canPayPayroll,
   canPermanentlyDeleteInformation,
+  canValidatePayroll,
+  isCanonicalOrganizationOwnerSession,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 import {
@@ -223,20 +228,28 @@ export async function getBranchAreaMutationFlags(
   extraRoles: unknown[] = [],
 ): Promise<BranchAreaMutationFlags> {
   if (isOrganizationOwnerSession(session, ...extraRoles)) {
-    return {
-      canCreate: true,
-      canUpdate: true,
-      canDelete: true,
-      canWrite: true,
-    };
+    if (
+      !isOwnerGatedBranchArea(area) ||
+      isCanonicalOrganizationOwnerSession(session, ...extraRoles)
+    ) {
+      return {
+        canCreate: true,
+        canUpdate: true,
+        canDelete: true,
+        canWrite: true,
+      };
+    }
   }
 
   const orgId = resolveOrganizationId(session, organizationId);
   const userId = (session as { user?: { id?: string } } | null)?.user?.id;
   const resolvedBranchId = resolveBranchId(session, branchId);
+  const ownerGated = isOwnerGatedBranchArea(area);
 
-  const roleCanWrite = canManageOrganization(session, ...extraRoles);
-  const roleCanDelete = canPermanentlyDeleteInformation(session, ...extraRoles);
+  const roleCanWrite =
+    !ownerGated && canManageOrganization(session, ...extraRoles);
+  const roleCanDelete =
+    !ownerGated && canPermanentlyDeleteInformation(session, ...extraRoles);
 
   let grantCreate = false;
   let grantUpdate = false;
@@ -306,4 +319,29 @@ export async function canWriteBranchAreaAsync(
     branchId,
   );
   return flags.canWrite;
+}
+
+export type PayrollMutationAction = "compute" | "validate" | "pay";
+
+/** Calcul / validation / paiement : propriétaire, matrice DAC, ou octroi temporaire. */
+export async function sessionAllowsPayrollAction(
+  session: unknown,
+  action: PayrollMutationAction,
+  organizationId?: string | null,
+  branchId?: string | null,
+): Promise<boolean> {
+  if (action === "compute" && canComputePayroll(session)) return true;
+  if (action === "validate" && canValidatePayroll(session)) return true;
+  if (action === "pay" && canPayPayroll(session)) return true;
+
+  const orgId = resolveOrganizationId(session, organizationId);
+  const userId = (session as { user?: { id?: string } } | null)?.user?.id;
+  if (!orgId || !userId) return false;
+
+  const grants = await loadActiveTemporaryGrants(
+    userId,
+    orgId,
+    resolveBranchId(session, branchId),
+  );
+  return grantsCoverPermissions(grants, { payroll: [action] });
 }

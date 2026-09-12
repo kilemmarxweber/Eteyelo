@@ -62,6 +62,9 @@ const ACTION_LABELS_FR: Record<string, string> = {
   delete: "Supprimer",
   share: "Partager",
   cancel: "Annuler",
+  compute: "Calculer",
+  validate: "Valider",
+  pay: "Payer",
   encaisser: "Encaisser",
   assign: "Affecter",
   send: "Envoyer",
@@ -154,7 +157,7 @@ export const PERMISSION_MATRIX_GROUPS: PermissionMatrixGroup[] = [
   {
     id: "finance",
     label: "Finance",
-    resources: ["fees", "finance", "payroll"],
+    resources: ["fees", "finance", "payroll", "transactions"],
   },
   {
     id: "rh",

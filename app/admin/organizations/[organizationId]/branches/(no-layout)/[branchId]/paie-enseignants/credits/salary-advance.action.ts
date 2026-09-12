@@ -3,11 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
 import {
-  canComputePayroll,
-  canPayPayroll,
-} from "@/lib/auth/session-roles";
+  assertBranchAreaAccess,
+  sessionAllowsPayrollAction,
+} from "@/lib/auth/assert-branch-area-access";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { getBranchPayrollOwners } from "@/lib/email/get-branch-manager-emails";
 import {
@@ -63,7 +62,13 @@ async function requirePayrollOwner() {
     organizationId: context.organizationId,
     branchId: context.branchId,
   });
-  if (!canComputePayroll(context.session)) {
+  const canCompute = await sessionAllowsPayrollAction(
+    context.session,
+    "compute",
+    context.organizationId,
+    context.branchId,
+  );
+  if (!canCompute) {
     throw new Error("Vous n'avez pas le droit de gérer les avances sur salaire");
   }
   return context;
@@ -651,7 +656,14 @@ export const createSalaryAdvanceAction = action
     });
 
     if (input.approveNow) {
-      if (!canPayPayroll(context.session)) {
+      if (
+        !(await sessionAllowsPayrollAction(
+          context.session,
+          "pay",
+          context.organizationId,
+          context.branchId,
+        ))
+      ) {
         throw new Error("Vous n'avez pas le droit d'accorder une avance");
       }
       const { draftApplied } = await approveAdvanceInTx({
@@ -745,7 +757,14 @@ export const approveSalaryAdvanceAction = action
   )
   .handler(async ({ input }) => {
     const context = await requirePayrollOwner();
-    if (!canPayPayroll(context.session)) {
+    if (
+      !(await sessionAllowsPayrollAction(
+        context.session,
+        "pay",
+        context.organizationId,
+        context.branchId,
+      ))
+    ) {
       throw new Error("Vous n'avez pas le droit d'accorder une avance");
     }
     const row = await prisma.salaryAdvance.findFirst({

@@ -203,6 +203,25 @@ test("octroi paie n'ouvre pas les transactions, et inversement", () => {
   );
 });
 
+test("octroi d'écriture paie couvre calcul / validation / paiement", () => {
+  assert.equal(
+    grantMatchesPermission(grant("payroll", "update"), "payroll", "compute"),
+    true,
+  );
+  assert.equal(
+    grantMatchesPermission(grant("payroll", "update"), "payroll", "validate"),
+    true,
+  );
+  assert.equal(
+    grantMatchesPermission(grant("payroll", "update"), "payroll", "pay"),
+    true,
+  );
+  assert.equal(
+    grantMatchesPermission(grant("payroll", "read"), "payroll", "compute"),
+    false,
+  );
+});
+
 test("octroi personnel n'ouvre pas les parents, et inversement", () => {
   assert.equal(
     grantsCoverBranchArea([grant("personnel", "read")], "hr_directory"),

@@ -22,6 +22,8 @@ import {
   canSeeInscriptionNotifications,
   canReviewAbsenceJustifications,
   isOrganizationOwnerSession,
+  isCanonicalOrganizationOwnerSession,
+  canAccessPayrollArea,
   isSchoolLeadershipRole,
 } from "../lib/auth/session-roles";
 import { canArchiveOrganizationAsMember } from "../lib/auth/role-labels";
@@ -172,6 +174,35 @@ test("settings : Rôles & privilèges réservés au propriétaire (pas au gestio
   assert.equal(isOrganizationOwnerSession(sessionGestionnaire), false);
   assert.equal(isOrganizationOwnerSession(sessionDirecteur), false);
   assert.equal(canAccessBranchOrgSettings(sessionGestionnaire), true);
+});
+
+test("paie : propriétaire org/plateforme, pas admin de branche ni gestionnaire", () => {
+  const sessionOwnerApp = { user: { role: APP_ROLE.OWNER } };
+  const sessionOwnerOrg = { organization: { role: ORG_ROLE.OWNER } };
+  const sessionBranchAdmin = {
+    user: { role: "user" },
+    organization: { role: "user" },
+    branchMemberRole: "ADMIN",
+  };
+  assert.equal(isCanonicalOrganizationOwnerSession(sessionOwnerApp), true);
+  assert.equal(isCanonicalOrganizationOwnerSession(sessionOwnerOrg), true);
+  assert.equal(isCanonicalOrganizationOwnerSession(sessionBranchAdmin), false);
+  assert.equal(isOrganizationOwnerSession(sessionBranchAdmin), true);
+  assert.equal(canAccessPayrollArea(sessionOwnerApp), true);
+  assert.equal(canAccessPayrollArea(sessionOwnerOrg), true);
+  assert.equal(canAccessPayrollArea(sessionBranchAdmin), false);
+  assert.equal(canAccessPayrollArea(sessionGestionnaire), false);
+  assert.equal(
+    canAccessPayrollArea({
+      organization: {
+        role: ORG_ROLE.GESTIONNAIRE,
+        rolePermissions: {
+          [ORG_ROLE.GESTIONNAIRE]: { payroll: ["read"] },
+        },
+      },
+    }),
+    true,
+  );
 });
 
 test("settings : propriétaire (owner) a org + school_ops (périodes, année, domaines)", () => {
