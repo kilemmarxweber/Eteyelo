@@ -89,6 +89,10 @@ function sortCalendarClasses(classes: ClasseOption[]) {
   });
 }
 
+function optionFilterValue(classe: ClasseOption) {
+  return `${classeCycle(classe)}::${classe.option?.id || NO_OPTION_VALUE}`;
+}
+
 function classSelectLabel(classe: ClasseOption) {
   const cycle = cycleLabel(classeCycle(classe));
   const option = classe.option?.nameOption || "Sans option";
@@ -249,25 +253,36 @@ export function CalendarEventForm({
   }, [cycleFilter, sortedClasses]);
 
   const optionOptions = useMemo(() => {
+    const includeCycle = cycleFilter.length !== 1;
     const seen = new Set<string>();
-    const options: Array<{ value: string; label: string }> = [];
+    const options: Array<{ value: string; label: string; cycle: Cycle }> = [];
     for (const classe of classesAfterCycle) {
-      const value = classe.option?.id || NO_OPTION_VALUE;
+      const value = optionFilterValue(classe);
       if (seen.has(value)) continue;
       seen.add(value);
+      const optionName = classe.option?.nameOption || "Sans option";
+      const cycle = classeCycle(classe);
       options.push({
         value,
-        label: classe.option?.nameOption || "Sans option",
+        cycle,
+        label: includeCycle
+          ? `${cycleLabel(cycle)} · ${optionName}`
+          : optionName,
       });
     }
-    return options.sort((a, b) => a.label.localeCompare(b.label, "fr"));
-  }, [classesAfterCycle]);
+    return options.sort((a, b) => {
+      const cycle =
+        CYCLE_SORT_ORDER[a.cycle] - CYCLE_SORT_ORDER[b.cycle];
+      if (cycle !== 0) return cycle;
+      return a.label.localeCompare(b.label, "fr");
+    });
+  }, [classesAfterCycle, cycleFilter.length]);
 
   const filteredClasses = useMemo(() => {
     if (optionFilter.length === 0) return classesAfterCycle;
     const selected = new Set(optionFilter);
     return classesAfterCycle.filter((classe) =>
-      selected.has(classe.option?.id || NO_OPTION_VALUE),
+      selected.has(optionFilterValue(classe)),
     );
   }, [classesAfterCycle, optionFilter]);
 
@@ -742,7 +757,7 @@ export function CalendarEventForm({
             classes. Aucune classe = événement global (toute l&apos;école).
           </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 lg:grid-cols-3">
           <div className="space-y-1.5">
             <Label>Cycle</Label>
             <MultiSelect
@@ -773,21 +788,21 @@ export function CalendarEventForm({
               disabled={pending}
             />
           </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Classes</Label>
-          <MultiSelect
-            options={classOptions}
-            value={selectedClasseIds}
-            onValueChange={setSelectedClasseIds}
-            placeholder="Global (toute l'école)"
-            selectedCountLabel={(count) =>
-              `${count} classe${count > 1 ? "s" : ""}`
-            }
-            maxCount={2}
-            showSelectAll
-            disabled={pending}
-          />
+          <div className="space-y-1.5">
+            <Label>Classes</Label>
+            <MultiSelect
+              options={classOptions}
+              value={selectedClasseIds}
+              onValueChange={setSelectedClasseIds}
+              placeholder="Global (toute l'école)"
+              selectedCountLabel={(count) =>
+                `${count} classe${count > 1 ? "s" : ""}`
+              }
+              maxCount={2}
+              showSelectAll
+              disabled={pending}
+            />
+          </div>
         </div>
       </div>
 

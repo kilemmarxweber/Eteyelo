@@ -630,10 +630,24 @@ export const deleteClassePermanentlyAction = action
         await tx.fiche.deleteMany({
           where: { classSectionId: id, branchId },
         });
-        await tx.calendarEvent.updateMany({
-          where: { classeId: id, branchId },
-          data: { classeId: null },
+        const linkedEvents = await tx.calendarEvent.findMany({
+          where: {
+            branchId,
+            OR: [{ classeId: id }, { classeIds: { has: id } }],
+          },
+          select: { id: true, classeId: true, classeIds: true },
         });
+        for (const event of linkedEvents) {
+          const nextIds = event.classeIds.filter((classeId) => classeId !== id);
+          await tx.calendarEvent.update({
+            where: { id: event.id },
+            data: {
+              classeIds: nextIds,
+              classeId:
+                event.classeId === id ? nextIds[0] ?? null : event.classeId,
+            },
+          });
+        }
 
         const frais = await tx.frais.findMany({
           where: { classeId: id, branchId },

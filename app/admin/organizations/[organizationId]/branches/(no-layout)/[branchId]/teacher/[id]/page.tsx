@@ -159,7 +159,10 @@ const SingleTeacherPage = async ({
   }
 
   const user = teacher.branchMember?.member?.user;
-  const firstClasseId = teacher.teaching.find((t) => t.classeId)?.classeId;
+  const teacherClassIds = teacher.teaching
+    .map((t) => t.classeId)
+    .filter((value): value is string => Boolean(value));
+  const firstClasseId = teacherClassIds[0];
 
   const [
     creneau,
@@ -234,15 +237,10 @@ const SingleTeacherPage = async ({
           ...(teacher.teaching.length
             ? [{ teachingId: { in: teacher.teaching.map((t) => t.id) } }]
             : []),
-          ...(teacher.teaching.some((t) => t.classeId)
+          ...(teacherClassIds.length
             ? [
-                {
-                  classeId: {
-                    in: teacher.teaching
-                      .map((t) => t.classeId)
-                      .filter((value): value is string => Boolean(value)),
-                  },
-                },
+                { classeId: { in: teacherClassIds } },
+                { classeIds: { hasSome: teacherClassIds } },
               ]
             : []),
           {

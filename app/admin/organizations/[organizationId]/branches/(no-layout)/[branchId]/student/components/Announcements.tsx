@@ -88,8 +88,13 @@ const Announcements = async () => {
           branchId,
           isArchived: false,
           OR: [
-            { classeId: null },
-            ...(classIds.length > 0 ? [{ classeId: { in: classIds } }] : []),
+            { classeId: null, classeIds: { isEmpty: true } },
+            ...(classIds.length > 0
+              ? [
+                  { classeId: { in: classIds } },
+                  { classeIds: { hasSome: classIds } },
+                ]
+              : []),
           ],
         },
     include: {

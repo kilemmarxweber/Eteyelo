@@ -40,6 +40,8 @@ import { canAccessSchoolOpsSettings } from "@/lib/auth/session-roles";
 
 type EventTypeItem = Awaited<ReturnType<typeof getCalendarSettingsAction>>[number];
 type ClasseItem = Awaited<ReturnType<typeof getCalendarClassesAction>>[number];
+type CalendarTab = "events" | "types";
+
 function eventClassIds(event: ICalendarEvent) {
   if (event.classeIds?.length) return event.classeIds;
   if (event.classeId) return [event.classeId];
@@ -297,29 +299,35 @@ export default function CalendarSettingsPage() {
                         {event.closesAttendance ? (
                           <Badge variant="warning">Férié / fermé</Badge>
                         ) : null}
-                        {eventClassIds(event).length === 0 ? (
-                          <Badge variant="outline">Global</Badge>
-                        ) : (
-                          eventClassIds(event)
-                            .slice(0, 3)
-                            .map((id) => {
-                              const classe =
-                                classes.find((item) => item.id === id) ||
-                                (event.classe?.id === id ? event.classe : null);
-                              return (
-                                <Badge key={id} variant="outline">
-                                  {classe?.nameClasse ||
-                                    classe?.codeClasse ||
-                                    "Classe"}
+                        {(() => {
+                          const classIds = eventClassIds(event);
+                          if (classIds.length === 0) {
+                            return <Badge variant="outline">Global</Badge>;
+                          }
+                          return (
+                            <>
+                              {classIds.slice(0, 3).map((id) => {
+                                const classe =
+                                  classes.find((item) => item.id === id) ||
+                                  (event.classe?.id === id
+                                    ? event.classe
+                                    : null);
+                                return (
+                                  <Badge key={id} variant="outline">
+                                    {classe?.nameClasse ||
+                                      classe?.codeClasse ||
+                                      "Classe"}
+                                  </Badge>
+                                );
+                              })}
+                              {classIds.length > 3 ? (
+                                <Badge variant="outline">
+                                  +{classIds.length - 3}
                                 </Badge>
-                              );
-                            })
-                        )}
-                        {eventClassIds(event).length > 3 ? (
-                          <Badge variant="outline">
-                            +{eventClassIds(event).length - 3}
-                          </Badge>
-                        ) : null}
+                              ) : null}
+                            </>
+                          );
+                        })()}
                         {event.titleI18n &&
                         Object.values(event.titleI18n).filter(Boolean).length >
                           1 ? (
