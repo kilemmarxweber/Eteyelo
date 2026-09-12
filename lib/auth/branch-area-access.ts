@@ -64,8 +64,6 @@ export function canAccessBranchArea(
   switch (area) {
     case "finance":
       return canAccessFinanceArea(session);
-    case "payroll":
-      return canAccessPayrollArea(session);
     case "fee_catalog":
     case "fee_types":
     case "exchange_rates":
@@ -121,8 +119,6 @@ export function canAccessBranchArea(
       return canAccessTitulaireFichesArea(session);
     case "roles_privileges":
       return canAccessBranchOrgSettings(session);
-    case "transactions":
-      return canAccessTransactionsArea(session);
     case "parents":
       return canAccessPedagogyArea(session);
     case "documents":
