@@ -35,7 +35,7 @@ export async function sendStudentRegistrationConfirmationEmail(input: {
     "",
     "Votre dossier a été transmis à l'établissement. Vous serez contacté dès qu'une suite sera donnée.",
     "",
-    `— L'équipe ${APP_NAME}`,
+    `klambocore.com`,
   ].join("\n");
 
   const bodyHtml = `

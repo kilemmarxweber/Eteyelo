@@ -39,7 +39,7 @@ export function schoolRegistrationConfirmationTemplate(
     "",
     "Votre demande sera examinée par Klambocore. Vous serez contacté par email ou téléphone une fois la décision prise et l'établissement créé sur la plateforme.",
     "",
-    `— L'équipe ${appName}`,
+    `klambocore.com`,
   ].join("\n");
 
   const bodyHtml = `

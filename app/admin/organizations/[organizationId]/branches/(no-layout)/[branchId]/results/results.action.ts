@@ -158,11 +158,13 @@ export const sendResultsToParentsAction = action
 
     const byStudent = new Map<string, Acc>();
     for (const enrollment of enrollments) {
-      const studentUser = enrollment.student.branchMember?.member?.user ?? null;
+      const student = enrollment.student;
+      if (!student) continue;
+      const studentUser = student.branchMember?.member?.user ?? null;
       const parentUser =
-        enrollment.student.parent?.branchMember?.member?.user ?? null;
-      byStudent.set(enrollment.student.id, {
-        studentId: enrollment.student.id,
+        student.parent?.branchMember?.member?.user ?? null;
+      byStudent.set(student.id, {
+        studentId: student.id,
         studentName: studentFullName(studentUser),
         className: classNameById.get(enrollment.classeId) ?? "",
         email: parentUser?.email?.trim() || null,

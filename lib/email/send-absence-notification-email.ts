@@ -40,14 +40,14 @@ async function sendAbsenceMail(input: {
   if (!email && !input.phone) return;
 
   const text = [
-    `Bonjour ${input.recipientName},`,
+    `${input.recipientName},`,
     "",
     input.intro,
     "",
     ...input.rows.map((row) => `${row.label} : ${row.value}`),
     input.note ? `\n${input.note}` : "",
     "",
-    `— L'équipe ${APP_NAME}`,
+    `klambocore.com`,
   ]
     .filter((line) => line !== undefined)
     .join("\n");

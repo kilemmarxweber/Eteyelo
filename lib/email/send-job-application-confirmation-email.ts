@@ -31,7 +31,7 @@ export async function sendJobApplicationConfirmationEmail(input: {
     "",
     "Votre dossier a été transmis à l'établissement. Vous serez contacté par email en cas de suite favorable.",
     "",
-    `— L'équipe ${APP_NAME}`,
+    `klambocore.com`,
   ].join("\n");
 
   const bodyHtml = `
