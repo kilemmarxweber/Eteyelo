@@ -62,7 +62,13 @@ import type { Cycle } from "@/lib/cycle";
 type ViewMode = "teachers" | "grid";
 
 function isAssignedTeacher(teacher: GlobalScheduleTeacher) {
-  return Boolean(teacher.id) && !teacher.id.startsWith("unassigned:");
+  return (
+    Boolean(teacher.id) &&
+    !teacher.id.startsWith("unassigned:") &&
+    teacher.classCount > 0 &&
+    teacher.courseCount > 0 &&
+    teacher.periodCount > 0
+  );
 }
 
 function teacherHasContact(teacher: GlobalScheduleTeacher) {

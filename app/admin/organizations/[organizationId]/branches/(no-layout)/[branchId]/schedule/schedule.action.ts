@@ -275,6 +275,36 @@ function scopedTeachingWhere(
   };
 }
 
+/** Horaire global : toute personne affectée (classe + cours + horaire), quel que soit le rôle. */
+function globalScheduleTeachingWhere(
+  ctx: ScheduleContext,
+  extra: Prisma.TeachingWhereInput = {},
+): Prisma.TeachingWhereInput {
+  return {
+    AND: [
+      extra,
+      activeTeachingStatus,
+      { OR: [{ branchId: ctx.branchId }, { branchId: null }] },
+      {
+        classe: {
+          branchId: ctx.branchId,
+          branch: { organizationId: ctx.organizationId },
+        },
+        cours: {
+          branchId: ctx.branchId,
+          branch: { organizationId: ctx.organizationId },
+        },
+        schoolYear: {
+          branchId: ctx.branchId,
+          isCurrentYear: true,
+          isArchived: false,
+          branch: { organizationId: ctx.organizationId },
+        },
+      },
+    ],
+  };
+}
+
 function formatHourLabel(hour: Date) {
   const minutes = scheduleHourToMinutes(hour);
   const h = Math.floor(minutes / 60);
@@ -2163,7 +2193,7 @@ export const getGlobalScheduleByCycleAction = action
         : await prisma.schedule.findMany({
             where: {
               isArchived: false,
-              teaching: scopedTeachingWhere(ctx, {
+              teaching: globalScheduleTeachingWhere(ctx, {
                 classeId: { in: classIds },
                 ...(ctx.canManageSchedules || !ctx.teacherId
                   ? {}
@@ -2304,7 +2334,70 @@ export const getGlobalScheduleByCycleAction = action
       existing.entries.push(entry);
     }
 
+    const missingUserIds = [...teacherMap.values()]
+      .filter(
+        (teacher) =>
+          Boolean(teacher.id) &&
+          !teacher.id.startsWith("unassigned:") &&
+          (!teacher.nom || !teacher.telephone || teacher.name === "Non assigné"),
+      )
+      .map((teacher) => teacher.id);
+
+    if (missingUserIds.length > 0) {
+      const fallbackTeachers = await prisma.teacher.findMany({
+        where: { id: { in: missingUserIds } },
+        select: {
+          id: true,
+          branchMember: {
+            select: {
+              member: {
+                select: {
+                  organizationId: true,
+                  user: {
+                    select: {
+                      name: true,
+                      postnom: true,
+                      prenom: true,
+                      telephone: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      for (const row of fallbackTeachers) {
+        const user = row.branchMember?.member?.user;
+        if (!user) continue;
+        if (
+          row.branchMember?.member?.organizationId &&
+          row.branchMember.member.organizationId !== ctx.organizationId
+        ) {
+          continue;
+        }
+        const existing = teacherMap.get(row.id);
+        if (!existing) continue;
+        const name = formatTeacherFullName(user);
+        if (name) existing.name = name;
+        existing.nom = user.name || existing.nom;
+        existing.postnom = user.postnom || existing.postnom;
+        existing.prenom = user.prenom || existing.prenom;
+        if (!existing.telephone && user.telephone?.trim()) {
+          existing.telephone = user.telephone.trim();
+        }
+      }
+    }
+
     const teachers = [...teacherMap.values()]
+      .filter(
+        (teacher) =>
+          Boolean(teacher.id) &&
+          !teacher.id.startsWith("unassigned:") &&
+          teacher.classIds.size > 0 &&
+          teacher.courseIds.size > 0 &&
+          teacher.entries.length > 0,
+      )
       .sort((a, b) => a.name.localeCompare(b.name, "fr"))
       .map((teacher) => ({
         id: teacher.id,
