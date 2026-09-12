@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -1460,23 +1461,39 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                             "email",
                             "address",
                           ] as const
-                        ).map((key) => (
-                          <Text
-                            key={key}
-                            label={
-                              {
-                                name: "Nom *",
-                                postnom: "Postnom (facultatif)",
-                                prenom: "Prenom (facultatif)",
-                                telephone: "Telephone *",
-                                email: "Email",
-                                address: "Adresse *",
-                              }[key]
-                            }
-                            value={guardian[key]}
-                            onChange={(v) => updateGuardian(index, key, v)}
-                          />
-                        ))}
+                        ).map((key) =>
+                          key === "telephone" ? (
+                            <Field key={key} label="Téléphone *">
+                              <PhoneInput
+                                defaultCountry="CD"
+                                placeholder="+243 …"
+                                value={guardian.telephone}
+                                onChange={(next) =>
+                                  updateGuardian(
+                                    index,
+                                    "telephone",
+                                    next || "",
+                                  )
+                                }
+                              />
+                            </Field>
+                          ) : (
+                            <Text
+                              key={key}
+                              label={
+                                {
+                                  name: "Nom *",
+                                  postnom: "Postnom (facultatif)",
+                                  prenom: "Prenom (facultatif)",
+                                  email: "Email",
+                                  address: "Adresse *",
+                                }[key]
+                              }
+                              value={guardian[key]}
+                              onChange={(v) => updateGuardian(index, key, v)}
+                            />
+                          ),
+                        )}
                         <Field label="Lien de parente *">
                           <Select
                             value={guardian.relationshipPreset}

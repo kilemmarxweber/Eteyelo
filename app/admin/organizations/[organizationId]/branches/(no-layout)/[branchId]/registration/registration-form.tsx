@@ -46,6 +46,7 @@ import {
 import { CameraCaptureDialog } from "@/components/camera-capture-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
@@ -2364,12 +2365,14 @@ export function RegistrationForm({
                 />
               </Field>
               <Field label={tReg("fields.phoneOptional")}>
-                <Input
+                <PhoneInput
+                  defaultCountry="CD"
                   placeholder={tReg("placeholders.phone")}
                   value={value.telephone}
-                  onChange={(event) =>
-                    updatePerson(value, setter, "telephone", event.target.value)
+                  onChange={(next) =>
+                    updatePerson(value, setter, "telephone", next || "")
                   }
+                  className="h-8 [&_button]:h-8 [&_input]:h-8 [&_input]:text-xs"
                 />
               </Field>
               <Field label={tReg("fields.professionOptional")}>
@@ -3621,8 +3624,10 @@ function enhanceWithPlaceholder(node: ReactNode, label: string): ReactNode {
       element.type === Input ||
       element.type === Textarea ||
       element.type === SearchCombobox ||
+      element.type === PhoneInput ||
       typeName === "input" ||
-      typeName === "textarea";
+      typeName === "textarea" ||
+      typeName === "PhoneInput";
     const isSelectValue =
       element.type === SelectValue || typeName === "SelectValue";
 
