@@ -56,6 +56,17 @@ export async function getCalendarClassesAction() {
       id: true,
       nameClasse: true,
       codeClasse: true,
+      level: true,
+      parallel: true,
+      cycle: true,
+      option: {
+        select: {
+          id: true,
+          nameOption: true,
+          codeOption: true,
+          cycle: true,
+        },
+      },
     },
   });
 }

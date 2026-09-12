@@ -7427,6 +7427,7 @@ export const CalendarEventScalarFieldEnum = {
   teachingId: 'teachingId',
   typeId: 'typeId',
   classeId: 'classeId',
+  classeIds: 'classeIds',
   branchId: 'branchId',
   recurrence: 'recurrence'
 } as const

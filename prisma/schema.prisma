@@ -737,6 +737,8 @@ model CalendarEvent {
   teachingId       String?
   typeId           String?
   classeId         String?
+  /// Classes ciblées (vide = événement global). `classeId` reste le premier id pour compat.
+  classeIds        String[]  @default([])
   branchId         String
   branch           Branch    @relation(fields: [branchId], references: [id], onDelete: Cascade)
 

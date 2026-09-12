@@ -21,11 +21,16 @@ async function assertCalendarEventRelationsInBranch(
     schoolYearId?: string;
     teachingId?: string | null;
     classeId?: string | null;
+    classeIds?: string[] | null;
     typeId?: string | null;
   },
   branchId: string,
 ) {
-  const [schoolYear, teaching, classe, eventType] = await Promise.all([
+  const classeIds = uniqueIds([
+    ...(input.classeIds ?? []),
+    input.classeId ?? "",
+  ]);
+  const [schoolYear, teaching, classes, eventType] = await Promise.all([
     input.schoolYearId
       ? prisma.schoolYear.findFirst({
           where: { id: input.schoolYearId, branchId },
@@ -45,12 +50,12 @@ async function assertCalendarEventRelationsInBranch(
           select: { id: true },
         })
       : null,
-    input.classeId
-      ? prisma.classe.findFirst({
-          where: { id: input.classeId, branchId },
+    classeIds.length
+      ? prisma.classe.findMany({
+          where: { id: { in: classeIds }, branchId },
           select: { id: true },
         })
-      : null,
+      : [],
     input.typeId
       ? prisma.eventType.findFirst({
           where: { id: input.typeId, branchId },
@@ -65,12 +70,16 @@ async function assertCalendarEventRelationsInBranch(
   if (input.teachingId && !teaching) {
     throw new Error("Enseignement introuvable dans cette branche");
   }
-  if (input.classeId && !classe) {
+  if (classeIds.length && classes.length !== classeIds.length) {
     throw new Error("Classe introuvable dans cette branche");
   }
   if (input.typeId && !eventType) {
     throw new Error("Type d'evenement introuvable dans cette branche");
   }
+}
+
+function uniqueIds(values: Array<string | null | undefined>) {
+  return [...new Set(values.map((value) => value?.trim() ?? "").filter(Boolean))];
 }
 
 function toJsonValue(
@@ -117,6 +126,11 @@ function buildEventData(
       }
     : null;
 
+  const classeIds = uniqueIds([
+    ...(input.classeIds ?? []),
+    input.classeId ?? "",
+  ]);
+
   return {
     title: input.title,
     description: input.description || null,
@@ -128,7 +142,8 @@ function buildEventData(
     dateEnd: input.dateEnd || null,
     recurrence: input.recurrence,
     typeId: input.typeId || null,
-    classeId: input.classeId || null,
+    classeIds,
+    classeId: classeIds[0] ?? null,
     teachingId: input.teachingId || null,
     titleI18n: toJsonValue(titleI18n),
     descriptionI18n: toJsonValue(descriptionI18n),
@@ -169,6 +184,7 @@ function mapEvent(event: {
   schoolYearId: string | null;
   typeId: string | null;
   classeId: string | null;
+  classeIds?: string[];
   recurrence: Recurrence | null;
   eventType?: { id: string; name: string } | null;
   schoolYear?: ICalendarEvent["schoolYear"] | null;
@@ -194,6 +210,12 @@ function mapEvent(event: {
     schoolYearId: event.schoolYearId || "",
     typeId: event.typeId || "",
     classeId: event.classeId || "",
+    classeIds:
+      event.classeIds && event.classeIds.length > 0
+        ? event.classeIds
+        : event.classeId
+          ? [event.classeId]
+          : [],
     recurrence: event.recurrence || Recurrence.HEBDOMADAIRE,
     eventType: event.eventType ?? null,
     schoolYear: event.schoolYear ?? undefined,

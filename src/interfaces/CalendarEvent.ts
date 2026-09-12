@@ -30,6 +30,7 @@ export interface ICalendarEvent {
   titleI18n?: EventLocaleMap | null;
   descriptionI18n?: EventLocaleMap | null;
   classeId?: string;
+  classeIds?: string[];
   teachingId?: string;
   schoolYearId?: string;
   typeId?: string;
@@ -68,6 +69,7 @@ export const calendarEventSchema = z.object({
   teachingId: z.string().optional().nullable(),
   typeId: z.string().optional().nullable(),
   classeId: z.string().optional().nullable(),
+  classeIds: z.array(z.string().min(1)).optional().default([]),
   recurrence: z.nativeEnum(Recurrence).default(Recurrence.HEBDOMADAIRE),
 });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { useForm } from "react-hook-form";
@@ -44,9 +44,65 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import { MultiSelect } from "../../../paiement/components/MultiSelect";
+import {
+  CYCLE_SORT_ORDER,
+  cycleLabel,
+  normalizeCycle,
+  type Cycle,
+} from "@/lib/cycle";
+import { compareClassesByLevel } from "@/lib/class-structure";
 
 type EventTypeOption = { id: string; name: string };
-type ClasseOption = { id: string; nameClasse: string; codeClasse: string };
+type ClasseOption = {
+  id: string;
+  nameClasse: string;
+  codeClasse: string;
+  level?: string | null;
+  parallel?: string | null;
+  cycle?: string | null;
+  option?: {
+    id: string;
+    nameOption: string;
+    codeOption: string;
+    cycle?: string | null;
+  } | null;
+};
+
+const NO_OPTION_VALUE = "__none__";
+
+function classeCycle(classe: ClasseOption): Cycle {
+  return normalizeCycle(classe.cycle || classe.option?.cycle);
+}
+
+function sortCalendarClasses(classes: ClasseOption[]) {
+  return [...classes].sort((left, right) => {
+    const cycle =
+      CYCLE_SORT_ORDER[classeCycle(left)] - CYCLE_SORT_ORDER[classeCycle(right)];
+    if (cycle !== 0) return cycle;
+    const option = (left.option?.nameOption || "Sans option").localeCompare(
+      right.option?.nameOption || "Sans option",
+      "fr",
+    );
+    if (option !== 0) return option;
+    return compareClassesByLevel(left, right);
+  });
+}
+
+function classSelectLabel(classe: ClasseOption) {
+  const cycle = cycleLabel(classeCycle(classe));
+  const option = classe.option?.nameOption || "Sans option";
+  const name = classe.codeClasse
+    ? `${classe.nameClasse} (${classe.codeClasse})`
+    : classe.nameClasse;
+  return `${cycle} · ${option} · ${name}`;
+}
+
+function initialClasseIds(initialEvent?: ICalendarEvent | null) {
+  if (initialEvent?.classeIds?.length) return initialEvent.classeIds;
+  if (initialEvent?.classeId) return [initialEvent.classeId];
+  return [];
+}
 
 type CalendarEventFormProps = {
   userId: string;
@@ -117,7 +173,8 @@ function buildDefaultValues(
       ? new Date(initialEvent.dateEnd)
       : null,
     typeId: initialEvent?.typeId ?? "",
-    classeId: initialEvent?.classeId ?? "",
+    classeId: initialClasseIds(initialEvent)[0] ?? "",
+    classeIds: initialClasseIds(initialEvent),
     titleI18n,
     descriptionI18n,
     translationsEnabled: hasTranslations,
@@ -151,6 +208,8 @@ export function CalendarEventForm({
   );
   const [translating, setTranslating] = useState(false);
   const [activeLocale, setActiveLocale] = useState<EventLocaleCode>("fr");
+  const [cycleFilter, setCycleFilter] = useState<string[]>([]);
+  const [optionFilter, setOptionFilter] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<CalendarEventFormInput>({
@@ -166,6 +225,71 @@ export function CalendarEventForm({
   const dateEndValue = form.watch("dateEnd");
   const titleI18n = normalizeLocaleMap(form.watch("titleI18n"));
   const descriptionI18n = normalizeLocaleMap(form.watch("descriptionI18n"));
+  const selectedClasseIds = form.watch("classeIds") ?? [];
+
+  const sortedClasses = useMemo(
+    () => sortCalendarClasses(classes),
+    [classes],
+  );
+
+  const cycleOptions = useMemo(() => {
+    const values = new Set(sortedClasses.map((classe) => classeCycle(classe)));
+    return [...values]
+      .sort((a, b) => CYCLE_SORT_ORDER[a] - CYCLE_SORT_ORDER[b])
+      .map((cycle) => ({
+        value: cycle,
+        label: cycleLabel(cycle),
+      }));
+  }, [sortedClasses]);
+
+  const classesAfterCycle = useMemo(() => {
+    if (cycleFilter.length === 0) return sortedClasses;
+    const selected = new Set(cycleFilter);
+    return sortedClasses.filter((classe) => selected.has(classeCycle(classe)));
+  }, [cycleFilter, sortedClasses]);
+
+  const optionOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const options: Array<{ value: string; label: string }> = [];
+    for (const classe of classesAfterCycle) {
+      const value = classe.option?.id || NO_OPTION_VALUE;
+      if (seen.has(value)) continue;
+      seen.add(value);
+      options.push({
+        value,
+        label: classe.option?.nameOption || "Sans option",
+      });
+    }
+    return options.sort((a, b) => a.label.localeCompare(b.label, "fr"));
+  }, [classesAfterCycle]);
+
+  const filteredClasses = useMemo(() => {
+    if (optionFilter.length === 0) return classesAfterCycle;
+    const selected = new Set(optionFilter);
+    return classesAfterCycle.filter((classe) =>
+      selected.has(classe.option?.id || NO_OPTION_VALUE),
+    );
+  }, [classesAfterCycle, optionFilter]);
+
+  const classOptions = useMemo(() => {
+    const visible = new Map(
+      filteredClasses.map((classe) => [classe.id, classe] as const),
+    );
+    for (const id of selectedClasseIds) {
+      const classe = sortedClasses.find((item) => item.id === id);
+      if (classe) visible.set(id, classe);
+    }
+    return sortCalendarClasses([...visible.values()]).map((classe) => ({
+      value: classe.id,
+      label: classSelectLabel(classe),
+    }));
+  }, [filteredClasses, selectedClasseIds, sortedClasses]);
+
+  function setSelectedClasseIds(next: string[]) {
+    const unique = [...new Set(next.filter(Boolean))];
+    form.setValue("classeIds", unique, { shouldDirty: true });
+    form.setValue("classeId", unique[0] ?? "", { shouldDirty: true });
+  }
 
   const previewSrc = pendingPreviewUrl
     ? pendingPreviewUrl
@@ -182,7 +306,16 @@ export function CalendarEventForm({
       return null;
     });
     setSavedImageFileName(toStoredImageFileName(initialEvent?.image));
+    setCycleFilter([]);
+    setOptionFilter([]);
   }, [form, initialEvent, userId]);
+
+  useEffect(() => {
+    const allowedOptions = new Set(optionOptions.map((option) => option.value));
+    setOptionFilter((current) =>
+      current.filter((value) => allowedOptions.has(value)),
+    );
+  }, [optionOptions]);
 
   useEffect(() => {
     return () => {
@@ -601,33 +734,61 @@ export function CalendarEventForm({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Classe (optionnel)</Label>
-        <Select
-          value={form.watch("classeId") || "global"}
-          onValueChange={(value) =>
-            form.setValue("classeId", value === "global" ? "" : value, {
-              shouldDirty: true,
-            })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Global (toute l'ecole)" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="global">Global (toute l&apos;ecole)</SelectItem>
-            {classes.map((classe) => (
-              <SelectItem key={classe.id} value={classe.id}>
-                {classe.nameClasse}
-                {classe.codeClasse ? ` (${classe.codeClasse})` : ""}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <p className="text-[11px] text-muted-foreground">
-          Laissez Global pour un evenement visible de toute l&apos;ecole, ou
-          choisissez une classe pour le cibler.
-        </p>
+      <div className="space-y-3">
+        <div className="space-y-1.5">
+          <Label>Classes (optionnel)</Label>
+          <p className="text-[11px] text-muted-foreground">
+            Filtrez par cycle puis option, puis choisissez une ou plusieurs
+            classes. Aucune classe = événement global (toute l&apos;école).
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label>Cycle</Label>
+            <MultiSelect
+              options={cycleOptions}
+              value={cycleFilter}
+              onValueChange={setCycleFilter}
+              placeholder="Tous les cycles"
+              selectedCountLabel={(count) =>
+                `${count} cycle${count > 1 ? "s" : ""}`
+              }
+              maxCount={2}
+              showSelectAll
+              disabled={pending}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Option</Label>
+            <MultiSelect
+              options={optionOptions}
+              value={optionFilter}
+              onValueChange={setOptionFilter}
+              placeholder="Toutes les options"
+              selectedCountLabel={(count) =>
+                `${count} option${count > 1 ? "s" : ""}`
+              }
+              maxCount={2}
+              showSelectAll
+              disabled={pending}
+            />
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Classes</Label>
+          <MultiSelect
+            options={classOptions}
+            value={selectedClasseIds}
+            onValueChange={setSelectedClasseIds}
+            placeholder="Global (toute l'école)"
+            selectedCountLabel={(count) =>
+              `${count} classe${count > 1 ? "s" : ""}`
+            }
+            maxCount={2}
+            showSelectAll
+            disabled={pending}
+          />
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

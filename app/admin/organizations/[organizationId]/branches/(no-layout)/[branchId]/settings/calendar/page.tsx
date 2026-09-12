@@ -40,7 +40,11 @@ import { canAccessSchoolOpsSettings } from "@/lib/auth/session-roles";
 
 type EventTypeItem = Awaited<ReturnType<typeof getCalendarSettingsAction>>[number];
 type ClasseItem = Awaited<ReturnType<typeof getCalendarClassesAction>>[number];
-type CalendarTab = "events" | "types";
+function eventClassIds(event: ICalendarEvent) {
+  if (event.classeIds?.length) return event.classeIds;
+  if (event.classeId) return [event.classeId];
+  return [];
+}
 
 function formatRange(start: Date | string, end?: Date | string | null) {
   const startDate = new Date(start);
@@ -293,13 +297,29 @@ export default function CalendarSettingsPage() {
                         {event.closesAttendance ? (
                           <Badge variant="warning">Férié / fermé</Badge>
                         ) : null}
-                        {event.classe ? (
-                          <Badge variant="outline">
-                            {event.classe.nameClasse || event.classe.codeClasse}
-                          </Badge>
-                        ) : (
+                        {eventClassIds(event).length === 0 ? (
                           <Badge variant="outline">Global</Badge>
+                        ) : (
+                          eventClassIds(event)
+                            .slice(0, 3)
+                            .map((id) => {
+                              const classe =
+                                classes.find((item) => item.id === id) ||
+                                (event.classe?.id === id ? event.classe : null);
+                              return (
+                                <Badge key={id} variant="outline">
+                                  {classe?.nameClasse ||
+                                    classe?.codeClasse ||
+                                    "Classe"}
+                                </Badge>
+                              );
+                            })
                         )}
+                        {eventClassIds(event).length > 3 ? (
+                          <Badge variant="outline">
+                            +{eventClassIds(event).length - 3}
+                          </Badge>
+                        ) : null}
                         {event.titleI18n &&
                         Object.values(event.titleI18n).filter(Boolean).length >
                           1 ? (
@@ -481,8 +501,8 @@ export default function CalendarSettingsPage() {
                 {editingEvent ? "Modifier l'evenement" : "Creer un evenement"}
               </SheetTitle>
               <SheetDescription>
-                Evenement global ou lie a une classe. Ajoutez une image et
-                activez les traductions si besoin.
+                Evenement global ou lié à une ou plusieurs classes. Filtrez
+                par cycle et option, puis sélectionnez les classes.
               </SheetDescription>
             </SheetHeader>
             <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">

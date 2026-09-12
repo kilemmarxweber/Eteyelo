@@ -94,6 +94,7 @@ export type CalendarEventCountAggregateOutputType = {
   teachingId: number
   typeId: number
   classeId: number
+  classeIds: number
   branchId: number
   recurrence: number
   _all: number
@@ -170,6 +171,7 @@ export type CalendarEventCountAggregateInputType = {
   teachingId?: true
   typeId?: true
   classeId?: true
+  classeIds?: true
   branchId?: true
   recurrence?: true
   _all?: true
@@ -269,6 +271,7 @@ export type CalendarEventGroupByOutputType = {
   teachingId: string | null
   typeId: string | null
   classeId: string | null
+  classeIds: string[]
   branchId: string
   recurrence: $Enums.Recurrence | null
   _count: CalendarEventCountAggregateOutputType | null
@@ -316,6 +319,7 @@ export type CalendarEventWhereInput = {
   teachingId?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   typeId?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   classeId?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
+  classeIds?: Prisma.StringNullableListFilter<"CalendarEvent">
   branchId?: Prisma.StringFilter<"CalendarEvent"> | string
   recurrence?: Prisma.EnumRecurrenceNullableFilter<"CalendarEvent"> | $Enums.Recurrence | null
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
@@ -347,6 +351,7 @@ export type CalendarEventOrderByWithRelationInput = {
   teachingId?: Prisma.SortOrderInput | Prisma.SortOrder
   typeId?: Prisma.SortOrderInput | Prisma.SortOrder
   classeId?: Prisma.SortOrderInput | Prisma.SortOrder
+  classeIds?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   recurrence?: Prisma.SortOrderInput | Prisma.SortOrder
   branch?: Prisma.BranchOrderByWithRelationInput
@@ -381,6 +386,7 @@ export type CalendarEventWhereUniqueInput = Prisma.AtLeast<{
   teachingId?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   typeId?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   classeId?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
+  classeIds?: Prisma.StringNullableListFilter<"CalendarEvent">
   branchId?: Prisma.StringFilter<"CalendarEvent"> | string
   recurrence?: Prisma.EnumRecurrenceNullableFilter<"CalendarEvent"> | $Enums.Recurrence | null
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
@@ -412,6 +418,7 @@ export type CalendarEventOrderByWithAggregationInput = {
   teachingId?: Prisma.SortOrderInput | Prisma.SortOrder
   typeId?: Prisma.SortOrderInput | Prisma.SortOrder
   classeId?: Prisma.SortOrderInput | Prisma.SortOrder
+  classeIds?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   recurrence?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.CalendarEventCountOrderByAggregateInput
@@ -444,6 +451,7 @@ export type CalendarEventScalarWhereWithAggregatesInput = {
   teachingId?: Prisma.StringNullableWithAggregatesFilter<"CalendarEvent"> | string | null
   typeId?: Prisma.StringNullableWithAggregatesFilter<"CalendarEvent"> | string | null
   classeId?: Prisma.StringNullableWithAggregatesFilter<"CalendarEvent"> | string | null
+  classeIds?: Prisma.StringNullableListFilter<"CalendarEvent">
   branchId?: Prisma.StringWithAggregatesFilter<"CalendarEvent"> | string
   recurrence?: Prisma.EnumRecurrenceNullableWithAggregatesFilter<"CalendarEvent"> | $Enums.Recurrence | null
 }
@@ -466,6 +474,7 @@ export type CalendarEventCreateInput = {
   archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   recurrence?: $Enums.Recurrence | null
   branch: Prisma.BranchCreateNestedOneWithoutCalendarEventInput
   teaching?: Prisma.TeachingCreateNestedOneWithoutCalendarEventInput
@@ -496,6 +505,7 @@ export type CalendarEventUncheckedCreateInput = {
   teachingId?: string | null
   typeId?: string | null
   classeId?: string | null
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   branchId: string
   recurrence?: $Enums.Recurrence | null
 }
@@ -518,6 +528,7 @@ export type CalendarEventUpdateInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
   branch?: Prisma.BranchUpdateOneRequiredWithoutCalendarEventNestedInput
   teaching?: Prisma.TeachingUpdateOneWithoutCalendarEventNestedInput
@@ -548,6 +559,7 @@ export type CalendarEventUncheckedUpdateInput = {
   teachingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   typeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
 }
@@ -574,6 +586,7 @@ export type CalendarEventCreateManyInput = {
   teachingId?: string | null
   typeId?: string | null
   classeId?: string | null
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   branchId: string
   recurrence?: $Enums.Recurrence | null
 }
@@ -596,6 +609,7 @@ export type CalendarEventUpdateManyMutationInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
 }
 
@@ -621,6 +635,7 @@ export type CalendarEventUncheckedUpdateManyInput = {
   teachingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   typeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
 }
@@ -633,6 +648,14 @@ export type CalendarEventListRelationFilter = {
 
 export type CalendarEventOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type StringNullableListFilter<$PrismaModel = never> = {
+  equals?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
+  has?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
+  hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
 }
 
 export type CalendarEventCountOrderByAggregateInput = {
@@ -657,6 +680,7 @@ export type CalendarEventCountOrderByAggregateInput = {
   teachingId?: Prisma.SortOrder
   typeId?: Prisma.SortOrder
   classeId?: Prisma.SortOrder
+  classeIds?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   recurrence?: Prisma.SortOrder
 }
@@ -835,6 +859,15 @@ export type CalendarEventUncheckedUpdateManyWithoutTeachingNestedInput = {
   deleteMany?: Prisma.CalendarEventScalarWhereInput | Prisma.CalendarEventScalarWhereInput[]
 }
 
+export type CalendarEventCreateclasseIdsInput = {
+  set: string[]
+}
+
+export type CalendarEventUpdateclasseIdsInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
 export type NullableEnumRecurrenceFieldUpdateOperationsInput = {
   set?: $Enums.Recurrence | null
 }
@@ -941,6 +974,7 @@ export type CalendarEventCreateWithoutClasseInput = {
   archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   recurrence?: $Enums.Recurrence | null
   branch: Prisma.BranchCreateNestedOneWithoutCalendarEventInput
   teaching?: Prisma.TeachingCreateNestedOneWithoutCalendarEventInput
@@ -969,6 +1003,7 @@ export type CalendarEventUncheckedCreateWithoutClasseInput = {
   schoolYearId: string
   teachingId?: string | null
   typeId?: string | null
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   branchId: string
   recurrence?: $Enums.Recurrence | null
 }
@@ -1024,6 +1059,7 @@ export type CalendarEventScalarWhereInput = {
   teachingId?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   typeId?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   classeId?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
+  classeIds?: Prisma.StringNullableListFilter<"CalendarEvent">
   branchId?: Prisma.StringFilter<"CalendarEvent"> | string
   recurrence?: Prisma.EnumRecurrenceNullableFilter<"CalendarEvent"> | $Enums.Recurrence | null
 }
@@ -1046,6 +1082,7 @@ export type CalendarEventCreateWithoutSchoolYearInput = {
   archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   recurrence?: $Enums.Recurrence | null
   branch: Prisma.BranchCreateNestedOneWithoutCalendarEventInput
   teaching?: Prisma.TeachingCreateNestedOneWithoutCalendarEventInput
@@ -1074,6 +1111,7 @@ export type CalendarEventUncheckedCreateWithoutSchoolYearInput = {
   teachingId?: string | null
   typeId?: string | null
   classeId?: string | null
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   branchId: string
   recurrence?: $Enums.Recurrence | null
 }
@@ -1122,6 +1160,7 @@ export type CalendarEventCreateWithoutTeachingInput = {
   archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   recurrence?: $Enums.Recurrence | null
   branch: Prisma.BranchCreateNestedOneWithoutCalendarEventInput
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutCalendarEventInput
@@ -1150,6 +1189,7 @@ export type CalendarEventUncheckedCreateWithoutTeachingInput = {
   schoolYearId: string
   typeId?: string | null
   classeId?: string | null
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   branchId: string
   recurrence?: $Enums.Recurrence | null
 }
@@ -1198,6 +1238,7 @@ export type CalendarEventCreateWithoutEventTypeInput = {
   archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   recurrence?: $Enums.Recurrence | null
   branch: Prisma.BranchCreateNestedOneWithoutCalendarEventInput
   teaching?: Prisma.TeachingCreateNestedOneWithoutCalendarEventInput
@@ -1226,6 +1267,7 @@ export type CalendarEventUncheckedCreateWithoutEventTypeInput = {
   schoolYearId: string
   teachingId?: string | null
   classeId?: string | null
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   branchId: string
   recurrence?: $Enums.Recurrence | null
 }
@@ -1274,6 +1316,7 @@ export type CalendarEventCreateWithoutBranchInput = {
   archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   recurrence?: $Enums.Recurrence | null
   teaching?: Prisma.TeachingCreateNestedOneWithoutCalendarEventInput
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutCalendarEventInput
@@ -1303,6 +1346,7 @@ export type CalendarEventUncheckedCreateWithoutBranchInput = {
   teachingId?: string | null
   typeId?: string | null
   classeId?: string | null
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   recurrence?: $Enums.Recurrence | null
 }
 
@@ -1353,6 +1397,7 @@ export type CalendarEventCreateManyClasseInput = {
   schoolYearId: string
   teachingId?: string | null
   typeId?: string | null
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   branchId: string
   recurrence?: $Enums.Recurrence | null
 }
@@ -1375,6 +1420,7 @@ export type CalendarEventUpdateWithoutClasseInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
   branch?: Prisma.BranchUpdateOneRequiredWithoutCalendarEventNestedInput
   teaching?: Prisma.TeachingUpdateOneWithoutCalendarEventNestedInput
@@ -1403,6 +1449,7 @@ export type CalendarEventUncheckedUpdateWithoutClasseInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   teachingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   typeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
 }
@@ -1428,6 +1475,7 @@ export type CalendarEventUncheckedUpdateManyWithoutClasseInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   teachingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   typeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
 }
@@ -1453,6 +1501,7 @@ export type CalendarEventCreateManySchoolYearInput = {
   teachingId?: string | null
   typeId?: string | null
   classeId?: string | null
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   branchId: string
   recurrence?: $Enums.Recurrence | null
 }
@@ -1475,6 +1524,7 @@ export type CalendarEventUpdateWithoutSchoolYearInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
   branch?: Prisma.BranchUpdateOneRequiredWithoutCalendarEventNestedInput
   teaching?: Prisma.TeachingUpdateOneWithoutCalendarEventNestedInput
@@ -1503,6 +1553,7 @@ export type CalendarEventUncheckedUpdateWithoutSchoolYearInput = {
   teachingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   typeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
 }
@@ -1528,6 +1579,7 @@ export type CalendarEventUncheckedUpdateManyWithoutSchoolYearInput = {
   teachingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   typeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
 }
@@ -1553,6 +1605,7 @@ export type CalendarEventCreateManyTeachingInput = {
   schoolYearId: string
   typeId?: string | null
   classeId?: string | null
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   branchId: string
   recurrence?: $Enums.Recurrence | null
 }
@@ -1575,6 +1628,7 @@ export type CalendarEventUpdateWithoutTeachingInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
   branch?: Prisma.BranchUpdateOneRequiredWithoutCalendarEventNestedInput
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutCalendarEventNestedInput
@@ -1603,6 +1657,7 @@ export type CalendarEventUncheckedUpdateWithoutTeachingInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   typeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
 }
@@ -1628,6 +1683,7 @@ export type CalendarEventUncheckedUpdateManyWithoutTeachingInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   typeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
 }
@@ -1653,6 +1709,7 @@ export type CalendarEventCreateManyEventTypeInput = {
   schoolYearId: string
   teachingId?: string | null
   classeId?: string | null
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   branchId: string
   recurrence?: $Enums.Recurrence | null
 }
@@ -1675,6 +1732,7 @@ export type CalendarEventUpdateWithoutEventTypeInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
   branch?: Prisma.BranchUpdateOneRequiredWithoutCalendarEventNestedInput
   teaching?: Prisma.TeachingUpdateOneWithoutCalendarEventNestedInput
@@ -1703,6 +1761,7 @@ export type CalendarEventUncheckedUpdateWithoutEventTypeInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   teachingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
 }
@@ -1728,6 +1787,7 @@ export type CalendarEventUncheckedUpdateManyWithoutEventTypeInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   teachingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
 }
@@ -1754,6 +1814,7 @@ export type CalendarEventCreateManyBranchInput = {
   teachingId?: string | null
   typeId?: string | null
   classeId?: string | null
+  classeIds?: Prisma.CalendarEventCreateclasseIdsInput | string[]
   recurrence?: $Enums.Recurrence | null
 }
 
@@ -1775,6 +1836,7 @@ export type CalendarEventUpdateWithoutBranchInput = {
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
   teaching?: Prisma.TeachingUpdateOneWithoutCalendarEventNestedInput
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutCalendarEventNestedInput
@@ -1804,6 +1866,7 @@ export type CalendarEventUncheckedUpdateWithoutBranchInput = {
   teachingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   typeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
 }
 
@@ -1829,6 +1892,7 @@ export type CalendarEventUncheckedUpdateManyWithoutBranchInput = {
   teachingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   typeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   classeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  classeIds?: Prisma.CalendarEventUpdateclasseIdsInput | string[]
   recurrence?: Prisma.NullableEnumRecurrenceFieldUpdateOperationsInput | $Enums.Recurrence | null
 }
 
@@ -1856,6 +1920,7 @@ export type CalendarEventSelect<ExtArgs extends runtime.Types.Extensions.Interna
   teachingId?: boolean
   typeId?: boolean
   classeId?: boolean
+  classeIds?: boolean
   branchId?: boolean
   recurrence?: boolean
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
@@ -1887,6 +1952,7 @@ export type CalendarEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   teachingId?: boolean
   typeId?: boolean
   classeId?: boolean
+  classeIds?: boolean
   branchId?: boolean
   recurrence?: boolean
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
@@ -1918,6 +1984,7 @@ export type CalendarEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   teachingId?: boolean
   typeId?: boolean
   classeId?: boolean
+  classeIds?: boolean
   branchId?: boolean
   recurrence?: boolean
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
@@ -1949,11 +2016,12 @@ export type CalendarEventSelectScalar = {
   teachingId?: boolean
   typeId?: boolean
   classeId?: boolean
+  classeIds?: boolean
   branchId?: boolean
   recurrence?: boolean
 }
 
-export type CalendarEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "dateStart" | "dateEnd" | "image" | "allDay" | "closesAttendance" | "location" | "description" | "titleI18n" | "descriptionI18n" | "createdBy" | "isArchived" | "archivedAt" | "archivedById" | "createdAt" | "updatedAt" | "schoolYearId" | "teachingId" | "typeId" | "classeId" | "branchId" | "recurrence", ExtArgs["result"]["calendarEvent"]>
+export type CalendarEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "dateStart" | "dateEnd" | "image" | "allDay" | "closesAttendance" | "location" | "description" | "titleI18n" | "descriptionI18n" | "createdBy" | "isArchived" | "archivedAt" | "archivedById" | "createdAt" | "updatedAt" | "schoolYearId" | "teachingId" | "typeId" | "classeId" | "classeIds" | "branchId" | "recurrence", ExtArgs["result"]["calendarEvent"]>
 export type CalendarEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   teaching?: boolean | Prisma.CalendarEvent$teachingArgs<ExtArgs>
@@ -2016,6 +2084,10 @@ export type $CalendarEventPayload<ExtArgs extends runtime.Types.Extensions.Inter
     teachingId: string | null
     typeId: string | null
     classeId: string | null
+    /**
+     * Classes ciblées (vide = événement global). `classeId` reste le premier id pour compat.
+     */
+    classeIds: string[]
     branchId: string
     recurrence: $Enums.Recurrence | null
   }, ExtArgs["result"]["calendarEvent"]>
@@ -2467,6 +2539,7 @@ export interface CalendarEventFieldRefs {
   readonly teachingId: Prisma.FieldRef<"CalendarEvent", 'String'>
   readonly typeId: Prisma.FieldRef<"CalendarEvent", 'String'>
   readonly classeId: Prisma.FieldRef<"CalendarEvent", 'String'>
+  readonly classeIds: Prisma.FieldRef<"CalendarEvent", 'String[]'>
   readonly branchId: Prisma.FieldRef<"CalendarEvent", 'String'>
   readonly recurrence: Prisma.FieldRef<"CalendarEvent", 'Recurrence'>
 }

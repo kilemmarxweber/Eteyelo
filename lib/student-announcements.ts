@@ -28,9 +28,12 @@ export async function buildStudentAnnouncementsData(
       isArchived: false,
       ...(schoolYearId ? { schoolYearId } : {}),
       OR: [
-        { classeId: null },
+        { classeId: null, classeIds: { isEmpty: true } },
         ...(uniqueClassIds.length > 0
-          ? [{ classeId: { in: uniqueClassIds } }]
+          ? [
+              { classeId: { in: uniqueClassIds } },
+              { classeIds: { hasSome: uniqueClassIds } },
+            ]
           : []),
       ],
     },
@@ -52,7 +55,7 @@ export async function buildStudentAnnouncementsData(
   });
 
   const items: StudentAnnouncementItem[] = events.map((event) => {
-    const isForAll = !event.classeId;
+    const isForAll = !event.classeId && (!event.classeIds || event.classeIds.length === 0);
     const classLabel =
       event.classe?.nameClasse ||
       event.classe?.codeClasse ||
