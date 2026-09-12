@@ -61,7 +61,7 @@ export const NOTIFICATION_EVENT_META: Array<{
   {
     key: "accountCreate",
     label: "Création de compte",
-    hint: "Identifiants temporaires (parent, élève, personnel).",
+    hint: "Identifiants temporaires (parent, élève, personnel, membre).",
   },
   {
     key: "profileUpdate",

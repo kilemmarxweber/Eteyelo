@@ -30,7 +30,8 @@ export default async function NewOrganizationMemberPage({ params }: PageProps) {
         <p className="mt-1.5 max-w-7xl text-pretty text-sm leading-relaxed text-muted-foreground">
           Compte (nom, postnom, prénom, photo), rôle et établissements autorisés.
           Le propriétaire n’a pas d’affectation : il accède à tous les établissements.
-          Un mot de passe temporaire est envoyé par email.
+          Un mot de passe temporaire est envoyé par email et WhatsApp (si un numéro
+          est renseigné).
         </p>
       </div>
 

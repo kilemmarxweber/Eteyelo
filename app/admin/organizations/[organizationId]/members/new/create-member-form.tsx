@@ -5,7 +5,7 @@ import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import Link from "next/link";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { Building2, Shield, UserRound } from "lucide-react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { createOrganizationMemberAction } from "../actions";
 import {
   MemberBranchPicker,
@@ -81,6 +82,7 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
     defaultValues: {
       organizationId,
       email: "",
+      telephone: "",
       nom: "",
       postnom: "",
       prenom: "",
@@ -98,6 +100,7 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
   const postnom = useWatch({ control: form.control, name: "postnom" }) ?? "";
   const prenom = useWatch({ control: form.control, name: "prenom" }) ?? "";
   const email = useWatch({ control: form.control, name: "email" }) ?? "";
+  const telephone = useWatch({ control: form.control, name: "telephone" }) ?? "";
   const orgRole = useWatch({ control: form.control, name: "orgRole" }) ?? "";
   const fullName = formatPersonFullName({ name: nom, postnom, prenom });
   const implicitAllBranches = memberHasImplicitAllBranchAccess(orgRole);
@@ -201,7 +204,12 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
         return;
       }
 
-      toast.success("Membre créé. Un mot de passe temporaire a été envoyé.");
+      const hasPhone = Boolean(values.telephone?.trim());
+      toast.success(
+        hasPhone
+          ? "Membre créé. Identifiants envoyés par email et WhatsApp."
+          : "Membre créé. Un mot de passe temporaire a été envoyé par email.",
+      );
       router.push(listHref);
       router.refresh();
     });
@@ -228,6 +236,10 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
                 <MemberFormSummaryRow
                   label="Email"
                   value={email.trim() || "—"}
+                />
+                <MemberFormSummaryRow
+                  label="WhatsApp"
+                  value={telephone.trim() || "Non renseigné"}
                 />
                 <MemberFormSummaryRow
                   label="Rôle"
@@ -269,7 +281,7 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
         <MemberFormSection
           icon={UserRound}
           title="Identité"
-          description="Nom, postnom, prénom et photo, comme pour un élève. L’email sert à l’envoi du mot de passe temporaire."
+          description="Nom, postnom, prénom et photo, comme pour un élève. L’email et le WhatsApp reçoivent le mot de passe temporaire."
         >
           <div className="grid gap-4">
             <MemberPhotoField
@@ -330,19 +342,45 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
               />
               <FormError message={form.formState.errors.dateOfBirth?.message} />
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="create-email">Email</Label>
-              <Input
-                id="create-email"
-                {...form.register("email")}
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                placeholder="membre@example.com"
-                className={memberFieldClass}
-                disabled={pending}
-              />
-              <FormError message={form.formState.errors.email?.message} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="create-email">Email</Label>
+                <Input
+                  id="create-email"
+                  {...form.register("email")}
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  placeholder="membre@example.com"
+                  className={memberFieldClass}
+                  disabled={pending}
+                />
+                <FormError message={form.formState.errors.email?.message} />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="create-telephone">WhatsApp</Label>
+                <Controller
+                  control={form.control}
+                  name="telephone"
+                  render={({ field }) => (
+                    <PhoneInput
+                      id="create-telephone"
+                      defaultCountry="CD"
+                      placeholder="+243 …"
+                      disabled={pending}
+                      className="h-11 [&_button]:h-11 [&_input]:h-11 [&_input]:text-sm"
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                    />
+                  )}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Si renseigné, les identifiants sont aussi envoyés par WhatsApp.
+                </p>
+                <FormError message={form.formState.errors.telephone?.message} />
+              </div>
             </div>
           </div>
         </MemberFormSection>
