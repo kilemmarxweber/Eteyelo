@@ -426,7 +426,6 @@ export function TeacherUpForm({
                     <PhoneInput
                       defaultCountry="CD"
                       placeholder={tCommon("phone")}
-                      maxLength={14}
                       className="h-8 [&_button]:h-8 [&_input]:h-8 [&_input]:text-sm"
                       {...field}
                     />
