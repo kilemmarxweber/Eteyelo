@@ -1,10 +1,8 @@
 import crypto from "crypto";
-import fs from "fs/promises";
-import path from "path";
 
 import type { IssuedDocumentType } from "@/prisma/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
-import { getUploadDirectory } from "@/lib/upload-file.server";
+import { writeUploadBuffer, readUploadedFileBuffer } from "@/lib/upload-file.server";
 
 function sanitizeBaseName(value: string) {
   return value
@@ -19,17 +17,10 @@ export async function saveIssuedDocumentPdfBuffer(params: {
   buffer: Buffer;
   baseName: string;
 }) {
-  const uploadDirectory = getUploadDirectory();
-  await fs.mkdir(uploadDirectory, { recursive: true });
-
   const fileName = `${Date.now()}-${crypto.randomUUID()}-${sanitizeBaseName(params.baseName)}.pdf`;
-  const filePath = path.join(uploadDirectory, fileName);
-  await fs.writeFile(filePath, params.buffer);
-
-  return {
-    fileName,
-    url: `/api/uploads/${encodeURIComponent(fileName)}`,
-  };
+  const saved = await writeUploadBuffer(fileName, params.buffer);
+  await readUploadedFileBuffer(saved.fileName);
+  return saved;
 }
 
 export async function attachPdfToIssuedDocument(params: {

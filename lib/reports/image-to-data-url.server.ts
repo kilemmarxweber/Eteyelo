@@ -1,9 +1,8 @@
 import "server-only";
 
-import fs from "fs/promises";
 import path from "path";
 import {
-  getUploadDirectory,
+  readUploadedFileBuffer,
   storedUploadFileName,
 } from "@/lib/upload-file.server";
 
@@ -47,19 +46,9 @@ export async function imageUrlToDataUrlServer(
   const fileName = storedUploadFileName(trimmed);
   if (!fileName) return null;
 
-  const candidates = [
-    path.join(getUploadDirectory(), fileName),
-    path.join(process.cwd(), "public", "uploads", fileName),
-  ];
-
-  for (const filePath of candidates) {
-    try {
-      const buffer = await fs.readFile(filePath);
-      return bufferToDataUrl(buffer, mimeFromExtension(filePath));
-    } catch {
-      continue;
-    }
+  try {
+    const buffer = await readUploadedFileBuffer(fileName);
+    return bufferToDataUrl(buffer, mimeFromExtension(fileName));
+  } catch {
+    return null;
   }
-
-  return null;
-}

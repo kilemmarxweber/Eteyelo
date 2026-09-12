@@ -34,36 +34,158 @@ const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
     ".docx",
 };
 
-/**
- * Dossier physique des uploads (logos branche, photos d’école,
- * événements, logos partenaires, documents).
- *
- * Priorité :
- * 1. UPLOAD_DIR (ex. C:/eteyelo-uploads)
- * 2. C:\eteyelo-uploads sous Windows
- * 3. public/uploads en développement si rien n’est configuré
- */
-export function getUploadDirectory(): string {
-  const configured = process.env.UPLOAD_DIR?.trim();
-  if (configured) {
-    return path.resolve(configured);
-  }
+export const WINDOWS_UPLOAD_DIRECTORY = "C:\\eteyelo-uploads";
+export const LINUX_UPLOAD_DIRECTORY = "/var/www/eteyelo-uploads";
 
-  if (process.platform === "win32") {
-    return path.resolve("C:\\eteyelo-uploads");
-  }
+/** Lecture runtime (évite que Next inline UPLOAD_DIR au `next build`). */
+function runtimeEnv(name: string): string {
+  const bag = process.env as Record<string, string | undefined>;
+  return (bag[name] ?? "").trim();
+}
 
-  if (process.env.NODE_ENV !== "production") {
-    return path.join(process.cwd(), "public", "uploads");
-  }
-
-  throw new Error(
-    "La variable d'environnement UPLOAD_DIR est obligatoire en production.",
-  );
+function isWindowsDrivePath(value: string) {
+  return /^[A-Za-z]:[\\/]/.test(value);
 }
 
 function publicUploadsDirectory(): string {
   return path.join(process.cwd(), "public", "uploads");
+}
+
+function addUniqueDir(dirs: string[], value?: string | null) {
+  const trimmed = value?.trim();
+  if (!trimmed) return;
+  const resolved = path.resolve(trimmed);
+  if (!dirs.includes(resolved)) dirs.push(resolved);
+}
+
+export function platformUploadDirectory(): string {
+  return process.platform === "win32"
+    ? WINDOWS_UPLOAD_DIRECTORY
+    : LINUX_UPLOAD_DIRECTORY;
+}
+
+/**
+ * Dossier physique des uploads (logos, photos, PDF, documents).
+ * Même emplacement que les images :
+ * - Windows : C:\eteyelo-uploads
+ * - Linux   : /var/www/eteyelo-uploads
+ * UPLOAD_DIR surcharge si le chemin est valide pour l’OS.
+ */
+export function getUploadDirectory(): string {
+  const configured = runtimeEnv("UPLOAD_DIR");
+  if (configured) {
+    if (process.platform === "win32" || !isWindowsDrivePath(configured)) {
+      return path.resolve(configured);
+    }
+  }
+  return path.resolve(platformUploadDirectory());
+}
+
+/** Dossiers où un upload peut se trouver (écriture vs lecture, standalone, ancien chemin). */
+export function listUploadDirectories(): string[] {
+  const dirs: string[] = [];
+  addUniqueDir(dirs, getUploadDirectory());
+  addUniqueDir(dirs, LINUX_UPLOAD_DIRECTORY);
+  addUniqueDir(dirs, WINDOWS_UPLOAD_DIRECTORY);
+  addUniqueDir(dirs, "C:/eteyelo-uploads");
+  addUniqueDir(dirs, runtimeEnv("UPLOAD_DIR"));
+  addUniqueDir(dirs, publicUploadsDirectory());
+  addUniqueDir(dirs, path.join(process.cwd(), "..", "public", "uploads"));
+  addUniqueDir(dirs, path.join(process.cwd(), "..", "..", "public", "uploads"));
+  addUniqueDir(dirs, path.join(process.cwd(), "eteyelo-uploads"));
+  return dirs;
+}
+
+function isPathInsideDirectory(directory: string, filePath: string) {
+  const relative = path.relative(path.resolve(directory), path.resolve(filePath));
+  return relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative);
+}
+
+/** Nom relatif sûr (`file.pdf` ou `devoirs/file.pdf`). */
+export function safeUploadRelativePath(fileName: string): string {
+  let decoded = fileName.trim();
+  try {
+    decoded = decodeURIComponent(decoded);
+  } catch {
+    // déjà décodé
+  }
+  decoded = decoded.replace(/\\/g, "/");
+  const parts = decoded.split("/").filter((part) => part && part !== ".");
+  if (
+    parts.length === 0 ||
+    parts.some((part) => part === ".." || part.includes("\0"))
+  ) {
+    throw Object.assign(new Error("Nom de fichier invalide."), {
+      code: "EINVAL",
+    });
+  }
+  return path.join(...parts);
+}
+
+export async function readUploadedFileBuffer(fileName: string): Promise<Buffer> {
+  const relative = safeUploadRelativePath(fileName);
+  let lastError: NodeJS.ErrnoException | undefined;
+
+  for (const directory of listUploadDirectories()) {
+    const fullPath = path.join(directory, relative);
+    if (!isPathInsideDirectory(directory, fullPath)) continue;
+    try {
+      return await fs.readFile(fullPath);
+    } catch (error) {
+      const nodeError = error as NodeJS.ErrnoException;
+      if (nodeError.code !== "ENOENT") throw nodeError;
+      lastError = nodeError;
+    }
+  }
+
+  throw (
+    lastError ??
+    Object.assign(new Error("Fichier introuvable sur le disque."), {
+      code: "ENOENT",
+    })
+  );
+}
+
+async function mirrorUploadToPublicDirectory(
+  relative: string,
+  sourcePath: string,
+) {
+  const destination = path.join(publicUploadsDirectory(), relative);
+  if (path.resolve(destination) === path.resolve(sourcePath)) return;
+  try {
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+    await fs.copyFile(sourcePath, destination);
+  } catch {
+    // repli facultatif — le fichier canonique reste dans eteyelo-uploads
+  }
+}
+
+/** URL publique identique aux images (`/uploads/photo.jpg`). */
+export function publicUploadPath(fileName: string): string {
+  const urlPath = fileName.replace(/\\/g, "/").replace(/^\/+/, "");
+  return `/uploads/${urlPath
+    .split("/")
+    .filter(Boolean)
+    .map((part) => encodeURIComponent(part))
+    .join("/")}`;
+}
+
+export async function writeUploadBuffer(
+  fileName: string,
+  buffer: Buffer,
+): Promise<SavedUpload> {
+  const relative = safeUploadRelativePath(fileName);
+  const uploadDirectory = getUploadDirectory();
+  const filePath = path.join(uploadDirectory, relative);
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, buffer);
+  await mirrorUploadToPublicDirectory(relative, filePath);
+
+  const storedName = relative.replace(/\\/g, "/");
+  return {
+    fileName: storedName,
+    url: publicUploadPath(storedName),
+  };
 }
 
 /** Nom de fichier stocké en base → nom sûr, sans préfixe /uploads. */
@@ -214,26 +336,11 @@ async function writeUploadedFileToSharedDirectory(
   file: File,
   kind: "image" | "document",
 ): Promise<SavedUpload> {
-  const uploadDirectory = getUploadDirectory();
-
-  await fs.mkdir(uploadDirectory, {
-    recursive: true,
-  });
-
   const safeName = sanitizeFileName(file.name);
   const extension = getFileExtension(file, kind);
-  const uniquePart = crypto.randomUUID();
-  const fileName = `${Date.now()}-${uniquePart}-${safeName}${extension}`;
-  const filePath = path.join(uploadDirectory, fileName);
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
-  await fs.writeFile(filePath, buffer);
-
-  return {
-    fileName,
-    url: `/api/uploads/${encodeURIComponent(fileName)}`,
-  };
+  const fileName = `${Date.now()}-${crypto.randomUUID()}-${safeName}${extension}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+  return writeUploadBuffer(fileName, buffer);
 }
 
 /**

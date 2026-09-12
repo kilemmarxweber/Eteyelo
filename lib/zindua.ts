@@ -162,7 +162,7 @@ type SendWhatsAppOptions = {
   organizationId?: string | null;
   /** Ignore le toggle (test d'envoi depuis les paramètres). */
   force?: boolean;
-  /** Pièces jointes (email ; ignorées par Zindua sur WhatsApp). */
+  /** Pièces jointes : tentées aussi sur WhatsApp (PDF horaire) ; Zindua peut les ignorer. */
   attachments?: Array<{ url: string; filename?: string }>;
 };
 
@@ -192,6 +192,19 @@ export async function sendWhatsApp(
     if (value != null && value !== "") variables[key] = value;
   }
 
+  if (options.attachments?.length && config.apiKey) {
+    const withDocument = await sendWhatsAppDocumentAttempt({
+      apiKey: config.apiKey,
+      siteUrl: config.siteUrl,
+      to,
+      template,
+      lang: options.lang ?? "fr",
+      variables,
+      attachments: options.attachments,
+    });
+    if (withDocument) return withDocument;
+  }
+
   return getZindua({
     siteUrl: config.siteUrl,
     apiKey: config.apiKey,
@@ -201,10 +214,76 @@ export async function sendWhatsApp(
     template,
     lang: options.lang ?? "fr",
     variables,
-    ...(options.attachments?.length
-      ? { attachments: options.attachments }
-      : {}),
   });
+}
+
+function zinduaApiBase() {
+  return (
+    process.env.ZINDUA_API_BASE_URL?.replace(/\/$/, "") ||
+    "https://zindua.run/api/v1"
+  );
+}
+
+/**
+ * Tente d’envoyer un PDF en document WhatsApp.
+ * Zindua documente les pièces jointes comme email-only : si l’API refuse,
+ * l’appelant envoie le message texte + lien `/uploads/...`.
+ */
+async function sendWhatsAppDocumentAttempt(params: {
+  apiKey: string;
+  siteUrl?: string | null;
+  to: string;
+  template: string;
+  lang: string;
+  variables: Record<string, string>;
+  attachments: Array<{ url: string; filename?: string }>;
+}): Promise<ZinduaSendResult | null> {
+  const attachment = params.attachments[0];
+  if (!attachment?.url) return null;
+
+  try {
+    const response = await fetch(`${zinduaApiBase()}/send`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${params.apiKey}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...(params.siteUrl
+          ? { "X-Zindua-Site-Url": params.siteUrl.replace(/\/$/, "") }
+          : {}),
+      },
+      body: JSON.stringify({
+        to: params.to,
+        channel: "whatsapp",
+        template: params.template,
+        lang: params.lang,
+        variables: params.variables,
+        attachments: params.attachments,
+        document: {
+          link: attachment.url,
+          url: attachment.url,
+          filename: attachment.filename || "horaire.pdf",
+        },
+      }),
+    });
+    const data = (await response.json().catch(() => ({}))) as {
+      success?: boolean;
+      logId?: string;
+      status?: string;
+      channel?: string;
+    };
+    if (!response.ok || data.success !== true || typeof data.logId !== "string") {
+      return null;
+    }
+    return {
+      success: true,
+      channel: "whatsapp",
+      status: data.status || "queued",
+      logId: data.logId,
+    };
+  } catch {
+    return null;
+  }
 }
 
 type MirrorEmailOptions = {

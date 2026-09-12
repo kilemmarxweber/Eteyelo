@@ -1,7 +1,9 @@
-import fs from "fs/promises";
 import path from "path";
 import { NextResponse } from "next/server";
-import { getUploadDirectory } from "@/lib/upload-file.server";
+import {
+  listUploadDirectories,
+  readUploadedFileBuffer,
+} from "@/lib/upload-file.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,41 +30,22 @@ const CONTENT_TYPES: Record<string, string> = {
 export async function GET(_request: Request, { params }: RouteContext) {
   try {
     const { fileName } = await params;
-
     const decodedFileName = decodeURIComponent(fileName);
-    const safeFileName = path.basename(decodedFileName);
+    const fileBuffer = await readUploadedFileBuffer(decodedFileName);
+    const extension = path.extname(decodedFileName).toLowerCase();
+    const downloadName = path.basename(decodedFileName).replace(/"/g, "");
+    const contentType = CONTENT_TYPES[extension] ?? "application/octet-stream";
+    const disposition =
+      extension === ".pdf"
+        ? `inline; filename="${downloadName}"`
+        : `inline; filename="${downloadName}"`;
 
-    if (!safeFileName || safeFileName !== decodedFileName) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "Nom de fichier invalide.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
-
-    const uploadDirectory = getUploadDirectory();
-    const externalPath = path.join(uploadDirectory, safeFileName);
-    const publicPath = path.join(process.cwd(), "public", "uploads", safeFileName);
-    let fileBuffer: Buffer;
-    try {
-      fileBuffer = await fs.readFile(externalPath);
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-      fileBuffer = await fs.readFile(publicPath);
-    }
-    const extension = path.extname(safeFileName).toLowerCase();
-
-    const responseBody = Uint8Array.from(fileBuffer);
-
-    return new Response(responseBody, {
+    return new Response(Uint8Array.from(fileBuffer), {
       status: 200,
       headers: {
-        "Content-Type": CONTENT_TYPES[extension] ?? "application/octet-stream",
+        "Content-Type": contentType,
         "Content-Length": String(fileBuffer.length),
+        "Content-Disposition": disposition,
         "Cache-Control": "no-store, max-age=0",
         "X-Content-Type-Options": "nosniff",
       },
@@ -75,18 +58,23 @@ export async function GET(_request: Request, { params }: RouteContext) {
       message: nodeError.message,
       uploadDir: process.env.UPLOAD_DIR,
       cwd: process.cwd(),
+      searchDirs: listUploadDirectories(),
     });
+
+    const invalid = nodeError.code === "EINVAL";
+    const missing = nodeError.code === "ENOENT";
 
     return NextResponse.json(
       {
         ok: false,
-        message:
-          nodeError.code === "ENOENT"
-            ? "Image introuvable sur le disque."
-            : "Impossible de lire l’image.",
+        message: invalid
+          ? "Nom de fichier invalide."
+          : missing
+            ? "Fichier introuvable sur le disque."
+            : "Impossible de lire le fichier.",
       },
       {
-        status: nodeError.code === "ENOENT" ? 404 : 500,
+        status: invalid ? 400 : missing ? 404 : 500,
       },
     );
   }
