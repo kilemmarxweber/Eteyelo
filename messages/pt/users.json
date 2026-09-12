@@ -613,6 +613,7 @@
       "whatsappSelectCount": "{count, plural, one {# professor seleccionado} other {# professores seleccionados}}",
       "whatsappNoSelection": "Seleccione pelo menos um professor com número.",
       "whatsappConfirmAction": "Enviar",
+      "whatsappQueued": "{count, plural, one {Envio WhatsApp iniciado para # professor. Pode continuar a trabalhar; as mensagens saem em fila (~4 s de intervalo).} other {Envio WhatsApp iniciado para # professores. Pode continuar a trabalhar; as mensagens saem em fila (~4 s de intervalo).}}",
       "whatsappSuccess": "{sent, plural, one {Horário enviado a # professor.} other {Horário enviado a # professores.}}",
       "whatsappPartial": "{sent, plural, one {# envio bem-sucedido} other {# envios bem-sucedidos}} · {skipped} sem contacto · {failed} falha(s)",
       "whatsappFailed": "Não foi possível enviar os horários por WhatsApp.",

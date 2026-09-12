@@ -43,6 +43,8 @@ interface MultiSelectProps {
   /** Bouton « tout sélectionner » en bas de liste. */
   showSelectAll?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** Désactive le mode modal (nécessaire dans une Dialog pour scroller la liste). */
+  modal?: boolean;
 }
 
 export function MultiSelect({
@@ -60,6 +62,7 @@ export function MultiSelect({
     `${count} frais sélectionné${count > 1 ? "s" : ""}`,
   showSelectAll = false,
   onOpenChange,
+  modal = true,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -103,7 +106,7 @@ export function MultiSelect({
     enabledOptions.every((o) => selected.includes(o.value));
 
   return (
-    <Popover open={open} onOpenChange={setOpenState}>
+    <Popover open={open} onOpenChange={setOpenState} modal={modal}>
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -158,8 +161,14 @@ export function MultiSelect({
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[355px] p-0" align="start">
-        <Command shouldFilter={false}>
+      <PopoverContent
+        className="w-[var(--radix-popover-trigger-width)] min-w-[16rem] max-w-[min(24rem,calc(100vw-2rem))] p-0"
+        align="start"
+        collisionPadding={16}
+        onWheel={(event) => event.stopPropagation()}
+        onTouchMove={(event) => event.stopPropagation()}
+      >
+        <Command shouldFilter={false} className="flex max-h-[min(20rem,50dvh)] flex-col overflow-hidden">
           <div className="flex items-center border-b px-2">
             {searchable && (
               <CommandInput
@@ -179,7 +188,7 @@ export function MultiSelect({
             )}
           </div>
 
-          <CommandList className="max-h-60 overflow-y-auto">
+          <CommandList className="max-h-none min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <CommandEmpty>Aucun résultat.</CommandEmpty>
 
             <CommandGroup>
@@ -207,34 +216,34 @@ export function MultiSelect({
                 );
               })}
             </CommandGroup>
-
-            {(selected.length > 0 || showSelectAll) && (
-              <div className="flex flex-col gap-1 border-t p-2">
-                {showSelectAll && enabledOptions.length > 0 && !allSelected && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="w-full"
-                    onClick={() =>
-                      onValueChange(enabledOptions.map((o) => o.value))
-                    }
-                  >
-                    Tout sélectionner
-                  </Button>
-                )}
-                {selected.length > 0 && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="w-full"
-                    onClick={clear}
-                  >
-                    Effacer la sélection
-                  </Button>
-                )}
-              </div>
-            )}
           </CommandList>
+
+          {(selected.length > 0 || showSelectAll) && (
+            <div className="flex shrink-0 flex-col gap-1 border-t p-2">
+              {showSelectAll && enabledOptions.length > 0 && !allSelected && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() =>
+                    onValueChange(enabledOptions.map((o) => o.value))
+                  }
+                >
+                  Tout sélectionner
+                </Button>
+              )}
+              {selected.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={clear}
+                >
+                  Effacer la sélection
+                </Button>
+              )}
+            </div>
+          )}
         </Command>
       </PopoverContent>
     </Popover>

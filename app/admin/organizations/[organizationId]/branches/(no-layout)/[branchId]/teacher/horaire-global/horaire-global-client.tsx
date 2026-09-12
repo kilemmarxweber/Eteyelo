@@ -15,19 +15,17 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TableSkeleton } from "@/components/custom";
@@ -232,21 +230,27 @@ export function HoraireGlobalClient() {
   );
 
   function toastWhatsAppResult(result: {
-    sent: number;
+    queued?: boolean;
+    count?: number;
+    sent?: number;
     skippedNoContact: number;
-    failed: number;
+    failed?: number;
     error?: string | null;
   }) {
-    if (result.sent > 0 && result.failed === 0 && result.skippedNoContact === 0) {
-      toast.success(t("whatsappSuccess", { sent: result.sent }));
+    if (result.queued && (result.count ?? 0) > 0) {
+      toast.success(t("whatsappQueued", { count: result.count ?? 0 }));
       return;
     }
-    if (result.sent > 0) {
+    if ((result.sent ?? 0) > 0 && (result.failed ?? 0) === 0 && result.skippedNoContact === 0) {
+      toast.success(t("whatsappSuccess", { sent: result.sent ?? 0 }));
+      return;
+    }
+    if ((result.sent ?? 0) > 0) {
       toast.success(
         t("whatsappPartial", {
-          sent: result.sent,
+          sent: result.sent ?? 0,
           skipped: result.skippedNoContact,
-          failed: result.failed,
+          failed: result.failed ?? 0,
         }),
       );
       if (result.error) toast.error(result.error);
@@ -256,7 +260,7 @@ export function HoraireGlobalClient() {
       toast.error(result.error);
       return;
     }
-    if (result.skippedNoContact > 0 && result.failed === 0) {
+    if (result.skippedNoContact > 0 && (result.failed ?? 0) === 0) {
       toast.error(t("whatsappNone"));
       return;
     }
@@ -731,22 +735,23 @@ export function HoraireGlobalClient() {
           </CardContent>
         </Card>
       </div>
-      <AlertDialog
+      <Dialog
         open={whatsappConfirmOpen}
-        onOpenChange={(open) => {
-          if (!sendingAll) setWhatsappConfirmOpen(open);
-        }}
+        onOpenChange={setWhatsappConfirmOpen}
       >
-        <AlertDialogContent className="w-[min(calc(100vw-2rem),36rem)] bg-background">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("whatsappConfirmTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
+        <DialogContent
+          title={t("whatsappConfirmTitle")}
+          size="sm"
+          className="w-[min(calc(100vw-2rem),36rem)] overflow-visible bg-background"
+        >
+          <DialogHeader>
+            <DialogDescription>
               {t("whatsappConfirmDescription", {
                 count: selectedWhatsAppTargets.withContact.length,
                 cycle: schedule?.cycleLabel ?? "",
               })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </DialogDescription>
+          </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
               <p className="text-sm font-medium">{t("whatsappSelectTeachers")}</p>
@@ -761,6 +766,7 @@ export function HoraireGlobalClient() {
                 maxCount={2}
                 showSelectAll
                 disabled={sendingAll}
+                modal={false}
                 className="w-full"
               />
             </div>
@@ -772,10 +778,15 @@ export function HoraireGlobalClient() {
               </p>
             ) : null}
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={sendingAll}>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={sendingAll}
+              onClick={() => setWhatsappConfirmOpen(false)}
+            >
               {tCommon("cancel")}
-            </AlertDialogCancel>
+            </Button>
             <Button
               type="button"
               disabled={
@@ -785,9 +796,9 @@ export function HoraireGlobalClient() {
             >
               {sendingAll ? t("whatsappSending") : t("whatsappConfirmAction")}
             </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </BranchPageShell>
   );
 }

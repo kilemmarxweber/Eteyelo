@@ -1,5 +1,6 @@
 "use server";
 
+import { after } from "next/server";
 import { z } from "zod";
 import { requireBranchAreaWriteContext } from "@/lib/auth/require-branch-context";
 import { CYCLES } from "@/lib/cycle";
@@ -11,6 +12,7 @@ import {
   buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
+import { parseWhatsAppRetryWaitMs } from "@/lib/whatsapp-pace";
 import { action } from "@/lib/zsa";
 import { resolveWhatsAppTo, sendTransactionalWhatsApp } from "@/lib/zindua";
 import { getGlobalScheduleByCycleAction } from "../../schedule/schedule.action";
@@ -44,6 +46,81 @@ function teacherPdfMeta(
   labels: ReturnType<typeof globalSchedulePdfLabels>,
 ) {
   return `${teacher.classCount} ${labels.classes} · ${teacher.courseCount} ${labels.courses} · ${teacher.periodCount} ${labels.periods}`;
+}
+
+function isPermanentWhatsAppStop(message?: string | null) {
+  if (!message) return false;
+  if (parseWhatsAppRetryWaitMs(message)) return false;
+  return (
+    message.includes("pas connecté") ||
+    message.includes("désactivé")
+  );
+}
+
+async function sendTeacherScheduleWhatsApp(params: {
+  teacher: GlobalScheduleTeacher;
+  organizationId: string;
+  cycleLabel: string;
+  schoolName: string;
+  origin: string;
+  context: Awaited<ReturnType<typeof buildLocalizedSchoolReportContext>>;
+  labels: ReturnType<typeof globalSchedulePdfLabels>;
+  logoDataUrl: string | null;
+  schedule: NonNullable<
+    Awaited<ReturnType<typeof getGlobalScheduleByCycleAction>>[0]
+  >;
+}) {
+  const {
+    teacher,
+    organizationId,
+    cycleLabel,
+    schoolName,
+    origin,
+    context,
+    labels,
+    logoDataUrl,
+    schedule,
+  } = params;
+
+  const pdfTitle = labels.title(cycleLabel);
+  const doc = await renderGlobalSchedulePdf({
+    context,
+    title: pdfTitle,
+    details: [labels.viewTeachers, teacher.name],
+    hoursLabel: labels.hoursLabel,
+    recreationLabel: labels.recreationLabel,
+    yearLabel: labels.yearLabel,
+    saturdayLabel: labels.saturdayLabel,
+    tables: [
+      teacherSchedulePdfTable(
+        teacher,
+        schedule,
+        teacherPdfMeta(teacher, labels),
+      ),
+    ],
+    logoDataUrl,
+  });
+  const buffer = Buffer.from(doc.output("arraybuffer") as ArrayBuffer);
+  const saved = await saveIssuedDocumentPdfBuffer({
+    buffer,
+    baseName: globalSchedulePdfFileName(
+      `${teacher.name}-${cycleLabel}`,
+    ).replace(/\.pdf$/i, ""),
+  });
+  const pdfUrl = `${origin}${saved.url}`;
+
+  return sendTransactionalWhatsApp({
+    to: teacher.telephone,
+    organizationId,
+    attachments: [{ url: pdfUrl, filename: saved.fileName }],
+    parts: [
+      schoolName,
+      `Bonjour ${teacher.name},`,
+      `voici le PDF de votre horaire ${cycleLabel}.`,
+      `Télécharger : ${pdfUrl}`,
+      `— ${schoolName}`,
+    ],
+  });
 }
 
 export const sendGlobalScheduleWhatsAppAction = action
@@ -95,13 +172,9 @@ export const sendGlobalScheduleWhatsAppAction = action
     const logoDataUrl = await imageUrlToDataUrlServer(context.logoUrl);
     const schoolName = context.schoolName || "Établissement";
     const origin = publicOrigin();
-
-    let sent = 0;
+    const ready: GlobalScheduleTeacher[] = [];
     let skippedNoContact = 0;
     let skippedNoSchedule = 0;
-    let failed = 0;
-    let error: string | undefined;
-    let skipWhatsApp = false;
 
     for (const teacher of targets) {
       if (teacher.entries.length === 0) {
@@ -112,81 +185,74 @@ export const sendGlobalScheduleWhatsAppAction = action
         skippedNoContact += 1;
         continue;
       }
-      if (skipWhatsApp) {
-        failed += 1;
-        continue;
-      }
+      ready.push(teacher);
+    }
 
-      try {
-        const pdfTitle = labels.title(schedule.cycleLabel);
-        const doc = await renderGlobalSchedulePdf({
-          context,
-          title: pdfTitle,
-          details: [labels.viewTeachers, teacher.name],
-          hoursLabel: labels.hoursLabel,
-          recreationLabel: labels.recreationLabel,
-          yearLabel: labels.yearLabel,
-          saturdayLabel: labels.saturdayLabel,
-          tables: [
-            teacherSchedulePdfTable(
-              teacher,
-              schedule,
-              teacherPdfMeta(teacher, labels),
-            ),
-          ],
-          logoDataUrl,
-        });
-        const buffer = Buffer.from(doc.output("arraybuffer") as ArrayBuffer);
-        const saved = await saveIssuedDocumentPdfBuffer({
-          buffer,
-          baseName: globalSchedulePdfFileName(
-            `${teacher.name}-${schedule.cycleLabel}`,
-          ).replace(/\.pdf$/i, ""),
-        });
-        const pdfUrl = `${origin}${saved.url}`;
+    if (ready.length === 0) {
+      return {
+        queued: false,
+        count: 0,
+        skippedNoContact,
+        skippedNoSchedule,
+      };
+    }
 
-        const result = await sendTransactionalWhatsApp({
-          to: teacher.telephone,
-          organizationId,
-          attachments: [{ url: pdfUrl, filename: saved.fileName }],
-          parts: [
-            schoolName,
-            `Bonjour ${teacher.name},`,
-            `voici le PDF de votre horaire ${schedule.cycleLabel}.`,
-            `Télécharger : ${pdfUrl}`,
-            `— ${schoolName}`,
-          ],
-        });
+    after(async () => {
+      let sent = 0;
+      let failed = 0;
+      let error: string | undefined;
+      let skipWhatsApp = false;
 
-        if (result.sent) {
-          sent += 1;
+      for (const teacher of ready) {
+        if (skipWhatsApp) {
+          failed += 1;
           continue;
         }
-
-        failed += 1;
-        if (!error && result.error) error = result.error;
-        if (
-          result.error?.includes("pas connecté") ||
-          result.error?.includes("désactivé")
-        ) {
-          skipWhatsApp = true;
-        }
-      } catch (cause) {
-        failed += 1;
-        if (!error) {
-          error =
+        try {
+          const result = await sendTeacherScheduleWhatsApp({
+            teacher,
+            organizationId,
+            cycleLabel: schedule.cycleLabel,
+            schoolName,
+            origin,
+            context,
+            labels,
+            logoDataUrl,
+            schedule,
+          });
+          if (result.sent) {
+            sent += 1;
+            continue;
+          }
+          failed += 1;
+          if (!error && result.error) error = result.error;
+          if (isPermanentWhatsAppStop(result.error)) skipWhatsApp = true;
+        } catch (cause) {
+          failed += 1;
+          const message =
             cause instanceof Error
               ? cause.message
               : "Impossible de générer le PDF de l'horaire.";
+          if (!error) error = message;
+          if (isPermanentWhatsAppStop(message)) skipWhatsApp = true;
         }
       }
-    }
+
+      console.info("[horaire-whatsapp] file terminée", {
+        cycle: schedule.cycleLabel,
+        queued: ready.length,
+        sent,
+        failed,
+        skippedNoContact,
+        skippedNoSchedule,
+        error: error ?? null,
+      });
+    });
 
     return {
-      sent,
+      queued: true,
+      count: ready.length,
       skippedNoContact,
       skippedNoSchedule,
-      failed,
-      error: error ?? null,
     };
   });
