@@ -215,6 +215,32 @@ export type UpsertClassCatalogOptions = {
 /**
  * Importe le catalogue de classes pour les cycles activés (maternelle, primaire, secondaire).
  */
+async function upsertMaternelleClasses(branchId: string): Promise<{
+  created: number;
+  skipped: number;
+}> {
+  const { optionsByLevel } = await ensureMaternelleAcademicStructure(
+    Prisma,
+    branchId,
+  );
+  let created = 0;
+  let skipped = 0;
+  for (const level of MATERNELLE_CLASS_LEVELS) {
+    const option = optionsByLevel[level];
+    const result = await upsertClasseRow({
+      branchId,
+      typebranch: "MATERNELLE",
+      level,
+      optionId: option.id,
+      optionName: null,
+      cycle: "MATERNELLE",
+    });
+    if (result === "created") created += 1;
+    else skipped += 1;
+  }
+  return { created, skipped };
+}
+
 async function upsertAngolaClassCatalog(
   branchId: string,
   cycles: Cycle[],
@@ -224,6 +250,12 @@ async function upsertAngolaClassCatalog(
   let sectionsCreated = 0;
   let optionsCreated = 0;
   const educationSystem = "ANGOLAIS";
+
+  if (cycles.includes("MATERNELLE")) {
+    const maternelle = await upsertMaternelleClasses(branchId);
+    created += maternelle.created;
+    skipped += maternelle.skipped;
+  }
 
   if (cycles.includes("PRIMAIRE")) {
     const beforeSections = await Prisma.section.count({ where: { branchId } });
@@ -330,23 +362,9 @@ export async function upsertClassCatalogForBranch(
   let optionsCreated = 0;
 
   if (cycles.includes("MATERNELLE")) {
-    const { optionsByLevel } = await ensureMaternelleAcademicStructure(
-      Prisma,
-      branchId,
-    );
-    for (const level of MATERNELLE_CLASS_LEVELS) {
-      const option = optionsByLevel[level];
-      const result = await upsertClasseRow({
-        branchId,
-        typebranch: "MATERNELLE",
-        level,
-        optionId: option.id,
-        optionName: null,
-        cycle: "MATERNELLE",
-      });
-      if (result === "created") created += 1;
-      else skipped += 1;
-    }
+    const maternelle = await upsertMaternelleClasses(branchId);
+    created += maternelle.created;
+    skipped += maternelle.skipped;
   }
 
   if (cycles.includes("PRIMAIRE")) {

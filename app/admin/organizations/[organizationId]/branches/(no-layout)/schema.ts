@@ -90,7 +90,6 @@ export const createBranchFormObjectSchema = z.object({
 export function refineBranchSchoolCycles(
   data: { typebranch: string; schoolCycles?: string[]; educationSystem?: string },
   ctx: z.RefinementCtx,
-  options?: { allowAngolaMaternelle?: boolean },
 ) {
   const isExtended =
     data.typebranch === "ATELIER" ||
@@ -105,25 +104,12 @@ export function refineBranchSchoolCycles(
         "Choisissez au moins un cycle : maternelle, primaire ou secondaire.",
     });
   }
-  if (
-    !options?.allowAngolaMaternelle &&
-    data.educationSystem === "ANGOLAIS" &&
-    data.schoolCycles?.includes("MATERNELLE")
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["schoolCycles"],
-      message:
-        "Le système angolais n'inclut pas la maternelle. Choisissez Ensino primário ou Ensino secundário.",
-    });
-  }
 }
 
 export const createBranchFormSchema = createBranchFormObjectSchema.superRefine(
   refineBranchSchoolCycles,
 );
 export const updateBranchFormSchema = createBranchFormObjectSchema.superRefine(
-  (data, ctx) =>
-    refineBranchSchoolCycles(data, ctx, { allowAngolaMaternelle: true }),
+  refineBranchSchoolCycles,
 );
 export type CreateBranchFormValues = z.input<typeof createBranchFormObjectSchema>;

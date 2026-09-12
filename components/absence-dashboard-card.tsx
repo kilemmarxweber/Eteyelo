@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ClipboardList, Undo2 } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -84,14 +84,8 @@ function CaseList({
   );
 }
 
-export function AbsenceDashboardSection({
-  showMine = true,
-}: {
-  /** Absences personnelles à justifier — pas pour direction / préfet / caissier. */
-  showMine?: boolean;
-}) {
+export function AbsenceDashboardSection() {
   const t = useTranslations("dashboard");
-  const [mine, setMine] = useState<AbsenceCaseDialogData[]>([]);
   const [pending, setPending] = useState<AbsenceCaseDialogData[]>([]);
   const [canReview, setCanReview] = useState(false);
   const [dialog, setDialog] = useState<{
@@ -103,86 +97,26 @@ export function AbsenceDashboardSection({
     const [data] = await getAbsenceDashboardAction();
     if (!data) return;
     setCanReview(data.canReview);
-    setMine(showMine ? data.mine : []);
     setPending(data.pending);
   }
 
   useEffect(() => {
     void load();
-  }, [showMine]);
+  }, []);
 
-  const openMine = showMine
-    ? mine.filter((row) => row.status === "OPEN" || row.status === "REJECTED")
-    : [];
-  const returns = showMine
-    ? mine.filter((row) => row.status === "ACCEPTED")
-    : [];
-  const waiting = showMine
-    ? mine.filter((row) => row.status === "PENDING_REVIEW")
-    : [];
-
-  if (
-    openMine.length === 0 &&
-    waiting.length === 0 &&
-    returns.length === 0 &&
-    pending.length === 0
-  ) {
+  if (!canReview || pending.length === 0) {
     return null;
   }
 
   return (
     <>
-      <div className="grid gap-4 lg:grid-cols-2">
-        {showMine ? (
-          <CaseList
-            title={t("absence.mine")}
-            description={t("absence.mineDesc")}
-            rows={[...openMine, ...waiting]}
-            actionLabel={t("absence.viewJustify")}
-            onOpen={(row) =>
-              setDialog({
-                mode:
-                  row.status === "OPEN" || row.status === "REJECTED"
-                    ? "justify"
-                    : "view",
-                caseRow: row,
-              })
-            }
-          />
-        ) : null}
-        {showMine && returns.length > 0 ? (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Undo2 className="h-4 w-4" />
-                {t("absence.returns")}
-              </CardTitle>
-              <CardDescription>
-                {t("absence.returnsDesc")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {returns.map((row) => (
-                <div
-                  key={row.id}
-                  className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-sm"
-                >
-                  {row.contextLabel}
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        ) : null}
-        {canReview ? (
-          <CaseList
-            title={t("absence.review")}
-            description={t("absence.reviewDesc")}
-            rows={pending}
-            actionLabel={t("absence.examine")}
-            onOpen={(row) => setDialog({ mode: "review", caseRow: row })}
-          />
-        ) : null}
-      </div>
+      <CaseList
+        title={t("absence.review")}
+        description={t("absence.reviewDesc")}
+        rows={pending}
+        actionLabel={t("absence.examine")}
+        onOpen={(row) => setDialog({ mode: "review", caseRow: row })}
+      />
       <AbsenceCaseDialog
         open={Boolean(dialog)}
         onOpenChange={(open) => {

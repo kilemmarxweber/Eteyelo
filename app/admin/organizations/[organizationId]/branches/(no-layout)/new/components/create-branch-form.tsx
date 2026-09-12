@@ -41,7 +41,6 @@ import { EducationSystemCards } from "@/components/branch/education-system-cards
 import {
   isSchoolCycle,
   principalTypebranchFromSchoolCycles,
-  filterSchoolCyclesForEducationSystem,
 } from "@/lib/cycle";
 import type { ManagedBranchType } from "@/lib/academic-structure";
 import { isExtendedBranch } from "@/lib/branch-capabilities";
@@ -235,26 +234,6 @@ export function CreateBranchForm({
   useEffect(() => {
     if (mode !== "create") return;
     if (selectedEducationSystem === "ANGOLAIS") {
-      const currentCycles = (form.getValues("schoolCycles") ?? []).filter(
-        isSchoolCycle,
-      );
-      const withoutMaternelle = filterSchoolCyclesForEducationSystem(
-        currentCycles,
-        "ANGOLAIS",
-      );
-      if (withoutMaternelle.length !== currentCycles.length) {
-        form.setValue("schoolCycles", withoutMaternelle, {
-          shouldValidate: true,
-          shouldDirty: true,
-        });
-        if (withoutMaternelle.length > 0) {
-          form.setValue(
-            "typebranch",
-            principalTypebranchFromSchoolCycles(withoutMaternelle),
-            { shouldValidate: true, shouldDirty: true },
-          );
-        }
-      }
       writeLocaleCookie("pt");
       const pays = form.getValues("pays")?.trim() || "RDC";
       if (pays === "RDC" || pays === "RD Congo" || pays === "Congo") {
@@ -780,7 +759,7 @@ export function CreateBranchForm({
                     title={labels.typeLabel}
                     description={
                       selectedEducationSystem === "ANGOLAIS"
-                        ? "Choisissez Ensino primário et/ou Ensino secundário. Le système angolais n'inclut pas la maternelle."
+                        ? "Combinez Maternelle, Ensino primário et/ou Ensino secundário sur une seule branche."
                         : "Combinez maternelle, primaire et secondaire sur une seule branche, ou choisissez un autre type d'établissement."
                     }
                   />

@@ -36,7 +36,6 @@ import {
   isSchoolCycle,
   principalTypebranchFromSchoolCycles,
   resolveActivatedCycles,
-  filterSchoolCyclesForEducationSystem,
   schoolCyclesForBranchForm,
   sameCycleSet,
   normalizeCycle,
@@ -100,10 +99,7 @@ export async function createBranchAction(
   });
 
   const academicYear = getAcademicYearForDate();
-  const schoolCycles = filterSchoolCyclesForEducationSystem(
-    (parsed.data.schoolCycles ?? []).filter(isSchoolCycle),
-    parsed.data.educationSystem,
-  );
+  const schoolCycles = (parsed.data.schoolCycles ?? []).filter(isSchoolCycle);
   const typebranch =
     schoolCycles.length > 0
       ? principalTypebranchFromSchoolCycles(schoolCycles)
@@ -360,6 +356,11 @@ export async function updateBranchAction(
     normalizeCycle(row.cycle),
   );
   const cyclesUnchanged = sameCycleSet(existingCycleSet, activatedTarget);
+  const missingClassCycles = activatedTarget.filter(
+    (cycle) => isSchoolCycle(cycle) && !classSchoolCycles.includes(cycle),
+  );
+  const shouldBootstrapSchoolData =
+    !cyclesUnchanged || missingClassCycles.length > 0;
 
   const nextEducationSystem = usesTermPeriodCalendar(
     typebranch,
@@ -450,7 +451,7 @@ export async function updateBranchAction(
     },
   );
 
-  if (!cyclesUnchanged) {
+  if (shouldBootstrapSchoolData) {
     await ensureAcademicPeriodsForBranch({
       branchId,
       typebranch,

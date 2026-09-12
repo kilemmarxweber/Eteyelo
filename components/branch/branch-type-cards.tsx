@@ -92,6 +92,13 @@ const ANGOLA_SCHOOL_CARDS: Array<{
   icon: LucideIcon;
 }> = [
   {
+    value: "MATERNELLE",
+    title: "Maternelle",
+    description: "Crèche et 1è–3è, bulletin de type primaire.",
+    hint: "Combinável",
+    icon: Baby,
+  },
+  {
     value: "PRIMAIRE",
     title: ANGOLA_PRIMARY_CYCLE_LABEL,
     description: "1ª–4ª classe, uma secção e opção Geral, disciplinas do catálogo.",
@@ -228,10 +235,10 @@ export function BranchTypeCards({
       <div className="grid gap-2">
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           {isAngola
-            ? "Escola — Ensino primário e/ou Ensino secundário"
+            ? "Escola — Maternelle, Ensino primário e/ou Ensino secundário"
             : "École — un, deux ou les trois cycles"}
         </p>
-        <div className={cn("grid gap-3", isAngola ? "sm:grid-cols-2" : "sm:grid-cols-3")}>
+        <div className="grid gap-3 sm:grid-cols-3">
           {schoolCards.map((card) => (
             <SelectionCard
               key={card.value}

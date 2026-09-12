@@ -319,7 +319,7 @@ test("Catalogue PORTUGUESA + Declaração (tableau officiel)", () => {
   assert.ok(Number.isNaN(religiao.score));
 });
 
-test("Création branche Angola : pas de maternelle, noms PT", () => {
+test("Création branche Angola : maternelle autorisée, noms PT", () => {
   assert.equal(
     ANGOLA_PRIMARY_CYCLE_LABEL,
     "Ensino primário / 1.º ciclo do ensino básico",
@@ -330,7 +330,7 @@ test("Création branche Angola : pas de maternelle, noms PT", () => {
       ["MATERNELLE", "PRIMAIRE", "SECONDAIRE"],
       "ANGOLAIS",
     ),
-    ["PRIMAIRE", "SECONDAIRE"],
+    ["MATERNELLE", "PRIMAIRE", "SECONDAIRE"],
   );
   assert.deepEqual(
     filterSchoolCyclesForEducationSystem(

@@ -552,9 +552,7 @@ export default function AdminDashboard() {
             />
           ) : null}
 
-          <AbsenceDashboardSection
-            showMine={variant === "teacher" || variant === "student"}
-          />
+          <AbsenceDashboardSection />
 
           {variant === "parent" ? (
             <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.9fr)]">

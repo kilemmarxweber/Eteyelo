@@ -7,7 +7,7 @@ import {
   normalizeBranchType,
   type ManagedBranchType,
 } from "@/lib/academic-structure";
-import { isSchoolBranchType, normalizeEducationSystem } from "@/lib/education-system";
+import { isSchoolBranchType } from "@/lib/education-system";
 
 export const CYCLES = [
   "MATERNELLE",
@@ -66,15 +66,12 @@ export function isSchoolCycle(value: unknown): value is SchoolCycle {
   );
 }
 
-/** Le système angolais n'a pas de maternelle : Ensino primário et/ou Ensino secundário. */
+/** Tous les cycles scolaires sont autorisés, y compris la maternelle pour l'Angola. */
 export function filterSchoolCyclesForEducationSystem(
   cycles: readonly SchoolCycle[],
-  educationSystem: unknown,
+  _educationSystem?: unknown,
 ): SchoolCycle[] {
-  if (normalizeEducationSystem(educationSystem) !== "ANGOLAIS") {
-    return [...cycles];
-  }
-  return cycles.filter((cycle) => cycle !== "MATERNELLE");
+  return [...cycles];
 }
 
 /** Repli SECONDAIRE si valeur inconnue (même contrat que normalizeBranchType). */
