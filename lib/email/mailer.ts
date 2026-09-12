@@ -8,6 +8,8 @@ import {
   logSmtpSkip,
 } from "./smtp-circuit";
 
+import type { NotificationEvent } from "@/lib/notification-channels-shared";
+
 export type MailPayload = {
   from?: string;
   to: string;
@@ -24,6 +26,8 @@ export type MailPayload = {
   whatsappName?: string | null;
   /** Organisation : respecte le toggle WhatsApp des paramètres. */
   organizationId?: string | null;
+  /** Si fourni, Mail / WhatsApp suivent la matrice Paramètres → Notifications. */
+  notificationEvent?: NotificationEvent;
 };
 
 let transporter: Mail | null = null;
@@ -175,13 +179,44 @@ function queueWhatsAppMirror(payload: MailPayload): void {
   });
 }
 
+function stripMailJobPayload(payload: MailPayload) {
+  const {
+    whatsappTo: _wa,
+    whatsappName: _wn,
+    organizationId: _oid,
+    notificationEvent: _ne,
+    ...emailJob
+  } = payload;
+  return emailJob;
+}
+
 /**
  * Met l'email en file BullMQ (non bloquant pour la requête HTTP).
  * Si Redis est indisponible, envoi en arrière-plan sans attendre SMTP.
  * Si `whatsappTo` est fourni, miroir WhatsApp du texte (indépendant du SMTP).
  */
 export async function sendMail(payload: MailPayload): Promise<void> {
-  queueWhatsAppMirror(payload);
+  let allowEmail = true;
+  let allowWhatsApp = true;
+  if (payload.notificationEvent) {
+    const { resolveNotificationChannels } = await import(
+      "@/lib/notification-channels"
+    );
+    const allow = await resolveNotificationChannels(
+      payload.organizationId,
+      payload.notificationEvent,
+    );
+    allowEmail = allow.email;
+    allowWhatsApp = allow.whatsapp;
+  }
+
+  if (allowWhatsApp) {
+    queueWhatsAppMirror(payload);
+  }
+
+  if (!allowEmail) {
+    return;
+  }
 
   const emailTo = payload.to?.trim() ?? "";
   const hasValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTo);
@@ -231,13 +266,7 @@ export async function sendMail(payload: MailPayload): Promise<void> {
     const { ensureRedisReady } = await import("@/src/redis/redis");
     await ensureRedisReady();
 
-    const {
-      whatsappTo: _wa,
-      whatsappName: _wn,
-      organizationId: _oid,
-      ...emailJob
-    } = payload;
-    await getEmailQueue().add("send-email", emailJob, {
+    await getEmailQueue().add("send-email", stripMailJobPayload(payload), {
       jobId: undefined,
     });
   } catch (error) {
@@ -247,12 +276,7 @@ export async function sendMail(payload: MailPayload): Promise<void> {
       "[sendMail] File email indisponible, fallback envoi background:",
       error instanceof Error ? error.message : error,
     );
-    const {
-      whatsappTo: _wa,
-      whatsappName: _wn,
-      organizationId: _oid,
-      ...emailOnly
-    } = payload;
+    const emailOnly = stripMailJobPayload(payload);
     void deliverMail(emailOnly).catch((err) => {
       // eslint-disable-next-line no-console
       console.error(

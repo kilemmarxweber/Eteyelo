@@ -332,6 +332,7 @@ test("Org hub : caissier/teacher/student/parent exclus ; chef + études OK", () 
   assert.equal(canAccessOrganizationAdminHome(ORG_ROLE.TEACHER), false);
   assert.equal(canAccessOrganizationAdminHome(ORG_ROLE.STUDENT), false);
   assert.equal(canAccessOrganizationAdminHome(ORG_ROLE.PARENT), false);
+  assert.equal(canAccessOrganizationAdminHome(ORG_ROLE.AGENT_BUREAU), true);
   assert.equal(canAccessOrganizationAdminHome(ORG_ROLE.DIRECTEUR), true);
   assert.equal(canAccessOrganizationAdminHome(ORG_ROLE.PREFET), true);
   assert.equal(

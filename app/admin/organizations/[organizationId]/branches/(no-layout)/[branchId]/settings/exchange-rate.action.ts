@@ -241,7 +241,6 @@ export const selectExchangeRateAction = action
 
 const financeDisplaySchema = z.object({
   showReceiptConversion: z.boolean(),
-  notifyParentOnPayment: z.boolean(),
   receiptPrintFormat: z.enum(["A4", "POS_80MM"]),
   pdfFontSize: z.coerce.number().int().min(8).max(18),
 });
@@ -253,14 +252,12 @@ export const getFinanceDisplaySettingsAction = action.handler(async () => {
     where: { id: organizationId },
     select: {
       showReceiptConversion: true,
-      notifyParentOnPayment: true,
       receiptPrintFormat: true,
       pdfFontSize: true,
     },
   });
   return {
     showReceiptConversion: org?.showReceiptConversion ?? true,
-    notifyParentOnPayment: org?.notifyParentOnPayment ?? true,
     receiptPrintFormat: parseReceiptPrintFormat(org?.receiptPrintFormat),
     pdfFontSize: parsePdfFontSize(org?.pdfFontSize),
   };
@@ -275,13 +272,11 @@ export const updateFinanceDisplaySettingsAction = action
       where: { id: organizationId },
       data: {
         showReceiptConversion: input.showReceiptConversion,
-        notifyParentOnPayment: input.notifyParentOnPayment,
         receiptPrintFormat: input.receiptPrintFormat,
         pdfFontSize: parsePdfFontSize(input.pdfFontSize),
       },
       select: {
         showReceiptConversion: true,
-        notifyParentOnPayment: true,
         receiptPrintFormat: true,
         pdfFontSize: true,
       },

@@ -48,6 +48,7 @@ export async function sendProfileUpdatedEmail(input: {
     whatsappTo: input.phone,
     whatsappName: input.name,
     organizationId: input.organizationId,
+    notificationEvent: "profileUpdate",
     subject,
     text,
     html,

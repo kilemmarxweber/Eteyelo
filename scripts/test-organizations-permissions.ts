@@ -13,7 +13,7 @@ import {
   canListAllOrganizations,
   canManageOrganizationAsAppAdmin,
 } from "../lib/auth/organization-access";
-import { isOrganizationOwnerMember, isOrganizationManagerMember, memberHasImplicitAllBranchAccess, memberShouldAppearAsPersonnelInAllBranches, preserveOrganizationOwnerRole } from "../lib/auth/role-labels";
+import { isOrganizationOwnerMember, isOrganizationManagerMember, isRestrictedGestionnaire, memberHasImplicitAllBranchAccess, memberShouldAppearAsPersonnelInAllBranches, preserveOrganizationOwnerRole } from "../lib/auth/role-labels";
 import { buildOrganizationsApiPayload } from "../lib/auth/post-login-routing";
 import {
   APP_ROLE,
@@ -315,13 +315,20 @@ test("preserveOrganizationOwnerRole garde owner en tete", () => {
   );
 });
 
-test("isOrganizationManagerMember accepte owner gestionnaire et roles CRU", () => {
+test("isOrganizationManagerMember accepte owner gestionnaire agent de bureau et roles CRU", () => {
   assert.equal(isOrganizationManagerMember(ORG_ROLE.GESTIONNAIRE), true);
+  assert.equal(isOrganizationManagerMember(ORG_ROLE.AGENT_BUREAU), true);
   assert.equal(isOrganizationManagerMember(ORG_ROLE.OWNER), true);
   assert.equal(isOrganizationManagerMember(ORG_ROLE.PREFET), true);
   assert.equal(isOrganizationManagerMember(ORG_ROLE.DIRECTEUR), true);
   assert.equal(isOrganizationManagerMember(ORG_ROLE.SUPERVISEUR), true);
   assert.equal(isOrganizationManagerMember(ORG_ROLE.TEACHER), false);
+});
+
+test("agent de bureau n'a pas besoin d'etre enseignant pour acceder aux etablissements", () => {
+  assert.equal(isRestrictedGestionnaire(APP_ROLE.USER, ORG_ROLE.AGENT_BUREAU), true);
+  assert.equal(isRestrictedGestionnaire(APP_ROLE.USER, ORG_ROLE.GESTIONNAIRE), true);
+  assert.equal(isRestrictedGestionnaire(APP_ROLE.USER, ORG_ROLE.TEACHER), false);
 });
 
 test("matrice gestionnaire sans delete organisation ni member", () => {

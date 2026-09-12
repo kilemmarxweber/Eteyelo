@@ -109,6 +109,7 @@ export function memberShouldAppearAsPersonnelInAllBranches(
 const ORG_MANAGER_MEMBER_ROLES = new Set<string>([
   ORG_ROLE.OWNER,
   ORG_ROLE.GESTIONNAIRE,
+  ORG_ROLE.AGENT_BUREAU,
   ORG_ROLE.PREFET,
   ORG_ROLE.DIRECTEUR,
   ORG_ROLE.DIRECTEUR_ETUDES,
@@ -153,7 +154,10 @@ export function isRestrictedGestionnaire(
   if (isPlatformOwnerRole(appRole)) return false;
   if (isOrganizationOwnerMember(memberRole)) return false;
   if (isAppAdminRole(appRole)) return true;
-  return isOrganizationGestionnaireMember(memberRole);
+  return (
+    isOrganizationGestionnaireMember(memberRole) ||
+    memberRolesInclude(memberRole, ORG_ROLE.AGENT_BUREAU)
+  );
 }
 
 /** Propriétaire ou gestionnaire : archiver / modifier, pas supprimer. */

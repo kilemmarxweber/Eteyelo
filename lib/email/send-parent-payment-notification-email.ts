@@ -1,3 +1,4 @@
+import { resolveNotificationChannels } from "@/lib/notification-channels";
 import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
@@ -50,6 +51,12 @@ export async function sendParentPaymentNotificationEmail(input: {
   const phone = input.phone?.trim() ?? "";
   if (!email && !phone) return;
 
+  const allow = await resolveNotificationChannels(
+    input.organizationId,
+    "payment",
+  );
+  if (!allow.email && !allow.whatsapp) return;
+
   const copy = COPY[input.kind];
   const subject = `${APP_NAME} — ${copy.subject}`;
   const intro = `Bonjour ${input.parentName}, ${copy.intro}`;
@@ -87,15 +94,18 @@ export async function sendParentPaymentNotificationEmail(input: {
     },
   });
 
-  await sendMail({
-    to: email,
-    organizationId: input.organizationId,
-    subject,
-    text,
-    html,
-  });
+  if (allow.email && email) {
+    await sendMail({
+      to: email,
+      organizationId: input.organizationId,
+      notificationEvent: "payment",
+      subject,
+      text,
+      html,
+    });
+  }
 
-  if (phone) {
+  if (allow.whatsapp && phone) {
     await sendTransactionalWhatsApp({
       to: phone,
       organizationId: input.organizationId,

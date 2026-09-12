@@ -5,6 +5,7 @@ import { AppNotificationType } from "@/prisma/generated/prisma/client";
 import { getBaseCurrency } from "@/lib/exchange-rate";
 import { sendParentPaymentNotificationEmail } from "@/lib/email/send-parent-payment-notification-email";
 import type { ParentPaymentNotifyKind } from "@/lib/email/send-parent-payment-notification-email";
+import { resolveNotificationChannels } from "@/lib/notification-channels";
 
 const linkedUserInclude = {
   branchMember: {
@@ -80,10 +81,10 @@ export async function notifyParentOfPaymentNow(input: {
   const uniqueIds = Array.from(new Set(input.paymentIds.filter(Boolean)));
   if (!uniqueIds.length) return;
 
-  const [org, branch, payments, rateRows] = await Promise.all([
+  const [org, branch, payments, rateRows, allow] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: input.organizationId },
-      select: { notifyParentOnPayment: true, name: true },
+      select: { name: true },
     }),
     prisma.branch.findFirst({
       where: { id: input.branchId, organizationId: input.organizationId },
@@ -111,9 +112,11 @@ export async function notifyParentOfPaymentNow(input: {
         isSelected: true,
       },
     }),
+    resolveNotificationChannels(input.organizationId, "payment"),
   ]);
 
-  if (!org?.notifyParentOnPayment || payments.length === 0) return;
+  if (!org || payments.length === 0) return;
+  if (!allow.email && !allow.whatsapp) return;
 
   const schoolName = branch?.name?.trim() || org.name;
   const currency = input.currency?.trim() || getBaseCurrency(rateRows);

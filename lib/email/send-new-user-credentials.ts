@@ -8,6 +8,7 @@ import {
   getSignInUrl,
 } from "./email-layout";
 import { sendNewUserCredentialsWhatsApp } from "@/lib/zindua";
+import { resolveNotificationChannels } from "@/lib/notification-channels";
 
 const APP_NAME = DEFAULT_APP_NAME;
 
@@ -29,6 +30,13 @@ export async function sendNewUserCredentialsEmail(input: {
   organizationId?: string | null;
 }): Promise<{ emailSent: boolean; whatsappSent: boolean; whatsappError?: string }> {
   const { to, name, temporaryPassword } = input;
+  const allow = await resolveNotificationChannels(
+    input.organizationId,
+    "accountCreate",
+  );
+  if (!allow.email && !allow.whatsapp) {
+    return { emailSent: false, whatsappSent: false };
+  }
   const role = input.role?.trim() || "Utilisateur";
   const organizationName = input.organizationName?.trim();
   const branchName = input.branchName?.trim();
@@ -119,16 +127,20 @@ export async function sendNewUserCredentialsEmail(input: {
 
   // Email seul — WhatsApp dédié (comme le reset MDP).
   // Les @klambocore.com générés ne reçoivent pas de SMTP (boîtes inexistantes).
-  await sendMail({
-    to,
-    subject,
-    text,
-    html,
-  });
+  if (allow.email) {
+    await sendMail({
+      to,
+      organizationId: input.organizationId,
+      notificationEvent: "accountCreate",
+      subject,
+      text,
+      html,
+    });
+  }
 
   let whatsappSent = false;
   let whatsappError: string | undefined;
-  if (input.phone?.trim()) {
+  if (allow.whatsapp && input.phone?.trim()) {
     const wa = await sendNewUserCredentialsWhatsApp({
       to: input.phone,
       name,
@@ -144,5 +156,9 @@ export async function sendNewUserCredentialsEmail(input: {
     whatsappError = wa.error;
   }
 
-  return { emailSent: isDeliverableMailbox(to), whatsappSent, whatsappError };
+  return {
+    emailSent: allow.email && isDeliverableMailbox(to),
+    whatsappSent,
+    whatsappError,
+  };
 }

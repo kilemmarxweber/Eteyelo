@@ -60,7 +60,6 @@ export default function ExchangeRatesSettingsPage() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [selectingId, setSelectingId] = useState<string | null>(null);
   const [showReceiptConversion, setShowReceiptConversion] = useState(true);
-  const [notifyParentOnPayment, setNotifyParentOnPayment] = useState(true);
   const [receiptPrintFormat, setReceiptPrintFormat] =
     useState<ReceiptPrintFormat>("A4");
   const [pdfFontSize, setPdfFontSize] = useState(DEFAULT_PDF_FONT_SIZE);
@@ -87,7 +86,6 @@ export default function ExchangeRatesSettingsPage() {
       }
       if (!displayErr && display) {
         setShowReceiptConversion(display.showReceiptConversion);
-        setNotifyParentOnPayment(display.notifyParentOnPayment);
         setReceiptPrintFormat(parseReceiptPrintFormat(display.receiptPrintFormat));
         setPdfFontSize(parsePdfFontSize(display.pdfFontSize));
       }
@@ -192,19 +190,16 @@ export default function ExchangeRatesSettingsPage() {
 
   async function saveDisplaySettings(patch: {
     showReceiptConversion?: boolean;
-    notifyParentOnPayment?: boolean;
     receiptPrintFormat?: ReceiptPrintFormat;
     pdfFontSize?: number;
   }) {
     const nextConversion = patch.showReceiptConversion ?? showReceiptConversion;
-    const nextNotify = patch.notifyParentOnPayment ?? notifyParentOnPayment;
     const nextFormat = patch.receiptPrintFormat ?? receiptPrintFormat;
     const nextFontSize = parsePdfFontSize(patch.pdfFontSize ?? pdfFontSize);
     setSavingDisplay(true);
     try {
       const [saved, err] = await updateFinanceDisplaySettingsAction({
         showReceiptConversion: nextConversion,
-        notifyParentOnPayment: nextNotify,
         receiptPrintFormat: nextFormat,
         pdfFontSize: nextFontSize,
       });
@@ -214,7 +209,6 @@ export default function ExchangeRatesSettingsPage() {
       }
       if (saved) {
         setShowReceiptConversion(saved.showReceiptConversion);
-        setNotifyParentOnPayment(saved.notifyParentOnPayment);
         setReceiptPrintFormat(parseReceiptPrintFormat(saved.receiptPrintFormat));
         setPdfFontSize(parsePdfFontSize(saved.pdfFontSize));
       }
@@ -263,24 +257,6 @@ export default function ExchangeRatesSettingsPage() {
               onCheckedChange={(checked) => {
                 setShowReceiptConversion(checked);
                 void saveDisplaySettings({ showReceiptConversion: checked });
-              }}
-            />
-          </div>
-          <div className="flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0 space-y-1">
-              <p className="font-medium">Notifier le parent</p>
-              <p className="text-sm text-muted-foreground">
-                Envoyer un e-mail et un WhatsApp (si le numéro est renseigné) au
-                parent lors d’un paiement, d’une modification ou d’une suppression.
-                Une notification apparaît aussi dans son compte.
-              </p>
-            </div>
-            <Switch
-              checked={notifyParentOnPayment}
-              disabled={savingDisplay}
-              onCheckedChange={(checked) => {
-                setNotifyParentOnPayment(checked);
-                void saveDisplaySettings({ notifyParentOnPayment: checked });
               }}
             />
           </div>

@@ -153,6 +153,26 @@ test("roles ecodim sans branche route vers /ecodim", () => {
   }
 });
 
+test("agent de bureau route vers les etablissements assigns, sans role enseignant", () => {
+  assert.equal(
+    resolveMembershipPostLoginPath({
+      organizationId: ORG_ID,
+      membershipRole: ORG_ROLE.AGENT_BUREAU,
+      branchId: BRANCH_ID,
+      branchCount: 1,
+    }),
+    `/admin/organizations/${ORG_ID}/branches/${BRANCH_ID}`,
+  );
+  assert.equal(
+    resolveMembershipPostLoginPath({
+      organizationId: ORG_ID,
+      membershipRole: ORG_ROLE.AGENT_BUREAU,
+      branchCount: 2,
+    }),
+    `/admin/organizations/${ORG_ID}/branches`,
+  );
+});
+
 test("gestionnaire org route vers les etablissements geres", () => {
   assert.equal(
     resolveMembershipPostLoginPath({

@@ -8,7 +8,11 @@ function splitRoles(value: string | null | undefined) {
     .filter(Boolean);
 }
 
-/** Mappe le rôle d’organisation vers le rôle BranchMember d’accès à l’établissement. */
+/**
+ * Mappe le rôle d’organisation vers le rôle BranchMember d’accès à l’établissement.
+ * Agent de bureau seul → ADMIN (personnel), sans profil enseignant.
+ * Dual enseignant + bureau : TEACHER reste prioritaire pour le profil métier.
+ */
 export function orgRoleToBranchRole(
   orgRole: string | null | undefined,
 ): BranchRole {
@@ -25,6 +29,16 @@ export function orgRoleToBranchRole(
   }
   if (roles.some((role) => role === ORG_ROLE.CAISSIER || role === "caissier")) {
     return BranchRole.CAISSIER;
+  }
+  if (
+    roles.some(
+      (role) =>
+        role === ORG_ROLE.AGENT_BUREAU ||
+        role === "agent_bureau" ||
+        role === "membre_bureau",
+    )
+  ) {
+    return BranchRole.ADMIN;
   }
   if (
     roles.some(

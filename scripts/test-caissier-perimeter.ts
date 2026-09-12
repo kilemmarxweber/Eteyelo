@@ -109,6 +109,7 @@ test("accueil org admin : caissier refusé ; directeur/gestionnaire OK", () => {
   assert.equal(canAccessOrganizationAdminHome(ORG_ROLE.TEACHER), false);
   assert.equal(canAccessOrganizationAdminHome(ORG_ROLE.DIRECTEUR), true);
   assert.equal(canAccessOrganizationAdminHome(ORG_ROLE.GESTIONNAIRE), true);
+  assert.equal(canAccessOrganizationAdminHome(ORG_ROLE.AGENT_BUREAU), true);
   assert.equal(canAccessOrganizationAdminHome(ORG_ROLE.OWNER), true);
 });
 

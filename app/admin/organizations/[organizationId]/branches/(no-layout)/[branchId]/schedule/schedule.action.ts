@@ -49,10 +49,12 @@ import {
   CYCLE_SORT_ORDER,
   CYCLES,
   cycleLabel,
+  isMultiCycleBranch,
   normalizeCycle,
   resolveCycle,
   type Cycle,
 } from "@/lib/cycle";
+import { vacationBelongsToCycle } from "@/lib/creneau-cycle";
 import { compareClassesByLevel } from "@/lib/class-structure";
 import { genererCreneaux } from "@/src/hooks/getCourseHours";
 import type {
@@ -2041,15 +2043,26 @@ export const getGlobalScheduleByCycleAction = action
         id: ctx.branchId,
         organizationId: ctx.organizationId,
       },
-      select: { typebranch: true },
+      select: {
+        typebranch: true,
+        cycles: {
+          where: { isActive: true },
+          select: { cycle: true, sortOrder: true, isActive: true },
+        },
+      },
     });
+    const multiCycle = isMultiCycleBranch(branch ?? {});
 
     const classes = await prisma.classe.findMany({
       where: {
         branchId: ctx.branchId,
         branch: { organizationId: ctx.organizationId },
         OR: [{ statusClasse: true }, { statusClasse: null }],
-        AND: [classeCycleWhere([input.cycle])],
+        AND: [
+          classeCycleWhere([input.cycle], {
+            includeLegacyNull: !multiCycle,
+          }),
+        ],
         ...teacherAssignmentFilter(ctx),
       },
       select: {
@@ -2074,7 +2087,18 @@ export const getGlobalScheduleByCycleAction = action
     });
 
     const cycleClasses = classes
-      .filter((classe) => resolveCycle(classe, branch) === input.cycle)
+      .filter((classe) => {
+        if (resolveCycle(classe, branch) !== input.cycle) return false;
+        if (!classe.creneau) return true;
+        return vacationBelongsToCycle(
+          {
+            nameCreneau: classe.creneau.nameCreneau,
+            durationCourse: classe.creneau.durationCourse,
+            workingDays: classe.creneau.workingDays,
+          },
+          input.cycle,
+        );
+      })
       .sort(compareClassesByLevel);
 
     const classIds = cycleClasses.map((classe) => classe.id);

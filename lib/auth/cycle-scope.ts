@@ -161,13 +161,18 @@ export async function resolveAccessibleCycles(params: {
 }
 
 /** Filtre Prisma pour les classes du périmètre cycle. */
-export function classeCycleWhere(cycles: Cycle[]) {
+export function classeCycleWhere(
+  cycles: Cycle[],
+  options?: { includeLegacyNull?: boolean },
+) {
   if (cycles.length === 0) return {};
+  const includeLegacyNull =
+    options?.includeLegacyNull ?? cycles.length === 1;
   return {
     OR: [
       { cycle: { in: toPrismaCycles(cycles) } },
-      // Legacy null : visible seulement si mono-cycle (appelant filtre déjà).
-      ...(cycles.length === 1 ? [{ cycle: null }] : []),
+      // Legacy null : visible seulement si mono-cycle (sauf override).
+      ...(includeLegacyNull ? [{ cycle: null }] : []),
     ],
   };
 }

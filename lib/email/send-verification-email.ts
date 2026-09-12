@@ -50,6 +50,7 @@ export async function sendVerificationEmail(input: {
       whatsappTo: input.phone,
       whatsappName: input.name,
       organizationId: input.organizationId,
+      notificationEvent: "emailVerification",
       subject,
       text,
       html,

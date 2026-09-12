@@ -1,3 +1,4 @@
+import { resolveNotificationChannels } from "@/lib/notification-channels";
 import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
@@ -39,6 +40,12 @@ async function sendAbsenceMail(input: {
   const email = input.to?.trim();
   if (!email && !input.phone) return;
 
+  const allow = await resolveNotificationChannels(
+    input.organizationId,
+    "attendance",
+  );
+  if (!allow.email && !allow.whatsapp) return;
+
   const text = [
     `${input.recipientName},`,
     "",
@@ -76,20 +83,23 @@ async function sendAbsenceMail(input: {
       : undefined,
   });
 
-  try {
-    await sendMail({
-      to: email || "",
-      organizationId: input.organizationId,
-      subject: input.subject,
-      text,
-      html,
-    });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error(`[sendAbsenceNotificationEmail] ${message}`);
+  if (allow.email) {
+    try {
+      await sendMail({
+        to: email || "",
+        organizationId: input.organizationId,
+        notificationEvent: "attendance",
+        subject: input.subject,
+        text,
+        html,
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`[sendAbsenceNotificationEmail] ${message}`);
+    }
   }
 
-  if (input.phone?.trim()) {
+  if (allow.whatsapp && input.phone?.trim()) {
     await sendTransactionalWhatsApp({
       to: input.phone,
       organizationId: input.organizationId,

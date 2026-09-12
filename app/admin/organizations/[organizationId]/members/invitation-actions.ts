@@ -284,6 +284,7 @@ export async function inviteOrganizationMemberAction(
       organizationName: organization.name,
       role,
       inviterName: owner.context.session.user.name ?? null,
+      organizationId,
     });
 
     revalidatePath(`/admin/organizations/${organizationId}/members`);

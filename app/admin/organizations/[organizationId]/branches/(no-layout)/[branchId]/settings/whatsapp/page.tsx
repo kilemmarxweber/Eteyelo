@@ -127,7 +127,8 @@ export default function WhatsAppSettingsPage() {
           <p className="mt-1 text-sm text-muted-foreground">
             Toute la configuration Zindua se gère ici. Les champs sont
             préremplis depuis le .env ; un champ vide reprend le .env. Si
-            l’envoi est désactivé, rien ne part (le .env est aussi coupé).
+            l’envoi est désactivé, rien ne part (le .env est aussi coupé). Mail
+            ou WhatsApp par type d’événement : Paramètres → Notifications.
           </p>
         </div>
 

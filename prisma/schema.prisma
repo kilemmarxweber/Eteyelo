@@ -1620,9 +1620,14 @@ model Organization {
   /// Modèle de reçu : A4 (tableau) ou ticket thermique POS 80 mm.
   receiptPrintFormat         ReceiptPrintFormat          @default(A4)
   /// Notifier le parent (e-mail + WhatsApp + compte) à l'encaissement / modification / suppression.
+  /// Conservé en synchro avec notificationChannels.payment (email || whatsapp).
   notifyParentOnPayment      Boolean                     @default(true)
   /// Taille de police des rapports PDF (reçus, listes, horaire, paie, caisse, etc.).
   pdfFontSize                Int                        @default(12)
+  /// Maître e-mail organisation. Désactiver coupe tous les e-mails de l'école.
+  emailNotificationsEnabled  Boolean                     @default(true)
+  /// Matrice Mail / WhatsApp par flux (JSON). Vide = tout activé.
+  notificationChannels       Json?
   /// Envoi WhatsApp (Zindua). Désactiver si le fournisseur n'est pas actif pour éviter les jobs en erreur.
   whatsappEnabled            Boolean                     @default(true)
   /// Clé API Zindua. Vide = env ZINDUA_API_KEY.

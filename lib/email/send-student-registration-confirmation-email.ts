@@ -72,6 +72,7 @@ export async function sendStudentRegistrationConfirmationEmail(input: {
       whatsappTo: input.phone,
       whatsappName: input.recipientName,
       organizationId: input.organizationId,
+      notificationEvent: "inscription",
       subject,
       text,
       html,

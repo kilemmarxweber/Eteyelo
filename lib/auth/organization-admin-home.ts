@@ -16,6 +16,7 @@ function splitRoles(value: string | null | undefined) {
 const ORG_ADMIN_HOME_ROLES = new Set<string>([
   ORG_ROLE.OWNER,
   ORG_ROLE.GESTIONNAIRE,
+  ORG_ROLE.AGENT_BUREAU,
   ORG_ROLE.PREFET,
   ORG_ROLE.DIRECTEUR,
   ORG_ROLE.DIRECTEUR_ETUDES,

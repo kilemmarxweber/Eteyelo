@@ -18,6 +18,7 @@ import {
   IconGitMerge,
   IconShieldLock,
   IconBrandWhatsapp,
+  IconBell,
   IconMessage,
   IconCloud,
 } from "@tabler/icons-react";
@@ -252,6 +253,13 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         href: `${settingsBasePath}/whatsapp`,
         access: "org",
         dacKey: "whatsapp",
+      },
+      {
+        title: t("notifications"),
+        icon: <IconBell size={18} />,
+        href: `${settingsBasePath}/notifications`,
+        access: "org",
+        dacKey: "notifications",
       },
       {
         title: t("messaging"),

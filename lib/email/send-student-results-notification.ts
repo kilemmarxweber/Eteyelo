@@ -1,3 +1,4 @@
+import { resolveNotificationChannels } from "@/lib/notification-channels";
 import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
@@ -33,6 +34,14 @@ export async function sendStudentResultsNotification(input: {
   const email = input.to?.trim() ?? "";
   const phone = input.phone?.trim() ?? "";
   if (!email && !phone) {
+    return { emailSent: false, whatsappSent: false };
+  }
+
+  const allow = await resolveNotificationChannels(
+    input.organizationId,
+    "results",
+  );
+  if (!allow.email && !allow.whatsapp) {
     return { emailSent: false, whatsappSent: false };
   }
 
@@ -89,10 +98,11 @@ export async function sendStudentResultsNotification(input: {
     cta: { href: getSignInUrl(), label: "Ouvrir mon compte" },
   });
 
-  if (email) {
+  if (allow.email && email) {
     await sendMail({
       to: email,
       organizationId: input.organizationId,
+      notificationEvent: "results",
       subject,
       text,
       html,
@@ -101,7 +111,7 @@ export async function sendStudentResultsNotification(input: {
 
   let whatsappSent = false;
   let whatsappError: string | undefined;
-  if (phone) {
+  if (allow.whatsapp && phone) {
     const wa = await sendTransactionalWhatsApp({
       to: phone,
       organizationId: input.organizationId,
@@ -122,5 +132,9 @@ export async function sendStudentResultsNotification(input: {
     whatsappError = wa.error;
   }
 
-  return { emailSent: Boolean(email), whatsappSent, whatsappError };
+  return {
+    emailSent: Boolean(allow.email && email),
+    whatsappSent,
+    whatsappError,
+  };
 }

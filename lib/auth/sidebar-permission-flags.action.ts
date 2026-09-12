@@ -141,6 +141,7 @@ export async function getSidebarPermissionFlagsAction(
   settingsReads.typeFrais = canAccessBranchOrgSettings(session);
   settingsReads["exchange-rates"] = canAccessBranchOrgSettings(session);
   settingsReads.whatsapp = canAccessBranchOrgSettings(session);
+  settingsReads.notifications = canAccessBranchOrgSettings(session);
   settingsReads.messagerie = canAccessBranchOrgSettings(session);
   settingsReads.attendance = canAccessBranchOrgSettings(session);
   settingsReads["inscription-publique"] = canAccessSchoolOpsSettings(session);

@@ -26,6 +26,7 @@ export async function sendOrganizationInvitationEmail(input: {
   organizationName: string;
   role: string;
   inviterName?: string | null;
+  organizationId?: string | null;
 }): Promise<void> {
   const acceptUrl = getAcceptInvitationUrl(input.invitationId);
   const roleLabel = orgRoleLabel(input.role);
@@ -73,7 +74,14 @@ export async function sendOrganizationInvitationEmail(input: {
 
   if (isSmtpConfigured()) {
     try {
-      await sendMail({ to: input.to, subject, text, html });
+      await sendMail({
+        to: input.to,
+        subject,
+        text,
+        html,
+        organizationId: input.organizationId,
+        notificationEvent: "invitation",
+      });
       return;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

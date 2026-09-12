@@ -50,5 +50,6 @@ export async function sendPayrollDeductionEmail(input: {
     text,
     html,
     organizationId: input.organizationId,
+    notificationEvent: "payroll",
   });
 }

@@ -7,6 +7,7 @@ import {
   getSignInUrl,
 } from "./email-layout";
 import { sendResetPasswordWhatsApp } from "@/lib/zindua";
+import { resolveNotificationChannels } from "@/lib/notification-channels";
 
 const APP_NAME = DEFAULT_APP_NAME;
 
@@ -20,6 +21,13 @@ export async function sendResetPasswordEmail(input: {
   organizationId?: string | null;
 }): Promise<{ emailSent: boolean; whatsappSent: boolean; whatsappError?: string }> {
   const { to, name, temporaryPassword } = input;
+  const allow = await resolveNotificationChannels(
+    input.organizationId,
+    "passwordReset",
+  );
+  if (!allow.email && !allow.whatsapp) {
+    return { emailSent: false, whatsappSent: false };
+  }
   const loginUrl = input.loginUrl ?? getSignInUrl();
 
   const subject = `${APP_NAME} — Réinitialisation de votre mot de passe`;
@@ -66,16 +74,20 @@ export async function sendResetPasswordEmail(input: {
   });
 
   // Email seul (pas de miroir auto) — WhatsApp dédié avec {{code}} = MDP
-  await sendMail({
-    to,
-    subject,
-    text,
-    html,
-  });
+  if (allow.email) {
+    await sendMail({
+      to,
+      organizationId: input.organizationId,
+      notificationEvent: "passwordReset",
+      subject,
+      text,
+      html,
+    });
+  }
 
   let whatsappSent = false;
   let whatsappError: string | undefined;
-  if (input.phone?.trim()) {
+  if (allow.whatsapp && input.phone?.trim()) {
     const wa = await sendResetPasswordWhatsApp({
       to: input.phone,
       name,
@@ -89,5 +101,9 @@ export async function sendResetPasswordEmail(input: {
     whatsappError = wa.error;
   }
 
-  return { emailSent: true, whatsappSent, whatsappError };
+  return {
+    emailSent: allow.email,
+    whatsappSent,
+    whatsappError,
+  };
 }

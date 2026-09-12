@@ -207,6 +207,7 @@ const authOptions = {
           organizationName: data.organization.name,
           role: data.role,
           inviterName: data.inviter.user.name,
+          organizationId: data.organization.id,
         });
       },
       dynamicAccessControl: {

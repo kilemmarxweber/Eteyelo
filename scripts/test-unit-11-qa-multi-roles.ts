@@ -261,6 +261,7 @@ test("gestionnaire : pas de régression menu large + Tableau de bord pilotage", 
     "directeur",
   );
   assert.equal(canAccessOrganizationAdminHome(ORG_ROLE.GESTIONNAIRE), true);
+  assert.equal(canAccessOrganizationAdminHome(ORG_ROLE.AGENT_BUREAU), true);
 });
 
 console.log("\nAll unit-11 multi-role QA smoke tests passed.");
