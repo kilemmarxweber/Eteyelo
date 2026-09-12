@@ -51,6 +51,14 @@ import {
   isCycleGlobalRole,
   sessionCanViewAllDirectoryUsers,
 } from "@/lib/auth/cycle-scope";
+import { parsePdfFontSize } from "@/lib/reports/pdf-font-scale";
+import {
+  buildLocalizedSchoolReportContext,
+  resolveReportLogoUrl,
+  schoolReportBranchSelect,
+} from "@/lib/reports/resolve-school-branding";
+import type { SchoolReportContext } from "@/lib/reports/types";
+import { resolvePreferredLocale } from "@/lib/resolve-preferred-locale";
 import {
   cycleLabel,
   getBranchCycles,
@@ -954,6 +962,8 @@ export type OrganizationMemberListItem = {
     postnom: string | null;
     prenom: string | null;
     image: string | null;
+    telephone: string | null;
+    address: string | null;
   };
   branches: { id: string; name: string }[];
 };
@@ -1181,6 +1191,8 @@ export async function listOrganizationMembersAction(
             postnom: true,
             prenom: true,
             image: true,
+            telephone: true,
+            address: true,
           },
         },
         branchMember: {
@@ -1248,6 +1260,73 @@ export async function listOrganizationMembersAction(
         user: member.user,
         branches: member.branchMember.map((row) => row.branch),
       })),
+    };
+  } catch (e) {
+    return { ok: false, message: errMessage(e) };
+  }
+}
+
+export async function getOrganizationMembersReportContextAction(
+  organizationId: string,
+): Promise<
+  | { ok: true; context: SchoolReportContext }
+  | { ok: false; message: string }
+> {
+  const guard = await guardOrganizationMemberPermission(organizationId, {
+    member: ["read"],
+  });
+  if (!guard.ok) {
+    return { ok: false, message: guard.message };
+  }
+
+  try {
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: {
+        id: true,
+        name: true,
+        logo: true,
+        pdfFontSize: true,
+        branches: {
+          where: { isActive: true },
+          orderBy: { name: "asc" },
+          take: 1,
+          select: schoolReportBranchSelect,
+        },
+      },
+    });
+    if (!organization) {
+      return { ok: false, message: "Organisation introuvable." };
+    }
+
+    const locale = await resolvePreferredLocale();
+    const fallbackBranch = organization.branches[0];
+    if (fallbackBranch) {
+      return {
+        ok: true,
+        context: {
+          ...(await buildLocalizedSchoolReportContext(fallbackBranch, {
+            locale,
+          })),
+          schoolName: organization.name,
+          branchName: organization.name,
+          branchId: "",
+        },
+      };
+    }
+
+    return {
+      ok: true,
+      context: {
+        organizationId: organization.id,
+        branchId: "",
+        schoolName: organization.name,
+        locale,
+        branchName: organization.name,
+        logoUrl: resolveReportLogoUrl(null, organization.logo),
+        generatedAt: new Date().toISOString(),
+        pdfFontSize: parsePdfFontSize(organization.pdfFontSize),
+      },
     };
   } catch (e) {
     return { ok: false, message: errMessage(e) };

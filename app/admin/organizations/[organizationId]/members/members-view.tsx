@@ -9,6 +9,7 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
+  FileDown,
   KeyRound,
   MoreHorizontal,
   Pencil,
@@ -22,6 +23,7 @@ import { toast } from "sonner";
 import {
   archiveOrganizationMemberAction,
   deleteOrganizationMemberPermanentlyAction,
+  getOrganizationMembersReportContextAction,
   listOrganizationMembersAction,
   type OrganizationMemberListItem,
 } from "@/app/admin/organizations/[organizationId]/members/actions";
@@ -38,7 +40,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { orgRoleLabel } from "@/lib/org-role-labels";
-import { formatPersonFullName } from "@/lib/person-full-name";
+import {
+  comparePersonNames,
+  formatPersonFullName,
+} from "@/lib/person-full-name";
 import { ORG_ROLE } from "@/lib/permissions";
 import { memberHasImplicitAllBranchAccess } from "@/lib/auth/role-labels";
 import {
@@ -49,6 +54,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ResetUsersDialog } from "../branches/(no-layout)/[branchId]/student/components/reset-users-dialog";
+import { exportMembersReportPdf } from "./export-members-pdf";
 import { cn, normalizeImageSrc } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
 import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
@@ -106,6 +112,8 @@ export function OrganizationMembersView({
   const [members, setMembers] = useState<OrganizationMemberListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [exportingPdf, setExportingPdf] = useState(false);
   const [page, setPage] = useState(1);
   const [resetEmail, setResetEmail] = useState<string | null>(null);
   const [archivingId, setArchivingId] = useState<string | null>(null);
@@ -135,12 +143,30 @@ export function OrganizationMembersView({
     void loadMembers();
   }, [loadMembers]);
 
+  const roleOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const member of members) {
+      const slug = primaryRole(member.role);
+      if (!slug || map.has(slug)) continue;
+      map.set(slug, orgRoleLabel(slug));
+    }
+    return [...map.entries()]
+      .map(([slug, label]) => ({ slug, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, "fr"));
+  }, [members]);
+
+  const selectedRoleLabel =
+    roleFilter === "all"
+      ? null
+      : (roleOptions.find((role) => role.slug === roleFilter)?.label ?? null);
+
   const filteredMembers = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return members;
-    return members.filter((member) => {
-      const fullName = formatPersonFullName(member.user);
+    const result = members.filter((member) => {
       const role = primaryRole(member.role);
+      if (roleFilter !== "all" && role !== roleFilter) return false;
+      if (!q) return true;
+      const fullName = formatPersonFullName(member.user);
       const branchNames = member.branches.map((b) => b.name.toLowerCase());
       const matchesAllBranchesLabel =
         memberHasImplicitAllBranchAccess(role) &&
@@ -154,7 +180,18 @@ export function OrganizationMembersView({
         matchesAllBranchesLabel
       );
     });
-  }, [members, search]);
+
+    return result.sort((a, b) => {
+      if (a.isArchived !== b.isArchived) return a.isArchived ? 1 : -1;
+      const byRole = orgRoleLabel(primaryRole(a.role)).localeCompare(
+        orgRoleLabel(primaryRole(b.role)),
+        "fr",
+        { sensitivity: "base" },
+      );
+      if (byRole !== 0) return byRole;
+      return comparePersonNames(a.user, b.user);
+    });
+  }, [members, search, roleFilter]);
 
   const pageCount = Math.max(1, Math.ceil(filteredMembers.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
@@ -165,11 +202,42 @@ export function OrganizationMembersView({
 
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [search, roleFilter]);
+
+  useEffect(() => {
+    if (loading || roleFilter === "all") return;
+    if (!roleOptions.some((role) => role.slug === roleFilter)) {
+      setRoleFilter("all");
+    }
+  }, [loading, roleFilter, roleOptions]);
 
   useEffect(() => {
     if (page > pageCount) setPage(pageCount);
   }, [page, pageCount]);
+
+  async function exportPdf() {
+    if (filteredMembers.length === 0 || exportingPdf) return;
+    setExportingPdf(true);
+    try {
+      const res = await getOrganizationMembersReportContextAction(
+        organizationId,
+      );
+      if (!res.ok) {
+        toast.error(res.message);
+        return;
+      }
+      await exportMembersReportPdf(filteredMembers, res.context, {
+        roleLabel: selectedRoleLabel,
+      });
+      toast.success("PDF généré.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Impossible de générer le PDF.",
+      );
+    } finally {
+      setExportingPdf(false);
+    }
+  }
 
   async function toggleArchive(member: OrganizationMemberListItem) {
     setArchivingId(member.id);
@@ -245,6 +313,16 @@ export function OrganizationMembersView({
             <RefreshCcw className={cn("size-4", loading && "animate-spin")} />
             Actualiser
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11"
+            onClick={() => void exportPdf()}
+            disabled={loading || exportingPdf || filteredMembers.length === 0}
+          >
+            <FileDown className="size-4" />
+            {exportingPdf ? "PDF…" : "PDF"}
+          </Button>
           <Button className="h-11" asChild>
             <Link href={`${listHref}/new`}>
               <Plus className="size-4" />
@@ -257,16 +335,31 @@ export function OrganizationMembersView({
       {invitePanel}
 
       <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card/40 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
-        <div className="relative w-full min-w-0">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher par nom, email, rôle ou établissement…"
-            className="h-11 rounded-xl pl-10"
-          />
+        <div className="flex min-w-0 w-full flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative min-w-0 w-full flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher par nom, email, rôle ou établissement…"
+              className="h-11 rounded-xl pl-10"
+            />
+          </div>
+          <select
+            aria-label="Trier par rôle"
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm sm:w-56"
+          >
+            <option value="all">Tous les rôles</option>
+            {roleOptions.map((role) => (
+              <option key={role.slug} value={role.slug}>
+                {role.label}
+              </option>
+            ))}
+          </select>
         </div>
-        <p className="text-xs tabular-nums text-muted-foreground sm:text-sm">
+        <p className="text-xs tabular-nums text-muted-foreground sm:text-sm sm:shrink-0">
           {loading
             ? "Chargement…"
             : `${filteredMembers.length} membre${filteredMembers.length === 1 ? "" : "s"}`}
@@ -288,7 +381,7 @@ export function OrganizationMembersView({
           <p className="mt-3 text-sm font-medium">
             {members.length === 0
               ? "Aucun membre pour le moment."
-              : "Aucun résultat pour cette recherche."}
+              : "Aucun résultat pour cette recherche ou ce rôle."}
           </p>
           {members.length === 0 ? (
             <Button className="mt-4 h-11" asChild>
