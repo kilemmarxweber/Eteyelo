@@ -67,15 +67,13 @@ const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
         onChange,
         onCountryChange,
         defaultCountry = "CD",
-        country,
         ...props
       },
       ref,
     ) => {
       const countryRef = React.useRef<RPNInput.Country | undefined>(
-        country ?? defaultCountry,
+        defaultCountry,
       );
-      countryRef.current = country ?? countryRef.current ?? defaultCountry;
 
       return (
         <RPNInput.default
@@ -86,9 +84,8 @@ const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
           countrySelectComponent={CountrySelect}
           inputComponent={InputComponent}
           defaultCountry={defaultCountry}
-          country={country}
           onCountryChange={(next) => {
-            countryRef.current = next;
+            countryRef.current = next ?? defaultCountry;
             onCountryChange?.(next);
           }}
           onChange={(value) => {
