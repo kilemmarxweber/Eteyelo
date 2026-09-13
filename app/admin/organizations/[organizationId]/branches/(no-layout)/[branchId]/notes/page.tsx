@@ -58,6 +58,17 @@ type TeacherType = {
   lessons: LessonType[];
 };
 
+function toIsoString(value: Date | string | null | undefined): string {
+  if (!value) return "";
+  try {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toISOString();
+  } catch {
+    return "";
+  }
+}
+
 export default async function NotesPage({
   searchParams,
 }: {
@@ -372,7 +383,7 @@ export default async function NotesPage({
             periodeName: f.periodeName,
             typeFiche: f.typeFiche,
             anneeId: f.anneeId,
-            dateCreated: f.dateCreated.toISOString(),
+            dateCreated: toIsoString(f.dateCreated),
           })) || [],
       });
     }
@@ -407,7 +418,7 @@ export default async function NotesPage({
             periodeName: f.periodeName,
             typeFiche: f.typeFiche,
             anneeId: f.anneeId,
-            dateCreated: f.dateCreated.toISOString(),
+            dateCreated: toIsoString(f.dateCreated),
           })),
         };
       }),
