@@ -158,7 +158,15 @@ export const getFicheScoresAction = action
       coursName: fiche.coursName,
       classeName: fiche.classeName,
       periodeName: fiche.periodeName,
-      dateCreated: fiche.dateCreated.toISOString(),
+      dateCreated: (() => {
+        try {
+          const date = fiche.dateCreated;
+          if (!date || Number.isNaN(new Date(date).getTime())) return "";
+          return new Date(date).toISOString();
+        } catch {
+          return "";
+        }
+      })(),
       notes,
       pendingRequestId: pending?.id ?? null,
       isOpen: !fiche.status,

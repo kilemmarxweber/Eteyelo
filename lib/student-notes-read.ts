@@ -25,6 +25,17 @@ type ParsedNote = {
   comment?: string | null;
 };
 
+function toIsoDateOnly(value: Date | string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toISOString().slice(0, 10);
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Notes en lecture pour un élève : uniquement les cours **déjà notés**
  * (entrée fiche avec `score !== null`, unit-00 §3ter / unit-05).
@@ -114,9 +125,7 @@ export async function buildStudentNotesReadData(params: {
       score,
       maxScore: Number(mine.maxScore) || 0,
       comment: mine.comment?.trim() ? String(mine.comment) : null,
-      dateUpdated: fiche.dateUpdated
-        ? fiche.dateUpdated.toISOString().slice(0, 10)
-        : null,
+      dateUpdated: toIsoDateOnly(fiche.dateUpdated),
     });
   }
 

@@ -41,6 +41,17 @@ import {
 } from "@/lib/person-full-name";
 import { normalizeEducationSystem } from "@/lib/education-system";
 
+function toIsoString(value: Date | string | null | undefined): string {
+  if (!value) return "";
+  try {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toISOString();
+  } catch {
+    return "";
+  }
+}
+
 export async function logout() {
   await auth.api.signOut({
     headers: await headers(),
@@ -304,7 +315,7 @@ export async function getStudentsByClass(
         gradeId: "0",
         studentSurname: lastname,
         studentusername: firstname || username,
-        studentnaissance: birthday?.toISOString() ?? "",
+        studentnaissance: toIsoString(birthday),
         studentclasse: enrollment.classe?.nameClasse ?? classe.nameClasse,
         studentSexe,
         category: student.category,
@@ -632,7 +643,7 @@ export async function getFichesGroupedByCoursAnnee(): Promise<FicheResults[]> {
 
         typeFiche: f.typeFiche,
         status: f.status,
-        dateCreated: f.dateCreated.toISOString(),
+        dateCreated: toIsoString(f.dateCreated),
 
         notes: f.notes ? JSON.parse(f.notes) : [],
         autres: f.autres ? JSON.parse(f.autres) : {},
@@ -841,7 +852,7 @@ export async function getLessonsWithFichesByClass(
         domainOrder: lesson.cours?.domainOrder ?? null,
         periodName: f.period?.label ?? f.periodeName ?? "-",
         className: lesson.classe?.nameClasse ?? f.classeName ?? "",
-        dateCreated: f.dateCreated ? new Date(f.dateCreated).toISOString() : "",
+        dateCreated: toIsoString(f.dateCreated),
         anneeName: f.anneeName ?? "",
         typeFiche: f.typeFiche ?? null,
         notes: f.notes ? JSON.parse(f.notes) : [],
