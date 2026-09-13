@@ -254,7 +254,7 @@ test("directeur de branche → pas d’accès complet (contrairement au proprié
   );
 });
 
-test("paie lecture : staff ; transactions → propriétaire org, pas l'admin de branche", () => {
+test("paie : gestionnaire / propriétaire ; autres rôles via matrice ; transactions → propriétaire", () => {
   assert.equal(canAccessBranchArea("payroll", sessionBranchOwner), false);
   assert.equal(canAccessBranchArea("transactions", sessionBranchOwner), false);
   assert.equal(canAccessBranchArea("payroll", sessionWithOrgRole(ORG_ROLE.OWNER)), true);
@@ -262,8 +262,12 @@ test("paie lecture : staff ; transactions → propriétaire org, pas l'admin de 
     canAccessBranchArea("transactions", sessionWithOrgRole(ORG_ROLE.OWNER)),
     true,
   );
+  assert.equal(
+    canAccessBranchArea("payroll", sessionWithOrgRole(ORG_ROLE.GESTIONNAIRE)),
+    true,
+    "gestionnaire a la paie complète par défaut",
+  );
   for (const role of [
-    ORG_ROLE.GESTIONNAIRE,
     ORG_ROLE.DIRECTEUR,
     ORG_ROLE.DIRECTEUR_ETUDES,
     ORG_ROLE.CAISSIER,
@@ -271,8 +275,8 @@ test("paie lecture : staff ; transactions → propriétaire org, pas l'admin de 
   ]) {
     assert.equal(
       canAccessBranchArea("payroll", sessionWithOrgRole(role)),
-      true,
-      `${role} doit voir son bulletin de paie`,
+      false,
+      `${role} n'a pas la paie par défaut`,
     );
     assert.equal(
       canAccessBranchArea("transactions", sessionWithOrgRole(role)),

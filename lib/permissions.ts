@@ -114,9 +114,11 @@ export const ALL_ORG_ROLE_SLUGS = [
   ORG_ROLE.SUPPORT,
 ] as const;
 
-/** Agents / rôles staff : bulletin personnel (`payroll:read`) sans barème ni caisse. */
+/**
+ * Rôles staff sans paie par défaut. Bulletin / détail / paie complète
+ * s’activent via la matrice ou un octroi temporaire — pas le preset.
+ */
 export const STAFF_SELF_PAYROLL_ROLE_SLUGS = [
-  ORG_ROLE.GESTIONNAIRE,
   ORG_ROLE.AGENT_BUREAU,
   ORG_ROLE.PREFET,
   ORG_ROLE.DIRECTEUR,
@@ -401,9 +403,9 @@ const MESSAGING_OWNER = {
   messaging: ["read", "send", "group", "manage"] as const,
 };
 
-/** Bulletin de paie du user actif — pas compute / validate / pay (matrice). */
-const PAYROLL_SELF_READ = {
-  payroll: ["read"] as const,
+/** Paie complète : bulletin, détail, calcul, validation, paiement (matrice). */
+const PAYROLL_FULL = {
+  payroll: ["read", "compute", "validate", "pay"] as const,
 };
 
 const orgAdminWithoutDelete: StatementShape = {
@@ -454,7 +456,7 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     ...withActions(CRUD_ACTIONS),
     ...withSchoolModuleActions(CRUD_ACTIONS, { includeTeachingAssign: true }),
     ...withFinanceActions(CRUD_ACTIONS),
-    payroll: ["read", "compute", "validate", "pay"],
+    ...PAYROLL_FULL,
     transactions: ["create", "read", "update", "delete"],
     // Propriétaire org : update/archive, pas de suppression physique (owner plateforme seul).
     organization: ["update"],
@@ -467,7 +469,7 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     ...withActions(CRU_ACTIONS),
     ...withSchoolModuleActions(CRU_ACTIONS, { includeTeachingAssign: true }),
     ...withFinanceActions(CRU_ACTIONS),
-    ...PAYROLL_SELF_READ,
+    ...PAYROLL_FULL,
     organizationSupport: ["create", "read", "update"],
     platformEscalation: ["read"],
     ...MESSAGING_STAFF,
@@ -482,7 +484,6 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
       includeTeachingAssign: true,
       omit: ["notes", "fees", "feeTypes", "exchangeRates"],
     }),
-    ...PAYROLL_SELF_READ,
     organizationSupport: ["create", "read", "update"],
     platformEscalation: ["read"],
     ...MESSAGING_STAFF,
@@ -495,13 +496,11 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
   [ORG_ROLE.PREFET]: {
     ...leadershipBusinessPreset(),
     ...leadershipSchoolPreset(),
-    ...PAYROLL_SELF_READ,
     ...MESSAGING_STAFF,
   },
   [ORG_ROLE.DIRECTEUR]: {
     ...leadershipBusinessPreset(),
     ...leadershipSchoolPreset(),
-    ...PAYROLL_SELF_READ,
     ...MESSAGING_STAFF,
   },
   /**
@@ -515,7 +514,6 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     personnel: ["read"],
     parent: ["read"],
     teacher: ["read"],
-    ...PAYROLL_SELF_READ,
     ...MESSAGING_STAFF,
   },
   [ORG_ROLE.TEACHER]: {
@@ -528,14 +526,12 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     library: ["create", "read", "update"],
     fiches: ["create", "read", "update"],
     ficheCentrale: ["create", "read", "update"],
-    ...PAYROLL_SELF_READ,
     ...MESSAGING_STAFF,
   },
   [ORG_ROLE.SUPERVISEUR]: {
     ...withActions(CRUD_ACTIONS),
     ...withSchoolModuleActions(CRUD_ACTIONS, { includeTeachingAssign: true }),
     ...withFinanceActions(CRUD_ACTIONS),
-    ...PAYROLL_SELF_READ,
     ...MESSAGING_STAFF,
   },
   /**
@@ -555,7 +551,6 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     fees: ["read"],
     feeTypes: ["read"],
     exchangeRates: ["read"],
-    ...PAYROLL_SELF_READ,
     ...MESSAGING_STAFF,
   },
   [ORG_ROLE.STUDENT]: {
@@ -580,7 +575,6 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     branch: ["read"],
     organizationSupport: ["read"],
     platformEscalation: ["create", "read"],
-    ...PAYROLL_SELF_READ,
     ...MESSAGING_STAFF,
   },
 };

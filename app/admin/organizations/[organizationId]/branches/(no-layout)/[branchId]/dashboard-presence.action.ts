@@ -15,6 +15,15 @@ import {
   isBranchClosedOn,
   resolvePersonnelStatusFromSchedule,
 } from "@/lib/branch-closed-days";
+import {
+  calendarDateKey,
+  DEFAULT_PERSONNEL_DAY_MINUTES,
+  emptyPresenceSeries,
+  isPresentLikeStatus,
+  personnelWorkedHours,
+  presenceChartRange,
+  type PresenceChartStats,
+} from "@/lib/presence-session-chart";
 import { nowLocal, startOfTodayParis } from "@/lib/timezone";
 import { checkTeacherAttendanceNeeded } from "./attendance/attendance.action";
 
@@ -36,6 +45,7 @@ export type DashboardTeacherPresence = {
     classe: string | null;
   } | null;
   month: PresenceMonthSummary;
+  chart: PresenceChartStats;
 };
 
 export type DashboardPersonnelPresence = {
@@ -46,6 +56,8 @@ export type DashboardPersonnelPresence = {
     checkOut: string | null;
   } | null;
   month: PresenceMonthSummary;
+  chart: PresenceChartStats;
+  dayHours: number;
 };
 
 export type DashboardPresenceData = {
@@ -127,9 +139,12 @@ export const getMyDashboardPresenceAction = action.handler(
       getPersonnelIdForUser(userId, branchId),
     ]);
 
+    const chartRange = presenceChartRange();
+    const now = nowLocal();
+
     let teacher: DashboardTeacherPresence | null = null;
     if (teacherId) {
-      const [records, pending] = await Promise.all([
+      const [records, chartRows, pending] = await Promise.all([
         prisma.teacherAttendance.findMany({
           where: {
             branchId,
@@ -138,10 +153,31 @@ export const getMyDashboardPresenceAction = action.handler(
           },
           select: { status: true },
         }),
+        prisma.teacherAttendance.findMany({
+          where: {
+            branchId,
+            teacherId,
+            date: { gte: chartRange.start, lte: chartRange.end },
+          },
+          select: { date: true, status: true },
+        }),
         checkTeacherAttendanceNeeded({ organizationId, branchId }),
       ]);
       const month = emptyMonth();
       for (const record of records) bump(month, record.status);
+      const series = emptyPresenceSeries(chartRange.keys);
+      const byDate = new Map(series.map((item) => [item.date, item]));
+      let weekPresent = 0;
+      let todayPresent = 0;
+      for (const row of chartRows) {
+        if (!isPresentLikeStatus(row.status)) continue;
+        const key = calendarDateKey(row.date);
+        const bucket = byDate.get(key);
+        if (!bucket) continue;
+        bucket.count += 1;
+        weekPresent += 1;
+        if (key === chartRange.todayKey) todayPresent += 1;
+      }
       teacher = {
         id: teacherId,
         pending:
@@ -154,13 +190,18 @@ export const getMyDashboardPresenceAction = action.handler(
               }
             : null,
         month,
+        chart: {
+          todayCount: todayPresent,
+          totalCount: weekPresent,
+          series,
+        },
       };
     }
 
     let personnel: DashboardPersonnelPresence | null = null;
     if (personnelId) {
       const today = startOfTodayParis();
-      const [records, todayRow] = await Promise.all([
+      const [records, todayRow, chartRows, policy] = await Promise.all([
         prisma.personnelAttendance.findMany({
           where: {
             branchId,
@@ -179,9 +220,42 @@ export const getMyDashboardPresenceAction = action.handler(
           },
           select: { status: true, checkIn: true, checkOut: true },
         }),
+        prisma.personnelAttendance.findMany({
+          where: {
+            branchId,
+            personnelId,
+            date: { gte: chartRange.start, lte: chartRange.end },
+          },
+          select: { date: true, status: true, checkIn: true, checkOut: true },
+        }),
+        prisma.branchPayrollPolicy.findFirst({
+          where: { branchId, isActive: true },
+          select: { personnelDayMinutes: true },
+        }),
       ]);
+      const dayMinutes =
+        policy?.personnelDayMinutes && policy.personnelDayMinutes > 0
+          ? policy.personnelDayMinutes
+          : DEFAULT_PERSONNEL_DAY_MINUTES;
+      const dayHours = dayMinutes / 60;
       const month = emptyMonth();
       for (const record of records) bump(month, record.status);
+      const series = emptyPresenceSeries(chartRange.keys);
+      const byDate = new Map(series.map((item) => [item.date, item]));
+      let todayHours = 0;
+      for (const row of chartRows) {
+        const hours = personnelWorkedHours(
+          row,
+          dayMinutes,
+          now,
+          chartRange.todayKey,
+        );
+        const key = calendarDateKey(row.date);
+        const bucket = byDate.get(key);
+        if (!bucket) continue;
+        bucket.count = hours;
+        if (key === chartRange.todayKey) todayHours = hours;
+      }
       personnel = {
         id: personnelId,
         today: todayRow
@@ -192,6 +266,12 @@ export const getMyDashboardPresenceAction = action.handler(
             }
           : null,
         month,
+        chart: {
+          todayCount: todayHours,
+          totalCount: dayHours,
+          series,
+        },
+        dayHours,
       };
     }
 

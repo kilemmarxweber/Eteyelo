@@ -153,7 +153,21 @@
     "checkedOut": "Clock-out recorded.",
     "checkInFailed": "Unable to clock in.",
     "checkOutFailed": "Unable to clock out.",
-    "noProfile": "No teacher or staff profile is linked to this account on this branch."
+    "noProfile": "No teacher or staff profile is linked to this account on this branch.",
+    "chartSessionsTitle": "Session attendance",
+    "chartSessionsSubtitle": "Sessions clocked today and over 7 days.",
+    "chartHoursTitle": "Daily attendance",
+    "chartHoursSubtitle": "Hours worked against an 8-hour day.",
+    "chartSessionsToday": "Today’s sessions",
+    "chartHoursToday": "Hours today",
+    "chartSessionsTotal": "Sessions · 7 d.",
+    "chartHoursTotal": "Expected today",
+    "chartSessionsSeries": "Session attendance · last 7 days",
+    "chartHoursSeries": "Hours worked · last 7 days",
+    "chartSessionsTooltip": "{count, plural, one {# session} other {# sessions}}",
+    "chartHoursTooltip": "{count} h",
+    "chartShareLabel": "Today’s share",
+    "chartShare": "{pct}% of total"
   },
   "teacher": {
     "myClasses": "My classes",

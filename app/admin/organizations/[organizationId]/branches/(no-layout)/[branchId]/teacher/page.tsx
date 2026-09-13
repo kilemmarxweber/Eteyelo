@@ -42,6 +42,8 @@ import { ImportStaffDialog } from "../components/import-staff-dialog";
 import { getStaffPageContextAction } from "../staff-import.action";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { cycleLabel, type SchoolCycle } from "@/lib/cycle";
+import { PresenceSessionsChart } from "@/components/presence-sessions-chart";
+import type { PresenceChartStats } from "@/lib/presence-session-chart";
 
 export type TeacherAssignmentFilter =
   | "all"
@@ -60,6 +62,7 @@ type TeacherDashboardStats = {
   coveredCourses: number;
   averageAssignments: number;
   cycles: SchoolCycle[];
+  presenceChart?: PresenceChartStats;
 };
 
 export default function Teachers() {
@@ -210,7 +213,8 @@ export default function Teachers() {
             </div>
           }
     >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(280px,22rem)]">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {[
             {
               label: `${peopleLabels.teacherPlural} actifs`,
@@ -282,6 +286,12 @@ export default function Teachers() {
             );
           })}
         </div>
+        <PresenceSessionsChart
+          mode="sessions"
+          stats={stats?.presenceChart ?? null}
+          loading={!stats}
+        />
+      </div>
         <Card
           variant="elevated"
           className="mt-0 border p-1 md:p-4 rounded-md shadow-sm"

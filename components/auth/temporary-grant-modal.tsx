@@ -43,11 +43,14 @@ type TemporaryGrantModalProps = {
 };
 
 const ACTION_OPTIONS = [
-  { value: "read", label: "Lecture uniquement (read)" },
+  { value: "read", label: "Lecture / bulletin & détail (read)" },
   { value: "create", label: "Création (create) + lecture" },
   { value: "update", label: "Modification (update) + lecture" },
   { value: "delete", label: "Suppression (delete) + lecture" },
   { value: "encaisser", label: "Encaissement caisse (encaisser)" },
+  { value: "compute", label: "Calculer la paie (compute) + lecture" },
+  { value: "validate", label: "Valider les bulletins (validate) + lecture" },
+  { value: "pay", label: "Payer les bulletins (pay) + lecture" },
 ];
 
 const DURATION_PRESETS = [
@@ -100,12 +103,16 @@ export function TemporaryGrantModal({
     value: item.resource,
     label: item.label,
   }));
-  const canEncaisser = itemValues.some((resource) =>
-    extraActionsForResource(resource).includes("encaisser"),
+  const extraFromSelection = new Set(
+    itemValues.flatMap((resource) => extraActionsForResource(resource)),
   );
-  const visibleActions = ACTION_OPTIONS.filter(
-    (opt) => opt.value !== "encaisser" || canEncaisser,
-  ).map((opt) =>
+  const extraActionValues = new Set(["encaisser", "compute", "validate", "pay"]);
+  const canEncaisser = extraFromSelection.has("encaisser");
+  const canPayrollMutate = itemValues.includes("payroll");
+  const visibleActions = ACTION_OPTIONS.filter((opt) => {
+    if (!extraActionValues.has(opt.value)) return true;
+    return extraFromSelection.has(opt.value);
+  }).map((opt) =>
     canEncaisser && writeActionIncludesRead(opt.value)
       ? {
           ...opt,
@@ -114,17 +121,24 @@ export function TemporaryGrantModal({
       : opt,
   );
   const selectedWrite = actions.some((value) => writeActionIncludesRead(value));
+  const selectedPayrollMutate = actions.some((value) =>
+    ["compute", "validate", "pay"].includes(value),
+  );
   const selectedReadOnly =
-    actions.includes("read") && !selectedWrite && !actions.includes("encaisser");
+    actions.includes("read") &&
+    !selectedWrite &&
+    !selectedPayrollMutate &&
+    !actions.includes("encaisser");
 
   const handleGroupChange = (nextGroupId: string) => {
     setGroupId(nextGroupId);
     setItemValues([]);
-    setActions((current) =>
-      current.filter((value) => value !== "encaisser").length
-        ? current.filter((value) => value !== "encaisser")
-        : ["read"],
-    );
+    setActions((current) => {
+      const filtered = current.filter(
+        (value) => !extraActionValues.has(value),
+      );
+      return filtered.length ? filtered : ["read"];
+    });
   };
 
   const loadMembers = useCallback(
@@ -296,15 +310,16 @@ export function TemporaryGrantModal({
                 value={itemValues}
                 onValueChange={(next) => {
                   setItemValues(next);
-                  const stillCanEncaisser = next.some((resource) =>
-                    extraActionsForResource(resource).includes("encaisser"),
+                  const extras = new Set(
+                    next.flatMap((resource) => extraActionsForResource(resource)),
                   );
-                  if (!stillCanEncaisser) {
-                    setActions((current) => {
-                      const filtered = current.filter((value) => value !== "encaisser");
-                      return filtered.length ? filtered : ["read"];
-                    });
-                  }
+                  setActions((current) => {
+                    const filtered = current.filter(
+                      (value) =>
+                        !extraActionValues.has(value) || extras.has(value),
+                    );
+                    return filtered.length ? filtered : ["read"];
+                  });
                 }}
                 placeholder="Choisir un ou plusieurs sous-menus..."
                 searchable={submenuOptions.length > 6}
@@ -343,8 +358,14 @@ export function TemporaryGrantModal({
             <p className="text-xs text-muted-foreground">
               {selectedWrite && canEncaisser
                 ? "Sur Paiement / Caisse, création, modification et suppression incluent la lecture et l'encaissement."
+                : selectedWrite && canPayrollMutate
+                ? "Sur Paie du personnel, modification inclut bulletin, détail, calcul, validation et paiement."
                 : selectedWrite
                 ? "Création, modification et suppression incluent automatiquement la lecture."
+                : selectedPayrollMutate
+                  ? "Calculer, valider ou payer ouvre aussi le bulletin et le détail pendant la durée de l'octroi."
+                : selectedReadOnly && canPayrollMutate
+                  ? "Lecture seule : bulletin de paie et détail, sans barème ni paiement."
                 : selectedReadOnly
                   ? "Lecture seule : consulter sans créer, modifier ni supprimer."
                   : actions.includes("encaisser")

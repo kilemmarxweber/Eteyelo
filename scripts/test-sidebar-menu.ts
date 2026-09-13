@@ -80,8 +80,8 @@ test("caissier : dashboard, registration, finance, users/student, help — pas c
     (item) => item.title === "finance",
   );
   const financeSubs = (finance?.sub ?? []).map((item) => item.title);
-  assertIncludes(financeSubs, ["payment", "teacherPayroll"], "caissier finance");
-  assertExcludes(financeSubs, ["fees", "transactions"], "caissier finance");
+  assertIncludes(financeSubs, ["payment"], "caissier finance");
+  assertExcludes(financeSubs, ["fees", "transactions", "teacherPayroll"], "caissier finance");
 });
 
 test("élève : dashboard, results, library — pas grades/schedule/sheets / finance", () => {
@@ -130,16 +130,12 @@ test("parent : dashboard + results — pas grades/schedule/homework/library / fi
   );
 });
 
-test("enseignant : pas teaching / users ; finance = paie personnelle ; cursus grades/results/library", () => {
+test("enseignant : pas teaching / users / finance par défaut ; cursus grades/results/library", () => {
   const session = sessionWithOrgRole(ORG_ROLE.TEACHER);
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);
-  const finance = buildStaticSideLinks(session, BRANCH_PATH, "PRIMAIRE").find(
-    (item) => item.title === "finance",
-  );
-  const financeSubs = (finance?.sub ?? []).map((item) => item.title);
 
-  assertIncludes(titles, ["dashboard", "cursus", "myPresence", "help", "finance"], "enseignant");
+  assertIncludes(titles, ["dashboard", "cursus", "myPresence", "help"], "enseignant");
   assertExcludes(
     titles,
     [
@@ -149,14 +145,9 @@ test("enseignant : pas teaching / users ; finance = paie personnelle ; cursus gr
       "teaching",
       "users",
       "messaging",
+      "finance",
     ],
     "enseignant",
-  );
-  assertIncludes(financeSubs, ["teacherPayroll"], "enseignant paie");
-  assertExcludes(
-    financeSubs,
-    ["fees", "payment", "transactions"],
-    "enseignant paie sans caisse",
   );
   assertIncludes(
     cursus,
@@ -166,12 +157,13 @@ test("enseignant : pas teaching / users ; finance = paie personnelle ; cursus gr
   assertExcludes(cursus, ["schedule"], "enseignant cursus");
 });
 
-test("préfet / directeur DAC : pédagogie + paie personnelle — pas caisse / inscription / candidatures", () => {
+test("préfet / directeur DAC : pédagogie — pas caisse / paie / inscription / candidatures", () => {
   const leadershipHide = [
     "/admin/registration",
     "/admin/candidatures",
     "/admin/frais",
     "/admin/paiement",
+    "/admin/paie-enseignants",
     "/admin/paie-enseignants/credits",
     "/admin/transactions",
   ];
@@ -191,21 +183,21 @@ test("préfet / directeur DAC : pédagogie + paie personnelle — pas caisse / i
 
     assertIncludes(
       titles,
-      ["dashboard", "myPresence", "users", "teaching", "classes", "cursus", "help", "finance"],
+      ["dashboard", "myPresence", "users", "teaching", "classes", "cursus", "help"],
       role,
     );
-    assertExcludes(titles, ["registration", "candidatures"], role);
-    assertIncludes(financeSubs, ["teacherPayroll"], role);
-    assertExcludes(financeSubs, ["fees", "payment", "transactions"], role);
+    assertExcludes(titles, ["registration", "candidatures", "finance"], role);
+    assertExcludes(financeSubs, ["fees", "payment", "transactions", "teacherPayroll"], role);
   }
 });
 
-test("directeur des études DAC : pédagogie + paie personnelle — pas caisse / inscription / candidatures", () => {
+test("directeur des études DAC : pédagogie — pas caisse / paie / inscription / candidatures", () => {
   const leadershipHide = [
     "/admin/registration",
     "/admin/candidatures",
     "/admin/frais",
     "/admin/paiement",
+    "/admin/paie-enseignants",
     "/admin/paie-enseignants/credits",
     "/admin/transactions",
   ];
@@ -222,19 +214,18 @@ test("directeur des études DAC : pédagogie + paie personnelle — pas caisse /
 
   assertIncludes(
     titles,
-    ["dashboard", "myPresence", "users", "teaching", "classes", "cursus", "help", "finance"],
+    ["dashboard", "myPresence", "users", "teaching", "classes", "cursus", "help"],
     "directeur des études",
   );
   assertExcludes(
     titles,
-    ["registration", "candidatures"],
+    ["registration", "candidatures", "finance"],
     "directeur des études",
   );
-  assertIncludes(financeSubs, ["teacherPayroll"], "études paie");
   assertExcludes(
     financeSubs,
-    ["fees", "payment", "transactions"],
-    "études paie sans caisse",
+    ["fees", "payment", "transactions", "teacherPayroll"],
+    "études sans paie par défaut",
   );
 });
 
@@ -382,7 +373,7 @@ test("enseignant titulaire voit centralSheet / sheets", () => {
   assertIncludes(cursus, ["centralSheet", "sheets", "grades", "results"], "titulaire");
 });
 
-test("DAC enseignant : paie personnelle ; pas utilisateurs / enseignement / caisse sauf matrice", () => {
+test("DAC enseignant : pas paie / finance par défaut ; pas utilisateurs / enseignement / caisse", () => {
   const prev = process.env.PERMISSIONS_FROM_DAC;
   process.env.PERMISSIONS_FROM_DAC = "true";
   try {
@@ -406,19 +397,18 @@ test("DAC enseignant : paie personnelle ; pas utilisateurs / enseignement / cais
 
     assertIncludes(
       titles,
-      ["dashboard", "cursus", "myPresence", "help", "finance"],
+      ["dashboard", "cursus", "myPresence", "help"],
       "enseignant DAC",
     );
     assertExcludes(
       titles,
-      ["users", "teaching", "classes", "registration"],
+      ["users", "teaching", "classes", "registration", "finance"],
       "enseignant DAC",
     );
-    assertIncludes(financeSubs, ["teacherPayroll"], "enseignant DAC paie");
     assertExcludes(
       financeSubs,
-      ["fees", "payment", "transactions"],
-      "enseignant DAC sans caisse",
+      ["teacherPayroll", "fees", "payment", "transactions"],
+      "enseignant DAC sans paie par défaut",
     );
 
     assert.equal(
@@ -452,6 +442,7 @@ test("DAC enseignant : paie personnelle ; pas utilisateurs / enseignement / cais
             student: ["read"],
             teaching: ["read"],
             finance: ["read"],
+            payroll: ["read"],
             notes: ["create", "read", "update"],
           },
         },

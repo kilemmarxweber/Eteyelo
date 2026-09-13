@@ -36,6 +36,7 @@ import {
   StudentIdentitySection,
 } from "./dashboard-sections";
 import { AbsenceDashboardSection } from "@/components/absence-dashboard-card";
+import { MyPresenceSection } from "./dashboard-presence-section";
 import { refreshNotificationBell } from "@/lib/notification-events";
 
 type AdminStats = {
@@ -540,6 +541,17 @@ export default function AdminDashboard() {
               currency={cashier.currency}
               scopedToSelf={cashier.scopedToSelf}
             />
+          ) : null}
+
+          {showMyPresence &&
+          (variant === "teacher" ||
+            variant === "caissier" ||
+            variant === "directeur" ||
+            variant === "prefet" ||
+            variant === "directeur_etudes" ||
+            variant === "support" ||
+            variant === "minimal") ? (
+            <MyPresenceSection />
           ) : null}
 
           {variant === "student" ? (

@@ -19,13 +19,30 @@ export function writeActionIncludesRead(action: string): boolean {
   );
 }
 
+const PAYROLL_ACTIONS_THAT_INCLUDE_READ = [
+  "compute",
+  "validate",
+  "pay",
+] as const;
+
+/** Création / modification / suppression et actions paie impliquent la lecture. */
+export function grantActionIncludesRead(action: string): boolean {
+  const normalized = action.toLowerCase();
+  return (
+    writeActionIncludesRead(normalized) ||
+    PAYROLL_ACTIONS_THAT_INCLUDE_READ.includes(
+      normalized as (typeof PAYROLL_ACTIONS_THAT_INCLUDE_READ)[number],
+    )
+  );
+}
+
 /**
  * Actions effectives d'un octroi : create / update / delete s'accompagnent
  * toujours de `read`. `read` et `encaisser` restent des octrois autonomes.
  */
 export function expandTemporaryGrantActions(action: string): string[] {
   const normalized = action.trim().toLowerCase() || "read";
-  if (writeActionIncludesRead(normalized)) {
+  if (grantActionIncludesRead(normalized) && normalized !== "read") {
     return [normalized, "read"];
   }
   return [normalized];
@@ -42,8 +59,10 @@ export function normalizeSelectedGrantActions(actions: string[]): string[] {
     ),
   ];
   if (unique.some((action) => action === "*")) return [];
-  const hasWrite = unique.some((action) => writeActionIncludesRead(action));
-  const next = hasWrite ? unique.filter((action) => action !== "read") : unique;
+  const hasImpliedRead = unique.some(
+    (action) => action !== "read" && grantActionIncludesRead(action),
+  );
+  const next = hasImpliedRead ? unique.filter((action) => action !== "read") : unique;
   return next.length ? next : ["read"];
 }
 
@@ -63,7 +82,7 @@ export function grantMatchesPermission(
   const requestedAction = action.toLowerCase();
   if (grantAction === requestedAction) return true;
 
-  if (requestedAction === "read" && writeActionIncludesRead(grantAction)) {
+  if (requestedAction === "read" && grantActionIncludesRead(grantAction)) {
     return true;
   }
 

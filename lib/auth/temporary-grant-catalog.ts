@@ -29,7 +29,7 @@ export const TEMPORARY_GRANT_CATALOG: TemporaryGrantCatalogGroup[] = [
         label: "Paiement / Caisse",
         extraActions: ["encaisser"],
       },
-      { resource: "payroll", label: "Paie du personnel" },
+      { resource: "payroll", label: "Paie du personnel", extraActions: ["compute", "validate", "pay"] },
       { resource: "transactions", label: "Transactions" },
     ],
   },
@@ -156,24 +156,26 @@ const ALLOWED_GRANT_ACTIONS = new Set([
   "update",
   "delete",
   "encaisser",
+  "compute",
+  "validate",
+  "pay",
 ]);
 
 export function isAllowedGrantAction(action: string) {
   return ALLOWED_GRANT_ACTIONS.has(action.trim().toLowerCase());
 }
 
-/** Paires ressource/action à persister (encaisser uniquement sur le paiement). */
+/** Paires ressource/action à persister (actions extra limitées à leur ressource). */
 export function buildTemporaryGrantPairs(
   resources: string[],
   actions: string[],
 ): Array<{ resource: string; action: string }> {
+  const extraOnly = new Set(["encaisser", "compute", "validate", "pay"]);
   const pairs: Array<{ resource: string; action: string }> = [];
   for (const resource of resources) {
+    const extras = extraActionsForResource(resource);
     for (const action of actions) {
-      if (
-        action === "encaisser" &&
-        !extraActionsForResource(resource).includes("encaisser")
-      ) {
+      if (extraOnly.has(action) && !extras.includes(action)) {
         continue;
       }
       pairs.push({ resource, action });

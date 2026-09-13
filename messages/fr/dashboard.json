@@ -153,7 +153,21 @@
     "checkedOut": "Sortie enregistrée.",
     "checkInFailed": "Pointage impossible.",
     "checkOutFailed": "Sortie impossible.",
-    "noProfile": "Aucun profil enseignant ou personnel n’est lié à ce compte sur cette branche."
+    "noProfile": "Aucun profil enseignant ou personnel n’est lié à ce compte sur cette branche.",
+    "chartSessionsTitle": "Présence des séances",
+    "chartSessionsSubtitle": "Séances pointées aujourd’hui et sur 7 jours.",
+    "chartHoursTitle": "Présence journalière",
+    "chartHoursSubtitle": "Heures travaillées sur une journée de 8 h.",
+    "chartSessionsToday": "Séances du jour",
+    "chartHoursToday": "Heures du jour",
+    "chartSessionsTotal": "Séances · 7 j.",
+    "chartHoursTotal": "Attendu du jour",
+    "chartSessionsSeries": "Présence des séances · 7 derniers jours",
+    "chartHoursSeries": "Heures travaillées · 7 derniers jours",
+    "chartSessionsTooltip": "{count, plural, one {# séance} other {# séances}}",
+    "chartHoursTooltip": "{count} h",
+    "chartShareLabel": "Part du jour",
+    "chartShare": "{pct} % du total"
   },
   "teacher": {
     "myClasses": "Mes classes",

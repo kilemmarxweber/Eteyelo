@@ -61,13 +61,12 @@ test("owner couvre finance + notes + student + paie + transactions", () => {
   assert.ok(owner.transactions?.includes("read"));
 });
 
-test("gestionnaire a finance CRU+encaisser sans delete member ; paie lecture seule", () => {
+test("gestionnaire a finance CRU+encaisser sans delete member ; paie complète", () => {
   const g = organizationRoleStatements[ORG_ROLE.GESTIONNAIRE];
   assert.ok(g.finance?.includes("encaisser"));
   assert.equal(g.finance?.includes("delete") ?? false, false);
   assert.equal(g.member?.includes("delete") ?? false, false);
-  assert.deepEqual(g.payroll, ["read"]);
-  assert.equal(g.payroll?.includes("compute") ?? false, false);
+  assert.deepEqual(g.payroll, ["read", "compute", "validate", "pay"]);
   assert.equal(g.transactions, undefined);
 });
 
@@ -75,7 +74,7 @@ test("chef d'établissement sans finance ; avec notes", () => {
   for (const slug of [ORG_ROLE.PREFET, ORG_ROLE.DIRECTEUR] as const) {
     const s = organizationRoleStatements[slug];
     assert.equal(s.finance, undefined);
-    assert.deepEqual(s.payroll, ["read"]);
+    assert.equal(s.payroll, undefined);
     assert.ok(s.notes?.includes("update"));
     assert.ok(s.attendance?.includes("create"));
     assert.ok(s.attendance?.includes("reports"));
@@ -91,7 +90,7 @@ test("chef d'établissement sans finance ; avec notes", () => {
 test("directeur des études sans finance ; personnel read ; enseignants read", () => {
   const d = organizationRoleStatements[ORG_ROLE.DIRECTEUR_ETUDES];
   assert.equal(d.finance, undefined);
-  assert.deepEqual(d.payroll, ["read"]);
+  assert.equal(d.payroll, undefined);
   assert.deepEqual(d.personnel, ["read"]);
   assert.deepEqual(d.teacher, ["read"]);
   assert.ok(d.notes?.includes("create"));
@@ -103,22 +102,21 @@ test("directeur des études sans finance ; personnel read ; enseignants read", (
   assert.ok(d.periods?.includes("read"));
 });
 
-test("caissier finance+encaisser + inscription ; bulletin paie ; pas notes", () => {
+test("caissier finance+encaisser + inscription ; pas paie par défaut, pas notes", () => {
   const c = organizationRoleStatements[ORG_ROLE.CAISSIER];
   assert.deepEqual(c.finance, ["create", "read", "update", "encaisser"]);
   assert.ok(c.inscription?.includes("create"));
-  assert.deepEqual(c.payroll, ["read"]);
+  assert.equal(c.payroll, undefined);
   assert.equal(c.notes, undefined);
   assert.deepEqual(c.student, ["read"]);
 });
 
-test("teacher a notes/attendance + bulletin paie ; pas finance, annuaire ni enseignement", () => {
+test("teacher a notes/attendance ; pas paie, finance, annuaire ni enseignement par défaut", () => {
   const t = organizationRoleStatements[ORG_ROLE.TEACHER];
   assert.ok(t.notes?.includes("create"));
   assert.ok(t.attendance?.includes("create"));
   assert.equal(t.attendance?.includes("reports") ?? false, false);
-  assert.deepEqual(t.payroll, ["read"]);
-  assert.equal(t.payroll?.includes("compute") ?? false, false);
+  assert.equal(t.payroll, undefined);
   assert.equal(t.finance, undefined);
   assert.equal(t.teaching, undefined);
   assert.equal(t.student, undefined);
@@ -143,8 +141,16 @@ test("élève résultats + devoirs + library ; pas notes menu", () => {
   assert.equal(s.notes, undefined);
 });
 
-test("libellés FR finance encaisser", () => {
+test("libellés FR finance encaisser et paie bulletin", () => {
   assert.equal(permissionLabelFr("finance", "encaisser"), "Paiement · Encaisser");
+  assert.equal(
+    permissionLabelFr("payroll", "read"),
+    "Paie du personnel · Bulletin & détail",
+  );
+  assert.equal(
+    permissionLabelFr("payroll", "compute"),
+    "Paie du personnel · Calculer",
+  );
   assert.equal(
     permissionLabelFr("attendance", "reports"),
     "Présences · Rapports & historique (tous)",

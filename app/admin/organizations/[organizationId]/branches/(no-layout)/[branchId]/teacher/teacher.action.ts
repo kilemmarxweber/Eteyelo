@@ -24,6 +24,12 @@ import {
 import { generateSecurePassword } from "@/lib/generate-password";
 import { ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+import {
+  calendarDateKey,
+  emptyPresenceSeries,
+  isPresentLikeStatus,
+  presenceChartRange,
+} from "@/lib/presence-session-chart";
 import { getConfiguredCoursIdsForClasse } from "@/lib/course-ponderation";
 import { syncTeacherDossierExperienceYears } from "@/lib/teacher-assignment-years";
 import {
@@ -870,12 +876,14 @@ export const getTeacherDashboardStatsAction = action
       teaching: { some: activeTeachingWhere },
     };
 
+    const presenceRange = presenceChartRange();
     const [
       totalActive,
       assigned,
       totalAssignments,
       coveredClassRows,
       coveredCourseRows,
+      presenceRows,
     ] = await Promise.all([
       prisma.teacher.count({
         where: requestedCycle ? assignedWhere : teacherScope,
@@ -901,7 +909,29 @@ export const getTeacherDashboardStatsAction = action
           teacher: teacherScope,
         },
       }),
+      prisma.teacherAttendance.findMany({
+        where: {
+          branchId,
+          date: { gte: presenceRange.start, lte: presenceRange.end },
+          teacher: requestedCycle ? assignedWhere : teacherScope,
+        },
+        select: { date: true, status: true },
+      }),
     ]);
+
+    const series = emptyPresenceSeries(presenceRange.keys);
+    const byDate = new Map(series.map((item) => [item.date, item]));
+    let weekPresent = 0;
+    let todayPresent = 0;
+    for (const row of presenceRows) {
+      if (!isPresentLikeStatus(row.status)) continue;
+      const key = calendarDateKey(row.date);
+      const bucket = byDate.get(key);
+      if (!bucket) continue;
+      bucket.count += 1;
+      weekPresent += 1;
+      if (key === presenceRange.todayKey) todayPresent += 1;
+    }
 
     return {
       totalActive,
@@ -914,6 +944,11 @@ export const getTeacherDashboardStatsAction = action
         ? Number((totalAssignments / assigned).toFixed(1))
         : 0,
       cycles: visibleCycles,
+      presenceChart: {
+        todayCount: todayPresent,
+        totalCount: weekPresent,
+        series,
+      },
     };
   });
 

@@ -73,8 +73,7 @@ const SCHOOL_ADMIN_ROLES = [
 
 /**
  * Finance (frais / paiement) : managers org + caissier.
- * Chef d’établissement et directeur des études : pas de caisse, seulement
- * leur bulletin via `SELF_PAYROLL_ROLES`.
+ * Paie : propriétaire et gestionnaire par défaut ; autres rôles via matrice / octroi.
  */
 const FINANCE_ROLES = [
   ...PLATFORM_MENU_ROLES,
@@ -104,22 +103,18 @@ const CAISSIER_ROLES = [
 const PAYROLL_ROLES = OWNER_ONLY_MENU_ROLES;
 
 /**
- * Bulletin de paie du user actif — tous les agents/rôles staff.
- * Barème, crédits, transactions et caisse restent matrice / propriétaire.
+ * Paie du personnel complète par défaut : propriétaire + gestionnaire.
+ * Bulletin / détail pour les autres rôles : matrice ou octroi temporaire.
  */
-const SELF_PAYROLL_ROLES = [
-  ...SCHOOL_ADMIN_ROLES,
-  ...TEACHER_ROLES,
-  ...CAISSIER_ROLES,
-  ORG_ROLE.AGENT_BUREAU,
-  "agent_bureau",
-  ORG_ROLE.SUPPORT,
-  "SUPPORT",
-  "support",
+const PAYROLL_MENU_ROLES = [
+  ...OWNER_ONLY_MENU_ROLES,
+  ORG_ROLE.GESTIONNAIRE,
+  "GESTIONNAIRE",
+  "gestionnaire",
 ];
 
 const FINANCE_MENU_ROLES = [
-  ...new Set([...FINANCE_ROLES, ...SELF_PAYROLL_ROLES]),
+  ...new Set([...FINANCE_ROLES, ...PAYROLL_MENU_ROLES]),
 ];
 
 const TEACHER_TITULAIRE_ROLE = "TEACHER_TITULAIRE";
@@ -358,7 +353,7 @@ const staticSidebarMenu: StaticMenuItem[] = [
         title: "teacherPayroll",
         href: "/admin/paie-enseignants",
         icon: "finance",
-        roles: SELF_PAYROLL_ROLES,
+        roles: PAYROLL_MENU_ROLES,
       },
       {
         title: "transactions",

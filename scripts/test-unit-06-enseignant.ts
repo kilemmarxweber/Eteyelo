@@ -148,7 +148,7 @@ test("dashboard caissier / direction : aussi pointage + rapport perso", () => {
   }
 });
 
-test("menu enseignant : Finance = paie personnelle ; pas Enseignement / Utilisateurs ; dossier via Tableau de bord", () => {
+test("menu enseignant : pas Finance par défaut ; pas Enseignement / Utilisateurs ; dossier via Tableau de bord", () => {
   const links = buildStaticSideLinks(sessionTeacher, BRANCH_PATH, "PRIMAIRE");
   const titles = links.map((item) => item.title);
   const cursus = links.find((item) => item.title === "cursus");
@@ -160,13 +160,13 @@ test("menu enseignant : Finance = paie personnelle ; pas Enseignement / Utilisat
   assert.ok(titles.includes("dashboard"));
   assert.ok(titles.includes("myPresence"));
   assert.ok(titles.includes("cursus"));
-  assert.ok(titles.includes("finance"), "enseignant voit Paie du personnel");
+  assert.ok(!titles.includes("finance"), "enseignant : paie sur matrice / octroi");
   assert.ok(!titles.includes("attendance"), "enseignant : Présences retiré");
   assert.ok(!titles.includes("classes"), "enseignant ne doit pas voir Classes");
   assert.ok(!titles.includes("registration"));
   assert.ok(!titles.includes("teaching"), "enseignant : Enseignement retiré");
   assert.ok(!titles.includes("users"), "enseignant : Utilisateurs retiré");
-  assert.deepEqual(financeSubs, ["teacherPayroll"]);
+  assert.deepEqual(financeSubs, []);
   assert.ok(cursusSubs.includes("grades"));
   assert.ok(cursusSubs.includes("results"));
   assert.ok(!cursusSubs.includes("centralSheet"));

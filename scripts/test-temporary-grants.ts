@@ -136,6 +136,30 @@ test("paires octroi : encaisser seulement sur le paiement", () => {
   );
 });
 
+test("paires octroi : compute/validate/pay seulement sur la paie", () => {
+  assert.deepEqual(
+    buildTemporaryGrantPairs(
+      ["fees", "payroll"],
+      ["read", "compute", "validate", "pay"],
+    ),
+    [
+      { resource: "fees", action: "read" },
+      { resource: "payroll", action: "read" },
+      { resource: "payroll", action: "compute" },
+      { resource: "payroll", action: "validate" },
+      { resource: "payroll", action: "pay" },
+    ],
+  );
+});
+
+test("octroi compute paie implique la lecture du bulletin", () => {
+  assert.deepEqual(expandTemporaryGrantActions("compute"), ["compute", "read"]);
+  assert.equal(
+    grantMatchesPermission(grant("payroll", "compute"), "payroll", "read"),
+    true,
+  );
+});
+
 test("zone notes accessible avec notes:update (lecture accompagnante)", () => {
   assert.equal(
     grantsCoverBranchArea([grant("notes", "update")], "notes"),

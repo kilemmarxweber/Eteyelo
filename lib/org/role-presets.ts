@@ -30,7 +30,7 @@ const PRESET_META: Record<string, Omit<OrgRolePresetMeta, "slug">> = {
   },
   [ORG_ROLE.GESTIONNAIRE]: {
     label: "Gestionnaire",
-    description: "CRU métier + support ; pas de suppression physique.",
+    description: "CRU métier + paie complète + support ; pas de suppression physique.",
     isSystem: true,
     sortOrder: 10,
     locked: false,

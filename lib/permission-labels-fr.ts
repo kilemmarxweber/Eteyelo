@@ -89,6 +89,9 @@ export function actionLabelFr(action: string): string {
 
 /** Ex. `Finance · Encaisser` */
 export function permissionLabelFr(resource: string, action: string): string {
+  if (resource === "payroll" && action === "read") {
+    return "Paie du personnel · Bulletin & détail";
+  }
   return `${resourceLabelFr(resource)} · ${actionLabelFr(action)}`;
 }
 

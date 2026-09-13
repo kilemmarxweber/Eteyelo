@@ -7,7 +7,7 @@ import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getOrgRolePresetSeedRows } from "@/lib/org/role-presets";
 import { completePermissionMatrix } from "@/lib/auth/org-role-permission-shared";
-import { ORG_ROLE, STAFF_SELF_PAYROLL_ROLE_SLUGS, ATTENDANCE_SCHOOL_REPORTS_ROLE_SLUGS } from "@/lib/permissions";
+import { ORG_ROLE, ATTENDANCE_SCHOOL_REPORTS_ROLE_SLUGS } from "@/lib/permissions";
 
 const LEADERSHIP_ROLE_SLUGS = [
   ORG_ROLE.PREFET,
@@ -188,16 +188,19 @@ export async function syncStaleTeacherRolePreset(
 }
 
 /**
- * Ajoute `payroll:read` aux presets staff existants (bulletin personnel)
- * sans retirer compute/validate/pay déjà octroyés dans la matrice.
+ * Paie : plus d’accès staff par défaut (seed).
+ * Gestionnaire : l’ancien bulletin `read` seul devient la paie complète.
+ * Les autres rôles ne sont pas réécrits ici — la matrice et les octrois
+ * temporaires restent la source de vérité (désactiver / réactiver).
  */
-export async function ensureStaffSelfPayrollRead(
+export async function syncPayrollPrivilegeDefaults(
   organizationId: string,
 ): Promise<number> {
+  const fullActions = ["read", "compute", "validate", "pay"];
   const rows = await prisma.organizationRole.findMany({
     where: {
       organizationId,
-      role: { in: [...STAFF_SELF_PAYROLL_ROLE_SLUGS] },
+      role: ORG_ROLE.GESTIONNAIRE,
       isSystem: true,
     },
     select: { id: true, permission: true },
@@ -206,9 +209,9 @@ export async function ensureStaffSelfPayrollRead(
   let updated = 0;
   for (const row of rows) {
     const permission = parsePermissionJson(row.permission);
-    const payroll = new Set(permission.payroll ?? []);
-    if (payroll.has("read")) continue;
-    payroll.add("read");
+    const payroll = [...new Set((permission.payroll ?? []).map(String))];
+    const onlyRead = payroll.length === 1 && payroll[0] === "read";
+    if (!onlyRead) continue;
 
     await prisma.organizationRole.update({
       where: { id: row.id },
@@ -216,7 +219,7 @@ export async function ensureStaffSelfPayrollRead(
         permission: JSON.stringify(
           completePermissionMatrix({
             ...permission,
-            payroll: [...payroll],
+            payroll: fullActions,
           }),
         ),
       },
@@ -225,6 +228,13 @@ export async function ensureStaffSelfPayrollRead(
   }
 
   return updated;
+}
+
+/** @deprecated Utiliser `syncPayrollPrivilegeDefaults`. */
+export async function ensureStaffSelfPayrollRead(
+  organizationId: string,
+): Promise<number> {
+  return syncPayrollPrivilegeDefaults(organizationId);
 }
 
 /**

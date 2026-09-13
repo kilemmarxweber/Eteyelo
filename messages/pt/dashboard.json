@@ -153,7 +153,21 @@
     "checkedOut": "Saída registada.",
     "checkInFailed": "Não foi possível registar a entrada.",
     "checkOutFailed": "Não foi possível registar a saída.",
-    "noProfile": "Nenhum perfil de docente ou de pessoal está ligado a esta conta nesta filial."
+    "noProfile": "Nenhum perfil de docente ou de pessoal está ligado a esta conta nesta filial.",
+    "chartSessionsTitle": "Presença das sessões",
+    "chartSessionsSubtitle": "Sessões registadas hoje e nos últimos 7 dias.",
+    "chartHoursTitle": "Presença diária",
+    "chartHoursSubtitle": "Horas trabalhadas numa jornada de 8 h.",
+    "chartSessionsToday": "Sessões do dia",
+    "chartHoursToday": "Horas do dia",
+    "chartSessionsTotal": "Sessões · 7 d.",
+    "chartHoursTotal": "Esperado do dia",
+    "chartSessionsSeries": "Presença das sessões · últimos 7 dias",
+    "chartHoursSeries": "Horas trabalhadas · últimos 7 dias",
+    "chartSessionsTooltip": "{count, plural, one {# sessão} other {# sessões}}",
+    "chartHoursTooltip": "{count} h",
+    "chartShareLabel": "Parte do dia",
+    "chartShare": "{pct} % do total"
   },
   "teacher": {
     "myClasses": "As minhas turmas",

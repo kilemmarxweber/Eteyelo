@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { IconClock, IconClipboardCheck, IconChevronRight } from "@tabler/icons-react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ import {
   getMyDashboardPresenceAction,
   type DashboardPresenceData,
 } from "./dashboard-presence.action";
+import { PresenceSessionsChart } from "@/components/presence-sessions-chart";
 
 function formatTime(value: string | null) {
   if (!value) return "—";
@@ -175,6 +177,30 @@ export function MyPresenceSection() {
                     {month.absent}
                   </p>
                 </div>
+              </div>
+            ) : null}
+
+            {data?.teacher?.chart || data?.personnel?.chart ? (
+              <div
+                className={cn(
+                  "grid gap-3",
+                  data.teacher?.chart && data.personnel?.chart
+                    ? "lg:grid-cols-2"
+                    : "grid-cols-1",
+                )}
+              >
+                {data.teacher?.chart ? (
+                  <PresenceSessionsChart
+                    mode="sessions"
+                    stats={data.teacher.chart}
+                  />
+                ) : null}
+                {data.personnel?.chart ? (
+                  <PresenceSessionsChart
+                    mode="hours"
+                    stats={data.personnel.chart}
+                  />
+                ) : null}
               </div>
             ) : null}
 

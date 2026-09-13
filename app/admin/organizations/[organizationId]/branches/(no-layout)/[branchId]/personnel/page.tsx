@@ -41,6 +41,8 @@ import {
 import { ImportStaffDialog } from "../components/import-staff-dialog";
 import { getStaffPageContextAction } from "../staff-import.action";
 import { IconUpload } from "@tabler/icons-react";
+import { PresenceSessionsChart } from "@/components/presence-sessions-chart";
+import type { PresenceChartStats } from "@/lib/presence-session-chart";
 
 type PersonnelStats = {
   total: number;
@@ -48,6 +50,7 @@ type PersonnelStats = {
   inactifs: number;
   present: number;
   totalExpected: number;
+  presenceChart?: PresenceChartStats | null;
 };
 
 const emptyStats: PersonnelStats = {
@@ -56,6 +59,7 @@ const emptyStats: PersonnelStats = {
   inactifs: 0,
   present: 0,
   totalExpected: 0,
+  presenceChart: null,
 };
 
 export default function Personnels() {
@@ -65,6 +69,7 @@ export default function Personnels() {
   const [importOpen, setImportOpen] = useState(false);
   const [supportsStaffImport, setSupportsStaffImport] = useState(false);
   const [stats, setStats] = useState<PersonnelStats>(emptyStats);
+  const [statsLoaded, setStatsLoaded] = useState(false);
 
   const { data: session, isPending } = useSession();
   const [hasMounted, setHasMounted] = useState(false);
@@ -94,6 +99,7 @@ export default function Personnels() {
 
       if (error || !Array.isArray(data)) {
         setStats(emptyStats);
+        setStatsLoaded(true);
         return;
       }
 
@@ -104,7 +110,10 @@ export default function Personnels() {
         present: presenceError || !presence ? 0 : presence.present,
         totalExpected:
           presenceError || !presence ? data.length : presence.totalExpected,
+        presenceChart:
+          presenceError || !presence ? null : presence.presenceChart,
       });
+      setStatsLoaded(true);
     }
 
     if (sessionReady) void loadStats();
@@ -199,7 +208,8 @@ export default function Personnels() {
             ) : null
           }
     >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(280px,22rem)]">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
           {statCards.map((item) => (
             <BranchStatCard
               key={item.label}
@@ -225,6 +235,12 @@ export default function Personnels() {
             }
           />
         </div>
+        <PresenceSessionsChart
+          mode="hours"
+          stats={stats.presenceChart}
+          loading={!statsLoaded}
+        />
+      </div>
 
         <Card
           variant="elevated"
