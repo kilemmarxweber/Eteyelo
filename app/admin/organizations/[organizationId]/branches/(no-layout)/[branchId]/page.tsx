@@ -551,7 +551,7 @@ export default function AdminDashboard() {
             variant === "directeur_etudes" ||
             variant === "support" ||
             variant === "minimal") ? (
-            <MyPresenceSection />
+            <MyPresenceSection showCharts={false} />
           ) : null}
 
           {variant === "student" ? (

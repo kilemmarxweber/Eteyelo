@@ -36,7 +36,11 @@ function formatTime(value: string | null) {
   });
 }
 
-export function MyPresenceSection() {
+export function MyPresenceSection({
+  showCharts = true,
+}: {
+  showCharts?: boolean;
+}) {
   const t = useTranslations("dashboard.presence");
   const params = useParams<{ organizationId: string; branchId: string }>();
   const [data, setData] = useState<DashboardPresenceData | null>(null);
@@ -133,7 +137,7 @@ export function MyPresenceSection() {
 
   const month = data?.teacher?.month ?? data?.personnel?.month;
 
-  return (
+  const presenceCard = (
     <Card>
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -177,30 +181,6 @@ export function MyPresenceSection() {
                     {month.absent}
                   </p>
                 </div>
-              </div>
-            ) : null}
-
-            {data?.teacher?.chart || data?.personnel?.chart ? (
-              <div
-                className={cn(
-                  "grid gap-3",
-                  data.teacher?.chart && data.personnel?.chart
-                    ? "lg:grid-cols-2"
-                    : "grid-cols-1",
-                )}
-              >
-                {data.teacher?.chart ? (
-                  <PresenceSessionsChart
-                    mode="sessions"
-                    stats={data.teacher.chart}
-                  />
-                ) : null}
-                {data.personnel?.chart ? (
-                  <PresenceSessionsChart
-                    mode="hours"
-                    stats={data.personnel.chart}
-                  />
-                ) : null}
               </div>
             ) : null}
 
@@ -272,5 +252,33 @@ export function MyPresenceSection() {
         )}
       </CardContent>
     </Card>
+  );
+
+  const charts =
+    showCharts &&
+    !loading &&
+    (data?.teacher?.chart || data?.personnel?.chart) ? (
+      <div
+        className={cn(
+          "grid gap-4",
+          data?.teacher?.chart && data?.personnel?.chart
+            ? "lg:grid-cols-2"
+            : "grid-cols-1",
+        )}
+      >
+        {data.teacher?.chart ? (
+          <PresenceSessionsChart mode="sessions" stats={data.teacher.chart} />
+        ) : null}
+        {data.personnel?.chart ? (
+          <PresenceSessionsChart mode="hours" stats={data.personnel.chart} />
+        ) : null}
+      </div>
+    ) : null;
+
+  return (
+    <div className="space-y-4">
+      {presenceCard}
+      {charts}
+    </div>
   );
 }

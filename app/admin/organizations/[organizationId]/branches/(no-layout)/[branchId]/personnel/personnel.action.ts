@@ -1,14 +1,6 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import {
-  calendarDateKey,
-  DEFAULT_PERSONNEL_DAY_MINUTES,
-  emptyPresenceSeries,
-  personnelWorkedHours,
-  presenceChartRange,
-} from "@/lib/presence-session-chart";
-import { nowLocal } from "@/lib/timezone";
 import { action } from "@/lib/zsa";
 import {
   IPersonnel,
@@ -530,8 +522,6 @@ export const getPersonnelPresenceStatsAction = action.handler(async () => {
   start.setHours(0, 0, 0, 0);
   const end = new Date();
   end.setHours(23, 59, 59, 999);
-  const range = presenceChartRange();
-  const now = nowLocal();
 
   const personnelBranchWhere = {
     AND: [
@@ -543,7 +533,7 @@ export const getPersonnelPresenceStatsAction = action.handler(async () => {
     ],
   };
 
-  const [totalExpected, present, chartRows, policy] = await Promise.all([
+  const [totalExpected, present] = await Promise.all([
     prisma.personnel.count({
       where: {
         isActive: true,
@@ -561,47 +551,11 @@ export const getPersonnelPresenceStatsAction = action.handler(async () => {
         },
       },
     }),
-    prisma.personnelAttendance.findMany({
-      where: {
-        branchId,
-        date: { gte: range.start, lte: range.end },
-        personnel: {
-          isActive: true,
-          branchMember: personnelBranchWhere,
-        },
-      },
-      select: { date: true, status: true, checkIn: true, checkOut: true },
-    }),
-    prisma.branchPayrollPolicy.findFirst({
-      where: { branchId, isActive: true },
-      select: { personnelDayMinutes: true },
-    }),
   ]);
-
-  const dayMinutes =
-    policy?.personnelDayMinutes && policy.personnelDayMinutes > 0
-      ? policy.personnelDayMinutes
-      : DEFAULT_PERSONNEL_DAY_MINUTES;
-  const series = emptyPresenceSeries(range.keys);
-  const byDate = new Map(series.map((item) => [item.date, item]));
-  for (const row of chartRows) {
-    const hours = personnelWorkedHours(row, dayMinutes, now, range.todayKey);
-    const key = calendarDateKey(row.date);
-    const bucket = byDate.get(key);
-    if (!bucket) continue;
-    bucket.count = Math.round((bucket.count + hours) * 10) / 10;
-  }
-  const todayHours = byDate.get(range.todayKey)?.count ?? 0;
-  const expectedHours = totalExpected * (dayMinutes / 60);
 
   return {
     present,
     totalExpected,
-    presenceChart: {
-      todayCount: todayHours,
-      totalCount: expectedHours,
-      series,
-    },
   };
 });
 
