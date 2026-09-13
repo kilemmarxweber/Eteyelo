@@ -2,6 +2,13 @@
 
 import { SIDEBAR_HREF_BRANCH_AREA } from "../lib/auth/branch-area-permissions";
 import { canAccessBranchAreaFromPermissions } from "../lib/auth/resolve-branch-area-permission";
+import {
+  canSeeFicheAreaFromSession,
+  hasFicheAreaMatrixAccess,
+} from "../lib/auth/fiche-area-access";
+import { canAccessTitulaireFichesArea } from "../lib/auth/session-roles";
+import { areaRequiresClassTitulaire } from "../lib/auth/titulaire-teaching";
+import { grantsCoverBranchArea } from "../lib/auth/temporary-grant-actions";
 import { ORG_ROLE } from "../lib/permissions";
 import { buildStaticSideLinks } from "../lib/sidebar-menu";
 
@@ -373,30 +380,33 @@ test("enseignant titulaire voit centralSheet / sheets", () => {
   assertIncludes(cursus, ["centralSheet", "sheets", "grades", "results"], "titulaire");
 });
 
-test("DAC : fiche centrale seulement si titulaire de classe avec un cours", () => {
+function ficheAreaHideHrefs(session: ReturnType<typeof sessionWithOrgRole>) {
+  return Object.entries(SIDEBAR_HREF_BRANCH_AREA)
+    .filter(([, area]) => {
+      const byRole = canAccessBranchAreaFromPermissions(area, session);
+      const byTitulaire =
+        areaRequiresClassTitulaire(area) &&
+        canAccessTitulaireFichesArea(session);
+      return !byRole && !byTitulaire;
+    })
+    .map(([href]) => href);
+}
+
+test("fiche centrale : titulaire, matrice ou octroi temporaire", () => {
   const prev = process.env.PERMISSIONS_FROM_DAC;
   process.env.PERMISSIONS_FROM_DAC = "true";
   try {
     const teacher = sessionWithOrgRole(ORG_ROLE.TEACHER);
+    assert.equal(hasFicheAreaMatrixAccess(teacher), false);
+    assert.equal(canSeeFicheAreaFromSession(teacher), false);
     assert.equal(
       canAccessBranchAreaFromPermissions("fiche_centrale", teacher),
       false,
-      "enseignant non-titulaire : pas fiche centrale",
-    );
-    assert.equal(
-      canAccessBranchAreaFromPermissions("fiches", teacher),
-      false,
-      "enseignant non-titulaire : pas fiches",
     );
 
-    const teacherHide = Object.entries(SIDEBAR_HREF_BRANCH_AREA)
-      .filter(
-        ([, area]) => !canAccessBranchAreaFromPermissions(area, teacher),
-      )
-      .map(([href]) => href);
     const teacherCursus = (
       buildStaticSideLinks(teacher, BRANCH_PATH, "PRIMAIRE", undefined, {
-        hideHrefs: teacherHide,
+        hideHrefs: ficheAreaHideHrefs(teacher),
         dacReady: true,
         dacStrictMenu: true,
       }).find((item) => item.title === "cursus")?.sub ?? []
@@ -404,31 +414,19 @@ test("DAC : fiche centrale seulement si titulaire de classe avec un cours", () =
     assertExcludes(
       teacherCursus,
       ["centralSheet", "sheets"],
-      "DAC enseignant sans titulaire",
+      "enseignant sans titulaire / matrice",
     );
 
     const titulaire = sessionWithOrgRole(ORG_ROLE.TEACHER, {
       teacherContext: { isTitulaire: true },
     });
-    assert.equal(
-      canAccessBranchAreaFromPermissions("fiche_centrale", titulaire),
-      true,
-      "titulaire : fiche centrale",
-    );
-    assert.equal(
-      canAccessBranchAreaFromPermissions("fiches", titulaire),
-      true,
-      "titulaire : fiches",
-    );
-
-    const titulaireHide = Object.entries(SIDEBAR_HREF_BRANCH_AREA)
-      .filter(
-        ([, area]) => !canAccessBranchAreaFromPermissions(area, titulaire),
-      )
-      .map(([href]) => href);
+    assert.equal(canAccessTitulaireFichesArea(titulaire), true);
+    assert.equal(canSeeFicheAreaFromSession(titulaire), true);
+    // Matrice seed enseignant : plus de ficheCentrale par défaut.
+    assert.equal(hasFicheAreaMatrixAccess(titulaire), false);
     const titulaireCursus = (
       buildStaticSideLinks(titulaire, BRANCH_PATH, "PRIMAIRE", undefined, {
-        hideHrefs: titulaireHide,
+        hideHrefs: ficheAreaHideHrefs(titulaire),
         dacReady: true,
         dacStrictMenu: true,
       }).find((item) => item.title === "cursus")?.sub ?? []
@@ -436,7 +434,51 @@ test("DAC : fiche centrale seulement si titulaire de classe avec un cours", () =
     assertIncludes(
       titulaireCursus,
       ["centralSheet", "sheets"],
-      "DAC titulaire",
+      "titulaire de classe",
+    );
+
+    const viaMatrix = sessionWithOrgRole(ORG_ROLE.TEACHER, {
+      organization: {
+        role: ORG_ROLE.TEACHER,
+        rolePermissions: {
+          [ORG_ROLE.TEACHER]: {
+            ficheCentrale: ["read"],
+            fiches: ["read"],
+            notes: ["read"],
+          },
+        },
+      },
+    });
+    assert.equal(hasFicheAreaMatrixAccess(viaMatrix), true);
+    assert.equal(canSeeFicheAreaFromSession(viaMatrix), true);
+    const matrixCursus = (
+      buildStaticSideLinks(viaMatrix, BRANCH_PATH, "PRIMAIRE", undefined, {
+        hideHrefs: ficheAreaHideHrefs(viaMatrix),
+        dacReady: true,
+        dacStrictMenu: true,
+      }).find((item) => item.title === "cursus")?.sub ?? []
+    ).map((item) => item.title);
+    assertIncludes(
+      matrixCursus,
+      ["centralSheet", "sheets"],
+      "matrice ficheCentrale/fiches",
+    );
+
+    assert.equal(
+      grantsCoverBranchArea(
+        [{ resource: "ficheCentrale", action: "read" }],
+        "fiche_centrale",
+      ),
+      true,
+      "octroi temporaire ficheCentrale",
+    );
+    assert.equal(
+      grantsCoverBranchArea(
+        [{ resource: "fiches", action: "read" }],
+        "fiches",
+      ),
+      true,
+      "octroi temporaire fiches",
     );
 
     const directeur = sessionWithOrgRole(ORG_ROLE.DIRECTEUR);

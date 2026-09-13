@@ -171,6 +171,21 @@ test("zone notes accessible avec notes:update (lecture accompagnante)", () => {
   );
 });
 
+test("zone fiche centrale / fiches via octroi temporaire", () => {
+  assert.equal(
+    grantsCoverBranchArea([grant("ficheCentrale", "read")], "fiche_centrale"),
+    true,
+  );
+  assert.equal(
+    grantsCoverBranchArea([grant("fiches", "read")], "fiches"),
+    true,
+  );
+  assert.equal(
+    grantsCoverBranchArea([grant("notes", "read")], "fiche_centrale"),
+    false,
+  );
+});
+
 test("zone finance accessible avec finance:read ou finance:encaisser", () => {
   assert.equal(
     grantsCoverBranchArea([grant("finance", "read")], "finance"),
