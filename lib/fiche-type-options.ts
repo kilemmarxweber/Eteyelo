@@ -45,14 +45,15 @@ export function isAllowedFicheType(
   typebranch: unknown,
   options?: { isAdmin?: boolean; isExam?: boolean },
 ): boolean {
-  const { isAdmin = false, isExam = false } = options ?? {};
+  const { isExam = false } = options ?? {};
 
+  // Examen (primaire/secondaire) : uniquement la fiche de cotation.
   if (isExam && !isUniversiteBranch(typebranch)) {
-    return isAdmin && typeFiche === "ficheCote";
+    return typeFiche === "ficheCote";
   }
 
   if (typeFiche === "ficheCote") {
-    return isAdmin;
+    return true;
   }
 
   return (getIntermediateFicheTypes(typebranch) as readonly string[]).includes(
@@ -65,10 +66,10 @@ export function getFicheTypeComboboxItems(params: {
   isAdmin: boolean;
   isExam: boolean;
 }): Array<{ value: FicheTypeOptionValue; label: string }> {
-  const { typebranch, isAdmin, isExam } = params;
+  const { typebranch, isExam } = params;
 
   if (isExam && !isUniversiteBranch(typebranch)) {
-    return isAdmin ? [{ value: "ficheCote", label: "Fiche" }] : [];
+    return [{ value: "ficheCote", label: "Fiche" }];
   }
 
   const intermediate = getIntermediateFicheTypes(typebranch).map((value) => ({
@@ -76,11 +77,7 @@ export function getFicheTypeComboboxItems(params: {
     label: value,
   }));
 
-  if (isAdmin) {
-    return [...intermediate, { value: "ficheCote", label: "Fiche" }];
-  }
-
-  return intermediate;
+  return [...intermediate, { value: "ficheCote", label: "Fiche" }];
 }
 
 export type FicheCoteLockInput = {

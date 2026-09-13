@@ -144,6 +144,29 @@ test("universite : pas de devoir, evaluation TP TFC et memoire", () => {
     isAllowedFicheType("Devoir", "SECONDAIRE", { isAdmin: false, isExam: false }),
     true,
   );
+  assert.equal(
+    isAllowedFicheType("ficheCote", "SECONDAIRE", {
+      isAdmin: false,
+      isExam: false,
+    }),
+    true,
+  );
+  assert.deepEqual(
+    getFicheTypeComboboxItems({
+      typebranch: "SECONDAIRE",
+      isAdmin: false,
+      isExam: false,
+    }).map((item) => item.value),
+    ["Devoir", "Evaluation", "TP", "ficheCote"],
+  );
+  assert.deepEqual(
+    getFicheTypeComboboxItems({
+      typebranch: "SECONDAIRE",
+      isAdmin: false,
+      isExam: true,
+    }).map((item) => item.value),
+    ["ficheCote"],
+  );
 });
 
 test("generateReleveNotesPdf est invocable", () => {

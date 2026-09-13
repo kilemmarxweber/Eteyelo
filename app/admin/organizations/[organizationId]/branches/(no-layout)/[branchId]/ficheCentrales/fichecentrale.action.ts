@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { revalidatePath } from "next/cache";
 import {
+  canManageOrganization,
   canPermanentlyDeleteInformation,
   PERMANENT_DELETE_DENIED_MESSAGE,
 } from "@/lib/auth/session-roles";
@@ -16,9 +17,21 @@ export async function deleteFicheCentrale(params: {
   periodId: number;
   anneeId: string;
 }) {
-  const { organizationId, branchId, session } = await requireBranchContext();
+  const { organizationId, branchId, session, userId } =
+    await requireBranchContext();
+
+  // Titulaire / accès fiche : comme deleteFicheIntervention.
+  // Gestionnaire org : toujours refusé (archive / modification uniquement).
   if (!canPermanentlyDeleteInformation(session)) {
-    return { success: false, message: PERMANENT_DELETE_DENIED_MESSAGE };
+    if (canManageOrganization(session)) {
+      return { success: false, message: PERMANENT_DELETE_DENIED_MESSAGE };
+    }
+    await assertTitulaireClassAccess({
+      session,
+      userId,
+      branchId,
+      classId: params.classId,
+    });
   }
 
   const where = {
@@ -455,7 +468,11 @@ export async function getFicheCentraleSummary(params: {
     return {
       id: fiche.id,
       typeFiche: fiche.typeFiche,
-      dateCreated: fiche.dateCreated.toISOString(),
+      dateCreated:
+        fiche.dateCreated &&
+        !Number.isNaN(new Date(fiche.dateCreated).getTime())
+          ? new Date(fiche.dateCreated).toISOString()
+          : "",
       teacherName:
         fiche.teacher?.branchMember?.member?.user?.name ?? "N/A",
       status: fiche.status,

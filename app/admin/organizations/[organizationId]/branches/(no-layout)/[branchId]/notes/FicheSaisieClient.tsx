@@ -566,25 +566,19 @@ export default function FicheSaisieClient({
 
   const visiblePeriods = useMemo(() => {
     const ordered = uniquePeriodsByLabel(
-      [...periods]
-        .filter((p) => {
-          if (notesLabels.isUniversite) return true;
-          if (isAdmin) return true;
-          return p.kind !== "EXAM";
-        })
-        .sort(
-          (a, b) =>
-            getAcademicPeriodOrder(
-              a.rawLabel ?? a.label,
-              notesLabels.typebranch,
-              notesLabels.educationSystem,
-            ) -
-            getAcademicPeriodOrder(
-              b.rawLabel ?? b.label,
-              notesLabels.typebranch,
-              notesLabels.educationSystem,
-            ),
-        ),
+      [...periods].sort(
+        (a, b) =>
+          getAcademicPeriodOrder(
+            a.rawLabel ?? a.label,
+            notesLabels.typebranch,
+            notesLabels.educationSystem,
+          ) -
+          getAcademicPeriodOrder(
+            b.rawLabel ?? b.label,
+            notesLabels.typebranch,
+            notesLabels.educationSystem,
+          ),
+      ),
     );
 
     if (!selectedYearId) return ordered;
@@ -601,10 +595,8 @@ export default function FicheSaisieClient({
     });
   }, [
     periods,
-    notesLabels.isUniversite,
     notesLabels.typebranch,
     notesLabels.educationSystem,
-    isAdmin,
     selectedYearId,
     selectedLesson,
     selectedTeacher,
