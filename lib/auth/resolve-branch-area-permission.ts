@@ -7,6 +7,7 @@ import {
   getSessionRoles,
   isCanonicalOrganizationOwnerSession,
   isOrganizationOwnerSession,
+  canAccessTitulaireFichesArea,
 } from "@/lib/auth/session-roles";
 import {
   BRANCH_AREA_PERMISSION,
@@ -15,6 +16,7 @@ import {
   isPermissionsFromDacEnabled,
   type BranchArea,
 } from "@/lib/auth/branch-area-permissions";
+import { areaRequiresClassTitulaire } from "@/lib/auth/titulaire-teaching";
 import {
   getStatementsForRole,
   statementsMapFromSession,
@@ -131,7 +133,12 @@ export function canAccessBranchAreaFromPermissions(
         break;
       }
     }
-    if (ok) return true;
+    if (ok) {
+      if (areaRequiresClassTitulaire(area)) {
+        return canAccessTitulaireFichesArea(session);
+      }
+      return true;
+    }
   }
 
   return false;

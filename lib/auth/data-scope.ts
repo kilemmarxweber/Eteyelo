@@ -19,6 +19,7 @@ import {
 } from "@/lib/auth/session-roles";
 import { ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+import { activeTitulaireTeachingWhere } from "@/lib/auth/titulaire-teaching";
 
 export { assertStudentIdInScope };
 export { canViewAttendanceSchoolReports } from "@/lib/auth/session-roles";
@@ -225,8 +226,30 @@ export async function assertClassRosterAccess(params: {
 }
 
 /**
- * Accès fiche centrale / bulletin classe : manager ou titulaire de la classe.
+ * Accès fiche centrale / bulletin classe : manager ou titulaire
+ * de cette classe avec un cours (année en cours).
  */
+export async function listTitulaireClassIdsForUser(params: {
+  userId: string;
+  branchId: string;
+}): Promise<string[]> {
+  const rows = await prisma.teaching.findMany({
+    where: {
+      ...activeTitulaireTeachingWhere(params.branchId),
+      teacher: {
+        isActive: true,
+        branchMember: {
+          branchId: params.branchId,
+          isActive: true,
+          member: { userId: params.userId },
+        },
+      },
+    },
+    select: { classeId: true },
+  });
+  return [...new Set(rows.map((row) => row.classeId))];
+}
+
 export async function assertTitulaireClassAccess(params: {
   session: unknown;
   userId: string;
@@ -245,17 +268,8 @@ export async function assertTitulaireClassAccess(params: {
 
   const teaching = await prisma.teaching.findFirst({
     where: {
+      ...activeTitulaireTeachingWhere(branchId),
       classeId: classId,
-      titulaire: true,
-      OR: [{ statusTeaching: true }, { statusTeaching: null }],
-      AND: [
-        {
-          OR: [
-            { branchId },
-            { branchId: null, classe: { branchId } },
-          ],
-        },
-      ],
       teacher: {
         isActive: true,
         branchMember: {

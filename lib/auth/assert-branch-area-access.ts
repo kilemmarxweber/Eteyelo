@@ -23,9 +23,11 @@ import {
   canPayPayroll,
   canPermanentlyDeleteInformation,
   canValidatePayroll,
+  canAccessTitulaireFichesArea,
   isCanonicalOrganizationOwnerSession,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
+import { areaRequiresClassTitulaire } from "@/lib/auth/titulaire-teaching";
 import {
   canAccessBranchAreaViaTemporaryGrants,
   grantsCoverPermissions,
@@ -120,6 +122,13 @@ export async function assertBranchAreaAccess(
       area,
       branchId,
     );
+    if (
+      allowed &&
+      areaRequiresClassTitulaire(area) &&
+      !canAccessTitulaireFichesArea(resolved)
+    ) {
+      allowed = false;
+    }
   }
 
   if (allowed) {
@@ -187,6 +196,13 @@ export async function canAccessBranchAreaAsync(
       area,
       resolvedBranchId,
     );
+    if (
+      allowed &&
+      areaRequiresClassTitulaire(area) &&
+      !canAccessTitulaireFichesArea(session)
+    ) {
+      allowed = false;
+    }
   }
 
   return allowed;

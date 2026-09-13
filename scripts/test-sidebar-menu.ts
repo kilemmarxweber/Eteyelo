@@ -373,6 +373,84 @@ test("enseignant titulaire voit centralSheet / sheets", () => {
   assertIncludes(cursus, ["centralSheet", "sheets", "grades", "results"], "titulaire");
 });
 
+test("DAC : fiche centrale seulement si titulaire de classe avec un cours", () => {
+  const prev = process.env.PERMISSIONS_FROM_DAC;
+  process.env.PERMISSIONS_FROM_DAC = "true";
+  try {
+    const teacher = sessionWithOrgRole(ORG_ROLE.TEACHER);
+    assert.equal(
+      canAccessBranchAreaFromPermissions("fiche_centrale", teacher),
+      false,
+      "enseignant non-titulaire : pas fiche centrale",
+    );
+    assert.equal(
+      canAccessBranchAreaFromPermissions("fiches", teacher),
+      false,
+      "enseignant non-titulaire : pas fiches",
+    );
+
+    const teacherHide = Object.entries(SIDEBAR_HREF_BRANCH_AREA)
+      .filter(
+        ([, area]) => !canAccessBranchAreaFromPermissions(area, teacher),
+      )
+      .map(([href]) => href);
+    const teacherCursus = (
+      buildStaticSideLinks(teacher, BRANCH_PATH, "PRIMAIRE", undefined, {
+        hideHrefs: teacherHide,
+        dacReady: true,
+        dacStrictMenu: true,
+      }).find((item) => item.title === "cursus")?.sub ?? []
+    ).map((item) => item.title);
+    assertExcludes(
+      teacherCursus,
+      ["centralSheet", "sheets"],
+      "DAC enseignant sans titulaire",
+    );
+
+    const titulaire = sessionWithOrgRole(ORG_ROLE.TEACHER, {
+      teacherContext: { isTitulaire: true },
+    });
+    assert.equal(
+      canAccessBranchAreaFromPermissions("fiche_centrale", titulaire),
+      true,
+      "titulaire : fiche centrale",
+    );
+    assert.equal(
+      canAccessBranchAreaFromPermissions("fiches", titulaire),
+      true,
+      "titulaire : fiches",
+    );
+
+    const titulaireHide = Object.entries(SIDEBAR_HREF_BRANCH_AREA)
+      .filter(
+        ([, area]) => !canAccessBranchAreaFromPermissions(area, titulaire),
+      )
+      .map(([href]) => href);
+    const titulaireCursus = (
+      buildStaticSideLinks(titulaire, BRANCH_PATH, "PRIMAIRE", undefined, {
+        hideHrefs: titulaireHide,
+        dacReady: true,
+        dacStrictMenu: true,
+      }).find((item) => item.title === "cursus")?.sub ?? []
+    ).map((item) => item.title);
+    assertIncludes(
+      titulaireCursus,
+      ["centralSheet", "sheets"],
+      "DAC titulaire",
+    );
+
+    const directeur = sessionWithOrgRole(ORG_ROLE.DIRECTEUR);
+    assert.equal(
+      canAccessBranchAreaFromPermissions("fiche_centrale", directeur),
+      true,
+      "direction : fiche centrale",
+    );
+  } finally {
+    if (prev == null) delete process.env.PERMISSIONS_FROM_DAC;
+    else process.env.PERMISSIONS_FROM_DAC = prev;
+  }
+});
+
 test("DAC enseignant : pas paie / finance par défaut ; pas utilisateurs / enseignement / caisse", () => {
   const prev = process.env.PERMISSIONS_FROM_DAC;
   process.env.PERMISSIONS_FROM_DAC = "true";

@@ -18,6 +18,7 @@ import {
   isInvitableRole,
 } from "@/lib/invitations/config";
 import { INVITATION_MESSAGES } from "@/lib/invitations/messages";
+import { activeTitulaireTeachingWhere } from "@/lib/auth/titulaire-teaching";
 import { admin, customSession, organization } from "better-auth/plugins";
 import {
   APP_ROLE,
@@ -393,8 +394,10 @@ export const auth = betterAuth({
         branch && organization
           ? await prisma.teacher.findFirst({
               where: {
+                isActive: true,
                 branchMember: {
                   branchId: branch.id,
+                  isActive: true,
                   member: {
                     userId: user.id,
                     organizationId: organization.id,
@@ -404,10 +407,7 @@ export const auth = betterAuth({
               select: {
                 id: true,
                 teaching: {
-                  where: {
-                    OR: [{ branchId: branch.id }, { branchId: null }],
-                    titulaire: true,
-                  },
+                  where: activeTitulaireTeachingWhere(branch.id),
                   select: {
                     id: true,
                   },

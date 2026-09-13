@@ -692,7 +692,7 @@ export function canAccessTeachingArea(
 
 /**
  * Fiche centrale / Fiches classe : managers + enseignant titulaire
- * (`teacherContext.isTitulaire` — unit-06 / TEACHER_TITULAIRE_ROLE).
+ * d’une classe avec un cours (`teacherContext.isTitulaire`).
  */
 export function canAccessTitulaireFichesArea(
   session: any,

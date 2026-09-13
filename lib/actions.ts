@@ -22,6 +22,7 @@ import { canManageOrganization } from "@/lib/auth/session-roles";
 import {
   assertClassRosterAccess,
   assertTitulaireClassAccess,
+  listTitulaireClassIdsForUser,
 } from "@/lib/auth/data-scope";
 import { getSchoolYear as getCurrentSchoolYear } from "@/lib/school-year";
 import {
@@ -550,13 +551,20 @@ function getFicheTeacherUser(teacher?: FicheTeacherWithUser | null) {
 
 export async function getFichesGroupedByCoursAnnee(): Promise<FicheResults[]> {
   try {
-    const { branchId } = await requireBranchContext();
+    const { branchId, session, userId } = await requireBranchContext();
     const currentYear = await prisma.schoolYear.findFirst({
       where: { isCurrentYear: true, branchId },
     });
 
     if (!currentYear) {
       throw new Error("Année scolaire introuvable");
+    }
+
+    const titulaireClassIds = canManageOrganization(session)
+      ? null
+      : await listTitulaireClassIdsForUser({ userId, branchId });
+    if (titulaireClassIds && titulaireClassIds.length === 0) {
+      return [];
     }
 
     // 1️⃣ FETCH DATA
@@ -568,6 +576,9 @@ export async function getFichesGroupedByCoursAnnee(): Promise<FicheResults[]> {
         NOT: {
           typeFiche: "ficheCote",
         },
+        ...(titulaireClassIds
+          ? { classSectionId: { in: titulaireClassIds } }
+          : {}),
       },
       include: {
         teacher: { include: ficheTeacherInclude },

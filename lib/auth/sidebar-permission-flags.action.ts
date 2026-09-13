@@ -16,9 +16,11 @@ import {
   canAccessSchoolOpsSettings,
   canAccessSchoolStructureSettings,
   canAccessSupportSettings,
+  canAccessTitulaireFichesArea,
   isCanonicalOrganizationOwnerSession,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
+import { areaRequiresClassTitulaire } from "@/lib/auth/titulaire-teaching";
 import {
   grantsCoverBranchArea,
   loadActiveTemporaryGrants,
@@ -149,7 +151,10 @@ export async function getSidebarPermissionFlagsAction(
         session,
         roleStatements,
       );
-      const allowedByGrant = grantsCoverBranchArea(temporaryGrants, area);
+      const allowedByGrant =
+        grantsCoverBranchArea(temporaryGrants, area) &&
+        (!areaRequiresClassTitulaire(area) ||
+          canAccessTitulaireFichesArea(session));
       if (!allowedByRole && !allowedByGrant) hideHrefs.push(href);
     }
 
