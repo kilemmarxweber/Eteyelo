@@ -6,7 +6,9 @@ import "./stub-server-only";
 import "./grade.worker";
 import "./email.worker";
 import { startAttendanceAbsenceCron } from "../server/cron/attendanceCron";
+import { startOwnerDailyFinanceCron } from "../server/cron/ownerDailyFinanceCron";
 
 startAttendanceAbsenceCron();
+startOwnerDailyFinanceCron();
 
-console.log("👷 All workers started (grade + email + attendance)");
+console.log("👷 All workers started (grade + email + attendance + owner finance)");

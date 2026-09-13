@@ -64,6 +64,71 @@ export function startOfTodayInTimezone(date: Date = new Date()) {
   return new Date(Date.UTC(year, month - 1, day));
 }
 
+/** Clé calendaire `YYYY-MM-DD` dans le fuseau applicatif. */
+export function calendarDateKeyInTimezone(
+  date: Date = new Date(),
+  timeZone: string = TIMEZONE,
+) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+/**
+ * Bornes UTC `[start, end)` du jour calendaire local (APP_TIMEZONE).
+ * Utile pour les agrégats `createdAt` (caisse, inscriptions).
+ */
+export function dayRangeInAppTimezone(date: Date = new Date()): {
+  start: Date;
+  end: Date;
+  dateKey: string;
+} {
+  const dateKey = calendarDateKeyInTimezone(date);
+  const utcNoon = Date.parse(`${dateKey}T12:00:00.000Z`);
+
+  const localParts = (ms: number) => {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: TIMEZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).formatToParts(new Date(ms));
+    const get = (type: Intl.DateTimeFormatPartTypes) =>
+      parts.find((part) => part.type === type)?.value ?? "00";
+    return {
+      date: `${get("year")}-${get("month")}-${get("day")}`,
+      seconds:
+        Number(get("hour")) * 3600 +
+        Number(get("minute")) * 60 +
+        Number(get("second")),
+    };
+  };
+
+  let lo = utcNoon - 36 * 3_600_000;
+  let hi = utcNoon + 36 * 3_600_000;
+  // Cherche le premier instant dont la date locale == dateKey.
+  while (hi - lo > 1000) {
+    const mid = Math.floor((lo + hi) / 2);
+    const local = localParts(mid);
+    if (local.date < dateKey) lo = mid;
+    else hi = mid;
+  }
+
+  const start = new Date(hi);
+  return {
+    start,
+    end: new Date(start.getTime() + 86_400_000),
+    dateKey,
+  };
+}
+
 export function isTeacherCheckInWindow(
   currentMinutes: number,
   startMinutes: number,

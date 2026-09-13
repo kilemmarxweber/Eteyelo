@@ -43,6 +43,7 @@
     "qa:unit-11-http": "tsx scripts/qa-unit-11-http-matrix.ts",
     "test:dashboard-variant": "tsx scripts/test-dashboard-variant.ts",
     "test:sidebar-menu": "tsx scripts/test-sidebar-menu.ts",
+    "test:owner-daily-finance": "tsx scripts/test-owner-daily-finance-summary.ts",
     "test:caissier-perimeter": "tsx scripts/test-caissier-perimeter.ts",
     "test:post-login-routing": "tsx scripts/test-post-login-routing.ts",
     "test:support-etablissement": "tsx scripts/test-support-etablissement.ts",

@@ -12,6 +12,7 @@ export const NOTIFICATION_EVENT_KEYS = [
   "invitation",
   "payroll",
   "emailVerification",
+  "ownerDailyFinance",
 ] as const;
 
 export type NotificationEvent = (typeof NOTIFICATION_EVENT_KEYS)[number];
@@ -105,6 +106,11 @@ export const NOTIFICATION_EVENT_META: Array<{
     label: "Vérification d'email",
     hint: "L'e-mail reste obligatoire pour activer le compte.",
     emailForced: true,
+  },
+  {
+    key: "ownerDailyFinance",
+    label: "Situation quotidienne (propriétaire)",
+    hint: "Caisse et nouveaux inscrits, toutes les branches, vers 17h55 (jamais le dimanche ni un jour férié calendrier).",
   },
 ];
 
