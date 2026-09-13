@@ -5,9 +5,10 @@ import ClassFicheClient from "./components/ClassFicheClient";
 import { redirect, notFound } from "next/navigation";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
-  canAccessTitulaireFichesArea,
-  canManageOrganization,
-} from "@/lib/auth/session-roles";
+  canSeeFicheAreaFromSession,
+  hasFicheAreaTemporaryGrant,
+} from "@/lib/auth/fiche-area-access";
+import { canManageOrganization } from "@/lib/auth/session-roles";
 import {
   isCursusSelfScopedRole,
   resolveGrantedCursusViewerRole,
@@ -50,8 +51,16 @@ export default async function ClassFichePage() {
 
   const canManage = canManageOrganization(session);
 
-  // Fiches classe : school admin, titulaire, ou octroi fiche (layout déjà autorisé).
-  if (!canAccessTitulaireFichesArea(session) && role !== "admin") {
+  // Fiches classe : direction, titulaire, matrice, ou octroi temporaire.
+  if (
+    !canSeeFicheAreaFromSession(session) &&
+    role !== "admin" &&
+    !(await hasFicheAreaTemporaryGrant({
+      userId,
+      organizationId,
+      branchId,
+    }))
+  ) {
     notFound();
   }
 

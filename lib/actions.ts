@@ -20,6 +20,10 @@ import {
 } from "@/lib/academic-periods";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import {
+  hasFicheAreaMatrixAccess,
+  hasFicheAreaTemporaryGrant,
+} from "@/lib/auth/fiche-area-access";
+import {
   assertClassRosterAccess,
   assertTitulaireClassAccess,
   listTitulaireClassIdsForUser,
@@ -551,7 +555,8 @@ function getFicheTeacherUser(teacher?: FicheTeacherWithUser | null) {
 
 export async function getFichesGroupedByCoursAnnee(): Promise<FicheResults[]> {
   try {
-    const { branchId, session, userId } = await requireBranchContext();
+    const { branchId, session, userId, organizationId } =
+      await requireBranchContext();
     const currentYear = await prisma.schoolYear.findFirst({
       where: { isCurrentYear: true, branchId },
     });
@@ -560,7 +565,15 @@ export async function getFichesGroupedByCoursAnnee(): Promise<FicheResults[]> {
       throw new Error("Année scolaire introuvable");
     }
 
-    const titulaireClassIds = canManageOrganization(session)
+    const establishmentAccess =
+      canManageOrganization(session) ||
+      hasFicheAreaMatrixAccess(session) ||
+      (await hasFicheAreaTemporaryGrant({
+        userId,
+        organizationId,
+        branchId,
+      }));
+    const titulaireClassIds = establishmentAccess
       ? null
       : await listTitulaireClassIdsForUser({ userId, branchId });
     if (titulaireClassIds && titulaireClassIds.length === 0) {

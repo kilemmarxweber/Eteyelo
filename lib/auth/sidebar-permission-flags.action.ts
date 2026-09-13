@@ -151,11 +151,13 @@ export async function getSidebarPermissionFlagsAction(
         session,
         roleStatements,
       );
-      const allowedByGrant =
-        grantsCoverBranchArea(temporaryGrants, area) &&
-        (!areaRequiresClassTitulaire(area) ||
-          canAccessTitulaireFichesArea(session));
-      if (!allowedByRole && !allowedByGrant) hideHrefs.push(href);
+      const allowedByGrant = grantsCoverBranchArea(temporaryGrants, area);
+      const allowedByTitulaire =
+        areaRequiresClassTitulaire(area) &&
+        canAccessTitulaireFichesArea(session);
+      if (!allowedByRole && !allowedByGrant && !allowedByTitulaire) {
+        hideHrefs.push(href);
+      }
     }
 
     const settingsReads: Record<string, boolean> = {};

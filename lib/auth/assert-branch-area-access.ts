@@ -122,13 +122,14 @@ export async function assertBranchAreaAccess(
       area,
       branchId,
     );
-    if (
-      allowed &&
-      areaRequiresClassTitulaire(area) &&
-      !canAccessTitulaireFichesArea(resolved)
-    ) {
-      allowed = false;
-    }
+  }
+
+  if (
+    !allowed &&
+    areaRequiresClassTitulaire(area) &&
+    canAccessTitulaireFichesArea(resolved)
+  ) {
+    allowed = true;
   }
 
   if (allowed) {
@@ -196,13 +197,14 @@ export async function canAccessBranchAreaAsync(
       area,
       resolvedBranchId,
     );
-    if (
-      allowed &&
-      areaRequiresClassTitulaire(area) &&
-      !canAccessTitulaireFichesArea(session)
-    ) {
-      allowed = false;
-    }
+  }
+
+  if (
+    !allowed &&
+    areaRequiresClassTitulaire(area) &&
+    canAccessTitulaireFichesArea(session)
+  ) {
+    allowed = true;
   }
 
   return allowed;

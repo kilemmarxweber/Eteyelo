@@ -524,8 +524,6 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     results: ["create", "read", "update"],
     devoirs: ["create", "read", "update"],
     library: ["create", "read", "update"],
-    fiches: ["create", "read", "update"],
-    ficheCentrale: ["create", "read", "update"],
     ...MESSAGING_STAFF,
   },
   [ORG_ROLE.SUPERVISEUR]: {

@@ -5,8 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { revalidatePath } from "next/cache";
 import {
-  canAccessTitulaireFichesArea,
-  canManageOrganization,
   canPermanentlyDeleteInformation,
   PERMANENT_DELETE_DENIED_MESSAGE,
 } from "@/lib/auth/session-roles";
@@ -51,9 +49,6 @@ export async function deleteFicheCentrale(params: {
 export async function deleteFicheIntervention(params: { ficheId: string }) {
   const { organizationId, branchId, session, userId } =
     await requireBranchContext();
-  if (!canAccessTitulaireFichesArea(session)) {
-    return { success: false as const, message: "Action non autorisée." };
-  }
 
   const fiche = await prisma.fiche.findFirst({
     where: {

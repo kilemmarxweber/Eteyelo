@@ -1,6 +1,4 @@
-import { notFound } from "next/navigation";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canAccessTitulaireFichesArea } from "@/lib/auth/session-roles";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -13,13 +11,7 @@ export default async function FicheCentralesPage({
   params: Promise<{ organizationId: string; branchId: string }>;
 }) {
   const { organizationId, branchId } = await params;
-  const { session } = await requireBranchContext();
-
-  // Fiche centrale : school admin ou titulaire (pas enseignant non-titulaire — unit-06).
-  // Élève / parent n’utilisent pas cette vue admin.
-  if (!canAccessTitulaireFichesArea(session)) {
-    notFound();
-  }
+  await requireBranchContext();
 
   return (
     <>

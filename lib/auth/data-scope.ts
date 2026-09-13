@@ -10,9 +10,12 @@ import { listTeacherScheduleCandidates } from "@/lib/attendance-teacher-session"
 import { canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
+  hasFicheAreaMatrixAccess,
+  hasFicheAreaTemporaryGrant,
+} from "@/lib/auth/fiche-area-access";
+import {
   canAccessStudentDirectory,
   canAccessTeachingArea,
-  canAccessTitulaireFichesArea,
   canManageOrganization,
   canViewAttendanceSchoolReports,
   hasSessionRole,
@@ -258,10 +261,6 @@ export async function assertTitulaireClassAccess(params: {
 }): Promise<void> {
   const { session, userId, branchId, classId } = params;
 
-  if (!canAccessTitulaireFichesArea(session)) {
-    notFound();
-  }
-
   if (canManageOrganization(session)) {
     return;
   }
@@ -282,9 +281,32 @@ export async function assertTitulaireClassAccess(params: {
     select: { id: true },
   });
 
-  if (!teaching) {
-    notFound();
+  if (teaching) {
+    return;
   }
+
+  if (hasFicheAreaMatrixAccess(session)) {
+    return;
+  }
+
+  const organizationId =
+    (session as { organization?: { id?: string }; session?: { activeOrganizationId?: string } } | null)
+      ?.organization?.id ??
+    (session as { session?: { activeOrganizationId?: string } } | null)?.session
+      ?.activeOrganizationId ??
+    null;
+  if (
+    organizationId &&
+    (await hasFicheAreaTemporaryGrant({
+      userId,
+      organizationId,
+      branchId,
+    }))
+  ) {
+    return;
+  }
+
+  notFound();
 }
 
 /**
