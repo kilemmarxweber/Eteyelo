@@ -109,16 +109,19 @@ export const notesColumns = (
   {
     accessorKey: "name",
     header: "Nom",
+    meta: { label: "Nom" },
     cell: ({ row }) => row.original.name,
   },
   {
     accessorKey: "firstname",
     header: "Prénom",
+    meta: { label: "Prénom" },
     cell: ({ row }) => row.original.firstname,
   },
   {
     accessorKey: "sex",
     header: "Sexe",
+    meta: { label: "Sexe" },
     cell: ({ row }) => row.original.sex,
   },
 
@@ -126,6 +129,7 @@ export const notesColumns = (
   {
     accessorKey: "score",
     header: "Score",
+    meta: { label: "Score" },
     size: 85,
     cell: ({ row }) => <ScoreCell row={row} onScoreChange={onScoreChange} />,
   },
@@ -133,6 +137,7 @@ export const notesColumns = (
   {
     accessorKey: "application",
     header: "App",
+    meta: { label: "Application" },
     cell: ({ row }) => {
       const s = row.original;
 
@@ -158,6 +163,7 @@ export const notesColumns = (
   {
     accessorKey: "comment",
     header: "Commentaire",
+    meta: { label: "Commentaire" },
     cell: ({ row }) => {
       const s = row.original;
 

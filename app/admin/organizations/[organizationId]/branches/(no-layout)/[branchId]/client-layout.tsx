@@ -63,7 +63,7 @@ function BranchShell({ children }: { children: React.ReactNode }) {
       <main
         className={cn(
           "h-dvh overflow-y-auto overflow-x-hidden transition-[margin]",
-          "pt-16 pb-[76px] md:pt-14 md:pb-0",
+          "pt-20 pb-[76px] md:pt-14 md:pb-0",
           isCollapsed ? "md:ml-14" : "md:ml-52",
         )}
       >

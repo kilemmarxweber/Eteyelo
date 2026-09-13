@@ -2,8 +2,10 @@
 
 import * as React from "react";
 import {
+  Column,
   ColumnDef,
   ColumnFiltersState,
+  HeaderContext,
   SortingState,
   VisibilityState,
   flexRender,
@@ -60,6 +62,66 @@ interface ResponsiveDataTableProps<TData, TValue> {
   getRowId?: (originalRow: TData, index: number) => string;
   enableRowSelection?: boolean | ((row: Row<TData>) => boolean);
 }
+
+function extractReactText(node: React.ReactNode): string {
+  if (node == null || typeof node === "boolean") return "";
+  if (typeof node === "string" || typeof node === "number") {
+    return String(node).trim();
+  }
+  if (Array.isArray(node)) {
+    return node.map(extractReactText).filter(Boolean).join(" ").trim();
+  }
+  if (React.isValidElement(node)) {
+    const props = node.props as {
+      title?: unknown;
+      children?: React.ReactNode;
+    };
+    if (typeof props.title === "string" && props.title.trim()) {
+      return props.title.trim();
+    }
+    return extractReactText(props.children);
+  }
+  return "";
+}
+
+function getMobileColumnLabel<TData, TValue>(
+  column: Column<TData, TValue>,
+): string {
+  const meta = column.columnDef.meta as { label?: string } | undefined;
+  if (meta?.label?.trim()) return meta.label.trim();
+
+  const headerDef = column.columnDef.header;
+  if (typeof headerDef === "string") return headerDef;
+
+  if (typeof headerDef === "function") {
+    try {
+      const rendered = headerDef({
+        column,
+      } as HeaderContext<TData, TValue>);
+      const text = extractReactText(rendered);
+      if (text) return text;
+      if (rendered == null) return "";
+    } catch {
+      // En-tête complexe (tri, checkbox…) : repli sur l'id.
+    }
+  }
+
+  const id = column.id ?? "";
+  if (!id || id === "select" || id === "actions") return "";
+  return id
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/^\w/, (char) => char.toUpperCase());
+}
+
+const MOBILE_TITLE_COLUMN_IDS = new Set([
+  "nom",
+  "name",
+  "fullName",
+  "postnom",
+  "prenom",
+  "firstname",
+]);
 
 export function ResponsiveDataTable<TData, TValue>({
   columns,
@@ -231,29 +293,32 @@ export function ResponsiveDataTable<TData, TValue>({
                     const column = cell.column;
                     const columnDef = column.columnDef;
 
-                    // Ignorer les colonnes d'actions et de sélection en mobile
+                    const columnId = column.id ?? columnDef.id;
+                    if (columnId === "actions" || columnId === "select") {
+                      return null;
+                    }
                     if (
-                      columnDef.id === "actions" ||
-                      columnDef.id === "select"
+                      mobileCardTitle &&
+                      columnId &&
+                      MOBILE_TITLE_COLUMN_IDS.has(columnId)
                     ) {
                       return null;
                     }
 
+                    const label = getMobileColumnLabel(column);
+                    if (!label) return null;
+
                     return (
                       <div
                         key={cell.id}
-                        className="flex justify-between items-center py-1"
+                        className="flex items-start justify-between gap-3 py-1.5"
                       >
-                        <span className="text-sm font-medium text-muted-foreground capitalize">
-                          {typeof columnDef.header === "string"
-                            ? columnDef.header
-                            : columnDef.id?.replace(/([A-Z])/g, " $1").trim() ||
-                              "Champ"}
-                          :
+                        <span className="shrink-0 text-sm font-medium text-muted-foreground">
+                          {label}
                         </span>
-                        <span className="text-sm text-right flex-1 ml-2">
+                        <div className="min-w-0 flex-1 text-right text-sm">
                           {flexRender(columnDef.cell, cell.getContext())}
-                        </span>
+                        </div>
                       </div>
                     );
                   })}

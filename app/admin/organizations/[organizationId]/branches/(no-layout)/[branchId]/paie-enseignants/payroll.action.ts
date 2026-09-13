@@ -401,7 +401,7 @@ export const updatePayrollPolicyAction = action
   });
 
 function extractClassNames(
-  lines: Array<{ label: string; detail: unknown }>,
+  lines: Array<{ label: string; detail?: unknown }>,
 ): string[] {
   const classes = new Set<string>();
   for (const line of lines) {
@@ -500,7 +500,7 @@ function toListItem(row: {
   lines: Array<{
     sessions: number;
     label: string;
-    detail: unknown;
+    detail?: unknown;
     cycle: string | null;
     minutes: number;
     kind: string;
@@ -709,7 +709,6 @@ export const getTeacherPayslipsAction = action
           select: {
             sessions: true,
             label: true,
-            detail: true,
             cycle: true,
             minutes: true,
             kind: true,

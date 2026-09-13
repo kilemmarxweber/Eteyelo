@@ -41,7 +41,7 @@ export function BranchStickyHeader({
         className,
       )}
     >
-      <header className="px-4 py-2 md:px-8">
+      <header className="px-4 pb-2 pt-3 md:px-8 md:py-2">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {backHref ? (

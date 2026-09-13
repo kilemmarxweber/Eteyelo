@@ -101,6 +101,7 @@ export function useStudentColumns(
   {
     id: "photo",
     header: t("photo"),
+    meta: { label: t("photo") },
     cell: ({ row }) => {
       const student = row.original;
       const fullName = [student.nom, student.postnom, student.prenom]
@@ -124,6 +125,7 @@ export function useStudentColumns(
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={tPerson("lastName")} />
     ),
+    meta: { label: tPerson("lastName") },
     cell: ({ row }) => (
       <span className="font-semibold text-foreground">
         {row.original.nom ?? "N/A"}
@@ -147,6 +149,7 @@ export function useStudentColumns(
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={tPerson("postnom")} />
     ),
+    meta: { label: tPerson("postnom") },
     cell: ({ row }) => (
       <span className="text-foreground/80">{row.original.postnom ?? "N/A"}</span>
     ),
@@ -156,6 +159,7 @@ export function useStudentColumns(
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={tPerson("firstName")} />
     ),
+    meta: { label: tPerson("firstName") },
     cell: ({ row }) => (
       <span className="text-foreground/80">{row.original.prenom ?? "N/A"}</span>
     ),
@@ -165,6 +169,7 @@ export function useStudentColumns(
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={tPerson("gender")} />
     ),
+    meta: { label: tPerson("gender") },
     cell: ({ row }) => row.original.sexe ?? "N/A",
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
@@ -172,6 +177,7 @@ export function useStudentColumns(
     id: "registeredPeriod",
     accessorFn: (student) => student.createdAt,
     header: () => null,
+    meta: { label: "" },
     cell: () => null,
     filterFn: (row, _id, value) => {
       const selected = Array.isArray(value)
@@ -244,6 +250,7 @@ export function useStudentColumns(
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={t("schoolYear")} />
     ),
+    meta: { label: t("schoolYear") },
     cell: ({ row }) => row.original.schoolYearName ?? "—",
     filterFn: (row, _id, value) => {
       const selected = Array.isArray(value) ? value.map(String) : [];
@@ -262,6 +269,7 @@ export function useStudentColumns(
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={t("birthDate")} />
     ),
+    meta: { label: t("birthDate") },
     cell: (row) =>
       row.getValue()
         ? new Date(row.getValue() as string).toLocaleDateString(locale)
@@ -272,6 +280,7 @@ export function useStudentColumns(
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={t("class")} />
     ),
+    meta: { label: t("class") },
     cell: ({ row, table }) => {
       const yearFilter = table.getColumn("schoolYearId")?.getFilterValue();
       const selectedYears = Array.isArray(yearFilter)
@@ -312,6 +321,7 @@ export function useStudentColumns(
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={t("option")} />
     ),
+    meta: { label: t("option") },
     cell: ({ row, table }) => {
       const yearFilter = table.getColumn("schoolYearId")?.getFilterValue();
       const selectedYears = Array.isArray(yearFilter)
@@ -338,6 +348,7 @@ export function useStudentColumns(
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={t("age")} />
     ),
+    meta: { label: t("age") },
     accessorFn: (student) => calculateAge(student.dateOfBirth),
     cell: ({ row }) => {
       const age = calculateAge(row.original.dateOfBirth);
@@ -352,6 +363,7 @@ export function useStudentColumns(
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="E13" />
     ),
+    meta: { label: "E13" },
     cell: ({ row, table }) => {
       const selectedYears = selectedSchoolYearIds(table);
       const allowed = studentAllowsExamCodes(row.original, {
@@ -385,6 +397,7 @@ export function useStudentColumns(
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="E80" />
     ),
+    meta: { label: "E80" },
     cell: ({ row, table }) => {
       const selectedYears = selectedSchoolYearIds(table);
       const allowed = studentAllowsExamCodes(row.original, {

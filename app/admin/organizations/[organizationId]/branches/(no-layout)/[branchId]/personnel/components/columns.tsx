@@ -74,6 +74,7 @@ export function usePersonnelColumns(
       {
         id: "photo",
         header: t("photo"),
+        meta: { label: t("photo") },
         cell: ({ row }) => {
           const personnel = row.original;
           const fullName =
@@ -111,6 +112,7 @@ export function usePersonnelColumns(
             title={tPerson("lastName")}
           />
         ),
+        meta: { label: tPerson("lastName") },
         cell: ({ row }) => (
           <span className="font-semibold text-foreground">
             {row.original.nom ?? "N/A"}
@@ -134,6 +136,7 @@ export function usePersonnelColumns(
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={tPerson("postnom")} />
         ),
+        meta: { label: tPerson("postnom") },
         cell: ({ row }) => (
           <span className="text-foreground/80">
             {row.original.postnom ?? "N/A"}
@@ -148,6 +151,7 @@ export function usePersonnelColumns(
             title={tPerson("firstName")}
           />
         ),
+        meta: { label: tPerson("firstName") },
         cell: ({ row }) => (
           <span className="text-foreground/80">
             {row.original.prenom ?? "N/A"}
@@ -159,6 +163,7 @@ export function usePersonnelColumns(
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={tPerson("gender")} />
         ),
+        meta: { label: tPerson("gender") },
         cell: ({ row }) => {
           const sexe = row.original.sexe;
           if (sexe === "M") return tPerson("male");
@@ -173,6 +178,7 @@ export function usePersonnelColumns(
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t("role")} />
         ),
+        meta: { label: t("role") },
         cell: ({ row }) => (
           <span className="font-medium text-primary">
             {row.original.role
@@ -187,6 +193,7 @@ export function usePersonnelColumns(
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t("monthlyForfait")} />
         ),
+        meta: { label: t("monthlyForfait") },
         cell: ({ row }) =>
           row.original.monthlyForfait != null && row.original.monthlyForfait > 0
             ? row.original.monthlyForfait.toLocaleString("fr-FR")
@@ -197,6 +204,7 @@ export function usePersonnelColumns(
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={tPerson("phone")} />
         ),
+        meta: { label: tPerson("phone") },
         cell: ({ row }) =>
           row.original.telephone ? (
             <Link
@@ -214,6 +222,7 @@ export function usePersonnelColumns(
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={tPerson("email")} />
         ),
+        meta: { label: tPerson("email") },
         cell: ({ row }) =>
           row.original.email ? (
             <Link

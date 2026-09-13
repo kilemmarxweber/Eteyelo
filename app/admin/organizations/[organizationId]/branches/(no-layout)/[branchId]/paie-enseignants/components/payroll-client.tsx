@@ -995,38 +995,6 @@ export default function PayrollClient() {
           <p className="text-sm text-muted-foreground">
             {isManager ? t("state.empty") : t("state.emptySelf")}
           </p>
-        ) : !isManager ? (
-          <div className="space-y-3">
-            {rows.map((row) => (
-              <button
-                key={row.id}
-                type="button"
-                className="flex w-full flex-col gap-2 rounded-xl border bg-card p-4 text-left shadow-sm transition hover:border-primary/40 hover:bg-muted/40"
-                onClick={() =>
-                  router.push(
-                    `/admin/organizations/${params.organizationId}/branches/${params.branchId}/paie-enseignants/${row.id}`,
-                  )
-                }
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-base font-semibold">
-                    {t("tabs.payslipTitle")}
-                  </span>
-                  <Badge variant="outline-primary">{t("table.detail")}</Badge>
-                </div>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                  <span>
-                    {months[row.month - 1]} {row.year}
-                  </span>
-                  <span>
-                    {t("table.net")}{" "}
-                    {formatAmount(row.net, row.currency, localeTag)}
-                  </span>
-                  <Badge variant="outline">{statusLabel(row.status, t)}</Badge>
-                </div>
-              </button>
-            ))}
-          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1280px] text-sm">
@@ -1098,7 +1066,21 @@ export default function PayrollClient() {
                       </td>
                     </tr>
                     {group.rows.map((row) => (
-                      <tr key={row.id} className="border-b last:border-0">
+                      <tr
+                        key={row.id}
+                        className={cn(
+                          "border-b last:border-0",
+                          !isManager && "cursor-pointer hover:bg-muted/40",
+                        )}
+                        onClick={
+                          isManager
+                            ? undefined
+                            : () =>
+                                router.push(
+                                  `/admin/organizations/${params.organizationId}/branches/${params.branchId}/paie-enseignants/${row.id}`,
+                                )
+                        }
+                      >
                         {isManager ? (
                           <td className="p-2">
                             <Checkbox
@@ -1190,17 +1172,18 @@ export default function PayrollClient() {
                           <div className="flex flex-nowrap items-center gap-1">
                           <Button
                             variant="outline"
-                            size="icon"
-                            className="size-8 shrink-0"
+                            size={isManager ? "icon" : "sm"}
+                            className={isManager ? "size-8 shrink-0" : "shrink-0"}
                             onClick={() =>
                               router.push(
                                 `/admin/organizations/${params.organizationId}/branches/${params.branchId}/paie-enseignants/${row.id}`,
                               )
                             }
-                            title="Détail"
+                            title={t("table.detail")}
                             aria-label={`Voir le détail de ${row.teacherName || "agent"}`}
                           >
                             <IconFileInvoice size={15} />
+                            {isManager ? null : t("table.detail")}
                           </Button>
                           {canValidate && row.status === "DRAFT" ? (
                             <Button

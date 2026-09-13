@@ -933,7 +933,7 @@ export default function FicheSaisieClient({
               </CardHeader>
 
               <CardContent className="min-h-0 flex-1 overflow-auto p-1.5 sm:p-2 max-h-[min(720px,calc(100dvh-14rem))]">
-                <div className="min-w-[680px]">
+                <div className="min-w-0 md:min-w-[680px]">
                   <ResponsiveDataTable<StudentRow, unknown>
                     data={students}
                     columns={columns}

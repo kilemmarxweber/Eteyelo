@@ -277,7 +277,7 @@ export default function Sidebar({
       {navOpened ? (
         <div
           id="sidebar-menu"
-          className="fixed inset-x-0 top-16 bottom-[76px] z-40 overflow-y-auto border-b bg-background md:hidden"
+          className="fixed inset-x-0 top-20 bottom-[76px] z-40 overflow-y-auto border-b bg-background md:hidden"
         >
           <Nav
             className="min-h-0 flex-1 border-b"
