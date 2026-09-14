@@ -261,6 +261,11 @@ export async function listBranchPeriodOptions(params: {
   ensure?: boolean;
   /** Universite : ne retourner que Premiere session et Deuxieme session. */
   sessionsOnly?: boolean;
+  /**
+   * Enseignant non titulaire : périodes pédagogiques par défaut uniquement
+   * (hors examens), pour le cycle demandé.
+   */
+  defaultsOnly?: boolean;
 }): Promise<BranchPeriodOption[]> {
   const cycle = params.cycle
     ? normalizeCycle(params.cycle)
@@ -334,6 +339,12 @@ export async function listBranchPeriodOptions(params: {
         return true;
       }
       return period.kind === "EXAM";
+    })
+    .filter((period) => {
+      if (!params.defaultsOnly || isUniversiteBranch(typebranch)) {
+        return true;
+      }
+      return period.kind !== "EXAM";
     })
     .sort(
       (left, right) =>

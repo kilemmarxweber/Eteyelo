@@ -47,16 +47,27 @@ function ScoreCell({
 }) {
   const s = row.original;
   const focusedRef = React.useRef(false);
+  const localValueRef = React.useRef(scoreToText(s.score));
   const [localValue, setLocalValue] = React.useState<string>(() =>
     scoreToText(s.score),
   );
 
   React.useEffect(() => {
     if (focusedRef.current) return;
-    setLocalValue(scoreToText(s.score));
+    const next = scoreToText(s.score);
+    localValueRef.current = next;
+    setLocalValue(next);
   }, [s.score]);
 
-  const commitText = (raw: string) => {
+  const commitParsed = (raw: string) => {
+    const parsed = parseScoreText(raw, s.maxScore);
+    if (parsed !== s.score) {
+      onScoreChange(s.studentId, parsed);
+    }
+    return parsed;
+  };
+
+  const applyText = (raw: string) => {
     if (raw !== "" && !SCORE_TEXT_PATTERN.test(raw)) return;
 
     const parsed = parseScoreText(raw, s.maxScore);
@@ -65,10 +76,8 @@ function ScoreCell({
         ? String(parsed)
         : raw;
 
+    localValueRef.current = nextText;
     setLocalValue(nextText);
-    if (parsed !== s.score) {
-      onScoreChange(s.studentId, parsed);
-    }
   };
 
   return (
@@ -84,20 +93,63 @@ function ScoreCell({
           focusedRef.current = true;
           e.currentTarget.select();
         }}
-        onChange={(e) => commitText(e.target.value)}
+        onChange={(e) => applyText(e.target.value)}
         onKeyDown={(e) => {
           if (e.key !== "Enter") return;
           e.preventDefault();
           e.stopPropagation();
+          commitParsed(localValueRef.current);
           focusNextScoreInput(e.currentTarget);
         }}
         onBlur={() => {
           focusedRef.current = false;
+          commitParsed(localValueRef.current);
         }}
         className="w-16 h-8 px-2"
       />
       <span className="text-xs">/{s.maxScore}</span>
     </div>
+  );
+}
+
+function CommentCell({
+  row,
+  onCommentChange,
+}: {
+  row: any;
+  onCommentChange: (id: string, value: string) => void;
+}) {
+  const s = row.original;
+  const focusedRef = React.useRef(false);
+  const localValueRef = React.useRef(s.comment ?? "");
+  const [localValue, setLocalValue] = React.useState(s.comment ?? "");
+
+  React.useEffect(() => {
+    if (focusedRef.current) return;
+    const next = s.comment ?? "";
+    localValueRef.current = next;
+    setLocalValue(next);
+  }, [s.comment]);
+
+  return (
+    <textarea
+      className="w-full h-8 min-h-8 rounded-md border border-input bg-background px-2 py-0.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+      value={localValue}
+      onFocus={() => {
+        focusedRef.current = true;
+      }}
+      onChange={(e) => {
+        const next = e.target.value;
+        localValueRef.current = next;
+        setLocalValue(next);
+      }}
+      onBlur={() => {
+        focusedRef.current = false;
+        if (localValueRef.current !== (s.comment ?? "")) {
+          onCommentChange(s.studentId, localValueRef.current);
+        }
+      }}
+    />
   );
 }
 
@@ -164,16 +216,8 @@ export const notesColumns = (
     accessorKey: "comment",
     header: "Commentaire",
     meta: { label: "Commentaire" },
-    cell: ({ row }) => {
-      const s = row.original;
-
-      return (
-        <textarea
-          className="w-full h-8 min-h-8 rounded-md border border-input bg-background px-2 py-0.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-          value={s.comment ?? ""}
-          onChange={(e) => onCommentChange(s.studentId, e.target.value)}
-        />
-      );
-    },
+    cell: ({ row }) => (
+      <CommentCell row={row} onCommentChange={onCommentChange} />
+    ),
   },
 ];

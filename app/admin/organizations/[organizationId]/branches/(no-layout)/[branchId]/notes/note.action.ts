@@ -27,6 +27,12 @@ import {
 } from "@/lib/course-ponderation";
 import { isAllowedFicheType } from "@/lib/fiche-type-options";
 import { syncClassStudentsAcrossOpenFiches } from "@/lib/sync-fiche-students";
+import {
+  canUseFicheCoteForClass,
+  hasFicheCoteMatrixAccess,
+  hasFicheCoteTemporaryGrant,
+} from "@/lib/auth/notes-fiche-access";
+import { listTitulaireClassIdsForUser } from "@/lib/auth/data-scope";
 
 export async function getSchoolYear() {
   return getCurrentSchoolYear();
@@ -56,23 +62,45 @@ async function syncClassStudentsAcrossFiches({
     currentStudents,
   });
 }
-// récupère toutes les périodes / sessions selon le type de branche
+// Périodes du cycle de la classe (option) — défaut pour non-titulaire, tout pour titulaire/octroi.
 export async function getPeriods(classId?: string) {
-  const { branchId, typebranch, educationSystem } = await requireBranchContext();
-  let cycle: unknown = undefined;
-  if (classId) {
-    const classe = await prisma.classe.findFirst({
-      where: { id: classId, branchId },
-      select: { cycle: true },
-    });
-    cycle = classe?.cycle ?? typebranch;
-  }
+  const {
+    session,
+    userId,
+    branchId,
+    organizationId,
+    typebranch,
+    educationSystem,
+  } = await requireBranchContext();
+
+  if (!classId) return [];
+
+  const classe = await prisma.classe.findFirst({
+    where: { id: classId, branchId },
+    select: {
+      cycle: true,
+      optionId: true,
+      option: { select: { cycle: true } },
+    },
+  });
+  if (!classe) return [];
+
+  const cycle = classe.cycle ?? classe.option?.cycle ?? typebranch;
+  const canFull = await canUseFicheCoteForClass({
+    session,
+    userId,
+    organizationId,
+    branchId,
+    classId,
+  });
+
   const periods = await listBranchPeriodOptions({
     branchId,
     typebranch,
     educationSystem,
     cycle,
     sessionsOnly: isUniversiteBranch(typebranch),
+    defaultsOnly: !canFull,
   });
 
   return uniquePeriodOptions(
@@ -84,6 +112,32 @@ export async function getPeriods(classId?: string) {
       cycle: period.cycle,
     })),
   );
+}
+
+/** Flags notes : classes titulaire + droit type Fiche (matrice / octroi). */
+export async function getNotesFicheAccessFlags() {
+  const { session, userId, branchId, organizationId } =
+    await requireBranchContext();
+  const canManage = canManageOrganization(session);
+  const [titulaireClassIds, hasGrant] = await Promise.all([
+    canManage
+      ? Promise.resolve([] as string[])
+      : listTitulaireClassIdsForUser({ userId, branchId }),
+    canManage
+      ? Promise.resolve(true)
+      : (async () =>
+          hasFicheCoteMatrixAccess(session) ||
+          (await hasFicheCoteTemporaryGrant({
+            userId,
+            organizationId,
+            branchId,
+          })))(),
+  ]);
+
+  return {
+    titulaireClassIds,
+    canUseFicheCoteGrant: canManage || hasGrant,
+  };
 }
 export async function checkExistingFiche(params: {
   teacherId: string;
@@ -161,7 +215,7 @@ export async function createFiche(
   data: CreateFicheParams,
 ): Promise<CreateFicheResult> {
   try {
-    const { session, userId, branchId, typebranch, educationSystem } =
+    const { session, userId, branchId, organizationId, typebranch, educationSystem } =
       await requireBranchContext();
     const canManage = canManageOrganization(session);
     const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
@@ -175,26 +229,55 @@ export async function createFiche(
       };
     }
 
-    const periodRecord = await listBranchPeriodOptions({
+    const targetClass = await prisma.classe.findFirst({
+      where: { id: data.classId, branchId },
+      select: {
+        cycle: true,
+        option: { select: { cycle: true } },
+      },
+    });
+    const classCycle =
+      targetClass?.cycle ?? targetClass?.option?.cycle ?? typebranch;
+    const periodsForClass = await listBranchPeriodOptions({
       branchId,
       typebranch,
       educationSystem,
+      cycle: classCycle,
     });
-    const selectedPeriod = periodRecord.find((p) => p.id === data.periodId);
+    const selectedPeriod = periodsForClass.find((p) => p.id === data.periodId);
     const isExamPeriod = selectedPeriod?.kind === "EXAM";
+    const canUseFicheCote = await canUseFicheCoteForClass({
+      session,
+      userId,
+      organizationId,
+      branchId,
+      classId: data.classId,
+    });
+
+    if (!selectedPeriod) {
+      return {
+        success: false,
+        error: true,
+        message:
+          "Période invalide pour le cycle / la classe sélectionnée.",
+      };
+    }
 
     if (
       !isAllowedFicheType(data.typeFiche, typebranch, {
-        isAdmin: canManage,
+        canUseFicheCote,
         isExam: isExamPeriod,
       })
     ) {
       return {
         success: false,
         error: true,
-        message: isUniversiteBranch(typebranch)
-          ? "Type de fiche non autorise pour une universite (Evaluation, TP, TFC, Memoire ou Fiche uniquement)."
-          : "Type de fiche non autorise pour cette branche.",
+        message:
+          data.typeFiche === "ficheCote"
+            ? "Type « Fiche » réservé au titulaire de classe ou via octroi d'accès."
+            : isUniversiteBranch(typebranch)
+              ? "Type de fiche non autorise pour une universite (Evaluation, TP, TFC, Memoire ou Fiche uniquement)."
+              : "Type de fiche non autorise pour cette branche.",
       };
     }
 

@@ -223,188 +223,185 @@ export function ResponsiveDataTable<TData, TValue>({
     onRowClick(row);
   }
 
-  // Vue mobile - Cards
+  // Inline JSX (not nested components) so score/comment edits don't remount inputs.
   const hasSelectColumn = table
     .getAllColumns()
     .some((column) => column.id === "select");
-
-  const MobileCardView = () => (
-    <div className="space-y-4">
-      {table.getRowModel().rows?.length ? (
-        table.getRowModel().rows.map((row) => {
-          const rowData = row.original as TData;
-          return (
-            <Card
-              key={row.id}
-              className={cn(
-                "transition-all hover:shadow-md",
-                onRowClick && "cursor-pointer",
-                row.getIsSelected() && "ring-1 ring-primary/40",
-              )}
-              onClick={(event) => handleRowNavigate(event, rowData)}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  {hasSelectColumn ? (
-                    <Checkbox
-                      checked={row.getIsSelected()}
-                      disabled={!row.getCanSelect()}
-                      onCheckedChange={(value) =>
-                        row.toggleSelected(!!value)
-                      }
-                      aria-label="Sélectionner"
-                      className="mt-1"
-                      onClick={(event) => event.stopPropagation()}
-                    />
-                  ) : null}
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg font-semibold truncate">
-                      {mobileCardTitle
-                        ? mobileCardTitle(rowData)
-                        : `Item ${row.id}`}
-                    </CardTitle>
-                    {mobileCardSubtitle && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {mobileCardSubtitle(rowData)}
-                      </p>
-                    )}
-                  </div>
-                  {mobileCardActions ? (
-                    mobileCardActions(rowData)
-                  ) : null}
-                </div>
-
-                {/* Badges */}
-                {mobileCardBadges && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {mobileCardBadges(rowData).map((badge, index) => (
-                      <Badge key={index} variant={badge.variant || "secondary"}>
-                        {badge.label}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </CardHeader>
-
-              <CardContent className="pt-0">
-                {/* Détails des colonnes */}
-                <div className="space-y-3">
-                  {row.getVisibleCells().map((cell) => {
-                    const column = cell.column;
-                    const columnDef = column.columnDef;
-
-                    const columnId = column.id ?? columnDef.id;
-                    if (columnId === "actions" || columnId === "select") {
-                      return null;
-                    }
-                    if (
-                      mobileCardTitle &&
-                      columnId &&
-                      MOBILE_TITLE_COLUMN_IDS.has(columnId)
-                    ) {
-                      return null;
-                    }
-
-                    const label = getMobileColumnLabel(column);
-                    if (!label) return null;
-
-                    return (
-                      <div
-                        key={cell.id}
-                        className="flex items-start justify-between gap-3 py-1.5"
-                      >
-                        <span className="shrink-0 text-sm font-medium text-muted-foreground">
-                          {label}
-                        </span>
-                        <div className="min-w-0 flex-1 text-right text-sm">
-                          {flexRender(columnDef.cell, cell.getContext())}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Actions personnalisées */}
-                {mobileCardActions && (
-                  <div className="flex gap-2 mt-4 pt-3 border-t">
-                    {mobileCardActions(rowData)}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })
-      ) : (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center h-32">
-            <p className="text-muted-foreground text-center">{emptyText}</p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-
-  // Vue desktop - Tableau classique
-  const DesktopTableView = () => (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id} colSpan={header.colSpan}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-                className={cn(
-                  "hover:bg-muted/50 transition-colors",
-                  onRowClick && "cursor-pointer",
-                )}
-                onClick={(event) => handleRowNavigate(event, row.original)}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                {emptyText}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
-  );
 
   return (
     <div className={cn("space-y-4", className)}>
       <ToolbarComponent table={table} />
 
-      {/* Affichage conditionnel selon la taille d'écran */}
-      {isMobile ? <MobileCardView /> : <DesktopTableView />}
+      {isMobile ? (
+        <div className="space-y-4">
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => {
+              const rowData = row.original as TData;
+              return (
+                <Card
+                  key={row.id}
+                  className={cn(
+                    "transition-all hover:shadow-md",
+                    onRowClick && "cursor-pointer",
+                    row.getIsSelected() && "ring-1 ring-primary/40",
+                  )}
+                  onClick={(event) => handleRowNavigate(event, rowData)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-2">
+                      {hasSelectColumn ? (
+                        <Checkbox
+                          checked={row.getIsSelected()}
+                          disabled={!row.getCanSelect()}
+                          onCheckedChange={(value) =>
+                            row.toggleSelected(!!value)
+                          }
+                          aria-label="Sélectionner"
+                          className="mt-1"
+                          onClick={(event) => event.stopPropagation()}
+                        />
+                      ) : null}
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-lg font-semibold truncate">
+                          {mobileCardTitle
+                            ? mobileCardTitle(rowData)
+                            : `Item ${row.id}`}
+                        </CardTitle>
+                        {mobileCardSubtitle && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {mobileCardSubtitle(rowData)}
+                          </p>
+                        )}
+                      </div>
+                      {mobileCardActions ? mobileCardActions(rowData) : null}
+                    </div>
 
-      {/* Pagination - toujours visible */}
+                    {mobileCardBadges && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {mobileCardBadges(rowData).map((badge, index) => (
+                          <Badge
+                            key={index}
+                            variant={badge.variant || "secondary"}
+                          >
+                            {badge.label}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </CardHeader>
+
+                  <CardContent className="pt-0">
+                    <div className="space-y-3">
+                      {row.getVisibleCells().map((cell) => {
+                        const column = cell.column;
+                        const columnDef = column.columnDef;
+
+                        const columnId = column.id ?? columnDef.id;
+                        if (columnId === "actions" || columnId === "select") {
+                          return null;
+                        }
+                        if (
+                          mobileCardTitle &&
+                          columnId &&
+                          MOBILE_TITLE_COLUMN_IDS.has(columnId)
+                        ) {
+                          return null;
+                        }
+
+                        const label = getMobileColumnLabel(column);
+                        if (!label) return null;
+
+                        return (
+                          <div
+                            key={cell.id}
+                            className="flex items-start justify-between gap-3 py-1.5"
+                          >
+                            <span className="shrink-0 text-sm font-medium text-muted-foreground">
+                              {label}
+                            </span>
+                            <div className="min-w-0 flex-1 text-right text-sm">
+                              {flexRender(columnDef.cell, cell.getContext())}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {mobileCardActions && (
+                      <div className="flex gap-2 mt-4 pt-3 border-t">
+                        {mobileCardActions(rowData)}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })
+          ) : (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center h-32">
+                <p className="text-muted-foreground text-center">{emptyText}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id} colSpan={header.colSpan}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={cn(
+                      "hover:bg-muted/50 transition-colors",
+                      onRowClick && "cursor-pointer",
+                    )}
+                    onClick={(event) => handleRowNavigate(event, row.original)}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    {emptyText}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} sur{" "}

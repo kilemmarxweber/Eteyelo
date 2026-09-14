@@ -116,6 +116,7 @@ export function canAccessBranchArea(
       return canAccessSupportSettings(session);
     case "fiches":
     case "fiche_centrale":
+    case "fiche_cote":
       return canAccessTitulaireFichesArea(session);
     case "roles_privileges":
       return canAccessBranchOrgSettings(session);

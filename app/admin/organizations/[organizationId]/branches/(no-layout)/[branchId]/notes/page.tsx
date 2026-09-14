@@ -28,6 +28,11 @@ import { Suspense } from "react";
 import FicheSaisieClient from "./FicheSaisieClient";
 import NotesReadClient from "./NotesReadClient";
 import { notFound } from "next/navigation";
+import { listTitulaireClassIdsForUser } from "@/lib/auth/data-scope";
+import {
+  hasFicheCoteMatrixAccess,
+  hasFicheCoteTemporaryGrant,
+} from "@/lib/auth/notes-fiche-access";
 
 export const dynamic = "force-dynamic";
 
@@ -426,6 +431,21 @@ export default async function NotesPage({
     // Fiche : uniquement les enseignants ayant au moins un cours affecté
     .filter((t) => t.lessons.length > 0);
 
+  const [titulaireClassIds, canUseFicheCoteGrant] = await Promise.all([
+    canManage
+      ? Promise.resolve([] as string[])
+      : listTitulaireClassIdsForUser({ userId, branchId }),
+    canManage
+      ? Promise.resolve(true)
+      : (async () =>
+          hasFicheCoteMatrixAccess(session) ||
+          (await hasFicheCoteTemporaryGrant({
+            userId,
+            organizationId,
+            branchId,
+          })))(),
+  ]);
+
   return (
     <FicheSaisieClient
       isAdmin={canManage}
@@ -433,6 +453,8 @@ export default async function NotesPage({
       typebranch={typebranch}
       initialTeacherId={sp.teacherId ?? null}
       initialClassId={sp.classId ?? null}
+      titulaireClassIds={titulaireClassIds}
+      canUseFicheCoteGrant={canUseFicheCoteGrant}
     />
   );
 }

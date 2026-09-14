@@ -484,22 +484,46 @@ export async function getBranchDirectorForBulletin() {
   };
 }
 
-// récupère toutes les périodes / sessions selon le type de branche
+// Périodes filtrées sur le cycle de la classe (option).
 export async function getPeriods(classId?: string) {
-  const { branchId, typebranch, educationSystem } = await requireBranchContext();
-  let cycle: unknown = undefined;
-  if (classId) {
-    const classe = await prisma.classe.findFirst({
-      where: { id: classId, branchId },
-      select: { cycle: true },
-    });
-    cycle = classe?.cycle ?? typebranch;
-  }
+  const {
+    session,
+    userId,
+    branchId,
+    organizationId,
+    typebranch,
+    educationSystem,
+  } = await requireBranchContext();
+
+  if (!classId) return [];
+
+  const classe = await prisma.classe.findFirst({
+    where: { id: classId, branchId },
+    select: {
+      cycle: true,
+      option: { select: { cycle: true } },
+    },
+  });
+  if (!classe) return [];
+
+  const cycle = classe.cycle ?? classe.option?.cycle ?? typebranch;
+  const { canUseFicheCoteForClass } = await import(
+    "@/lib/auth/notes-fiche-access"
+  );
+  const canFull = await canUseFicheCoteForClass({
+    session,
+    userId,
+    organizationId,
+    branchId,
+    classId,
+  });
+
   const periods = await listBranchPeriodOptions({
     branchId,
     typebranch,
     educationSystem,
     cycle,
+    defaultsOnly: !canFull,
   });
 
   return uniquePeriodOptions(

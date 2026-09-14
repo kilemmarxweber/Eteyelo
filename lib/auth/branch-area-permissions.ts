@@ -31,6 +31,7 @@ export type BranchArea =
   | "support_settings"
   | "fiches"
   | "fiche_centrale"
+  | "fiche_cote"
   | "finalistes"
   | "courses"
   | "ponderations"
@@ -78,6 +79,8 @@ export const BRANCH_AREA_PERMISSION: Record<
   support_settings: { organizationSupport: ["read"] },
   fiches: { fiches: ["read"] },
   fiche_centrale: { ficheCentrale: ["read"] },
+  /** Type de fiche « Fiche » (cotation) dans Notes. */
+  fiche_cote: { ficheCote: ["read"] },
   finalistes: { finalistes: ["read"] },
   courses: { courses: ["read"] },
   ponderations: { ponderations: ["read"] },

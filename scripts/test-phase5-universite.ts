@@ -146,7 +146,14 @@ test("universite : pas de devoir, evaluation TP TFC et memoire", () => {
   );
   assert.equal(
     isAllowedFicheType("ficheCote", "SECONDAIRE", {
-      isAdmin: false,
+      canUseFicheCote: false,
+      isExam: false,
+    }),
+    false,
+  );
+  assert.equal(
+    isAllowedFicheType("ficheCote", "SECONDAIRE", {
+      canUseFicheCote: true,
       isExam: false,
     }),
     true,
@@ -154,7 +161,15 @@ test("universite : pas de devoir, evaluation TP TFC et memoire", () => {
   assert.deepEqual(
     getFicheTypeComboboxItems({
       typebranch: "SECONDAIRE",
-      isAdmin: false,
+      canUseFicheCote: false,
+      isExam: false,
+    }).map((item) => item.value),
+    ["Devoir", "Evaluation", "TP"],
+  );
+  assert.deepEqual(
+    getFicheTypeComboboxItems({
+      typebranch: "SECONDAIRE",
+      canUseFicheCote: true,
       isExam: false,
     }).map((item) => item.value),
     ["Devoir", "Evaluation", "TP", "ficheCote"],
@@ -162,7 +177,15 @@ test("universite : pas de devoir, evaluation TP TFC et memoire", () => {
   assert.deepEqual(
     getFicheTypeComboboxItems({
       typebranch: "SECONDAIRE",
-      isAdmin: false,
+      canUseFicheCote: false,
+      isExam: true,
+    }).map((item) => item.value),
+    [],
+  );
+  assert.deepEqual(
+    getFicheTypeComboboxItems({
+      typebranch: "SECONDAIRE",
+      canUseFicheCote: true,
       isExam: true,
     }).map((item) => item.value),
     ["ficheCote"],

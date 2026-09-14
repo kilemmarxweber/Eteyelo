@@ -43,17 +43,25 @@ export function isStandardFicheType(
 export function isAllowedFicheType(
   typeFiche: string,
   typebranch: unknown,
-  options?: { isAdmin?: boolean; isExam?: boolean },
+  options?: {
+    canUseFicheCote?: boolean;
+    /** @deprecated Prefer canUseFicheCote */
+    isAdmin?: boolean;
+    isExam?: boolean;
+  },
 ): boolean {
-  const { isExam = false } = options ?? {};
+  const canUseFicheCote = Boolean(
+    options?.canUseFicheCote ?? options?.isAdmin,
+  );
+  const isExam = Boolean(options?.isExam);
 
-  // Examen (primaire/secondaire) : uniquement la fiche de cotation.
+  // Examen (primaire/secondaire) : uniquement la fiche de cotation, si autorisée.
   if (isExam && !isUniversiteBranch(typebranch)) {
-    return typeFiche === "ficheCote";
+    return canUseFicheCote && typeFiche === "ficheCote";
   }
 
   if (typeFiche === "ficheCote") {
-    return true;
+    return canUseFicheCote;
   }
 
   return (getIntermediateFicheTypes(typebranch) as readonly string[]).includes(
@@ -63,13 +71,16 @@ export function isAllowedFicheType(
 
 export function getFicheTypeComboboxItems(params: {
   typebranch: unknown;
-  isAdmin: boolean;
   isExam: boolean;
+  canUseFicheCote?: boolean;
+  /** @deprecated Prefer canUseFicheCote */
+  isAdmin?: boolean;
 }): Array<{ value: FicheTypeOptionValue; label: string }> {
   const { typebranch, isExam } = params;
+  const canUseFicheCote = Boolean(params.canUseFicheCote ?? params.isAdmin);
 
   if (isExam && !isUniversiteBranch(typebranch)) {
-    return [{ value: "ficheCote", label: "Fiche" }];
+    return canUseFicheCote ? [{ value: "ficheCote", label: "Fiche" }] : [];
   }
 
   const intermediate = getIntermediateFicheTypes(typebranch).map((value) => ({
@@ -77,7 +88,11 @@ export function getFicheTypeComboboxItems(params: {
     label: value,
   }));
 
-  return [...intermediate, { value: "ficheCote", label: "Fiche" }];
+  if (canUseFicheCote) {
+    return [...intermediate, { value: "ficheCote", label: "Fiche" }];
+  }
+
+  return intermediate;
 }
 
 export type FicheCoteLockInput = {

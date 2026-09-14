@@ -64,12 +64,18 @@ export default function FicheSaisieClient({
   typebranch,
   initialTeacherId,
   initialClassId,
+  titulaireClassIds = [],
+  canUseFicheCoteGrant = false,
 }: {
   teachers: Teacher[];
   isAdmin: boolean;
   typebranch?: unknown;
   initialTeacherId?: string | null;
   initialClassId?: string | null;
+  /** Classes où l'utilisateur est titulaire (année courante). */
+  titulaireClassIds?: string[];
+  /** Matrice / octroi temporaire ficheCote (ou manager). */
+  canUseFicheCoteGrant?: boolean;
 }) {
   const router = useRouter();
   const tNotes = useTranslations("cursus.notes");
@@ -103,6 +109,13 @@ export default function FicheSaisieClient({
   const selectedLesson = selectedTeacher?.lessons.find(
     (l) => l.id === selectedLessonId,
   );
+  const canUseFicheCote =
+    isAdmin ||
+    canUseFicheCoteGrant ||
+    Boolean(
+      selectedLesson?.classId &&
+        titulaireClassIds.includes(selectedLesson.classId),
+    );
   const filled = students.filter((s) => s.score !== null).length;
   const percentage = students.length > 0 ? (filled / students.length) * 100 : 0;
   /* ===== LOAD PERIODS ===== */
@@ -171,9 +184,16 @@ export default function FicheSaisieClient({
       if (
         !notesLabels.isUniversite &&
         isExamPeriod(period) &&
+        canUseFicheCote &&
         typeFiche !== "ficheCote"
       ) {
         setTypeFiche("ficheCote"); // UI sync (primaire/secondaire)
+      }
+      if (
+        typeFiche === "ficheCote" &&
+        !canUseFicheCote
+      ) {
+        setTypeFiche(null);
       }
       // 🔥 LOCK CHECK IMMÉDIAT (avant fetch)
       if (isLocked(lesson)) {
@@ -306,11 +326,11 @@ export default function FicheSaisieClient({
     typeFiche,
     selectedYearId,
     periods,
+    canUseFicheCote,
+    selectedTeacher,
+    notesLabels.isUniversite,
   ]);
 
-  useEffect(() => {
-    setStudents([]);
-  }, [typeFiche]);
   useEffect(() => {
     getSchoolYear().then((current) => {
       setSchoolYears([current]); // ou si tu as getAllSchoolYears()
@@ -747,15 +767,24 @@ export default function FicheSaisieClient({
                 placeholder={tNotes("selectFiche")}
                 items={getFicheTypeComboboxItems({
                   typebranch,
-                  isAdmin,
+                  canUseFicheCote,
                   isExam,
                 })}
                 value={typeFiche ?? ""}
                 onChange={(value) => {
                   const v = value ? (value as FicheTypes) : null;
 
+                  if (v === "ficheCote" && !canUseFicheCote) {
+                    return;
+                  }
+
                   // sécurité anti-bypass (primaire/secondaire : examen = fiche seule)
-                  if (!notesLabels.isUniversite && isExam && v !== "ficheCote") {
+                  if (
+                    !notesLabels.isUniversite &&
+                    isExam &&
+                    canUseFicheCote &&
+                    v !== "ficheCote"
+                  ) {
                     return;
                   }
 
@@ -931,6 +960,7 @@ export default function FicheSaisieClient({
                     columns={columns}
                     ToolbarComponent={NotesToolbarBound}
                     emptyText={tNotes("noneFound", { student: notesLabels.studentSingular })}
+                    getRowId={(s) => s.studentId}
                     mobileCardTitle={(s) => `${s.name} ${s.firstname}`}
                     mobileCardSubtitle={(s) => s.classname}
                     mobileCardBadges={(s) => [

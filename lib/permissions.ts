@@ -169,6 +169,8 @@ export const accessControlStatements = {
   library: ["create", "read", "update", "delete"],
   fiches: ["create", "read", "update", "delete"],
   ficheCentrale: ["create", "read", "update", "delete"],
+  /** Type « Fiche » (fiche de cotation) dans Notes — hors titulaire de classe. */
+  ficheCote: ["create", "read", "update", "delete"],
   finalistes: ["create", "read", "update", "delete"],
   documents: ["create", "read", "update", "delete"],
   /** Catalogue cours. */
@@ -224,6 +226,7 @@ const SCHOOL_MODULE_RESOURCES = [
   "library",
   "fiches",
   "ficheCentrale",
+  "ficheCote",
   "finalistes",
   "documents",
   "courses",

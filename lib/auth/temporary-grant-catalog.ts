@@ -41,6 +41,7 @@ export const TEMPORARY_GRANT_CATALOG: TemporaryGrantCatalogGroup[] = [
       { resource: "devoirs", label: "Devoirs" },
       { resource: "library", label: "Bibliothèque" },
       { resource: "notes", label: "Notes" },
+      { resource: "ficheCote", label: "Type fiche (Fiche)" },
       { resource: "ficheCentrale", label: "Fiche centrale" },
       { resource: "fiches", label: "Fiches" },
       { resource: "documents", label: "Attestations / Brevets / Relevés" },
