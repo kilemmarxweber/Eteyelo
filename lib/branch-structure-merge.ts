@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { ensureUniqueIdentifier } from "@/lib/generated-identifiers";
+import {
+  ensureUniqueIdentifier,
+  generateCode,
+} from "@/lib/generated-identifiers";
 
 export type BranchStructureMergeSelection = {
   sections: boolean;
@@ -7,6 +10,8 @@ export type BranchStructureMergeSelection = {
   cours: boolean;
   ponderations: boolean;
   classes: boolean;
+  /** Types de frais + frais (année courante), rattachés aux classes de même nom/code. */
+  frais: boolean;
 };
 
 export type BranchStructureMergeItemCounts = {
@@ -15,6 +20,8 @@ export type BranchStructureMergeItemCounts = {
   cours: number;
   ponderations: number;
   classes: number;
+  typeFrais: number;
+  frais: number;
 };
 
 export type BranchStructureMergeTargetResult = {
@@ -31,6 +38,8 @@ function emptyCounts(): BranchStructureMergeItemCounts {
     cours: 0,
     ponderations: 0,
     classes: 0,
+    typeFrais: 0,
+    frais: 0,
   };
 }
 
@@ -45,10 +54,20 @@ function norm(value: string | null | undefined) {
   return (value ?? "").trim().toLowerCase();
 }
 
+function typeFraisMatchKey(params: {
+  nameType: string;
+  cycle?: string | null;
+}) {
+  return `${norm(params.nameType)}::${params.cycle ?? ""}`;
+}
+
 export function resolveMergeSelection(
   selection: BranchStructureMergeSelection,
 ): BranchStructureMergeSelection {
   const next = { ...selection };
+  if (next.frais) {
+    next.classes = true;
+  }
   if (next.ponderations) {
     next.cours = true;
     next.options = true;
@@ -68,7 +87,8 @@ export function isMergeSelectionEmpty(selection: BranchStructureMergeSelection) 
     selection.options ||
     selection.cours ||
     selection.ponderations ||
-    selection.classes
+    selection.classes ||
+    selection.frais
   );
 }
 
@@ -104,6 +124,8 @@ export async function previewBranchStructureMerge(params: {
           cours: true,
           coursPonderations: true,
           classes: true,
+          typeFrais: true,
+          frais: true,
         },
       },
     },
@@ -129,6 +151,8 @@ export async function previewBranchStructureMerge(params: {
           cours: true,
           coursPonderations: true,
           classes: true,
+          typeFrais: true,
+          frais: true,
         },
       },
     },
@@ -146,6 +170,8 @@ export async function previewBranchStructureMerge(params: {
         cours: source._count.cours,
         ponderations: source._count.coursPonderations,
         classes: source._count.classes,
+        typeFrais: source._count.typeFrais,
+        frais: source._count.frais,
       } satisfies BranchStructureMergeItemCounts,
     },
     targets: targets.map((target) => ({
@@ -158,6 +184,8 @@ export async function previewBranchStructureMerge(params: {
         cours: target._count.cours,
         ponderations: target._count.coursPonderations,
         classes: target._count.classes,
+        typeFrais: target._count.typeFrais,
+        frais: target._count.frais,
       } satisfies BranchStructureMergeItemCounts,
       typeMismatch: target.typebranch !== source.typebranch,
     })),
@@ -227,31 +255,86 @@ async function mergeBranchStructure(params: {
   const created = emptyCounts();
   const reused = emptyCounts();
 
-  const [sourceSections, sourceOptions, sourceCourses, sourcePonderations, sourceClasses, sourceCreneaux] =
-    await Promise.all([
-      params.selection.sections
-        ? prisma.section.findMany({ where: { branchId: params.sourceBranchId } })
-        : Promise.resolve([]),
-      params.selection.options
-        ? prisma.option.findMany({ where: { branchId: params.sourceBranchId } })
-        : Promise.resolve([]),
-      params.selection.cours
-        ? prisma.cours.findMany({ where: { branchId: params.sourceBranchId } })
-        : Promise.resolve([]),
-      params.selection.ponderations
-        ? prisma.coursOptionPonderation.findMany({
-            where: { branchId: params.sourceBranchId },
-          })
-        : Promise.resolve([]),
-      params.selection.classes
-        ? prisma.classe.findMany({ where: { branchId: params.sourceBranchId } })
-        : Promise.resolve([]),
-      params.selection.classes
-        ? prisma.creneau.findMany({
-            where: { branchId: params.sourceBranchId, isArchived: false },
-          })
-        : Promise.resolve([]),
-    ]);
+  const [
+    sourceSections,
+    sourceOptions,
+    sourceCourses,
+    sourcePonderations,
+    sourceClasses,
+    sourceCreneaux,
+    sourceTypeFrais,
+    sourceFrais,
+    sourceCurrentYear,
+    targetCurrentYear,
+    sourceSemesters,
+    targetSemesters,
+  ] = await Promise.all([
+    params.selection.sections
+      ? prisma.section.findMany({ where: { branchId: params.sourceBranchId } })
+      : Promise.resolve([]),
+    params.selection.options
+      ? prisma.option.findMany({ where: { branchId: params.sourceBranchId } })
+      : Promise.resolve([]),
+    params.selection.cours
+      ? prisma.cours.findMany({ where: { branchId: params.sourceBranchId } })
+      : Promise.resolve([]),
+    params.selection.ponderations
+      ? prisma.coursOptionPonderation.findMany({
+          where: { branchId: params.sourceBranchId },
+        })
+      : Promise.resolve([]),
+    params.selection.classes || params.selection.frais
+      ? prisma.classe.findMany({ where: { branchId: params.sourceBranchId } })
+      : Promise.resolve([]),
+    params.selection.classes
+      ? prisma.creneau.findMany({
+          where: { branchId: params.sourceBranchId, isArchived: false },
+        })
+      : Promise.resolve([]),
+    params.selection.frais
+      ? prisma.typeFrais.findMany({ where: { branchId: params.sourceBranchId } })
+      : Promise.resolve([]),
+    params.selection.frais
+      ? prisma.frais.findMany({
+          where: {
+            branchId: params.sourceBranchId,
+            schoolYear: { isCurrentYear: true, isArchived: false },
+          },
+        })
+      : Promise.resolve([]),
+    params.selection.frais
+      ? prisma.schoolYear.findFirst({
+          where: {
+            branchId: params.sourceBranchId,
+            isCurrentYear: true,
+            isArchived: false,
+          },
+          select: { id: true },
+        })
+      : Promise.resolve(null),
+    params.selection.frais
+      ? prisma.schoolYear.findFirst({
+          where: {
+            branchId: params.targetBranchId,
+            isCurrentYear: true,
+            isArchived: false,
+          },
+          select: { id: true },
+        })
+      : Promise.resolve(null),
+    params.selection.frais
+      ? prisma.semester.findMany({
+          where: { branchId: params.sourceBranchId },
+          select: { id: true, label: true, cycle: true },
+        })
+      : Promise.resolve([]),
+    params.selection.frais
+      ? prisma.semester.findMany({
+          where: { branchId: params.targetBranchId },
+          select: { id: true, label: true, cycle: true },
+        })
+      : Promise.resolve([]),
+  ]);
 
   await prisma.$transaction(
     async (tx) => {
@@ -259,6 +342,20 @@ async function mergeBranchStructure(params: {
       const optionIdBySource = new Map<string, string>();
       const coursIdBySource = new Map<string, string>();
       const creneauIdBySource = new Map<string, string>();
+      const classeIdBySource = new Map<string, string>();
+      const typeFraisIdBySource = new Map<string, string>();
+      const semesterIdBySource = new Map<number, number>();
+
+      for (const sourceSemester of sourceSemesters) {
+        const match = targetSemesters.find(
+          (item) =>
+            item.cycle === sourceSemester.cycle &&
+            norm(item.label) === norm(sourceSemester.label),
+        );
+        if (match) {
+          semesterIdBySource.set(sourceSemester.id, match.id);
+        }
+      }
 
       if (params.selection.sections) {
         const targetSections = await tx.section.findMany({
@@ -462,6 +559,7 @@ async function mergeBranchStructure(params: {
               norm(item.nameClasse) === norm(classe.nameClasse),
           );
           if (existing) {
+            classeIdBySource.set(classe.id, existing.id);
             bump(reused, "classes");
             continue;
           }
@@ -495,7 +593,125 @@ async function mergeBranchStructure(params: {
             },
           });
           targetClasses.push(createdClasse);
+          classeIdBySource.set(classe.id, createdClasse.id);
           bump(created, "classes");
+        }
+      }
+
+      if (params.selection.frais) {
+        if (!sourceCurrentYear || !targetCurrentYear) {
+          throw new Error(
+            `Impossible de copier les frais : année scolaire courante manquante (${
+              !sourceCurrentYear ? "source" : "destination"
+            }).`,
+          );
+        }
+
+        const targetTypes = await tx.typeFrais.findMany({
+          where: { branchId: params.targetBranchId },
+        });
+        for (const type of sourceTypeFrais) {
+          const existing = targetTypes.find(
+            (item) =>
+              typeFraisMatchKey(item) ===
+              typeFraisMatchKey({
+                nameType: type.nameType,
+                cycle: type.cycle,
+              }),
+          );
+          if (existing) {
+            typeFraisIdBySource.set(type.id, existing.id);
+            bump(reused, "typeFrais");
+            continue;
+          }
+          const codeType = await ensureUniqueIdentifier({
+            base: generateCode(type.nameType, "TYPE", 16),
+            separator: "-",
+            exists: async (value) =>
+              Boolean(
+                await tx.typeFrais.findUnique({
+                  where: { codeType: value },
+                  select: { id: true },
+                }),
+              ),
+          });
+          const createdType = await tx.typeFrais.create({
+            data: {
+              branchId: params.targetBranchId,
+              codeType,
+              nameType: type.nameType,
+              description: type.description,
+              statusType: type.statusType,
+              cycle: type.cycle,
+            },
+          });
+          targetTypes.push(createdType);
+          typeFraisIdBySource.set(type.id, createdType.id);
+          bump(created, "typeFrais");
+        }
+
+        // Si classes n'était pas sélectionné mais frais oui, mapper les classes existantes.
+        if (classeIdBySource.size === 0 && sourceClasses.length > 0) {
+          const targetClasses = await tx.classe.findMany({
+            where: { branchId: params.targetBranchId },
+          });
+          for (const classe of sourceClasses) {
+            const existing = targetClasses.find(
+              (item) =>
+                norm(item.codeClasse) === norm(classe.codeClasse) ||
+                norm(item.nameClasse) === norm(classe.nameClasse),
+            );
+            if (existing) {
+              classeIdBySource.set(classe.id, existing.id);
+            }
+          }
+        }
+
+        const targetFrais = await tx.frais.findMany({
+          where: {
+            branchId: params.targetBranchId,
+            schoolYearId: targetCurrentYear.id,
+          },
+          select: { classeId: true, nameFrais: true },
+        });
+        const existingFeeKeys = new Set(
+          targetFrais.map(
+            (row) => `${row.classeId}::${norm(row.nameFrais)}`,
+          ),
+        );
+
+        for (const fee of sourceFrais) {
+          const classeId = classeIdBySource.get(fee.classeId);
+          const typeFraisId = typeFraisIdBySource.get(fee.typeFraisId);
+          if (!classeId || !typeFraisId) {
+            bump(reused, "frais");
+            continue;
+          }
+          const key = `${classeId}::${norm(fee.nameFrais)}`;
+          if (existingFeeKeys.has(key)) {
+            bump(reused, "frais");
+            continue;
+          }
+          await tx.frais.create({
+            data: {
+              branchId: params.targetBranchId,
+              nameFrais: fee.nameFrais,
+              montantFrais: fee.montantFrais,
+              statusFrais: fee.statusFrais,
+              classeId,
+              typeFraisId,
+              echeance: fee.echeance,
+              schoolYearId: targetCurrentYear.id,
+              priority: fee.priority,
+              isOptional: fee.isOptional,
+              semesterId: fee.semesterId
+                ? (semesterIdBySource.get(fee.semesterId) ?? null)
+                : null,
+              fraisGroupKey: fee.fraisGroupKey,
+            },
+          });
+          existingFeeKeys.add(key);
+          bump(created, "frais");
         }
       }
     },

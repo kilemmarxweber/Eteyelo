@@ -18,6 +18,7 @@ const selectionSchema = z.object({
   cours: z.boolean(),
   ponderations: z.boolean(),
   classes: z.boolean(),
+  frais: z.boolean(),
 });
 
 const mergeInputSchema = z.object({
@@ -55,6 +56,8 @@ export async function listOrganizationBranchesForMergeAction(
           cours: true,
           coursPonderations: true,
           classes: true,
+          typeFrais: true,
+          frais: true,
         },
       },
     },
@@ -73,6 +76,8 @@ export async function listOrganizationBranchesForMergeAction(
         cours: branch._count.cours,
         ponderations: branch._count.coursPonderations,
         classes: branch._count.classes,
+        typeFrais: branch._count.typeFrais,
+        frais: branch._count.frais,
       },
     })),
   };
@@ -136,7 +141,9 @@ export async function mergeBranchStructureAction(input: {
       revalidatePath(`${base}/classe`);
       revalidatePath(`${base}/cours`);
       revalidatePath(`${base}/coursPonderationOption`);
+      revalidatePath(`${base}/frais`);
       revalidatePath(`${base}/settings`);
+      revalidatePath(`${base}/settings/typeFrais`);
     }
     return { ok: true as const, results };
   } catch (error) {

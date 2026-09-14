@@ -40,6 +40,8 @@ export type MergeableBranch = {
     cours: number;
     ponderations: number;
     classes: number;
+    typeFrais: number;
+    frais: number;
   };
 };
 
@@ -49,6 +51,7 @@ const DEFAULT_SELECTION: BranchStructureMergeSelection = {
   cours: true,
   ponderations: true,
   classes: true,
+  frais: true,
 };
 
 const ITEM_LABELS: Array<{
@@ -61,6 +64,11 @@ const ITEM_LABELS: Array<{
   { key: "cours", label: "Cours", hint: "Matières et codes" },
   { key: "ponderations", label: "Pondérations", hint: "Cours × option × niveau" },
   { key: "classes", label: "Classes", hint: "Sans élèves ni enseignants" },
+  {
+    key: "frais",
+    label: "Frais & types de frais",
+    hint: "Année courante · classes de même nom/code",
+  },
 ];
 
 function typeLabel(typebranch: string) {
@@ -164,7 +172,9 @@ export function MergeStructureDialog({
           row.created.options +
           row.created.cours +
           row.created.ponderations +
-          row.created.classes,
+          row.created.classes +
+          row.created.typeFrais +
+          row.created.frais,
         0,
       );
       toast.success(
@@ -214,9 +224,10 @@ export function MergeStructureDialog({
           <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
             <SheetTitle>Copier la structure scolaire</SheetTitle>
             <SheetDescription>
-              Duplique sections, options, cours, pondérations et classes vers
-              d&apos;autres établissements. Les identifiants restent distincts ;
-              les éléments déjà présents (même code ou même nom) sont réutilisés.
+              Duplique sections, options, cours, pondérations, classes, types de
+              frais et frais (année courante) vers d&apos;autres établissements.
+              Les éléments déjà présents (même code ou même nom de classe) sont
+              réutilisés.
             </SheetDescription>
           </SheetHeader>
 
@@ -247,7 +258,8 @@ export function MergeStructureDialog({
                   {source.counts.sections} sections · {source.counts.options}{" "}
                   options · {source.counts.cours} cours ·{" "}
                   {source.counts.ponderations} pondérations ·{" "}
-                  {source.counts.classes} classes
+                  {source.counts.classes} classes · {source.counts.typeFrais}{" "}
+                  types · {source.counts.frais} frais
                 </p>
               ) : null}
             </div>
@@ -279,8 +291,8 @@ export function MergeStructureDialog({
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">
-                Les dépendances sont ajoutées automatiquement (ex. classes →
-                options → sections).
+                Les dépendances sont ajoutées automatiquement (ex. frais →
+                classes → options → sections).
               </p>
             </div>
 

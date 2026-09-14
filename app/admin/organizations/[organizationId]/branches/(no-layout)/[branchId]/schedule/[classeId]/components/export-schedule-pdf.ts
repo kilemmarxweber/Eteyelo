@@ -8,6 +8,7 @@ import {
   REPORT_CONTINUATION_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
+import { schedulePdfTableLayout, SCHEDULE_PDF_MARGIN_BOTTOM_MM } from "@/lib/reports/schedule-pdf-layout";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import {
   weekdayLabel,
@@ -145,27 +146,31 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
     logoDataUrl: logo,
   });
 
+  const layout = schedulePdfTableLayout(doc, days.length);
+
   autoTable(doc, {
     startY: headerBottomY,
     head: [[labels.hours, ...days.map((day) => weekdayLabel(day, locale))]],
     body,
     theme: "grid",
     showHead: "everyPage",
+    tableWidth: layout.tableWidth,
     margin: {
       top: REPORT_CONTINUATION_CONTENT_TOP_MM,
-      left: 10,
-      right: 10,
-      bottom: 14,
+      left: layout.marginX,
+      right: layout.marginX,
+      bottom: SCHEDULE_PDF_MARGIN_BOTTOM_MM,
     },
     styles: {
       font: "helvetica",
       fontSize: fonts.dense,
-      cellPadding: 2,
+      cellPadding: 1.8,
       halign: "center",
       valign: "middle",
       textColor: [15, 23, 42],
       lineColor: [191, 219, 254],
       lineWidth: 0.2,
+      overflow: "linebreak",
     },
     headStyles: {
       fillColor: [30, 64, 175],
@@ -174,7 +179,7 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
       fontSize: fonts.head,
     },
     alternateRowStyles: { fillColor: [239, 246, 255] },
-    columnStyles: { 0: { cellWidth: 27, fontStyle: "bold" } },
+    columnStyles: layout.columnStyles,
     didParseCell: (data) => {
       if (data.section !== "body") return;
       const text = Array.isArray(data.cell.text) ? data.cell.text.join(" ") : String(data.cell.text);

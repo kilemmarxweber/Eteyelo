@@ -56,6 +56,8 @@ async function getOrganizationBranches(organizationId: string) {
               OR: [{ statusClasse: true }, { statusClasse: null }],
             },
           },
+          typeFrais: true,
+          frais: true,
         },
       },
       branchemembers: {
@@ -92,6 +94,8 @@ async function getOrganizationBranches(organizationId: string) {
         cours: branch._count.cours,
         ponderations: branch._count.coursPonderations,
         classes: branch._count.classes,
+        typeFrais: branch._count.typeFrais,
+        frais: branch._count.frais,
       },
     }))
     .sort((left, right) => {

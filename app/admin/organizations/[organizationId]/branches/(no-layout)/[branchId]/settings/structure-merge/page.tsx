@@ -36,10 +36,10 @@ export default async function StructureMergeSettingsPage({
             </Badge>
           </div>
           <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-            Envoyez les sections, options, cours, pondérations et classes de cet
-            établissement vers d&apos;autres branches de l&apos;organisation. Les
-            IDs restent distincts ; un élément déjà présent (même code ou même
-            nom) n&apos;est pas dupliqué.
+            Envoyez les sections, options, cours, pondérations, classes, types de
+            frais et frais (année courante) de cet établissement vers
+            d&apos;autres branches. Les IDs restent distincts ; un élément déjà
+            présent (même code ou même nom de classe) n&apos;est pas dupliqué.
           </p>
         </div>
 

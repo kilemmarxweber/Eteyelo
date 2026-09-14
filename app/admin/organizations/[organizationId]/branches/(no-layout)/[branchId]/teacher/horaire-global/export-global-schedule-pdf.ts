@@ -8,6 +8,10 @@ import {
   REPORT_CONTINUATION_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
+import {
+  SCHEDULE_PDF_MARGIN_BOTTOM_MM,
+  schedulePdfTableLayout,
+} from "@/lib/reports/schedule-pdf-layout";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import {
   documentLocaleFrom,
@@ -205,7 +209,8 @@ export async function renderGlobalSchedulePdf(
     doc.setFont("helvetica", "bold");
     doc.setFontSize(fonts.title);
     doc.setTextColor(...TEXT_MAIN);
-    doc.text(table.title, 10, startY);
+    const layout = schedulePdfTableLayout(doc, table.workingDays.length);
+    doc.text(table.title, layout.marginX, startY);
     startY += 5;
     const saturdayHours = table.saturdayHours ?? [];
     const showSaturdayClock = saturdayHours.some(
@@ -228,7 +233,7 @@ export async function renderGlobalSchedulePdf(
       doc.setFont("helvetica", "normal");
       doc.setFontSize(fonts.meta);
       doc.setTextColor(...TEXT_MUTED);
-      doc.text(tableSubtitle, 10, startY);
+      doc.text(tableSubtitle, layout.marginX, startY);
       startY += 4;
     }
 
@@ -288,11 +293,12 @@ export async function renderGlobalSchedulePdf(
       body,
       theme: "grid",
       showHead: "everyPage",
+      tableWidth: layout.tableWidth,
       margin: {
         top: REPORT_CONTINUATION_CONTENT_TOP_MM,
-        left: 10,
-        right: 10,
-        bottom: 14,
+        left: layout.marginX,
+        right: layout.marginX,
+        bottom: SCHEDULE_PDF_MARGIN_BOTTOM_MM,
       },
       styles: {
         font: "helvetica",
@@ -314,7 +320,7 @@ export async function renderGlobalSchedulePdf(
         valign: "middle",
       },
       alternateRowStyles: { fillColor: ROW_ALT },
-      columnStyles: { 0: { cellWidth: 28, fontStyle: "bold" } },
+      columnStyles: layout.columnStyles,
       didParseCell: (data) => {
         if (data.section !== "body") return;
         const text = cellText(data.cell.text);
