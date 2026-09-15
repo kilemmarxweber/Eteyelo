@@ -39,13 +39,29 @@ export type OwnerDailyFinanceRecipient = {
   name: string;
 };
 
-const OWNER_ROLES = new Set([ORG_ROLE.OWNER, "proprietaire", "owner"]);
+/** Destinataires du rapport : rôles branche propriétaire + gestionnaire uniquement. */
+const FINANCE_REPORT_ROLES = new Set([
+  ORG_ROLE.OWNER,
+  ORG_ROLE.GESTIONNAIRE,
+  "proprietaire",
+  "owner",
+  "gestionnaire",
+]);
 
-function memberHasOwnerRole(memberRole: string) {
+function normalizeMemberRoleSlug(role: string) {
+  return role
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[-\s]+/g, "_");
+}
+
+function memberHasFinanceReportRole(memberRole: string) {
   return memberRole
     .split(",")
-    .map((role) => role.trim().toLowerCase())
-    .some((role) => OWNER_ROLES.has(role));
+    .map(normalizeMemberRoleSlug)
+    .some((role) => FINANCE_REPORT_ROLES.has(role));
 }
 
 /** Dimanche (fuseau établissement) : aucun envoi. */
@@ -162,6 +178,10 @@ export function formatOwnerDailyFinanceWhatsAppLines(
   return lines;
 }
 
+/**
+ * Destinataires : membres org avec rôle **propriétaire** ou **gestionnaire**
+ * (pas préfet, directeur, caissier, enseignant, etc.).
+ */
 export async function getOrganizationOwnerRecipients(
   organizationId: string,
 ): Promise<OwnerDailyFinanceRecipient[]> {
@@ -187,7 +207,7 @@ export async function getOrganizationOwnerRecipients(
 
   const byUserId = new Map<string, OwnerDailyFinanceRecipient>();
   for (const row of members) {
-    if (!memberHasOwnerRole(row.role)) continue;
+    if (!memberHasFinanceReportRole(row.role)) continue;
     if (byUserId.has(row.user.id)) continue;
     const name = [row.user.prenom, row.user.name, row.user.postnom]
       .filter(Boolean)

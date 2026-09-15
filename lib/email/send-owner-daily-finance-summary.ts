@@ -66,30 +66,44 @@ export async function sendOwnerDailyFinanceSummary(input: {
 
   let emailSent = false;
   if (allow.email && email) {
-    await sendMail({
-      to: email,
-      organizationId: input.summary.organizationId,
-      notificationEvent: "ownerDailyFinance",
-      subject,
-      text,
-      html,
-    });
-    emailSent = true;
+    try {
+      await sendMail({
+        to: email,
+        organizationId: input.summary.organizationId,
+        notificationEvent: "ownerDailyFinance",
+        subject,
+        text,
+        html,
+      });
+      emailSent = true;
+    } catch (error) {
+      console.error(
+        "[owner-daily-finance] email failed:",
+        error instanceof Error ? error.message : error,
+      );
+    }
   }
 
   let whatsappSent = false;
   if (allow.whatsapp && phone) {
-    const wa = await sendTransactionalWhatsApp({
-      to: phone,
-      organizationId: input.summary.organizationId,
-      parts: [
-        input.summary.organizationName,
-        `Bonjour ${input.recipient.name},`,
-        `Situation financière — ${input.summary.dateLabel}`,
-        ...formatOwnerDailyFinanceWhatsAppLines(input.summary),
-      ],
-    });
-    whatsappSent = Boolean(wa.sent);
+    try {
+      const wa = await sendTransactionalWhatsApp({
+        to: phone,
+        organizationId: input.summary.organizationId,
+        parts: [
+          input.summary.organizationName,
+          `Bonjour ${input.recipient.name},`,
+          `Situation financière — ${input.summary.dateLabel}`,
+          ...formatOwnerDailyFinanceWhatsAppLines(input.summary),
+        ],
+      });
+      whatsappSent = Boolean(wa.sent);
+    } catch (error) {
+      console.error(
+        "[owner-daily-finance] whatsapp failed:",
+        error instanceof Error ? error.message : error,
+      );
+    }
   }
 
   return { email: emailSent, whatsapp: whatsappSent };

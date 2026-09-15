@@ -110,7 +110,7 @@ export const NOTIFICATION_EVENT_META: Array<{
   {
     key: "ownerDailyFinance",
     label: "Situation quotidienne (propriétaire)",
-    hint: "Caisse et nouveaux inscrits, toutes les branches, vers 17h55 (jamais le dimanche ni un jour férié calendrier).",
+    hint: "Caisse et nouveaux inscrits, toutes les branches, vers 17h55 — destinataires : propriétaire et gestionnaire uniquement (jamais le dimanche ni un jour férié calendrier).",
   },
 ];
 

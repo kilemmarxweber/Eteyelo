@@ -41,6 +41,9 @@ export async function runOwnerDailyFinanceCron(now = new Date()) {
         });
         if (quiet.skip) {
           skipped += 1;
+          console.log(
+            `[owner-daily-finance] org=${org.id} skip=${quiet.reason}`,
+          );
           continue;
         }
 
@@ -50,12 +53,18 @@ export async function runOwnerDailyFinanceCron(now = new Date()) {
         });
         if (!hasOwnerDailyFinanceActivity(summary)) {
           skipped += 1;
+          console.log(
+            `[owner-daily-finance] org=${org.id} skip=no-activity`,
+          );
           continue;
         }
 
         const recipients = await getOrganizationOwnerRecipients(org.id);
         if (recipients.length === 0) {
           skipped += 1;
+          console.log(
+            `[owner-daily-finance] org=${org.id} skip=no-owner-recipients`,
+          );
           continue;
         }
 
@@ -65,7 +74,16 @@ export async function runOwnerDailyFinanceCron(now = new Date()) {
             recipient,
             summary: summary!,
           });
-          if (result.email || result.whatsapp) sent += 1;
+          if (result.email || result.whatsapp) {
+            sent += 1;
+            console.log(
+              `[owner-daily-finance] org=${org.id} sent to ${recipient.email ?? recipient.telephone} email=${result.email} wa=${result.whatsapp}`,
+            );
+          } else {
+            console.log(
+              `[owner-daily-finance] org=${org.id} channels-off for ${recipient.email ?? recipient.telephone}`,
+            );
+          }
         }
       } catch (error) {
         console.error(
