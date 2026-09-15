@@ -54,7 +54,7 @@ const FINANCE_REPORT_MEMBER_ROLES = new Set([
   "admin",
 ]);
 
-const FINANCE_REPORT_APP_ROLES = new Set([
+const FINANCE_REPORT_APP_ROLES = new Set<string>([
   APP_ROLE.OWNER,
   APP_ROLE.ADMIN,
 ]);
