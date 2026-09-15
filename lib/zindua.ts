@@ -1,7 +1,10 @@
 import { Zindua, type ZinduaSendResult } from "@zindua/sdk";
+import { MessagingClient } from "@/lib/messaging-client";
 import {
   getWhatsAppRuntimeConfig,
   isEnvWhatsAppEnabled,
+  providerLabel,
+  type WhatsAppProviderId,
 } from "@/lib/whatsapp-settings";
 import {
   enqueueWhatsAppTask,
@@ -13,6 +16,12 @@ export type WhatsAppSendOutcome = {
   error?: string;
 };
 
+export type WhatsAppSendResult = {
+  success: boolean;
+  logId?: string;
+  status?: string;
+};
+
 export type ZinduaWhatsAppChannelStatus = {
   sendingEnabled: boolean;
   envEnabled: boolean;
@@ -20,6 +29,7 @@ export type ZinduaWhatsAppChannelStatus = {
   status: string | null;
   setupUrl: string | null;
   projectName: string | null;
+  provider?: WhatsAppProviderId;
   error?: string;
 };
 
@@ -27,7 +37,7 @@ export function formatZinduaError(error: unknown): string {
   if (error && typeof error === "object" && "code" in error) {
     const code = String((error as { code: unknown }).code ?? "");
     if (code === "WHATSAPP_NOT_CONNECTED") {
-      return "WhatsApp n'est pas connecté sur Zindua — ouvrez le dashboard et scannez le QR (statut pending_qr).";
+      return "WhatsApp n'est pas connecté — ouvrez le dashboard et scannez le QR.";
     }
     if (
       "message" in error &&
@@ -38,7 +48,7 @@ export function formatZinduaError(error: unknown): string {
     }
   }
   if (error instanceof Error && error.message.trim()) return error.message;
-  return "Échec d'envoi WhatsApp (Zindua).";
+  return "Échec d'envoi WhatsApp.";
 }
 
 /** Destinataire WhatsApp de test (dev). Ne pas utiliser pour les notifs parents/élèves. */
@@ -171,12 +181,12 @@ type SendWhatsAppOptions = {
 };
 
 /**
- * Envoie un message WhatsApp via Zindua (template).
+ * Envoie un message WhatsApp via le provider actif (Zindua ou KlamboWhatsapp).
  * Retourne null si l'envoi est désactivé (fournisseur / paramètres org).
  */
 export async function sendWhatsApp(
   options: SendWhatsAppOptions,
-): Promise<ZinduaSendResult | null> {
+): Promise<WhatsAppSendResult | null> {
   const config = await getWhatsAppRuntimeConfig(options.organizationId);
   if (!config.enabled && !options.force) {
     if (process.env.NODE_ENV === "development") {
@@ -188,31 +198,63 @@ export async function sendWhatsApp(
     return null;
   }
 
-  const template = options.template ?? config.template ?? ZINDUA_MAIL_MIRROR_TEMPLATE;
+  if (!config.apiKey) {
+    throw new Error(
+      `Clé API manquante pour ${providerLabel(config.provider)} (Paramètres WhatsApp ou .env).`,
+    );
+  }
+
+  const template =
+    options.template ?? config.template ?? ZINDUA_MAIL_MIRROR_TEMPLATE;
   const to = toE164Phone(options.to ?? DEFAULT_WHATSAPP_TO);
   const raw = options.variables ?? {};
   const variables: Record<string, string> = {};
   for (const [key, value] of Object.entries(raw)) {
-    if (value != null && value !== "") variables[key] = value;
+    if (value != null && value !== "") {
+      variables[key] =
+        key === "code" ? truncateWhatsAppCode(value) : sanitizeWhatsAppVariable(value);
+    }
   }
 
-  const client = getZindua({
-    siteUrl: config.siteUrl,
-    apiKey: config.apiKey,
-  });
-
   return enqueueWhatsAppTask(() =>
-    withWhatsAppGuardianRetry(
-      () =>
-        client.send({
+    withWhatsAppGuardianRetry(async () => {
+      if (config.provider === "klambo") {
+        const client = new MessagingClient({
+          apiKey: config.apiKey,
+          baseUrl: config.baseUrl,
+        });
+        const res = await client.send({
           to,
           channel: "whatsapp",
+          type: "template",
           template,
           lang: options.lang ?? "fr",
           variables,
-        }),
-      formatZinduaError,
-    ),
+        });
+        return {
+          success: res.success,
+          logId: res.logId,
+          status: res.status,
+        };
+      }
+
+      const client = getZindua({
+        siteUrl: config.siteUrl,
+        apiKey: config.apiKey,
+      });
+      const res = (await client.send({
+        to,
+        channel: "whatsapp",
+        template,
+        lang: options.lang ?? "fr",
+        variables,
+      })) as ZinduaSendResult;
+      return {
+        success: Boolean(res.success),
+        logId: res.logId,
+        status: res.status,
+      };
+    }, formatZinduaError),
   );
 }
 
@@ -232,7 +274,7 @@ type MirrorEmailOptions = {
  */
 export async function mirrorEmailToWhatsApp(
   options: MirrorEmailOptions,
-): Promise<ZinduaSendResult | null> {
+): Promise<WhatsAppSendResult | null> {
   const config = await getWhatsAppRuntimeConfig(options.organizationId);
   if (!config.enabled) {
     if (process.env.NODE_ENV === "development") {
@@ -483,13 +525,45 @@ export async function getZinduaWhatsAppStatus(
     status: null,
     setupUrl: null,
     projectName: null,
+    provider: config.provider,
   };
 
   if (!config.apiKey) {
-    return { ...base, error: "Clé API Zindua manquante." };
+    return {
+      ...base,
+      error: `Clé API ${providerLabel(config.provider)} manquante.`,
+    };
   }
 
   try {
+    if (config.provider === "klambo") {
+      const client = new MessagingClient({
+        apiKey: config.apiKey,
+        baseUrl: config.baseUrl,
+      });
+      const [project, devices] = await Promise.all([
+        client.getProject(),
+        client.listDevices().catch(() => [] as Awaited<
+          ReturnType<MessagingClient["listDevices"]>
+        >),
+      ]);
+      const connected = devices.some((d) => d.status === "connected");
+      const phone = devices.find((d) => d.phone)?.phone;
+      return {
+        ...base,
+        connected,
+        status: connected
+          ? "connected"
+          : devices[0]?.status ?? "disconnected",
+        setupUrl: config.baseUrl
+          ? `${config.baseUrl.replace(/\/$/, "")}`
+          : null,
+        projectName: phone
+          ? `${project.name} · ${phone}`
+          : (project.name ?? null),
+      };
+    }
+
     const project = (await getZindua({
       siteUrl: config.siteUrl,
       apiKey: config.apiKey,
@@ -522,6 +596,9 @@ export async function sendWhatsAppTest(options: {
     return { sent: false, error: "Numéro WhatsApp invalide." };
   }
 
+  const config = await getWhatsAppRuntimeConfig(options.organizationId);
+  const label = providerLabel(config.provider);
+
   try {
     const result = await sendWhatsApp({
       to,
@@ -529,7 +606,7 @@ export async function sendWhatsAppTest(options: {
       force: true,
       lang: "fr",
       variables: {
-        code: "Test Klambocore — message de vérification Zindua. Ignorez si vous n'êtes pas concerné.",
+        code: `Test Klambocore — vérification ${label}. Ignorez si vous n'êtes pas concerné.`,
       },
     });
     if (!result) {

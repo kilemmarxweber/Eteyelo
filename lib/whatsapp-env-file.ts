@@ -4,10 +4,15 @@ import fs from "node:fs";
 import path from "node:path";
 
 export type WhatsAppEnvKey =
+  | "WHATSAPP_PROVIDER"
   | "ZINDUA_WHATSAPP_ENABLED"
   | "ZINDUA_API_KEY"
   | "ZINDUA_WHATSAPP_MAIL_TEMPLATE"
-  | "ZINDUA_SITE_URL";
+  | "ZINDUA_SITE_URL"
+  | "MESSAGING_WHATSAPP_ENABLED"
+  | "MESSAGING_API_KEY"
+  | "MESSAGING_WHATSAPP_TEMPLATE"
+  | "MESSAGING_API_BASE_URL";
 
 /** Met à jour process.env immédiatement (sans attendre un redémarrage). */
 export function applyWhatsAppEnvRuntime(
@@ -26,9 +31,9 @@ export function applyWhatsAppEnvRuntime(
 export function syncWhatsAppEnvFile(
   updates: Partial<Record<WhatsAppEnvKey, string>>,
 ) {
-  const entries = (Object.entries(updates) as Array<[WhatsAppEnvKey, string]>).filter(
-    ([, value]) => typeof value === "string",
-  );
+  const entries = (
+    Object.entries(updates) as Array<[WhatsAppEnvKey, string]>
+  ).filter(([, value]) => typeof value === "string");
   if (entries.length === 0) return;
 
   applyWhatsAppEnvRuntime(Object.fromEntries(entries));

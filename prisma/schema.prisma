@@ -1630,14 +1630,18 @@ model Organization {
   emailNotificationsEnabled  Boolean                     @default(true)
   /// Matrice Mail / WhatsApp par flux (JSON). Vide = tout activé.
   notificationChannels       Json?
-  /// Envoi WhatsApp (Zindua). Désactiver si le fournisseur n'est pas actif pour éviter les jobs en erreur.
+  /// Envoi WhatsApp (Zindua ou KlamboWhatsapp). Désactiver si le fournisseur n'est pas actif.
   whatsappEnabled            Boolean                     @default(true)
-  /// Clé API Zindua. Vide = env ZINDUA_API_KEY.
+  /// Fournisseur actif : zindua | klambo. Vide = env WHATSAPP_PROVIDER (défaut zindua).
+  whatsappProvider           String?
+  /// Clé API du provider actif. Vide = ZINDUA_API_KEY ou MESSAGING_API_KEY selon provider.
   whatsappApiKey             String?
-  /// Slug du template Zindua (variables: appName, name, code). Vide = env ZINDUA_WHATSAPP_MAIL_TEMPLATE.
+  /// Slug du template (variables: appName, name, code). Vide = env template du provider.
   whatsappTemplate           String?
-  /// URL liée à la clé Zindua (si la clé est bound à un site). Vide = env ZINDUA_SITE_URL.
+  /// URL liée à la clé Zindua (si bound à un site). Ignoré pour Klambo.
   whatsappSiteUrl            String?
+  /// Base URL KlamboWhatsapp API (ex. http://localhost:3001). Vide = MESSAGING_API_BASE_URL.
+  whatsappBaseUrl            String?
   /// Messagerie interne organisation. Désactiver masque le menu et bloque les actions.
   messagingEnabled           Boolean                     @default(true)
 

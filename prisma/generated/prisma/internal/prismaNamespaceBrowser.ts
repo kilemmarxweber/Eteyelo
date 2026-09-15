@@ -1104,9 +1104,11 @@ export const OrganizationScalarFieldEnum = {
   emailNotificationsEnabled: 'emailNotificationsEnabled',
   notificationChannels: 'notificationChannels',
   whatsappEnabled: 'whatsappEnabled',
+  whatsappProvider: 'whatsappProvider',
   whatsappApiKey: 'whatsappApiKey',
   whatsappTemplate: 'whatsappTemplate',
   whatsappSiteUrl: 'whatsappSiteUrl',
+  whatsappBaseUrl: 'whatsappBaseUrl',
   messagingEnabled: 'messagingEnabled'
 } as const
 

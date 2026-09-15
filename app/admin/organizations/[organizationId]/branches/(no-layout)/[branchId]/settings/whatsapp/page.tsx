@@ -23,22 +23,29 @@ import {
   updateWhatsAppSettingsAction,
 } from "../whatsapp.action";
 
+type ProviderId = "zindua" | "klambo";
+
 export default function WhatsAppSettingsPage() {
   const [enabled, setEnabled] = useState(true);
+  const [provider, setProvider] = useState<ProviderId>("zindua");
   const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(true);
   const [template, setTemplate] = useState("notification");
   const [siteUrl, setSiteUrl] = useState("");
+  const [baseUrl, setBaseUrl] = useState("http://localhost:3001");
   const [providerConfigured, setProviderConfigured] = useState(false);
-  const [zinduaConnected, setZinduaConnected] = useState<boolean | null>(null);
-  const [zinduaStatus, setZinduaStatus] = useState<string | null>(null);
-  const [zinduaSetupUrl, setZinduaSetupUrl] = useState<string | null>(null);
-  const [zinduaProject, setZinduaProject] = useState<string | null>(null);
-  const [zinduaError, setZinduaError] = useState<string | null>(null);
+  const [channelConnected, setChannelConnected] = useState<boolean | null>(null);
+  const [channelStatus, setChannelStatus] = useState<string | null>(null);
+  const [channelSetupUrl, setChannelSetupUrl] = useState<string | null>(null);
+  const [channelProject, setChannelProject] = useState<string | null>(null);
+  const [channelError, setChannelError] = useState<string | null>(null);
   const [envEnabled, setEnvEnabled] = useState(true);
   const [testTo, setTestTo] = useState("+243844952966");
   const [loaded, setLoaded] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  const providerName =
+    provider === "klambo" ? "KlamboWhatsapp" : "Zindua";
 
   useEffect(() => {
     startTransition(async () => {
@@ -49,16 +56,19 @@ export default function WhatsAppSettingsPage() {
       }
       if (!data) return;
       setEnabled(data.enabled);
+      setProvider(data.provider);
       setApiKey(data.apiKey);
       setTemplate(data.template);
       setSiteUrl(data.siteUrl);
+      setBaseUrl(data.baseUrl || "http://localhost:3001");
       setProviderConfigured(data.providerConfigured);
-      setZinduaConnected(data.zindua.connected);
-      setZinduaStatus(data.zindua.status);
-      setZinduaSetupUrl(data.zindua.setupUrl);
-      setZinduaProject(data.zindua.projectName);
-      setZinduaError(data.zindua.error ?? null);
-      setEnvEnabled(data.zindua.envEnabled);
+      const ch = data.channel ?? data.zindua;
+      setChannelConnected(ch.connected);
+      setChannelStatus(ch.status);
+      setChannelSetupUrl(ch.setupUrl);
+      setChannelProject(ch.projectName);
+      setChannelError(ch.error ?? null);
+      setEnvEnabled(ch.envEnabled);
       setLoaded(true);
     });
   }, []);
@@ -67,9 +77,11 @@ export default function WhatsAppSettingsPage() {
     startTransition(async () => {
       const [saved, err] = await updateWhatsAppSettingsAction({
         enabled,
+        provider,
         apiKey,
         template,
         siteUrl,
+        baseUrl,
       });
       if (err) {
         toast.error(err.message);
@@ -77,20 +89,23 @@ export default function WhatsAppSettingsPage() {
       }
       if (saved) {
         setEnabled(saved.enabled);
+        setProvider(saved.provider);
         setApiKey(saved.apiKey);
         setTemplate(saved.template);
         setSiteUrl(saved.siteUrl);
+        setBaseUrl(saved.baseUrl || "http://localhost:3001");
         setProviderConfigured(saved.providerConfigured);
-        setZinduaConnected(saved.zindua.connected);
-        setZinduaStatus(saved.zindua.status);
-        setZinduaSetupUrl(saved.zindua.setupUrl);
-        setZinduaProject(saved.zindua.projectName);
-        setZinduaError(saved.zindua.error ?? null);
-        setEnvEnabled(saved.zindua.envEnabled);
+        const ch = saved.channel ?? saved.zindua;
+        setChannelConnected(ch.connected);
+        setChannelStatus(ch.status);
+        setChannelSetupUrl(ch.setupUrl);
+        setChannelProject(ch.projectName);
+        setChannelError(ch.error ?? null);
+        setEnvEnabled(ch.envEnabled);
       }
       toast.success(
         enabled
-          ? "Paramètres WhatsApp enregistrés."
+          ? `Paramètres WhatsApp enregistrés (${provider === "klambo" ? "KlamboWhatsapp" : "Zindua"}).`
           : "Envoi WhatsApp désactivé (config et .env).",
       );
     });
@@ -125,10 +140,9 @@ export default function WhatsAppSettingsPage() {
             </Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Toute la configuration Zindua se gère ici. Les champs sont
-            préremplis depuis le .env ; un champ vide reprend le .env. Si
-            l’envoi est désactivé, rien ne part (le .env est aussi coupé). Mail
-            ou WhatsApp par type d’événement : Paramètres → Notifications.
+            Basculez entre <strong>Zindua</strong> et{" "}
+            <strong>KlamboWhatsapp</strong> : changez le fournisseur et collez
+            la clé API correspondante. Les champs vides reprennent le .env.
           </p>
         </div>
 
@@ -136,11 +150,11 @@ export default function WhatsAppSettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <IconBrandWhatsapp className="size-5" />
-              Fournisseur Zindua
+              Fournisseur WhatsApp
             </CardTitle>
             <CardDescription>
-              Clé API, template et URL du site. Enregistrez pour appliquer, y
-              compris dans le fichier .env.
+              Provider actif, clé API et template. Enregistrez pour appliquer
+              (y compris dans le fichier .env).
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -148,8 +162,7 @@ export default function WhatsAppSettingsPage() {
               <div className="space-y-1">
                 <p className="font-medium">Activer l’envoi WhatsApp</p>
                 <p className="text-sm text-muted-foreground">
-                  Désactivé = aucun message, aucune file, même si une clé est
-                  renseignée ici ou dans le .env.
+                  Désactivé = aucun message, même si une clé est renseignée.
                 </p>
               </div>
               <Switch
@@ -159,72 +172,96 @@ export default function WhatsAppSettingsPage() {
               />
             </div>
 
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Fournisseur</p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant={provider === "zindua" ? "default" : "outline"}
+                  disabled={!loaded || pending}
+                  onClick={() => setProvider("zindua")}
+                >
+                  Zindua
+                </Button>
+                <Button
+                  type="button"
+                  variant={provider === "klambo" ? "default" : "outline"}
+                  disabled={!loaded || pending}
+                  onClick={() => setProvider("klambo")}
+                >
+                  KlamboWhatsapp
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Actuel : <code>{providerName}</code>. Collez la clé{" "}
+                {provider === "klambo" ? "sk_test_… / sk_live_…" : "znd_…"}{" "}
+                puis enregistrez.
+              </p>
+            </div>
+
             <div className="rounded-lg border bg-muted/30 px-4 py-3 text-sm">
               {!enabled ? (
                 <p>
                   <span className="font-medium text-amber-700 dark:text-amber-400">
                     Envoi coupé.
                   </span>{" "}
-                  Aucun WhatsApp ne sera envoyé tant que vous n’activez pas le
-                  commutateur et n’enregistrez pas.
+                  Aucun WhatsApp ne partira tant que le commutateur n’est pas
+                  activé et enregistré.
                 </p>
               ) : sendingWouldRun || providerConfigured ? (
                 <p>
                   <span className="font-medium text-emerald-700 dark:text-emerald-400">
-                    Clé API enregistrée.
+                    Clé API enregistrée ({providerName}).
                   </span>{" "}
-                  {zinduaConnected
+                  {channelConnected
                     ? "Les messages WhatsApp partiront avec cette configuration."
-                    : "La session WhatsApp Zindua doit encore être connectée (QR)."}
+                    : "La session WhatsApp doit encore être connectée (QR)."}
                 </p>
               ) : (
                 <p>
                   <span className="font-medium text-amber-700 dark:text-amber-400">
                     Clé API manquante.
                   </span>{" "}
-                  Saisissez une clé ou laissez le champ vide pour utiliser le
-                  .env.
+                  Saisissez une clé ou laissez vide pour utiliser le .env.
                 </p>
               )}
             </div>
 
             {loaded && (
               <div className="rounded-lg border px-4 py-3 text-sm">
-                {zinduaConnected ? (
+                {channelConnected ? (
                   <p>
                     <span className="font-medium text-emerald-700 dark:text-emerald-400">
-                      Session WhatsApp Zindua connectée
+                      Session WhatsApp connectée ({providerName})
                     </span>
-                    {zinduaProject ? ` (${zinduaProject}).` : "."}
+                    {channelProject ? ` — ${channelProject}.` : "."}
                   </p>
                 ) : (
                   <div className="space-y-2">
                     <p>
                       <span className="font-medium text-amber-700 dark:text-amber-400">
-                        WhatsApp Zindua non connecté
+                        WhatsApp non connecté ({providerName})
                       </span>
-                      {zinduaStatus ? ` — statut ${zinduaStatus}.` : "."}{" "}
-                      La clé API est valide, mais aucun numéro n’est lié. Scannez
-                      le QR dans le dashboard.
+                      {channelStatus ? ` — statut ${channelStatus}.` : "."}{" "}
+                      Scannez le QR dans le dashboard du fournisseur.
                     </p>
-                    {zinduaError ? (
-                      <p className="text-muted-foreground">{zinduaError}</p>
+                    {channelError ? (
+                      <p className="text-muted-foreground">{channelError}</p>
                     ) : null}
-                    {zinduaSetupUrl ? (
+                    {channelSetupUrl ? (
                       <a
-                        href={zinduaSetupUrl}
+                        href={channelSetupUrl}
                         target="_blank"
                         rel="noreferrer"
                         className="font-medium text-primary underline-offset-4 hover:underline"
                       >
-                        Ouvrir le QR Zindua
+                        Ouvrir {providerName}
                       </a>
                     ) : null}
                     {!envEnabled ? (
                       <p className="text-amber-700 dark:text-amber-400">
-                        L’envoi est aussi coupé dans le .env
-                        (ZINDUA_WHATSAPP_ENABLED=false). Activez le commutateur
-                        et enregistrez.
+                        L’envoi est aussi coupé dans le .env. Activez le
+                        commutateur et enregistrez.
                       </p>
                     ) : null}
                   </div>
@@ -234,7 +271,7 @@ export default function WhatsAppSettingsPage() {
 
             <div className="space-y-2">
               <label htmlFor="whatsapp-api-key" className="text-sm font-medium">
-                Clé API Zindua
+                Clé API ({providerName})
               </label>
               <div className="relative">
                 <Input
@@ -243,7 +280,9 @@ export default function WhatsAppSettingsPage() {
                   autoComplete="off"
                   value={apiKey}
                   onChange={(event) => setApiKey(event.target.value)}
-                  placeholder="znd_live_…"
+                  placeholder={
+                    provider === "klambo" ? "sk_test_…" : "znd_live_…"
+                  }
                   disabled={!loaded || pending}
                   className="pr-10 font-mono text-sm"
                 />
@@ -263,14 +302,22 @@ export default function WhatsAppSettingsPage() {
                 </button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Préremplie depuis le .env. Vide = repli sur{" "}
-                <code>ZINDUA_API_KEY</code>.
+                Vide ={" "}
+                <code>
+                  {provider === "klambo"
+                    ? "MESSAGING_API_KEY"
+                    : "ZINDUA_API_KEY"}
+                </code>
+                .
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <label htmlFor="whatsapp-template" className="text-sm font-medium">
+                <label
+                  htmlFor="whatsapp-template"
+                  className="text-sm font-medium"
+                >
                   Template WhatsApp
                 </label>
                 <Input
@@ -281,27 +328,51 @@ export default function WhatsAppSettingsPage() {
                   disabled={!loaded || pending}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Slug Zindua. Le corps du template doit être uniquement{" "}
-                  <code>{"{{code}}"}</code>.
+                  Corps recommandé : uniquement <code>{"{{code}}"}</code>.
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="whatsapp-site-url" className="text-sm font-medium">
-                  URL du site (Zindua)
-                </label>
-                <Input
-                  id="whatsapp-site-url"
-                  type="url"
-                  value={siteUrl}
-                  onChange={(event) => setSiteUrl(event.target.value)}
-                  placeholder="https://klambocore.com"
-                  disabled={!loaded || pending}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Obligatoire si la clé API est liée à un site.
-                </p>
-              </div>
+              {provider === "zindua" ? (
+                <div className="space-y-2">
+                  <label
+                    htmlFor="whatsapp-site-url"
+                    className="text-sm font-medium"
+                  >
+                    URL du site (Zindua)
+                  </label>
+                  <Input
+                    id="whatsapp-site-url"
+                    type="url"
+                    value={siteUrl}
+                    onChange={(event) => setSiteUrl(event.target.value)}
+                    placeholder="https://klambocore.com"
+                    disabled={!loaded || pending}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Si la clé API est liée à un site.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <label
+                    htmlFor="whatsapp-base-url"
+                    className="text-sm font-medium"
+                  >
+                    URL API KlamboWhatsapp
+                  </label>
+                  <Input
+                    id="whatsapp-base-url"
+                    type="url"
+                    value={baseUrl}
+                    onChange={(event) => setBaseUrl(event.target.value)}
+                    placeholder="http://localhost:3001"
+                    disabled={!loaded || pending}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Ex. <code>http://localhost:3001</code> en local.
+                  </p>
+                </div>
+              )}
             </div>
 
             <Button
@@ -319,8 +390,7 @@ export default function WhatsAppSettingsPage() {
           <CardHeader>
             <CardTitle>Test d’envoi</CardTitle>
             <CardDescription>
-              Envoie un message de vérification via Zindua, sans réinitialiser
-              de mot de passe.
+              Envoie un message de vérification via {providerName}.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
