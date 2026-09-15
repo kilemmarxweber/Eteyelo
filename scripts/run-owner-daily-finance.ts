@@ -21,7 +21,6 @@ import {
 } from "../lib/reports/owner-daily-finance-summary";
 import { sendOwnerDailyFinanceSummary } from "../lib/email/send-owner-daily-finance-summary";
 import { APP_TIMEZONE } from "../lib/timezone";
-import { ORG_ROLE } from "../lib/permissions";
 
 const force = process.argv.includes("--force");
 const orgArg = process.argv.find((arg) => arg.startsWith("--org="));
@@ -58,7 +57,7 @@ async function diagnoseOrg(org: OrgRef) {
 
   const owners = await getOrganizationOwnerRecipients(org.id);
   console.log(
-    `Destinataires détectés (propriétaire / gestionnaire): ${owners.length}`,
+    `Destinataires détectés (owner/propriétaire, admin/gestionnaire, admin/propriétaire): ${owners.length}`,
   );
   for (const owner of owners) {
     console.log(
@@ -67,7 +66,7 @@ async function diagnoseOrg(org: OrgRef) {
   }
   if (owners.length === 0) {
     console.log(
-      `  ⚠ Aucun membre avec rôle « ${ORG_ROLE.OWNER} » / proprietaire ou « ${ORG_ROLE.GESTIONNAIRE} ».`,
+      `  ⚠ Aucun membre owner/propriétaire ou admin/gestionnaire.`,
     );
   }
 

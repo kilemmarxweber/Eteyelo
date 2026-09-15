@@ -6,7 +6,7 @@ import {
   dayRangeInAppTimezone,
   getAppWeekday,
 } from "@/lib/timezone";
-import { ORG_ROLE } from "@/lib/permissions";
+import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
 
 export type OwnerDailyBranchFinance = {
   branchId: string;
@@ -39,13 +39,24 @@ export type OwnerDailyFinanceRecipient = {
   name: string;
 };
 
-/** Destinataires du rapport : rôles branche propriétaire + gestionnaire uniquement. */
-const FINANCE_REPORT_ROLES = new Set([
+/**
+ * Destinataires du rapport — paires acceptées :
+ * - owner / propriétaire
+ * - admin / gestionnaire
+ * - admin / propriétaire
+ */
+const FINANCE_REPORT_MEMBER_ROLES = new Set([
   ORG_ROLE.OWNER,
   ORG_ROLE.GESTIONNAIRE,
   "proprietaire",
   "owner",
   "gestionnaire",
+  "admin",
+]);
+
+const FINANCE_REPORT_APP_ROLES = new Set([
+  APP_ROLE.OWNER,
+  APP_ROLE.ADMIN,
 ]);
 
 function normalizeMemberRoleSlug(role: string) {
@@ -61,7 +72,12 @@ function memberHasFinanceReportRole(memberRole: string) {
   return memberRole
     .split(",")
     .map(normalizeMemberRoleSlug)
-    .some((role) => FINANCE_REPORT_ROLES.has(role));
+    .some((role) => FINANCE_REPORT_MEMBER_ROLES.has(role));
+}
+
+function userHasFinanceReportAppRole(userRole: string | null | undefined) {
+  if (!userRole?.trim()) return false;
+  return FINANCE_REPORT_APP_ROLES.has(normalizeMemberRoleSlug(userRole));
 }
 
 /** Dimanche (fuseau établissement) : aucun envoi. */
@@ -179,8 +195,8 @@ export function formatOwnerDailyFinanceWhatsAppLines(
 }
 
 /**
- * Destinataires : membres org avec rôle **propriétaire** ou **gestionnaire**
- * (pas préfet, directeur, caissier, enseignant, etc.).
+ * Destinataires : paires **owner/propriétaire**, **admin/gestionnaire**,
+ * **admin/propriétaire** (rôle membre ou rôle app) — pas préfet, directeur, etc.
  */
 export async function getOrganizationOwnerRecipients(
   organizationId: string,
@@ -195,6 +211,7 @@ export async function getOrganizationOwnerRecipients(
       user: {
         select: {
           id: true,
+          role: true,
           email: true,
           telephone: true,
           name: true,
@@ -207,7 +224,12 @@ export async function getOrganizationOwnerRecipients(
 
   const byUserId = new Map<string, OwnerDailyFinanceRecipient>();
   for (const row of members) {
-    if (!memberHasFinanceReportRole(row.role)) continue;
+    if (
+      !memberHasFinanceReportRole(row.role) &&
+      !userHasFinanceReportAppRole(row.user.role)
+    ) {
+      continue;
+    }
     if (byUserId.has(row.user.id)) continue;
     const name = [row.user.prenom, row.user.name, row.user.postnom]
       .filter(Boolean)
