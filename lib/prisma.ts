@@ -146,6 +146,8 @@ function getPrismaClient() {
     modelHasField(existing, "JobApplication", "desiredCycle") &&
     modelHasField(existing, "Organization", "whatsappEnabled") &&
     modelHasField(existing, "Organization", "whatsappApiKey") &&
+    modelHasField(existing, "Organization", "whatsappProvider") &&
+    modelHasField(existing, "Organization", "whatsappBaseUrl") &&
     modelHasField(existing, "Organization", "emailNotificationsEnabled") &&
     modelHasField(existing, "Organization", "notificationChannels") &&
     modelHasField(existing, "Organization", "messagingEnabled") &&
