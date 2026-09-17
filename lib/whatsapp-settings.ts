@@ -99,6 +99,21 @@ function envBaseUrl(): string | undefined {
   return cleaned || undefined;
 }
 
+/** Valeurs .env pour un provider donné (affichage / repli UI). */
+export function getWhatsAppEnvDefaultsFor(provider: WhatsAppProviderId): {
+  apiKey: string;
+  template: string;
+  siteUrl: string;
+  baseUrl: string;
+} {
+  return {
+    apiKey: envApiKeyFor(provider),
+    template: envTemplateFor(provider),
+    siteUrl: envSiteUrl() ?? "",
+    baseUrl: envBaseUrl() ?? "http://localhost:3001",
+  };
+}
+
 /** Valeurs .env affichées / utilisées si la config UI est vide. */
 export function getWhatsAppEnvDefaults(): {
   enabled: boolean;
@@ -112,10 +127,18 @@ export function getWhatsAppEnvDefaults(): {
   return {
     enabled: isEnvWhatsAppEnabled(),
     provider,
-    apiKey: envApiKeyFor(provider),
-    template: envTemplateFor(provider),
-    siteUrl: envSiteUrl() ?? "",
-    baseUrl: envBaseUrl() ?? "http://localhost:3001",
+    ...getWhatsAppEnvDefaultsFor(provider),
+  };
+}
+
+export function envDefaultsByProvider(): Record<
+  WhatsAppProviderId,
+  ReturnType<typeof getWhatsAppEnvDefaultsFor>
+> {
+  return {
+    zindua: getWhatsAppEnvDefaultsFor("zindua"),
+    klambo: getWhatsAppEnvDefaultsFor("klambo"),
+    meta: getWhatsAppEnvDefaultsFor("meta"),
   };
 }
 

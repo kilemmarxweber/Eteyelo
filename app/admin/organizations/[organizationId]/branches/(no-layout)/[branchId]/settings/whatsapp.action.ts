@@ -11,7 +11,9 @@ import {
   applyWhatsAppEnvRuntime,
 } from "@/lib/whatsapp-env-file";
 import {
+  envDefaultsByProvider,
   getWhatsAppEnvDefaults,
+  getWhatsAppEnvDefaultsFor,
   usesMessagingApi,
   type WhatsAppProviderId,
 } from "@/lib/whatsapp-settings";
@@ -57,15 +59,22 @@ function presentSettings(org: {
   const provider = normalizeProvider(
     org.whatsappProvider?.trim() || defaults.provider,
   );
-  const apiKey = org.whatsappApiKey?.trim() || defaults.apiKey;
+  // Org UI d'abord ; sinon .env du provider sélectionné (Meta → MESSAGING_META_API_KEY…)
+  const envForProvider = getWhatsAppEnvDefaultsFor(provider);
+  const apiKey = org.whatsappApiKey?.trim() || envForProvider.apiKey;
   return {
     enabled: org.whatsappEnabled,
     provider,
     apiKey,
-    template: org.whatsappTemplate?.trim() || defaults.template,
-    siteUrl: org.whatsappSiteUrl?.trim() || defaults.siteUrl,
-    baseUrl: org.whatsappBaseUrl?.trim() || defaults.baseUrl,
+    template: org.whatsappTemplate?.trim() || envForProvider.template,
+    siteUrl: org.whatsappSiteUrl?.trim() || envForProvider.siteUrl,
+    baseUrl: org.whatsappBaseUrl?.trim() || envForProvider.baseUrl,
     providerConfigured: Boolean(apiKey),
+    fromEnv: {
+      apiKey: !org.whatsappApiKey?.trim() && Boolean(envForProvider.apiKey),
+      baseUrl: !org.whatsappBaseUrl?.trim() && Boolean(envForProvider.baseUrl),
+    },
+    envByProvider: envDefaultsByProvider(),
   };
 }
 
@@ -120,6 +129,7 @@ export const getWhatsAppSettingsAction = action.handler(async () => {
   const defaults = getWhatsAppEnvDefaults();
   if (!org) {
     const channel = await getZinduaWhatsAppStatus(organizationId);
+    const envForProvider = getWhatsAppEnvDefaultsFor(defaults.provider);
     return {
       enabled: defaults.enabled,
       provider: defaults.provider,
@@ -128,6 +138,11 @@ export const getWhatsAppSettingsAction = action.handler(async () => {
       siteUrl: defaults.siteUrl,
       baseUrl: defaults.baseUrl,
       providerConfigured: Boolean(defaults.apiKey),
+      fromEnv: {
+        apiKey: Boolean(envForProvider.apiKey),
+        baseUrl: Boolean(envForProvider.baseUrl),
+      },
+      envByProvider: envDefaultsByProvider(),
       zindua: channel,
       channel,
     };
@@ -157,6 +172,7 @@ export const updateWhatsAppSettingsAction = action
       );
     }
 
+    // Champ vide = garder le .env (ne pas écraser avec une chaîne vide en DB)
     const org = await prisma.organization.update({
       where: { id: organizationId },
       data: {
@@ -177,6 +193,7 @@ export const updateWhatsAppSettingsAction = action
       MESSAGING_WHATSAPP_ENABLED: enabledFlag,
     };
 
+    // N'écrit le .env que si l'utilisateur a saisi une valeur (sinon on conserve le .env existant)
     if (usesMessagingApi(provider)) {
       if (provider === "meta" && apiKey) {
         envUpdates.MESSAGING_META_API_KEY = apiKey;

@@ -25,6 +25,13 @@ import {
 
 type ProviderId = "zindua" | "klambo" | "meta";
 
+type EnvDefaults = {
+  apiKey: string;
+  template: string;
+  siteUrl: string;
+  baseUrl: string;
+};
+
 function providerDisplayName(provider: ProviderId): string {
   if (provider === "meta") return "Meta WhatsApp";
   if (provider === "klambo") return "KlamboWhatsapp";
@@ -40,6 +47,10 @@ export default function WhatsAppSettingsPage() {
   const [siteUrl, setSiteUrl] = useState("");
   const [baseUrl, setBaseUrl] = useState("http://localhost:3001");
   const [providerConfigured, setProviderConfigured] = useState(false);
+  const [fromEnv, setFromEnv] = useState({ apiKey: false, baseUrl: false });
+  const [envByProvider, setEnvByProvider] = useState<
+    Partial<Record<ProviderId, EnvDefaults>>
+  >({});
   const [channelConnected, setChannelConnected] = useState<boolean | null>(null);
   const [channelStatus, setChannelStatus] = useState<string | null>(null);
   const [channelSetupUrl, setChannelSetupUrl] = useState<string | null>(null);
@@ -52,6 +63,22 @@ export default function WhatsAppSettingsPage() {
 
   const providerName = providerDisplayName(provider);
   const usesKlamboApi = provider === "klambo" || provider === "meta";
+
+  function applyProvider(next: ProviderId) {
+    setProvider(next);
+    const env = envByProvider[next];
+    if (!env) return;
+    // Au basculement Meta/Klambo/Zindua : préremplir depuis le .env du provider
+    setApiKey(env.apiKey);
+    setTemplate(env.template || "notification");
+    setSiteUrl(env.siteUrl);
+    setBaseUrl(env.baseUrl || "http://localhost:3001");
+    setFromEnv({
+      apiKey: Boolean(env.apiKey),
+      baseUrl: Boolean(env.baseUrl),
+    });
+    setProviderConfigured(Boolean(env.apiKey));
+  }
 
   useEffect(() => {
     startTransition(async () => {
@@ -68,6 +95,8 @@ export default function WhatsAppSettingsPage() {
       setSiteUrl(data.siteUrl);
       setBaseUrl(data.baseUrl || "http://localhost:3001");
       setProviderConfigured(data.providerConfigured);
+      setFromEnv(data.fromEnv ?? { apiKey: false, baseUrl: false });
+      if (data.envByProvider) setEnvByProvider(data.envByProvider);
       const ch = data.channel ?? data.zindua;
       setChannelConnected(ch.connected);
       setChannelStatus(ch.status);
@@ -101,6 +130,8 @@ export default function WhatsAppSettingsPage() {
         setSiteUrl(saved.siteUrl);
         setBaseUrl(saved.baseUrl || "http://localhost:3001");
         setProviderConfigured(saved.providerConfigured);
+        setFromEnv(saved.fromEnv ?? { apiKey: false, baseUrl: false });
+        if (saved.envByProvider) setEnvByProvider(saved.envByProvider);
         const ch = saved.channel ?? saved.zindua;
         setChannelConnected(ch.connected);
         setChannelStatus(ch.status);
@@ -186,7 +217,7 @@ export default function WhatsAppSettingsPage() {
                   type="button"
                   variant={provider === "zindua" ? "default" : "outline"}
                   disabled={!loaded || pending}
-                  onClick={() => setProvider("zindua")}
+                  onClick={() => applyProvider("zindua")}
                 >
                   Zindua
                 </Button>
@@ -194,7 +225,7 @@ export default function WhatsAppSettingsPage() {
                   type="button"
                   variant={provider === "klambo" ? "default" : "outline"}
                   disabled={!loaded || pending}
-                  onClick={() => setProvider("klambo")}
+                  onClick={() => applyProvider("klambo")}
                 >
                   KlamboWhatsapp
                 </Button>
@@ -202,18 +233,20 @@ export default function WhatsAppSettingsPage() {
                   type="button"
                   variant={provider === "meta" ? "default" : "outline"}
                   disabled={!loaded || pending}
-                  onClick={() => setProvider("meta")}
+                  onClick={() => applyProvider("meta")}
                 >
                   Meta
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Actuel : <code>{providerName}</code>. Collez la clé{" "}
-                {usesKlamboApi ? "sk_test_… / sk_live_…" : "znd_…"} puis
-                enregistrez.
+                Actuel : <code>{providerName}</code>. Clé et URL sont
+                optionnelles : si vides, on lit le{" "}
+                <code>.env</code>
                 {provider === "meta"
-                  ? " Utilisez la clé d’un projet Klambo avec whatsappProvider=meta."
-                  : null}
+                  ? " (MESSAGING_META_API_KEY + MESSAGING_API_BASE_URL)."
+                  : provider === "klambo"
+                    ? " (MESSAGING_API_KEY + MESSAGING_API_BASE_URL)."
+                    : " (ZINDUA_API_KEY)."}
               </p>
             </div>
 
@@ -296,6 +329,11 @@ export default function WhatsAppSettingsPage() {
             <div className="space-y-2">
               <label htmlFor="whatsapp-api-key" className="text-sm font-medium">
                 Clé API ({providerName})
+                {fromEnv.apiKey ? (
+                  <span className="ml-2 font-normal text-muted-foreground">
+                    · depuis .env
+                  </span>
+                ) : null}
               </label>
               <div className="relative">
                 <Input
@@ -303,9 +341,14 @@ export default function WhatsAppSettingsPage() {
                   type={showApiKey ? "text" : "password"}
                   autoComplete="off"
                   value={apiKey}
-                  onChange={(event) => setApiKey(event.target.value)}
+                  onChange={(event) => {
+                    setApiKey(event.target.value);
+                    setFromEnv((prev) => ({ ...prev, apiKey: false }));
+                  }}
                   placeholder={
-                    usesKlamboApi ? "sk_test_…" : "znd_live_…"
+                    usesKlamboApi
+                      ? "Vide = .env (sk_test_…)"
+                      : "Vide = .env (znd_…)"
                   }
                   disabled={!loaded || pending}
                   className="pr-10 font-mono text-sm"
@@ -326,15 +369,17 @@ export default function WhatsAppSettingsPage() {
                 </button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Vide ={" "}
+                Saisie optionnelle. Sinon :{" "}
                 <code>
                   {provider === "meta"
-                    ? "MESSAGING_META_API_KEY / MESSAGING_API_KEY"
+                    ? "MESSAGING_META_API_KEY"
                     : provider === "klambo"
                       ? "MESSAGING_API_KEY"
                       : "ZINDUA_API_KEY"}
                 </code>
-                .
+                {provider === "meta"
+                  ? " (projet Klambo avec whatsappProvider=meta)."
+                  : "."}
               </p>
             </div>
 
@@ -387,17 +432,27 @@ export default function WhatsAppSettingsPage() {
                     className="text-sm font-medium"
                   >
                     URL API KlamboWhatsapp
+                    {fromEnv.baseUrl ? (
+                      <span className="ml-2 font-normal text-muted-foreground">
+                        · depuis .env
+                      </span>
+                    ) : null}
                   </label>
                   <Input
                     id="whatsapp-base-url"
                     type="url"
                     value={baseUrl}
-                    onChange={(event) => setBaseUrl(event.target.value)}
-                    placeholder="https://whatsapp-api.klambocore.com"
+                    onChange={(event) => {
+                      setBaseUrl(event.target.value);
+                      setFromEnv((prev) => ({ ...prev, baseUrl: false }));
+                    }}
+                    placeholder="Vide = MESSAGING_API_BASE_URL"
                     disabled={!loaded || pending}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Ex. <code>https://whatsapp-api.klambocore.com</code>
+                    Optionnel. Sinon{" "}
+                    <code>MESSAGING_API_BASE_URL</code> (ex.{" "}
+                    <code>https://whatsapp-api.klambocore.com</code>).
                   </p>
                 </div>
               )}
