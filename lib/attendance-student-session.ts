@@ -84,7 +84,7 @@ export async function listClassScheduleCandidates(
   branchId: string,
   now = nowLocal(),
 ) {
-  if (await isBranchClosedOn(branchId, now)) return [];
+  if (await isBranchClosedOn(branchId, now, "students")) return [];
 
   const currentMinutes = toMinutes(now);
   const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
@@ -238,7 +238,7 @@ export async function listClassDaySchedules(
   branchId: string,
   now = nowLocal(),
 ): Promise<ClassDaySchedule[]> {
-  if (await isBranchClosedOn(branchId, now)) return [];
+  if (await isBranchClosedOn(branchId, now, "students")) return [];
 
   const today = getTodayDay(now);
   const schedules = await prisma.schedule.findMany({
@@ -274,7 +274,7 @@ export async function classHasDayArrivalSession(
   branchId: string,
   now = nowLocal(),
 ) {
-  if (await isBranchClosedOn(branchId, now)) return false;
+  if (await isBranchClosedOn(branchId, now, "students")) return false;
 
   const schedules = await listClassDaySchedules(classeId, branchId, now);
   if (schedules.length > 0) return true;
@@ -391,7 +391,7 @@ async function ensureStudentDaySessionFromClasse(
   classeId: string,
   branchId: string,
 ) {
-  if (await isBranchClosedOn(branchId)) return null;
+  if (await isBranchClosedOn(branchId, undefined, "students")) return null;
 
   const teachingWhere = teachingBranchWhere(branchId, classeId);
   let teaching = await prisma.teaching.findFirst({

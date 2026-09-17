@@ -113,6 +113,8 @@ type CalendarEventFormProps = {
   mode: "create" | "update";
   eventTypes: EventTypeOption[];
   classes?: ClasseOption[];
+  orgBranches?: Array<{ id: string; name: string; code: string | null }>;
+  currentBranchId?: string;
   initialEvent?: ICalendarEvent | null;
   onSuccess?: () => void;
 };
@@ -168,6 +170,9 @@ function buildDefaultValues(
     image: toStoredImageFileName(initialEvent?.image),
     allDay: initialEvent?.allDay ?? false,
     closesAttendance: initialEvent?.closesAttendance ?? false,
+    closesForStudents: initialEvent?.closesForStudents ?? true,
+    closesForTeachers: initialEvent?.closesForTeachers ?? true,
+    closesForPersonnel: initialEvent?.closesForPersonnel ?? true,
     createdBy: userId,
     recurrence: initialEvent?.recurrence ?? Recurrence.HEBDOMADAIRE,
     dateStart: initialEvent?.dateStart
@@ -179,6 +184,8 @@ function buildDefaultValues(
     typeId: initialEvent?.typeId ?? "",
     classeId: initialClasseIds(initialEvent)[0] ?? "",
     classeIds: initialClasseIds(initialEvent),
+    branchIds: [],
+    applyToAllBranches: false,
     titleI18n,
     descriptionI18n,
     translationsEnabled: hasTranslations,
@@ -199,6 +206,8 @@ export function CalendarEventForm({
   mode,
   eventTypes,
   classes = [],
+  orgBranches = [],
+  currentBranchId,
   initialEvent,
   onSuccess,
 }: CalendarEventFormProps) {
@@ -230,6 +239,20 @@ export function CalendarEventForm({
   const titleI18n = normalizeLocaleMap(form.watch("titleI18n"));
   const descriptionI18n = normalizeLocaleMap(form.watch("descriptionI18n"));
   const selectedClasseIds = form.watch("classeIds") ?? [];
+  const closesAttendance = Boolean(form.watch("closesAttendance"));
+  const applyToAllBranches = Boolean(form.watch("applyToAllBranches"));
+  const selectedBranchIds = form.watch("branchIds") ?? [];
+
+  const branchOptions = useMemo(
+    () =>
+      orgBranches.map((branch) => ({
+        value: branch.id,
+        label: branch.code
+          ? `${branch.name} (${branch.code})`
+          : branch.name,
+      })),
+    [orgBranches],
+  );
 
   const sortedClasses = useMemo(
     () => sortCalendarClasses(classes),
@@ -848,20 +871,119 @@ export function CalendarEventForm({
             Jour férié / établissement fermé
           </span>
           <span className="mt-0.5 block text-xs text-muted-foreground">
-            Aucune alerte ni pointage de présence ce jour-là.
+            Aucune alerte ni pointage pour les audiences cochées.
           </span>
         </span>
         <Switch
           className="mt-2 sm:mt-0"
-          checked={Boolean(form.watch("closesAttendance"))}
+          checked={closesAttendance}
           onCheckedChange={(checked) => {
             form.setValue("closesAttendance", checked, { shouldDirty: true });
             if (checked) {
               form.setValue("allDay", true, { shouldDirty: true });
+              form.setValue("closesForStudents", true, { shouldDirty: true });
+              form.setValue("closesForTeachers", true, { shouldDirty: true });
+              form.setValue("closesForPersonnel", true, { shouldDirty: true });
             }
           }}
         />
       </label>
+
+      {closesAttendance ? (
+        <div className="space-y-2 rounded-lg border px-3 py-3">
+          <Label>Audience concernée</Label>
+          <p className="text-[11px] text-muted-foreground">
+            Indiquez si le férié s&apos;applique aux élèves, enseignants et/ou
+            personnel.
+          </p>
+          <div className="flex flex-wrap gap-4 pt-1">
+            {(
+              [
+                ["closesForStudents", "Élèves"],
+                ["closesForTeachers", "Enseignants"],
+                ["closesForPersonnel", "Personnel"],
+              ] as const
+            ).map(([field, label]) => (
+              <label
+                key={field}
+                className="flex items-center gap-2 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  className="size-4 rounded border"
+                  checked={Boolean(form.watch(field))}
+                  onChange={(event) =>
+                    form.setValue(field, event.target.checked, {
+                      shouldDirty: true,
+                    })
+                  }
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+          {form.formState.errors.closesForStudents ? (
+            <p className="text-xs text-destructive">
+              {form.formState.errors.closesForStudents.message}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {mode === "create" && orgBranches.length > 1 ? (
+        <div className="space-y-3 rounded-lg border px-3 py-3">
+          <div className="space-y-1">
+            <Label>Établissements</Label>
+            <p className="text-[11px] text-muted-foreground">
+              Créer sur la branche courante, toutes les branches de
+              l&apos;organisation, ou une sélection.
+            </p>
+          </div>
+          <label className="flex items-center justify-between gap-3 text-sm">
+            <span>Toutes les branches de l&apos;organisation</span>
+            <Switch
+              checked={applyToAllBranches}
+              onCheckedChange={(checked) => {
+                form.setValue("applyToAllBranches", checked, {
+                  shouldDirty: true,
+                });
+                if (checked) {
+                  form.setValue("branchIds", [], { shouldDirty: true });
+                }
+              }}
+            />
+          </label>
+          {!applyToAllBranches ? (
+            <div className="space-y-1.5">
+              <Label>Branches sélectionnées</Label>
+              <MultiSelect
+                options={branchOptions}
+                value={
+                  selectedBranchIds.length
+                    ? selectedBranchIds
+                    : currentBranchId
+                      ? [currentBranchId]
+                      : []
+                }
+                onValueChange={(next) =>
+                  form.setValue("branchIds", next, { shouldDirty: true })
+                }
+                placeholder="Branche courante uniquement"
+                selectedCountLabel={(count) =>
+                  `${count} établissement${count > 1 ? "s" : ""}`
+                }
+                maxCount={2}
+                showSelectAll
+                disabled={pending}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Les classes ciblées ne s&apos;appliquent qu&apos;à la branche
+                courante ; les autres reçoivent un événement global.
+              </p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="flex justify-end gap-2 border-t pt-4">
         <Button type="submit" disabled={pending || translating}>

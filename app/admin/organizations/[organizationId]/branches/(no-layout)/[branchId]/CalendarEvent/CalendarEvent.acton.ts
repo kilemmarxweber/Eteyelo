@@ -112,6 +112,7 @@ function buildEventData(
   branchId: string,
   userId: string,
   schoolYearId: string,
+  typeId: string | null,
 ) {
   const titleI18n = input.translationsEnabled
     ? {
@@ -138,10 +139,15 @@ function buildEventData(
     image: toStoredImageFileName(input.image),
     allDay: input.allDay,
     closesAttendance: input.closesAttendance,
+    closesForStudents: input.closesAttendance ? input.closesForStudents : true,
+    closesForTeachers: input.closesAttendance ? input.closesForTeachers : true,
+    closesForPersonnel: input.closesAttendance
+      ? input.closesForPersonnel
+      : true,
     dateStart: input.dateStart,
     dateEnd: input.dateEnd || null,
     recurrence: input.recurrence,
-    typeId: input.typeId || null,
+    typeId,
     classeIds,
     classeId: classeIds[0] ?? null,
     teachingId: input.teachingId || null,
@@ -173,6 +179,9 @@ function mapEvent(event: {
   image: string | null;
   allDay: boolean;
   closesAttendance?: boolean;
+  closesForStudents?: boolean;
+  closesForTeachers?: boolean;
+  closesForPersonnel?: boolean;
   location: string | null;
   description: string | null;
   titleI18n: unknown;
@@ -199,6 +208,9 @@ function mapEvent(event: {
     image: toStoredImageFileName(event.image),
     allDay: event.allDay,
     closesAttendance: Boolean(event.closesAttendance),
+    closesForStudents: event.closesForStudents !== false,
+    closesForTeachers: event.closesForTeachers !== false,
+    closesForPersonnel: event.closesForPersonnel !== false,
     location: event.location || "",
     description: event.description || "",
     titleI18n: normalizeLocaleMap(event.titleI18n),
@@ -224,24 +236,141 @@ function mapEvent(event: {
   };
 }
 
+async function resolveEventTypeIdForBranch(params: {
+  sourceTypeId: string | null | undefined;
+  targetBranchId: string;
+  sourceBranchId: string;
+}): Promise<string | null> {
+  const sourceTypeId = params.sourceTypeId?.trim();
+  if (!sourceTypeId) return null;
+
+  if (params.targetBranchId === params.sourceBranchId) {
+    const same = await prisma.eventType.findFirst({
+      where: { id: sourceTypeId, branchId: params.sourceBranchId },
+      select: { id: true },
+    });
+    return same?.id ?? null;
+  }
+
+  const sourceType = await prisma.eventType.findFirst({
+    where: { id: sourceTypeId, branchId: params.sourceBranchId },
+    select: { name: true },
+  });
+  if (!sourceType?.name) return null;
+
+  const existing = await prisma.eventType.findFirst({
+    where: {
+      branchId: params.targetBranchId,
+      name: { equals: sourceType.name, mode: "insensitive" },
+    },
+    select: { id: true },
+  });
+  if (existing) return existing.id;
+
+  const created = await prisma.eventType.create({
+    data: {
+      branchId: params.targetBranchId,
+      name: sourceType.name,
+    },
+    select: { id: true },
+  });
+  return created.id;
+}
+
+export const getOrganizationBranchesForCalendarAction = action.handler(
+  async () => {
+    const { organizationId, branchId } = await requireBranchContext();
+    const branches = await prisma.branch.findMany({
+      where: { organizationId, isActive: true },
+      select: { id: true, name: true, code: true },
+      orderBy: { name: "asc" },
+    });
+    return { currentBranchId: branchId, branches };
+  },
+);
+
 export const createCalendarEvent = action
   .input(calendarEventSchema)
   .handler(async ({ input }) => {
     try {
       const { branchId, userId, organizationId } = await requireBranchContext();
-      const currentSchoolYear = await requireCurrentSchoolYear(branchId);
-      await assertCalendarEventRelationsInBranch(input, branchId);
 
-      const event = await prisma.calendarEvent.create({
-        data: buildEventData(input, branchId, userId, currentSchoolYear.id),
-      });
+      let targetBranchIds: string[];
+      if (input.applyToAllBranches) {
+        const orgBranches = await prisma.branch.findMany({
+          where: { organizationId, isActive: true },
+          select: { id: true },
+        });
+        targetBranchIds = orgBranches.map((row) => row.id);
+      } else if (input.branchIds?.length) {
+        const allowed = await prisma.branch.findMany({
+          where: {
+            organizationId,
+            isActive: true,
+            id: { in: uniqueIds(input.branchIds) },
+          },
+          select: { id: true },
+        });
+        targetBranchIds = allowed.map((row) => row.id);
+        if (targetBranchIds.length === 0) {
+          throw new Error("Aucune branche valide sélectionnée.");
+        }
+      } else {
+        targetBranchIds = [branchId];
+      }
 
-      revalidateCalendarPages(organizationId, branchId);
+      // Classes / enseignement : uniquement sur la branche courante.
+      const singleBranch = targetBranchIds.length === 1 && targetBranchIds[0] === branchId;
+      await assertCalendarEventRelationsInBranch(
+        {
+          ...input,
+          classeIds: singleBranch ? input.classeIds : [],
+          classeId: singleBranch ? input.classeId : null,
+          teachingId: singleBranch ? input.teachingId : null,
+          typeId: input.typeId,
+        },
+        branchId,
+      );
+
+      let createdCount = 0;
+      for (const targetBranchId of targetBranchIds) {
+        const currentSchoolYear = await requireCurrentSchoolYear(targetBranchId);
+        const typeId = await resolveEventTypeIdForBranch({
+          sourceTypeId: input.typeId,
+          targetBranchId,
+          sourceBranchId: branchId,
+        });
+
+        const branchInput =
+          targetBranchId === branchId
+            ? input
+            : {
+                ...input,
+                classeIds: [],
+                classeId: null,
+                teachingId: null,
+              };
+
+        await prisma.calendarEvent.create({
+          data: buildEventData(
+            branchInput,
+            targetBranchId,
+            userId,
+            currentSchoolYear.id,
+            typeId,
+          ),
+        });
+        createdCount += 1;
+        revalidateCalendarPages(organizationId, targetBranchId);
+      }
 
       return {
         success: true,
-        message: "Evenement cree avec succes",
-        event,
+        message:
+          createdCount > 1
+            ? `Événement créé sur ${createdCount} établissements.`
+            : "Événement créé avec succès",
+        createdCount,
       };
     } catch (error: unknown) {
       console.error("CREATE EVENT ERROR:", error);
@@ -311,6 +440,7 @@ export const updateCalendarEvent = action
         branchId,
         userId,
         input.schoolYearId || event.schoolYearId,
+        input.typeId || null,
       ),
     });
 

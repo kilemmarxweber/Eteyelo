@@ -98,6 +98,7 @@ async function closedDayKeys(
       branchId,
       isArchived: false,
       closesAttendance: true,
+      closesForPersonnel: true,
       dateStart: { lt: end },
       OR: [
         { dateEnd: { gte: start } },

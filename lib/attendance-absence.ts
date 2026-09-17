@@ -578,7 +578,14 @@ async function loadPersonnelUser(personnelId: string, branchId: string) {
   return personnel?.branchMember?.member?.user ?? null;
 }
 
-async function signalEndedSessionAbsences(branchId: string) {
+async function signalEndedSessionAbsences(
+  branchId: string,
+  options?: { skipStudents?: boolean; skipTeachers?: boolean },
+) {
+  const skipStudents = Boolean(options?.skipStudents);
+  const skipTeachers = Boolean(options?.skipTeachers);
+  if (skipStudents && skipTeachers) return 0;
+
   const now = nowLocal();
   const today = startOfTodayParis(now);
   const currentMinutes = toMinutes(now);
@@ -653,7 +660,7 @@ async function signalEndedSessionAbsences(branchId: string) {
     );
 
     const teacherId = schedule.teaching.teacherId;
-    if (teacherId) {
+    if (teacherId && !skipTeachers) {
       if (await teacherUsesDayLevelPunch(teacherId, branchId, now)) {
         dayLevelTeacherIds.add(teacherId);
       } else {
@@ -700,6 +707,8 @@ async function signalEndedSessionAbsences(branchId: string) {
       }
       }
     }
+
+    if (skipStudents) continue;
 
     const classeId = schedule.teaching.classeId;
     if (!classeId) continue;
@@ -775,6 +784,7 @@ async function signalEndedSessionAbsences(branchId: string) {
     }
   }
 
+  if (!skipTeachers) {
   for (const teacherId of dayLevelTeacherIds) {
     const punched = await prisma.teacherAttendance.findFirst({
       where: {
@@ -834,6 +844,7 @@ async function signalEndedSessionAbsences(branchId: string) {
       user,
     });
     created += 1;
+  }
   }
 
   return created;
@@ -919,12 +930,26 @@ async function signalPersonnelDayAbsences(branchId: string) {
 }
 
 export async function signalEndedAbsencesForBranch(branchId: string) {
-  if (await isBranchClosedOn(branchId)) {
+  const [studentsClosed, teachersClosed, personnelClosed] = await Promise.all([
+    isBranchClosedOn(branchId, undefined, "students"),
+    isBranchClosedOn(branchId, undefined, "teachers"),
+    isBranchClosedOn(branchId, undefined, "personnel"),
+  ]);
+
+  if (studentsClosed && teachersClosed && personnelClosed) {
     return { created: 0 };
   }
+
   const [sessions, personnel] = await Promise.all([
-    signalEndedSessionAbsences(branchId),
-    signalPersonnelDayAbsences(branchId),
+    studentsClosed && teachersClosed
+      ? Promise.resolve(0)
+      : signalEndedSessionAbsences(branchId, {
+          skipStudents: studentsClosed,
+          skipTeachers: teachersClosed,
+        }),
+    personnelClosed
+      ? Promise.resolve(0)
+      : signalPersonnelDayAbsences(branchId),
   ]);
   return { created: sessions + personnel };
 }

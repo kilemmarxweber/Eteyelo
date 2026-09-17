@@ -198,17 +198,17 @@ export type EventTypeOrderByWithRelationInput = {
 
 export type EventTypeWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  name?: string
   branchId_name?: Prisma.EventTypeBranchIdNameCompoundUniqueInput
   AND?: Prisma.EventTypeWhereInput | Prisma.EventTypeWhereInput[]
   OR?: Prisma.EventTypeWhereInput[]
   NOT?: Prisma.EventTypeWhereInput | Prisma.EventTypeWhereInput[]
+  name?: Prisma.StringFilter<"EventType"> | string
   branchId?: Prisma.StringFilter<"EventType"> | string
   createdAt?: Prisma.DateTimeFilter<"EventType"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EventType"> | Date | string
   events?: Prisma.CalendarEventListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
-}, "id" | "name" | "branchId_name">
+}, "id" | "branchId_name">
 
 export type EventTypeOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -613,6 +613,9 @@ export type $EventTypePayload<ExtArgs extends runtime.Types.Extensions.InternalA
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    /**
+     * Nom non unique globalement : le même libellé peut exister sur d'autres branches.
+     */
     name: string
     branchId: string
     createdAt: Date

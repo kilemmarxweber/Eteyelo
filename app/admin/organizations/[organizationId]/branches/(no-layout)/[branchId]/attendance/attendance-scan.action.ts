@@ -1137,11 +1137,11 @@ async function performPersonnelCheckIn(
   });
   if (geoError) return geoError;
 
-  if (await isBranchClosedOn(branchId)) {
+  if (await isBranchClosedOn(branchId, undefined, "personnel")) {
     return {
       ok: false,
       message:
-        "Établissement fermé aujourd'hui (jour férié) — pas de pointage.",
+        "Établissement fermé aujourd'hui (jour férié) — pas de pointage personnel.",
       personType: "personnel",
       person: lookup,
     };
@@ -1815,7 +1815,7 @@ type WindowSchedule = {
 
 async function listTodayWindowSchedules(branchId: string) {
   const now = nowLocal();
-  if (await isBranchClosedOn(branchId, now)) {
+  if (await isBranchClosedOn(branchId, now, "teachers")) {
     return {
       currentMinutes: toMinutes(now),
       startOfDay: startOfTodayParis(now),

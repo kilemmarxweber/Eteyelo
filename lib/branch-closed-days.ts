@@ -9,13 +9,25 @@ import {
   toMinutes,
 } from "@/lib/timezone";
 
+/** Audience concernée par une fermeture / jour férié. */
+export type ClosedDayAudience = "students" | "teachers" | "personnel";
+
+function audienceWhere(audience?: ClosedDayAudience) {
+  if (audience === "students") return { closesForStudents: true };
+  if (audience === "teachers") return { closesForTeachers: true };
+  if (audience === "personnel") return { closesForPersonnel: true };
+  return {};
+}
+
 /**
  * Jour civil (fuseau app) couvert par un événement calendrier
- * marqué « établissement fermé / jour férié ».
+ * marqué « établissement fermé / jour férié » pour l'audience donnée.
+ * Sans audience : toute fermeture (compat finance / checks globaux).
  */
 export async function isBranchClosedOn(
   branchId: string,
   date: Date = nowLocal(),
+  audience?: ClosedDayAudience,
 ): Promise<boolean> {
   const dayStart = startOfTodayInTimezone(date);
   const nextDay = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
@@ -25,6 +37,7 @@ export async function isBranchClosedOn(
       branchId,
       isArchived: false,
       closesAttendance: true,
+      ...audienceWhere(audience),
       dateStart: { lt: nextDay },
       OR: [
         { dateEnd: { gte: dayStart } },
@@ -39,17 +52,19 @@ export async function isBranchClosedOn(
   return Boolean(closed);
 }
 
-/** Jours civils (YYYY-MM-DD, fuseau app) où l'établissement est fermé. */
+/** Jours civils (YYYY-MM-DD, fuseau app) où l'établissement est fermé pour l'audience. */
 export async function listBranchClosedDayKeys(
   branchId: string,
   start: Date,
   end: Date,
+  audience?: ClosedDayAudience,
 ): Promise<Set<string>> {
   const events = await prisma.calendarEvent.findMany({
     where: {
       branchId,
       isArchived: false,
       closesAttendance: true,
+      ...audienceWhere(audience),
       dateStart: { lt: end },
       OR: [
         { dateEnd: { gte: start } },

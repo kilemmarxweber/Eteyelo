@@ -295,9 +295,9 @@ export const checkInMyPersonnelAction = action
       accuracy: input.accuracy,
     });
 
-    if (await isBranchClosedOn(branchId)) {
+    if (await isBranchClosedOn(branchId, undefined, "personnel")) {
       throw new Error(
-        "Établissement fermé aujourd'hui (jour férié) — pas de pointage.",
+        "Établissement fermé aujourd'hui (jour férié) — pas de pointage personnel.",
       );
     }
 

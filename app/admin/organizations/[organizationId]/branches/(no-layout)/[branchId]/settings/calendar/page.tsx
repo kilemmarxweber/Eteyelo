@@ -32,6 +32,7 @@ import {
 import {
   archiveCalendarEvent,
   getCalendarEvents,
+  getOrganizationBranchesForCalendarAction,
 } from "../../CalendarEvent/CalendarEvent.acton";
 import type { ICalendarEvent } from "@/src/interfaces/CalendarEvent";
 import { CalendarEventForm } from "./components/calendar-event-form";
@@ -40,6 +41,11 @@ import { canAccessSchoolOpsSettings } from "@/lib/auth/session-roles";
 
 type EventTypeItem = Awaited<ReturnType<typeof getCalendarSettingsAction>>[number];
 type ClasseItem = Awaited<ReturnType<typeof getCalendarClassesAction>>[number];
+type OrgBranchesPayload = Exclude<
+  Awaited<ReturnType<typeof getOrganizationBranchesForCalendarAction>>[0],
+  null | undefined
+>;
+type OrgBranchItem = OrgBranchesPayload["branches"][number];
 type CalendarTab = "events" | "types";
 
 function eventClassIds(event: ICalendarEvent) {
@@ -72,6 +78,8 @@ export default function CalendarSettingsPage() {
   const [tab, setTab] = useState<CalendarTab>("events");
   const [eventTypes, setEventTypes] = useState<EventTypeItem[]>([]);
   const [classes, setClasses] = useState<ClasseItem[]>([]);
+  const [orgBranches, setOrgBranches] = useState<OrgBranchItem[]>([]);
+  const [currentBranchId, setCurrentBranchId] = useState<string>("");
   const [events, setEvents] = useState<ICalendarEvent[]>([]);
   const [editingType, setEditingType] = useState<EventTypeItem | null>(null);
   const [typeOpen, setTypeOpen] = useState(false);
@@ -104,6 +112,21 @@ export default function CalendarSettingsPage() {
     }
   }, []);
 
+  const loadBranches = useCallback(async () => {
+    try {
+      const [data, error] = await getOrganizationBranchesForCalendarAction();
+      if (error) throw new Error(error.message);
+      setOrgBranches(data?.branches ?? []);
+      setCurrentBranchId(data?.currentBranchId ?? "");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Chargement des établissements impossible.",
+      );
+    }
+  }, []);
+
   const loadEvents = useCallback(async () => {
     try {
       const [data, error] = await getCalendarEvents();
@@ -120,13 +143,18 @@ export default function CalendarSettingsPage() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      await Promise.all([loadTypes(), loadClasses(), loadEvents()]);
+      await Promise.all([
+        loadTypes(),
+        loadClasses(),
+        loadEvents(),
+        loadBranches(),
+      ]);
       if (!cancelled) setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [loadClasses, loadEvents, loadTypes]);
+  }, [loadBranches, loadClasses, loadEvents, loadTypes]);
 
   function openTypeForm(item?: EventTypeItem) {
     setEditingType(item ?? null);
@@ -215,7 +243,8 @@ export default function CalendarSettingsPage() {
             <span className="font-medium text-foreground">
               Jour férié / établissement fermé
             </span>{" "}
-            afin de couper les alertes de présence.
+            afin de couper les alertes de présence pour les audiences
+            choisies (élèves, enseignants, personnel).
           </p>
         </div>
 
@@ -298,6 +327,19 @@ export default function CalendarSettingsPage() {
                         ) : null}
                         {event.closesAttendance ? (
                           <Badge variant="warning">Férié / fermé</Badge>
+                        ) : null}
+                        {event.closesAttendance ? (
+                          <>
+                            {event.closesForStudents !== false ? (
+                              <Badge variant="outline">Élèves</Badge>
+                            ) : null}
+                            {event.closesForTeachers !== false ? (
+                              <Badge variant="outline">Enseignants</Badge>
+                            ) : null}
+                            {event.closesForPersonnel !== false ? (
+                              <Badge variant="outline">Personnel</Badge>
+                            ) : null}
+                          </>
                         ) : null}
                         {(() => {
                           const classIds = eventClassIds(event);
@@ -509,8 +551,9 @@ export default function CalendarSettingsPage() {
                 {editingEvent ? "Modifier l'evenement" : "Creer un evenement"}
               </SheetTitle>
               <SheetDescription>
-                Evenement global ou lié à une ou plusieurs classes. Filtrez
-                par cycle et option, puis sélectionnez les classes.
+                Événement global ou lié à des classes. Pour un férié, choisissez
+                l&apos;audience (élèves, enseignants, personnel) et
+                éventuellement plusieurs établissements.
               </SheetDescription>
             </SheetHeader>
             <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
@@ -521,6 +564,8 @@ export default function CalendarSettingsPage() {
                   mode={editingEvent ? "update" : "create"}
                   eventTypes={eventTypes}
                   classes={classes}
+                  orgBranches={orgBranches}
+                  currentBranchId={currentBranchId}
                   initialEvent={editingEvent}
                   onSuccess={handleEventSuccess}
                 />

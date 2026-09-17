@@ -719,8 +719,14 @@ model CalendarEvent {
   dateEnd          DateTime?
   image            String?
   allDay           Boolean   @default(false)
-  /// Si true : établissement fermé ce jour (pas d'alertes / pointage présence).
+  /// Si true : fermeture / jour férié (pas d'alertes / pointage pour les audiences cochées).
   closesAttendance Boolean   @default(false)
+  /// Fermeture applicable aux élèves (absences / pointage élève).
+  closesForStudents Boolean  @default(true)
+  /// Fermeture applicable aux enseignants.
+  closesForTeachers Boolean  @default(true)
+  /// Fermeture applicable au personnel.
+  closesForPersonnel Boolean @default(true)
   location         String?
   description      String?
   /// Traductions titre: { fr?, en?, pt?, ln? }
@@ -759,7 +765,8 @@ model CalendarEvent {
 
 model EventType {
   id       String          @id @default(cuid())
-  name     String          @unique
+  /// Nom non unique globalement : le même libellé peut exister sur d'autres branches.
+  name     String
   events   CalendarEvent[]
   branchId String
   branch   Branch          @relation(fields: [branchId], references: [id], onDelete: Cascade)

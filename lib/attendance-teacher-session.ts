@@ -103,7 +103,7 @@ export async function listTeacherDaySchedules(
   branchId: string,
   now = nowLocal(),
 ): Promise<TeacherScheduleCandidate[]> {
-  if (await isBranchClosedOn(branchId, now)) return [];
+  if (await isBranchClosedOn(branchId, now, "teachers")) return [];
 
   const today = getTodayDay(now);
   const teacher = await prisma.teacher.findFirst({
@@ -399,7 +399,7 @@ export async function getTeacherDayPunchContext(
     firstSchedule: null,
     firstTeachingId: null,
   };
-  if (await isBranchClosedOn(branchId, now)) return empty;
+  if (await isBranchClosedOn(branchId, now, "teachers")) return empty;
 
   const teacher = await loadTeacherDayTeachings(teacherId, branchId, now);
   if (!teacher) return empty;
