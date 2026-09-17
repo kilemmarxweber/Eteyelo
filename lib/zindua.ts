@@ -4,6 +4,7 @@ import {
   getWhatsAppRuntimeConfig,
   isEnvWhatsAppEnabled,
   providerLabel,
+  usesMessagingApi,
   type WhatsAppProviderId,
 } from "@/lib/whatsapp-settings";
 import {
@@ -181,7 +182,7 @@ type SendWhatsAppOptions = {
 };
 
 /**
- * Envoie un message WhatsApp via le provider actif (Zindua ou KlamboWhatsapp).
+ * Envoie un message WhatsApp via le provider actif (Zindua | Klambo | Meta).
  * Retourne null si l'envoi est désactivé (fournisseur / paramètres org).
  */
 export async function sendWhatsApp(
@@ -218,7 +219,7 @@ export async function sendWhatsApp(
 
   return enqueueWhatsAppTask(() =>
     withWhatsAppGuardianRetry(async () => {
-      if (config.provider === "klambo") {
+      if (usesMessagingApi(config.provider)) {
         const client = new MessagingClient({
           apiKey: config.apiKey,
           baseUrl: config.baseUrl,
@@ -536,17 +537,33 @@ export async function getZinduaWhatsAppStatus(
   }
 
   try {
-    if (config.provider === "klambo") {
+    if (usesMessagingApi(config.provider)) {
       const client = new MessagingClient({
         apiKey: config.apiKey,
         baseUrl: config.baseUrl,
       });
-      const [project, devices] = await Promise.all([
-        client.getProject(),
-        client.listDevices().catch(() => [] as Awaited<
-          ReturnType<MessagingClient["listDevices"]>
-        >),
-      ]);
+      const project = await client.getProject();
+      const isMeta =
+        config.provider === "meta" ||
+        project.whatsapp_provider === "meta";
+
+      if (isMeta) {
+        return {
+          ...base,
+          connected: true,
+          status: "connected",
+          setupUrl: config.baseUrl
+            ? `${config.baseUrl.replace(/\/$/, "")}`
+            : null,
+          projectName: project.name
+            ? `${project.name} · Meta Cloud`
+            : "Meta Cloud API",
+        };
+      }
+
+      const devices = await client.listDevices().catch(
+        () => [] as Awaited<ReturnType<MessagingClient["listDevices"]>>,
+      );
       const connected = devices.some((d) => d.status === "connected");
       const phone = devices.find((d) => d.phone)?.phone;
       return {

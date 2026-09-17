@@ -12,6 +12,7 @@ import {
 } from "@/lib/whatsapp-env-file";
 import {
   getWhatsAppEnvDefaults,
+  usesMessagingApi,
   type WhatsAppProviderId,
 } from "@/lib/whatsapp-settings";
 import {
@@ -30,12 +31,19 @@ function assertCanManage(
 
 const whatsappSettingsSchema = z.object({
   enabled: z.boolean(),
-  provider: z.enum(["zindua", "klambo"]),
+  provider: z.enum(["zindua", "klambo", "meta"]),
   apiKey: z.string().trim().max(200),
   template: z.string().trim().max(80),
   siteUrl: z.string().trim().max(300),
   baseUrl: z.string().trim().max(300),
 });
+
+function normalizeProvider(raw: string | null | undefined): WhatsAppProviderId {
+  const value = raw?.trim().toLowerCase();
+  if (value === "meta") return "meta";
+  if (value === "klambo" || value === "klambowhatsapp") return "klambo";
+  return "zindua";
+}
 
 function presentSettings(org: {
   whatsappEnabled: boolean;
@@ -46,12 +54,13 @@ function presentSettings(org: {
   whatsappBaseUrl: string | null;
 }) {
   const defaults = getWhatsAppEnvDefaults();
-  const provider = (org.whatsappProvider?.trim() ||
-    defaults.provider) as WhatsAppProviderId;
+  const provider = normalizeProvider(
+    org.whatsappProvider?.trim() || defaults.provider,
+  );
   const apiKey = org.whatsappApiKey?.trim() || defaults.apiKey;
   return {
     enabled: org.whatsappEnabled,
-    provider: provider === "klambo" ? ("klambo" as const) : ("zindua" as const),
+    provider,
     apiKey,
     template: org.whatsappTemplate?.trim() || defaults.template,
     siteUrl: org.whatsappSiteUrl?.trim() || defaults.siteUrl,
@@ -168,8 +177,13 @@ export const updateWhatsAppSettingsAction = action
       MESSAGING_WHATSAPP_ENABLED: enabledFlag,
     };
 
-    if (provider === "klambo") {
-      if (apiKey) envUpdates.MESSAGING_API_KEY = apiKey;
+    if (usesMessagingApi(provider)) {
+      if (provider === "meta" && apiKey) {
+        envUpdates.MESSAGING_META_API_KEY = apiKey;
+        envUpdates.MESSAGING_API_KEY = apiKey;
+      } else if (apiKey) {
+        envUpdates.MESSAGING_API_KEY = apiKey;
+      }
       if (template) envUpdates.MESSAGING_WHATSAPP_TEMPLATE = template;
       if (baseUrl) envUpdates.MESSAGING_API_BASE_URL = baseUrl;
     } else {

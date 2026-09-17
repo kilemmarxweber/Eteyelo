@@ -23,7 +23,13 @@ import {
   updateWhatsAppSettingsAction,
 } from "../whatsapp.action";
 
-type ProviderId = "zindua" | "klambo";
+type ProviderId = "zindua" | "klambo" | "meta";
+
+function providerDisplayName(provider: ProviderId): string {
+  if (provider === "meta") return "Meta WhatsApp";
+  if (provider === "klambo") return "KlamboWhatsapp";
+  return "Zindua";
+}
 
 export default function WhatsAppSettingsPage() {
   const [enabled, setEnabled] = useState(true);
@@ -44,8 +50,8 @@ export default function WhatsAppSettingsPage() {
   const [loaded, setLoaded] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  const providerName =
-    provider === "klambo" ? "KlamboWhatsapp" : "Zindua";
+  const providerName = providerDisplayName(provider);
+  const usesKlamboApi = provider === "klambo" || provider === "meta";
 
   useEffect(() => {
     startTransition(async () => {
@@ -105,7 +111,7 @@ export default function WhatsAppSettingsPage() {
       }
       toast.success(
         enabled
-          ? `Paramètres WhatsApp enregistrés (${provider === "klambo" ? "KlamboWhatsapp" : "Zindua"}).`
+          ? `Paramètres WhatsApp enregistrés (${providerDisplayName(provider)}).`
           : "Envoi WhatsApp désactivé (config et .env).",
       );
     });
@@ -140,9 +146,10 @@ export default function WhatsAppSettingsPage() {
             </Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Basculez entre <strong>Zindua</strong> et{" "}
-            <strong>KlamboWhatsapp</strong> : changez le fournisseur et collez
-            la clé API correspondante. Les champs vides reprennent le .env.
+            Basculez entre <strong>Zindua</strong>,{" "}
+            <strong>KlamboWhatsapp</strong> (GOWA) et{" "}
+            <strong>Meta</strong> (Cloud API / templates). Collez la clé API
+            du projet correspondant. Les champs vides reprennent le .env.
           </p>
         </div>
 
@@ -191,11 +198,22 @@ export default function WhatsAppSettingsPage() {
                 >
                   KlamboWhatsapp
                 </Button>
+                <Button
+                  type="button"
+                  variant={provider === "meta" ? "default" : "outline"}
+                  disabled={!loaded || pending}
+                  onClick={() => setProvider("meta")}
+                >
+                  Meta
+                </Button>
               </div>
               <p className="text-xs text-muted-foreground">
                 Actuel : <code>{providerName}</code>. Collez la clé{" "}
-                {provider === "klambo" ? "sk_test_… / sk_live_…" : "znd_…"}{" "}
-                puis enregistrez.
+                {usesKlamboApi ? "sk_test_… / sk_live_…" : "znd_…"} puis
+                enregistrez.
+                {provider === "meta"
+                  ? " Utilisez la clé d’un projet Klambo avec whatsappProvider=meta."
+                  : null}
               </p>
             </div>
 
@@ -213,9 +231,11 @@ export default function WhatsAppSettingsPage() {
                   <span className="font-medium text-emerald-700 dark:text-emerald-400">
                     Clé API enregistrée ({providerName}).
                   </span>{" "}
-                  {channelConnected
-                    ? "Les messages WhatsApp partiront avec cette configuration."
-                    : "La session WhatsApp doit encore être connectée (QR)."}
+                  {provider === "meta"
+                    ? "Les envois passent par des templates Meta approuvés."
+                    : channelConnected
+                      ? "Les messages WhatsApp partiront avec cette configuration."
+                      : "La session WhatsApp doit encore être connectée (QR)."}
                 </p>
               ) : (
                 <p>
@@ -232,7 +252,9 @@ export default function WhatsAppSettingsPage() {
                 {channelConnected ? (
                   <p>
                     <span className="font-medium text-emerald-700 dark:text-emerald-400">
-                      Session WhatsApp connectée ({providerName})
+                      {provider === "meta"
+                        ? `Meta Cloud prêt (${providerName})`
+                        : `Session WhatsApp connectée (${providerName})`}
                     </span>
                     {channelProject ? ` — ${channelProject}.` : "."}
                   </p>
@@ -243,7 +265,9 @@ export default function WhatsAppSettingsPage() {
                         WhatsApp non connecté ({providerName})
                       </span>
                       {channelStatus ? ` — statut ${channelStatus}.` : "."}{" "}
-                      Scannez le QR dans le dashboard du fournisseur.
+                      {provider === "meta"
+                        ? "Vérifiez META_* côté API et que le projet utilise whatsappProvider=meta."
+                        : "Scannez le QR dans le dashboard du fournisseur."}
                     </p>
                     {channelError ? (
                       <p className="text-muted-foreground">{channelError}</p>
@@ -281,7 +305,7 @@ export default function WhatsAppSettingsPage() {
                   value={apiKey}
                   onChange={(event) => setApiKey(event.target.value)}
                   placeholder={
-                    provider === "klambo" ? "sk_test_…" : "znd_live_…"
+                    usesKlamboApi ? "sk_test_…" : "znd_live_…"
                   }
                   disabled={!loaded || pending}
                   className="pr-10 font-mono text-sm"
@@ -304,9 +328,11 @@ export default function WhatsAppSettingsPage() {
               <p className="text-xs text-muted-foreground">
                 Vide ={" "}
                 <code>
-                  {provider === "klambo"
-                    ? "MESSAGING_API_KEY"
-                    : "ZINDUA_API_KEY"}
+                  {provider === "meta"
+                    ? "MESSAGING_META_API_KEY / MESSAGING_API_KEY"
+                    : provider === "klambo"
+                      ? "MESSAGING_API_KEY"
+                      : "ZINDUA_API_KEY"}
                 </code>
                 .
               </p>
@@ -328,7 +354,9 @@ export default function WhatsAppSettingsPage() {
                   disabled={!loaded || pending}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Corps recommandé : uniquement <code>{"{{code}}"}</code>.
+                  {provider === "meta"
+                    ? "Slug interne mappé vers un template Meta approuvé (META_TEMPLATE_MAP)."
+                    : <>Corps recommandé : uniquement <code>{"{{code}}"}</code>.</>}
                 </p>
               </div>
 
@@ -365,11 +393,11 @@ export default function WhatsAppSettingsPage() {
                     type="url"
                     value={baseUrl}
                     onChange={(event) => setBaseUrl(event.target.value)}
-                    placeholder="http://localhost:3001"
+                    placeholder="https://whatsapp-api.klambocore.com"
                     disabled={!loaded || pending}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Ex. <code>http://localhost:3001</code> en local.
+                    Ex. <code>https://whatsapp-api.klambocore.com</code>
                   </p>
                 </div>
               )}

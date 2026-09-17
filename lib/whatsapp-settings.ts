@@ -2,7 +2,7 @@ import "server-only";
 
 import { prisma } from "@/lib/prisma";
 
-export type WhatsAppProviderId = "zindua" | "klambo";
+export type WhatsAppProviderId = "zindua" | "klambo" | "meta";
 
 export type WhatsAppRuntimeConfig = {
   /** Envoi autorisé (toggle UI + .env + clé API). */
@@ -24,11 +24,16 @@ function envFlagEnabled(raw: string | undefined): boolean {
 
 function parseProvider(raw: string | null | undefined): WhatsAppProviderId {
   const value = raw?.trim().toLowerCase();
-  return value === "klambo" || value === "klambowhatsapp" ? "klambo" : "zindua";
+  if (value === "meta" || value === "whatsapp-meta" || value === "cloud") {
+    return "meta";
+  }
+  if (value === "klambo" || value === "klambowhatsapp") {
+    return "klambo";
+  }
+  return "zindua";
 }
 
 export function isEnvWhatsAppEnabled(): boolean {
-  // Master: ZINDUA_WHATSAPP_ENABLED (rétrocompat) puis MESSAGING_WHATSAPP_ENABLED
   if (process.env.ZINDUA_WHATSAPP_ENABLED != null) {
     return envFlagEnabled(process.env.ZINDUA_WHATSAPP_ENABLED);
   }
@@ -40,6 +45,14 @@ function envProvider(): WhatsAppProviderId {
 }
 
 function envApiKeyFor(provider: WhatsAppProviderId): string {
+  if (provider === "meta") {
+    return (
+      process.env.MESSAGING_META_API_KEY?.trim() ||
+      process.env.MESSAGING_API_KEY?.trim() ||
+      process.env.ZINDUA_API_KEY?.trim() ||
+      ""
+    );
+  }
   if (provider === "klambo") {
     return (
       process.env.MESSAGING_API_KEY?.trim() ||
@@ -55,7 +68,7 @@ function envApiKeyFor(provider: WhatsAppProviderId): string {
 }
 
 function envTemplateFor(provider: WhatsAppProviderId): string {
-  if (provider === "klambo") {
+  if (provider === "klambo" || provider === "meta") {
     return (
       process.env.MESSAGING_WHATSAPP_TEMPLATE?.trim() ||
       process.env.ZINDUA_WHATSAPP_MAIL_TEMPLATE?.trim() ||
@@ -119,7 +132,7 @@ function resolveEnabled(input: {
 }
 
 /**
- * Config d'envoi WhatsApp (Zindua ou KlamboWhatsapp).
+ * Config d'envoi WhatsApp (Zindua | KlamboWhatsapp | Meta).
  * UI d'abord, .env si champ vide. Si désactivé, aucun envoi.
  */
 export async function getWhatsAppRuntimeConfig(
@@ -188,5 +201,11 @@ export async function isWhatsAppSendingEnabled(
 }
 
 export function providerLabel(provider: WhatsAppProviderId): string {
-  return provider === "klambo" ? "KlamboWhatsapp" : "Zindua";
+  if (provider === "meta") return "Meta WhatsApp";
+  if (provider === "klambo") return "KlamboWhatsapp";
+  return "Zindua";
+}
+
+export function usesMessagingApi(provider: WhatsAppProviderId): boolean {
+  return provider === "klambo" || provider === "meta";
 }
