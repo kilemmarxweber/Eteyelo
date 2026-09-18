@@ -226,8 +226,10 @@
     "all": "Tous",
     "allClasses": "Toutes les classes",
     "allFeeNames": "Tous les noms de frais",
-    "filterClass": "Filtrer par classe",
-    "filterFeeName": "Filtrer par nom de frais",
+    "filterPeriod": "Période",
+    "filterClass": "Classe",
+    "filterFeeName": "Nom du frais",
+    "searchLabel": "Recherche",
     "airtel": "Airtel",
     "orange": "Orange",
     "establishment": "Établissement"

@@ -12,9 +12,16 @@ import {
   getPaymentReportContextAction,
 } from "../paiement.action";
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
-import { SearchAndFilter } from "@/components/ui/search-and-filter";
+import { SearchInput } from "@/components/ui/search-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { Eye, FileSpreadsheet, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
+import { Eye, FileSpreadsheet, Loader2, MoreHorizontal, Search, Trash2, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -699,57 +706,124 @@ const PaiementsTable = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 md:flex-row">
-        <SearchAndFilter
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          searchPlaceholder={t("table.search")}
-        />
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="space-y-1 text-xs text-muted-foreground">
+            <span>{t("table.filterPeriod")}</span>
+            <Select value={dateRangeFilter} onValueChange={setDateRangeFilter}>
+              <SelectTrigger className="h-9 w-[11rem] text-sm">
+                <SelectValue placeholder={t("table.filterPeriod")} />
+              </SelectTrigger>
+              <SelectContent>
+                {dateRangeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
 
-        <SearchAndFilter
-          filterValue={dateRangeFilter}
-          onFilterChange={setDateRangeFilter}
-          filterOptions={dateRangeOptions}
-          filterPlaceholder={t("table.filter")}
-        />
+          <label className="space-y-1 text-xs text-muted-foreground">
+            <span>{t("table.status")}</span>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-9 w-[11rem] text-sm">
+                <SelectValue placeholder={t("table.status")} />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map((option) => (
+                  <SelectItem key={option.key} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
 
-        <SearchAndFilter
-          filterValue={statusFilter}
-          onFilterChange={setStatusFilter}
-          filterOptions={statusOptions}
-          filterPlaceholder={t("table.filter")}
-        />
+          <label className="space-y-1 text-xs text-muted-foreground">
+            <span>{t("table.mode")}</span>
+            <Select value={modeFilter} onValueChange={setModeFilter}>
+              <SelectTrigger className="h-9 w-[11rem] text-sm">
+                <SelectValue placeholder={t("table.mode")} />
+              </SelectTrigger>
+              <SelectContent>
+                {modeOptions.map((option) => (
+                  <SelectItem key={option.key} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
 
-        <SearchAndFilter
-          filterValue={modeFilter}
-          onFilterChange={setModeFilter}
-          filterOptions={modeOptions}
-          filterPlaceholder={t("table.filter")}
-        />
+          <label className="space-y-1 text-xs text-muted-foreground">
+            <span>{t("table.filterClass")}</span>
+            <Select value={classeFilter} onValueChange={setClasseFilter}>
+              <SelectTrigger className="h-9 w-[13rem] text-sm">
+                <SelectValue placeholder={t("table.filterClass")} />
+              </SelectTrigger>
+              <SelectContent>
+                {classeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
 
-        <SearchAndFilter
-          filterValue={classeFilter}
-          onFilterChange={setClasseFilter}
-          filterOptions={classeOptions}
-          filterPlaceholder={t("table.filterClass")}
-        />
+          <label className="space-y-1 text-xs text-muted-foreground">
+            <span>{t("table.filterFeeName")}</span>
+            <Select value={fraisNameFilter} onValueChange={setFraisNameFilter}>
+              <SelectTrigger className="h-9 w-[13rem] text-sm">
+                <SelectValue placeholder={t("table.filterFeeName")} />
+              </SelectTrigger>
+              <SelectContent>
+                {fraisNameOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
 
-        <SearchAndFilter
-          filterValue={fraisNameFilter}
-          onFilterChange={setFraisNameFilter}
-          filterOptions={fraisNameOptions}
-          filterPlaceholder={t("table.filterFeeName")}
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={exportFilteredPdf}
-          disabled={exportingPdf || filtered.length === 0}
-          className="border-sky-600 text-sky-600! hover:bg-sky-600/10 focus-visible:border-sky-600 focus-visible:ring-sky-600/20 dark:border-sky-400 dark:text-sky-400! dark:hover:bg-sky-400/10 dark:focus-visible:border-sky-400 dark:focus-visible:ring-sky-400/40"
-        >
-          <FileSpreadsheet data-icon="inline-start" />
-          {exportingPdf ? t("table.generating") : t("table.exportPdf")}
-        </Button>
+          <label className="min-w-[14rem] flex-1 space-y-1 text-xs text-muted-foreground">
+            <span>{t("table.searchLabel")}</span>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <SearchInput
+                placeholder={t("table.search")}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-9 pl-10 pr-10 text-sm"
+              />
+              {searchTerm ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 p-0"
+                  onClick={() => setSearchTerm("")}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              ) : null}
+            </div>
+          </label>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={exportFilteredPdf}
+            disabled={exportingPdf || filtered.length === 0}
+            className="h-9 border-sky-600 text-sky-600! hover:bg-sky-600/10 focus-visible:border-sky-600 focus-visible:ring-sky-600/20 dark:border-sky-400 dark:text-sky-400! dark:hover:bg-sky-400/10 dark:focus-visible:border-sky-400 dark:focus-visible:ring-sky-400/40"
+          >
+            <FileSpreadsheet data-icon="inline-start" />
+            {exportingPdf ? t("table.generating") : t("table.exportPdf")}
+          </Button>
+        </div>
       </div>
 
       <ReceiptPreviewDialog

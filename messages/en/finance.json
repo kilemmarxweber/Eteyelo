@@ -226,8 +226,10 @@
     "all": "All",
     "allClasses": "All classes",
     "allFeeNames": "All fee names",
-    "filterClass": "Filter by class",
-    "filterFeeName": "Filter by fee name",
+    "filterPeriod": "Period",
+    "filterClass": "Class",
+    "filterFeeName": "Fee name",
+    "searchLabel": "Search",
     "airtel": "Airtel",
     "orange": "Orange",
     "establishment": "School"

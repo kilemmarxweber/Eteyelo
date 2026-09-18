@@ -226,8 +226,10 @@
     "all": "Todos",
     "allClasses": "Todas as turmas",
     "allFeeNames": "Todos os nomes de taxa",
-    "filterClass": "Filtrar por turma",
-    "filterFeeName": "Filtrar por nome da taxa",
+    "filterPeriod": "Período",
+    "filterClass": "Turma",
+    "filterFeeName": "Nome da taxa",
+    "searchLabel": "Pesquisa",
     "airtel": "Airtel",
     "orange": "Orange",
     "establishment": "Estabelecimento"
