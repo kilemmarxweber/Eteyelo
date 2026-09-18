@@ -1553,6 +1553,7 @@ export const getAllPaiementAction = action.handler(async () => {
           classeId: p.classEnrollment.classe?.id ?? "",
           nameClasse: p.classEnrollment.classe?.nameClasse ?? "",
           codeClasse: p.classEnrollment.classe?.codeClasse ?? "",
+          cycle: p.classEnrollment.classe?.cycle ?? null,
           nameYear: p.classEnrollment.schoolYear?.nameYear ?? "",
           // ✅ PARENT
           parentId: p.classEnrollment.student?.parent?.id ?? "",

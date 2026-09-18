@@ -4,6 +4,7 @@ import {
   ModePaiement,
   StatusPaiement,
 } from "@/src/interfaces/Paiement";
+import { cycleLabel } from "@/lib/cycle";
 import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
   drawReportFooterOnAllPages,
@@ -23,6 +24,8 @@ import {
 export type PaiementReportRow = {
   reference: string;
   students: string[];
+  cycles?: string[];
+  classes?: string[];
   total: number;
   status: StatusPaiement;
   mode: ModePaiement;
@@ -107,6 +110,16 @@ function periodLabel(period: PaiementReportPeriod): string {
   }
 }
 
+function formatCycles(cycles?: string[]): string {
+  if (!cycles?.length) return "-";
+  return cycles.map((c) => cycleLabel(c)).join(", ");
+}
+
+function formatClasses(classes?: string[]): string {
+  if (!classes?.length) return "-";
+  return classes.join(", ");
+}
+
 /** Titre PDF aligné sur l'intention des filtres UI. */
 export function buildPaiementsReportTitle(
   options: PaiementReportOptions = {},
@@ -175,6 +188,8 @@ export async function buildPaiementsReportPdf(
 
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
+  const marginX = 10;
+  const usableWidth = doc.internal.pageSize.getWidth() - marginX * 2;
 
   const quoteLabel =
     context.quoteCurrency ??
@@ -197,7 +212,16 @@ export async function buildPaiementsReportPdf(
     logoDataUrl: logo,
   });
 
-  const head = ["Date", "Élève", "Mode", baseCurrency, quoteLabel, "Référence"];
+  const head = [
+    "Date",
+    "Élève",
+    "Cycle",
+    "Classe",
+    "Mode",
+    baseCurrency,
+    quoteLabel,
+    "Référence",
+  ];
   const body = rows.map((row) => {
     const quoteValue =
       baseCurrency === "USD" && quoteLabel === "CDF"
@@ -211,6 +235,8 @@ export async function buildPaiementsReportPdf(
     return [
       formatDate(row.date),
       row.students.join(", ") || "-",
+      formatCycles(row.cycles),
+      formatClasses(row.classes),
       modeLabel(row.mode),
       formatReportAmount(row.total, baseCurrency),
       quoteValue,
@@ -222,10 +248,11 @@ export async function buildPaiementsReportPdf(
     startY: contentTop,
     margin: {
       top: REPORT_CONTINUATION_CONTENT_TOP_MM,
-      right: 10,
+      right: marginX,
       bottom: 14,
-      left: 10,
+      left: marginX,
     },
+    tableWidth: usableWidth,
     head: [head],
     body,
     theme: "grid",
@@ -246,12 +273,14 @@ export async function buildPaiementsReportPdf(
     },
     alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: {
-      0: { cellWidth: 28, halign: "center" },
-      1: { cellWidth: 70 },
-      2: { cellWidth: 32, halign: "center" },
-      3: { cellWidth: 32,halign: "right" },
-      4: { cellWidth: 40,halign: "right" },
-      5: { cellWidth: 55 },
+      0: { cellWidth: usableWidth * 0.09, halign: "center" },
+      1: { cellWidth: usableWidth * 0.2 },
+      2: { cellWidth: usableWidth * 0.11 },
+      3: { cellWidth: usableWidth * 0.14 },
+      4: { cellWidth: usableWidth * 0.1, halign: "center" },
+      5: { cellWidth: usableWidth * 0.1, halign: "right" },
+      6: { cellWidth: usableWidth * 0.11, halign: "right" },
+      7: { cellWidth: usableWidth * 0.15 },
     },
   });
 

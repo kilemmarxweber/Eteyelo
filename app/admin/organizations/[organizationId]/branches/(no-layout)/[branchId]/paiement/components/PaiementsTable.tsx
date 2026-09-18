@@ -59,6 +59,8 @@ type GroupedPaiement = {
   reference: string;
   parentName: string;
   students: string[];
+  cycles: string[];
+  classes: string[];
   total: number;
   status: StatusPaiement;
   mode: ModePaiement;
@@ -111,6 +113,7 @@ function mapPaiement(p: any): IPaiement {
           classeId: p.classEnrollment.classeId,
           nameClasse: p.classEnrollment.nameClasse,
           codeClasse: p.classEnrollment.codeClasse,
+          cycle: p.classEnrollment.cycle ?? null,
           nameYear: p.classEnrollment.nameYear,
           parentId: p.classEnrollment.parentId,
           parentName: p.classEnrollment.parentNom,
@@ -319,6 +322,27 @@ const PaiementsTable = ({
         ),
       ).filter(Boolean);
 
+      const cycles = Array.from(
+        new Set(
+          items
+            .map((i) => i.classEnrollment?.cycle?.trim() || "")
+            .filter(Boolean),
+        ),
+      );
+
+      const classes = Array.from(
+        new Set(
+          items
+            .map(
+              (i) =>
+                i.classEnrollment?.nameClasse?.trim() ||
+                i.classEnrollment?.codeClasse?.trim() ||
+                "",
+            )
+            .filter(Boolean),
+        ),
+      );
+
       return {
         reference: ref,
         parentName: [
@@ -330,6 +354,8 @@ const PaiementsTable = ({
           .join(" ")
           .trim(),
         students,
+        cycles,
+        classes,
         total: items.reduce((sum, i) => sum + Number(i.montantPaye || 0), 0),
         status: newest.status,
         mode: newest.modePaiement,

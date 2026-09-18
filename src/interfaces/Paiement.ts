@@ -34,6 +34,7 @@ export interface IPaiement {
     classeId?: string;
     nameClasse: string;
     codeClasse?: string;
+    cycle?: string | null;
     nameYear: string;
     parentId?: string;
     parentName?: string;

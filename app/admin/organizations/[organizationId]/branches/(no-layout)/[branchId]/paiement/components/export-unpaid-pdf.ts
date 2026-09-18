@@ -147,6 +147,9 @@ export async function buildUnpaidReportPdf(
     logoDataUrl: logo,
   });
 
+  const marginX = 10;
+  const usableWidth = doc.internal.pageSize.getWidth() - marginX * 2;
+
   const head = hasRemise
     ? [
         "Élève",
@@ -227,14 +230,35 @@ export async function buildUnpaidReportPdf(
         ]
       : undefined;
 
+  // Largeurs proportionnelles à la page paysage ; Reste / montants élargis (AOA).
+  const columnStyles = hasRemise
+    ? {
+        0: { cellWidth: usableWidth * 0.2 },
+        1: { cellWidth: usableWidth * 0.11 },
+        2: { cellWidth: usableWidth * 0.13, halign: "right" as const },
+        3: { cellWidth: usableWidth * 0.15, halign: "right" as const },
+        4: { cellWidth: usableWidth * 0.13, halign: "right" as const },
+        5: { cellWidth: usableWidth * 0.17, halign: "right" as const },
+        6: { cellWidth: usableWidth * 0.11, halign: "center" as const },
+      }
+    : {
+        0: { cellWidth: usableWidth * 0.26 },
+        1: { cellWidth: usableWidth * 0.13 },
+        2: { cellWidth: usableWidth * 0.15,halign: "right" as const },
+        3: { cellWidth: usableWidth * 0.15,halign: "right" as const },
+        4: { cellWidth: usableWidth * 0.2,halign: "right" as const },
+        5: { cellWidth: usableWidth * 0.11,halign: "center" as const },
+      };
+
   autoTable(doc, {
     startY: contentTop,
     margin: {
       top: REPORT_CONTINUATION_CONTENT_TOP_MM,
-      right: 10,
+      right: marginX,
       bottom: 14,
-      left: 10,
+      left: marginX,
     },
+    tableWidth: usableWidth,
     head: [head],
     body,
     foot,
@@ -262,24 +286,7 @@ export async function buildUnpaidReportPdf(
       fontSize: fonts.head,
     },
     alternateRowStyles: { fillColor: [239, 246, 255] },
-    columnStyles: hasRemise
-      ? {
-          0: { cellWidth: 55 },
-          1: { cellWidth: 32 },
-          2: { cellWidth: 28, halign: "right" },
-          3: { cellWidth: 42,halign: "right" },
-          4: { cellWidth: 28,halign: "right" },
-          5: { cellWidth: 28,halign: "right" },
-          6: { cellWidth: 24,halign: "center" },
-        }
-      : {
-          0: { cellWidth: 70 },
-          1: { cellWidth: 40 },
-          2: { cellWidth: 32,halign: "right" },
-          3: { cellWidth: 32,halign: "right" },
-          4: { cellWidth: 32,halign: "right" },
-          5: { cellWidth: 28,halign: "center" },
-        },
+    columnStyles,
     didParseCell: (data) => {
       const colCount = hasRemise ? 7 : 6;
       if (rows.length === 0 && data.section === "body") {
