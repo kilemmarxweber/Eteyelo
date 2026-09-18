@@ -192,17 +192,28 @@ export async function getWhatsAppRuntimeConfig(
     ? parseProvider(org.whatsappProvider)
     : defaults.provider;
 
-  const apiKey = org?.whatsappApiKey?.trim() || envApiKeyFor(resolvedProvider);
+  const envForProvider = getWhatsAppEnvDefaultsFor(resolvedProvider);
+
+  // Meta : uniquement .env (MESSAGING_META_API_KEY + MESSAGING_API_BASE_URL)
+  // — la clé doit cibler un projet Klambo avec whatsappProvider=meta
+  const apiKey =
+    resolvedProvider === "meta"
+      ? envForProvider.apiKey
+      : org?.whatsappApiKey?.trim() || envForProvider.apiKey;
   const template =
-    org?.whatsappTemplate?.trim() || envTemplateFor(resolvedProvider);
+    org?.whatsappTemplate?.trim() || envForProvider.template;
   const siteUrl =
-    org?.whatsappSiteUrl?.replace(/\/$/, "").trim() ||
-    defaults.siteUrl ||
-    undefined;
+    resolvedProvider === "meta"
+      ? undefined
+      : org?.whatsappSiteUrl?.replace(/\/$/, "").trim() ||
+        envForProvider.siteUrl ||
+        undefined;
   const baseUrl =
-    org?.whatsappBaseUrl?.replace(/\/$/, "").trim() ||
-    defaults.baseUrl ||
-    undefined;
+    resolvedProvider === "meta"
+      ? envForProvider.baseUrl || undefined
+      : org?.whatsappBaseUrl?.replace(/\/$/, "").trim() ||
+        envForProvider.baseUrl ||
+        undefined;
   const uiEnabled = org?.whatsappEnabled ?? defaults.enabled;
 
   return {

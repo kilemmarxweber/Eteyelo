@@ -68,7 +68,15 @@ export default function WhatsAppSettingsPage() {
     setProvider(next);
     const env = envByProvider[next];
     if (!env) return;
-    // Au basculement Meta/Klambo/Zindua : préremplir depuis le .env du provider
+    if (next === "meta") {
+      setApiKey("");
+      setSiteUrl("");
+      setTemplate(env.template || "notification");
+      setBaseUrl(env.baseUrl || "http://localhost:3001");
+      setFromEnv({ apiKey: true, baseUrl: true });
+      setProviderConfigured(Boolean(env.apiKey));
+      return;
+    }
     setApiKey(env.apiKey);
     setTemplate(env.template || "notification");
     setSiteUrl(env.siteUrl);
@@ -113,10 +121,11 @@ export default function WhatsAppSettingsPage() {
       const [saved, err] = await updateWhatsAppSettingsAction({
         enabled,
         provider,
-        apiKey,
+        // Meta : pas de saisie — le serveur ignore et lit le .env
+        apiKey: provider === "meta" ? "" : apiKey,
         template,
-        siteUrl,
-        baseUrl,
+        siteUrl: provider === "meta" ? "" : siteUrl,
+        baseUrl: provider === "meta" ? "" : baseUrl,
       });
       if (err) {
         toast.error(err.message);
@@ -177,10 +186,10 @@ export default function WhatsAppSettingsPage() {
             </Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Basculez entre <strong>Zindua</strong>,{" "}
-            <strong>KlamboWhatsapp</strong> (GOWA) et{" "}
-            <strong>Meta</strong> (Cloud API / templates). Collez la clé API
-            du projet correspondant. Les champs vides reprennent le .env.
+            <strong>Zindua</strong> / <strong>KlamboWhatsapp</strong> (GOWA) :
+            clé saisie ou .env. <strong>Meta</strong> : uniquement le .env (
+            <code>MESSAGING_META_API_KEY</code> → projet{" "}
+            <code>whatsappProvider=meta</code>).
           </p>
         </div>
 
@@ -239,14 +248,24 @@ export default function WhatsAppSettingsPage() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Actuel : <code>{providerName}</code>. Clé et URL sont
-                optionnelles : si vides, on lit le{" "}
-                <code>.env</code>
-                {provider === "meta"
-                  ? " (MESSAGING_META_API_KEY + MESSAGING_API_BASE_URL)."
-                  : provider === "klambo"
-                    ? " (MESSAGING_API_KEY + MESSAGING_API_BASE_URL)."
-                    : " (ZINDUA_API_KEY)."}
+                {provider === "meta" ? (
+                  <>
+                    Meta lit uniquement le <code>.env</code> :{" "}
+                    <code>MESSAGING_META_API_KEY</code> (projet{" "}
+                    <code>whatsappProvider=meta</code>) et{" "}
+                    <code>MESSAGING_API_BASE_URL</code>. Klambo (GOWA) utilise{" "}
+                    <code>MESSAGING_API_KEY</code> (projet{" "}
+                    <code>whatsappProvider=gowa</code>).
+                  </>
+                ) : (
+                  <>
+                    Actuel : <code>{providerName}</code>. Clé et URL
+                    optionnelles : si vides, on lit le <code>.env</code>
+                    {provider === "klambo"
+                      ? " (MESSAGING_API_KEY + MESSAGING_API_BASE_URL)."
+                      : " (ZINDUA_API_KEY)."}
+                  </>
+                )}
               </p>
             </div>
 
@@ -326,62 +345,84 @@ export default function WhatsAppSettingsPage() {
               </div>
             )}
 
-            <div className="space-y-2">
-              <label htmlFor="whatsapp-api-key" className="text-sm font-medium">
-                Clé API ({providerName})
-                {fromEnv.apiKey ? (
-                  <span className="ml-2 font-normal text-muted-foreground">
-                    · depuis .env
-                  </span>
-                ) : null}
-              </label>
-              <div className="relative">
-                <Input
-                  id="whatsapp-api-key"
-                  type={showApiKey ? "text" : "password"}
-                  autoComplete="off"
-                  value={apiKey}
-                  onChange={(event) => {
-                    setApiKey(event.target.value);
-                    setFromEnv((prev) => ({ ...prev, apiKey: false }));
-                  }}
-                  placeholder={
-                    usesKlamboApi
-                      ? "Vide = .env (sk_test_…)"
-                      : "Vide = .env (znd_…)"
-                  }
-                  disabled={!loaded || pending}
-                  className="pr-10 font-mono text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowApiKey((value) => !value)}
-                  className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
-                  aria-label={
-                    showApiKey ? "Masquer la clé API" : "Afficher la clé API"
-                  }
-                >
-                  {showApiKey ? (
-                    <EyeOff className="size-4" />
-                  ) : (
-                    <Eye className="size-4" />
-                  )}
-                </button>
+            {provider === "meta" ? (
+              <div className="space-y-3 rounded-lg border bg-muted/30 px-4 py-3 text-sm">
+                <p className="font-medium">Configuration Meta (.env uniquement)</p>
+                <ul className="list-inside list-disc space-y-1 text-muted-foreground">
+                  <li>
+                    <code>MESSAGING_META_API_KEY</code> — clé du projet Klambo
+                    avec <code>whatsappProvider=meta</code>
+                  </li>
+                  <li>
+                    <code>MESSAGING_API_BASE_URL</code> — ex.{" "}
+                    <code>https://whatsapp-api.klambocore.com</code>
+                  </li>
+                  <li>
+                    <code>MESSAGING_WHATSAPP_TEMPLATE</code> — slug interne
+                    (défaut <code>notification</code>)
+                  </li>
+                </ul>
+                <p className="text-muted-foreground">
+                  {providerConfigured
+                    ? "Clé Meta détectée dans le .env."
+                    : "MESSAGING_META_API_KEY manquante dans le .env."}{" "}
+                  URL : <code>{baseUrl || "—"}</code>
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Saisie optionnelle. Sinon :{" "}
-                <code>
-                  {provider === "meta"
-                    ? "MESSAGING_META_API_KEY"
-                    : provider === "klambo"
+            ) : (
+              <div className="space-y-2">
+                <label htmlFor="whatsapp-api-key" className="text-sm font-medium">
+                  Clé API ({providerName})
+                  {fromEnv.apiKey ? (
+                    <span className="ml-2 font-normal text-muted-foreground">
+                      · depuis .env
+                    </span>
+                  ) : null}
+                </label>
+                <div className="relative">
+                  <Input
+                    id="whatsapp-api-key"
+                    type={showApiKey ? "text" : "password"}
+                    autoComplete="off"
+                    value={apiKey}
+                    onChange={(event) => {
+                      setApiKey(event.target.value);
+                      setFromEnv((prev) => ({ ...prev, apiKey: false }));
+                    }}
+                    placeholder={
+                      usesKlamboApi
+                        ? "Vide = .env (sk_test_…)"
+                        : "Vide = .env (znd_…)"
+                    }
+                    disabled={!loaded || pending}
+                    className="pr-10 font-mono text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey((value) => !value)}
+                    className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
+                    aria-label={
+                      showApiKey ? "Masquer la clé API" : "Afficher la clé API"
+                    }
+                  >
+                    {showApiKey ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Saisie optionnelle. Sinon :{" "}
+                  <code>
+                    {provider === "klambo"
                       ? "MESSAGING_API_KEY"
                       : "ZINDUA_API_KEY"}
-                </code>
-                {provider === "meta"
-                  ? " (projet Klambo avec whatsappProvider=meta)."
-                  : "."}
-              </p>
-            </div>
+                  </code>
+                  .
+                </p>
+              </div>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -405,7 +446,17 @@ export default function WhatsAppSettingsPage() {
                 </p>
               </div>
 
-              {provider === "zindua" ? (
+              {provider === "meta" ? (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">URL API</p>
+                  <p className="rounded-md border bg-muted/20 px-3 py-2 font-mono text-sm">
+                    {baseUrl || "MESSAGING_API_BASE_URL"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Lecture seule — définie dans le .env.
+                  </p>
+                </div>
+              ) : provider === "zindua" ? (
                 <div className="space-y-2">
                   <label
                     htmlFor="whatsapp-site-url"
