@@ -4,7 +4,7 @@ import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
   drawReportFooterOnAllPages,
   drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
+  REPORT_CONTINUATION_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
@@ -127,10 +127,26 @@ export async function buildUnpaidReportPdf(
     enRetard: rows.filter((r) => r.status === "EN_RETARD").length,
   };
 
+  const currency = resolveBaseCurrency(context, options);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
+  const contentTop = drawReportHeader(doc, context, {
+    title,
+    subtitle: context.branchName,
+    details: [
+      ...filterLabels,
+      rateDetail(context, currency),
+      rows.length > 0
+        ? `${rows.length} élève(s) — À jour ${counts.aJour} · Partiel ${counts.partiel} · En retard ${counts.enRetard}${
+            hasRemise
+              ? ` · Remise ${formatReportAmount(totalRemise, currency)}`
+              : ""
+          }`
+        : emptyMessage,
+    ],
+    logoDataUrl: logo,
+  });
 
-  const currency = resolveBaseCurrency(context, options);
   const head = hasRemise
     ? [
         "Élève",
@@ -212,9 +228,9 @@ export async function buildUnpaidReportPdf(
       : undefined;
 
   autoTable(doc, {
-    startY: REPORT_HEADER_CONTENT_TOP_MM,
+    startY: contentTop,
     margin: {
-      top: REPORT_HEADER_CONTENT_TOP_MM,
+      top: REPORT_CONTINUATION_CONTENT_TOP_MM,
       right: 10,
       bottom: 14,
       left: 10,
@@ -287,24 +303,6 @@ export async function buildUnpaidReportPdf(
           data.cell.styles.halign = "right";
         }
       }
-    },
-    didDrawPage: () => {
-      drawReportHeader(doc, context, {
-        title,
-        subtitle: context.branchName,
-        details: [
-          ...filterLabels,
-          rateDetail(context, currency),
-          rows.length > 0
-            ? `${rows.length} élève(s) — À jour ${counts.aJour} · Partiel ${counts.partiel} · En retard ${counts.enRetard}${
-                hasRemise
-                  ? ` · Remise ${formatReportAmount(totalRemise, currency)}`
-                  : ""
-              }`
-            : emptyMessage,
-        ],
-        logoDataUrl: logo,
-      });
     },
   });
 

@@ -5,7 +5,7 @@ import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
   drawReportFooterOnAllPages,
   drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
+  REPORT_CONTINUATION_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
@@ -81,7 +81,7 @@ export async function buildCashierReportPdf(
   options: CashierReportPdfOptions,
 ) {
   const fonts = pdfFontsFromContext(context);
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const title = "Rapport de Caisse";
   const periodDetail = buildPeriodDetail(options.dateStart, options.dateEnd);
@@ -89,17 +89,22 @@ export async function buildCashierReportPdf(
   const currency = context.baseCurrency ?? "USD";
   const money = (value: number) => formatReportAmount(value, currency);
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   const marginX = 10;
   const usableWidth = pageWidth - marginX * 2;
-
-  const drawHeader = () => {
-    drawReportHeader(doc, context, {
-      title,
-      subtitle: context.branchName,
-      details: [periodDetail],
-      logoDataUrl: logo,
-    });
+  const tableMargin = {
+    top: REPORT_CONTINUATION_CONTENT_TOP_MM,
+    right: marginX,
+    bottom: 14,
+    left: marginX,
   };
+
+  const contentTop = drawReportHeader(doc, context, {
+    title,
+    subtitle: context.branchName,
+    details: [periodDetail],
+    logoDataUrl: logo,
+  });
 
   // 1. Encaissements groupés par mode ; caissier sur chaque ligne de paiement
   const incomeColCount = 6;
@@ -159,16 +164,14 @@ export async function buildCashierReportPdf(
     incomeRowKinds.push("grand");
   }
 
-  const incomeFirstPageTop = REPORT_HEADER_CONTENT_TOP_MM + 5;
+  doc.setFontSize(fonts.title);
+  doc.setTextColor(15, 23, 42);
+  doc.setFont("helvetica", "bold");
+  doc.text("Détail des Encaissements", marginX, contentTop + 3);
 
   autoTable(doc, {
-    startY: incomeFirstPageTop,
-    margin: {
-      top: REPORT_HEADER_CONTENT_TOP_MM,
-      right: marginX,
-      bottom: 14,
-      left: marginX,
-    },
+    startY: contentTop + 7,
+    margin: tableMargin,
     tableWidth: usableWidth,
     head: [incomeHead],
     body: incomeBody,
@@ -189,12 +192,12 @@ export async function buildCashierReportPdf(
       fontSize: fonts.head,
     },
     columnStyles: {
-      0: { cellWidth: usableWidth * 0.16, halign: "center" },
+      0: { cellWidth: usableWidth * 0.16,halign: "center" },
       1: { cellWidth: usableWidth * 0.14 },
       2: { cellWidth: usableWidth * 0.16 },
       3: { cellWidth: usableWidth * 0.16 },
       4: { cellWidth: usableWidth * 0.18 },
-      5: { cellWidth: usableWidth * 0.2, halign: "right" },
+      5: { cellWidth: usableWidth * 0.2,halign: "right" },
     },
     didParseCell: (data) => {
       if (data.section !== "body") return;
@@ -255,21 +258,12 @@ export async function buildCashierReportPdf(
         }
       }
     },
-    didDrawPage: (hookData) => {
-      drawHeader();
-      if (hookData.pageNumber === 1) {
-        doc.setFontSize(fonts.title);
-        doc.setTextColor(15, 23, 42);
-        doc.setFont("helvetica", "bold");
-        doc.text("Détail des Encaissements", marginX, REPORT_HEADER_CONTENT_TOP_MM - 2);
-      }
-    },
   });
 
   // 2. Table des dépenses
   let finalY =
     (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable
-      ?.finalY ?? REPORT_HEADER_CONTENT_TOP_MM;
+      ?.finalY ?? contentTop;
 
   if (data.expenses.length > 0) {
     const expenseHead = [
@@ -287,14 +281,20 @@ export async function buildCashierReportPdf(
       money(e.amount),
     ]);
 
+    let expenseTitleY = finalY + 10;
+    if (expenseTitleY + 20 > pageHeight - 14) {
+      doc.addPage();
+      expenseTitleY = REPORT_CONTINUATION_CONTENT_TOP_MM;
+    }
+
     doc.setFontSize(fonts.title);
     doc.setTextColor(15, 23, 42);
     doc.setFont("helvetica", "bold");
-    doc.text("Détail des dépenses / sorties de fond", marginX, finalY + 10);
+    doc.text("Détail des dépenses / sorties de fond", marginX, expenseTitleY);
 
     autoTable(doc, {
-      startY: finalY + 14,
-      margin: { right: marginX, left: marginX, bottom: 14 },
+      startY: expenseTitleY + 4,
+      margin: tableMargin,
       tableWidth: usableWidth,
       head: [expenseHead],
       body: expenseBody,
@@ -314,11 +314,11 @@ export async function buildCashierReportPdf(
         fontSize: fonts.head,
       },
       columnStyles: {
-        0: { cellWidth: usableWidth * 0.2, halign: "center" },
+        0: { cellWidth: usableWidth * 0.2,halign: "center" },
         1: { cellWidth: usableWidth * 0.18 },
         2: { cellWidth: usableWidth * 0.16 },
         3: { cellWidth: usableWidth * 0.28 },
-        4: { cellWidth: usableWidth * 0.18, halign: "right" },
+        4: { cellWidth: usableWidth * 0.18,halign: "right" },
       },
     });
 
@@ -328,10 +328,9 @@ export async function buildCashierReportPdf(
   }
 
   // 3. Totaux (Summary box)
-  if (finalY + 44 > doc.internal.pageSize.getHeight()) {
+  if (finalY + 44 > pageHeight - 14) {
     doc.addPage();
-    drawHeader();
-    finalY = REPORT_HEADER_CONTENT_TOP_MM;
+    finalY = REPORT_CONTINUATION_CONTENT_TOP_MM;
   } else {
     finalY += 15;
   }

@@ -8,7 +8,7 @@ import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
   drawReportFooterOnAllPages,
   drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
+  REPORT_CONTINUATION_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import {
@@ -179,6 +179,24 @@ export async function buildPaiementsReportPdf(
   const quoteLabel =
     context.quoteCurrency ??
     (baseCurrency === "USD" ? "CDF" : "USD");
+  const rateLabel =
+    baseCurrency === "USD" && quoteLabel === "CDF"
+      ? `Taux : 1 USD = ${formatReportNumber(exchangeRate, "CDF")} CDF`
+      : context.selectedRate != null
+        ? `Taux : 1 ${baseCurrency} = ${formatReportNumber(context.selectedRate, quoteLabel)} ${quoteLabel}`
+        : `Devise de base : ${baseCurrency}`;
+  const contentTop = drawReportHeader(doc, context, {
+    title,
+    subtitle: context.branchName,
+    details: [
+      ...filterLabels,
+      `${rows.length} paiement(s)`,
+      `Total : ${formatReportAmount(totalBase, baseCurrency)}`,
+      rateLabel,
+    ],
+    logoDataUrl: logo,
+  });
+
   const head = ["Date", "Élève", "Mode", baseCurrency, quoteLabel, "Référence"];
   const body = rows.map((row) => {
     const quoteValue =
@@ -201,9 +219,9 @@ export async function buildPaiementsReportPdf(
   });
 
   autoTable(doc, {
-    startY: REPORT_HEADER_CONTENT_TOP_MM,
+    startY: contentTop,
     margin: {
-      top: REPORT_HEADER_CONTENT_TOP_MM,
+      top: REPORT_CONTINUATION_CONTENT_TOP_MM,
       right: 10,
       bottom: 14,
       left: 10,
@@ -231,26 +249,9 @@ export async function buildPaiementsReportPdf(
       0: { cellWidth: 28, halign: "center" },
       1: { cellWidth: 70 },
       2: { cellWidth: 32, halign: "center" },
-      3: { cellWidth: 32, halign: "right" },
-      4: { cellWidth: 40, halign: "right" },
+      3: { cellWidth: 32,halign: "right" },
+      4: { cellWidth: 40,halign: "right" },
       5: { cellWidth: 55 },
-    },
-    didDrawPage: () => {
-      drawReportHeader(doc, context, {
-        title,
-        subtitle: context.branchName,
-        details: [
-          ...filterLabels,
-          `${rows.length} paiement(s)`,
-          `Total : ${formatReportAmount(totalBase, baseCurrency)}`,
-          baseCurrency === "USD" && quoteLabel === "CDF"
-            ? `Taux : 1 USD = ${formatReportNumber(exchangeRate, "CDF")} CDF`
-            : context.selectedRate != null
-              ? `Taux : 1 ${baseCurrency} = ${formatReportNumber(context.selectedRate, quoteLabel)} ${quoteLabel}`
-              : `Devise de base : ${baseCurrency}`,
-        ],
-        logoDataUrl: logo,
-      });
     },
   });
 
