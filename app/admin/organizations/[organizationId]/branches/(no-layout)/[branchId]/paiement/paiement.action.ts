@@ -1550,6 +1550,7 @@ export const getAllPaiementAction = action.handler(async () => {
           nom: getLinkedUser(p.classEnrollment.student)?.name ?? "",
           prenom: getLinkedUser(p.classEnrollment.student)?.prenom ?? "",
           sexe: getLinkedUser(p.classEnrollment.student)?.sexe ?? "",
+          classeId: p.classEnrollment.classe?.id ?? "",
           nameClasse: p.classEnrollment.classe?.nameClasse ?? "",
           codeClasse: p.classEnrollment.classe?.codeClasse ?? "",
           nameYear: p.classEnrollment.schoolYear?.nameYear ?? "",

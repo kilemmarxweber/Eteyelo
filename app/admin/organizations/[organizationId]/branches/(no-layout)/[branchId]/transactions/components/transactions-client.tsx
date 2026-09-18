@@ -30,6 +30,7 @@ import {
   archiveBranchTransactionAction,
   deleteBranchTransactionAction,
   getBranchTransactionsAction,
+  getTransactionFilterOptionsAction,
   unarchiveBranchTransactionAction,
 } from "../transactions.action";
 
@@ -49,10 +50,13 @@ type TransactionRow = {
   parentName: string;
   className: string;
   cycle: string | null;
+  fraisName?: string | null;
   description: string | null;
   category: string | null;
   cashierName: string | null;
 };
+
+type FilterOption = { id: string; label: string; cycle?: string | null };
 
 function formatAmount(value: number, currency: string, localeTag: string) {
   return new Intl.NumberFormat(localeTag, {
@@ -100,9 +104,43 @@ export default function TransactionsClient() {
   const [endDate, setEndDate] = useState(today);
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
+  const [typeFraisId, setTypeFraisId] = useState("");
+  const [fraisName, setFraisName] = useState("");
+  const [classeId, setClasseId] = useState("");
+  const [typeFraisOptions, setTypeFraisOptions] = useState<FilterOption[]>([]);
+  const [fraisNameOptions, setFraisNameOptions] = useState<string[]>([]);
+  const [classeOptions, setClasseOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<TransactionRow | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const [result, error] = await getTransactionFilterOptionsAction();
+      if (cancelled) return;
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      if (result) {
+        setTypeFraisOptions(result.typeFrais);
+        setFraisNameOptions(result.fraisNames);
+        setClasseOptions(result.classes);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Recherche live (debounce) pendant la saisie.
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      setAppliedSearch(search.trim());
+    }, 350);
+    return () => window.clearTimeout(handle);
+  }, [search]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -112,6 +150,9 @@ export default function TransactionsClient() {
       mode,
       ...(mode === "day" ? { day } : {}),
       ...(mode === "period" ? { startDate, endDate } : {}),
+      ...(typeFraisId ? { typeFraisId } : {}),
+      ...(fraisName ? { fraisName } : {}),
+      ...(classeId ? { classeId } : {}),
     });
     if (error) toast.error(error.message);
     else if (result) {
@@ -120,7 +161,17 @@ export default function TransactionsClient() {
       setCanDelete(Boolean(result.canDelete));
     }
     setLoading(false);
-  }, [appliedSearch, day, endDate, includeArchived, mode, startDate]);
+  }, [
+    appliedSearch,
+    classeId,
+    day,
+    endDate,
+    fraisName,
+    includeArchived,
+    mode,
+    startDate,
+    typeFraisId,
+  ]);
 
   useEffect(() => {
     void load();
@@ -245,6 +296,51 @@ export default function TransactionsClient() {
               </label>
             </>
           ) : null}
+          <label className="space-y-1 text-xs text-muted-foreground">
+            <span>{t("filters.feeType")}</span>
+            <select
+              className="flex h-9 w-[13rem] rounded-lg border border-input bg-background px-3 text-sm text-foreground"
+              value={typeFraisId}
+              onChange={(event) => setTypeFraisId(event.target.value)}
+            >
+              <option value="">{t("filters.feeTypeAll")}</option>
+              {typeFraisOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-1 text-xs text-muted-foreground">
+            <span>{t("filters.feeName")}</span>
+            <select
+              className="flex h-9 w-[13rem] rounded-lg border border-input bg-background px-3 text-sm text-foreground"
+              value={fraisName}
+              onChange={(event) => setFraisName(event.target.value)}
+            >
+              <option value="">{t("filters.feeNameAll")}</option>
+              {fraisNameOptions.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-1 text-xs text-muted-foreground">
+            <span>{t("filters.class")}</span>
+            <select
+              className="flex h-9 w-[13rem] rounded-lg border border-input bg-background px-3 text-sm text-foreground"
+              value={classeId}
+              onChange={(event) => setClasseId(event.target.value)}
+            >
+              <option value="">{t("filters.classAll")}</option>
+              {classeOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="min-w-[14rem] flex-1 space-y-1 text-xs text-muted-foreground">
             <span>{t("filters.search")}</span>
             <Input
@@ -268,7 +364,7 @@ export default function TransactionsClient() {
             size="sm"
             onClick={() => {
               setAppliedSearch(search.trim());
-              if (search.trim() === appliedSearch) void load();
+              void load();
             }}
             disabled={loading || working}
           >
@@ -295,6 +391,7 @@ export default function TransactionsClient() {
                   <th className="p-2">{t("table.studentLabel")}</th>
                   <th className="p-2">{t("table.parentCashier")}</th>
                   <th className="p-2">{t("table.classCategory")}</th>
+                  <th className="p-2">{t("table.fee")}</th>
                   <th className="p-2">{t("table.amount")}</th>
                   <th className="p-2">{t("table.status")}</th>
                   <th className="p-2">{t("table.actions")}</th>
@@ -349,6 +446,9 @@ export default function TransactionsClient() {
                             ) : null}
                           </>
                         )}
+                      </td>
+                      <td className="p-2">
+                        {isExpense ? "—" : row.fraisName || "—"}
                       </td>
                       <td
                         className={cn(

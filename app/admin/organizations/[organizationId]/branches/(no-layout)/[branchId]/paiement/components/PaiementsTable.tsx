@@ -101,6 +101,7 @@ function mapPaiement(p: any): IPaiement {
           nom: p.classEnrollment.nom,
           prenom: p.classEnrollment.prenom,
           sexe: p.classEnrollment.sexe,
+          classeId: p.classEnrollment.classeId,
           nameClasse: p.classEnrollment.nameClasse,
           codeClasse: p.classEnrollment.codeClasse,
           nameYear: p.classEnrollment.nameYear,
@@ -192,6 +193,8 @@ const PaiementsTable = ({
   const [statusFilter, setStatusFilter] = useState("all");
   const [modeFilter, setModeFilter] = useState("all");
   const [dateRangeFilter, setDateRangeFilter] = useState("today");
+  const [classeFilter, setClasseFilter] = useState("all");
+  const [fraisNameFilter, setFraisNameFilter] = useState("all");
 
   const [receiptData, setReceiptData] =
     useState<FacturePaymentStudentData | null>(null);
@@ -372,6 +375,46 @@ const PaiementsTable = ({
     { value: "year", label: t("table.year") },
   ];
 
+  const classeOptions = useMemo(() => {
+    const byId = new Map<string, { value: string; label: string }>();
+    for (const p of paiements) {
+      const classeId = p.classEnrollment?.classeId?.trim();
+      const name =
+        p.classEnrollment?.nameClasse?.trim() ||
+        p.classEnrollment?.codeClasse?.trim() ||
+        "";
+      if (!classeId || !name) continue;
+      if (!byId.has(classeId)) {
+        byId.set(classeId, {
+          value: classeId,
+          label: p.classEnrollment?.codeClasse
+            ? `${name} (${p.classEnrollment.codeClasse})`
+            : name,
+        });
+      }
+    }
+    return [
+      { value: "all", label: t("table.allClasses") },
+      ...[...byId.values()].sort((a, b) =>
+        a.label.localeCompare(b.label, "fr", { sensitivity: "base" }),
+      ),
+    ];
+  }, [paiements, t]);
+
+  const fraisNameOptions = useMemo(() => {
+    const names = new Set<string>();
+    for (const p of paiements) {
+      const name = p.frais?.nameFrais?.trim();
+      if (name) names.add(name);
+    }
+    return [
+      { value: "all", label: t("table.allFeeNames") },
+      ...[...names]
+        .sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }))
+        .map((name) => ({ value: name, label: name })),
+    ];
+  }, [paiements, t]);
+
   const filtered = useMemo<GroupedPaiement[]>(() => {
     const s = searchTerm.toLowerCase();
     const { start, end } = getDateRange(dateRangeFilter);
@@ -380,7 +423,15 @@ const PaiementsTable = ({
       const matchSearch =
         g.reference.toLowerCase().includes(s) ||
         g.parentName.toLowerCase().includes(s) ||
-        g.students.some((st) => st.toLowerCase().includes(s));
+        g.students.some((st) => st.toLowerCase().includes(s)) ||
+        g.items.some((item) =>
+          (item.frais?.nameFrais ?? "").toLowerCase().includes(s),
+        ) ||
+        g.items.some((item) =>
+          (item.classEnrollment?.nameClasse ?? "")
+            .toLowerCase()
+            .includes(s),
+        );
 
       const matchStatus =
         statusFilter === "all" || String(g.status) === statusFilter;
@@ -389,9 +440,38 @@ const PaiementsTable = ({
 
       const matchDate = g.date >= start && g.date < end;
 
-      return matchSearch && matchStatus && matchMode && matchDate;
+      const matchClasse =
+        classeFilter === "all" ||
+        g.items.some(
+          (item) => item.classEnrollment?.classeId === classeFilter,
+        );
+
+      const matchFraisName =
+        fraisNameFilter === "all" ||
+        g.items.some(
+          (item) =>
+            (item.frais?.nameFrais ?? "").trim().toLowerCase() ===
+            fraisNameFilter.trim().toLowerCase(),
+        );
+
+      return (
+        matchSearch &&
+        matchStatus &&
+        matchMode &&
+        matchDate &&
+        matchClasse &&
+        matchFraisName
+      );
     });
-  }, [grouped, searchTerm, statusFilter, modeFilter, dateRangeFilter]);
+  }, [
+    grouped,
+    searchTerm,
+    statusFilter,
+    modeFilter,
+    dateRangeFilter,
+    classeFilter,
+    fraisNameFilter,
+  ]);
 
   const exportFilteredPdf = async () => {
     setExportingPdf(true);
@@ -645,6 +725,20 @@ const PaiementsTable = ({
           onFilterChange={setModeFilter}
           filterOptions={modeOptions}
           filterPlaceholder={t("table.filter")}
+        />
+
+        <SearchAndFilter
+          filterValue={classeFilter}
+          onFilterChange={setClasseFilter}
+          filterOptions={classeOptions}
+          filterPlaceholder={t("table.filterClass")}
+        />
+
+        <SearchAndFilter
+          filterValue={fraisNameFilter}
+          onFilterChange={setFraisNameFilter}
+          filterOptions={fraisNameOptions}
+          filterPlaceholder={t("table.filterFeeName")}
         />
         <Button
           variant="outline"

@@ -60,7 +60,31 @@ function toDateInputValue(date = new Date()) {
 }
 
 function looksLikeTransactionRef(value: string) {
-  return /^[A-Za-z0-9][A-Za-z0-9._-]{2,}$/.test(value) && !/\s/.test(value);
+  if (/\s/.test(value)) return false;
+  // Réf. métier (chiffre ou séparateur) — pas un simple prénom/nom alphabétique.
+  return /[0-9]/.test(value) || /[-_.]/.test(value);
+}
+
+function personNameTokens(search: string) {
+  return search
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 0);
+}
+
+/** Chaque mot doit matcher au moins un champ (name / postnom / prenom). */
+function personNameSearchWhere(search: string) {
+  const tokens = personNameTokens(search);
+  if (tokens.length === 0) return undefined;
+  return {
+    AND: tokens.map((token) => ({
+      OR: [
+        { name: { contains: token, mode: "insensitive" as const } },
+        { postnom: { contains: token, mode: "insensitive" as const } },
+        { prenom: { contains: token, mode: "insensitive" as const } },
+      ],
+    })),
+  };
 }
 
 export const getBranchTransactionsAction = action
@@ -72,6 +96,10 @@ export const getBranchTransactionsAction = action
       day: z.string().regex(DATE_RE).optional(),
       startDate: z.string().regex(DATE_RE).optional(),
       endDate: z.string().regex(DATE_RE).optional(),
+      fraisId: z.string().min(1).optional(),
+      typeFraisId: z.string().min(1).optional(),
+      fraisName: z.string().trim().min(1).max(120).optional(),
+      classeId: z.string().min(1).optional(),
     }),
   )
   .handler(async ({ input }) => {
@@ -80,6 +108,10 @@ export const getBranchTransactionsAction = action
     const search = input.search?.trim();
     const mode = input.mode ?? "day";
     const day = input.day ?? toDateInputValue();
+    const fraisId = input.fraisId?.trim() || undefined;
+    const typeFraisId = input.typeFraisId?.trim() || undefined;
+    const fraisName = input.fraisName?.trim() || undefined;
+    const classeId = input.classeId?.trim() || undefined;
 
     let createdAt: { gte: Date; lt: Date } | undefined;
     if (mode === "day") {
@@ -103,77 +135,110 @@ export const getBranchTransactionsAction = action
 
     const take = mode === "day" ? 300 : 500;
     const refSearch = search && looksLikeTransactionRef(search);
+    const nameWhere = search ? personNameSearchWhere(search) : undefined;
 
-    const paymentSearch = search
-      ? refSearch
-        ? {
-            OR: [
-              {
-                transactionRef: {
-                  equals: search,
-                  mode: "insensitive" as const,
-                },
-              },
-              {
-                transactionRef: {
-                  startsWith: search,
-                  mode: "insensitive" as const,
-                },
-              },
-            ],
-          }
-        : {
-            OR: [
-              {
-                transactionRef: {
-                  contains: search,
-                  mode: "insensitive" as const,
-                },
-              },
-              {
-                classEnrollment: {
-                  student: {
-                    branchMember: {
-                      member: {
-                        user: {
-                          OR: [
-                            { name: { contains: search, mode: "insensitive" as const } },
-                            { postnom: { contains: search, mode: "insensitive" as const } },
-                            { prenom: { contains: search, mode: "insensitive" as const } },
-                          ],
-                        },
-                      },
-                    },
+    const paymentNameOr = nameWhere
+      ? [
+          {
+            classEnrollment: {
+              student: {
+                branchMember: {
+                  member: {
+                    user: nameWhere,
                   },
                 },
               },
-              {
-                parent: {
-                  branchMember: {
-                    member: {
-                      user: {
+            },
+          },
+          {
+            parent: {
+              branchMember: {
+                member: {
+                  user: nameWhere,
+                },
+              },
+            },
+          },
+        ]
+      : [];
+
+    const paymentSearch = search
+      ? {
+          OR: [
+            ...(refSearch
+              ? [
+                  {
+                    transactionRef: {
+                      equals: search,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                  {
+                    transactionRef: {
+                      startsWith: search,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                ]
+              : [
+                  {
+                    transactionRef: {
+                      contains: search,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                ]),
+            ...paymentNameOr,
+            ...(classeId
+              ? []
+              : [
+                  {
+                    classEnrollment: {
+                      classe: {
                         OR: [
-                          { name: { contains: search, mode: "insensitive" as const } },
-                          { postnom: { contains: search, mode: "insensitive" as const } },
-                          { prenom: { contains: search, mode: "insensitive" as const } },
+                          {
+                            nameClasse: {
+                              contains: search,
+                              mode: "insensitive" as const,
+                            },
+                          },
+                          {
+                            codeClasse: {
+                              contains: search,
+                              mode: "insensitive" as const,
+                            },
+                          },
                         ],
                       },
                     },
                   },
-                },
-              },
-              {
-                classEnrollment: {
-                  classe: {
-                    OR: [
-                      { nameClasse: { contains: search, mode: "insensitive" as const } },
-                      { codeClasse: { contains: search, mode: "insensitive" as const } },
-                    ],
+                ]),
+            ...(typeFraisId || fraisId || fraisName
+              ? []
+              : [
+                  {
+                    frais: {
+                      OR: [
+                        {
+                          nameFrais: {
+                            contains: search,
+                            mode: "insensitive" as const,
+                          },
+                        },
+                        {
+                          typeFrais: {
+                            nameType: {
+                              contains: search,
+                              mode: "insensitive" as const,
+                            },
+                          },
+                        },
+                      ],
+                    },
                   },
-                },
-              },
-            ],
-          }
+                ]),
+          ],
+        }
       : {};
 
     const expenseSearch = search
@@ -204,14 +269,43 @@ export const getBranchTransactionsAction = action
               },
               { description: { contains: search, mode: "insensitive" as const } },
               { category: { contains: search, mode: "insensitive" as const } },
+              ...(nameWhere
+                ? [{ createdByUser: nameWhere }]
+                : []),
             ],
           }
       : {};
+
+    const paymentFilters = {
+      ...(fraisId ? { fraisId } : {}),
+      ...(!fraisId && (typeFraisId || fraisName)
+        ? {
+            frais: {
+              ...(typeFraisId ? { typeFraisId } : {}),
+              ...(fraisName
+                ? {
+                    nameFrais: {
+                      equals: fraisName,
+                      mode: "insensitive" as const,
+                    },
+                  }
+                : {}),
+            },
+          }
+        : {}),
+      ...(classeId ? { classEnrollment: { classeId } } : {}),
+    };
+
+    // Frais / classe ne s'appliquent qu'aux encaissements.
+    const skipExpenses = Boolean(
+      fraisId || typeFraisId || fraisName || classeId,
+    );
 
     const [payments, expenses, rates] = await Promise.all([
       prisma.familyPayment.findMany({
         where: {
           ...baseWhere,
+          ...paymentFilters,
           ...paymentSearch,
         },
         orderBy: { createdAt: "desc" },
@@ -227,6 +321,13 @@ export const getBranchTransactionsAction = action
           isArchived: true,
           archivedAt: true,
           createdAt: true,
+          frais: {
+            select: {
+              id: true,
+              nameFrais: true,
+              typeFrais: { select: { nameType: true } },
+            },
+          },
           parent: {
             select: {
               branchMember: {
@@ -244,8 +345,14 @@ export const getBranchTransactionsAction = action
           },
           classEnrollment: {
             select: {
+              classeId: true,
               classe: {
-                select: { nameClasse: true, codeClasse: true, cycle: true },
+                select: {
+                  id: true,
+                  nameClasse: true,
+                  codeClasse: true,
+                  cycle: true,
+                },
               },
               student: {
                 select: {
@@ -266,27 +373,29 @@ export const getBranchTransactionsAction = action
           },
         },
       }),
-      prisma.cashierExpense.findMany({
-        where: {
-          ...baseWhere,
-          ...expenseSearch,
-        },
-        orderBy: { createdAt: "desc" },
-        take,
-        select: {
-          id: true,
-          amount: true,
-          transactionRef: true,
-          description: true,
-          category: true,
-          isArchived: true,
-          archivedAt: true,
-          createdAt: true,
-          createdByUser: {
-            select: { name: true, postnom: true, prenom: true },
-          },
-        },
-      }),
+      skipExpenses
+        ? Promise.resolve([])
+        : prisma.cashierExpense.findMany({
+            where: {
+              ...baseWhere,
+              ...expenseSearch,
+            },
+            orderBy: { createdAt: "desc" },
+            take,
+            select: {
+              id: true,
+              amount: true,
+              transactionRef: true,
+              description: true,
+              category: true,
+              isArchived: true,
+              archivedAt: true,
+              createdAt: true,
+              createdByUser: {
+                select: { name: true, postnom: true, prenom: true },
+              },
+            },
+          }),
       prisma.exchangeRate.findMany({
         where: { organizationId: context.organizationId, isActive: true },
         select: {
@@ -320,6 +429,10 @@ export const getBranchTransactionsAction = action
         row.classEnrollment?.classe?.codeClasse ||
         "—",
       cycle: row.classEnrollment?.classe?.cycle ?? null,
+      fraisName:
+        row.frais?.nameFrais ||
+        row.frais?.typeFrais?.nameType ||
+        "—",
       description: null as string | null,
       category: null as string | null,
       cashierName: null as string | null,
@@ -341,6 +454,7 @@ export const getBranchTransactionsAction = action
       parentName: "—",
       className: "—",
       cycle: null as string | null,
+      fraisName: "—",
       description: row.description,
       category: row.category,
       cashierName: formatPersonName(row.createdByUser),
@@ -363,6 +477,72 @@ export const getBranchTransactionsAction = action
       rows,
     };
   });
+
+export const getTransactionFilterOptionsAction = action.handler(async () => {
+  const context = await requireBranchAreaContext("transactions");
+
+  const [typeFrais, fraisRows, classes] = await Promise.all([
+    prisma.typeFrais.findMany({
+      where: {
+        branchId: context.branchId,
+        statusType: true,
+      },
+      orderBy: [{ nameType: "asc" }],
+      select: {
+        id: true,
+        nameType: true,
+        codeType: true,
+      },
+      take: 200,
+    }),
+    prisma.frais.findMany({
+      where: {
+        branchId: context.branchId,
+        statusFrais: true,
+      },
+      orderBy: [{ nameFrais: "asc" }],
+      select: { nameFrais: true },
+      take: 800,
+    }),
+    prisma.classe.findMany({
+      where: {
+        branchId: context.branchId,
+        OR: [{ statusClasse: true }, { statusClasse: null }],
+      },
+      orderBy: [{ nameClasse: "asc" }, { codeClasse: "asc" }],
+      select: {
+        id: true,
+        nameClasse: true,
+        codeClasse: true,
+        cycle: true,
+      },
+      take: 400,
+    }),
+  ]);
+
+  const fraisNames = [
+    ...new Set(
+      fraisRows
+        .map((row) => row.nameFrais?.trim())
+        .filter((name): name is string => Boolean(name)),
+    ),
+  ].sort((a, b) => a.localeCompare(b, "fr"));
+
+  return {
+    typeFrais: typeFrais.map((row) => ({
+      id: row.id,
+      label: row.nameType || row.codeType || row.id,
+    })),
+    fraisNames,
+    classes: classes.map((row) => ({
+      id: row.id,
+      label: row.codeClasse
+        ? `${row.nameClasse} (${row.codeClasse})`
+        : row.nameClasse,
+      cycle: row.cycle,
+    })),
+  };
+});
 
 export const archiveBranchTransactionAction = action
   .input(

@@ -31,6 +31,7 @@ export interface IPaiement {
     nom: string;
     prenom: string;
     sexe?: string;
+    classeId?: string;
     nameClasse: string;
     codeClasse?: string;
     nameYear: string;
