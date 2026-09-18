@@ -231,23 +231,24 @@ export async function buildUnpaidReportPdf(
       : undefined;
 
   // Largeurs proportionnelles à la page paysage ; Reste / montants élargis (AOA).
-  const columnStyles = hasRemise
+  type PdfColumnStyle = { cellWidth: number; halign?: "left" | "center" | "right" };
+  const columnStyles: Record<number, PdfColumnStyle> = hasRemise
     ? {
         0: { cellWidth: usableWidth * 0.2 },
         1: { cellWidth: usableWidth * 0.11 },
-        2: { cellWidth: usableWidth * 0.13, halign: "right" as const },
-        3: { cellWidth: usableWidth * 0.15, halign: "right" as const },
-        4: { cellWidth: usableWidth * 0.13, halign: "right" as const },
-        5: { cellWidth: usableWidth * 0.17, halign: "right" as const },
-        6: { cellWidth: usableWidth * 0.11, halign: "center" as const },
+        2: { cellWidth: usableWidth * 0.13, halign: "right" },
+        3: { cellWidth: usableWidth * 0.15, halign: "right" },
+        4: { cellWidth: usableWidth * 0.13, halign: "right" },
+        5: { cellWidth: usableWidth * 0.17, halign: "right" },
+        6: { cellWidth: usableWidth * 0.11, halign: "center" },
       }
     : {
         0: { cellWidth: usableWidth * 0.26 },
         1: { cellWidth: usableWidth * 0.13 },
-        2: { cellWidth: usableWidth * 0.15,halign: "right" as const },
-        3: { cellWidth: usableWidth * 0.15,halign: "right" as const },
-        4: { cellWidth: usableWidth * 0.2,halign: "right" as const },
-        5: { cellWidth: usableWidth * 0.11,halign: "center" as const },
+        2: { cellWidth: usableWidth * 0.15, halign: "right" },
+        3: { cellWidth: usableWidth * 0.15, halign: "right" },
+        4: { cellWidth: usableWidth * 0.2, halign: "right" },
+        5: { cellWidth: usableWidth * 0.11, halign: "center" },
       };
 
   autoTable(doc, {
