@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogDescription,
@@ -23,10 +30,21 @@ import {
   updateOwnParentPersonalInfoAction,
 } from "../../student.action";
 
-type ChildNameValues = {
+const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
+const BLOOD_GROUP_UNSET = "__none__";
+
+export type ChildPersonalValues = {
   nom: string;
   postnom: string;
   prenom: string;
+  dateOfBirth: string;
+  placeOfBirth: string;
+  nationalite: string;
+  autreNationalite: string;
+  territoireAutreNationalite: string;
+  langue: string;
+  groupeSanguin: string;
+  allergies: string;
 };
 
 type GuardianValues = {
@@ -39,6 +57,12 @@ type GuardianValues = {
   profession: string;
   tuteurNom: string;
   adresseTuteur: string;
+  nomMere: string;
+  professionMere: string;
+  provinceOrigine: string;
+  territoireOrigine: string;
+  secteurOrigine: string;
+  villageOrigine: string;
 };
 
 function dashToEmpty(value: string) {
@@ -50,7 +74,7 @@ export function EditChildNameForm({
   initialValues,
 }: {
   studentId: string;
-  initialValues: ChildNameValues;
+  initialValues: ChildPersonalValues;
 }) {
   const t = useTranslations("users.students.profile");
   const tCommon = useTranslations("common");
@@ -64,6 +88,13 @@ export function EditChildNameForm({
   useEffect(() => {
     if (open) setValues(initialRef.current);
   }, [open]);
+
+  function update<K extends keyof ChildPersonalValues>(
+    key: K,
+    value: ChildPersonalValues[K],
+  ) {
+    setValues((current) => ({ ...current, [key]: value }));
+  }
 
   function save() {
     startTransition(async () => {
@@ -95,49 +126,132 @@ export function EditChildNameForm({
         <span className="sm:hidden">{t("edit")}</span>
       </Button>
       <ResponsiveDialog open={open} onOpenChange={setOpen}>
-        <ResponsiveDialogContent size="md" className="flex flex-col gap-0 overflow-hidden p-0">
+        <ResponsiveDialogContent
+          size="lg"
+          className="flex max-h-[min(94dvh,52rem)] flex-col gap-0 overflow-hidden p-0"
+        >
           <ResponsiveDialogHeader className="shrink-0 border-b px-4 py-3 text-left sm:px-5">
             <ResponsiveDialogTitle>{t("editChildNameTitle")}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
               {t("editChildNameDesc")}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
-          <div className="grid gap-3 px-4 py-3 sm:grid-cols-2 sm:px-5">
-            <div className="space-y-1.5">
-              <Label htmlFor="child-nom">{tCommon("person.lastName")}</Label>
-              <Input
-                id="child-nom"
-                value={values.nom}
-                onChange={(event) =>
-                  setValues((current) => ({ ...current, nom: event.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="child-postnom">{tCommon("person.postnom")}</Label>
-              <Input
-                id="child-postnom"
-                value={values.postnom}
-                onChange={(event) =>
-                  setValues((current) => ({
-                    ...current,
-                    postnom: event.target.value,
-                  }))
-                }
-              />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="child-prenom">{tCommon("person.firstName")}</Label>
-              <Input
-                id="child-prenom"
-                value={values.prenom}
-                onChange={(event) =>
-                  setValues((current) => ({
-                    ...current,
-                    prenom: event.target.value,
-                  }))
-                }
-              />
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-3 sm:px-5">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="child-nom">{tCommon("person.lastName")}</Label>
+                <Input
+                  id="child-nom"
+                  value={values.nom}
+                  onChange={(event) => update("nom", event.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="child-postnom">{tCommon("person.postnom")}</Label>
+                <Input
+                  id="child-postnom"
+                  value={values.postnom}
+                  onChange={(event) => update("postnom", event.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label htmlFor="child-prenom">{tCommon("person.firstName")}</Label>
+                <Input
+                  id="child-prenom"
+                  value={values.prenom}
+                  onChange={(event) => update("prenom", event.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="child-birth-date">{tCommon("person.birthDate")}</Label>
+                <Input
+                  id="child-birth-date"
+                  type="date"
+                  value={values.dateOfBirth}
+                  onChange={(event) => update("dateOfBirth", event.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="child-birth-place">{tCommon("person.birthPlace")}</Label>
+                <Input
+                  id="child-birth-place"
+                  value={values.placeOfBirth}
+                  onChange={(event) => update("placeOfBirth", event.target.value)}
+                  placeholder={t("birthPlacePlaceholder")}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="child-nationality">{t("nationality")}</Label>
+                <Input
+                  id="child-nationality"
+                  value={values.nationalite}
+                  onChange={(event) => update("nationalite", event.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="child-other-nationality">{t("otherNationality")}</Label>
+                <Input
+                  id="child-other-nationality"
+                  value={values.autreNationalite}
+                  onChange={(event) =>
+                    update("autreNationalite", event.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="child-territory">{t("otherNationalityTerritory")}</Label>
+                <Input
+                  id="child-territory"
+                  value={values.territoireAutreNationalite}
+                  onChange={(event) =>
+                    update("territoireAutreNationalite", event.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="child-language">{t("language")}</Label>
+                <Input
+                  id="child-language"
+                  value={values.langue}
+                  onChange={(event) => update("langue", event.target.value)}
+                  placeholder={t("languagePlaceholder")}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="child-blood">{t("bloodGroup")}</Label>
+                <Select
+                  value={values.groupeSanguin || BLOOD_GROUP_UNSET}
+                  onValueChange={(value) =>
+                    update(
+                      "groupeSanguin",
+                      value === BLOOD_GROUP_UNSET ? "" : value,
+                    )
+                  }
+                >
+                  <SelectTrigger id="child-blood">
+                    <SelectValue placeholder={t("bloodGroupUnset")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={BLOOD_GROUP_UNSET}>
+                      {t("bloodGroupUnset")}
+                    </SelectItem>
+                    {BLOOD_GROUPS.map((group) => (
+                      <SelectItem key={group} value={group}>
+                        {group}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="child-allergies">{t("allergies")}</Label>
+                <Input
+                  id="child-allergies"
+                  value={values.allergies}
+                  onChange={(event) => update("allergies", event.target.value)}
+                  placeholder={t("allergiesPlaceholder")}
+                />
+              </div>
             </div>
           </div>
           <ResponsiveDialogFooter className="shrink-0 gap-2 border-t px-4 py-3 sm:px-5">
@@ -215,7 +329,7 @@ export function EditGuardianInfoForm({
       </Button>
       <ResponsiveDialog open={open} onOpenChange={setOpen}>
         <ResponsiveDialogContent
-          size="md"
+          size="lg"
           className="flex max-h-[min(94dvh,52rem)] flex-col gap-0 overflow-hidden p-0"
         >
           <ResponsiveDialogHeader className="shrink-0 border-b px-4 py-3 text-left sm:px-5">
@@ -285,6 +399,22 @@ export function EditGuardianInfoForm({
                 />
               </div>
               <div className="space-y-1.5">
+                <Label htmlFor="guardian-mother">{t("motherName")}</Label>
+                <Input
+                  id="guardian-mother"
+                  value={values.nomMere}
+                  onChange={(event) => update("nomMere", event.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="guardian-mother-job">{t("motherProfession")}</Label>
+                <Input
+                  id="guardian-mother-job"
+                  value={values.professionMere}
+                  onChange={(event) => update("professionMere", event.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
                 <Label htmlFor="guardian-tutor">{t("tutorName")}</Label>
                 <Input
                   id="guardian-tutor"
@@ -298,6 +428,40 @@ export function EditGuardianInfoForm({
                   id="guardian-tutor-address"
                   value={values.adresseTuteur}
                   onChange={(event) => update("adresseTuteur", event.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="guardian-province">{t("originProvince")}</Label>
+                <Input
+                  id="guardian-province"
+                  value={values.provinceOrigine}
+                  onChange={(event) => update("provinceOrigine", event.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="guardian-territory">{t("originTerritory")}</Label>
+                <Input
+                  id="guardian-territory"
+                  value={values.territoireOrigine}
+                  onChange={(event) =>
+                    update("territoireOrigine", event.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="guardian-sector">{t("originSector")}</Label>
+                <Input
+                  id="guardian-sector"
+                  value={values.secteurOrigine}
+                  onChange={(event) => update("secteurOrigine", event.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="guardian-village">{t("originVillage")}</Label>
+                <Input
+                  id="guardian-village"
+                  value={values.villageOrigine}
+                  onChange={(event) => update("villageOrigine", event.target.value)}
                 />
               </div>
             </div>
@@ -322,6 +486,37 @@ export function EditGuardianInfoForm({
   );
 }
 
+export function childFormValuesFromProfile(profile: {
+  nom: string;
+  postnom: string;
+  prenom: string;
+  dateOfBirthInput: string;
+  placeOfBirth: string;
+  nationaliteEdit: string;
+  autreNationalite: string;
+  territoireAutreNationalite: string;
+  langue: string;
+  bloodGroup: string;
+  allergies: string;
+}): ChildPersonalValues {
+  return {
+    nom: profile.nom,
+    postnom: profile.postnom,
+    prenom: profile.prenom,
+    dateOfBirth: profile.dateOfBirthInput,
+    placeOfBirth: dashToEmpty(profile.placeOfBirth),
+    nationalite: profile.nationaliteEdit,
+    autreNationalite: dashToEmpty(profile.autreNationalite),
+    territoireAutreNationalite: dashToEmpty(profile.territoireAutreNationalite),
+    langue: dashToEmpty(profile.langue),
+    groupeSanguin: dashToEmpty(profile.bloodGroup),
+    allergies:
+      profile.allergies === "-" || profile.allergies === "Aucune"
+        ? ""
+        : profile.allergies,
+  };
+}
+
 export function guardianFormValuesFromProfile(profile: {
   parentNom: string;
   parentPostnom: string;
@@ -332,6 +527,12 @@ export function guardianFormValuesFromProfile(profile: {
   parentProfession: string;
   tuteurNom: string;
   adresseTuteur: string;
+  nomMere: string;
+  professionMere: string;
+  provinceOrigine: string;
+  territoireOrigine: string;
+  secteurOrigine: string;
+  villageOrigine: string;
 }): GuardianValues {
   return {
     nom: profile.parentNom,
@@ -343,5 +544,11 @@ export function guardianFormValuesFromProfile(profile: {
     profession: dashToEmpty(profile.parentProfession),
     tuteurNom: dashToEmpty(profile.tuteurNom),
     adresseTuteur: dashToEmpty(profile.adresseTuteur),
+    nomMere: dashToEmpty(profile.nomMere),
+    professionMere: dashToEmpty(profile.professionMere),
+    provinceOrigine: dashToEmpty(profile.provinceOrigine),
+    territoireOrigine: dashToEmpty(profile.territoireOrigine),
+    secteurOrigine: dashToEmpty(profile.secteurOrigine),
+    villageOrigine: dashToEmpty(profile.villageOrigine),
   };
 }

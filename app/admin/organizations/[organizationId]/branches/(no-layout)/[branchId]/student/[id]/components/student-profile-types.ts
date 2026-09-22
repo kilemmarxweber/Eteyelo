@@ -46,6 +46,8 @@ export type StudentProfileData = {
   langue: string;
   bloodGroup: string;
   allergies: string;
+  dateOfBirthInput: string;
+  nationaliteEdit: string;
   vulnerability: string;
   schoolName: string;
   matricule: string;

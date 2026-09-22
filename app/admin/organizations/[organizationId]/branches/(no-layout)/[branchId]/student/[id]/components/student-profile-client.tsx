@@ -43,6 +43,7 @@ import { useStudentPhotoUpload } from "./use-student-photo-upload";
 import {
   EditChildNameForm,
   EditGuardianInfoForm,
+  childFormValuesFromProfile,
   guardianFormValuesFromProfile,
 } from "./family-identity-forms";
 import { RegistrationExtraInfoSheet } from "@/components/registration-extra-info-sheet";
@@ -455,11 +456,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                         profile.canEditFamilyPersonalInfo ? (
                           <EditChildNameForm
                             studentId={profile.studentId}
-                            initialValues={{
-                              nom: profile.nom,
-                              postnom: profile.postnom,
-                              prenom: profile.prenom,
-                            }}
+                            initialValues={childFormValuesFromProfile(profile)}
                           />
                         ) : null
                       }

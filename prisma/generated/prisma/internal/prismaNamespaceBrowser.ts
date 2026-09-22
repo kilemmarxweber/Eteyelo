@@ -216,6 +216,8 @@ export const StudentScalarFieldEnum = {
   autreNationalite: 'autreNationalite',
   territoireAutreNationalite: 'territoireAutreNationalite',
   langue: 'langue',
+  groupeSanguin: 'groupeSanguin',
+  allergies: 'allergies',
   suppositionClasseName: 'suppositionClasseName',
   suppositionSection: 'suppositionSection',
   suppositionOption: 'suppositionOption',

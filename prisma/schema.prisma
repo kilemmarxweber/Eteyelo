@@ -110,6 +110,8 @@ model Student {
   autreNationalite           String?
   territoireAutreNationalite String?
   langue                     String?
+  groupeSanguin              String?
+  allergies                  String?
   suppositionClasseName      String?
   suppositionSection         String?
   suppositionOption          String?

@@ -45,6 +45,17 @@ function safeNumber(value: unknown) {
   return Number.isFinite(number) ? number : 0;
 }
 
+function toDateInputValue(value?: Date | string | null) {
+  if (!value) return "";
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.slice(0, 10);
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+}
+
 function calculateAge(dateOfBirth: Date | string | null | undefined) {
   if (!dateOfBirth) return null;
   const birth = new Date(dateOfBirth);
@@ -631,8 +642,10 @@ const SingleStudentPage = async ({
     territoireAutreNationalite:
       student.territoireAutreNationalite?.trim() || "-",
     langue: student.langue?.trim() || "-",
-    bloodGroup: "-",
-    allergies: "Aucune",
+    bloodGroup: student.groupeSanguin?.trim() || "-",
+    allergies: student.allergies?.trim() || "Aucune",
+    dateOfBirthInput: toDateInputValue(user.dateOfBirth),
+    nationaliteEdit: student.nationalite?.trim() || "",
     vulnerability: "Aucune",
     schoolName: branchDocumentName(branch),
     matricule,

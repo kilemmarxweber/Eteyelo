@@ -50,6 +50,7 @@ import { z } from "zod";
 import {
   familyExtraInfoSchema,
   familyExtraToDb,
+  optionalString,
   studentExtraInfoSchema,
   studentExtraToDb,
 } from "@/lib/registration-extra-info";
@@ -964,11 +965,21 @@ export const updateStudentExtraInfoAction = action
     return { ok: true as const, message: "Informations mises à jour." };
   });
 
-const parentChildNameSchema = z.object({
+const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
+
+const parentChildPersonalSchema = z.object({
   studentId: z.string().min(1),
   nom: z.string().trim().min(1, "Nom requis").max(120),
   postnom: z.string().trim().max(120),
   prenom: z.string().trim().max(120),
+  dateOfBirth: z.string().trim().max(10),
+  placeOfBirth: z.string().trim().max(200),
+  nationalite: z.string().trim().max(120),
+  autreNationalite: z.string().trim().max(120),
+  territoireAutreNationalite: z.string().trim().max(120),
+  langue: z.string().trim().max(200),
+  groupeSanguin: z.union([z.literal(""), z.enum(BLOOD_GROUPS)]),
+  allergies: z.string().trim().max(400),
 });
 
 const parentSelfIdentitySchema = z.object({
@@ -985,7 +996,29 @@ const parentSelfIdentitySchema = z.object({
   profession: z.string().trim().max(200),
   tuteurNom: z.string().trim().max(200),
   adresseTuteur: z.string().trim().max(300),
+  nomMere: z.string().trim().max(200),
+  professionMere: z.string().trim().max(200),
+  provinceOrigine: z.string().trim().max(120),
+  territoireOrigine: z.string().trim().max(120),
+  secteurOrigine: z.string().trim().max(120),
+  villageOrigine: z.string().trim().max(120),
 });
+
+function parseOptionalIsoDate(value: string): Date | null | "invalid" {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return "invalid";
+  const [year, month, day] = trimmed.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return "invalid";
+  }
+  return date;
+}
 
 async function findLinkedParentChild(input: {
   studentId: string;
@@ -1042,14 +1075,19 @@ function revalidateFamilyProfilePages(
   );
 }
 
-/** Parent : nom complet de son enfant uniquement (pas la scolarité). */
+/** Parent : identité personnelle de son enfant (pas la scolarité). */
 export const updateOwnChildPersonalNameAction = action
-  .input(parentChildNameSchema)
+  .input(parentChildPersonalSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, userId, isParent } =
       await getCurrentBranch();
     if (!isParent) {
       return { ok: false as const, message: "Action non autorisee" };
+    }
+
+    const dateOfBirth = parseOptionalIsoDate(input.dateOfBirth);
+    if (dateOfBirth === "invalid") {
+      return { ok: false as const, message: "Date de naissance invalide." };
     }
 
     const student = await findLinkedParentChild({
@@ -1069,11 +1107,27 @@ export const updateOwnChildPersonalNameAction = action
         name: input.nom,
         postnom: input.postnom || null,
         prenom: input.prenom || null,
+        dateOfBirth,
+      },
+    });
+
+    await prisma.student.update({
+      where: { id: student.id },
+      data: {
+        placeOfBirth: optionalString(input.placeOfBirth),
+        nationalite: optionalString(input.nationalite),
+        autreNationalite: optionalString(input.autreNationalite),
+        territoireAutreNationalite: optionalString(
+          input.territoireAutreNationalite,
+        ),
+        langue: optionalString(input.langue),
+        groupeSanguin: optionalString(input.groupeSanguin),
+        allergies: optionalString(input.allergies),
       },
     });
 
     revalidateFamilyProfilePages(organizationId, branchId, student.id);
-    return { ok: true as const, message: "Nom de l'enfant mis à jour." };
+    return { ok: true as const, message: "Informations de l'enfant mises à jour." };
   });
 
 /** Parent : ses propres infos personnelles / tuteur (pas la scolarité). */
@@ -1112,9 +1166,15 @@ export const updateOwnParentPersonalInfoAction = action
     await prisma.parent.update({
       where: { id: student.parentId },
       data: {
-        profession: input.profession.trim() || null,
-        tuteurNom: input.tuteurNom.trim() || null,
-        adresseTuteur: input.adresseTuteur.trim() || null,
+        profession: optionalString(input.profession),
+        tuteurNom: optionalString(input.tuteurNom),
+        adresseTuteur: optionalString(input.adresseTuteur),
+        nomMere: optionalString(input.nomMere),
+        professionMere: optionalString(input.professionMere),
+        provinceOrigine: optionalString(input.provinceOrigine),
+        territoireOrigine: optionalString(input.territoireOrigine),
+        secteurOrigine: optionalString(input.secteurOrigine),
+        villageOrigine: optionalString(input.villageOrigine),
       },
     });
 
