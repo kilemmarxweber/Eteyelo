@@ -33,6 +33,15 @@ import {
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
 const BLOOD_GROUP_UNSET = "__none__";
 
+type BloodGroup = (typeof BLOOD_GROUPS)[number];
+type BloodGroupValue = "" | BloodGroup;
+
+function parseBloodGroup(value: string): BloodGroupValue {
+  return (BLOOD_GROUPS as readonly string[]).includes(value)
+    ? (value as BloodGroup)
+    : "";
+}
+
 export type ChildPersonalValues = {
   nom: string;
   postnom: string;
@@ -43,7 +52,7 @@ export type ChildPersonalValues = {
   autreNationalite: string;
   territoireAutreNationalite: string;
   langue: string;
-  groupeSanguin: string;
+  groupeSanguin: BloodGroupValue;
   allergies: string;
 };
 
@@ -224,7 +233,7 @@ export function EditChildNameForm({
                   onValueChange={(value) =>
                     update(
                       "groupeSanguin",
-                      value === BLOOD_GROUP_UNSET ? "" : value,
+                      value === BLOOD_GROUP_UNSET ? "" : parseBloodGroup(value),
                     )
                   }
                 >
@@ -509,7 +518,7 @@ export function childFormValuesFromProfile(profile: {
     autreNationalite: dashToEmpty(profile.autreNationalite),
     territoireAutreNationalite: dashToEmpty(profile.territoireAutreNationalite),
     langue: dashToEmpty(profile.langue),
-    groupeSanguin: dashToEmpty(profile.bloodGroup),
+    groupeSanguin: parseBloodGroup(dashToEmpty(profile.bloodGroup)),
     allergies:
       profile.allergies === "-" || profile.allergies === "Aucune"
         ? ""
