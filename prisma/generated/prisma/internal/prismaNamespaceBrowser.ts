@@ -894,6 +894,7 @@ export const AbsenceCaseScalarFieldEnum = {
   contextLabel: 'contextLabel',
   status: 'status',
   justification: 'justification',
+  justificationImageUrls: 'justificationImageUrls',
   justifiedAt: 'justifiedAt',
   reviewComment: 'reviewComment',
   reviewedById: 'reviewedById',

@@ -1299,6 +1299,8 @@ model AbsenceCase {
   contextLabel          String
   status                AbsenceCaseStatus     @default(OPEN)
   justification         String?
+  /// Preuves visuelles (1 à 5 images) jointes à la justification.
+  justificationImageUrls String[]             @default([])
   justifiedAt           DateTime?
   reviewComment         String?
   reviewedById          String?

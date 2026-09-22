@@ -170,13 +170,16 @@ test("élève : cursus résultats/biblio ; pas Notes/Horaire/Fiches / Finance", 
 
 // --- Parent ---
 
-test("parent : cursus enfants ; self-scoped ; pas Finance", () => {
+test("parent : cursus enfants ; self-scoped ; pas Finance / Enseignement / Utilisateurs", () => {
   const titles = menuTitles(ORG_ROLE.PARENT);
-  assert.ok(titles.includes("Cursus"));
-  assert.ok(!titles.includes("Finance"));
+  assert.ok(titles.includes("cursus") || titles.includes("Cursus"));
+  assert.ok(!titles.includes("Finance") && !titles.includes("finance"));
+  assert.ok(!titles.includes("teaching") && !titles.includes("Enseignement"));
+  assert.ok(!titles.includes("users") && !titles.includes("Utilisateurs"));
+  assert.ok(!titles.includes("myPresence") && !titles.includes("Ma présence"));
   assert.equal(resolveCursusViewerRole(sessionWithOrgRole(ORG_ROLE.PARENT)), "parent");
   assert.equal(isCursusSelfScopedRole("parent"), true);
-  assertAreas(ORG_ROLE.PARENT, ["notes", "schedule", "results", "library"], ["finance"]);
+  assertAreas(ORG_ROLE.PARENT, ["results"], ["finance", "teaching"]);
 });
 
 // --- Enseignant ---

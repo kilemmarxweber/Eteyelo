@@ -614,7 +614,8 @@ export const getStudentsAction = action.handler(
       session,
     } = await getCurrentBranch();
 
-    const canListAllStudents = canManageStudents || canReadStudents;
+    const canListAllStudents =
+      (canManageStudents || canReadStudents) && !isParent && !isStudent;
 
     const orgMember = await prisma.member.findFirst({
       where: { userId, organizationId },
@@ -961,6 +962,167 @@ export const updateStudentExtraInfoAction = action
       `/admin/organizations/${organizationId}/branches/${branchId}/student/${student.id}`,
     );
     return { ok: true as const, message: "Informations mises à jour." };
+  });
+
+const parentChildNameSchema = z.object({
+  studentId: z.string().min(1),
+  nom: z.string().trim().min(1, "Nom requis").max(120),
+  postnom: z.string().trim().max(120),
+  prenom: z.string().trim().max(120),
+});
+
+const parentSelfIdentitySchema = z.object({
+  studentId: z.string().min(1),
+  nom: z.string().trim().min(1, "Nom requis").max(120),
+  postnom: z.string().trim().max(120),
+  prenom: z.string().trim().max(120),
+  telephone: z.string().trim().max(40),
+  email: z.union([
+    z.literal(""),
+    z.string().trim().email("Adresse email invalide"),
+  ]),
+  address: z.string().trim().max(300),
+  profession: z.string().trim().max(200),
+  tuteurNom: z.string().trim().max(200),
+  adresseTuteur: z.string().trim().max(300),
+});
+
+async function findLinkedParentChild(input: {
+  studentId: string;
+  branchId: string;
+  organizationId: string;
+  userId: string;
+}) {
+  return prisma.student.findFirst({
+    where: {
+      id: input.studentId,
+      branchMember: {
+        branchId: input.branchId,
+        member: { organizationId: input.organizationId },
+      },
+      parent: {
+        branchMember: {
+          branchId: input.branchId,
+          member: {
+            userId: input.userId,
+            organizationId: input.organizationId,
+          },
+        },
+      },
+    },
+    select: {
+      id: true,
+      parentId: true,
+      branchMember: {
+        select: { member: { select: { userId: true } } },
+      },
+      parent: {
+        select: {
+          id: true,
+          branchMember: {
+            select: { member: { select: { userId: true } } },
+          },
+        },
+      },
+    },
+  });
+}
+
+function revalidateFamilyProfilePages(
+  organizationId: string,
+  branchId: string,
+  studentId: string,
+) {
+  revalidateStudentPages(organizationId, branchId);
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}`,
+  );
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/student/${studentId}`,
+  );
+}
+
+/** Parent : nom complet de son enfant uniquement (pas la scolarité). */
+export const updateOwnChildPersonalNameAction = action
+  .input(parentChildNameSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, userId, isParent } =
+      await getCurrentBranch();
+    if (!isParent) {
+      return { ok: false as const, message: "Action non autorisee" };
+    }
+
+    const student = await findLinkedParentChild({
+      studentId: input.studentId,
+      branchId,
+      organizationId,
+      userId,
+    });
+    const childUserId = student?.branchMember?.member?.userId;
+    if (!student || !childUserId) {
+      return { ok: false as const, message: "Élève introuvable." };
+    }
+
+    await prisma.user.update({
+      where: { id: childUserId },
+      data: {
+        name: input.nom,
+        postnom: input.postnom || null,
+        prenom: input.prenom || null,
+      },
+    });
+
+    revalidateFamilyProfilePages(organizationId, branchId, student.id);
+    return { ok: true as const, message: "Nom de l'enfant mis à jour." };
+  });
+
+/** Parent : ses propres infos personnelles / tuteur (pas la scolarité). */
+export const updateOwnParentPersonalInfoAction = action
+  .input(parentSelfIdentitySchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, userId, isParent } =
+      await getCurrentBranch();
+    if (!isParent) {
+      return { ok: false as const, message: "Action non autorisee" };
+    }
+
+    const student = await findLinkedParentChild({
+      studentId: input.studentId,
+      branchId,
+      organizationId,
+      userId,
+    });
+    const parentUserId = student?.parent?.branchMember?.member?.userId;
+    if (!student || !parentUserId || !student.parentId) {
+      return { ok: false as const, message: "Parent introuvable." };
+    }
+
+    await prisma.user.update({
+      where: { id: parentUserId },
+      data: {
+        name: input.nom,
+        postnom: input.postnom || null,
+        prenom: input.prenom || null,
+        telephone: input.telephone || null,
+        email: input.email.trim().toLowerCase() || null,
+        address: input.address || null,
+      },
+    });
+
+    await prisma.parent.update({
+      where: { id: student.parentId },
+      data: {
+        profession: input.profession.trim() || null,
+        tuteurNom: input.tuteurNom.trim() || null,
+        adresseTuteur: input.adresseTuteur.trim() || null,
+      },
+    });
+
+    revalidateFamilyProfilePages(organizationId, branchId, student.id);
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/parent`,
+    );
+    return { ok: true as const, message: "Informations parent / tuteur mises à jour." };
   });
 
 /* ======================================================

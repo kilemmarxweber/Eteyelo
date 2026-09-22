@@ -30,6 +30,9 @@ import type {
   AttendanceStatus,
   AttendanceSubjectType,
 } from "@/prisma/generated/prisma/client";
+import { MAX_ABSENCE_JUSTIFICATION_IMAGES } from "@/lib/absence-justification-shared";
+
+export { MAX_ABSENCE_JUSTIFICATION_IMAGES };
 
 export const ABSENCE_GRACE_MINUTES = 15;
 const DASHBOARD_SIGNAL_INTERVAL_MS = 2 * 60 * 1000;
@@ -71,10 +74,17 @@ export type AbsenceCaseView = {
   occurredOn: string;
   personName: string;
   justification: string | null;
+  justificationImageUrls: string[];
   reviewComment: string | null;
+  reviewerName: string | null;
   justifiedAt: string | null;
   reviewedAt: string | null;
 };
+
+const absenceCaseViewInclude = {
+  user: { select: userContactSelect },
+  reviewedBy: { select: userContactSelect },
+} as const;
 
 function formatPersonName(user: UserContact | null | undefined) {
   if (!user) return "Utilisateur";
@@ -990,7 +1000,7 @@ export async function ensureTeacherAttendanceAbsenceCase(params: {
       branchId: params.branchId,
     },
     include: {
-      absenceCase: { include: { user: { select: userContactSelect } } },
+      absenceCase: { include: absenceCaseViewInclude },
       session: {
         include: {
           teaching: {
@@ -1058,7 +1068,7 @@ export async function ensureTeacherAttendanceAbsenceCase(params: {
       branchId: params.branchId,
       teacherAttendanceId: attendance.id,
     },
-    include: { user: { select: userContactSelect } },
+    include: absenceCaseViewInclude,
   });
   if (!opened) {
     throw new Error("Impossible d'ouvrir le dossier d'absence.");
@@ -1071,12 +1081,14 @@ export async function submitAbsenceJustification(params: {
   userId: string;
   branchId: string;
   justification: string;
+  imageUrls?: string[];
   canManageTeachers?: boolean;
 }) {
   const text = params.justification.trim();
   if (text.length < 8) {
     throw new Error("Expliquez le motif de l'absence (au moins 8 caractères).");
   }
+  const imageUrls = normalizeJustificationImageUrls(params.imageUrls);
 
   const parentStudentIds = await getStudentIdsForParentUser(params.userId);
   const caseRow = await prisma.absenceCase.findFirst({
@@ -1109,6 +1121,7 @@ export async function submitAbsenceJustification(params: {
     data: {
       status: "PENDING_REVIEW",
       justification: text,
+      justificationImageUrls: imageUrls,
       justifiedAt: nowLocal(),
     },
     include: {
@@ -1320,8 +1333,33 @@ function toIsoDate(value: Date | string | null | undefined) {
   }
 }
 
+function normalizeJustificationImageUrls(urls: string[] | undefined) {
+  const unique = [
+    ...new Set((urls ?? []).map((url) => url.trim()).filter(Boolean)),
+  ];
+  if (unique.length > MAX_ABSENCE_JUSTIFICATION_IMAGES) {
+    throw new Error(
+      `Cinq images maximum (${MAX_ABSENCE_JUSTIFICATION_IMAGES}).`,
+    );
+  }
+  for (const url of unique) {
+    const ok =
+      url.startsWith("/uploads/") ||
+      url.startsWith("https://") ||
+      url.startsWith("http://");
+    if (!ok) {
+      throw new Error("Image de preuve invalide.");
+    }
+  }
+  return unique;
+}
+
 function toView(
-  row: AbsenceCase & { user?: UserContact | null },
+  row: AbsenceCase & {
+    user?: UserContact | null;
+    reviewedBy?: UserContact | null;
+    justificationImageUrls?: string[];
+  },
 ): AbsenceCaseView {
   return {
     id: row.id,
@@ -1331,7 +1369,9 @@ function toView(
     occurredOn: toIsoDate(row.occurredOn) ?? new Date(0).toISOString(),
     personName: formatPersonName(row.user),
     justification: row.justification,
+    justificationImageUrls: row.justificationImageUrls ?? [],
     reviewComment: row.reviewComment,
+    reviewerName: row.reviewedBy ? formatPersonName(row.reviewedBy) : null,
     justifiedAt: toIsoDate(row.justifiedAt),
     reviewedAt: toIsoDate(row.reviewedAt),
   };
@@ -1364,9 +1404,26 @@ export async function listMyAbsenceCases(params: {
         },
       ],
     },
-    include: { user: { select: userContactSelect } },
+    include: absenceCaseViewInclude,
     orderBy: { occurredOn: "desc" },
     take: 20,
+  });
+  return rows.map(toView);
+}
+
+export async function listStudentAbsenceCases(params: {
+  branchId: string;
+  studentId: string;
+}): Promise<AbsenceCaseView[]> {
+  const rows = await prisma.absenceCase.findMany({
+    where: {
+      branchId: params.branchId,
+      studentId: params.studentId,
+      subjectType: "STUDENT",
+    },
+    include: absenceCaseViewInclude,
+    orderBy: { occurredOn: "desc" },
+    take: 50,
   });
   return rows.map(toView);
 }
@@ -1376,7 +1433,7 @@ export async function listPendingAbsenceReviews(params: {
 }): Promise<AbsenceCaseView[]> {
   const rows = await prisma.absenceCase.findMany({
     where: { branchId: params.branchId, status: "PENDING_REVIEW" },
-    include: { user: { select: userContactSelect } },
+    include: absenceCaseViewInclude,
     orderBy: { justifiedAt: "desc" },
     take: 30,
   });
@@ -1407,7 +1464,7 @@ export async function getAbsenceCaseForUser(params: {
             ],
           }),
     },
-    include: { user: { select: userContactSelect } },
+    include: absenceCaseViewInclude,
   });
   return row ? toView(row) : null;
 }
@@ -1426,7 +1483,7 @@ export async function listUnreadAppNotifications(params: {
     },
     include: {
       absenceCase: {
-        include: { user: { select: userContactSelect } },
+        include: absenceCaseViewInclude,
       },
       gradeModificationRequest: {
         select: {

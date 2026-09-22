@@ -464,6 +464,38 @@ const ALWAYS_VISIBLE_BRANCH_HREFS = new Set([
   "/admin/settings",
 ]);
 
+/** Menus admin inutiles au foyer (parent / élève) — même avec student:read DAC. */
+const FAMILY_SELF_SCOPED_HIDDEN_HREFS = new Set([
+  "/admin/ma-presence",
+  "/admin/student",
+  "/admin/personnel",
+  "/admin/teacher",
+  "/admin/parent",
+  "/admin/cours",
+  "/admin/coursPonderationOption",
+  "/admin/teaching",
+  "/admin/creneau",
+  "/admin/schedule",
+  "/admin/teacher/horaire-global",
+]);
+
+const FAMILY_SELF_SCOPED_HIDDEN_TITLES = new Set([
+  "users",
+  "teaching",
+  "myPresence",
+]);
+
+function isFamilySelfScopedMenuRoles(roles: string[]) {
+  const isFamily =
+    PARENT_ROLES.some((role) => roles.includes(role)) ||
+    STUDENT_ROLES.some((role) => roles.includes(role));
+  if (!isFamily) return false;
+  if (roles.some((role) => SCHOOL_ADMIN_ROLES.includes(role))) return false;
+  if (roles.some((role) => TEACHER_ROLES.includes(role))) return false;
+  if (roles.some((role) => CAISSIER_ROLES.includes(role))) return false;
+  return true;
+}
+
 function canSeeMenu(menu: StaticMenuItem, roles: string[]) {
   if (menu.roles.includes("*")) return true;
   return menu.roles.some((role) => roles.includes(role));
@@ -535,6 +567,14 @@ function mapMenuItem(
   if (item.sub?.length && !sub?.length) return null;
 
   if (
+    isFamilySelfScopedMenuRoles(roles) &&
+    (FAMILY_SELF_SCOPED_HIDDEN_TITLES.has(item.title) ||
+      FAMILY_SELF_SCOPED_HIDDEN_HREFS.has(item.href))
+  ) {
+    return null;
+  }
+
+  if (
     isOwnerGatedSidebarHref(item.href) &&
     !isCanonicalOrganizationOwnerSession(session)
   ) {
@@ -553,7 +593,13 @@ function mapMenuItem(
     } else if (item.sub?.length) {
       // Groupe avec href réel (ex. /admin/settings) : visible si au moins un enfant l'est.
     } else if (ALWAYS_VISIBLE_BRANCH_HREFS.has(item.href)) {
-      // Toujours visible (dashboard, aide, ma présence).
+      // Dashboard / aide / paramètres. Ma présence : staff seulement.
+      if (
+        item.href === "/admin/ma-presence" &&
+        !canSeeMenu(item, roles)
+      ) {
+        return null;
+      }
     } else if (!isDacMappedHref(item.href)) {
       return null;
     } else if (hideHrefs?.has(item.href)) {

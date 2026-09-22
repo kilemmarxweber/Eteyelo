@@ -17,9 +17,12 @@ import {
   canAccessSchoolStructureSettings,
   canAccessSupportSettings,
   canAccessTitulaireFichesArea,
+  canManageOrganization,
+  hasSessionRole,
   isCanonicalOrganizationOwnerSession,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
+import { ORG_ROLE } from "@/lib/permissions";
 import { areaRequiresClassTitulaire } from "@/lib/auth/titulaire-teaching";
 import {
   grantsCoverBranchArea,
@@ -174,7 +177,10 @@ export async function getSidebarPermissionFlagsAction(
     }
 
     return {
-      hideHrefs: await hideMessagingIfDisabled(organizationId, hideHrefs),
+      hideHrefs: await hideMessagingIfDisabled(
+        organizationId,
+        hideFamilySelfScopedHrefs(session, hideHrefs),
+      ),
       settingsReads,
       inscriptionRead: !hideHrefs.includes("/admin/registration"),
       dacStrictMenu: true,
@@ -200,12 +206,47 @@ export async function getSidebarPermissionFlagsAction(
   return {
     hideHrefs: await hideMessagingIfDisabled(
       organizationId,
-      canAccessRegistrationArea(session) ? [] : ["/admin/registration"],
+      hideFamilySelfScopedHrefs(
+        session,
+        canAccessRegistrationArea(session) ? [] : ["/admin/registration"],
+      ),
     ),
     settingsReads,
     inscriptionRead: canAccessRegistrationArea(session),
     dacStrictMenu: false,
   };
+}
+
+const FAMILY_SELF_SCOPED_HIDDEN_HREFS = [
+  "/admin/student",
+  "/admin/personnel",
+  "/admin/teacher",
+  "/admin/parent",
+  "/admin/cours",
+  "/admin/coursPonderationOption",
+  "/admin/teaching",
+  "/admin/creneau",
+  "/admin/schedule",
+  "/admin/teacher/horaire-global",
+] as const;
+
+function hideFamilySelfScopedHrefs(session: unknown, hideHrefs: string[]) {
+  if (canManageOrganization(session)) return hideHrefs;
+  if (
+    !hasSessionRole(session, [
+      ORG_ROLE.PARENT,
+      ORG_ROLE.STUDENT,
+      "PARENT",
+      "STUDENT",
+      "parent",
+      "student",
+    ])
+  ) {
+    return hideHrefs;
+  }
+  const next = new Set(hideHrefs);
+  for (const href of FAMILY_SELF_SCOPED_HIDDEN_HREFS) next.add(href);
+  return [...next];
 }
 
 async function hideMessagingIfDisabled(

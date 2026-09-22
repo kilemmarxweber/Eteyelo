@@ -2,6 +2,7 @@ import {
   seedOrganizationRolePresets,
   syncStaleLeadershipRolePresets,
   syncStaleTeacherRolePreset,
+  syncStaleParentRolePreset,
   syncPayrollPrivilegeDefaults,
   ensureAttendanceSchoolReports,
 } from "@/lib/auth/seed-organization-roles";
@@ -31,6 +32,7 @@ export async function fetchOrganizationRoleStatements(
   } else {
     await syncStaleLeadershipRolePresets(organizationId);
     await syncStaleTeacherRolePreset(organizationId);
+    await syncStaleParentRolePreset(organizationId);
     await syncPayrollPrivilegeDefaults(organizationId);
     await ensureAttendanceSchoolReports(organizationId);
   }

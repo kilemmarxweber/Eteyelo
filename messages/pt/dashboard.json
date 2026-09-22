@@ -213,6 +213,12 @@
     "open": "A justificar",
     "pending": "Em análise",
     "accepted": "Aceite · regresso",
-    "rejected": "Recusada"
+    "rejected": "Recusada",
+    "noCases": "Nenhuma falta a justificar neste momento.",
+    "proofImages": "Provas (imagens)",
+    "addProof": "Adicionar imagens",
+    "maxProof": "{count}/{max} imagens",
+    "superiorResponse": "Resposta do superior",
+    "acceptedBy": "Aceite por {name}"
   }
 }

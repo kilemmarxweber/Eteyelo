@@ -213,6 +213,12 @@
     "open": "À justifier",
     "pending": "En examen",
     "accepted": "Acceptée · retour",
-    "rejected": "Refusée"
+    "rejected": "Refusée",
+    "noCases": "Aucune absence à justifier pour le moment.",
+    "proofImages": "Preuves (images)",
+    "addProof": "Ajouter des images",
+    "maxProof": "{count}/{max} images",
+    "superiorResponse": "Réponse du supérieur",
+    "acceptedBy": "Acceptée par {name}"
   }
 }

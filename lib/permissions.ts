@@ -563,12 +563,16 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     library: ["read"],
     schedule: ["read"],
   },
+  /**
+   * Parent : lecture scoped (enfants) — résultats.
+   * Pas d’annuaire RH / enseignement / horaire admin / inscription
+   * (`withActions` ouvrait Utilisateurs + Enseignement via DAC).
+   */
   [ORG_ROLE.PARENT]: {
     ...organizationPluginMemberAc.statements,
-    ...withActions(READ_ACTIONS),
+    ac: [],
     student: ["read"],
     results: ["read"],
-    schedule: ["read"],
   },
   [ORG_ROLE.SUPPORT]: {
     ...organizationPluginMemberAc.statements,

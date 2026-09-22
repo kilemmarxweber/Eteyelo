@@ -16,6 +16,7 @@ import {
   Megaphone,
   Phone,
   Printer,
+  ShieldCheck,
   UserRound,
   Users,
 } from "lucide-react";
@@ -35,9 +36,15 @@ import { StudentDocumentsSection } from "./student-documents-section";
 import { StudentScheduleSection } from "./student-schedule-section";
 import { StudentAnnouncementsSection } from "./student-announcements-section";
 import { StudentPresenceSection } from "./student-presence-section";
+import { StudentJustificationSection } from "./student-justification-section";
 import { StudentPhotoAvatar } from "./student-photo-avatar";
 import { StudentPhotoUploadInput } from "./student-photo-upload-input";
 import { useStudentPhotoUpload } from "./use-student-photo-upload";
+import {
+  EditChildNameForm,
+  EditGuardianInfoForm,
+  guardianFormValuesFromProfile,
+} from "./family-identity-forms";
 import { RegistrationExtraInfoSheet } from "@/components/registration-extra-info-sheet";
 import { updateStudentExtraInfoAction } from "../../student.action";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
@@ -134,6 +141,7 @@ function ProfileSectionCard({
   title,
   subtitle,
   icon,
+  action,
   children,
   className,
 }: {
@@ -141,6 +149,7 @@ function ProfileSectionCard({
   title: string;
   subtitle?: string;
   icon: React.ReactNode;
+  action?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -156,7 +165,8 @@ function ProfileSectionCard({
       )}
     >
       <div className={cn("border-b px-4 py-3", styles.headerBg, styles.headerBorder)}>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-start justify-between gap-2.5">
+          <div className="flex min-w-0 items-center gap-2.5">
           <div
             className={cn(
               "flex size-9 shrink-0 items-center justify-center rounded-lg shadow-sm",
@@ -172,6 +182,8 @@ function ProfileSectionCard({
               <p className="truncate text-xs text-foreground/70">{subtitle}</p>
             ) : null}
           </div>
+          </div>
+          {action ? <div className="shrink-0">{action}</div> : null}
         </div>
       </div>
       <div className="p-4">{children}</div>
@@ -374,8 +386,8 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
       <Tabs value={tab} onValueChange={setTab} className="space-y-4">
         <TabsList
           className={cn(
-            "sticky top-0 z-10 grid h-auto w-full grid-cols-2 gap-1 rounded-lg border border-primary/20 bg-primary/10 p-1 sm:grid-cols-3",
-            profile.canViewFinance ? "xl:grid-cols-6" : "xl:grid-cols-5",
+            "sticky top-0 z-10 grid h-auto w-full grid-cols-2 gap-1 rounded-lg border border-primary/20 bg-primary/10 p-1 sm:grid-cols-4",
+            profile.canViewFinance ? "xl:grid-cols-7" : "xl:grid-cols-6",
           )}
         >
             <TabsTrigger
@@ -416,6 +428,13 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
               {t("tabPresence")}
             </TabsTrigger>
             <TabsTrigger
+              value="justifications"
+              className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+            >
+              <ShieldCheck className="size-4" />
+              {t("tabJustifications")}
+            </TabsTrigger>
+            <TabsTrigger
               value="documents"
               className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
             >
@@ -432,6 +451,18 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                       title={t("personalInfo")}
                       subtitle={t("personalSubtitle")}
                       icon={<UserRound className="size-4" />}
+                      action={
+                        profile.canEditFamilyPersonalInfo ? (
+                          <EditChildNameForm
+                            studentId={profile.studentId}
+                            initialValues={{
+                              nom: profile.nom,
+                              postnom: profile.postnom,
+                              prenom: profile.prenom,
+                            }}
+                          />
+                        ) : null
+                      }
                       className="h-full"
                     >
                       <div className="grid gap-3 sm:grid-cols-2">
@@ -595,6 +626,14 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                     title={t("guardian")}
                     subtitle={t("guardianSubtitle")}
                     icon={<Users className="size-4" />}
+                    action={
+                      profile.canEditFamilyPersonalInfo ? (
+                        <EditGuardianInfoForm
+                          studentId={profile.studentId}
+                          initialValues={guardianFormValuesFromProfile(profile)}
+                        />
+                      ) : null
+                    }
                   >
                     <div className={cn("mb-4", SECTION_VARIANTS.guardian.highlightBox)}>
                       <p
@@ -821,6 +860,10 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
 
             <TabsContent value="presence" className="mt-0">
               <StudentPresenceSection studentId={profile.studentId} />
+            </TabsContent>
+
+            <TabsContent value="justifications" className="mt-0">
+              <StudentJustificationSection studentId={profile.studentId} />
             </TabsContent>
 
             <TabsContent value="documents" className="mt-0">

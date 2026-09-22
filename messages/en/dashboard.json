@@ -213,6 +213,12 @@
     "open": "To justify",
     "pending": "Under review",
     "accepted": "Accepted · return",
-    "rejected": "Rejected"
+    "rejected": "Rejected",
+    "noCases": "No absences to justify right now.",
+    "proofImages": "Proof (images)",
+    "addProof": "Add images",
+    "maxProof": "{count}/{max} images",
+    "superiorResponse": "Supervisor reply",
+    "acceptedBy": "Accepted by {name}"
   }
 }

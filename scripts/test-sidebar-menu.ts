@@ -137,6 +137,54 @@ test("parent : dashboard + results — pas grades/schedule/homework/library / fi
   );
 });
 
+test("DAC parent : pas Enseignement / Utilisateurs / Ma présence", () => {
+  const prev = process.env.PERMISSIONS_FROM_DAC;
+  process.env.PERMISSIONS_FROM_DAC = "true";
+  try {
+    const session = sessionWithOrgRole(ORG_ROLE.PARENT);
+    const hideHrefs = Object.entries(SIDEBAR_HREF_BRANCH_AREA)
+      .filter(
+        ([, area]) => !canAccessBranchAreaFromPermissions(area, session),
+      )
+      .map(([href]) => href);
+    const titles = buildStaticSideLinks(
+      session,
+      BRANCH_PATH,
+      "PRIMAIRE",
+      undefined,
+      { hideHrefs, dacReady: true, dacStrictMenu: true },
+    ).map((item) => item.title);
+
+    assertIncludes(titles, ["dashboard", "cursus", "help"], "parent DAC");
+    assertExcludes(
+      titles,
+      [
+        "users",
+        "teaching",
+        "myPresence",
+        "classes",
+        "registration",
+        "finance",
+        "attendance",
+      ],
+      "parent DAC",
+    );
+    assert.equal(
+      canAccessBranchAreaFromPermissions("teaching", session),
+      false,
+      "parent sans teaching:read",
+    );
+    assert.equal(
+      canAccessBranchAreaFromPermissions("schedule", session),
+      false,
+      "parent sans schedule:read",
+    );
+  } finally {
+    if (prev == null) delete process.env.PERMISSIONS_FROM_DAC;
+    else process.env.PERMISSIONS_FROM_DAC = prev;
+  }
+});
+
 test("enseignant : pas teaching / users / finance par défaut ; cursus grades/results/library", () => {
   const session = sessionWithOrgRole(ORG_ROLE.TEACHER);
   const titles = menuTitles(session);

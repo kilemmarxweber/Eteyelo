@@ -187,6 +187,53 @@ export async function syncStaleTeacherRolePreset(
   return updated;
 }
 
+/** Ancien preset parent : `withActions(READ)` ouvrait RH / enseignement / inscription. */
+function hasOldParentBroadRead(permission: Record<string, string[]>): boolean {
+  return (
+    (permission.teacher?.includes("read") ?? false) ||
+    (permission.personnel?.includes("read") ?? false) ||
+    (permission.teaching?.includes("read") ?? false) ||
+    (permission.ac?.includes("read") ?? false) ||
+    (permission.inscription?.includes("read") ?? false) ||
+    (permission.schedule?.includes("read") ?? false)
+  );
+}
+
+/**
+ * Réaligne le preset système parent s'il ouvre encore Utilisateurs /
+ * Enseignement / Ma présence (matrice large héritée de `withActions`).
+ */
+export async function syncStaleParentRolePreset(
+  organizationId: string,
+): Promise<number> {
+  const seed = getOrgRolePresetSeedRows().find(
+    (row) => row.slug === ORG_ROLE.PARENT,
+  );
+  if (!seed) return 0;
+
+  const rows = await prisma.organizationRole.findMany({
+    where: {
+      organizationId,
+      role: ORG_ROLE.PARENT,
+      isSystem: true,
+    },
+    select: { id: true, permission: true },
+  });
+
+  let updated = 0;
+  for (const row of rows) {
+    const permission = parsePermissionJson(row.permission);
+    if (!hasOldParentBroadRead(permission)) continue;
+
+    await prisma.organizationRole.update({
+      where: { id: row.id },
+      data: { permission: seed.permission },
+    });
+    updated += 1;
+  }
+  return updated;
+}
+
 /**
  * Paie : plus d’accès staff par défaut (seed).
  * Gestionnaire : l’ancien bulletin `read` seul devient la paie complète.

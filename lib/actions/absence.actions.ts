@@ -11,11 +11,13 @@ import {
   getAbsenceCaseForUser,
   listMyAbsenceCases,
   listPendingAbsenceReviews,
+  listStudentAbsenceCases,
   listUnreadAppNotifications,
   markAppNotificationRead,
   reviewAbsenceJustification,
   signalEndedAbsencesForBranchDebounced,
   submitAbsenceJustification,
+  MAX_ABSENCE_JUSTIFICATION_IMAGES,
 } from "@/lib/attendance-absence";
 
 function formatPersonName(user: {
@@ -93,7 +95,12 @@ export const getAbsenceInboxAction = action.handler(async () => {
                 occurredOn,
                 personName: formatPersonName(row.absenceCase.user),
                 justification: row.absenceCase.justification,
+                justificationImageUrls:
+                  row.absenceCase.justificationImageUrls ?? [],
                 reviewComment: row.absenceCase.reviewComment,
+                reviewerName: row.absenceCase.reviewedBy
+                  ? formatPersonName(row.absenceCase.reviewedBy)
+                  : null,
                 justifiedAt: toIso(row.absenceCase.justifiedAt),
                 reviewedAt: toIso(row.absenceCase.reviewedAt),
               }
@@ -155,11 +162,64 @@ export const ensureTeacherAttendanceAbsenceCaseAction = action
     });
   });
 
+export const getStudentAbsenceCasesAction = action
+  .input(z.object({ studentId: z.string().min(1) }))
+  .handler(async ({ input }) => {
+    const { branchId, userId, session, organizationId } =
+      await requireBranchContext();
+    const { assertStudentReadableInBranch } = await import(
+      "@/lib/auth/data-scope"
+    );
+    await assertStudentReadableInBranch({
+      session,
+      userId,
+      branchId,
+      studentId: input.studentId,
+    });
+
+    const member = await prisma.branchMember.findFirst({
+      where: { branchId, member: { userId, organizationId } },
+      select: { role: true },
+    });
+    const canReview = canReviewAbsenceJustifications(session, member?.role);
+    const parentStudentIds = await prisma.parent.findMany({
+      where: { branchMember: { member: { userId } } },
+      select: { students: { select: { id: true } } },
+    });
+    const childIds = new Set(
+      parentStudentIds.flatMap((parent) =>
+        parent.students.map((student) => student.id),
+      ),
+    );
+    const student = await prisma.student.findFirst({
+      where: { id: input.studentId, branchMember: { branchId } },
+      select: {
+        branchMember: { select: { member: { select: { userId: true } } } },
+      },
+    });
+    const isSelf = student?.branchMember?.member?.userId === userId;
+    const isParent = childIds.has(input.studentId);
+    const cases = await listStudentAbsenceCases({
+      branchId,
+      studentId: input.studentId,
+    });
+
+    return {
+      canJustify: isParent || isSelf,
+      canReview,
+      cases,
+    };
+  });
+
 export const submitAbsenceJustificationAction = action
   .input(
     z.object({
       caseId: z.string().min(1),
       justification: z.string().trim().min(8).max(2000),
+      imageUrls: z
+        .array(z.string().trim().min(1).max(500))
+        .max(MAX_ABSENCE_JUSTIFICATION_IMAGES)
+        .optional(),
     }),
   )
   .handler(async ({ input }) => {
@@ -176,6 +236,7 @@ export const submitAbsenceJustificationAction = action
       userId,
       branchId,
       justification: input.justification,
+      imageUrls: input.imageUrls,
       canManageTeachers: pedagogyFlags.canWrite,
     });
     return { ok: true };

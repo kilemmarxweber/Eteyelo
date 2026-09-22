@@ -98,6 +98,7 @@ export type AbsenceCaseCountAggregateOutputType = {
   contextLabel: number
   status: number
   justification: number
+  justificationImageUrls: number
   justifiedAt: number
   reviewComment: number
   reviewedById: number
@@ -184,6 +185,7 @@ export type AbsenceCaseCountAggregateInputType = {
   contextLabel?: true
   status?: true
   justification?: true
+  justificationImageUrls?: true
   justifiedAt?: true
   reviewComment?: true
   reviewedById?: true
@@ -285,6 +287,7 @@ export type AbsenceCaseGroupByOutputType = {
   contextLabel: string
   status: $Enums.AbsenceCaseStatus
   justification: string | null
+  justificationImageUrls: string[]
   justifiedAt: Date | null
   reviewComment: string | null
   reviewedById: string | null
@@ -334,6 +337,7 @@ export type AbsenceCaseWhereInput = {
   contextLabel?: Prisma.StringFilter<"AbsenceCase"> | string
   status?: Prisma.EnumAbsenceCaseStatusFilter<"AbsenceCase"> | $Enums.AbsenceCaseStatus
   justification?: Prisma.StringNullableFilter<"AbsenceCase"> | string | null
+  justificationImageUrls?: Prisma.StringNullableListFilter<"AbsenceCase">
   justifiedAt?: Prisma.DateTimeNullableFilter<"AbsenceCase"> | Date | string | null
   reviewComment?: Prisma.StringNullableFilter<"AbsenceCase"> | string | null
   reviewedById?: Prisma.StringNullableFilter<"AbsenceCase"> | string | null
@@ -369,6 +373,7 @@ export type AbsenceCaseOrderByWithRelationInput = {
   contextLabel?: Prisma.SortOrder
   status?: Prisma.SortOrder
   justification?: Prisma.SortOrderInput | Prisma.SortOrder
+  justificationImageUrls?: Prisma.SortOrder
   justifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewComment?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewedById?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -408,6 +413,7 @@ export type AbsenceCaseWhereUniqueInput = Prisma.AtLeast<{
   contextLabel?: Prisma.StringFilter<"AbsenceCase"> | string
   status?: Prisma.EnumAbsenceCaseStatusFilter<"AbsenceCase"> | $Enums.AbsenceCaseStatus
   justification?: Prisma.StringNullableFilter<"AbsenceCase"> | string | null
+  justificationImageUrls?: Prisma.StringNullableListFilter<"AbsenceCase">
   justifiedAt?: Prisma.DateTimeNullableFilter<"AbsenceCase"> | Date | string | null
   reviewComment?: Prisma.StringNullableFilter<"AbsenceCase"> | string | null
   reviewedById?: Prisma.StringNullableFilter<"AbsenceCase"> | string | null
@@ -443,6 +449,7 @@ export type AbsenceCaseOrderByWithAggregationInput = {
   contextLabel?: Prisma.SortOrder
   status?: Prisma.SortOrder
   justification?: Prisma.SortOrderInput | Prisma.SortOrder
+  justificationImageUrls?: Prisma.SortOrder
   justifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewComment?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewedById?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -477,6 +484,7 @@ export type AbsenceCaseScalarWhereWithAggregatesInput = {
   contextLabel?: Prisma.StringWithAggregatesFilter<"AbsenceCase"> | string
   status?: Prisma.EnumAbsenceCaseStatusWithAggregatesFilter<"AbsenceCase"> | $Enums.AbsenceCaseStatus
   justification?: Prisma.StringNullableWithAggregatesFilter<"AbsenceCase"> | string | null
+  justificationImageUrls?: Prisma.StringNullableListFilter<"AbsenceCase">
   justifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AbsenceCase"> | Date | string | null
   reviewComment?: Prisma.StringNullableWithAggregatesFilter<"AbsenceCase"> | string | null
   reviewedById?: Prisma.StringNullableWithAggregatesFilter<"AbsenceCase"> | string | null
@@ -500,6 +508,7 @@ export type AbsenceCaseCreateInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedAt?: Date | string | null
@@ -534,6 +543,7 @@ export type AbsenceCaseUncheckedCreateInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedById?: string | null
@@ -558,6 +568,7 @@ export type AbsenceCaseUpdateInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -592,6 +603,7 @@ export type AbsenceCaseUncheckedUpdateInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -621,6 +633,7 @@ export type AbsenceCaseCreateManyInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedById?: string | null
@@ -644,6 +657,7 @@ export type AbsenceCaseUpdateManyMutationInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -671,6 +685,7 @@ export type AbsenceCaseUncheckedUpdateManyInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -719,6 +734,7 @@ export type AbsenceCaseCountOrderByAggregateInput = {
   contextLabel?: Prisma.SortOrder
   status?: Prisma.SortOrder
   justification?: Prisma.SortOrder
+  justificationImageUrls?: Prisma.SortOrder
   justifiedAt?: Prisma.SortOrder
   reviewComment?: Prisma.SortOrder
   reviewedById?: Prisma.SortOrder
@@ -965,12 +981,21 @@ export type AbsenceCaseUncheckedUpdateOneWithoutPersonnelAttendanceNestedInput =
   update?: Prisma.XOR<Prisma.XOR<Prisma.AbsenceCaseUpdateToOneWithWhereWithoutPersonnelAttendanceInput, Prisma.AbsenceCaseUpdateWithoutPersonnelAttendanceInput>, Prisma.AbsenceCaseUncheckedUpdateWithoutPersonnelAttendanceInput>
 }
 
+export type AbsenceCaseCreatejustificationImageUrlsInput = {
+  set: string[]
+}
+
 export type EnumAttendanceSubjectTypeFieldUpdateOperationsInput = {
   set?: $Enums.AttendanceSubjectType
 }
 
 export type EnumAbsenceCaseStatusFieldUpdateOperationsInput = {
   set?: $Enums.AbsenceCaseStatus
+}
+
+export type AbsenceCaseUpdatejustificationImageUrlsInput = {
+  set?: string[]
+  push?: string | string[]
 }
 
 export type AbsenceCaseCreateNestedOneWithoutNotificationsInput = {
@@ -1044,6 +1069,7 @@ export type AbsenceCaseCreateWithoutUserInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedAt?: Date | string | null
@@ -1076,6 +1102,7 @@ export type AbsenceCaseUncheckedCreateWithoutUserInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedById?: string | null
@@ -1110,6 +1137,7 @@ export type AbsenceCaseCreateWithoutReviewedByInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedAt?: Date | string | null
@@ -1143,6 +1171,7 @@ export type AbsenceCaseUncheckedCreateWithoutReviewedByInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedAt?: Date | string | null
@@ -1200,6 +1229,7 @@ export type AbsenceCaseScalarWhereInput = {
   contextLabel?: Prisma.StringFilter<"AbsenceCase"> | string
   status?: Prisma.EnumAbsenceCaseStatusFilter<"AbsenceCase"> | $Enums.AbsenceCaseStatus
   justification?: Prisma.StringNullableFilter<"AbsenceCase"> | string | null
+  justificationImageUrls?: Prisma.StringNullableListFilter<"AbsenceCase">
   justifiedAt?: Prisma.DateTimeNullableFilter<"AbsenceCase"> | Date | string | null
   reviewComment?: Prisma.StringNullableFilter<"AbsenceCase"> | string | null
   reviewedById?: Prisma.StringNullableFilter<"AbsenceCase"> | string | null
@@ -1239,6 +1269,7 @@ export type AbsenceCaseCreateWithoutStudentAttendanceInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedAt?: Date | string | null
@@ -1271,6 +1302,7 @@ export type AbsenceCaseUncheckedCreateWithoutStudentAttendanceInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedById?: string | null
@@ -1311,6 +1343,7 @@ export type AbsenceCaseUpdateWithoutStudentAttendanceInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1343,6 +1376,7 @@ export type AbsenceCaseUncheckedUpdateWithoutStudentAttendanceInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1367,6 +1401,7 @@ export type AbsenceCaseCreateWithoutTeacherAttendanceInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedAt?: Date | string | null
@@ -1399,6 +1434,7 @@ export type AbsenceCaseUncheckedCreateWithoutTeacherAttendanceInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedById?: string | null
@@ -1439,6 +1475,7 @@ export type AbsenceCaseUpdateWithoutTeacherAttendanceInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1471,6 +1508,7 @@ export type AbsenceCaseUncheckedUpdateWithoutTeacherAttendanceInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1495,6 +1533,7 @@ export type AbsenceCaseCreateWithoutPersonnelAttendanceInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedAt?: Date | string | null
@@ -1527,6 +1566,7 @@ export type AbsenceCaseUncheckedCreateWithoutPersonnelAttendanceInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedById?: string | null
@@ -1567,6 +1607,7 @@ export type AbsenceCaseUpdateWithoutPersonnelAttendanceInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1599,6 +1640,7 @@ export type AbsenceCaseUncheckedUpdateWithoutPersonnelAttendanceInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1623,6 +1665,7 @@ export type AbsenceCaseCreateWithoutNotificationsInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedAt?: Date | string | null
@@ -1656,6 +1699,7 @@ export type AbsenceCaseUncheckedCreateWithoutNotificationsInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedById?: string | null
@@ -1695,6 +1739,7 @@ export type AbsenceCaseUpdateWithoutNotificationsInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1728,6 +1773,7 @@ export type AbsenceCaseUncheckedUpdateWithoutNotificationsInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1751,6 +1797,7 @@ export type AbsenceCaseCreateWithoutBranchInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedAt?: Date | string | null
@@ -1783,6 +1830,7 @@ export type AbsenceCaseUncheckedCreateWithoutBranchInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedById?: string | null
@@ -1837,6 +1885,7 @@ export type AbsenceCaseCreateManyUserInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedById?: string | null
@@ -1865,6 +1914,7 @@ export type AbsenceCaseCreateManyReviewedByInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedAt?: Date | string | null
@@ -1887,6 +1937,7 @@ export type AbsenceCaseUpdateWithoutUserInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1919,6 +1970,7 @@ export type AbsenceCaseUncheckedUpdateWithoutUserInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1947,6 +1999,7 @@ export type AbsenceCaseUncheckedUpdateManyWithoutUserInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1970,6 +2023,7 @@ export type AbsenceCaseUpdateWithoutReviewedByInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2003,6 +2057,7 @@ export type AbsenceCaseUncheckedUpdateWithoutReviewedByInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2031,6 +2086,7 @@ export type AbsenceCaseUncheckedUpdateManyWithoutReviewedByInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2057,6 +2113,7 @@ export type AbsenceCaseCreateManyBranchInput = {
   contextLabel: string
   status?: $Enums.AbsenceCaseStatus
   justification?: string | null
+  justificationImageUrls?: Prisma.AbsenceCaseCreatejustificationImageUrlsInput | string[]
   justifiedAt?: Date | string | null
   reviewComment?: string | null
   reviewedById?: string | null
@@ -2080,6 +2137,7 @@ export type AbsenceCaseUpdateWithoutBranchInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2112,6 +2170,7 @@ export type AbsenceCaseUncheckedUpdateWithoutBranchInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2140,6 +2199,7 @@ export type AbsenceCaseUncheckedUpdateManyWithoutBranchInput = {
   contextLabel?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAbsenceCaseStatusFieldUpdateOperationsInput | $Enums.AbsenceCaseStatus
   justification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  justificationImageUrls?: Prisma.AbsenceCaseUpdatejustificationImageUrlsInput | string[]
   justifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2199,6 +2259,7 @@ export type AbsenceCaseSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   contextLabel?: boolean
   status?: boolean
   justification?: boolean
+  justificationImageUrls?: boolean
   justifiedAt?: boolean
   reviewComment?: boolean
   reviewedById?: boolean
@@ -2235,6 +2296,7 @@ export type AbsenceCaseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   contextLabel?: boolean
   status?: boolean
   justification?: boolean
+  justificationImageUrls?: boolean
   justifiedAt?: boolean
   reviewComment?: boolean
   reviewedById?: boolean
@@ -2269,6 +2331,7 @@ export type AbsenceCaseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   contextLabel?: boolean
   status?: boolean
   justification?: boolean
+  justificationImageUrls?: boolean
   justifiedAt?: boolean
   reviewComment?: boolean
   reviewedById?: boolean
@@ -2303,6 +2366,7 @@ export type AbsenceCaseSelectScalar = {
   contextLabel?: boolean
   status?: boolean
   justification?: boolean
+  justificationImageUrls?: boolean
   justifiedAt?: boolean
   reviewComment?: boolean
   reviewedById?: boolean
@@ -2313,7 +2377,7 @@ export type AbsenceCaseSelectScalar = {
   updatedAt?: boolean
 }
 
-export type AbsenceCaseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchId" | "organizationId" | "userId" | "subjectType" | "sourceKey" | "studentId" | "teacherId" | "personnelId" | "sessionId" | "studentAttendanceId" | "teacherAttendanceId" | "personnelAttendanceId" | "occurredOn" | "contextLabel" | "status" | "justification" | "justifiedAt" | "reviewComment" | "reviewedById" | "reviewedAt" | "absenceNotifiedAt" | "returnNotifiedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["absenceCase"]>
+export type AbsenceCaseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchId" | "organizationId" | "userId" | "subjectType" | "sourceKey" | "studentId" | "teacherId" | "personnelId" | "sessionId" | "studentAttendanceId" | "teacherAttendanceId" | "personnelAttendanceId" | "occurredOn" | "contextLabel" | "status" | "justification" | "justificationImageUrls" | "justifiedAt" | "reviewComment" | "reviewedById" | "reviewedAt" | "absenceNotifiedAt" | "returnNotifiedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["absenceCase"]>
 export type AbsenceCaseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -2370,6 +2434,10 @@ export type $AbsenceCasePayload<ExtArgs extends runtime.Types.Extensions.Interna
     contextLabel: string
     status: $Enums.AbsenceCaseStatus
     justification: string | null
+    /**
+     * Preuves visuelles (1 à 5 images) jointes à la justification.
+     */
+    justificationImageUrls: string[]
     justifiedAt: Date | null
     reviewComment: string | null
     reviewedById: string | null
@@ -2825,6 +2893,7 @@ export interface AbsenceCaseFieldRefs {
   readonly contextLabel: Prisma.FieldRef<"AbsenceCase", 'String'>
   readonly status: Prisma.FieldRef<"AbsenceCase", 'AbsenceCaseStatus'>
   readonly justification: Prisma.FieldRef<"AbsenceCase", 'String'>
+  readonly justificationImageUrls: Prisma.FieldRef<"AbsenceCase", 'String[]'>
   readonly justifiedAt: Prisma.FieldRef<"AbsenceCase", 'DateTime'>
   readonly reviewComment: Prisma.FieldRef<"AbsenceCase", 'String'>
   readonly reviewedById: Prisma.FieldRef<"AbsenceCase", 'String'>

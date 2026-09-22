@@ -126,11 +126,18 @@ test("teacher a notes/attendance ; pas paie, finance, annuaire ni enseignement p
   assert.ok(!(t.ac?.includes("read") ?? false));
 });
 
-test("parent résultats read ; pas devoirs/library", () => {
+test("parent résultats read ; pas devoirs/library ni RH / enseignement", () => {
   const p = organizationRoleStatements[ORG_ROLE.PARENT];
   assert.deepEqual(p.results, ["read"]);
+  assert.deepEqual(p.student, ["read"]);
   assert.equal(p.devoirs, undefined);
   assert.equal(p.library, undefined);
+  assert.equal(p.teaching, undefined);
+  assert.equal(p.teacher, undefined);
+  assert.equal(p.personnel, undefined);
+  assert.equal(p.schedule, undefined);
+  assert.equal(p.inscription, undefined);
+  assert.ok(!(p.ac?.includes("read") ?? false));
 });
 
 test("élève résultats + devoirs + library ; pas notes menu", () => {

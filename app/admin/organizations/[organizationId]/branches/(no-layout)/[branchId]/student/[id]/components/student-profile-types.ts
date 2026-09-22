@@ -78,6 +78,12 @@ export type StudentProfileData = {
   territoireOrigine: string;
   secteurOrigine: string;
   villageOrigine: string;
+  /** Parent lié : peut corriger le nom de l'enfant et ses propres infos. */
+  canEditFamilyPersonalInfo: boolean;
+  parentId: string;
+  parentNom: string;
+  parentPostnom: string;
+  parentPrenom: string;
   displayId: string;
   badge: StudentBadgeData;
   fees: StudentProfileFee[];

@@ -91,7 +91,8 @@ const PRESET_META: Record<string, Omit<OrgRolePresetMeta, "slug">> = {
   },
   [ORG_ROLE.PARENT]: {
     label: "Parent",
-    description: "Lecture scoped (enfants) — résultats.",
+    description:
+      "Suivi des enfants (résultats, fiche) — sans Enseignement, Utilisateurs ni pointage.",
     isSystem: true,
     sortOrder: 70,
     locked: false,
