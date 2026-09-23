@@ -45,7 +45,7 @@ export default function WhatsAppSettingsPage() {
   const [showApiKey, setShowApiKey] = useState(true);
   const [template, setTemplate] = useState("notification");
   const [siteUrl, setSiteUrl] = useState("");
-  const [baseUrl, setBaseUrl] = useState("http://localhost:3001");
+  const [baseUrl, setBaseUrl] = useState("https://whatsapp-api.klambocore.com");
   const [providerConfigured, setProviderConfigured] = useState(false);
   const [fromEnv, setFromEnv] = useState({ apiKey: false, baseUrl: false });
   const [envByProvider, setEnvByProvider] = useState<
@@ -72,7 +72,7 @@ export default function WhatsAppSettingsPage() {
       setApiKey("");
       setSiteUrl("");
       setTemplate(env.template || "notification");
-      setBaseUrl(env.baseUrl || "http://localhost:3001");
+      setBaseUrl(env.baseUrl || "https://whatsapp-api.klambocore.com");
       setFromEnv({ apiKey: true, baseUrl: true });
       setProviderConfigured(Boolean(env.apiKey));
       return;
@@ -80,7 +80,7 @@ export default function WhatsAppSettingsPage() {
     setApiKey(env.apiKey);
     setTemplate(env.template || "notification");
     setSiteUrl(env.siteUrl);
-    setBaseUrl(env.baseUrl || "http://localhost:3001");
+    setBaseUrl(env.baseUrl || "https://whatsapp-api.klambocore.com");
     setFromEnv({
       apiKey: Boolean(env.apiKey),
       baseUrl: Boolean(env.baseUrl),
@@ -101,7 +101,7 @@ export default function WhatsAppSettingsPage() {
       setApiKey(data.apiKey);
       setTemplate(data.template);
       setSiteUrl(data.siteUrl);
-      setBaseUrl(data.baseUrl || "http://localhost:3001");
+      setBaseUrl(data.baseUrl || "https://whatsapp-api.klambocore.com");
       setProviderConfigured(data.providerConfigured);
       setFromEnv(data.fromEnv ?? { apiKey: false, baseUrl: false });
       if (data.envByProvider) setEnvByProvider(data.envByProvider);
@@ -137,7 +137,7 @@ export default function WhatsAppSettingsPage() {
         setApiKey(saved.apiKey);
         setTemplate(saved.template);
         setSiteUrl(saved.siteUrl);
-        setBaseUrl(saved.baseUrl || "http://localhost:3001");
+        setBaseUrl(saved.baseUrl || "https://whatsapp-api.klambocore.com");
         setProviderConfigured(saved.providerConfigured);
         setFromEnv(saved.fromEnv ?? { apiKey: false, baseUrl: false });
         if (saved.envByProvider) setEnvByProvider(saved.envByProvider);

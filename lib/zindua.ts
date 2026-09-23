@@ -23,6 +23,24 @@ export type WhatsAppSendResult = {
   status?: string;
 };
 
+function outcomeFromSendResult(
+  result: WhatsAppSendResult | null,
+  disabledMessage = "Envoi WhatsApp désactivé (paramètres ou .env).",
+): WhatsAppSendOutcome {
+  if (!result) {
+    return { sent: false, error: disabledMessage };
+  }
+  if (!result.success) {
+    return {
+      sent: false,
+      error: result.status
+        ? `WhatsApp non délivré (${result.status}).`
+        : "WhatsApp non délivré.",
+    };
+  }
+  return { sent: true };
+}
+
 export type ZinduaWhatsAppChannelStatus = {
   sendingEnabled: boolean;
   envEnabled: boolean;
@@ -224,14 +242,25 @@ export async function sendWhatsApp(
           apiKey: config.apiKey,
           baseUrl: config.baseUrl,
         });
-        const res = await client.send({
-          to,
-          channel: "whatsapp",
-          type: "template",
-          template,
-          lang: options.lang ?? "fr",
-          variables,
-        });
+        // Klambo / GOWA (TVS) : texte libre. Meta Cloud : template approuvé.
+        const res =
+          config.provider === "klambo"
+            ? await client.send({
+                to,
+                channel: "whatsapp",
+                type: "text",
+                text:
+                  variables.code ||
+                  Object.values(variables).filter(Boolean).join(" | "),
+              })
+            : await client.send({
+                to,
+                channel: "whatsapp",
+                type: "template",
+                template,
+                lang: options.lang ?? "fr",
+                variables,
+              });
         return {
           success: res.success,
           logId: res.logId,
@@ -376,13 +405,7 @@ export async function sendTransactionalWhatsApp(options: {
       },
       attachments: options.attachments,
     });
-    if (!result) {
-      return {
-        sent: false,
-        error: "Envoi WhatsApp désactivé (paramètres ou .env).",
-      };
-    }
-    return { sent: Boolean(result.success) };
+    return outcomeFromSendResult(result);
   } catch (error) {
     const message = formatZinduaError(error);
     // eslint-disable-next-line no-console
@@ -439,17 +462,13 @@ export async function sendNewUserCredentialsWhatsApp(options: {
         code: message,
       },
     });
-    if (!result) {
-      return {
-        sent: false,
-        error: "Envoi WhatsApp désactivé (paramètres ou .env).",
-      };
+    if (result?.success) {
+      // eslint-disable-next-line no-console
+      console.info(
+        `[sendNewUserCredentialsWhatsApp] ok to=${to} logId=${result.logId} status=${result.status}`,
+      );
     }
-    // eslint-disable-next-line no-console
-    console.info(
-      `[sendNewUserCredentialsWhatsApp] ok to=${to} logId=${result.logId} status=${result.status}`,
-    );
-    return { sent: Boolean(result.success) };
+    return outcomeFromSendResult(result);
   } catch (error) {
     const message = formatZinduaError(error);
     // eslint-disable-next-line no-console
@@ -496,17 +515,13 @@ export async function sendResetPasswordWhatsApp(
         code: message,
       },
     });
-    if (!result) {
-      return {
-        sent: false,
-        error: "Envoi WhatsApp désactivé (paramètres ou .env).",
-      };
+    if (result?.success) {
+      // eslint-disable-next-line no-console
+      console.info(
+        `[sendResetPasswordWhatsApp] ok to=${to} logId=${result.logId} status=${result.status}`,
+      );
     }
-    // eslint-disable-next-line no-console
-    console.info(
-      `[sendResetPasswordWhatsApp] ok to=${to} logId=${result.logId} status=${result.status}`,
-    );
-    return { sent: Boolean(result.success) };
+    return outcomeFromSendResult(result);
   } catch (error) {
     const message = formatZinduaError(error);
     // eslint-disable-next-line no-console
@@ -626,10 +641,7 @@ export async function sendWhatsAppTest(options: {
         code: `Test Klambocore — vérification ${label}. Ignorez si vous n'êtes pas concerné.`,
       },
     });
-    if (!result) {
-      return { sent: false, error: "Envoi WhatsApp désactivé." };
-    }
-    return { sent: Boolean(result.success) };
+    return outcomeFromSendResult(result, "Envoi WhatsApp désactivé.");
   } catch (error) {
     return { sent: false, error: formatZinduaError(error) };
   }

@@ -197,7 +197,7 @@
     },
     "resetPassword": {
       "successEmailWhatsapp": "Mot de passe réinitialisé — email et WhatsApp envoyés.",
-      "successEmailOnly": "Mot de passe réinitialisé — email envoyé (WhatsApp non délivré, vérifiez Zindua).",
+      "successEmailOnly": "Mot de passe réinitialisé — email envoyé (WhatsApp non délivré). Activez le commutateur Message WhatsApp et enregistrez.",
       "successNoPhone": "Mot de passe réinitialisé — email envoyé (pas de téléphone)."
     }
   },

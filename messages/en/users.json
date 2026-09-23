@@ -197,7 +197,7 @@
     },
     "resetPassword": {
       "successEmailWhatsapp": "Password reset — email and WhatsApp sent.",
-      "successEmailOnly": "Password reset — email sent (WhatsApp not delivered, check Zindua).",
+      "successEmailOnly": "Password reset — email sent (WhatsApp not delivered). Turn on the WhatsApp switch and save.",
       "successNoPhone": "Password reset — email sent (no phone number)."
     }
   },

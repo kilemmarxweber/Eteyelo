@@ -85,7 +85,7 @@ export function ResetUsersDialog({
                 toast.success(
                   res.whatsappError
                     ? `Mot de passe réinitialisé — email envoyé (${res.whatsappError})`
-                    : "Mot de passe réinitialisé — email envoyé (WhatsApp non délivré, vérifiez Zindua).",
+                    : "Mot de passe réinitialisé — email envoyé (WhatsApp non délivré). Activez le commutateur Message WhatsApp et enregistrez.",
                 );
               } else {
                 toast.success(

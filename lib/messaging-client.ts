@@ -30,7 +30,7 @@ export class MessagingClient {
 
   constructor(options: { apiKey: string; baseUrl?: string }) {
     this.apiKey = options.apiKey;
-    this.baseUrl = (options.baseUrl ?? "http://localhost:3001").replace(
+    this.baseUrl = (options.baseUrl ?? "https://whatsapp-api.klambocore.com").replace(
       /\/$/,
       "",
     );

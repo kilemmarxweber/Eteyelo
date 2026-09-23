@@ -197,7 +197,7 @@
     },
     "resetPassword": {
       "successEmailWhatsapp": "Palavra-passe redefinida — email e WhatsApp enviados.",
-      "successEmailOnly": "Palavra-passe redefinida — email enviado (WhatsApp não entregue, verifique Zindua).",
+      "successEmailOnly": "Palavra-passe redefinida — email enviado (WhatsApp não entregue). Ative o interruptor WhatsApp e guarde.",
       "successNoPhone": "Palavra-passe redefinida — email enviado (sem telemóvel)."
     }
   },

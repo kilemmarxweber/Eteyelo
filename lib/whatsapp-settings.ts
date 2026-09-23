@@ -1,8 +1,23 @@
 import "server-only";
 
 import { prisma } from "@/lib/prisma";
+import { envRaw } from "@/lib/whatsapp-env-file";
 
 export type WhatsAppProviderId = "zindua" | "klambo" | "meta";
+
+/** API KlamboWhatsapp prod (TVS : KLAMBO_BASE_URL). */
+export const KLAMBO_WHATSAPP_API_URL = "https://whatsapp-api.klambocore.com";
+
+function isLoopbackUrl(url?: string | null): boolean {
+  const raw = url?.trim();
+  if (!raw) return true;
+  try {
+    const host = new URL(raw).hostname;
+    return host === "localhost" || host === "127.0.0.1" || host === "::1";
+  } catch {
+    return /localhost|127\.0\.0\.1/i.test(raw);
+  }
+}
 
 export type WhatsAppRuntimeConfig = {
   /** Envoi autorisé (toggle UI + .env + clé API). */
@@ -34,35 +49,36 @@ function parseProvider(raw: string | null | undefined): WhatsAppProviderId {
 }
 
 export function isEnvWhatsAppEnabled(): boolean {
-  if (process.env.ZINDUA_WHATSAPP_ENABLED != null) {
-    return envFlagEnabled(process.env.ZINDUA_WHATSAPP_ENABLED);
+  const zindua = envRaw("ZINDUA_WHATSAPP_ENABLED");
+  if (zindua != null) {
+    return envFlagEnabled(zindua);
   }
-  return envFlagEnabled(process.env.MESSAGING_WHATSAPP_ENABLED);
+  return envFlagEnabled(envRaw("MESSAGING_WHATSAPP_ENABLED"));
 }
 
 function envProvider(): WhatsAppProviderId {
-  return parseProvider(process.env.WHATSAPP_PROVIDER);
+  return parseProvider(envRaw("WHATSAPP_PROVIDER"));
 }
 
 function envApiKeyFor(provider: WhatsAppProviderId): string {
   if (provider === "meta") {
     return (
-      process.env.MESSAGING_META_API_KEY?.trim() ||
-      process.env.MESSAGING_API_KEY?.trim() ||
-      process.env.ZINDUA_API_KEY?.trim() ||
+      envRaw("MESSAGING_META_API_KEY")?.trim() ||
+      envRaw("MESSAGING_API_KEY")?.trim() ||
+      envRaw("ZINDUA_API_KEY")?.trim() ||
       ""
     );
   }
   if (provider === "klambo") {
     return (
-      process.env.MESSAGING_API_KEY?.trim() ||
-      process.env.ZINDUA_API_KEY?.trim() ||
+      envRaw("MESSAGING_API_KEY")?.trim() ||
+      envRaw("ZINDUA_API_KEY")?.trim() ||
       ""
     );
   }
   return (
-    process.env.ZINDUA_API_KEY?.trim() ||
-    process.env.MESSAGING_API_KEY?.trim() ||
+    envRaw("ZINDUA_API_KEY")?.trim() ||
+    envRaw("MESSAGING_API_KEY")?.trim() ||
     ""
   );
 }
@@ -70,21 +86,21 @@ function envApiKeyFor(provider: WhatsAppProviderId): string {
 function envTemplateFor(provider: WhatsAppProviderId): string {
   if (provider === "klambo" || provider === "meta") {
     return (
-      process.env.MESSAGING_WHATSAPP_TEMPLATE?.trim() ||
-      process.env.ZINDUA_WHATSAPP_MAIL_TEMPLATE?.trim() ||
+      envRaw("MESSAGING_WHATSAPP_TEMPLATE")?.trim() ||
+      envRaw("ZINDUA_WHATSAPP_MAIL_TEMPLATE")?.trim() ||
       "notification"
     );
   }
   return (
-    process.env.ZINDUA_WHATSAPP_MAIL_TEMPLATE?.trim() ||
-    process.env.MESSAGING_WHATSAPP_TEMPLATE?.trim() ||
+    envRaw("ZINDUA_WHATSAPP_MAIL_TEMPLATE")?.trim() ||
+    envRaw("MESSAGING_WHATSAPP_TEMPLATE")?.trim() ||
     "notification"
   );
 }
 
 function envSiteUrl(): string | undefined {
   const raw =
-    process.env.ZINDUA_SITE_URL?.trim() ||
+    envRaw("ZINDUA_SITE_URL")?.trim() ||
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
     process.env.BETTER_AUTH_URL?.trim() ||
     "";
@@ -94,7 +110,9 @@ function envSiteUrl(): string | undefined {
 
 function envBaseUrl(): string | undefined {
   const raw =
-    process.env.MESSAGING_API_BASE_URL?.trim() || "http://localhost:3001";
+    envRaw("MESSAGING_API_BASE_URL")?.trim() ||
+    process.env.KLAMBO_BASE_URL?.trim() ||
+    KLAMBO_WHATSAPP_API_URL;
   const cleaned = raw.replace(/\/$/, "");
   return cleaned || undefined;
 }
@@ -110,7 +128,7 @@ export function getWhatsAppEnvDefaultsFor(provider: WhatsAppProviderId): {
     apiKey: envApiKeyFor(provider),
     template: envTemplateFor(provider),
     siteUrl: envSiteUrl() ?? "",
-    baseUrl: envBaseUrl() ?? "http://localhost:3001",
+    baseUrl: envBaseUrl() ?? KLAMBO_WHATSAPP_API_URL,
   };
 }
 
@@ -188,9 +206,12 @@ export async function getWhatsAppRuntimeConfig(
     },
   });
 
-  const resolvedProvider = org?.whatsappProvider?.trim()
-    ? parseProvider(org.whatsappProvider)
-    : defaults.provider;
+  const orgBaseUrl = org?.whatsappBaseUrl?.replace(/\/$/, "").trim() || "";
+  const orgIsLocal = isLoopbackUrl(orgBaseUrl);
+  const resolvedProvider =
+    !orgIsLocal && org?.whatsappProvider?.trim()
+      ? parseProvider(org.whatsappProvider)
+      : defaults.provider;
 
   const envForProvider = getWhatsAppEnvDefaultsFor(resolvedProvider);
 
@@ -209,11 +230,9 @@ export async function getWhatsAppRuntimeConfig(
         envForProvider.siteUrl ||
         undefined;
   const baseUrl =
-    resolvedProvider === "meta"
+    resolvedProvider === "meta" || orgIsLocal
       ? envForProvider.baseUrl || undefined
-      : org?.whatsappBaseUrl?.replace(/\/$/, "").trim() ||
-        envForProvider.baseUrl ||
-        undefined;
+      : orgBaseUrl || envForProvider.baseUrl || undefined;
   const uiEnabled = org?.whatsappEnabled ?? defaults.enabled;
 
   return {

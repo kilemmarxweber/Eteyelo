@@ -8,6 +8,7 @@ import {
 } from "./email-layout";
 import { sendResetPasswordWhatsApp } from "@/lib/zindua";
 import { resolveNotificationChannels } from "@/lib/notification-channels";
+import { isWhatsAppSendingEnabled } from "@/lib/whatsapp-settings";
 
 const APP_NAME = DEFAULT_APP_NAME;
 
@@ -87,9 +88,10 @@ export async function sendResetPasswordEmail(input: {
 
   let whatsappSent = false;
   let whatsappError: string | undefined;
-  if (allow.whatsapp && input.phone?.trim()) {
+  const phone = input.phone?.trim();
+  if (allow.whatsapp && phone) {
     const wa = await sendResetPasswordWhatsApp({
-      to: input.phone,
+      to: phone,
       name,
       temporaryPassword,
       email: to,
@@ -99,6 +101,11 @@ export async function sendResetPasswordEmail(input: {
     });
     whatsappSent = wa.sent;
     whatsappError = wa.error;
+  } else if (phone && !allow.whatsapp) {
+    const sending = await isWhatsAppSendingEnabled(input.organizationId);
+    whatsappError = sending
+      ? "WhatsApp est désactivé pour la réinitialisation (Notifications)."
+      : "Envoi WhatsApp désactivé. Activez le commutateur (Message WhatsApp) et enregistrez.";
   }
 
   return {
