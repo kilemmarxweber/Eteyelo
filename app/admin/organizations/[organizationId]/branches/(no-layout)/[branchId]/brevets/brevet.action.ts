@@ -47,6 +47,8 @@ function revalidateExtendedStudentPages(organizationId: string, branchId: string
 export async function searchOrganizationStudentsForImport(params: {
   query?: string;
   limit?: number;
+  /** Atelier : classe secondaire liée au groupe sélectionné. */
+  sourceClasseId?: string | null;
 }) {
   const { branchId, organizationId, canManageStudents, typebranch } =
     await getCurrentBranch();
@@ -68,6 +70,7 @@ export async function searchOrganizationStudentsForImport(params: {
     typebranch,
     query: params.query,
     limit: params.limit,
+    sourceClasseId: params.sourceClasseId,
   });
 
   return { ok: true as const, students };
@@ -473,6 +476,14 @@ export async function getImportEnrollmentOptionsAction() {
       },
       include: {
         option: { select: { id: true, nameOption: true } },
+        sourceClasse: {
+          select: {
+            id: true,
+            nameClasse: true,
+            option: { select: { nameOption: true } },
+            branch: { select: { name: true } },
+          },
+        },
         _count: {
           select: {
             classEnrollment: {
@@ -512,13 +523,27 @@ export async function getImportEnrollmentOptionsAction() {
         enrolledCount: groupe._count.classEnrollment,
         capacity: groupe.capacity,
       })),
-      groupes: groupes.map((groupe) => ({
-        id: groupe.id,
-        nameClasse: groupe.nameClasse,
-        optionName: groupe.option?.nameOption ?? "Groupe",
-        enrolledCount: groupe._count.classEnrollment,
-        capacity: groupe.capacity,
-      })),
+      groupes: groupes.map((groupe) => {
+        const source = groupe.sourceClasse;
+        const sourceLabel = source
+          ? [
+              source.nameClasse,
+              source.option?.nameOption,
+              source.branch?.name,
+            ]
+              .filter(Boolean)
+              .join(" · ")
+          : null;
+        return {
+          id: groupe.id,
+          nameClasse: groupe.nameClasse,
+          optionName: groupe.option?.nameOption ?? "Groupe",
+          enrolledCount: groupe._count.classEnrollment,
+          capacity: groupe.capacity,
+          sourceClasseId: source?.id ?? null,
+          sourceClasseName: sourceLabel,
+        };
+      }),
     };
   }
 

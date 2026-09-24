@@ -70,6 +70,8 @@ type ImportEnrollmentOptions = {
     optionName: string;
     enrolledCount: number;
     capacity: number | null;
+    sourceClasseId?: string | null;
+    sourceClasseName?: string | null;
   }>;
   schoolYear: { id: string; nameYear: string };
 };
@@ -165,8 +167,8 @@ export function ImportStudentDialog({
     ? {
         title: "Importer un lot d'eleves",
         description:
-          "Choisissez d'abord le groupe de l'annee en cours, puis selectionnez un ou plusieurs eleves des humanites.",
-        emptyMessage: "Aucun eleve des humanites trouve.",
+          "Choisissez d'abord le groupe (lie a une classe secondaire), puis seulement les eleves de cette classe pourront etre importes.",
+        emptyMessage: "Aucun eleve de cette classe source trouve.",
         alreadyLinked: "Cet eleve est deja present dans cet atelier",
       }
     : importScope === "organization"
@@ -207,10 +209,15 @@ export function ImportStudentDialog({
   const selectedGroupe = enrollmentOptions?.groupes?.find(
     (groupe) => groupe.id === selectedGroupeId,
   );
+  const selectedSourceClasseId = selectedGroupe?.sourceClasseId ?? null;
 
   const canImport =
     isAtelier
-      ? Boolean(selectedGroupeId && enrollmentOptions)
+      ? Boolean(
+          selectedGroupeId &&
+            enrollmentOptions &&
+            selectedSourceClasseId,
+        )
       : !importEnrollmentMode ||
         Boolean(selectedModuleId && selectedSessionId && enrollmentOptions);
 
@@ -218,25 +225,34 @@ export function ImportStudentDialog({
     importableResults.length > 0 &&
     importableResults.every((student) => selectedIds.has(student.id));
 
-  const searchStudents = useCallback(async (value: string) => {
-    setLoading(true);
-    try {
-      const response = await searchOrganizationStudentsForImport({
-        query: value,
-        limit: 30,
-      });
+  const searchStudents = useCallback(
+    async (value: string, sourceClasseId?: string | null) => {
+      setLoading(true);
+      try {
+        if (isAtelier && !sourceClasseId) {
+          setResults([]);
+          return;
+        }
 
-      if (!response.ok) {
-        toast.error(response.message);
-        setResults([]);
-        return;
+        const response = await searchOrganizationStudentsForImport({
+          query: value,
+          limit: 30,
+          sourceClasseId: sourceClasseId ?? undefined,
+        });
+
+        if (!response.ok) {
+          toast.error(response.message);
+          setResults([]);
+          return;
+        }
+
+        setResults(response.students);
+      } finally {
+        setLoading(false);
       }
-
-      setResults(response.students);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [isAtelier],
+  );
 
   useEffect(() => {
     if (!open) {
@@ -275,16 +291,32 @@ export function ImportStudentDialog({
         });
     }
 
+    if (isAtelier && !selectedSourceClasseId) {
+      setResults([]);
+      return;
+    }
+
     const timeout = window.setTimeout(() => {
-      void searchStudents(query);
+      void searchStudents(query, selectedSourceClasseId);
     }, 300);
 
     return () => window.clearTimeout(timeout);
-  }, [open, query, importEnrollmentMode, searchStudents]);
+  }, [
+    open,
+    query,
+    importEnrollmentMode,
+    searchStudents,
+    isAtelier,
+    selectedSourceClasseId,
+  ]);
 
   useEffect(() => {
     setSelectedSessionId("");
   }, [selectedModuleId]);
+
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [selectedGroupeId]);
 
   useEffect(() => {
     setSelectedIds((prev) => {
@@ -324,7 +356,9 @@ export function ImportStudentDialog({
     if (!canImport) {
       toast.error(
         isAtelier
-          ? "Selectionnez un groupe avant l'import"
+          ? selectedGroupeId && !selectedSourceClasseId
+            ? "Ce groupe n'a pas de classe source : associez-la avant l'import"
+            : "Selectionnez un groupe avant l'import"
           : (enrollmentUi?.validationError ??
             "Selectionnez le contexte pedagogique avant l'import"),
       );
@@ -361,6 +395,13 @@ export function ImportStudentDialog({
 
     if (!selectedGroupeId) {
       toast.error("Selectionnez un groupe avant l'import");
+      return;
+    }
+
+    if (!selectedSourceClasseId) {
+      toast.error(
+        "Ce groupe n'a pas de classe source : associez-la avant l'import",
+      );
       return;
     }
 
@@ -455,14 +496,25 @@ export function ImportStudentDialog({
                 <SelectContent>
                   {(enrollmentOptions?.groupes ?? []).map((groupe) => (
                     <SelectItem key={groupe.id} value={groupe.id}>
-                      <span className="flex items-center gap-2">
-                        <span>{groupe.nameClasse}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatGroupeCapacity(
-                            groupe.enrolledCount,
-                            groupe.capacity,
-                          )}
+                      <span className="flex flex-col items-start gap-0.5">
+                        <span className="flex items-center gap-2">
+                          <span>{groupe.nameClasse}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatGroupeCapacity(
+                              groupe.enrolledCount,
+                              groupe.capacity,
+                            )}
+                          </span>
                         </span>
+                        {groupe.sourceClasseName ? (
+                          <span className="text-xs text-muted-foreground">
+                            Classe source : {groupe.sourceClasseName}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-amber-600">
+                            Pas de classe source
+                          </span>
+                        )}
                       </span>
                     </SelectItem>
                   ))}
@@ -473,7 +525,20 @@ export function ImportStudentDialog({
                   L&apos;import est bloque tant qu&apos;aucun groupe n&apos;est
                   selectionne.
                 </p>
-              ) : null}
+              ) : !selectedSourceClasseId ? (
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  Ce groupe n&apos;a pas de classe source. Associez une classe
+                  secondaire au groupe avant d&apos;importer.
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Eleves proposes uniquement depuis{" "}
+                  <span className="font-medium text-foreground">
+                    {selectedGroupe?.sourceClasseName}
+                  </span>
+                  .
+                </p>
+              )}
             </div>
           ) : null}
 

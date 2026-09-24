@@ -8,6 +8,7 @@ import {
 import { normalizeBranchType } from "@/lib/academic-structure";
 import { assertImportableSchoolStudent, secondaryCycleCurrentEnrollmentWhere } from "@/lib/atelier-student-access";
 import { appendStudentToOpenClassFiches } from "@/lib/sync-fiche-students";
+import { assertStudentAllowedInAtelierGroup } from "@/lib/atelier-lab-groups";
 
 export type ImportSearchResult = {
   id: string;
@@ -75,10 +76,28 @@ export async function searchOrganizationStudentsForBranchImport(params: {
   typebranch: unknown;
   query?: string;
   limit?: number;
+  /** Atelier : restreindre aux élèves inscrits dans cette classe secondaire source. */
+  sourceClasseId?: string | null;
 }): Promise<ImportSearchResult[]> {
   const search = params.query?.trim();
   const limit = params.limit ?? 25;
   const linkOnly = isLinkOnlyBranch(params.typebranch);
+  const sourceClasseId = params.sourceClasseId?.trim() || null;
+
+  if (isAtelierBranch(params.typebranch) && !sourceClasseId) {
+    return [];
+  }
+
+  const enrollmentWhere = linkOnly
+    ? {
+        ...secondaryCycleCurrentEnrollmentWhere(),
+        ...(sourceClasseId ? { classeId: sourceClasseId } : {}),
+      }
+    : {
+        statusEnrollment: true,
+        schoolYear: { isCurrentYear: true, isArchived: false },
+        ...(sourceClasseId ? { classeId: sourceClasseId } : {}),
+      };
 
   const students = await prisma.student.findMany({
     where: {
@@ -90,8 +109,8 @@ export async function searchOrganizationStudentsForBranchImport(params: {
           id: { not: params.targetBranchId },
         },
       },
-      ...(linkOnly
-        ? { classEnrollment: { some: secondaryCycleCurrentEnrollmentWhere() } }
+      ...(linkOnly || sourceClasseId
+        ? { classEnrollment: { some: enrollmentWhere } }
         : {}),
       ...buildSearchFilter(search),
     },
@@ -106,16 +125,12 @@ export async function searchOrganizationStudentsForBranchImport(params: {
         select: { id: true },
       },
       classEnrollment: {
-        where: linkOnly
-          ? secondaryCycleCurrentEnrollmentWhere()
-          : {
-              statusEnrollment: true,
-              schoolYear: { isCurrentYear: true, isArchived: false },
-            },
+        where: enrollmentWhere,
         take: 1,
         include: {
           classe: {
             select: {
+              id: true,
               nameClasse: true,
               codeClasse: true,
               option: { select: { nameOption: true } },
@@ -288,6 +303,15 @@ export async function enrollStudentInBranchClass(params: {
           ? "Session ou module invalide"
           : "Auditoire ou filiere invalide",
     );
+  }
+
+  if (isAtelierBranch(params.typebranch)) {
+    await assertStudentAllowedInAtelierGroup({
+      atelierClasseId: params.classeId,
+      atelierBranchId: params.branchId,
+      studentId: params.studentId,
+      schoolYearId: schoolYear.id,
+    });
   }
 
   await prisma.classEnrollment.upsert({

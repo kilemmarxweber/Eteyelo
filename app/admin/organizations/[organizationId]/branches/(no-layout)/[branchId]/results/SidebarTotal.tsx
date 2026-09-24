@@ -84,19 +84,26 @@ export default function SidebarWithFilters({
         return;
       }
 
-      if (res.whatsappSent > 0) {
+      if (res.queued) {
+        const etaMin =
+          res.whatsappQueued > 1 && res.estimatedWhatsAppMs > 0
+            ? Math.max(1, Math.ceil(res.estimatedWhatsAppMs / 60_000))
+            : 0;
+        const waPart =
+          res.whatsappQueued > 0
+            ? ` — ${res.whatsappQueued} WhatsApp espacés (~14 s)${
+                etaMin > 0 ? `, ~${etaMin} min` : ""
+              }`
+            : "";
         toast.success(
-          `Résultats envoyés (${res.notified} parent${res.notified > 1 ? "s" : ""} — ${res.whatsappSent} WhatsApp).`,
+          `Envoi lancé pour ${res.notified} parent${res.notified > 1 ? "s" : ""}${waPart}. Les messages partent en arrière-plan.`,
         );
-      } else if (res.whatsappError) {
-        toast.success(
-          `Résultats envoyés par email (${res.notified}). WhatsApp : ${res.whatsappError}`,
-        );
-      } else {
-        toast.success(
-          `Résultats envoyés par email (${res.notified} parent${res.notified > 1 ? "s" : ""}).`,
-        );
+        return;
       }
+
+      toast.success(
+        `Résultats envoyés (${res.notified} parent${res.notified > 1 ? "s" : ""}).`,
+      );
     } catch (err) {
       console.error(err);
       toast.error("Impossible d'envoyer les résultats.");

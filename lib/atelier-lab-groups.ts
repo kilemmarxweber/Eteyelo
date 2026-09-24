@@ -43,13 +43,14 @@ export async function assertValidAtelierSourceClasse(params: {
 
 /**
  * Refuse d'inscrire un élève dans un groupe atelier s'il n'est pas
- * dans la classe source (année active) ou si le groupe n'a pas de source.
+ * dans la classe source (année courante secondaire) ou si le groupe n'a pas de source.
  */
 export async function assertStudentAllowedInAtelierGroup(params: {
   atelierClasseId: string;
   atelierBranchId: string;
   studentId: string;
-  schoolYearId: string;
+  /** Conservé pour compat ; l'année source est résolue sur la branche de la classe source. */
+  schoolYearId?: string;
 }) {
   const atelierClasse = await prisma.classe.findFirst({
     where: {
@@ -59,6 +60,13 @@ export async function assertStudentAllowedInAtelierGroup(params: {
     select: {
       id: true,
       sourceClasseId: true,
+      sourceClasse: {
+        select: {
+          id: true,
+          nameClasse: true,
+          branchId: true,
+        },
+      },
       branch: { select: { typebranch: true } },
     },
   });
@@ -71,25 +79,38 @@ export async function assertStudentAllowedInAtelierGroup(params: {
     return; // hors atelier : pas de garde
   }
 
-  if (!atelierClasse.sourceClasseId) {
+  if (!atelierClasse.sourceClasseId || !atelierClasse.sourceClasse) {
     throw new Error(
       "Ce groupe n'a pas de classe source : définissez-la avant d'inscrire des élèves",
     );
   }
 
+  const sourceYear = await prisma.schoolYear.findFirst({
+    where: {
+      branchId: atelierClasse.sourceClasse.branchId,
+      isCurrentYear: true,
+      isArchived: false,
+    },
+    select: { id: true },
+  });
+
   const sourceEnrollment = await prisma.classEnrollment.findFirst({
     where: {
       studentId: params.studentId,
       classeId: atelierClasse.sourceClasseId,
-      schoolYearId: params.schoolYearId,
       statusEnrollment: true,
+      ...(sourceYear
+        ? { schoolYearId: sourceYear.id }
+        : {
+            schoolYear: { isCurrentYear: true, isArchived: false },
+          }),
     },
     select: { id: true },
   });
 
   if (!sourceEnrollment) {
     throw new Error(
-      "Seuls les élèves de la classe source active peuvent être inscrits dans ce groupe",
+      `Seuls les élèves de la classe « ${atelierClasse.sourceClasse.nameClasse} » peuvent être inscrits dans ce groupe`,
     );
   }
 }

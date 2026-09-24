@@ -1,5 +1,6 @@
 "use server";
 
+import { after } from "next/server";
 import { z } from "zod";
 import { requireBranchAreaContext } from "@/lib/auth/require-branch-context";
 import { resolveGrantedCursusViewerRole } from "@/lib/auth/cursus-scope";
@@ -9,7 +10,20 @@ import {
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { sendStudentResultsNotification } from "@/lib/email/send-student-results-notification";
+import {
+  estimateWhatsAppBatchDurationMs,
+  parseWhatsAppRetryWaitMs,
+} from "@/lib/whatsapp-pace";
 import { action } from "@/lib/zsa";
+
+function isPermanentWhatsAppStop(message?: string | null) {
+  if (!message) return false;
+  if (parseWhatsAppRetryWaitMs(message)) return false;
+  return (
+    message.includes("pas connecté") ||
+    message.includes("désactivé")
+  );
+}
 
 export const getResultsReportContextAction = action.handler(async () => {
   const { branchId, organizationId } = await requireBranchAreaContext("results");
@@ -198,12 +212,20 @@ export const sendResultsToParentsAction = action
     }
 
     const periodLabel = input.periodNames.join(", ");
-    let notified = 0;
     let skippedNoContact = 0;
     let skippedNoGrades = 0;
-    let whatsappSent = 0;
-    let whatsappError: string | undefined;
-    let skipWhatsApp = false;
+
+    type ReadyParent = {
+      email: string | null;
+      phone: string | null;
+      parentName: string;
+      studentName: string;
+      className: string;
+      lines: Array<{ subject: string; score: number; maxScore: number }>;
+      percentage: number;
+    };
+
+    const ready: ReadyParent[] = [];
 
     for (const acc of byStudent.values()) {
       const lines = Array.from(acc.lines.entries()).map(([subject, value]) => ({
@@ -224,35 +246,89 @@ export const sendResultsToParentsAction = action
       const totalMax = lines.reduce((sum, line) => sum + line.maxScore, 0);
       const percentage = totalMax > 0 ? (totalScore / totalMax) * 100 : 0;
 
-      const result = await sendStudentResultsNotification({
-        to: acc.email,
-        phone: skipWhatsApp ? null : acc.phone,
+      ready.push({
+        email: acc.email,
+        phone: acc.phone,
         parentName: acc.parentName,
         studentName: acc.studentName,
-        schoolName,
         className: acc.className,
-        periodLabel,
-        yearLabel: input.yearName,
         lines,
         percentage,
-        organizationId,
       });
-
-      notified += 1;
-      if (result.whatsappSent) whatsappSent += 1;
-      if (!whatsappError && result.whatsappError) {
-        whatsappError = result.whatsappError;
-        if (result.whatsappError.includes("pas connecté")) {
-          skipWhatsApp = true;
-        }
-      }
     }
 
+    if (ready.length === 0) {
+      return {
+        queued: false,
+        notified: 0,
+        whatsappQueued: 0,
+        estimatedWhatsAppMs: 0,
+        skippedNoContact,
+        skippedNoGrades,
+      };
+    }
+
+    const whatsappQueued = ready.filter((row) => Boolean(row.phone?.trim()))
+      .length;
+    const estimatedWhatsAppMs =
+      estimateWhatsAppBatchDurationMs(whatsappQueued);
+
+    after(async () => {
+      let notified = 0;
+      let whatsappSent = 0;
+      let whatsappError: string | undefined;
+      let skipWhatsApp = false;
+
+      for (const row of ready) {
+        try {
+          const result = await sendStudentResultsNotification({
+            to: row.email,
+            phone: skipWhatsApp ? null : row.phone,
+            parentName: row.parentName,
+            studentName: row.studentName,
+            schoolName,
+            className: row.className,
+            periodLabel,
+            yearLabel: input.yearName,
+            lines: row.lines,
+            percentage: row.percentage,
+            organizationId,
+          });
+          notified += 1;
+          if (result.whatsappSent) whatsappSent += 1;
+          if (!whatsappError && result.whatsappError) {
+            whatsappError = result.whatsappError;
+            if (isPermanentWhatsAppStop(result.whatsappError)) {
+              skipWhatsApp = true;
+            }
+          }
+        } catch (cause) {
+          const message =
+            cause instanceof Error
+              ? cause.message
+              : "Impossible d'envoyer la notification résultats.";
+          if (!whatsappError) whatsappError = message;
+          if (isPermanentWhatsAppStop(message)) skipWhatsApp = true;
+        }
+      }
+
+      console.info("[results-whatsapp] file terminée", {
+        queued: ready.length,
+        notified,
+        whatsappQueued,
+        whatsappSent,
+        skippedNoContact,
+        skippedNoGrades,
+        error: whatsappError ?? null,
+      });
+    });
+
     return {
-      notified,
-      whatsappSent,
+      queued: true,
+      notified: ready.length,
+      whatsappQueued,
+      estimatedWhatsAppMs,
       skippedNoContact,
       skippedNoGrades,
-      whatsappError,
     };
   });

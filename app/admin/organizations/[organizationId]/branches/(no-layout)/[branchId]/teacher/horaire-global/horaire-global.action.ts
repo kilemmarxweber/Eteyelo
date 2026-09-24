@@ -12,7 +12,10 @@ import {
   buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
-import { parseWhatsAppRetryWaitMs } from "@/lib/whatsapp-pace";
+import {
+  estimateWhatsAppBatchDurationMs,
+  parseWhatsAppRetryWaitMs,
+} from "@/lib/whatsapp-pace";
 import { action } from "@/lib/zsa";
 import { resolveWhatsAppTo, sendTransactionalWhatsApp } from "@/lib/zindua";
 import { getGlobalScheduleByCycleAction } from "../../schedule/schedule.action";
@@ -192,10 +195,13 @@ export const sendGlobalScheduleWhatsAppAction = action
       return {
         queued: false,
         count: 0,
+        estimatedWhatsAppMs: 0,
         skippedNoContact,
         skippedNoSchedule,
       };
     }
+
+    const estimatedWhatsAppMs = estimateWhatsAppBatchDurationMs(ready.length);
 
     after(async () => {
       let sent = 0;
@@ -252,6 +258,7 @@ export const sendGlobalScheduleWhatsAppAction = action
     return {
       queued: true,
       count: ready.length,
+      estimatedWhatsAppMs,
       skippedNoContact,
       skippedNoSchedule,
     };
