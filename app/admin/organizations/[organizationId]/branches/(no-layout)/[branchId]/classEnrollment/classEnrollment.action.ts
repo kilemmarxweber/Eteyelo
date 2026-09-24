@@ -12,6 +12,8 @@ import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { findAvailableClassForLevel } from "@/lib/class-enrollment/find-available-class";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { appendStudentToOpenClassFiches } from "@/lib/sync-fiche-students";
+import { assertStudentAllowedInAtelierGroup } from "@/lib/atelier-lab-groups";
+import { isAtelierBranchType } from "@/lib/atelier-student-access";
 
 function revalidateClassEnrollmentPages(organizationId: string, branchId: string) {
   revalidatePath(
@@ -82,6 +84,15 @@ export const createClassEnrollmentAction = action
               throw new Error(
                 `Aucune classe disponible pour le niveau ${requestedClass.level}. Créez la prochaine parallèle ou augmentez une capacité.`,
               );
+            }
+
+            if (isAtelierBranchType(typebranch)) {
+              await assertStudentAllowedInAtelierGroup({
+                atelierClasseId: availableClass.id,
+                atelierBranchId: branchId,
+                studentId,
+                schoolYearId,
+              });
             }
 
             return tx.classEnrollment.create({

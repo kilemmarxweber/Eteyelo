@@ -10,6 +10,7 @@ import {
   IconReportMoney,
   IconCalendarCog,
   IconBooks,
+  IconFlask,
   IconUser,
   IconUserCheck,
   IconCurrencyDollar,
@@ -26,7 +27,7 @@ import {
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { BranchStickyHeader } from "@/components/layout/branch-sticky-header";
 import { authClient } from "@/lib/auth-client";
-import { isPrimaryBranch } from "@/lib/branch-capabilities";
+import { isAtelierBranch, isPrimaryBranch } from "@/lib/branch-capabilities";
 import {
   canAccessBranchOrgSettings,
   canAccessSchoolOpsSettings,
@@ -154,6 +155,8 @@ export default function Settings({ children }: { children: React.ReactNode }) {
     branchType ?? session?.branch?.typebranch ?? null;
   const showPrimaryDomains =
     sessionReady && isPrimaryBranch(resolvedBranchType);
+  const showPracticalDomains =
+    sessionReady && isAtelierBranch(resolvedBranchType);
   const isCursusSelfUser =
     sessionReady &&
     hasSessionRole(session, [
@@ -207,6 +210,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
       access: SettingsNavAccess;
       dacKey?: string;
       primaryOnly?: boolean;
+      atelierOnly?: boolean;
     }> = [
       {
         title: t("profile"),
@@ -326,6 +330,14 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         primaryOnly: true,
       },
       {
+        title: t("practicalDomains"),
+        icon: <IconFlask size={18} />,
+        href: `${settingsBasePath}/practical-domains`,
+        access: "school_ops",
+        dacKey: "practical-domains",
+        atelierOnly: true,
+      },
+      {
         title: t("support"),
         icon: <IconHeadphones size={18} />,
         href: `${settingsBasePath}/support`,
@@ -354,6 +366,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
     return items
       .filter((item) => {
         if (item.primaryOnly && !showPrimaryDomains) return false;
+        if (item.atelierOnly && !showPracticalDomains) return false;
         if (hasFullBranchAccess) return true;
         if (
           item.dacKey &&
@@ -368,7 +381,15 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         if (!canAccess(item.access)) return false;
         return true;
       })
-      .map(({ access: _, primaryOnly: __, dacKey: ___, ...item }) => item);
+      .map(
+        ({
+          access: _,
+          primaryOnly: __,
+          atelierOnly: ___,
+          dacKey: ____,
+          ...item
+        }) => item,
+      );
   }, [
     t,
     settingsBasePath,
@@ -378,6 +399,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
     canSeeSupport,
     hasFullBranchAccess,
     showPrimaryDomains,
+    showPracticalDomains,
     isMinimalSettingsUser,
     settingsFlagsReady,
     settingsReads,

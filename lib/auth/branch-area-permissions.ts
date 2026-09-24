@@ -203,6 +203,7 @@ export const SETTINGS_HREF_BRANCH_AREA: Record<string, BranchArea> = {
   attendance: "branch_org_settings",
   "structure-merge": "structure_copy",
   "primary-domains": "school_year",
+  "practical-domains": "school_year",
   support: "support_settings",
 };
 

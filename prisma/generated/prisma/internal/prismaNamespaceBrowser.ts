@@ -109,6 +109,11 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Branch: 'Branch',
+  PracticalDomain: 'PracticalDomain',
+  Room: 'Room',
+  PracticalDomainCours: 'PracticalDomainCours',
+  RotationSlot: 'RotationSlot',
+  RotationSlotItem: 'RotationSlotItem',
   AttendanceFaceDescriptor: 'AttendanceFaceDescriptor',
   BranchCycle: 'BranchCycle',
   BranchPrimaryDomain: 'BranchPrimaryDomain',
@@ -395,6 +400,8 @@ export const ClasseScalarFieldEnum = {
   creneauId: 'creneauId',
   horaireType: 'horaireType',
   cycle: 'cycle',
+  sourceClasseId: 'sourceClasseId',
+  practicalDomainId: 'practicalDomainId',
   branchId: 'branchId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -545,6 +552,7 @@ export const CoursScalarFieldEnum = {
   primaryDomain: 'primaryDomain',
   primarySection: 'primarySection',
   domainOrder: 'domainOrder',
+  hasPracticalLab: 'hasPracticalLab',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   branchId: 'branchId'
@@ -1206,6 +1214,75 @@ export const BranchScalarFieldEnum = {
 } as const
 
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
+
+
+export const PracticalDomainScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  code: 'code',
+  name: 'name',
+  sortOrder: 'sortOrder',
+  isSystem: 'isSystem',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PracticalDomainScalarFieldEnum = (typeof PracticalDomainScalarFieldEnum)[keyof typeof PracticalDomainScalarFieldEnum]
+
+
+export const RoomScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  name: 'name',
+  capacity: 'capacity',
+  practicalDomainId: 'practicalDomainId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RoomScalarFieldEnum = (typeof RoomScalarFieldEnum)[keyof typeof RoomScalarFieldEnum]
+
+
+export const PracticalDomainCoursScalarFieldEnum = {
+  id: 'id',
+  practicalDomainId: 'practicalDomainId',
+  coursId: 'coursId',
+  sortOrderDefault: 'sortOrderDefault',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PracticalDomainCoursScalarFieldEnum = (typeof PracticalDomainCoursScalarFieldEnum)[keyof typeof PracticalDomainCoursScalarFieldEnum]
+
+
+export const RotationSlotScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  classeId: 'classeId',
+  day: 'day',
+  hour: 'hour',
+  practicalDomainId: 'practicalDomainId',
+  roomId: 'roomId',
+  teacherId: 'teacherId',
+  anchorDate: 'anchorDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RotationSlotScalarFieldEnum = (typeof RotationSlotScalarFieldEnum)[keyof typeof RotationSlotScalarFieldEnum]
+
+
+export const RotationSlotItemScalarFieldEnum = {
+  id: 'id',
+  rotationSlotId: 'rotationSlotId',
+  coursId: 'coursId',
+  sortOrder: 'sortOrder',
+  teacherId: 'teacherId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RotationSlotItemScalarFieldEnum = (typeof RotationSlotItemScalarFieldEnum)[keyof typeof RotationSlotItemScalarFieldEnum]
 
 
 export const AttendanceFaceDescriptorScalarFieldEnum = {

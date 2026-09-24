@@ -309,6 +309,31 @@ export type Invitation = Prisma.InvitationModel
  */
 export type Branch = Prisma.BranchModel
 /**
+ * Model PracticalDomain
+ * Domaine pratique atelier (Sciences, Technique, Comptabilité) — distinct du bulletin primaire.
+ */
+export type PracticalDomain = Prisma.PracticalDomainModel
+/**
+ * Model Room
+ * Salle / laboratoire d'une branche atelier.
+ */
+export type Room = Prisma.RoomModel
+/**
+ * Model PracticalDomainCours
+ * Lien cours atelier ↔ domaine pratique (ordre par défaut dans un cycle).
+ */
+export type PracticalDomainCours = Prisma.PracticalDomainCoursModel
+/**
+ * Model RotationSlot
+ * Créneau horaire à rotation cyclique (N cours) pour un groupe atelier.
+ */
+export type RotationSlot = Prisma.RotationSlotModel
+/**
+ * Model RotationSlotItem
+ * 
+ */
+export type RotationSlotItem = Prisma.RotationSlotItemModel
+/**
  * Model AttendanceFaceDescriptor
  * Empreinte faciale (128 valeurs) pour le pointage sans carte.
  */

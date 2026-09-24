@@ -51,6 +51,7 @@ const MATERNELLE_CAPABILITY: BranchCapability = {
   usesAttestation: false,
   usesPonderation: true,
   usesFinance: true,
+  usesPaymentDiscounts: true,
   academicStructureKey: "primary",
   isSchoolBranch: true,
 };

@@ -1,36 +1,30 @@
 import {
   getAcademicPeriodKey,
-  getAcademicStructure,
   normalizeBranchType,
-  type ManagedBranchType,
 } from "@/lib/academic-structure";
 import { normalizeEducationSystem } from "@/lib/education-system";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
 import { gradeableCoursFilter } from "@/lib/cours-components";
 import { prisma } from "@/lib/prisma";
+import {
+  ATELIER_LINK_PERIOD_AUTO,
+  isAtelierPeriodAuto,
+  listSecondaryPeriodOptions,
+  periodLabelForKey,
+  type AtelierCourseLinkView,
+  type AtelierLinkOptions,
+  type AtelierLinkSecondaryCourseOption,
+} from "@/lib/atelier-course-link-shared";
 
-export type AtelierLinkSecondaryCourseOption = {
-  id: string;
-  nameCours: string;
-  codeCours: string;
-  branchId: string;
-  branchName: string;
-};
-
-export type AtelierLinkOptions = {
-  /** Cours SUBJECT des branches SECONDAIRE uniquement (jamais domaines bulletin). */
-  courses: AtelierLinkSecondaryCourseOption[];
-  periodsByBranchId: Record<string, Array<{ key: string; label: string }>>;
-};
-
-export type AtelierCourseLinkView = {
-  secondaryCoursId: string;
-  secondaryCoursName: string;
-  secondaryBranchId: string;
-  secondaryBranchName: string;
-  targetPeriodKey: string;
-  targetPeriodLabel: string;
-};
+export {
+  ATELIER_LINK_PERIOD_AUTO,
+  isAtelierPeriodAuto,
+  listSecondaryPeriodOptions,
+  periodLabelForKey,
+  type AtelierCourseLinkView,
+  type AtelierLinkOptions,
+  type AtelierLinkSecondaryCourseOption,
+} from "@/lib/atelier-course-link-shared";
 
 export type FicheNoteContribution = {
   studentId: string;
@@ -53,28 +47,115 @@ export type AtelierBridgeIntervention = {
   sourceLabel: string;
 };
 
-function periodLabelForKey(
-  key: string,
-  typebranch: ManagedBranchType,
-  educationSystem: unknown,
-): string {
-  const structure = getAcademicStructure(typebranch, educationSystem);
-  return structure.periods.find((period) => period.key === key)?.label ?? key;
-}
+/**
+ * Première période secondaire non encore close pour ce cours :
+ * fiche de cote validée (status=true), gradesGenerated, ou PeriodResultLock.
+ * Sinon la dernière période du catalogue.
+ */
+export async function resolveActiveSecondaryPeriodKey(params: {
+  secondaryBranchId: string;
+  secondaryCoursId: string;
+  schoolYearId?: string | null;
+}): Promise<{ key: string; label: string } | null> {
+  const branch = await prisma.branch.findFirst({
+    where: { id: params.secondaryBranchId, typebranch: "SECONDAIRE" },
+    select: { id: true, educationSystem: true },
+  });
+  if (!branch) return null;
 
-export function listSecondaryPeriodOptions(educationSystem?: unknown) {
-  const structure = getAcademicStructure("SECONDAIRE", educationSystem);
-  return structure.periods.map((period) => ({
-    key: period.key,
-    label: period.label,
-  }));
+  const educationSystem = normalizeEducationSystem(branch.educationSystem);
+  const catalog = listSecondaryPeriodOptions(educationSystem);
+  if (!catalog.length) return null;
+
+  const yearId =
+    params.schoolYearId ??
+    (
+      await prisma.schoolYear.findFirst({
+        where: {
+          branchId: branch.id,
+          isCurrentYear: true,
+          isArchived: false,
+        },
+        select: { id: true },
+      })
+    )?.id ??
+    null;
+
+  const dbPeriods = await prisma.period.findMany({
+    where: {
+      branchId: branch.id,
+      cycle: "SECONDAIRE",
+    },
+    select: {
+      id: true,
+      label: true,
+      gradesGenerated: true,
+    },
+  });
+
+  const locks = await prisma.periodResultLock.findMany({
+    where: {
+      branchId: branch.id,
+      periodId: { in: dbPeriods.map((p) => p.id) },
+    },
+    select: { periodId: true, status: true },
+  });
+  const lockByPeriodId = new Map(
+    locks.map((row) => [row.periodId, row.status] as const),
+  );
+
+  const periodsByKey = new Map<string, typeof dbPeriods>();
+  for (const row of dbPeriods) {
+    const key = getAcademicPeriodKey(row.label, "SECONDAIRE", educationSystem);
+    if (!key) continue;
+    const list = periodsByKey.get(key) ?? [];
+    list.push(row);
+    periodsByKey.set(key, list);
+  }
+
+  for (const entry of catalog) {
+    const rows = periodsByKey.get(entry.key) ?? [];
+    const periodIds = rows.map((r) => r.id);
+
+    const lockedByGrades = rows.some((r) => {
+      const lockStatus = lockByPeriodId.get(r.id)?.toLowerCase() ?? "";
+      const locked =
+        Boolean(lockStatus) &&
+        lockStatus !== "open" &&
+        lockStatus !== "unlocked";
+      return r.gradesGenerated || locked;
+    });
+
+    let coteValidated = false;
+    if (periodIds.length) {
+      const validated = await prisma.fiche.findFirst({
+        where: {
+          branchId: branch.id,
+          typeFiche: "ficheCote",
+          status: true,
+          periodId: { in: periodIds },
+          lesson: { coursId: params.secondaryCoursId },
+          ...(yearId ? { anneeId: yearId } : {}),
+        },
+        select: { id: true },
+      });
+      coteValidated = Boolean(validated);
+    }
+
+    if (!lockedByGrades && !coteValidated) {
+      return { key: entry.key, label: entry.label };
+    }
+  }
+
+  const last = catalog[catalog.length - 1]!;
+  return { key: last.key, label: last.label };
 }
 
 /**
  * Options UI atelier → secondaire :
  * - uniquement des cours SUBJECT de branches SECONDAIRE
  * - priorité aux branches sources déjà liées (élèves importés)
- * - pas de domaines bulletin
+ * - pas de domaines bulletin / primaire / maternelle
  */
 export async function getAtelierLinkOptionsForOrganization(params: {
   organizationId: string;
@@ -131,6 +212,7 @@ export async function getAtelierLinkOptionsForOrganization(params: {
         codeCours: cours.codeCours,
         branchId: branch.id,
         branchName: branch.name,
+        label: `${cours.nameCours} · ${branch.name}`,
       });
     }
   }
@@ -152,7 +234,12 @@ export async function getAtelierCourseLinkForCours(
     include: {
       secondaryCours: { select: { id: true, nameCours: true } },
       secondaryBranch: {
-        select: { id: true, name: true, educationSystem: true, typebranch: true },
+        select: {
+          id: true,
+          name: true,
+          educationSystem: true,
+          typebranch: true,
+        },
       },
     },
   });
@@ -162,6 +249,23 @@ export async function getAtelierCourseLinkForCours(
   const educationSystem = normalizeEducationSystem(
     link.secondaryBranch.educationSystem,
   );
+  const auto = isAtelierPeriodAuto(link.targetPeriodKey);
+  const active = auto
+    ? await resolveActiveSecondaryPeriodKey({
+        secondaryBranchId: link.secondaryBranchId,
+        secondaryCoursId: link.secondaryCoursId,
+      })
+    : null;
+
+  const effectiveLabel = auto
+    ? active
+      ? `${active.label} (auto)`
+      : "Période active (auto)"
+    : periodLabelForKey(
+        link.targetPeriodKey,
+        typebranch === "SECONDAIRE" ? "SECONDAIRE" : typebranch,
+        educationSystem,
+      );
 
   return {
     secondaryCoursId: link.secondaryCoursId,
@@ -169,11 +273,10 @@ export async function getAtelierCourseLinkForCours(
     secondaryBranchId: link.secondaryBranchId,
     secondaryBranchName: link.secondaryBranch.name,
     targetPeriodKey: link.targetPeriodKey,
-    targetPeriodLabel: periodLabelForKey(
-      link.targetPeriodKey,
-      typebranch === "SECONDAIRE" ? "SECONDAIRE" : typebranch,
-      educationSystem,
-    ),
+    targetPeriodLabel: effectiveLabel,
+    activePeriodKey: active?.key ?? (auto ? null : link.targetPeriodKey),
+    activePeriodLabel: active?.label ?? (auto ? null : effectiveLabel),
+    isPeriodAuto: auto,
   };
 }
 
@@ -183,11 +286,15 @@ export async function upsertAtelierCourseLink(params: {
   atelierCoursId: string;
   secondaryCoursId: string | null | undefined;
   secondaryBranchId: string | null | undefined;
+  /** null / undefined / AUTO → période active automatique. */
   targetPeriodKey: string | null | undefined;
 }) {
   const secondaryCoursId = params.secondaryCoursId?.trim() || null;
   const secondaryBranchId = params.secondaryBranchId?.trim() || null;
-  const targetPeriodKey = params.targetPeriodKey?.trim() || null;
+  const rawPeriod = params.targetPeriodKey?.trim() || null;
+  const targetPeriodKey: string = isAtelierPeriodAuto(rawPeriod)
+    ? ATELIER_LINK_PERIOD_AUTO
+    : rawPeriod!;
 
   const atelierCours = await prisma.cours.findFirst({
     where: { id: params.atelierCoursId, branchId: params.atelierBranchId },
@@ -197,17 +304,15 @@ export async function upsertAtelierCourseLink(params: {
     throw new Error("Cours atelier introuvable dans cette branche");
   }
 
-  if (!secondaryCoursId && !secondaryBranchId && !targetPeriodKey) {
+  if (!secondaryCoursId && !secondaryBranchId) {
     await prisma.atelierCourseLink.deleteMany({
       where: { atelierCoursId: params.atelierCoursId },
     });
     return null;
   }
 
-  if (!secondaryCoursId || !secondaryBranchId || !targetPeriodKey) {
-    throw new Error(
-      "Pour associer l'atelier, choisissez la branche, le cours et la période secondaire.",
-    );
+  if (!secondaryCoursId || !secondaryBranchId) {
+    throw new Error("Pour associer l'atelier, choisissez un cours secondaire.");
   }
 
   const secondaryBranch = await prisma.branch.findFirst({
@@ -235,11 +340,15 @@ export async function upsertAtelierCourseLink(params: {
     throw new Error("Cours secondaire introuvable dans la branche choisie");
   }
 
-  const validKeys = new Set(
-    listSecondaryPeriodOptions(secondaryBranch.educationSystem).map((p) => p.key),
-  );
-  if (!validKeys.has(targetPeriodKey)) {
-    throw new Error("Période secondaire cible invalide");
+  if (targetPeriodKey !== ATELIER_LINK_PERIOD_AUTO) {
+    const validKeys = new Set(
+      listSecondaryPeriodOptions(secondaryBranch.educationSystem).map(
+        (p) => p.key,
+      ),
+    );
+    if (!validKeys.has(targetPeriodKey)) {
+      throw new Error("Période secondaire cible invalide");
+    }
   }
 
   return prisma.atelierCourseLink.upsert({
@@ -311,6 +420,7 @@ async function resolveMatchingAtelierSchoolYearId(params: {
 /**
  * Récupère les notes intermédiaires atelier à fusionner dans la fiche centrale
  * d'un cours secondaire pour la période ciblée par AtelierCourseLink.
+ * Liens AUTO : inclus uniquement pour la période active (avance après validation).
  */
 export async function collectLinkedAtelierContributions(params: {
   secondaryBranchId: string;
@@ -333,11 +443,14 @@ export async function collectLinkedAtelierContributions(params: {
     return { notes: [], interventions: [] };
   }
 
-  const links = await prisma.atelierCourseLink.findMany({
+  const candidateLinks = await prisma.atelierCourseLink.findMany({
     where: {
       secondaryCoursId: params.secondaryCoursId,
       secondaryBranchId: params.secondaryBranchId,
-      targetPeriodKey: periodKey,
+      OR: [
+        { targetPeriodKey: periodKey },
+        { targetPeriodKey: ATELIER_LINK_PERIOD_AUTO },
+      ],
     },
     include: {
       atelierCours: {
@@ -350,6 +463,23 @@ export async function collectLinkedAtelierContributions(params: {
       },
     },
   });
+
+  const links = [];
+  for (const link of candidateLinks) {
+    if (link.targetPeriodKey === periodKey) {
+      links.push(link);
+      continue;
+    }
+    if (!isAtelierPeriodAuto(link.targetPeriodKey)) continue;
+    const active = await resolveActiveSecondaryPeriodKey({
+      secondaryBranchId: params.secondaryBranchId,
+      secondaryCoursId: params.secondaryCoursId,
+      schoolYearId: params.secondaryAnneeId,
+    });
+    if (active?.key === periodKey) {
+      links.push(link);
+    }
+  }
 
   if (!links.length) {
     return { notes: [], interventions: [] };

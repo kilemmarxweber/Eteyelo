@@ -30,6 +30,9 @@ import {
 import {
   getAtelierLinkOptionsForOrganization,
   upsertAtelierCourseLink,
+  ATELIER_LINK_PERIOD_AUTO,
+  resolveActiveSecondaryPeriodKey,
+  isAtelierPeriodAuto,
 } from "@/lib/atelier-course-link";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
 import { getConfiguredCoursIdsForClasse } from "@/lib/course-ponderation";
@@ -149,6 +152,8 @@ export const createCoursAction = action
           statusCours: true,
           kind: COURS_KIND.SUBJECT,
           parentCoursId: null,
+          hasPracticalLab:
+            isAtelierBranchType(typebranch) && Boolean(input.practicalDomainId),
           ...(primaryFields ?? {}),
         },
       });
@@ -160,8 +165,23 @@ export const createCoursAction = action
           atelierCoursId: cours.id,
           secondaryCoursId: input.linkedSecondaryCoursId,
           secondaryBranchId: input.linkedSecondaryBranchId,
-          targetPeriodKey: input.linkedTargetPeriodKey,
+          targetPeriodKey:
+            input.linkedTargetPeriodKey ?? ATELIER_LINK_PERIOD_AUTO,
         });
+        if (input.practicalDomainId) {
+          const domain = await prisma.practicalDomain.findFirst({
+            where: { id: input.practicalDomainId, branchId },
+            select: { id: true },
+          });
+          if (!domain) throw new Error("Domaine pratique introuvable");
+          await prisma.practicalDomainCours.create({
+            data: {
+              practicalDomainId: domain.id,
+              coursId: cours.id,
+              sortOrderDefault: 0,
+            },
+          });
+        }
       }
 
       revalidateCoursPages(organizationId, branchId);
@@ -233,6 +253,10 @@ export const updateCoursAction = action
             ? { primaryDomain: selectedDomain }
             : primaryFields
           : {}),
+        ...(isAtelierBranchType(typebranch) &&
+        input.practicalDomainId !== undefined
+          ? { hasPracticalLab: Boolean(input.practicalDomainId) }
+          : {}),
       },
       where: {
         id,
@@ -246,8 +270,29 @@ export const updateCoursAction = action
         atelierCoursId: id,
         secondaryCoursId: input.linkedSecondaryCoursId,
         secondaryBranchId: input.linkedSecondaryBranchId,
-        targetPeriodKey: input.linkedTargetPeriodKey,
+        targetPeriodKey:
+          input.linkedTargetPeriodKey ?? ATELIER_LINK_PERIOD_AUTO,
       });
+
+      if (input.practicalDomainId !== undefined) {
+        await prisma.practicalDomainCours.deleteMany({
+          where: { coursId: id },
+        });
+        if (input.practicalDomainId) {
+          const domain = await prisma.practicalDomain.findFirst({
+            where: { id: input.practicalDomainId, branchId },
+            select: { id: true },
+          });
+          if (!domain) throw new Error("Domaine pratique introuvable");
+          await prisma.practicalDomainCours.create({
+            data: {
+              practicalDomainId: domain.id,
+              coursId: id,
+              sortOrderDefault: 0,
+            },
+          });
+        }
+      }
     }
 
     revalidateCoursPages(organizationId, branchId);
@@ -413,63 +458,106 @@ export const getCoursAction = action
                   },
                 },
               },
+              practicalDomainLinks: {
+                take: 1,
+                select: {
+                  practicalDomainId: true,
+                  practicalDomain: { select: { id: true, name: true } },
+                },
+              },
             }
           : {}),
       },
       orderBy: [{ sortOrder: "asc" }, { nameCours: "asc" }],
     });
 
-    const transformedCourses: ICours[] = Cours.map(
-      ({ _count, parentCours, ...cours }) => {
-        const link =
-          "atelierCourseLink" in cours
-            ? (
-                cours as typeof cours & {
-                  atelierCourseLink?: {
-                    secondaryCoursId: string;
-                    secondaryCours: { id: string; nameCours: string };
-                    secondaryBranchId: string;
-                    secondaryBranch: {
-                      id: string;
-                      name: string;
-                      educationSystem: string;
-                      typebranch: string;
-                    };
-                    targetPeriodKey: string;
-                  } | null;
-                }
-              ).atelierCourseLink
-            : null;
+    const transformedCourses: ICours[] = [];
+    for (const { _count, parentCours, ...cours } of Cours) {
+      const link =
+        "atelierCourseLink" in cours
+          ? (
+              cours as typeof cours & {
+                atelierCourseLink?: {
+                  secondaryCoursId: string;
+                  secondaryCours: { id: string; nameCours: string };
+                  secondaryBranchId: string;
+                  secondaryBranch: {
+                    id: string;
+                    name: string;
+                    educationSystem: string;
+                    typebranch: string;
+                  };
+                  targetPeriodKey: string;
+                } | null;
+              }
+            ).atelierCourseLink
+          : null;
 
-        const { atelierCourseLink: _ignored, ...rest } = cours as typeof cours & {
-          atelierCourseLink?: unknown;
-        };
+      const domainLink =
+        "practicalDomainLinks" in cours
+          ? (
+              cours as typeof cours & {
+                practicalDomainLinks?: Array<{
+                  practicalDomainId: string;
+                  practicalDomain: { id: string; name: string };
+                }>;
+              }
+            ).practicalDomainLinks?.[0]
+          : undefined;
 
-        const atelierLink: ICours["atelierLink"] = link
-          ? {
-              secondaryCoursId: link.secondaryCoursId,
-              secondaryCoursName: link.secondaryCours.nameCours,
+      const {
+        atelierCourseLink: _ignored,
+        practicalDomainLinks: _domains,
+        ...rest
+      } = cours as typeof cours & {
+        atelierCourseLink?: unknown;
+        practicalDomainLinks?: unknown;
+      };
+
+      let atelierLink: ICours["atelierLink"] = null;
+      if (link) {
+        const auto = isAtelierPeriodAuto(link.targetPeriodKey);
+        const active = auto
+          ? await resolveActiveSecondaryPeriodKey({
               secondaryBranchId: link.secondaryBranchId,
-              secondaryBranchName: link.secondaryBranch.name,
-              targetPeriodKey: link.targetPeriodKey,
-              targetPeriodLabel: secondaryPeriodLabel(
+              secondaryCoursId: link.secondaryCoursId,
+            })
+          : null;
+        atelierLink = {
+          secondaryCoursId: link.secondaryCoursId,
+          secondaryCoursName: link.secondaryCours.nameCours,
+          secondaryBranchId: link.secondaryBranchId,
+          secondaryBranchName: link.secondaryBranch.name,
+          targetPeriodKey: link.targetPeriodKey,
+          targetPeriodLabel: auto
+            ? active
+              ? `${active.label} (auto)`
+              : "Période active (auto)"
+            : secondaryPeriodLabel(
                 link.targetPeriodKey,
                 link.secondaryBranch.educationSystem,
               ),
-            }
-          : null;
-
-        return {
-          ...rest,
-          description: rest.description || "",
-          teachingsCount: _count.teaching,
-          componentsCount: _count.components,
-          parentNameCours: parentCours?.nameCours ?? null,
-          kind: rest.kind,
-          atelierLink,
+          activePeriodKey: active?.key ?? null,
+          activePeriodLabel: active?.label ?? null,
+          isPeriodAuto: auto,
         };
-      },
-    );
+      }
+
+      transformedCourses.push({
+        ...rest,
+        hasPracticalLab: Boolean(
+          (rest as { hasPracticalLab?: boolean }).hasPracticalLab,
+        ),
+        practicalDomainId: domainLink?.practicalDomainId ?? null,
+        practicalDomainName: domainLink?.practicalDomain.name ?? null,
+        description:
+          (rest as { description?: string | null }).description || "",
+        teachingsCount: _count.teaching,
+        componentsCount: _count.components,
+        parentNameCours: parentCours?.nameCours ?? null,
+        atelierLink,
+      });
+    }
     return transformedCourses;
   } catch (error: any) {
     throw new Error(error.message);

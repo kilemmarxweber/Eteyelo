@@ -36,7 +36,9 @@ import {
   PRIMARY_DOMAIN_SHORT_LABELS,
 } from "@/lib/primary-domains";
 import { getBranchPrimaryDomainsAction } from "../../settings/settings.action";
-import type { AtelierLinkOptions } from "@/lib/atelier-course-link";
+import { getPracticalDomainsAction } from "../../settings/practical-domains.action";
+import type { AtelierLinkOptions } from "@/lib/atelier-course-link-shared";
+import { ATELIER_LINK_PERIOD_AUTO } from "@/lib/atelier-course-link-shared";
 
 interface CoursUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: () => void;
@@ -82,6 +84,9 @@ export function CoursUpForm({
       courses: [],
       periodsByBranchId: {},
     });
+  const [practicalDomains, setPracticalDomains] = useState<
+    Array<{ id: string; name: string; code: string }>
+  >([]);
 
   useEffect(() => {
     if (!showDomain) return;
@@ -112,6 +117,16 @@ export function CoursUpForm({
       .catch(() => {
         /* ignore */
       });
+    getPracticalDomainsAction()
+      .then(([rows]) => {
+        if (ignore || !rows) return;
+        setPracticalDomains(
+          rows.map((d) => ({ id: d.id, name: d.name, code: d.code })),
+        );
+      })
+      .catch(() => {
+        /* ignore */
+      });
     return () => {
       ignore = true;
     };
@@ -127,6 +142,7 @@ export function CoursUpForm({
       linkedSecondaryBranchId: null,
       linkedSecondaryCoursId: null,
       linkedTargetPeriodKey: null,
+      practicalDomainId: null,
     },
   });
 
@@ -137,19 +153,6 @@ export function CoursUpForm({
       null,
     [atelierLinkOptions.courses, linkedCoursId],
   );
-  const periodOptions = useMemo(() => {
-    const branchId =
-      selectedSecondaryCourse?.branchId ??
-      form.getValues("linkedSecondaryBranchId") ??
-      null;
-    if (!branchId) return [];
-    return atelierLinkOptions.periodsByBranchId[branchId] ?? [];
-  }, [
-    atelierLinkOptions.periodsByBranchId,
-    selectedSecondaryCourse?.branchId,
-    form,
-    linkedCoursId,
-  ]);
 
   async function onSubmit(data: z.infer<typeof coursSchema>) {
     setIsLoading(true);
@@ -172,7 +175,12 @@ export function CoursUpForm({
           ? data.linkedSecondaryCoursId ?? null
           : undefined,
         linkedTargetPeriodKey: isAtelier
-          ? data.linkedTargetPeriodKey ?? null
+          ? data.linkedSecondaryCoursId
+            ? ATELIER_LINK_PERIOD_AUTO
+            : null
+          : undefined,
+        practicalDomainId: isAtelier
+          ? data.practicalDomainId ?? null
           : undefined,
       };
 
@@ -199,6 +207,7 @@ export function CoursUpForm({
           linkedSecondaryBranchId: null,
           linkedSecondaryCoursId: null,
           linkedTargetPeriodKey: null,
+          practicalDomainId: null,
         });
         onCreated?.();
       } else {
@@ -267,6 +276,43 @@ export function CoursUpForm({
     <>
       <FormField
         control={form.control}
+        name="practicalDomainId"
+        render={({ field }) => (
+          <FormItem className={cn(fieldClass, isDialog && "sm:col-span-2")}>
+            <FormLabel className={labelClass}>Domaine pratique (TP)</FormLabel>
+            <Select
+              value={field.value ?? "NONE"}
+              onValueChange={(value) =>
+                field.onChange(value === "NONE" ? null : value)
+              }
+              disabled={isLoading}
+            >
+              <FormControl>
+                <SelectTrigger className={controlClass}>
+                  <SelectValue placeholder="Aucun TP atelier" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="NONE">Aucun TP atelier</SelectItem>
+                {practicalDomains.map((domain) => (
+                  <SelectItem key={domain.id} value={domain.id}>
+                    {domain.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!isDialog ? (
+              <FormDescription>
+                Si renseigné, le cours entre dans les rotations labo de ce
+                domaine.
+              </FormDescription>
+            ) : null}
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
         name="linkedSecondaryCoursId"
         render={({ field }) => (
           <FormItem className={cn(fieldClass, isDialog && "sm:col-span-2")}>
@@ -301,14 +347,8 @@ export function CoursUpForm({
                 <SelectItem value="NONE">{t("linkNone")}</SelectItem>
                 {atelierLinkOptions.courses.map((course) => (
                   <SelectItem key={course.id} value={course.id}>
-                    {course.nameCours}
-                    {atelierLinkOptions.courses.some(
-                      (other) =>
-                        other.id !== course.id &&
-                        other.nameCours === course.nameCours,
-                    )
-                      ? ` · ${course.branchName}`
-                      : ""}
+                    {course.label ??
+                      `${course.nameCours} · ${course.branchName}`}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -324,38 +364,18 @@ export function CoursUpForm({
         )}
       />
 
-      <FormField
-        control={form.control}
-        name="linkedTargetPeriodKey"
-        render={({ field }) => (
-          <FormItem className={cn(fieldClass, isDialog && "sm:col-span-2")}>
-            <FormLabel className={labelClass}>{t("linkPeriod")}</FormLabel>
-            <Select
-              value={field.value ?? "NONE"}
-              onValueChange={(value) =>
-                field.onChange(value === "NONE" ? null : value)
-              }
-              disabled={isLoading || !selectedSecondaryCourse}
-            >
-              <FormControl>
-                <SelectTrigger className={controlClass}>
-                  <SelectValue placeholder={t("linkPeriodPlaceholder")} />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="NONE">{t("linkNone")}</SelectItem>
-                {periodOptions.map((period) => (
-                  <SelectItem key={period.key} value={period.key}>
-                    {period.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormDescription>{t("linkPeriodDesc")}</FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {selectedSecondaryCourse ? (
+        <div
+          className={cn(
+            fieldClass,
+            isDialog && "sm:col-span-2",
+            "rounded-md border px-3 py-2 text-sm",
+          )}
+        >
+          <p className="font-medium">{t("linkPeriod")}</p>
+          <p className="text-muted-foreground">{t("linkPeriodDesc")}</p>
+        </div>
+      ) : null}
     </>
   ) : null;
 

@@ -13,6 +13,7 @@ import {
 import { CoursUpForm } from "./cours-form";
 import { CoursComponentsPanel } from "./cours-components-panel";
 import { ICours } from "@/src/interfaces/Cours";
+import { ATELIER_LINK_PERIOD_AUTO } from "@/lib/atelier-course-link-shared";
 
 interface UpdateCoursDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -70,8 +71,10 @@ export function UpdateCoursDialog({
                 cours.atelierLink?.secondaryBranchId ?? null,
               linkedSecondaryCoursId:
                 cours.atelierLink?.secondaryCoursId ?? null,
-              linkedTargetPeriodKey:
-                cours.atelierLink?.targetPeriodKey ?? null,
+              linkedTargetPeriodKey: cours.atelierLink
+                ? ATELIER_LINK_PERIOD_AUTO
+                : null,
+              practicalDomainId: cours.practicalDomainId ?? null,
             }}
             onUpdated={handleUpdate}
           />

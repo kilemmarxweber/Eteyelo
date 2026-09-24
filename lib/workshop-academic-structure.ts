@@ -1,9 +1,10 @@
 import type { Prisma } from "@/prisma/generated/prisma/client";
 import { generateCode, ensureUniqueIdentifier } from "@/lib/generated-identifiers";
+import { ensurePracticalDomainsForBranch } from "@/lib/branch-practical-domains";
 
 type AcademicDb = Pick<
   Prisma.TransactionClient,
-  "section" | "option" | "classe" | "typeFrais"
+  "section" | "option" | "classe" | "typeFrais" | "practicalDomain" | "room"
 >;
 
 export const WORKSHOP_SECTION_CODE = "ATELIER";
@@ -124,6 +125,7 @@ export async function ensureWorkshopAcademicStructure(
   }
 
   await ensureWorkshopFeeType(db, branchId);
+  await ensurePracticalDomainsForBranch(db, branchId);
 
   return {
     section: { id: section.id, nameSection: section.nameSection },

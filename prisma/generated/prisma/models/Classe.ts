@@ -46,6 +46,8 @@ export type ClasseMinAggregateOutputType = {
   creneauId: string | null
   horaireType: $Enums.HoraireType | null
   cycle: $Enums.Cycle | null
+  sourceClasseId: string | null
+  practicalDomainId: string | null
   branchId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -63,6 +65,8 @@ export type ClasseMaxAggregateOutputType = {
   creneauId: string | null
   horaireType: $Enums.HoraireType | null
   cycle: $Enums.Cycle | null
+  sourceClasseId: string | null
+  practicalDomainId: string | null
   branchId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -80,6 +84,8 @@ export type ClasseCountAggregateOutputType = {
   creneauId: number
   horaireType: number
   cycle: number
+  sourceClasseId: number
+  practicalDomainId: number
   branchId: number
   createdAt: number
   updatedAt: number
@@ -107,6 +113,8 @@ export type ClasseMinAggregateInputType = {
   creneauId?: true
   horaireType?: true
   cycle?: true
+  sourceClasseId?: true
+  practicalDomainId?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -124,6 +132,8 @@ export type ClasseMaxAggregateInputType = {
   creneauId?: true
   horaireType?: true
   cycle?: true
+  sourceClasseId?: true
+  practicalDomainId?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -141,6 +151,8 @@ export type ClasseCountAggregateInputType = {
   creneauId?: true
   horaireType?: true
   cycle?: true
+  sourceClasseId?: true
+  practicalDomainId?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -245,6 +257,8 @@ export type ClasseGroupByOutputType = {
   creneauId: string | null
   horaireType: $Enums.HoraireType
   cycle: $Enums.Cycle | null
+  sourceClasseId: string | null
+  practicalDomainId: string | null
   branchId: string
   createdAt: Date
   updatedAt: Date
@@ -285,9 +299,14 @@ export type ClasseWhereInput = {
   creneauId?: Prisma.StringNullableFilter<"Classe"> | string | null
   horaireType?: Prisma.EnumHoraireTypeFilter<"Classe"> | $Enums.HoraireType
   cycle?: Prisma.EnumCycleNullableFilter<"Classe"> | $Enums.Cycle | null
+  sourceClasseId?: Prisma.StringNullableFilter<"Classe"> | string | null
+  practicalDomainId?: Prisma.StringNullableFilter<"Classe"> | string | null
   branchId?: Prisma.StringFilter<"Classe"> | string
   createdAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
+  sourceClasse?: Prisma.XOR<Prisma.ClasseNullableScalarRelationFilter, Prisma.ClasseWhereInput> | null
+  atelierLabGroups?: Prisma.ClasseListRelationFilter
+  practicalDomain?: Prisma.XOR<Prisma.PracticalDomainNullableScalarRelationFilter, Prisma.PracticalDomainWhereInput> | null
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   classEnrollment?: Prisma.ClassEnrollmentListRelationFilter
   teaching?: Prisma.TeachingListRelationFilter
@@ -297,6 +316,7 @@ export type ClasseWhereInput = {
   CalendarEvent?: Prisma.CalendarEventListRelationFilter
   fiche?: Prisma.FicheListRelationFilter
   onlineAssignments?: Prisma.OnlineAssignmentListRelationFilter
+  rotationSlots?: Prisma.RotationSlotListRelationFilter
 }
 
 export type ClasseOrderByWithRelationInput = {
@@ -311,9 +331,14 @@ export type ClasseOrderByWithRelationInput = {
   creneauId?: Prisma.SortOrderInput | Prisma.SortOrder
   horaireType?: Prisma.SortOrder
   cycle?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceClasseId?: Prisma.SortOrderInput | Prisma.SortOrder
+  practicalDomainId?: Prisma.SortOrderInput | Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  sourceClasse?: Prisma.ClasseOrderByWithRelationInput
+  atelierLabGroups?: Prisma.ClasseOrderByRelationAggregateInput
+  practicalDomain?: Prisma.PracticalDomainOrderByWithRelationInput
   branch?: Prisma.BranchOrderByWithRelationInput
   classEnrollment?: Prisma.ClassEnrollmentOrderByRelationAggregateInput
   teaching?: Prisma.TeachingOrderByRelationAggregateInput
@@ -323,12 +348,14 @@ export type ClasseOrderByWithRelationInput = {
   CalendarEvent?: Prisma.CalendarEventOrderByRelationAggregateInput
   fiche?: Prisma.ficheOrderByRelationAggregateInput
   onlineAssignments?: Prisma.OnlineAssignmentOrderByRelationAggregateInput
+  rotationSlots?: Prisma.RotationSlotOrderByRelationAggregateInput
 }
 
 export type ClasseWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   branchId_codeClasse?: Prisma.ClasseBranchIdCodeClasseCompoundUniqueInput
   branchId_nameClasse?: Prisma.ClasseBranchIdNameClasseCompoundUniqueInput
+  branchId_sourceClasseId?: Prisma.ClasseBranchIdSourceClasseIdCompoundUniqueInput
   AND?: Prisma.ClasseWhereInput | Prisma.ClasseWhereInput[]
   OR?: Prisma.ClasseWhereInput[]
   NOT?: Prisma.ClasseWhereInput | Prisma.ClasseWhereInput[]
@@ -342,9 +369,14 @@ export type ClasseWhereUniqueInput = Prisma.AtLeast<{
   creneauId?: Prisma.StringNullableFilter<"Classe"> | string | null
   horaireType?: Prisma.EnumHoraireTypeFilter<"Classe"> | $Enums.HoraireType
   cycle?: Prisma.EnumCycleNullableFilter<"Classe"> | $Enums.Cycle | null
+  sourceClasseId?: Prisma.StringNullableFilter<"Classe"> | string | null
+  practicalDomainId?: Prisma.StringNullableFilter<"Classe"> | string | null
   branchId?: Prisma.StringFilter<"Classe"> | string
   createdAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
+  sourceClasse?: Prisma.XOR<Prisma.ClasseNullableScalarRelationFilter, Prisma.ClasseWhereInput> | null
+  atelierLabGroups?: Prisma.ClasseListRelationFilter
+  practicalDomain?: Prisma.XOR<Prisma.PracticalDomainNullableScalarRelationFilter, Prisma.PracticalDomainWhereInput> | null
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   classEnrollment?: Prisma.ClassEnrollmentListRelationFilter
   teaching?: Prisma.TeachingListRelationFilter
@@ -354,7 +386,8 @@ export type ClasseWhereUniqueInput = Prisma.AtLeast<{
   CalendarEvent?: Prisma.CalendarEventListRelationFilter
   fiche?: Prisma.FicheListRelationFilter
   onlineAssignments?: Prisma.OnlineAssignmentListRelationFilter
-}, "id" | "branchId_codeClasse" | "branchId_nameClasse">
+  rotationSlots?: Prisma.RotationSlotListRelationFilter
+}, "id" | "branchId_codeClasse" | "branchId_nameClasse" | "branchId_sourceClasseId">
 
 export type ClasseOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -368,6 +401,8 @@ export type ClasseOrderByWithAggregationInput = {
   creneauId?: Prisma.SortOrderInput | Prisma.SortOrder
   horaireType?: Prisma.SortOrder
   cycle?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceClasseId?: Prisma.SortOrderInput | Prisma.SortOrder
+  practicalDomainId?: Prisma.SortOrderInput | Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -393,6 +428,8 @@ export type ClasseScalarWhereWithAggregatesInput = {
   creneauId?: Prisma.StringNullableWithAggregatesFilter<"Classe"> | string | null
   horaireType?: Prisma.EnumHoraireTypeWithAggregatesFilter<"Classe"> | $Enums.HoraireType
   cycle?: Prisma.EnumCycleNullableWithAggregatesFilter<"Classe"> | $Enums.Cycle | null
+  sourceClasseId?: Prisma.StringNullableWithAggregatesFilter<"Classe"> | string | null
+  practicalDomainId?: Prisma.StringNullableWithAggregatesFilter<"Classe"> | string | null
   branchId?: Prisma.StringWithAggregatesFilter<"Classe"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Classe"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Classe"> | Date | string
@@ -410,6 +447,9 @@ export type ClasseCreateInput = {
   cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  sourceClasse?: Prisma.ClasseCreateNestedOneWithoutAtelierLabGroupsInput
+  atelierLabGroups?: Prisma.ClasseCreateNestedManyWithoutSourceClasseInput
+  practicalDomain?: Prisma.PracticalDomainCreateNestedOneWithoutClassesInput
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
@@ -419,6 +459,7 @@ export type ClasseCreateInput = {
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateInput = {
@@ -433,15 +474,19 @@ export type ClasseUncheckedCreateInput = {
   creneauId?: string | null
   horaireType?: $Enums.HoraireType
   cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedCreateNestedManyWithoutSourceClasseInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUpdateInput = {
@@ -456,6 +501,9 @@ export type ClasseUpdateInput = {
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceClasse?: Prisma.ClasseUpdateOneWithoutAtelierLabGroupsNestedInput
+  atelierLabGroups?: Prisma.ClasseUpdateManyWithoutSourceClasseNestedInput
+  practicalDomain?: Prisma.PracticalDomainUpdateOneWithoutClassesNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
@@ -465,6 +513,7 @@ export type ClasseUpdateInput = {
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateInput = {
@@ -479,15 +528,19 @@ export type ClasseUncheckedUpdateInput = {
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedUpdateManyWithoutSourceClasseNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseCreateManyInput = {
@@ -502,6 +555,8 @@ export type ClasseCreateManyInput = {
   creneauId?: string | null
   horaireType?: $Enums.HoraireType
   cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -533,6 +588,8 @@ export type ClasseUncheckedUpdateManyInput = {
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -543,6 +600,21 @@ export type ClasseScalarRelationFilter = {
   isNot?: Prisma.ClasseWhereInput
 }
 
+export type ClasseNullableScalarRelationFilter = {
+  is?: Prisma.ClasseWhereInput | null
+  isNot?: Prisma.ClasseWhereInput | null
+}
+
+export type ClasseListRelationFilter = {
+  every?: Prisma.ClasseWhereInput
+  some?: Prisma.ClasseWhereInput
+  none?: Prisma.ClasseWhereInput
+}
+
+export type ClasseOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
 export type ClasseBranchIdCodeClasseCompoundUniqueInput = {
   branchId: string
   codeClasse: string
@@ -551,6 +623,11 @@ export type ClasseBranchIdCodeClasseCompoundUniqueInput = {
 export type ClasseBranchIdNameClasseCompoundUniqueInput = {
   branchId: string
   nameClasse: string
+}
+
+export type ClasseBranchIdSourceClasseIdCompoundUniqueInput = {
+  branchId: string
+  sourceClasseId: string
 }
 
 export type ClasseCountOrderByAggregateInput = {
@@ -565,6 +642,8 @@ export type ClasseCountOrderByAggregateInput = {
   creneauId?: Prisma.SortOrder
   horaireType?: Prisma.SortOrder
   cycle?: Prisma.SortOrder
+  sourceClasseId?: Prisma.SortOrder
+  practicalDomainId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -586,6 +665,8 @@ export type ClasseMaxOrderByAggregateInput = {
   creneauId?: Prisma.SortOrder
   horaireType?: Prisma.SortOrder
   cycle?: Prisma.SortOrder
+  sourceClasseId?: Prisma.SortOrder
+  practicalDomainId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -603,6 +684,8 @@ export type ClasseMinOrderByAggregateInput = {
   creneauId?: Prisma.SortOrder
   horaireType?: Prisma.SortOrder
   cycle?: Prisma.SortOrder
+  sourceClasseId?: Prisma.SortOrder
+  practicalDomainId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -610,21 +693,6 @@ export type ClasseMinOrderByAggregateInput = {
 
 export type ClasseSumOrderByAggregateInput = {
   capacity?: Prisma.SortOrder
-}
-
-export type ClasseListRelationFilter = {
-  every?: Prisma.ClasseWhereInput
-  some?: Prisma.ClasseWhereInput
-  none?: Prisma.ClasseWhereInput
-}
-
-export type ClasseOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
-}
-
-export type ClasseNullableScalarRelationFilter = {
-  is?: Prisma.ClasseWhereInput | null
-  isNot?: Prisma.ClasseWhereInput | null
 }
 
 export type ClasseCreateNestedOneWithoutFraisInput = {
@@ -641,8 +709,66 @@ export type ClasseUpdateOneRequiredWithoutFraisNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClasseUpdateToOneWithWhereWithoutFraisInput, Prisma.ClasseUpdateWithoutFraisInput>, Prisma.ClasseUncheckedUpdateWithoutFraisInput>
 }
 
+export type ClasseCreateNestedOneWithoutAtelierLabGroupsInput = {
+  create?: Prisma.XOR<Prisma.ClasseCreateWithoutAtelierLabGroupsInput, Prisma.ClasseUncheckedCreateWithoutAtelierLabGroupsInput>
+  connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutAtelierLabGroupsInput
+  connect?: Prisma.ClasseWhereUniqueInput
+}
+
+export type ClasseCreateNestedManyWithoutSourceClasseInput = {
+  create?: Prisma.XOR<Prisma.ClasseCreateWithoutSourceClasseInput, Prisma.ClasseUncheckedCreateWithoutSourceClasseInput> | Prisma.ClasseCreateWithoutSourceClasseInput[] | Prisma.ClasseUncheckedCreateWithoutSourceClasseInput[]
+  connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutSourceClasseInput | Prisma.ClasseCreateOrConnectWithoutSourceClasseInput[]
+  createMany?: Prisma.ClasseCreateManySourceClasseInputEnvelope
+  connect?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+}
+
+export type ClasseUncheckedCreateNestedManyWithoutSourceClasseInput = {
+  create?: Prisma.XOR<Prisma.ClasseCreateWithoutSourceClasseInput, Prisma.ClasseUncheckedCreateWithoutSourceClasseInput> | Prisma.ClasseCreateWithoutSourceClasseInput[] | Prisma.ClasseUncheckedCreateWithoutSourceClasseInput[]
+  connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutSourceClasseInput | Prisma.ClasseCreateOrConnectWithoutSourceClasseInput[]
+  createMany?: Prisma.ClasseCreateManySourceClasseInputEnvelope
+  connect?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+}
+
 export type EnumHoraireTypeFieldUpdateOperationsInput = {
   set?: $Enums.HoraireType
+}
+
+export type ClasseUpdateOneWithoutAtelierLabGroupsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClasseCreateWithoutAtelierLabGroupsInput, Prisma.ClasseUncheckedCreateWithoutAtelierLabGroupsInput>
+  connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutAtelierLabGroupsInput
+  upsert?: Prisma.ClasseUpsertWithoutAtelierLabGroupsInput
+  disconnect?: Prisma.ClasseWhereInput | boolean
+  delete?: Prisma.ClasseWhereInput | boolean
+  connect?: Prisma.ClasseWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClasseUpdateToOneWithWhereWithoutAtelierLabGroupsInput, Prisma.ClasseUpdateWithoutAtelierLabGroupsInput>, Prisma.ClasseUncheckedUpdateWithoutAtelierLabGroupsInput>
+}
+
+export type ClasseUpdateManyWithoutSourceClasseNestedInput = {
+  create?: Prisma.XOR<Prisma.ClasseCreateWithoutSourceClasseInput, Prisma.ClasseUncheckedCreateWithoutSourceClasseInput> | Prisma.ClasseCreateWithoutSourceClasseInput[] | Prisma.ClasseUncheckedCreateWithoutSourceClasseInput[]
+  connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutSourceClasseInput | Prisma.ClasseCreateOrConnectWithoutSourceClasseInput[]
+  upsert?: Prisma.ClasseUpsertWithWhereUniqueWithoutSourceClasseInput | Prisma.ClasseUpsertWithWhereUniqueWithoutSourceClasseInput[]
+  createMany?: Prisma.ClasseCreateManySourceClasseInputEnvelope
+  set?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  disconnect?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  delete?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  connect?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  update?: Prisma.ClasseUpdateWithWhereUniqueWithoutSourceClasseInput | Prisma.ClasseUpdateWithWhereUniqueWithoutSourceClasseInput[]
+  updateMany?: Prisma.ClasseUpdateManyWithWhereWithoutSourceClasseInput | Prisma.ClasseUpdateManyWithWhereWithoutSourceClasseInput[]
+  deleteMany?: Prisma.ClasseScalarWhereInput | Prisma.ClasseScalarWhereInput[]
+}
+
+export type ClasseUncheckedUpdateManyWithoutSourceClasseNestedInput = {
+  create?: Prisma.XOR<Prisma.ClasseCreateWithoutSourceClasseInput, Prisma.ClasseUncheckedCreateWithoutSourceClasseInput> | Prisma.ClasseCreateWithoutSourceClasseInput[] | Prisma.ClasseUncheckedCreateWithoutSourceClasseInput[]
+  connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutSourceClasseInput | Prisma.ClasseCreateOrConnectWithoutSourceClasseInput[]
+  upsert?: Prisma.ClasseUpsertWithWhereUniqueWithoutSourceClasseInput | Prisma.ClasseUpsertWithWhereUniqueWithoutSourceClasseInput[]
+  createMany?: Prisma.ClasseCreateManySourceClasseInputEnvelope
+  set?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  disconnect?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  delete?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  connect?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  update?: Prisma.ClasseUpdateWithWhereUniqueWithoutSourceClasseInput | Prisma.ClasseUpdateWithWhereUniqueWithoutSourceClasseInput[]
+  updateMany?: Prisma.ClasseUpdateManyWithWhereWithoutSourceClasseInput | Prisma.ClasseUpdateManyWithWhereWithoutSourceClasseInput[]
+  deleteMany?: Prisma.ClasseScalarWhereInput | Prisma.ClasseScalarWhereInput[]
 }
 
 export type ClasseCreateNestedManyWithoutCreneauInput = {
@@ -833,6 +959,62 @@ export type ClasseUncheckedUpdateManyWithoutBranchNestedInput = {
   deleteMany?: Prisma.ClasseScalarWhereInput | Prisma.ClasseScalarWhereInput[]
 }
 
+export type ClasseCreateNestedManyWithoutPracticalDomainInput = {
+  create?: Prisma.XOR<Prisma.ClasseCreateWithoutPracticalDomainInput, Prisma.ClasseUncheckedCreateWithoutPracticalDomainInput> | Prisma.ClasseCreateWithoutPracticalDomainInput[] | Prisma.ClasseUncheckedCreateWithoutPracticalDomainInput[]
+  connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutPracticalDomainInput | Prisma.ClasseCreateOrConnectWithoutPracticalDomainInput[]
+  createMany?: Prisma.ClasseCreateManyPracticalDomainInputEnvelope
+  connect?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+}
+
+export type ClasseUncheckedCreateNestedManyWithoutPracticalDomainInput = {
+  create?: Prisma.XOR<Prisma.ClasseCreateWithoutPracticalDomainInput, Prisma.ClasseUncheckedCreateWithoutPracticalDomainInput> | Prisma.ClasseCreateWithoutPracticalDomainInput[] | Prisma.ClasseUncheckedCreateWithoutPracticalDomainInput[]
+  connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutPracticalDomainInput | Prisma.ClasseCreateOrConnectWithoutPracticalDomainInput[]
+  createMany?: Prisma.ClasseCreateManyPracticalDomainInputEnvelope
+  connect?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+}
+
+export type ClasseUpdateManyWithoutPracticalDomainNestedInput = {
+  create?: Prisma.XOR<Prisma.ClasseCreateWithoutPracticalDomainInput, Prisma.ClasseUncheckedCreateWithoutPracticalDomainInput> | Prisma.ClasseCreateWithoutPracticalDomainInput[] | Prisma.ClasseUncheckedCreateWithoutPracticalDomainInput[]
+  connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutPracticalDomainInput | Prisma.ClasseCreateOrConnectWithoutPracticalDomainInput[]
+  upsert?: Prisma.ClasseUpsertWithWhereUniqueWithoutPracticalDomainInput | Prisma.ClasseUpsertWithWhereUniqueWithoutPracticalDomainInput[]
+  createMany?: Prisma.ClasseCreateManyPracticalDomainInputEnvelope
+  set?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  disconnect?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  delete?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  connect?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  update?: Prisma.ClasseUpdateWithWhereUniqueWithoutPracticalDomainInput | Prisma.ClasseUpdateWithWhereUniqueWithoutPracticalDomainInput[]
+  updateMany?: Prisma.ClasseUpdateManyWithWhereWithoutPracticalDomainInput | Prisma.ClasseUpdateManyWithWhereWithoutPracticalDomainInput[]
+  deleteMany?: Prisma.ClasseScalarWhereInput | Prisma.ClasseScalarWhereInput[]
+}
+
+export type ClasseUncheckedUpdateManyWithoutPracticalDomainNestedInput = {
+  create?: Prisma.XOR<Prisma.ClasseCreateWithoutPracticalDomainInput, Prisma.ClasseUncheckedCreateWithoutPracticalDomainInput> | Prisma.ClasseCreateWithoutPracticalDomainInput[] | Prisma.ClasseUncheckedCreateWithoutPracticalDomainInput[]
+  connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutPracticalDomainInput | Prisma.ClasseCreateOrConnectWithoutPracticalDomainInput[]
+  upsert?: Prisma.ClasseUpsertWithWhereUniqueWithoutPracticalDomainInput | Prisma.ClasseUpsertWithWhereUniqueWithoutPracticalDomainInput[]
+  createMany?: Prisma.ClasseCreateManyPracticalDomainInputEnvelope
+  set?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  disconnect?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  delete?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  connect?: Prisma.ClasseWhereUniqueInput | Prisma.ClasseWhereUniqueInput[]
+  update?: Prisma.ClasseUpdateWithWhereUniqueWithoutPracticalDomainInput | Prisma.ClasseUpdateWithWhereUniqueWithoutPracticalDomainInput[]
+  updateMany?: Prisma.ClasseUpdateManyWithWhereWithoutPracticalDomainInput | Prisma.ClasseUpdateManyWithWhereWithoutPracticalDomainInput[]
+  deleteMany?: Prisma.ClasseScalarWhereInput | Prisma.ClasseScalarWhereInput[]
+}
+
+export type ClasseCreateNestedOneWithoutRotationSlotsInput = {
+  create?: Prisma.XOR<Prisma.ClasseCreateWithoutRotationSlotsInput, Prisma.ClasseUncheckedCreateWithoutRotationSlotsInput>
+  connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutRotationSlotsInput
+  connect?: Prisma.ClasseWhereUniqueInput
+}
+
+export type ClasseUpdateOneRequiredWithoutRotationSlotsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClasseCreateWithoutRotationSlotsInput, Prisma.ClasseUncheckedCreateWithoutRotationSlotsInput>
+  connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutRotationSlotsInput
+  upsert?: Prisma.ClasseUpsertWithoutRotationSlotsInput
+  connect?: Prisma.ClasseWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClasseUpdateToOneWithWhereWithoutRotationSlotsInput, Prisma.ClasseUpdateWithoutRotationSlotsInput>, Prisma.ClasseUncheckedUpdateWithoutRotationSlotsInput>
+}
+
 export type ClasseCreateNestedOneWithoutOnlineAssignmentsInput = {
   create?: Prisma.XOR<Prisma.ClasseCreateWithoutOnlineAssignmentsInput, Prisma.ClasseUncheckedCreateWithoutOnlineAssignmentsInput>
   connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutOnlineAssignmentsInput
@@ -859,6 +1041,9 @@ export type ClasseCreateWithoutFraisInput = {
   cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  sourceClasse?: Prisma.ClasseCreateNestedOneWithoutAtelierLabGroupsInput
+  atelierLabGroups?: Prisma.ClasseCreateNestedManyWithoutSourceClasseInput
+  practicalDomain?: Prisma.PracticalDomainCreateNestedOneWithoutClassesInput
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
@@ -867,6 +1052,7 @@ export type ClasseCreateWithoutFraisInput = {
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutFraisInput = {
@@ -881,14 +1067,18 @@ export type ClasseUncheckedCreateWithoutFraisInput = {
   creneauId?: string | null
   horaireType?: $Enums.HoraireType
   cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedCreateNestedManyWithoutSourceClasseInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutFraisInput = {
@@ -919,6 +1109,9 @@ export type ClasseUpdateWithoutFraisInput = {
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceClasse?: Prisma.ClasseUpdateOneWithoutAtelierLabGroupsNestedInput
+  atelierLabGroups?: Prisma.ClasseUpdateManyWithoutSourceClasseNestedInput
+  practicalDomain?: Prisma.PracticalDomainUpdateOneWithoutClassesNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
@@ -927,6 +1120,7 @@ export type ClasseUpdateWithoutFraisInput = {
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutFraisInput = {
@@ -941,14 +1135,238 @@ export type ClasseUncheckedUpdateWithoutFraisInput = {
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedUpdateManyWithoutSourceClasseNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutClasseNestedInput
+}
+
+export type ClasseCreateWithoutAtelierLabGroupsInput = {
+  id?: string
+  codeClasse: string
+  nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
+  statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
+  cycle?: $Enums.Cycle | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sourceClasse?: Prisma.ClasseCreateNestedOneWithoutAtelierLabGroupsInput
+  practicalDomain?: Prisma.PracticalDomainCreateNestedOneWithoutClassesInput
+  branch: Prisma.BranchCreateNestedOneWithoutClassesInput
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
+  teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
+  Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
+  option?: Prisma.OptionCreateNestedOneWithoutClasseInput
+  creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
+  CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
+  fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutClasseInput
+}
+
+export type ClasseUncheckedCreateWithoutAtelierLabGroupsInput = {
+  id?: string
+  codeClasse: string
+  nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
+  optionId?: string | null
+  statusClasse?: boolean | null
+  creneauId?: string | null
+  horaireType?: $Enums.HoraireType
+  cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
+  branchId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
+  Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
+  CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
+  fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutClasseInput
+}
+
+export type ClasseCreateOrConnectWithoutAtelierLabGroupsInput = {
+  where: Prisma.ClasseWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClasseCreateWithoutAtelierLabGroupsInput, Prisma.ClasseUncheckedCreateWithoutAtelierLabGroupsInput>
+}
+
+export type ClasseCreateWithoutSourceClasseInput = {
+  id?: string
+  codeClasse: string
+  nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
+  statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
+  cycle?: $Enums.Cycle | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  atelierLabGroups?: Prisma.ClasseCreateNestedManyWithoutSourceClasseInput
+  practicalDomain?: Prisma.PracticalDomainCreateNestedOneWithoutClassesInput
+  branch: Prisma.BranchCreateNestedOneWithoutClassesInput
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
+  teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
+  Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
+  option?: Prisma.OptionCreateNestedOneWithoutClasseInput
+  creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
+  CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
+  fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutClasseInput
+}
+
+export type ClasseUncheckedCreateWithoutSourceClasseInput = {
+  id?: string
+  codeClasse: string
+  nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
+  optionId?: string | null
+  statusClasse?: boolean | null
+  creneauId?: string | null
+  horaireType?: $Enums.HoraireType
+  cycle?: $Enums.Cycle | null
+  practicalDomainId?: string | null
+  branchId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedCreateNestedManyWithoutSourceClasseInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
+  Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
+  CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
+  fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutClasseInput
+}
+
+export type ClasseCreateOrConnectWithoutSourceClasseInput = {
+  where: Prisma.ClasseWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClasseCreateWithoutSourceClasseInput, Prisma.ClasseUncheckedCreateWithoutSourceClasseInput>
+}
+
+export type ClasseCreateManySourceClasseInputEnvelope = {
+  data: Prisma.ClasseCreateManySourceClasseInput | Prisma.ClasseCreateManySourceClasseInput[]
+  skipDuplicates?: boolean
+}
+
+export type ClasseUpsertWithoutAtelierLabGroupsInput = {
+  update: Prisma.XOR<Prisma.ClasseUpdateWithoutAtelierLabGroupsInput, Prisma.ClasseUncheckedUpdateWithoutAtelierLabGroupsInput>
+  create: Prisma.XOR<Prisma.ClasseCreateWithoutAtelierLabGroupsInput, Prisma.ClasseUncheckedCreateWithoutAtelierLabGroupsInput>
+  where?: Prisma.ClasseWhereInput
+}
+
+export type ClasseUpdateToOneWithWhereWithoutAtelierLabGroupsInput = {
+  where?: Prisma.ClasseWhereInput
+  data: Prisma.XOR<Prisma.ClasseUpdateWithoutAtelierLabGroupsInput, Prisma.ClasseUncheckedUpdateWithoutAtelierLabGroupsInput>
+}
+
+export type ClasseUpdateWithoutAtelierLabGroupsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceClasse?: Prisma.ClasseUpdateOneWithoutAtelierLabGroupsNestedInput
+  practicalDomain?: Prisma.PracticalDomainUpdateOneWithoutClassesNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
+  teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
+  Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
+  option?: Prisma.OptionUpdateOneWithoutClasseNestedInput
+  creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
+  CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
+  fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutClasseNestedInput
+}
+
+export type ClasseUncheckedUpdateWithoutAtelierLabGroupsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
+  Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
+  CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
+  fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutClasseNestedInput
+}
+
+export type ClasseUpsertWithWhereUniqueWithoutSourceClasseInput = {
+  where: Prisma.ClasseWhereUniqueInput
+  update: Prisma.XOR<Prisma.ClasseUpdateWithoutSourceClasseInput, Prisma.ClasseUncheckedUpdateWithoutSourceClasseInput>
+  create: Prisma.XOR<Prisma.ClasseCreateWithoutSourceClasseInput, Prisma.ClasseUncheckedCreateWithoutSourceClasseInput>
+}
+
+export type ClasseUpdateWithWhereUniqueWithoutSourceClasseInput = {
+  where: Prisma.ClasseWhereUniqueInput
+  data: Prisma.XOR<Prisma.ClasseUpdateWithoutSourceClasseInput, Prisma.ClasseUncheckedUpdateWithoutSourceClasseInput>
+}
+
+export type ClasseUpdateManyWithWhereWithoutSourceClasseInput = {
+  where: Prisma.ClasseScalarWhereInput
+  data: Prisma.XOR<Prisma.ClasseUpdateManyMutationInput, Prisma.ClasseUncheckedUpdateManyWithoutSourceClasseInput>
+}
+
+export type ClasseScalarWhereInput = {
+  AND?: Prisma.ClasseScalarWhereInput | Prisma.ClasseScalarWhereInput[]
+  OR?: Prisma.ClasseScalarWhereInput[]
+  NOT?: Prisma.ClasseScalarWhereInput | Prisma.ClasseScalarWhereInput[]
+  id?: Prisma.StringFilter<"Classe"> | string
+  codeClasse?: Prisma.StringFilter<"Classe"> | string
+  nameClasse?: Prisma.StringFilter<"Classe"> | string
+  level?: Prisma.StringNullableFilter<"Classe"> | string | null
+  parallel?: Prisma.StringNullableFilter<"Classe"> | string | null
+  capacity?: Prisma.IntNullableFilter<"Classe"> | number | null
+  optionId?: Prisma.StringNullableFilter<"Classe"> | string | null
+  statusClasse?: Prisma.BoolNullableFilter<"Classe"> | boolean | null
+  creneauId?: Prisma.StringNullableFilter<"Classe"> | string | null
+  horaireType?: Prisma.EnumHoraireTypeFilter<"Classe"> | $Enums.HoraireType
+  cycle?: Prisma.EnumCycleNullableFilter<"Classe"> | $Enums.Cycle | null
+  sourceClasseId?: Prisma.StringNullableFilter<"Classe"> | string | null
+  practicalDomainId?: Prisma.StringNullableFilter<"Classe"> | string | null
+  branchId?: Prisma.StringFilter<"Classe"> | string
+  createdAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
 }
 
 export type ClasseCreateWithoutCreneauInput = {
@@ -963,6 +1381,9 @@ export type ClasseCreateWithoutCreneauInput = {
   cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  sourceClasse?: Prisma.ClasseCreateNestedOneWithoutAtelierLabGroupsInput
+  atelierLabGroups?: Prisma.ClasseCreateNestedManyWithoutSourceClasseInput
+  practicalDomain?: Prisma.PracticalDomainCreateNestedOneWithoutClassesInput
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
@@ -971,6 +1392,7 @@ export type ClasseCreateWithoutCreneauInput = {
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutCreneauInput = {
@@ -984,15 +1406,19 @@ export type ClasseUncheckedCreateWithoutCreneauInput = {
   statusClasse?: boolean | null
   horaireType?: $Enums.HoraireType
   cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedCreateNestedManyWithoutSourceClasseInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutCreneauInput = {
@@ -1021,26 +1447,6 @@ export type ClasseUpdateManyWithWhereWithoutCreneauInput = {
   data: Prisma.XOR<Prisma.ClasseUpdateManyMutationInput, Prisma.ClasseUncheckedUpdateManyWithoutCreneauInput>
 }
 
-export type ClasseScalarWhereInput = {
-  AND?: Prisma.ClasseScalarWhereInput | Prisma.ClasseScalarWhereInput[]
-  OR?: Prisma.ClasseScalarWhereInput[]
-  NOT?: Prisma.ClasseScalarWhereInput | Prisma.ClasseScalarWhereInput[]
-  id?: Prisma.StringFilter<"Classe"> | string
-  codeClasse?: Prisma.StringFilter<"Classe"> | string
-  nameClasse?: Prisma.StringFilter<"Classe"> | string
-  level?: Prisma.StringNullableFilter<"Classe"> | string | null
-  parallel?: Prisma.StringNullableFilter<"Classe"> | string | null
-  capacity?: Prisma.IntNullableFilter<"Classe"> | number | null
-  optionId?: Prisma.StringNullableFilter<"Classe"> | string | null
-  statusClasse?: Prisma.BoolNullableFilter<"Classe"> | boolean | null
-  creneauId?: Prisma.StringNullableFilter<"Classe"> | string | null
-  horaireType?: Prisma.EnumHoraireTypeFilter<"Classe"> | $Enums.HoraireType
-  cycle?: Prisma.EnumCycleNullableFilter<"Classe"> | $Enums.Cycle | null
-  branchId?: Prisma.StringFilter<"Classe"> | string
-  createdAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
-}
-
 export type ClasseCreateWithoutOptionInput = {
   id?: string
   codeClasse: string
@@ -1053,6 +1459,9 @@ export type ClasseCreateWithoutOptionInput = {
   cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  sourceClasse?: Prisma.ClasseCreateNestedOneWithoutAtelierLabGroupsInput
+  atelierLabGroups?: Prisma.ClasseCreateNestedManyWithoutSourceClasseInput
+  practicalDomain?: Prisma.PracticalDomainCreateNestedOneWithoutClassesInput
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
@@ -1061,6 +1470,7 @@ export type ClasseCreateWithoutOptionInput = {
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutOptionInput = {
@@ -1074,15 +1484,19 @@ export type ClasseUncheckedCreateWithoutOptionInput = {
   creneauId?: string | null
   horaireType?: $Enums.HoraireType
   cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedCreateNestedManyWithoutSourceClasseInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutOptionInput = {
@@ -1123,6 +1537,9 @@ export type ClasseCreateWithoutClassEnrollmentInput = {
   cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  sourceClasse?: Prisma.ClasseCreateNestedOneWithoutAtelierLabGroupsInput
+  atelierLabGroups?: Prisma.ClasseCreateNestedManyWithoutSourceClasseInput
+  practicalDomain?: Prisma.PracticalDomainCreateNestedOneWithoutClassesInput
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
@@ -1131,6 +1548,7 @@ export type ClasseCreateWithoutClassEnrollmentInput = {
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutClassEnrollmentInput = {
@@ -1145,14 +1563,18 @@ export type ClasseUncheckedCreateWithoutClassEnrollmentInput = {
   creneauId?: string | null
   horaireType?: $Enums.HoraireType
   cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedCreateNestedManyWithoutSourceClasseInput
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutClassEnrollmentInput = {
@@ -1183,6 +1605,9 @@ export type ClasseUpdateWithoutClassEnrollmentInput = {
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceClasse?: Prisma.ClasseUpdateOneWithoutAtelierLabGroupsNestedInput
+  atelierLabGroups?: Prisma.ClasseUpdateManyWithoutSourceClasseNestedInput
+  practicalDomain?: Prisma.PracticalDomainUpdateOneWithoutClassesNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
@@ -1191,6 +1616,7 @@ export type ClasseUpdateWithoutClassEnrollmentInput = {
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutClassEnrollmentInput = {
@@ -1205,14 +1631,18 @@ export type ClasseUncheckedUpdateWithoutClassEnrollmentInput = {
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedUpdateManyWithoutSourceClasseNestedInput
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseCreateWithoutTeachingInput = {
@@ -1227,6 +1657,9 @@ export type ClasseCreateWithoutTeachingInput = {
   cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  sourceClasse?: Prisma.ClasseCreateNestedOneWithoutAtelierLabGroupsInput
+  atelierLabGroups?: Prisma.ClasseCreateNestedManyWithoutSourceClasseInput
+  practicalDomain?: Prisma.PracticalDomainCreateNestedOneWithoutClassesInput
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
@@ -1235,6 +1668,7 @@ export type ClasseCreateWithoutTeachingInput = {
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutTeachingInput = {
@@ -1249,14 +1683,18 @@ export type ClasseUncheckedCreateWithoutTeachingInput = {
   creneauId?: string | null
   horaireType?: $Enums.HoraireType
   cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedCreateNestedManyWithoutSourceClasseInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutTeachingInput = {
@@ -1287,6 +1725,9 @@ export type ClasseUpdateWithoutTeachingInput = {
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceClasse?: Prisma.ClasseUpdateOneWithoutAtelierLabGroupsNestedInput
+  atelierLabGroups?: Prisma.ClasseUpdateManyWithoutSourceClasseNestedInput
+  practicalDomain?: Prisma.PracticalDomainUpdateOneWithoutClassesNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
@@ -1295,6 +1736,7 @@ export type ClasseUpdateWithoutTeachingInput = {
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutTeachingInput = {
@@ -1309,14 +1751,18 @@ export type ClasseUncheckedUpdateWithoutTeachingInput = {
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedUpdateManyWithoutSourceClasseNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseCreateWithoutCalendarEventInput = {
@@ -1331,6 +1777,9 @@ export type ClasseCreateWithoutCalendarEventInput = {
   cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  sourceClasse?: Prisma.ClasseCreateNestedOneWithoutAtelierLabGroupsInput
+  atelierLabGroups?: Prisma.ClasseCreateNestedManyWithoutSourceClasseInput
+  practicalDomain?: Prisma.PracticalDomainCreateNestedOneWithoutClassesInput
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
@@ -1339,6 +1788,7 @@ export type ClasseCreateWithoutCalendarEventInput = {
   creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutCalendarEventInput = {
@@ -1353,14 +1803,18 @@ export type ClasseUncheckedCreateWithoutCalendarEventInput = {
   creneauId?: string | null
   horaireType?: $Enums.HoraireType
   cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedCreateNestedManyWithoutSourceClasseInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutCalendarEventInput = {
@@ -1391,6 +1845,9 @@ export type ClasseUpdateWithoutCalendarEventInput = {
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceClasse?: Prisma.ClasseUpdateOneWithoutAtelierLabGroupsNestedInput
+  atelierLabGroups?: Prisma.ClasseUpdateManyWithoutSourceClasseNestedInput
+  practicalDomain?: Prisma.PracticalDomainUpdateOneWithoutClassesNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
@@ -1399,6 +1856,7 @@ export type ClasseUpdateWithoutCalendarEventInput = {
   creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutCalendarEventInput = {
@@ -1413,14 +1871,18 @@ export type ClasseUncheckedUpdateWithoutCalendarEventInput = {
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedUpdateManyWithoutSourceClasseNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseCreateWithoutFicheInput = {
@@ -1435,6 +1897,9 @@ export type ClasseCreateWithoutFicheInput = {
   cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  sourceClasse?: Prisma.ClasseCreateNestedOneWithoutAtelierLabGroupsInput
+  atelierLabGroups?: Prisma.ClasseCreateNestedManyWithoutSourceClasseInput
+  practicalDomain?: Prisma.PracticalDomainCreateNestedOneWithoutClassesInput
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
@@ -1443,6 +1908,7 @@ export type ClasseCreateWithoutFicheInput = {
   creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutFicheInput = {
@@ -1457,14 +1923,18 @@ export type ClasseUncheckedCreateWithoutFicheInput = {
   creneauId?: string | null
   horaireType?: $Enums.HoraireType
   cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedCreateNestedManyWithoutSourceClasseInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutFicheInput = {
@@ -1495,6 +1965,9 @@ export type ClasseUpdateWithoutFicheInput = {
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceClasse?: Prisma.ClasseUpdateOneWithoutAtelierLabGroupsNestedInput
+  atelierLabGroups?: Prisma.ClasseUpdateManyWithoutSourceClasseNestedInput
+  practicalDomain?: Prisma.PracticalDomainUpdateOneWithoutClassesNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
@@ -1503,6 +1976,7 @@ export type ClasseUpdateWithoutFicheInput = {
   creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutFicheInput = {
@@ -1517,14 +1991,18 @@ export type ClasseUncheckedUpdateWithoutFicheInput = {
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedUpdateManyWithoutSourceClasseNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseCreateWithoutBranchInput = {
@@ -1539,6 +2017,9 @@ export type ClasseCreateWithoutBranchInput = {
   cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  sourceClasse?: Prisma.ClasseCreateNestedOneWithoutAtelierLabGroupsInput
+  atelierLabGroups?: Prisma.ClasseCreateNestedManyWithoutSourceClasseInput
+  practicalDomain?: Prisma.PracticalDomainCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
@@ -1547,6 +2028,7 @@ export type ClasseCreateWithoutBranchInput = {
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutBranchInput = {
@@ -1561,14 +2043,18 @@ export type ClasseUncheckedCreateWithoutBranchInput = {
   creneauId?: string | null
   horaireType?: $Enums.HoraireType
   cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedCreateNestedManyWithoutSourceClasseInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutBranchInput = {
@@ -1597,6 +2083,204 @@ export type ClasseUpdateManyWithWhereWithoutBranchInput = {
   data: Prisma.XOR<Prisma.ClasseUpdateManyMutationInput, Prisma.ClasseUncheckedUpdateManyWithoutBranchInput>
 }
 
+export type ClasseCreateWithoutPracticalDomainInput = {
+  id?: string
+  codeClasse: string
+  nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
+  statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
+  cycle?: $Enums.Cycle | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sourceClasse?: Prisma.ClasseCreateNestedOneWithoutAtelierLabGroupsInput
+  atelierLabGroups?: Prisma.ClasseCreateNestedManyWithoutSourceClasseInput
+  branch: Prisma.BranchCreateNestedOneWithoutClassesInput
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
+  teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
+  Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
+  option?: Prisma.OptionCreateNestedOneWithoutClasseInput
+  creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
+  CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
+  fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutClasseInput
+}
+
+export type ClasseUncheckedCreateWithoutPracticalDomainInput = {
+  id?: string
+  codeClasse: string
+  nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
+  optionId?: string | null
+  statusClasse?: boolean | null
+  creneauId?: string | null
+  horaireType?: $Enums.HoraireType
+  cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  branchId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedCreateNestedManyWithoutSourceClasseInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
+  Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
+  CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
+  fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutClasseInput
+}
+
+export type ClasseCreateOrConnectWithoutPracticalDomainInput = {
+  where: Prisma.ClasseWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClasseCreateWithoutPracticalDomainInput, Prisma.ClasseUncheckedCreateWithoutPracticalDomainInput>
+}
+
+export type ClasseCreateManyPracticalDomainInputEnvelope = {
+  data: Prisma.ClasseCreateManyPracticalDomainInput | Prisma.ClasseCreateManyPracticalDomainInput[]
+  skipDuplicates?: boolean
+}
+
+export type ClasseUpsertWithWhereUniqueWithoutPracticalDomainInput = {
+  where: Prisma.ClasseWhereUniqueInput
+  update: Prisma.XOR<Prisma.ClasseUpdateWithoutPracticalDomainInput, Prisma.ClasseUncheckedUpdateWithoutPracticalDomainInput>
+  create: Prisma.XOR<Prisma.ClasseCreateWithoutPracticalDomainInput, Prisma.ClasseUncheckedCreateWithoutPracticalDomainInput>
+}
+
+export type ClasseUpdateWithWhereUniqueWithoutPracticalDomainInput = {
+  where: Prisma.ClasseWhereUniqueInput
+  data: Prisma.XOR<Prisma.ClasseUpdateWithoutPracticalDomainInput, Prisma.ClasseUncheckedUpdateWithoutPracticalDomainInput>
+}
+
+export type ClasseUpdateManyWithWhereWithoutPracticalDomainInput = {
+  where: Prisma.ClasseScalarWhereInput
+  data: Prisma.XOR<Prisma.ClasseUpdateManyMutationInput, Prisma.ClasseUncheckedUpdateManyWithoutPracticalDomainInput>
+}
+
+export type ClasseCreateWithoutRotationSlotsInput = {
+  id?: string
+  codeClasse: string
+  nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
+  statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
+  cycle?: $Enums.Cycle | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sourceClasse?: Prisma.ClasseCreateNestedOneWithoutAtelierLabGroupsInput
+  atelierLabGroups?: Prisma.ClasseCreateNestedManyWithoutSourceClasseInput
+  practicalDomain?: Prisma.PracticalDomainCreateNestedOneWithoutClassesInput
+  branch: Prisma.BranchCreateNestedOneWithoutClassesInput
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
+  teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
+  Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
+  option?: Prisma.OptionCreateNestedOneWithoutClasseInput
+  creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
+  CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
+  fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
+}
+
+export type ClasseUncheckedCreateWithoutRotationSlotsInput = {
+  id?: string
+  codeClasse: string
+  nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
+  optionId?: string | null
+  statusClasse?: boolean | null
+  creneauId?: string | null
+  horaireType?: $Enums.HoraireType
+  cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
+  branchId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedCreateNestedManyWithoutSourceClasseInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
+  Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
+  CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
+  fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
+}
+
+export type ClasseCreateOrConnectWithoutRotationSlotsInput = {
+  where: Prisma.ClasseWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClasseCreateWithoutRotationSlotsInput, Prisma.ClasseUncheckedCreateWithoutRotationSlotsInput>
+}
+
+export type ClasseUpsertWithoutRotationSlotsInput = {
+  update: Prisma.XOR<Prisma.ClasseUpdateWithoutRotationSlotsInput, Prisma.ClasseUncheckedUpdateWithoutRotationSlotsInput>
+  create: Prisma.XOR<Prisma.ClasseCreateWithoutRotationSlotsInput, Prisma.ClasseUncheckedCreateWithoutRotationSlotsInput>
+  where?: Prisma.ClasseWhereInput
+}
+
+export type ClasseUpdateToOneWithWhereWithoutRotationSlotsInput = {
+  where?: Prisma.ClasseWhereInput
+  data: Prisma.XOR<Prisma.ClasseUpdateWithoutRotationSlotsInput, Prisma.ClasseUncheckedUpdateWithoutRotationSlotsInput>
+}
+
+export type ClasseUpdateWithoutRotationSlotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceClasse?: Prisma.ClasseUpdateOneWithoutAtelierLabGroupsNestedInput
+  atelierLabGroups?: Prisma.ClasseUpdateManyWithoutSourceClasseNestedInput
+  practicalDomain?: Prisma.PracticalDomainUpdateOneWithoutClassesNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
+  teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
+  Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
+  option?: Prisma.OptionUpdateOneWithoutClasseNestedInput
+  creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
+  CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
+  fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
+}
+
+export type ClasseUncheckedUpdateWithoutRotationSlotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedUpdateManyWithoutSourceClasseNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
+  Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
+  CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
+  fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
+}
+
 export type ClasseCreateWithoutOnlineAssignmentsInput = {
   id?: string
   codeClasse: string
@@ -1609,6 +2293,9 @@ export type ClasseCreateWithoutOnlineAssignmentsInput = {
   cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  sourceClasse?: Prisma.ClasseCreateNestedOneWithoutAtelierLabGroupsInput
+  atelierLabGroups?: Prisma.ClasseCreateNestedManyWithoutSourceClasseInput
+  practicalDomain?: Prisma.PracticalDomainCreateNestedOneWithoutClassesInput
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
@@ -1617,6 +2304,7 @@ export type ClasseCreateWithoutOnlineAssignmentsInput = {
   creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutOnlineAssignmentsInput = {
@@ -1631,14 +2319,18 @@ export type ClasseUncheckedCreateWithoutOnlineAssignmentsInput = {
   creneauId?: string | null
   horaireType?: $Enums.HoraireType
   cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedCreateNestedManyWithoutSourceClasseInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutOnlineAssignmentsInput = {
@@ -1669,6 +2361,9 @@ export type ClasseUpdateWithoutOnlineAssignmentsInput = {
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceClasse?: Prisma.ClasseUpdateOneWithoutAtelierLabGroupsNestedInput
+  atelierLabGroups?: Prisma.ClasseUpdateManyWithoutSourceClasseNestedInput
+  practicalDomain?: Prisma.PracticalDomainUpdateOneWithoutClassesNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
@@ -1677,6 +2372,7 @@ export type ClasseUpdateWithoutOnlineAssignmentsInput = {
   creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutOnlineAssignmentsInput = {
@@ -1691,14 +2387,106 @@ export type ClasseUncheckedUpdateWithoutOnlineAssignmentsInput = {
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedUpdateManyWithoutSourceClasseNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutClasseNestedInput
+}
+
+export type ClasseCreateManySourceClasseInput = {
+  id?: string
+  codeClasse: string
+  nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
+  optionId?: string | null
+  statusClasse?: boolean | null
+  creneauId?: string | null
+  horaireType?: $Enums.HoraireType
+  cycle?: $Enums.Cycle | null
+  practicalDomainId?: string | null
+  branchId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ClasseUpdateWithoutSourceClasseInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atelierLabGroups?: Prisma.ClasseUpdateManyWithoutSourceClasseNestedInput
+  practicalDomain?: Prisma.PracticalDomainUpdateOneWithoutClassesNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
+  teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
+  Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
+  option?: Prisma.OptionUpdateOneWithoutClasseNestedInput
+  creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
+  CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
+  fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutClasseNestedInput
+}
+
+export type ClasseUncheckedUpdateWithoutSourceClasseInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedUpdateManyWithoutSourceClasseNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
+  Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
+  CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
+  fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutClasseNestedInput
+}
+
+export type ClasseUncheckedUpdateManyWithoutSourceClasseInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ClasseCreateManyCreneauInput = {
@@ -1712,6 +2500,8 @@ export type ClasseCreateManyCreneauInput = {
   statusClasse?: boolean | null
   horaireType?: $Enums.HoraireType
   cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1729,6 +2519,9 @@ export type ClasseUpdateWithoutCreneauInput = {
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceClasse?: Prisma.ClasseUpdateOneWithoutAtelierLabGroupsNestedInput
+  atelierLabGroups?: Prisma.ClasseUpdateManyWithoutSourceClasseNestedInput
+  practicalDomain?: Prisma.PracticalDomainUpdateOneWithoutClassesNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
@@ -1737,6 +2530,7 @@ export type ClasseUpdateWithoutCreneauInput = {
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutCreneauInput = {
@@ -1750,15 +2544,19 @@ export type ClasseUncheckedUpdateWithoutCreneauInput = {
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedUpdateManyWithoutSourceClasseNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateManyWithoutCreneauInput = {
@@ -1772,6 +2570,8 @@ export type ClasseUncheckedUpdateManyWithoutCreneauInput = {
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1788,6 +2588,8 @@ export type ClasseCreateManyOptionInput = {
   creneauId?: string | null
   horaireType?: $Enums.HoraireType
   cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1805,6 +2607,9 @@ export type ClasseUpdateWithoutOptionInput = {
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceClasse?: Prisma.ClasseUpdateOneWithoutAtelierLabGroupsNestedInput
+  atelierLabGroups?: Prisma.ClasseUpdateManyWithoutSourceClasseNestedInput
+  practicalDomain?: Prisma.PracticalDomainUpdateOneWithoutClassesNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
@@ -1813,6 +2618,7 @@ export type ClasseUpdateWithoutOptionInput = {
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutOptionInput = {
@@ -1826,15 +2632,19 @@ export type ClasseUncheckedUpdateWithoutOptionInput = {
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedUpdateManyWithoutSourceClasseNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateManyWithoutOptionInput = {
@@ -1848,6 +2658,8 @@ export type ClasseUncheckedUpdateManyWithoutOptionInput = {
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1865,6 +2677,8 @@ export type ClasseCreateManyBranchInput = {
   creneauId?: string | null
   horaireType?: $Enums.HoraireType
   cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  practicalDomainId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1881,6 +2695,9 @@ export type ClasseUpdateWithoutBranchInput = {
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceClasse?: Prisma.ClasseUpdateOneWithoutAtelierLabGroupsNestedInput
+  atelierLabGroups?: Prisma.ClasseUpdateManyWithoutSourceClasseNestedInput
+  practicalDomain?: Prisma.PracticalDomainUpdateOneWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
@@ -1889,6 +2706,7 @@ export type ClasseUpdateWithoutBranchInput = {
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutBranchInput = {
@@ -1903,14 +2721,18 @@ export type ClasseUncheckedUpdateWithoutBranchInput = {
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedUpdateManyWithoutSourceClasseNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateManyWithoutBranchInput = {
@@ -1925,6 +2747,96 @@ export type ClasseUncheckedUpdateManyWithoutBranchInput = {
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  practicalDomainId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ClasseCreateManyPracticalDomainInput = {
+  id?: string
+  codeClasse: string
+  nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
+  optionId?: string | null
+  statusClasse?: boolean | null
+  creneauId?: string | null
+  horaireType?: $Enums.HoraireType
+  cycle?: $Enums.Cycle | null
+  sourceClasseId?: string | null
+  branchId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ClasseUpdateWithoutPracticalDomainInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceClasse?: Prisma.ClasseUpdateOneWithoutAtelierLabGroupsNestedInput
+  atelierLabGroups?: Prisma.ClasseUpdateManyWithoutSourceClasseNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
+  teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
+  Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
+  option?: Prisma.OptionUpdateOneWithoutClasseNestedInput
+  creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
+  CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
+  fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutClasseNestedInput
+}
+
+export type ClasseUncheckedUpdateWithoutPracticalDomainInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  atelierLabGroups?: Prisma.ClasseUncheckedUpdateManyWithoutSourceClasseNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
+  Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
+  CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
+  fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutClasseNestedInput
+}
+
+export type ClasseUncheckedUpdateManyWithoutPracticalDomainInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
+  sourceClasseId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1935,21 +2847,25 @@ export type ClasseUncheckedUpdateManyWithoutBranchInput = {
  */
 
 export type ClasseCountOutputType = {
+  atelierLabGroups: number
   classEnrollment: number
   teaching: number
   Frais: number
   CalendarEvent: number
   fiche: number
   onlineAssignments: number
+  rotationSlots: number
 }
 
 export type ClasseCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  atelierLabGroups?: boolean | ClasseCountOutputTypeCountAtelierLabGroupsArgs
   classEnrollment?: boolean | ClasseCountOutputTypeCountClassEnrollmentArgs
   teaching?: boolean | ClasseCountOutputTypeCountTeachingArgs
   Frais?: boolean | ClasseCountOutputTypeCountFraisArgs
   CalendarEvent?: boolean | ClasseCountOutputTypeCountCalendarEventArgs
   fiche?: boolean | ClasseCountOutputTypeCountFicheArgs
   onlineAssignments?: boolean | ClasseCountOutputTypeCountOnlineAssignmentsArgs
+  rotationSlots?: boolean | ClasseCountOutputTypeCountRotationSlotsArgs
 }
 
 /**
@@ -1960,6 +2876,13 @@ export type ClasseCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exten
    * Select specific fields to fetch from the ClasseCountOutputType
    */
   select?: Prisma.ClasseCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ClasseCountOutputType without action
+ */
+export type ClasseCountOutputTypeCountAtelierLabGroupsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClasseWhereInput
 }
 
 /**
@@ -2004,6 +2927,13 @@ export type ClasseCountOutputTypeCountOnlineAssignmentsArgs<ExtArgs extends runt
   where?: Prisma.OnlineAssignmentWhereInput
 }
 
+/**
+ * ClasseCountOutputType without action
+ */
+export type ClasseCountOutputTypeCountRotationSlotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RotationSlotWhereInput
+}
+
 
 export type ClasseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2017,9 +2947,14 @@ export type ClasseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   creneauId?: boolean
   horaireType?: boolean
   cycle?: boolean
+  sourceClasseId?: boolean
+  practicalDomainId?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  sourceClasse?: boolean | Prisma.Classe$sourceClasseArgs<ExtArgs>
+  atelierLabGroups?: boolean | Prisma.Classe$atelierLabGroupsArgs<ExtArgs>
+  practicalDomain?: boolean | Prisma.Classe$practicalDomainArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.Classe$classEnrollmentArgs<ExtArgs>
   teaching?: boolean | Prisma.Classe$teachingArgs<ExtArgs>
@@ -2029,6 +2964,7 @@ export type ClasseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   CalendarEvent?: boolean | Prisma.Classe$CalendarEventArgs<ExtArgs>
   fiche?: boolean | Prisma.Classe$ficheArgs<ExtArgs>
   onlineAssignments?: boolean | Prisma.Classe$onlineAssignmentsArgs<ExtArgs>
+  rotationSlots?: boolean | Prisma.Classe$rotationSlotsArgs<ExtArgs>
   _count?: boolean | Prisma.ClasseCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["classe"]>
 
@@ -2044,9 +2980,13 @@ export type ClasseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   creneauId?: boolean
   horaireType?: boolean
   cycle?: boolean
+  sourceClasseId?: boolean
+  practicalDomainId?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  sourceClasse?: boolean | Prisma.Classe$sourceClasseArgs<ExtArgs>
+  practicalDomain?: boolean | Prisma.Classe$practicalDomainArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   option?: boolean | Prisma.Classe$optionArgs<ExtArgs>
   creneau?: boolean | Prisma.Classe$creneauArgs<ExtArgs>
@@ -2064,9 +3004,13 @@ export type ClasseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   creneauId?: boolean
   horaireType?: boolean
   cycle?: boolean
+  sourceClasseId?: boolean
+  practicalDomainId?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  sourceClasse?: boolean | Prisma.Classe$sourceClasseArgs<ExtArgs>
+  practicalDomain?: boolean | Prisma.Classe$practicalDomainArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   option?: boolean | Prisma.Classe$optionArgs<ExtArgs>
   creneau?: boolean | Prisma.Classe$creneauArgs<ExtArgs>
@@ -2084,13 +3028,18 @@ export type ClasseSelectScalar = {
   creneauId?: boolean
   horaireType?: boolean
   cycle?: boolean
+  sourceClasseId?: boolean
+  practicalDomainId?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ClasseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeClasse" | "nameClasse" | "level" | "parallel" | "capacity" | "optionId" | "statusClasse" | "creneauId" | "horaireType" | "cycle" | "branchId" | "createdAt" | "updatedAt", ExtArgs["result"]["classe"]>
+export type ClasseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeClasse" | "nameClasse" | "level" | "parallel" | "capacity" | "optionId" | "statusClasse" | "creneauId" | "horaireType" | "cycle" | "sourceClasseId" | "practicalDomainId" | "branchId" | "createdAt" | "updatedAt", ExtArgs["result"]["classe"]>
 export type ClasseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  sourceClasse?: boolean | Prisma.Classe$sourceClasseArgs<ExtArgs>
+  atelierLabGroups?: boolean | Prisma.Classe$atelierLabGroupsArgs<ExtArgs>
+  practicalDomain?: boolean | Prisma.Classe$practicalDomainArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.Classe$classEnrollmentArgs<ExtArgs>
   teaching?: boolean | Prisma.Classe$teachingArgs<ExtArgs>
@@ -2100,14 +3049,19 @@ export type ClasseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   CalendarEvent?: boolean | Prisma.Classe$CalendarEventArgs<ExtArgs>
   fiche?: boolean | Prisma.Classe$ficheArgs<ExtArgs>
   onlineAssignments?: boolean | Prisma.Classe$onlineAssignmentsArgs<ExtArgs>
+  rotationSlots?: boolean | Prisma.Classe$rotationSlotsArgs<ExtArgs>
   _count?: boolean | Prisma.ClasseCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClasseIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  sourceClasse?: boolean | Prisma.Classe$sourceClasseArgs<ExtArgs>
+  practicalDomain?: boolean | Prisma.Classe$practicalDomainArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   option?: boolean | Prisma.Classe$optionArgs<ExtArgs>
   creneau?: boolean | Prisma.Classe$creneauArgs<ExtArgs>
 }
 export type ClasseIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  sourceClasse?: boolean | Prisma.Classe$sourceClasseArgs<ExtArgs>
+  practicalDomain?: boolean | Prisma.Classe$practicalDomainArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   option?: boolean | Prisma.Classe$optionArgs<ExtArgs>
   creneau?: boolean | Prisma.Classe$creneauArgs<ExtArgs>
@@ -2116,6 +3070,9 @@ export type ClasseIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
 export type $ClassePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Classe"
   objects: {
+    sourceClasse: Prisma.$ClassePayload<ExtArgs> | null
+    atelierLabGroups: Prisma.$ClassePayload<ExtArgs>[]
+    practicalDomain: Prisma.$PracticalDomainPayload<ExtArgs> | null
     branch: Prisma.$BranchPayload<ExtArgs>
     classEnrollment: Prisma.$ClassEnrollmentPayload<ExtArgs>[]
     teaching: Prisma.$TeachingPayload<ExtArgs>[]
@@ -2125,6 +3082,7 @@ export type $ClassePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     CalendarEvent: Prisma.$CalendarEventPayload<ExtArgs>[]
     fiche: Prisma.$fichePayload<ExtArgs>[]
     onlineAssignments: Prisma.$OnlineAssignmentPayload<ExtArgs>[]
+    rotationSlots: Prisma.$RotationSlotPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2144,6 +3102,14 @@ export type $ClassePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
      * null = Branch.typebranch (branche mono-cycle).
      */
     cycle: $Enums.Cycle | null
+    /**
+     * Atelier : classe école source (souvent autre branche) — 1 groupe ↔ 1 classe.
+     */
+    sourceClasseId: string | null
+    /**
+     * Atelier : domaine pratique du groupe (Sciences, Technique…).
+     */
+    practicalDomainId: string | null
     branchId: string
     createdAt: Date
     updatedAt: Date
@@ -2541,6 +3507,9 @@ readonly fields: ClasseFieldRefs;
  */
 export interface Prisma__ClasseClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  sourceClasse<T extends Prisma.Classe$sourceClasseArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$sourceClasseArgs<ExtArgs>>): Prisma.Prisma__ClasseClient<runtime.Types.Result.GetResult<Prisma.$ClassePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  atelierLabGroups<T extends Prisma.Classe$atelierLabGroupsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$atelierLabGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  practicalDomain<T extends Prisma.Classe$practicalDomainArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$practicalDomainArgs<ExtArgs>>): Prisma.Prisma__PracticalDomainClient<runtime.Types.Result.GetResult<Prisma.$PracticalDomainPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   classEnrollment<T extends Prisma.Classe$classEnrollmentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$classEnrollmentArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassEnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   teaching<T extends Prisma.Classe$teachingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$teachingArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeachingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2550,6 +3519,7 @@ export interface Prisma__ClasseClient<T, Null = never, ExtArgs extends runtime.T
   CalendarEvent<T extends Prisma.Classe$CalendarEventArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$CalendarEventArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   fiche<T extends Prisma.Classe$ficheArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$ficheArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$fichePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   onlineAssignments<T extends Prisma.Classe$onlineAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$onlineAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OnlineAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  rotationSlots<T extends Prisma.Classe$rotationSlotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$rotationSlotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RotationSlotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2590,6 +3560,8 @@ export interface ClasseFieldRefs {
   readonly creneauId: Prisma.FieldRef<"Classe", 'String'>
   readonly horaireType: Prisma.FieldRef<"Classe", 'HoraireType'>
   readonly cycle: Prisma.FieldRef<"Classe", 'Cycle'>
+  readonly sourceClasseId: Prisma.FieldRef<"Classe", 'String'>
+  readonly practicalDomainId: Prisma.FieldRef<"Classe", 'String'>
   readonly branchId: Prisma.FieldRef<"Classe", 'String'>
   readonly createdAt: Prisma.FieldRef<"Classe", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Classe", 'DateTime'>
@@ -2994,6 +3966,68 @@ export type ClasseDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
 }
 
 /**
+ * Classe.sourceClasse
+ */
+export type Classe$sourceClasseArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Classe
+   */
+  select?: Prisma.ClasseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Classe
+   */
+  omit?: Prisma.ClasseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClasseInclude<ExtArgs> | null
+  where?: Prisma.ClasseWhereInput
+}
+
+/**
+ * Classe.atelierLabGroups
+ */
+export type Classe$atelierLabGroupsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Classe
+   */
+  select?: Prisma.ClasseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Classe
+   */
+  omit?: Prisma.ClasseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClasseInclude<ExtArgs> | null
+  where?: Prisma.ClasseWhereInput
+  orderBy?: Prisma.ClasseOrderByWithRelationInput | Prisma.ClasseOrderByWithRelationInput[]
+  cursor?: Prisma.ClasseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClasseScalarFieldEnum | Prisma.ClasseScalarFieldEnum[]
+}
+
+/**
+ * Classe.practicalDomain
+ */
+export type Classe$practicalDomainArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PracticalDomain
+   */
+  select?: Prisma.PracticalDomainSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PracticalDomain
+   */
+  omit?: Prisma.PracticalDomainOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PracticalDomainInclude<ExtArgs> | null
+  where?: Prisma.PracticalDomainWhereInput
+}
+
+/**
  * Classe.classEnrollment
  */
 export type Classe$classEnrollmentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3173,6 +4207,30 @@ export type Classe$onlineAssignmentsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.OnlineAssignmentScalarFieldEnum | Prisma.OnlineAssignmentScalarFieldEnum[]
+}
+
+/**
+ * Classe.rotationSlots
+ */
+export type Classe$rotationSlotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RotationSlot
+   */
+  select?: Prisma.RotationSlotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RotationSlot
+   */
+  omit?: Prisma.RotationSlotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RotationSlotInclude<ExtArgs> | null
+  where?: Prisma.RotationSlotWhereInput
+  orderBy?: Prisma.RotationSlotOrderByWithRelationInput | Prisma.RotationSlotOrderByWithRelationInput[]
+  cursor?: Prisma.RotationSlotWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RotationSlotScalarFieldEnum | Prisma.RotationSlotScalarFieldEnum[]
 }
 
 /**

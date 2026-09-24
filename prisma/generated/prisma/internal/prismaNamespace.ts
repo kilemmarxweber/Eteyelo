@@ -455,6 +455,11 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Branch: 'Branch',
+  PracticalDomain: 'PracticalDomain',
+  Room: 'Room',
+  PracticalDomainCours: 'PracticalDomainCours',
+  RotationSlot: 'RotationSlot',
+  RotationSlotItem: 'RotationSlotItem',
   AttendanceFaceDescriptor: 'AttendanceFaceDescriptor',
   BranchCycle: 'BranchCycle',
   BranchPrimaryDomain: 'BranchPrimaryDomain',
@@ -500,7 +505,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "atelierCourseLink" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "salaryAdvance" | "salaryAdvanceInstallment" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "attendanceFaceDescriptor" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog" | "temporaryGrant"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "atelierCourseLink" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "salaryAdvance" | "salaryAdvanceInstallment" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "practicalDomain" | "room" | "practicalDomainCours" | "rotationSlot" | "rotationSlotItem" | "attendanceFaceDescriptor" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog" | "temporaryGrant"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4796,6 +4801,376 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PracticalDomain: {
+      payload: Prisma.$PracticalDomainPayload<ExtArgs>
+      fields: Prisma.PracticalDomainFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PracticalDomainFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PracticalDomainFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainPayload>
+        }
+        findFirst: {
+          args: Prisma.PracticalDomainFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PracticalDomainFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainPayload>
+        }
+        findMany: {
+          args: Prisma.PracticalDomainFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainPayload>[]
+        }
+        create: {
+          args: Prisma.PracticalDomainCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainPayload>
+        }
+        createMany: {
+          args: Prisma.PracticalDomainCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PracticalDomainCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainPayload>[]
+        }
+        delete: {
+          args: Prisma.PracticalDomainDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainPayload>
+        }
+        update: {
+          args: Prisma.PracticalDomainUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainPayload>
+        }
+        deleteMany: {
+          args: Prisma.PracticalDomainDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PracticalDomainUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PracticalDomainUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainPayload>[]
+        }
+        upsert: {
+          args: Prisma.PracticalDomainUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainPayload>
+        }
+        aggregate: {
+          args: Prisma.PracticalDomainAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePracticalDomain>
+        }
+        groupBy: {
+          args: Prisma.PracticalDomainGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PracticalDomainGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PracticalDomainCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PracticalDomainCountAggregateOutputType> | number
+        }
+      }
+    }
+    Room: {
+      payload: Prisma.$RoomPayload<ExtArgs>
+      fields: Prisma.RoomFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RoomFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RoomFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>
+        }
+        findFirst: {
+          args: Prisma.RoomFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RoomFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>
+        }
+        findMany: {
+          args: Prisma.RoomFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>[]
+        }
+        create: {
+          args: Prisma.RoomCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>
+        }
+        createMany: {
+          args: Prisma.RoomCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RoomCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>[]
+        }
+        delete: {
+          args: Prisma.RoomDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>
+        }
+        update: {
+          args: Prisma.RoomUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>
+        }
+        deleteMany: {
+          args: Prisma.RoomDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RoomUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RoomUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>[]
+        }
+        upsert: {
+          args: Prisma.RoomUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>
+        }
+        aggregate: {
+          args: Prisma.RoomAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRoom>
+        }
+        groupBy: {
+          args: Prisma.RoomGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RoomGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RoomCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RoomCountAggregateOutputType> | number
+        }
+      }
+    }
+    PracticalDomainCours: {
+      payload: Prisma.$PracticalDomainCoursPayload<ExtArgs>
+      fields: Prisma.PracticalDomainCoursFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PracticalDomainCoursFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainCoursPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PracticalDomainCoursFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainCoursPayload>
+        }
+        findFirst: {
+          args: Prisma.PracticalDomainCoursFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainCoursPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PracticalDomainCoursFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainCoursPayload>
+        }
+        findMany: {
+          args: Prisma.PracticalDomainCoursFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainCoursPayload>[]
+        }
+        create: {
+          args: Prisma.PracticalDomainCoursCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainCoursPayload>
+        }
+        createMany: {
+          args: Prisma.PracticalDomainCoursCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PracticalDomainCoursCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainCoursPayload>[]
+        }
+        delete: {
+          args: Prisma.PracticalDomainCoursDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainCoursPayload>
+        }
+        update: {
+          args: Prisma.PracticalDomainCoursUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainCoursPayload>
+        }
+        deleteMany: {
+          args: Prisma.PracticalDomainCoursDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PracticalDomainCoursUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PracticalDomainCoursUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainCoursPayload>[]
+        }
+        upsert: {
+          args: Prisma.PracticalDomainCoursUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PracticalDomainCoursPayload>
+        }
+        aggregate: {
+          args: Prisma.PracticalDomainCoursAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePracticalDomainCours>
+        }
+        groupBy: {
+          args: Prisma.PracticalDomainCoursGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PracticalDomainCoursGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PracticalDomainCoursCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PracticalDomainCoursCountAggregateOutputType> | number
+        }
+      }
+    }
+    RotationSlot: {
+      payload: Prisma.$RotationSlotPayload<ExtArgs>
+      fields: Prisma.RotationSlotFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RotationSlotFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RotationSlotFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotPayload>
+        }
+        findFirst: {
+          args: Prisma.RotationSlotFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RotationSlotFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotPayload>
+        }
+        findMany: {
+          args: Prisma.RotationSlotFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotPayload>[]
+        }
+        create: {
+          args: Prisma.RotationSlotCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotPayload>
+        }
+        createMany: {
+          args: Prisma.RotationSlotCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RotationSlotCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotPayload>[]
+        }
+        delete: {
+          args: Prisma.RotationSlotDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotPayload>
+        }
+        update: {
+          args: Prisma.RotationSlotUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotPayload>
+        }
+        deleteMany: {
+          args: Prisma.RotationSlotDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RotationSlotUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RotationSlotUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotPayload>[]
+        }
+        upsert: {
+          args: Prisma.RotationSlotUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotPayload>
+        }
+        aggregate: {
+          args: Prisma.RotationSlotAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRotationSlot>
+        }
+        groupBy: {
+          args: Prisma.RotationSlotGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RotationSlotGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RotationSlotCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RotationSlotCountAggregateOutputType> | number
+        }
+      }
+    }
+    RotationSlotItem: {
+      payload: Prisma.$RotationSlotItemPayload<ExtArgs>
+      fields: Prisma.RotationSlotItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RotationSlotItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RotationSlotItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotItemPayload>
+        }
+        findFirst: {
+          args: Prisma.RotationSlotItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RotationSlotItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotItemPayload>
+        }
+        findMany: {
+          args: Prisma.RotationSlotItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotItemPayload>[]
+        }
+        create: {
+          args: Prisma.RotationSlotItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotItemPayload>
+        }
+        createMany: {
+          args: Prisma.RotationSlotItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RotationSlotItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotItemPayload>[]
+        }
+        delete: {
+          args: Prisma.RotationSlotItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotItemPayload>
+        }
+        update: {
+          args: Prisma.RotationSlotItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.RotationSlotItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RotationSlotItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RotationSlotItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.RotationSlotItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RotationSlotItemPayload>
+        }
+        aggregate: {
+          args: Prisma.RotationSlotItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRotationSlotItem>
+        }
+        groupBy: {
+          args: Prisma.RotationSlotItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RotationSlotItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RotationSlotItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RotationSlotItemCountAggregateOutputType> | number
+        }
+      }
+    }
     AttendanceFaceDescriptor: {
       payload: Prisma.$AttendanceFaceDescriptorPayload<ExtArgs>
       fields: Prisma.AttendanceFaceDescriptorFieldRefs
@@ -7293,6 +7668,8 @@ export const ClasseScalarFieldEnum = {
   creneauId: 'creneauId',
   horaireType: 'horaireType',
   cycle: 'cycle',
+  sourceClasseId: 'sourceClasseId',
+  practicalDomainId: 'practicalDomainId',
   branchId: 'branchId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -7443,6 +7820,7 @@ export const CoursScalarFieldEnum = {
   primaryDomain: 'primaryDomain',
   primarySection: 'primarySection',
   domainOrder: 'domainOrder',
+  hasPracticalLab: 'hasPracticalLab',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   branchId: 'branchId'
@@ -8104,6 +8482,75 @@ export const BranchScalarFieldEnum = {
 } as const
 
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
+
+
+export const PracticalDomainScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  code: 'code',
+  name: 'name',
+  sortOrder: 'sortOrder',
+  isSystem: 'isSystem',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PracticalDomainScalarFieldEnum = (typeof PracticalDomainScalarFieldEnum)[keyof typeof PracticalDomainScalarFieldEnum]
+
+
+export const RoomScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  name: 'name',
+  capacity: 'capacity',
+  practicalDomainId: 'practicalDomainId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RoomScalarFieldEnum = (typeof RoomScalarFieldEnum)[keyof typeof RoomScalarFieldEnum]
+
+
+export const PracticalDomainCoursScalarFieldEnum = {
+  id: 'id',
+  practicalDomainId: 'practicalDomainId',
+  coursId: 'coursId',
+  sortOrderDefault: 'sortOrderDefault',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PracticalDomainCoursScalarFieldEnum = (typeof PracticalDomainCoursScalarFieldEnum)[keyof typeof PracticalDomainCoursScalarFieldEnum]
+
+
+export const RotationSlotScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  classeId: 'classeId',
+  day: 'day',
+  hour: 'hour',
+  practicalDomainId: 'practicalDomainId',
+  roomId: 'roomId',
+  teacherId: 'teacherId',
+  anchorDate: 'anchorDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RotationSlotScalarFieldEnum = (typeof RotationSlotScalarFieldEnum)[keyof typeof RotationSlotScalarFieldEnum]
+
+
+export const RotationSlotItemScalarFieldEnum = {
+  id: 'id',
+  rotationSlotId: 'rotationSlotId',
+  coursId: 'coursId',
+  sortOrder: 'sortOrder',
+  teacherId: 'teacherId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RotationSlotItemScalarFieldEnum = (typeof RotationSlotItemScalarFieldEnum)[keyof typeof RotationSlotItemScalarFieldEnum]
 
 
 export const AttendanceFaceDescriptorScalarFieldEnum = {
@@ -9669,6 +10116,11 @@ export type GlobalOmitConfig = {
   member?: Prisma.MemberOmit
   invitation?: Prisma.InvitationOmit
   branch?: Prisma.BranchOmit
+  practicalDomain?: Prisma.PracticalDomainOmit
+  room?: Prisma.RoomOmit
+  practicalDomainCours?: Prisma.PracticalDomainCoursOmit
+  rotationSlot?: Prisma.RotationSlotOmit
+  rotationSlotItem?: Prisma.RotationSlotItemOmit
   attendanceFaceDescriptor?: Prisma.AttendanceFaceDescriptorOmit
   branchCycle?: Prisma.BranchCycleOmit
   branchPrimaryDomain?: Prisma.BranchPrimaryDomainOmit

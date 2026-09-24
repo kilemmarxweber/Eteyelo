@@ -27,7 +27,14 @@ export interface ICours {
     secondaryBranchName: string;
     targetPeriodKey: string;
     targetPeriodLabel: string;
+    activePeriodKey?: string | null;
+    activePeriodLabel?: string | null;
+    isPeriodAuto?: boolean;
   } | null;
+  /** Atelier : TP labo. */
+  hasPracticalLab?: boolean;
+  practicalDomainId?: string | null;
+  practicalDomainName?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -45,6 +52,8 @@ export const coursSchema = z.object({
   linkedSecondaryBranchId: z.string().nullable().optional(),
   linkedSecondaryCoursId: z.string().nullable().optional(),
   linkedTargetPeriodKey: z.string().nullable().optional(),
+  /** Domaine pratique atelier (null = pas de TP labo). */
+  practicalDomainId: z.string().nullable().optional(),
 });
 
 export const coursComponentSchema = z.object({

@@ -21,9 +21,12 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { cn } from "@/lib/utils";
 import {
   createClasseAction,
+  getAtelierSourceClassesAction,
   getBranchTypeAction,
   updateClasseAction,
 } from "../classe.action";
+import { getPracticalDomainsAction } from "../../settings/practical-domains.action";
+import { isAtelierBranch } from "@/lib/branch-capabilities";
 import {
   buildClassName,
   getClassLevelsForBranch,
@@ -72,6 +75,8 @@ const formSchema = z.object({
   sectionId: z.string().optional(),
   creneauId: z.string().optional(),
   statusClasse: z.boolean().optional(),
+  sourceClasseId: z.string().optional(),
+  practicalDomainId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -112,6 +117,12 @@ export function ClasseUpForm({
   const [activatedCycles, setActivatedCycles] = useState<Cycle[]>(["SECONDAIRE"]);
   const [educationSystem, setEducationSystem] =
     useState<EducationSystem>("CONGOLAIS");
+  const [sourceClasses, setSourceClasses] = useState<
+    Array<{ id: string; label: string }>
+  >([]);
+  const [practicalDomains, setPracticalDomains] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -123,6 +134,8 @@ export function ClasseUpForm({
           optionId: initialData?.optionId ?? "",
           sectionId: initialData?.sectionId ?? "",
           capacity: initialData?.capacity ?? undefined,
+          sourceClasseId: "",
+          practicalDomainId: "",
         }
       : {
           id: initialData?.id,
@@ -134,6 +147,8 @@ export function ClasseUpForm({
           creneauId: initialData?.creneauId ?? "",
           optionId: initialData?.optionId ?? "",
           sectionId: initialData?.sectionId ?? "",
+          sourceClasseId: initialData?.sourceClasseId ?? "",
+          practicalDomainId: initialData?.practicalDomainId ?? "",
         },
   });
   const nameTouchedRef = useRef(
@@ -240,6 +255,8 @@ export function ClasseUpForm({
   const angolaPrimary = isAngolaPrimarySystem(classCycle, educationSystem);
   const classLevels = getClassLevelsForBranch(classCycle, educationSystem);
   const showOptionField = classCycle !== "ATELIER";
+  const showAtelierLabFields =
+    isAtelierBranch(branchType) || classCycle === "ATELIER";
   const angolaCycle1 = angolaSecondary && isAngolaFirstCycleLevel(watchedLevel);
   const horaireHelp = angolaSecondary
     ? angolaHoraireHelp(watchedLevel)
@@ -474,6 +491,34 @@ export function ClasseUpForm({
   ]);
 
   useEffect(() => {
+    if (!showAtelierLabFields) return;
+    let ignore = false;
+    Promise.all([
+      getAtelierSourceClassesAction(),
+      getPracticalDomainsAction(),
+    ])
+      .then(([[sources], [domains]]) => {
+        if (ignore) return;
+        setSourceClasses(
+          (sources ?? []).map((s: { id: string; label: string }) => ({
+            id: s.id,
+            label: s.label,
+          })),
+        );
+        setPracticalDomains(
+          (domains ?? []).map((d: { id: string; name: string }) => ({
+            id: d.id,
+            name: d.name,
+          })),
+        );
+      })
+      .catch(() => undefined);
+    return () => {
+      ignore = true;
+    };
+  }, [showAtelierLabFields]);
+
+  useEffect(() => {
     if (isLegacyUpdate || !previewName) return;
     if (!nameTouchedRef.current) {
       form.setValue("nameClasse", previewName);
@@ -497,6 +542,12 @@ export function ClasseUpForm({
           capacity: data.capacity,
           optionId: data.optionId,
           creneauId: data.creneauId,
+          sourceClasseId: showAtelierLabFields
+            ? data.sourceClasseId || null
+            : undefined,
+          practicalDomainId: showAtelierLabFields
+            ? data.practicalDomainId || null
+            : undefined,
         });
         if (err) throw new Error(err.message);
         toast.success("Classe creee avec succes");
@@ -509,6 +560,8 @@ export function ClasseUpForm({
           capacity: undefined,
           creneauId: "",
           optionId: "",
+          sourceClasseId: "",
+          practicalDomainId: "",
         });
         onCreated?.();
       } else {
@@ -809,6 +862,66 @@ export function ClasseUpForm({
                   </FormItem>
                 )}
               />
+            ) : null}
+
+            {showAtelierLabFields ? (
+              <>
+                <FormField
+                  control={form.control}
+                  name="practicalDomainId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Domaine pratique</FormLabel>
+                      <FormControl>
+                        <SearchableSelect
+                          searchable
+                          options={practicalDomains.map((d) => ({
+                            value: d.id,
+                            label: d.name,
+                          }))}
+                          value={field.value ?? ""}
+                          onValueChange={field.onChange}
+                          placeholder="Sciences, technique…"
+                          searchPlaceholder="Rechercher…"
+                          triggerClassName="h-9"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Détermine le labo (ex. Laboratoire sciences).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="sourceClasseId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Classe source (école)</FormLabel>
+                      <FormControl>
+                        <SearchableSelect
+                          searchable
+                          options={sourceClasses.map((c) => ({
+                            value: c.id,
+                            label: c.label,
+                          }))}
+                          value={field.value ?? ""}
+                          onValueChange={field.onChange}
+                          placeholder="Classe de provenance"
+                          searchPlaceholder="Rechercher une classe…"
+                          triggerClassName="h-9"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Classes du secondaire uniquement : nom · option ·
+                        établissement. Un seul groupe par classe source.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
             ) : null}
 
             <FormField

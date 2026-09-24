@@ -48,6 +48,7 @@ export type CoursMinAggregateOutputType = {
   primaryDomain: string | null
   primarySection: string | null
   domainOrder: number | null
+  hasPracticalLab: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
   branchId: string | null
@@ -65,6 +66,7 @@ export type CoursMaxAggregateOutputType = {
   primaryDomain: string | null
   primarySection: string | null
   domainOrder: number | null
+  hasPracticalLab: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
   branchId: string | null
@@ -82,6 +84,7 @@ export type CoursCountAggregateOutputType = {
   primaryDomain: number
   primarySection: number
   domainOrder: number
+  hasPracticalLab: number
   createdAt: number
   updatedAt: number
   branchId: number
@@ -111,6 +114,7 @@ export type CoursMinAggregateInputType = {
   primaryDomain?: true
   primarySection?: true
   domainOrder?: true
+  hasPracticalLab?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -128,6 +132,7 @@ export type CoursMaxAggregateInputType = {
   primaryDomain?: true
   primarySection?: true
   domainOrder?: true
+  hasPracticalLab?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -145,6 +150,7 @@ export type CoursCountAggregateInputType = {
   primaryDomain?: true
   primarySection?: true
   domainOrder?: true
+  hasPracticalLab?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -249,6 +255,7 @@ export type CoursGroupByOutputType = {
   primaryDomain: string | null
   primarySection: string | null
   domainOrder: number | null
+  hasPracticalLab: boolean
   createdAt: Date
   updatedAt: Date
   branchId: string
@@ -289,6 +296,7 @@ export type CoursWhereInput = {
   primaryDomain?: Prisma.StringNullableFilter<"Cours"> | string | null
   primarySection?: Prisma.StringNullableFilter<"Cours"> | string | null
   domainOrder?: Prisma.IntNullableFilter<"Cours"> | number | null
+  hasPracticalLab?: Prisma.BoolFilter<"Cours"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
   branchId?: Prisma.StringFilter<"Cours"> | string
@@ -301,6 +309,8 @@ export type CoursWhereInput = {
   onlineAssignments?: Prisma.OnlineAssignmentListRelationFilter
   atelierCourseLink?: Prisma.XOR<Prisma.AtelierCourseLinkNullableScalarRelationFilter, Prisma.AtelierCourseLinkWhereInput> | null
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkListRelationFilter
+  practicalDomainLinks?: Prisma.PracticalDomainCoursListRelationFilter
+  rotationSlotItems?: Prisma.RotationSlotItemListRelationFilter
 }
 
 export type CoursOrderByWithRelationInput = {
@@ -315,6 +325,7 @@ export type CoursOrderByWithRelationInput = {
   primaryDomain?: Prisma.SortOrderInput | Prisma.SortOrder
   primarySection?: Prisma.SortOrderInput | Prisma.SortOrder
   domainOrder?: Prisma.SortOrderInput | Prisma.SortOrder
+  hasPracticalLab?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -327,6 +338,8 @@ export type CoursOrderByWithRelationInput = {
   onlineAssignments?: Prisma.OnlineAssignmentOrderByRelationAggregateInput
   atelierCourseLink?: Prisma.AtelierCourseLinkOrderByWithRelationInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkOrderByRelationAggregateInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursOrderByRelationAggregateInput
+  rotationSlotItems?: Prisma.RotationSlotItemOrderByRelationAggregateInput
 }
 
 export type CoursWhereUniqueInput = Prisma.AtLeast<{
@@ -346,6 +359,7 @@ export type CoursWhereUniqueInput = Prisma.AtLeast<{
   primaryDomain?: Prisma.StringNullableFilter<"Cours"> | string | null
   primarySection?: Prisma.StringNullableFilter<"Cours"> | string | null
   domainOrder?: Prisma.IntNullableFilter<"Cours"> | number | null
+  hasPracticalLab?: Prisma.BoolFilter<"Cours"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
   branchId?: Prisma.StringFilter<"Cours"> | string
@@ -358,6 +372,8 @@ export type CoursWhereUniqueInput = Prisma.AtLeast<{
   onlineAssignments?: Prisma.OnlineAssignmentListRelationFilter
   atelierCourseLink?: Prisma.XOR<Prisma.AtelierCourseLinkNullableScalarRelationFilter, Prisma.AtelierCourseLinkWhereInput> | null
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkListRelationFilter
+  practicalDomainLinks?: Prisma.PracticalDomainCoursListRelationFilter
+  rotationSlotItems?: Prisma.RotationSlotItemListRelationFilter
 }, "id" | "branchId_codeCours" | "branchId_nameCours">
 
 export type CoursOrderByWithAggregationInput = {
@@ -372,6 +388,7 @@ export type CoursOrderByWithAggregationInput = {
   primaryDomain?: Prisma.SortOrderInput | Prisma.SortOrder
   primarySection?: Prisma.SortOrderInput | Prisma.SortOrder
   domainOrder?: Prisma.SortOrderInput | Prisma.SortOrder
+  hasPracticalLab?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -397,6 +414,7 @@ export type CoursScalarWhereWithAggregatesInput = {
   primaryDomain?: Prisma.StringNullableWithAggregatesFilter<"Cours"> | string | null
   primarySection?: Prisma.StringNullableWithAggregatesFilter<"Cours"> | string | null
   domainOrder?: Prisma.IntNullableWithAggregatesFilter<"Cours"> | number | null
+  hasPracticalLab?: Prisma.BoolWithAggregatesFilter<"Cours"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Cours"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Cours"> | Date | string
   branchId?: Prisma.StringWithAggregatesFilter<"Cours"> | string
@@ -413,6 +431,7 @@ export type CoursCreateInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
@@ -424,6 +443,8 @@ export type CoursCreateInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateInput = {
@@ -438,6 +459,7 @@ export type CoursUncheckedCreateInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -448,6 +470,8 @@ export type CoursUncheckedCreateInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUpdateInput = {
@@ -461,6 +485,7 @@ export type CoursUpdateInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
@@ -472,6 +497,8 @@ export type CoursUpdateInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateInput = {
@@ -486,6 +513,7 @@ export type CoursUncheckedUpdateInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -496,6 +524,8 @@ export type CoursUncheckedUpdateInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursCreateManyInput = {
@@ -510,6 +540,7 @@ export type CoursCreateManyInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -526,6 +557,7 @@ export type CoursUpdateManyMutationInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -542,6 +574,7 @@ export type CoursUncheckedUpdateManyInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -589,6 +622,7 @@ export type CoursCountOrderByAggregateInput = {
   primaryDomain?: Prisma.SortOrder
   primarySection?: Prisma.SortOrder
   domainOrder?: Prisma.SortOrder
+  hasPracticalLab?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -611,6 +645,7 @@ export type CoursMaxOrderByAggregateInput = {
   primaryDomain?: Prisma.SortOrder
   primarySection?: Prisma.SortOrder
   domainOrder?: Prisma.SortOrder
+  hasPracticalLab?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -628,6 +663,7 @@ export type CoursMinOrderByAggregateInput = {
   primaryDomain?: Prisma.SortOrder
   primarySection?: Prisma.SortOrder
   domainOrder?: Prisma.SortOrder
+  hasPracticalLab?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -836,6 +872,34 @@ export type CoursUncheckedUpdateManyWithoutBranchNestedInput = {
   deleteMany?: Prisma.CoursScalarWhereInput | Prisma.CoursScalarWhereInput[]
 }
 
+export type CoursCreateNestedOneWithoutPracticalDomainLinksInput = {
+  create?: Prisma.XOR<Prisma.CoursCreateWithoutPracticalDomainLinksInput, Prisma.CoursUncheckedCreateWithoutPracticalDomainLinksInput>
+  connectOrCreate?: Prisma.CoursCreateOrConnectWithoutPracticalDomainLinksInput
+  connect?: Prisma.CoursWhereUniqueInput
+}
+
+export type CoursUpdateOneRequiredWithoutPracticalDomainLinksNestedInput = {
+  create?: Prisma.XOR<Prisma.CoursCreateWithoutPracticalDomainLinksInput, Prisma.CoursUncheckedCreateWithoutPracticalDomainLinksInput>
+  connectOrCreate?: Prisma.CoursCreateOrConnectWithoutPracticalDomainLinksInput
+  upsert?: Prisma.CoursUpsertWithoutPracticalDomainLinksInput
+  connect?: Prisma.CoursWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CoursUpdateToOneWithWhereWithoutPracticalDomainLinksInput, Prisma.CoursUpdateWithoutPracticalDomainLinksInput>, Prisma.CoursUncheckedUpdateWithoutPracticalDomainLinksInput>
+}
+
+export type CoursCreateNestedOneWithoutRotationSlotItemsInput = {
+  create?: Prisma.XOR<Prisma.CoursCreateWithoutRotationSlotItemsInput, Prisma.CoursUncheckedCreateWithoutRotationSlotItemsInput>
+  connectOrCreate?: Prisma.CoursCreateOrConnectWithoutRotationSlotItemsInput
+  connect?: Prisma.CoursWhereUniqueInput
+}
+
+export type CoursUpdateOneRequiredWithoutRotationSlotItemsNestedInput = {
+  create?: Prisma.XOR<Prisma.CoursCreateWithoutRotationSlotItemsInput, Prisma.CoursUncheckedCreateWithoutRotationSlotItemsInput>
+  connectOrCreate?: Prisma.CoursCreateOrConnectWithoutRotationSlotItemsInput
+  upsert?: Prisma.CoursUpsertWithoutRotationSlotItemsInput
+  connect?: Prisma.CoursWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CoursUpdateToOneWithWhereWithoutRotationSlotItemsInput, Prisma.CoursUpdateWithoutRotationSlotItemsInput>, Prisma.CoursUncheckedUpdateWithoutRotationSlotItemsInput>
+}
+
 export type CoursCreateNestedOneWithoutOnlineAssignmentsInput = {
   create?: Prisma.XOR<Prisma.CoursCreateWithoutOnlineAssignmentsInput, Prisma.CoursUncheckedCreateWithoutOnlineAssignmentsInput>
   connectOrCreate?: Prisma.CoursCreateOrConnectWithoutOnlineAssignmentsInput
@@ -861,6 +925,7 @@ export type CoursCreateWithoutTeachingInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   parentCours?: Prisma.CoursCreateNestedOneWithoutComponentsInput
@@ -871,6 +936,8 @@ export type CoursCreateWithoutTeachingInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutTeachingInput = {
@@ -885,6 +952,7 @@ export type CoursUncheckedCreateWithoutTeachingInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -894,6 +962,8 @@ export type CoursUncheckedCreateWithoutTeachingInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutTeachingInput = {
@@ -923,6 +993,7 @@ export type CoursUpdateWithoutTeachingInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parentCours?: Prisma.CoursUpdateOneWithoutComponentsNestedInput
@@ -933,6 +1004,8 @@ export type CoursUpdateWithoutTeachingInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutTeachingInput = {
@@ -947,6 +1020,7 @@ export type CoursUncheckedUpdateWithoutTeachingInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -956,6 +1030,8 @@ export type CoursUncheckedUpdateWithoutTeachingInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursCreateWithoutComponentsInput = {
@@ -969,6 +1045,7 @@ export type CoursCreateWithoutComponentsInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
@@ -979,6 +1056,8 @@ export type CoursCreateWithoutComponentsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutComponentsInput = {
@@ -993,6 +1072,7 @@ export type CoursUncheckedCreateWithoutComponentsInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1002,6 +1082,8 @@ export type CoursUncheckedCreateWithoutComponentsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutComponentsInput = {
@@ -1020,6 +1102,7 @@ export type CoursCreateWithoutParentCoursInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
@@ -1030,6 +1113,8 @@ export type CoursCreateWithoutParentCoursInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutParentCoursInput = {
@@ -1043,6 +1128,7 @@ export type CoursUncheckedCreateWithoutParentCoursInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1053,6 +1139,8 @@ export type CoursUncheckedCreateWithoutParentCoursInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutParentCoursInput = {
@@ -1087,6 +1175,7 @@ export type CoursUpdateWithoutComponentsInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
@@ -1097,6 +1186,8 @@ export type CoursUpdateWithoutComponentsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutComponentsInput = {
@@ -1111,6 +1202,7 @@ export type CoursUncheckedUpdateWithoutComponentsInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1120,6 +1212,8 @@ export type CoursUncheckedUpdateWithoutComponentsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUpsertWithWhereUniqueWithoutParentCoursInput = {
@@ -1153,6 +1247,7 @@ export type CoursScalarWhereInput = {
   primaryDomain?: Prisma.StringNullableFilter<"Cours"> | string | null
   primarySection?: Prisma.StringNullableFilter<"Cours"> | string | null
   domainOrder?: Prisma.IntNullableFilter<"Cours"> | number | null
+  hasPracticalLab?: Prisma.BoolFilter<"Cours"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
   branchId?: Prisma.StringFilter<"Cours"> | string
@@ -1169,6 +1264,7 @@ export type CoursCreateWithoutAtelierCourseLinkInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
@@ -1179,6 +1275,8 @@ export type CoursCreateWithoutAtelierCourseLinkInput = {
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutAtelierCourseLinkInput = {
@@ -1193,6 +1291,7 @@ export type CoursUncheckedCreateWithoutAtelierCourseLinkInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1202,6 +1301,8 @@ export type CoursUncheckedCreateWithoutAtelierCourseLinkInput = {
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutAtelierCourseLinkInput = {
@@ -1220,6 +1321,7 @@ export type CoursCreateWithoutSecondaryAtelierLinksInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
@@ -1230,6 +1332,8 @@ export type CoursCreateWithoutSecondaryAtelierLinksInput = {
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkCreateNestedOneWithoutAtelierCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutSecondaryAtelierLinksInput = {
@@ -1244,6 +1348,7 @@ export type CoursUncheckedCreateWithoutSecondaryAtelierLinksInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1253,6 +1358,8 @@ export type CoursUncheckedCreateWithoutSecondaryAtelierLinksInput = {
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedCreateNestedOneWithoutAtelierCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutSecondaryAtelierLinksInput = {
@@ -1282,6 +1389,7 @@ export type CoursUpdateWithoutAtelierCourseLinkInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
@@ -1292,6 +1400,8 @@ export type CoursUpdateWithoutAtelierCourseLinkInput = {
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutAtelierCourseLinkInput = {
@@ -1306,6 +1416,7 @@ export type CoursUncheckedUpdateWithoutAtelierCourseLinkInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1315,6 +1426,8 @@ export type CoursUncheckedUpdateWithoutAtelierCourseLinkInput = {
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUpsertWithoutSecondaryAtelierLinksInput = {
@@ -1339,6 +1452,7 @@ export type CoursUpdateWithoutSecondaryAtelierLinksInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
@@ -1349,6 +1463,8 @@ export type CoursUpdateWithoutSecondaryAtelierLinksInput = {
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUpdateOneWithoutAtelierCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutSecondaryAtelierLinksInput = {
@@ -1363,6 +1479,7 @@ export type CoursUncheckedUpdateWithoutSecondaryAtelierLinksInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1372,6 +1489,8 @@ export type CoursUncheckedUpdateWithoutSecondaryAtelierLinksInput = {
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedUpdateOneWithoutAtelierCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursCreateWithoutCoursPonderationsInput = {
@@ -1385,6 +1504,7 @@ export type CoursCreateWithoutCoursPonderationsInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
@@ -1395,6 +1515,8 @@ export type CoursCreateWithoutCoursPonderationsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutCoursPonderationsInput = {
@@ -1409,6 +1531,7 @@ export type CoursUncheckedCreateWithoutCoursPonderationsInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1418,6 +1541,8 @@ export type CoursUncheckedCreateWithoutCoursPonderationsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutCoursPonderationsInput = {
@@ -1447,6 +1572,7 @@ export type CoursUpdateWithoutCoursPonderationsInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
@@ -1457,6 +1583,8 @@ export type CoursUpdateWithoutCoursPonderationsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutCoursPonderationsInput = {
@@ -1471,6 +1599,7 @@ export type CoursUncheckedUpdateWithoutCoursPonderationsInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1480,6 +1609,8 @@ export type CoursUncheckedUpdateWithoutCoursPonderationsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursCreateWithoutPeriodInput = {
@@ -1493,6 +1624,7 @@ export type CoursCreateWithoutPeriodInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
@@ -1503,6 +1635,8 @@ export type CoursCreateWithoutPeriodInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutPeriodInput = {
@@ -1517,6 +1651,7 @@ export type CoursUncheckedCreateWithoutPeriodInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1526,6 +1661,8 @@ export type CoursUncheckedCreateWithoutPeriodInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutPeriodInput = {
@@ -1560,6 +1697,7 @@ export type CoursCreateWithoutBranchInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
@@ -1570,6 +1708,8 @@ export type CoursCreateWithoutBranchInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutBranchInput = {
@@ -1584,6 +1724,7 @@ export type CoursUncheckedCreateWithoutBranchInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
@@ -1593,6 +1734,8 @@ export type CoursUncheckedCreateWithoutBranchInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutBranchInput = {
@@ -1621,6 +1764,246 @@ export type CoursUpdateManyWithWhereWithoutBranchInput = {
   data: Prisma.XOR<Prisma.CoursUpdateManyMutationInput, Prisma.CoursUncheckedUpdateManyWithoutBranchInput>
 }
 
+export type CoursCreateWithoutPracticalDomainLinksInput = {
+  id?: string
+  codeCours: string
+  nameCours: string
+  description?: string | null
+  statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  sortOrder?: number
+  primaryDomain?: string | null
+  primarySection?: string | null
+  domainOrder?: number | null
+  hasPracticalLab?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
+  parentCours?: Prisma.CoursCreateNestedOneWithoutComponentsInput
+  components?: Prisma.CoursCreateNestedManyWithoutParentCoursInput
+  period?: Prisma.periodCreateNestedManyWithoutSubjectInput
+  branch: Prisma.BranchCreateNestedOneWithoutCoursInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
+  atelierCourseLink?: Prisma.AtelierCourseLinkCreateNestedOneWithoutAtelierCoursInput
+  secondaryAtelierLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutCoursInput
+}
+
+export type CoursUncheckedCreateWithoutPracticalDomainLinksInput = {
+  id?: string
+  codeCours: string
+  nameCours: string
+  description?: string | null
+  statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  parentCoursId?: string | null
+  sortOrder?: number
+  primaryDomain?: string | null
+  primarySection?: string | null
+  domainOrder?: number | null
+  hasPracticalLab?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchId: string
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
+  components?: Prisma.CoursUncheckedCreateNestedManyWithoutParentCoursInput
+  period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
+  atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedCreateNestedOneWithoutAtelierCoursInput
+  secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutCoursInput
+}
+
+export type CoursCreateOrConnectWithoutPracticalDomainLinksInput = {
+  where: Prisma.CoursWhereUniqueInput
+  create: Prisma.XOR<Prisma.CoursCreateWithoutPracticalDomainLinksInput, Prisma.CoursUncheckedCreateWithoutPracticalDomainLinksInput>
+}
+
+export type CoursUpsertWithoutPracticalDomainLinksInput = {
+  update: Prisma.XOR<Prisma.CoursUpdateWithoutPracticalDomainLinksInput, Prisma.CoursUncheckedUpdateWithoutPracticalDomainLinksInput>
+  create: Prisma.XOR<Prisma.CoursCreateWithoutPracticalDomainLinksInput, Prisma.CoursUncheckedCreateWithoutPracticalDomainLinksInput>
+  where?: Prisma.CoursWhereInput
+}
+
+export type CoursUpdateToOneWithWhereWithoutPracticalDomainLinksInput = {
+  where?: Prisma.CoursWhereInput
+  data: Prisma.XOR<Prisma.CoursUpdateWithoutPracticalDomainLinksInput, Prisma.CoursUncheckedUpdateWithoutPracticalDomainLinksInput>
+}
+
+export type CoursUpdateWithoutPracticalDomainLinksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeCours?: Prisma.StringFieldUpdateOperationsInput | string
+  nameCours?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
+  parentCours?: Prisma.CoursUpdateOneWithoutComponentsNestedInput
+  components?: Prisma.CoursUpdateManyWithoutParentCoursNestedInput
+  period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
+  atelierCourseLink?: Prisma.AtelierCourseLinkUpdateOneWithoutAtelierCoursNestedInput
+  secondaryAtelierLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutCoursNestedInput
+}
+
+export type CoursUncheckedUpdateWithoutPracticalDomainLinksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeCours?: Prisma.StringFieldUpdateOperationsInput | string
+  nameCours?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  parentCoursId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
+  components?: Prisma.CoursUncheckedUpdateManyWithoutParentCoursNestedInput
+  period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
+  atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedUpdateOneWithoutAtelierCoursNestedInput
+  secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutCoursNestedInput
+}
+
+export type CoursCreateWithoutRotationSlotItemsInput = {
+  id?: string
+  codeCours: string
+  nameCours: string
+  description?: string | null
+  statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  sortOrder?: number
+  primaryDomain?: string | null
+  primarySection?: string | null
+  domainOrder?: number | null
+  hasPracticalLab?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
+  parentCours?: Prisma.CoursCreateNestedOneWithoutComponentsInput
+  components?: Prisma.CoursCreateNestedManyWithoutParentCoursInput
+  period?: Prisma.periodCreateNestedManyWithoutSubjectInput
+  branch: Prisma.BranchCreateNestedOneWithoutCoursInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
+  atelierCourseLink?: Prisma.AtelierCourseLinkCreateNestedOneWithoutAtelierCoursInput
+  secondaryAtelierLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursCreateNestedManyWithoutCoursInput
+}
+
+export type CoursUncheckedCreateWithoutRotationSlotItemsInput = {
+  id?: string
+  codeCours: string
+  nameCours: string
+  description?: string | null
+  statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  parentCoursId?: string | null
+  sortOrder?: number
+  primaryDomain?: string | null
+  primarySection?: string | null
+  domainOrder?: number | null
+  hasPracticalLab?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchId: string
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
+  components?: Prisma.CoursUncheckedCreateNestedManyWithoutParentCoursInput
+  period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
+  atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedCreateNestedOneWithoutAtelierCoursInput
+  secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedCreateNestedManyWithoutCoursInput
+}
+
+export type CoursCreateOrConnectWithoutRotationSlotItemsInput = {
+  where: Prisma.CoursWhereUniqueInput
+  create: Prisma.XOR<Prisma.CoursCreateWithoutRotationSlotItemsInput, Prisma.CoursUncheckedCreateWithoutRotationSlotItemsInput>
+}
+
+export type CoursUpsertWithoutRotationSlotItemsInput = {
+  update: Prisma.XOR<Prisma.CoursUpdateWithoutRotationSlotItemsInput, Prisma.CoursUncheckedUpdateWithoutRotationSlotItemsInput>
+  create: Prisma.XOR<Prisma.CoursCreateWithoutRotationSlotItemsInput, Prisma.CoursUncheckedCreateWithoutRotationSlotItemsInput>
+  where?: Prisma.CoursWhereInput
+}
+
+export type CoursUpdateToOneWithWhereWithoutRotationSlotItemsInput = {
+  where?: Prisma.CoursWhereInput
+  data: Prisma.XOR<Prisma.CoursUpdateWithoutRotationSlotItemsInput, Prisma.CoursUncheckedUpdateWithoutRotationSlotItemsInput>
+}
+
+export type CoursUpdateWithoutRotationSlotItemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeCours?: Prisma.StringFieldUpdateOperationsInput | string
+  nameCours?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
+  parentCours?: Prisma.CoursUpdateOneWithoutComponentsNestedInput
+  components?: Prisma.CoursUpdateManyWithoutParentCoursNestedInput
+  period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
+  atelierCourseLink?: Prisma.AtelierCourseLinkUpdateOneWithoutAtelierCoursNestedInput
+  secondaryAtelierLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUpdateManyWithoutCoursNestedInput
+}
+
+export type CoursUncheckedUpdateWithoutRotationSlotItemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeCours?: Prisma.StringFieldUpdateOperationsInput | string
+  nameCours?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  parentCoursId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
+  components?: Prisma.CoursUncheckedUpdateManyWithoutParentCoursNestedInput
+  period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
+  atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedUpdateOneWithoutAtelierCoursNestedInput
+  secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedUpdateManyWithoutCoursNestedInput
+}
+
 export type CoursCreateWithoutOnlineAssignmentsInput = {
   id?: string
   codeCours: string
@@ -1632,6 +2015,7 @@ export type CoursCreateWithoutOnlineAssignmentsInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
@@ -1642,6 +2026,8 @@ export type CoursCreateWithoutOnlineAssignmentsInput = {
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutOnlineAssignmentsInput = {
@@ -1656,6 +2042,7 @@ export type CoursUncheckedCreateWithoutOnlineAssignmentsInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1665,6 +2052,8 @@ export type CoursUncheckedCreateWithoutOnlineAssignmentsInput = {
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedCreateNestedOneWithoutAtelierCoursInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryCoursInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedCreateNestedManyWithoutCoursInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutOnlineAssignmentsInput = {
@@ -1694,6 +2083,7 @@ export type CoursUpdateWithoutOnlineAssignmentsInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
@@ -1704,6 +2094,8 @@ export type CoursUpdateWithoutOnlineAssignmentsInput = {
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutOnlineAssignmentsInput = {
@@ -1718,6 +2110,7 @@ export type CoursUncheckedUpdateWithoutOnlineAssignmentsInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1727,6 +2120,8 @@ export type CoursUncheckedUpdateWithoutOnlineAssignmentsInput = {
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursCreateManyParentCoursInput = {
@@ -1740,6 +2135,7 @@ export type CoursCreateManyParentCoursInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1756,6 +2152,7 @@ export type CoursUpdateWithoutParentCoursInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
@@ -1766,6 +2163,8 @@ export type CoursUpdateWithoutParentCoursInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutParentCoursInput = {
@@ -1779,6 +2178,7 @@ export type CoursUncheckedUpdateWithoutParentCoursInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1789,6 +2189,8 @@ export type CoursUncheckedUpdateWithoutParentCoursInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateManyWithoutParentCoursInput = {
@@ -1802,6 +2204,7 @@ export type CoursUncheckedUpdateManyWithoutParentCoursInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1818,6 +2221,7 @@ export type CoursUpdateWithoutPeriodInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
@@ -1828,6 +2232,8 @@ export type CoursUpdateWithoutPeriodInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutPeriodInput = {
@@ -1842,6 +2248,7 @@ export type CoursUncheckedUpdateWithoutPeriodInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1851,6 +2258,8 @@ export type CoursUncheckedUpdateWithoutPeriodInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateManyWithoutPeriodInput = {
@@ -1865,6 +2274,7 @@ export type CoursUncheckedUpdateManyWithoutPeriodInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1882,6 +2292,7 @@ export type CoursCreateManyBranchInput = {
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
+  hasPracticalLab?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1897,6 +2308,7 @@ export type CoursUpdateWithoutBranchInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
@@ -1907,6 +2319,8 @@ export type CoursUpdateWithoutBranchInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutBranchInput = {
@@ -1921,6 +2335,7 @@ export type CoursUncheckedUpdateWithoutBranchInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
@@ -1930,6 +2345,8 @@ export type CoursUncheckedUpdateWithoutBranchInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
   atelierCourseLink?: Prisma.AtelierCourseLinkUncheckedUpdateOneWithoutAtelierCoursNestedInput
   secondaryAtelierLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryCoursNestedInput
+  practicalDomainLinks?: Prisma.PracticalDomainCoursUncheckedUpdateManyWithoutCoursNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateManyWithoutBranchInput = {
@@ -1944,6 +2361,7 @@ export type CoursUncheckedUpdateManyWithoutBranchInput = {
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hasPracticalLab?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1960,6 +2378,8 @@ export type CoursCountOutputType = {
   coursPonderations: number
   onlineAssignments: number
   secondaryAtelierLinks: number
+  practicalDomainLinks: number
+  rotationSlotItems: number
 }
 
 export type CoursCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1969,6 +2389,8 @@ export type CoursCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.
   coursPonderations?: boolean | CoursCountOutputTypeCountCoursPonderationsArgs
   onlineAssignments?: boolean | CoursCountOutputTypeCountOnlineAssignmentsArgs
   secondaryAtelierLinks?: boolean | CoursCountOutputTypeCountSecondaryAtelierLinksArgs
+  practicalDomainLinks?: boolean | CoursCountOutputTypeCountPracticalDomainLinksArgs
+  rotationSlotItems?: boolean | CoursCountOutputTypeCountRotationSlotItemsArgs
 }
 
 /**
@@ -2023,6 +2445,20 @@ export type CoursCountOutputTypeCountSecondaryAtelierLinksArgs<ExtArgs extends r
   where?: Prisma.AtelierCourseLinkWhereInput
 }
 
+/**
+ * CoursCountOutputType without action
+ */
+export type CoursCountOutputTypeCountPracticalDomainLinksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PracticalDomainCoursWhereInput
+}
+
+/**
+ * CoursCountOutputType without action
+ */
+export type CoursCountOutputTypeCountRotationSlotItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RotationSlotItemWhereInput
+}
+
 
 export type CoursSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2036,6 +2472,7 @@ export type CoursSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   primaryDomain?: boolean
   primarySection?: boolean
   domainOrder?: boolean
+  hasPracticalLab?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
@@ -2048,6 +2485,8 @@ export type CoursSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   onlineAssignments?: boolean | Prisma.Cours$onlineAssignmentsArgs<ExtArgs>
   atelierCourseLink?: boolean | Prisma.Cours$atelierCourseLinkArgs<ExtArgs>
   secondaryAtelierLinks?: boolean | Prisma.Cours$secondaryAtelierLinksArgs<ExtArgs>
+  practicalDomainLinks?: boolean | Prisma.Cours$practicalDomainLinksArgs<ExtArgs>
+  rotationSlotItems?: boolean | Prisma.Cours$rotationSlotItemsArgs<ExtArgs>
   _count?: boolean | Prisma.CoursCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["cours"]>
 
@@ -2063,6 +2502,7 @@ export type CoursSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   primaryDomain?: boolean
   primarySection?: boolean
   domainOrder?: boolean
+  hasPracticalLab?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
@@ -2082,6 +2522,7 @@ export type CoursSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   primaryDomain?: boolean
   primarySection?: boolean
   domainOrder?: boolean
+  hasPracticalLab?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
@@ -2101,12 +2542,13 @@ export type CoursSelectScalar = {
   primaryDomain?: boolean
   primarySection?: boolean
   domainOrder?: boolean
+  hasPracticalLab?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
 }
 
-export type CoursOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeCours" | "nameCours" | "description" | "statusCours" | "kind" | "parentCoursId" | "sortOrder" | "primaryDomain" | "primarySection" | "domainOrder" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["cours"]>
+export type CoursOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeCours" | "nameCours" | "description" | "statusCours" | "kind" | "parentCoursId" | "sortOrder" | "primaryDomain" | "primarySection" | "domainOrder" | "hasPracticalLab" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["cours"]>
 export type CoursInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teaching?: boolean | Prisma.Cours$teachingArgs<ExtArgs>
   parentCours?: boolean | Prisma.Cours$parentCoursArgs<ExtArgs>
@@ -2117,6 +2559,8 @@ export type CoursInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   onlineAssignments?: boolean | Prisma.Cours$onlineAssignmentsArgs<ExtArgs>
   atelierCourseLink?: boolean | Prisma.Cours$atelierCourseLinkArgs<ExtArgs>
   secondaryAtelierLinks?: boolean | Prisma.Cours$secondaryAtelierLinksArgs<ExtArgs>
+  practicalDomainLinks?: boolean | Prisma.Cours$practicalDomainLinksArgs<ExtArgs>
+  rotationSlotItems?: boolean | Prisma.Cours$rotationSlotItemsArgs<ExtArgs>
   _count?: boolean | Prisma.CoursCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CoursIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2146,6 +2590,8 @@ export type $CoursPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
      * Liens entrants (cours secondaires alimentés par des ateliers).
      */
     secondaryAtelierLinks: Prisma.$AtelierCourseLinkPayload<ExtArgs>[]
+    practicalDomainLinks: Prisma.$PracticalDomainCoursPayload<ExtArgs>[]
+    rotationSlotItems: Prisma.$RotationSlotItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2177,6 +2623,10 @@ export type $CoursPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
      * Ordre d'affichage dans le bulletin primaire
      */
     domainOrder: number | null
+    /**
+     * Atelier : cours avec travaux pratiques en labo / atelier.
+     */
+    hasPracticalLab: boolean
     createdAt: Date
     updatedAt: Date
     branchId: string
@@ -2583,6 +3033,8 @@ export interface Prisma__CoursClient<T, Null = never, ExtArgs extends runtime.Ty
   onlineAssignments<T extends Prisma.Cours$onlineAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$onlineAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OnlineAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   atelierCourseLink<T extends Prisma.Cours$atelierCourseLinkArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$atelierCourseLinkArgs<ExtArgs>>): Prisma.Prisma__AtelierCourseLinkClient<runtime.Types.Result.GetResult<Prisma.$AtelierCourseLinkPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   secondaryAtelierLinks<T extends Prisma.Cours$secondaryAtelierLinksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$secondaryAtelierLinksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AtelierCourseLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  practicalDomainLinks<T extends Prisma.Cours$practicalDomainLinksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$practicalDomainLinksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PracticalDomainCoursPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  rotationSlotItems<T extends Prisma.Cours$rotationSlotItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$rotationSlotItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RotationSlotItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2623,6 +3075,7 @@ export interface CoursFieldRefs {
   readonly primaryDomain: Prisma.FieldRef<"Cours", 'String'>
   readonly primarySection: Prisma.FieldRef<"Cours", 'String'>
   readonly domainOrder: Prisma.FieldRef<"Cours", 'Int'>
+  readonly hasPracticalLab: Prisma.FieldRef<"Cours", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Cours", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Cours", 'DateTime'>
   readonly branchId: Prisma.FieldRef<"Cours", 'String'>
@@ -3206,6 +3659,54 @@ export type Cours$secondaryAtelierLinksArgs<ExtArgs extends runtime.Types.Extens
   take?: number
   skip?: number
   distinct?: Prisma.AtelierCourseLinkScalarFieldEnum | Prisma.AtelierCourseLinkScalarFieldEnum[]
+}
+
+/**
+ * Cours.practicalDomainLinks
+ */
+export type Cours$practicalDomainLinksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PracticalDomainCours
+   */
+  select?: Prisma.PracticalDomainCoursSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PracticalDomainCours
+   */
+  omit?: Prisma.PracticalDomainCoursOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PracticalDomainCoursInclude<ExtArgs> | null
+  where?: Prisma.PracticalDomainCoursWhereInput
+  orderBy?: Prisma.PracticalDomainCoursOrderByWithRelationInput | Prisma.PracticalDomainCoursOrderByWithRelationInput[]
+  cursor?: Prisma.PracticalDomainCoursWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PracticalDomainCoursScalarFieldEnum | Prisma.PracticalDomainCoursScalarFieldEnum[]
+}
+
+/**
+ * Cours.rotationSlotItems
+ */
+export type Cours$rotationSlotItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RotationSlotItem
+   */
+  select?: Prisma.RotationSlotItemSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RotationSlotItem
+   */
+  omit?: Prisma.RotationSlotItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RotationSlotItemInclude<ExtArgs> | null
+  where?: Prisma.RotationSlotItemWhereInput
+  orderBy?: Prisma.RotationSlotItemOrderByWithRelationInput | Prisma.RotationSlotItemOrderByWithRelationInput[]
+  cursor?: Prisma.RotationSlotItemWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RotationSlotItemScalarFieldEnum | Prisma.RotationSlotItemScalarFieldEnum[]
 }
 
 /**

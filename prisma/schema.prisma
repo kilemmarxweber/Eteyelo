@@ -374,6 +374,13 @@ model Classe {
   horaireType       HoraireType        @default(COMPLET)
   /// null = Branch.typebranch (branche mono-cycle).
   cycle             Cycle?
+  /// Atelier : classe école source (souvent autre branche) — 1 groupe ↔ 1 classe.
+  sourceClasseId    String?
+  sourceClasse      Classe?            @relation("AtelierSourceClasse", fields: [sourceClasseId], references: [id], onDelete: SetNull)
+  atelierLabGroups  Classe[]           @relation("AtelierSourceClasse")
+  /// Atelier : domaine pratique du groupe (Sciences, Technique…).
+  practicalDomainId String?
+  practicalDomain   PracticalDomain?   @relation(fields: [practicalDomainId], references: [id], onDelete: SetNull)
   branchId          String
   branch            Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   classEnrollment   ClassEnrollment[]
@@ -386,15 +393,19 @@ model Classe {
   CalendarEvent     CalendarEvent[]
   fiche             fiche[]
   onlineAssignments OnlineAssignment[]
+  rotationSlots     RotationSlot[]
 
   @@unique([branchId, codeClasse])
   @@unique([branchId, nameClasse])
+  @@unique([branchId, sourceClasseId])
   @@index([branchId])
   @@index([optionId])
   @@index([branchId, optionId])
   @@index([branchId, level])
   @@index([branchId, cycle])
   @@index([branchId, cycle, level])
+  @@index([sourceClasseId])
+  @@index([practicalDomainId])
 }
 
 model Creneau {
@@ -548,6 +559,8 @@ model Teacher {
   canRequestSalaryAdvance Boolean                  @default(false)
   payslips                TeacherPayslip[]
   salaryAdvances          SalaryAdvance[]
+  rotationSlots           RotationSlot[]
+  rotationSlotItems       RotationSlotItem[]
 
   @@unique([branchMemberId])
   @@index([isActive])
@@ -629,6 +642,8 @@ model Cours {
   primarySection    String?
   /// Ordre d'affichage dans le bulletin primaire
   domainOrder       Int?
+  /// Atelier : cours avec travaux pratiques en labo / atelier.
+  hasPracticalLab   Boolean                  @default(false)
   createdAt         DateTime                 @default(now())
   updatedAt         DateTime                 @updatedAt
   period            period[]                 @relation("PeriodSubjects")
@@ -640,6 +655,8 @@ model Cours {
   atelierCourseLink     AtelierCourseLink?  @relation("AtelierCourseLinks")
   /// Liens entrants (cours secondaires alimentés par des ateliers).
   secondaryAtelierLinks AtelierCourseLink[] @relation("SecondaryCourseAtelierLinks")
+  practicalDomainLinks  PracticalDomainCours[]
+  rotationSlotItems     RotationSlotItem[]
 
   @@unique([branchId, codeCours])
   @@unique([branchId, nameCours])
@@ -647,6 +664,7 @@ model Cours {
   @@index([branchId, primaryDomain])
   @@index([parentCoursId])
   @@index([branchId, kind])
+  @@index([branchId, hasPracticalLab])
 }
 
 /// Associe un cours d'atelier à un cours secondaire : devoirs / évaluations / TP
@@ -1833,6 +1851,9 @@ model Branch {
   supportTickets                  PlatformSupportEscalation[]
   onlineAssignments               OnlineAssignment[]
   primaryDomains                  BranchPrimaryDomain[]
+  practicalDomains                PracticalDomain[]
+  rooms                           Room[]
+  rotationSlots                   RotationSlot[]
   absenceCases                    AbsenceCase[]
   appNotifications                AppNotification[]
   sourceConversations             Conversation[]                   @relation("ConversationSourceBranch")
@@ -1846,6 +1867,109 @@ model Branch {
   @@index([organizationId, isActive])
   @@index([organizationId, typebranch])
   @@index([code])
+}
+
+/// Domaine pratique atelier (Sciences, Technique, Comptabilité) — distinct du bulletin primaire.
+model PracticalDomain {
+  id        String   @id @default(cuid())
+  branchId  String
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  /// Code stable (SCIENCES, TECHNIQUE, COMPTABILITE…)
+  code      String
+  name      String
+  sortOrder Int      @default(0)
+  isSystem  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  rooms     Room[]
+  cours     PracticalDomainCours[]
+  classes   Classe[]
+  rotationSlots RotationSlot[]
+
+  @@unique([branchId, code])
+  @@index([branchId, sortOrder])
+}
+
+/// Salle / laboratoire d'une branche atelier.
+model Room {
+  id                String           @id @default(cuid())
+  branchId          String
+  branch            Branch           @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  name              String
+  capacity          Int?
+  practicalDomainId String?
+  practicalDomain   PracticalDomain? @relation(fields: [practicalDomainId], references: [id], onDelete: SetNull)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  rotationSlots     RotationSlot[]
+
+  @@unique([branchId, name])
+  @@index([branchId])
+  @@index([practicalDomainId])
+}
+
+/// Lien cours atelier ↔ domaine pratique (ordre par défaut dans un cycle).
+model PracticalDomainCours {
+  id                String          @id @default(cuid())
+  practicalDomainId String
+  practicalDomain   PracticalDomain @relation(fields: [practicalDomainId], references: [id], onDelete: Cascade)
+  coursId           String
+  cours             Cours           @relation(fields: [coursId], references: [id], onDelete: Cascade)
+  sortOrderDefault  Int             @default(0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@unique([practicalDomainId, coursId])
+  @@index([coursId])
+  @@index([practicalDomainId, sortOrderDefault])
+}
+
+/// Créneau horaire à rotation cyclique (N cours) pour un groupe atelier.
+model RotationSlot {
+  id                String          @id @default(cuid())
+  branchId          String
+  branch            Branch          @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  classeId          String
+  classe            Classe          @relation(fields: [classeId], references: [id], onDelete: Cascade)
+  day               Day
+  hour              DateTime        @db.Time
+  practicalDomainId String
+  practicalDomain   PracticalDomain  @relation(fields: [practicalDomainId], references: [id], onDelete: Cascade)
+  roomId            String?
+  room              Room?           @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  /// Enseignant par défaut du créneau (surchargeable par item).
+  teacherId         String?
+  teacher           Teacher?        @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  /// Lundi (UTC date) de la semaine 0 du cycle.
+  anchorDate        DateTime        @db.Date
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  items             RotationSlotItem[]
+
+  @@unique([classeId, day, hour])
+  @@index([branchId])
+  @@index([classeId])
+  @@index([practicalDomainId])
+  @@index([roomId, day, hour])
+  @@index([teacherId])
+}
+
+model RotationSlotItem {
+  id             String       @id @default(cuid())
+  rotationSlotId String
+  rotationSlot   RotationSlot @relation(fields: [rotationSlotId], references: [id], onDelete: Cascade)
+  coursId        String
+  cours          Cours        @relation(fields: [coursId], references: [id], onDelete: Cascade)
+  sortOrder      Int
+  teacherId      String?
+  teacher        Teacher?     @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([rotationSlotId, sortOrder])
+  @@unique([rotationSlotId, coursId])
+  @@index([coursId])
+  @@index([teacherId])
 }
 
 /// Empreinte faciale (128 valeurs) pour le pointage sans carte.

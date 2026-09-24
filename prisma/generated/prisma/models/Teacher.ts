@@ -231,6 +231,8 @@ export type TeacherWhereInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentListRelationFilter
   payslips?: Prisma.TeacherPayslipListRelationFilter
   salaryAdvances?: Prisma.SalaryAdvanceListRelationFilter
+  rotationSlots?: Prisma.RotationSlotListRelationFilter
+  rotationSlotItems?: Prisma.RotationSlotItemListRelationFilter
 }
 
 export type TeacherOrderByWithRelationInput = {
@@ -253,6 +255,8 @@ export type TeacherOrderByWithRelationInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentOrderByRelationAggregateInput
   payslips?: Prisma.TeacherPayslipOrderByRelationAggregateInput
   salaryAdvances?: Prisma.SalaryAdvanceOrderByRelationAggregateInput
+  rotationSlots?: Prisma.RotationSlotOrderByRelationAggregateInput
+  rotationSlotItems?: Prisma.RotationSlotItemOrderByRelationAggregateInput
 }
 
 export type TeacherWhereUniqueInput = Prisma.AtLeast<{
@@ -278,6 +282,8 @@ export type TeacherWhereUniqueInput = Prisma.AtLeast<{
   profileDocuments?: Prisma.TeacherProfileDocumentListRelationFilter
   payslips?: Prisma.TeacherPayslipListRelationFilter
   salaryAdvances?: Prisma.SalaryAdvanceListRelationFilter
+  rotationSlots?: Prisma.RotationSlotListRelationFilter
+  rotationSlotItems?: Prisma.RotationSlotItemListRelationFilter
 }, "id" | "branchMemberId">
 
 export type TeacherOrderByWithAggregationInput = {
@@ -331,6 +337,8 @@ export type TeacherCreateInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateInput = {
@@ -352,6 +360,8 @@ export type TeacherUncheckedCreateInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUpdateInput = {
@@ -373,6 +383,8 @@ export type TeacherUpdateInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateInput = {
@@ -394,6 +406,8 @@ export type TeacherUncheckedUpdateInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateManyInput = {
@@ -603,6 +617,38 @@ export type TeacherUpdateOneWithoutSalaryAdvancesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TeacherUpdateToOneWithWhereWithoutSalaryAdvancesInput, Prisma.TeacherUpdateWithoutSalaryAdvancesInput>, Prisma.TeacherUncheckedUpdateWithoutSalaryAdvancesInput>
 }
 
+export type TeacherCreateNestedOneWithoutRotationSlotsInput = {
+  create?: Prisma.XOR<Prisma.TeacherCreateWithoutRotationSlotsInput, Prisma.TeacherUncheckedCreateWithoutRotationSlotsInput>
+  connectOrCreate?: Prisma.TeacherCreateOrConnectWithoutRotationSlotsInput
+  connect?: Prisma.TeacherWhereUniqueInput
+}
+
+export type TeacherUpdateOneWithoutRotationSlotsNestedInput = {
+  create?: Prisma.XOR<Prisma.TeacherCreateWithoutRotationSlotsInput, Prisma.TeacherUncheckedCreateWithoutRotationSlotsInput>
+  connectOrCreate?: Prisma.TeacherCreateOrConnectWithoutRotationSlotsInput
+  upsert?: Prisma.TeacherUpsertWithoutRotationSlotsInput
+  disconnect?: Prisma.TeacherWhereInput | boolean
+  delete?: Prisma.TeacherWhereInput | boolean
+  connect?: Prisma.TeacherWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TeacherUpdateToOneWithWhereWithoutRotationSlotsInput, Prisma.TeacherUpdateWithoutRotationSlotsInput>, Prisma.TeacherUncheckedUpdateWithoutRotationSlotsInput>
+}
+
+export type TeacherCreateNestedOneWithoutRotationSlotItemsInput = {
+  create?: Prisma.XOR<Prisma.TeacherCreateWithoutRotationSlotItemsInput, Prisma.TeacherUncheckedCreateWithoutRotationSlotItemsInput>
+  connectOrCreate?: Prisma.TeacherCreateOrConnectWithoutRotationSlotItemsInput
+  connect?: Prisma.TeacherWhereUniqueInput
+}
+
+export type TeacherUpdateOneWithoutRotationSlotItemsNestedInput = {
+  create?: Prisma.XOR<Prisma.TeacherCreateWithoutRotationSlotItemsInput, Prisma.TeacherUncheckedCreateWithoutRotationSlotItemsInput>
+  connectOrCreate?: Prisma.TeacherCreateOrConnectWithoutRotationSlotItemsInput
+  upsert?: Prisma.TeacherUpsertWithoutRotationSlotItemsInput
+  disconnect?: Prisma.TeacherWhereInput | boolean
+  delete?: Prisma.TeacherWhereInput | boolean
+  connect?: Prisma.TeacherWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TeacherUpdateToOneWithWhereWithoutRotationSlotItemsInput, Prisma.TeacherUpdateWithoutRotationSlotItemsInput>, Prisma.TeacherUncheckedUpdateWithoutRotationSlotItemsInput>
+}
+
 export type TeacherCreateNestedManyWithoutBranchMemberInput = {
   create?: Prisma.XOR<Prisma.TeacherCreateWithoutBranchMemberInput, Prisma.TeacherUncheckedCreateWithoutBranchMemberInput> | Prisma.TeacherCreateWithoutBranchMemberInput[] | Prisma.TeacherUncheckedCreateWithoutBranchMemberInput[]
   connectOrCreate?: Prisma.TeacherCreateOrConnectWithoutBranchMemberInput | Prisma.TeacherCreateOrConnectWithoutBranchMemberInput[]
@@ -677,6 +723,8 @@ export type TeacherCreateWithoutAttendanceSessionInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutAttendanceSessionInput = {
@@ -697,6 +745,8 @@ export type TeacherUncheckedCreateWithoutAttendanceSessionInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutAttendanceSessionInput = {
@@ -733,6 +783,8 @@ export type TeacherUpdateWithoutAttendanceSessionInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutAttendanceSessionInput = {
@@ -753,6 +805,8 @@ export type TeacherUncheckedUpdateWithoutAttendanceSessionInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateWithoutTeacherAttendanceInput = {
@@ -773,6 +827,8 @@ export type TeacherCreateWithoutTeacherAttendanceInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutTeacherAttendanceInput = {
@@ -793,6 +849,8 @@ export type TeacherUncheckedCreateWithoutTeacherAttendanceInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutTeacherAttendanceInput = {
@@ -829,6 +887,8 @@ export type TeacherUpdateWithoutTeacherAttendanceInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutTeacherAttendanceInput = {
@@ -849,6 +909,8 @@ export type TeacherUncheckedUpdateWithoutTeacherAttendanceInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateWithoutProfileDocumentsInput = {
@@ -869,6 +931,8 @@ export type TeacherCreateWithoutProfileDocumentsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutProfileDocumentsInput = {
@@ -889,6 +953,8 @@ export type TeacherUncheckedCreateWithoutProfileDocumentsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutProfileDocumentsInput = {
@@ -925,6 +991,8 @@ export type TeacherUpdateWithoutProfileDocumentsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutProfileDocumentsInput = {
@@ -945,6 +1013,8 @@ export type TeacherUncheckedUpdateWithoutProfileDocumentsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateWithoutTeachingInput = {
@@ -965,6 +1035,8 @@ export type TeacherCreateWithoutTeachingInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutTeachingInput = {
@@ -985,6 +1057,8 @@ export type TeacherUncheckedCreateWithoutTeachingInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutTeachingInput = {
@@ -1021,6 +1095,8 @@ export type TeacherUpdateWithoutTeachingInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutTeachingInput = {
@@ -1041,6 +1117,8 @@ export type TeacherUncheckedUpdateWithoutTeachingInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateWithoutFicheInput = {
@@ -1061,6 +1139,8 @@ export type TeacherCreateWithoutFicheInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutFicheInput = {
@@ -1081,6 +1161,8 @@ export type TeacherUncheckedCreateWithoutFicheInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutFicheInput = {
@@ -1117,6 +1199,8 @@ export type TeacherUpdateWithoutFicheInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutFicheInput = {
@@ -1137,6 +1221,8 @@ export type TeacherUncheckedUpdateWithoutFicheInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateWithoutPayslipsInput = {
@@ -1157,6 +1243,8 @@ export type TeacherCreateWithoutPayslipsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutPayslipsInput = {
@@ -1177,6 +1265,8 @@ export type TeacherUncheckedCreateWithoutPayslipsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutPayslipsInput = {
@@ -1213,6 +1303,8 @@ export type TeacherUpdateWithoutPayslipsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutPayslipsInput = {
@@ -1233,6 +1325,8 @@ export type TeacherUncheckedUpdateWithoutPayslipsInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateWithoutSalaryAdvancesInput = {
@@ -1253,6 +1347,8 @@ export type TeacherCreateWithoutSalaryAdvancesInput = {
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutSalaryAdvancesInput = {
@@ -1273,6 +1369,8 @@ export type TeacherUncheckedCreateWithoutSalaryAdvancesInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutTeacherInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutSalaryAdvancesInput = {
@@ -1309,6 +1407,8 @@ export type TeacherUpdateWithoutSalaryAdvancesInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutSalaryAdvancesInput = {
@@ -1329,6 +1429,216 @@ export type TeacherUncheckedUpdateWithoutSalaryAdvancesInput = {
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutTeacherNestedInput
+}
+
+export type TeacherCreateWithoutRotationSlotsInput = {
+  id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  employmentKind?: $Enums.TeacherEmploymentKind
+  matriculeEtat?: string | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
+  teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
+  branchMember?: Prisma.BranchMemberCreateNestedOneWithoutTeacherInput
+  fiche?: Prisma.ficheCreateNestedManyWithoutTeacherInput
+  teacherAttendance?: Prisma.TeacherAttendanceCreateNestedManyWithoutTeacherInput
+  attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutValidatedByTeacherInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutTeacherInput
+  profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
+  payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutTeacherInput
+}
+
+export type TeacherUncheckedCreateWithoutRotationSlotsInput = {
+  id?: string
+  branchMemberId?: string | null
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  employmentKind?: $Enums.TeacherEmploymentKind
+  matriculeEtat?: string | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
+  fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutTeacherInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutTeacherInput
+  attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutValidatedByTeacherInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutTeacherInput
+  profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
+  payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutTeacherInput
+}
+
+export type TeacherCreateOrConnectWithoutRotationSlotsInput = {
+  where: Prisma.TeacherWhereUniqueInput
+  create: Prisma.XOR<Prisma.TeacherCreateWithoutRotationSlotsInput, Prisma.TeacherUncheckedCreateWithoutRotationSlotsInput>
+}
+
+export type TeacherUpsertWithoutRotationSlotsInput = {
+  update: Prisma.XOR<Prisma.TeacherUpdateWithoutRotationSlotsInput, Prisma.TeacherUncheckedUpdateWithoutRotationSlotsInput>
+  create: Prisma.XOR<Prisma.TeacherCreateWithoutRotationSlotsInput, Prisma.TeacherUncheckedCreateWithoutRotationSlotsInput>
+  where?: Prisma.TeacherWhereInput
+}
+
+export type TeacherUpdateToOneWithWhereWithoutRotationSlotsInput = {
+  where?: Prisma.TeacherWhereInput
+  data: Prisma.XOR<Prisma.TeacherUpdateWithoutRotationSlotsInput, Prisma.TeacherUncheckedUpdateWithoutRotationSlotsInput>
+}
+
+export type TeacherUpdateWithoutRotationSlotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
+  matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
+  branchMember?: Prisma.BranchMemberUpdateOneWithoutTeacherNestedInput
+  fiche?: Prisma.ficheUpdateManyWithoutTeacherNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUpdateManyWithoutTeacherNestedInput
+  attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutValidatedByTeacherNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutTeacherNestedInput
+  profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
+  payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutTeacherNestedInput
+}
+
+export type TeacherUncheckedUpdateWithoutRotationSlotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
+  matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
+  fiche?: Prisma.ficheUncheckedUpdateManyWithoutTeacherNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutTeacherNestedInput
+  attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutValidatedByTeacherNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
+  profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
+  payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutTeacherNestedInput
+}
+
+export type TeacherCreateWithoutRotationSlotItemsInput = {
+  id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  employmentKind?: $Enums.TeacherEmploymentKind
+  matriculeEtat?: string | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
+  teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
+  branchMember?: Prisma.BranchMemberCreateNestedOneWithoutTeacherInput
+  fiche?: Prisma.ficheCreateNestedManyWithoutTeacherInput
+  teacherAttendance?: Prisma.TeacherAttendanceCreateNestedManyWithoutTeacherInput
+  attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutValidatedByTeacherInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutTeacherInput
+  profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
+  payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutTeacherInput
+}
+
+export type TeacherUncheckedCreateWithoutRotationSlotItemsInput = {
+  id?: string
+  branchMemberId?: string | null
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  employmentKind?: $Enums.TeacherEmploymentKind
+  matriculeEtat?: string | null
+  payrollStartedOn?: Date | string | null
+  canRequestSalaryAdvance?: boolean
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
+  fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutTeacherInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutTeacherInput
+  attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutValidatedByTeacherInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutTeacherInput
+  profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
+  payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutTeacherInput
+}
+
+export type TeacherCreateOrConnectWithoutRotationSlotItemsInput = {
+  where: Prisma.TeacherWhereUniqueInput
+  create: Prisma.XOR<Prisma.TeacherCreateWithoutRotationSlotItemsInput, Prisma.TeacherUncheckedCreateWithoutRotationSlotItemsInput>
+}
+
+export type TeacherUpsertWithoutRotationSlotItemsInput = {
+  update: Prisma.XOR<Prisma.TeacherUpdateWithoutRotationSlotItemsInput, Prisma.TeacherUncheckedUpdateWithoutRotationSlotItemsInput>
+  create: Prisma.XOR<Prisma.TeacherCreateWithoutRotationSlotItemsInput, Prisma.TeacherUncheckedCreateWithoutRotationSlotItemsInput>
+  where?: Prisma.TeacherWhereInput
+}
+
+export type TeacherUpdateToOneWithWhereWithoutRotationSlotItemsInput = {
+  where?: Prisma.TeacherWhereInput
+  data: Prisma.XOR<Prisma.TeacherUpdateWithoutRotationSlotItemsInput, Prisma.TeacherUncheckedUpdateWithoutRotationSlotItemsInput>
+}
+
+export type TeacherUpdateWithoutRotationSlotItemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
+  matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
+  branchMember?: Prisma.BranchMemberUpdateOneWithoutTeacherNestedInput
+  fiche?: Prisma.ficheUpdateManyWithoutTeacherNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUpdateManyWithoutTeacherNestedInput
+  attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutValidatedByTeacherNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutTeacherNestedInput
+  profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
+  payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutTeacherNestedInput
+}
+
+export type TeacherUncheckedUpdateWithoutRotationSlotItemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  employmentKind?: Prisma.EnumTeacherEmploymentKindFieldUpdateOperationsInput | $Enums.TeacherEmploymentKind
+  matriculeEtat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payrollStartedOn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canRequestSalaryAdvance?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
+  fiche?: Prisma.ficheUncheckedUpdateManyWithoutTeacherNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutTeacherNestedInput
+  attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutValidatedByTeacherNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
+  profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
+  payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateWithoutBranchMemberInput = {
@@ -1349,6 +1659,8 @@ export type TeacherCreateWithoutBranchMemberInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutBranchMemberInput = {
@@ -1369,6 +1681,8 @@ export type TeacherUncheckedCreateWithoutBranchMemberInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutBranchMemberInput = {
@@ -1431,6 +1745,8 @@ export type TeacherCreateWithoutOnlineAssignmentsInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutOnlineAssignmentsInput = {
@@ -1451,6 +1767,8 @@ export type TeacherUncheckedCreateWithoutOnlineAssignmentsInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutTeacherInput
   payslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutTeacherInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlots?: Prisma.RotationSlotUncheckedCreateNestedManyWithoutTeacherInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutOnlineAssignmentsInput = {
@@ -1487,6 +1805,8 @@ export type TeacherUpdateWithoutOnlineAssignmentsInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutOnlineAssignmentsInput = {
@@ -1507,6 +1827,8 @@ export type TeacherUncheckedUpdateWithoutOnlineAssignmentsInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateManyBranchMemberInput = {
@@ -1539,6 +1861,8 @@ export type TeacherUpdateWithoutBranchMemberInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutBranchMemberInput = {
@@ -1559,6 +1883,8 @@ export type TeacherUncheckedUpdateWithoutBranchMemberInput = {
   profileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutTeacherNestedInput
   payslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutTeacherNestedInput
   salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlots?: Prisma.RotationSlotUncheckedUpdateManyWithoutTeacherNestedInput
+  rotationSlotItems?: Prisma.RotationSlotItemUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateManyWithoutBranchMemberInput = {
@@ -1587,6 +1913,8 @@ export type TeacherCountOutputType = {
   profileDocuments: number
   payslips: number
   salaryAdvances: number
+  rotationSlots: number
+  rotationSlotItems: number
 }
 
 export type TeacherCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1598,6 +1926,8 @@ export type TeacherCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   profileDocuments?: boolean | TeacherCountOutputTypeCountProfileDocumentsArgs
   payslips?: boolean | TeacherCountOutputTypeCountPayslipsArgs
   salaryAdvances?: boolean | TeacherCountOutputTypeCountSalaryAdvancesArgs
+  rotationSlots?: boolean | TeacherCountOutputTypeCountRotationSlotsArgs
+  rotationSlotItems?: boolean | TeacherCountOutputTypeCountRotationSlotItemsArgs
 }
 
 /**
@@ -1666,6 +1996,20 @@ export type TeacherCountOutputTypeCountSalaryAdvancesArgs<ExtArgs extends runtim
   where?: Prisma.SalaryAdvanceWhereInput
 }
 
+/**
+ * TeacherCountOutputType without action
+ */
+export type TeacherCountOutputTypeCountRotationSlotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RotationSlotWhereInput
+}
+
+/**
+ * TeacherCountOutputType without action
+ */
+export type TeacherCountOutputTypeCountRotationSlotItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RotationSlotItemWhereInput
+}
+
 
 export type TeacherSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1687,6 +2031,8 @@ export type TeacherSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   profileDocuments?: boolean | Prisma.Teacher$profileDocumentsArgs<ExtArgs>
   payslips?: boolean | Prisma.Teacher$payslipsArgs<ExtArgs>
   salaryAdvances?: boolean | Prisma.Teacher$salaryAdvancesArgs<ExtArgs>
+  rotationSlots?: boolean | Prisma.Teacher$rotationSlotsArgs<ExtArgs>
+  rotationSlotItems?: boolean | Prisma.Teacher$rotationSlotItemsArgs<ExtArgs>
   _count?: boolean | Prisma.TeacherCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["teacher"]>
 
@@ -1742,6 +2088,8 @@ export type TeacherInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   profileDocuments?: boolean | Prisma.Teacher$profileDocumentsArgs<ExtArgs>
   payslips?: boolean | Prisma.Teacher$payslipsArgs<ExtArgs>
   salaryAdvances?: boolean | Prisma.Teacher$salaryAdvancesArgs<ExtArgs>
+  rotationSlots?: boolean | Prisma.Teacher$rotationSlotsArgs<ExtArgs>
+  rotationSlotItems?: boolean | Prisma.Teacher$rotationSlotItemsArgs<ExtArgs>
   _count?: boolean | Prisma.TeacherCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TeacherIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1763,6 +2111,8 @@ export type $TeacherPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     profileDocuments: Prisma.$TeacherProfileDocumentPayload<ExtArgs>[]
     payslips: Prisma.$TeacherPayslipPayload<ExtArgs>[]
     salaryAdvances: Prisma.$SalaryAdvancePayload<ExtArgs>[]
+    rotationSlots: Prisma.$RotationSlotPayload<ExtArgs>[]
+    rotationSlotItems: Prisma.$RotationSlotItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2184,6 +2534,8 @@ export interface Prisma__TeacherClient<T, Null = never, ExtArgs extends runtime.
   profileDocuments<T extends Prisma.Teacher$profileDocumentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Teacher$profileDocumentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeacherProfileDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payslips<T extends Prisma.Teacher$payslipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Teacher$payslipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeacherPayslipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   salaryAdvances<T extends Prisma.Teacher$salaryAdvancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Teacher$salaryAdvancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalaryAdvancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  rotationSlots<T extends Prisma.Teacher$rotationSlotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Teacher$rotationSlotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RotationSlotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  rotationSlotItems<T extends Prisma.Teacher$rotationSlotItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Teacher$rotationSlotItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RotationSlotItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2832,6 +3184,54 @@ export type Teacher$salaryAdvancesArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.SalaryAdvanceScalarFieldEnum | Prisma.SalaryAdvanceScalarFieldEnum[]
+}
+
+/**
+ * Teacher.rotationSlots
+ */
+export type Teacher$rotationSlotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RotationSlot
+   */
+  select?: Prisma.RotationSlotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RotationSlot
+   */
+  omit?: Prisma.RotationSlotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RotationSlotInclude<ExtArgs> | null
+  where?: Prisma.RotationSlotWhereInput
+  orderBy?: Prisma.RotationSlotOrderByWithRelationInput | Prisma.RotationSlotOrderByWithRelationInput[]
+  cursor?: Prisma.RotationSlotWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RotationSlotScalarFieldEnum | Prisma.RotationSlotScalarFieldEnum[]
+}
+
+/**
+ * Teacher.rotationSlotItems
+ */
+export type Teacher$rotationSlotItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RotationSlotItem
+   */
+  select?: Prisma.RotationSlotItemSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RotationSlotItem
+   */
+  omit?: Prisma.RotationSlotItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RotationSlotItemInclude<ExtArgs> | null
+  where?: Prisma.RotationSlotItemWhereInput
+  orderBy?: Prisma.RotationSlotItemOrderByWithRelationInput | Prisma.RotationSlotItemOrderByWithRelationInput[]
+  cursor?: Prisma.RotationSlotItemWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RotationSlotItemScalarFieldEnum | Prisma.RotationSlotItemScalarFieldEnum[]
 }
 
 /**

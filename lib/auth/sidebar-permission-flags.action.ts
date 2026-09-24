@@ -201,6 +201,7 @@ export async function getSidebarPermissionFlagsAction(
   settingsReads["annee-scolaire"] = canAccessSchoolStructureSettings(session);
   settingsReads["structure-merge"] = canAccessSchoolStructureSettings(session);
   settingsReads["primary-domains"] = canAccessSchoolStructureSettings(session);
+  settingsReads["practical-domains"] = canAccessSchoolStructureSettings(session);
   settingsReads.support = canAccessSupportSettings(session);
 
   return {

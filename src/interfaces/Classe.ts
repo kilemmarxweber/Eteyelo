@@ -13,6 +13,11 @@ export interface IClasse {
   statusClasse: boolean;
   optionId?: string;
   creneauId?: string;
+  /** Atelier : classe école source. */
+  sourceClasseId?: string | null;
+  sourceClasseName?: string | null;
+  practicalDomainId?: string | null;
+  practicalDomainName?: string | null;
   option?: IOption;
   creneau?: ICreneau;
   createdAt: Date;
@@ -36,6 +41,8 @@ export const classeSchema = z.object({
     .enum(["MATERNELLE", "PRIMAIRE", "SECONDAIRE", "ATELIER", "CENTRE_FORMATION", "UNIVERSITE"])
     .optional()
     .nullable(),
+  sourceClasseId: z.string().nullable().optional(),
+  practicalDomainId: z.string().nullable().optional(),
 });
 
 export const classeCreateSchema = z.object({
@@ -53,6 +60,8 @@ export const classeCreateSchema = z.object({
   optionId: z.string().optional(),
   creneauId: z.string().optional(),
   statusClasse: z.boolean().optional(),
+  sourceClasseId: z.string().nullable().optional(),
+  practicalDomainId: z.string().nullable().optional(),
 });
 
 export const classeLegacyUpdateSchema = z.object({
