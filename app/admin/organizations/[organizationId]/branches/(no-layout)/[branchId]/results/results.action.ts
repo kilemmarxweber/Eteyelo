@@ -10,10 +10,7 @@ import {
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { sendStudentResultsNotification } from "@/lib/email/send-student-results-notification";
-import {
-  estimateWhatsAppBatchDurationMs,
-  parseWhatsAppRetryWaitMs,
-} from "@/lib/whatsapp-pace";
+import { parseWhatsAppRetryWaitMs } from "@/lib/whatsapp-pace";
 import { action } from "@/lib/zsa";
 
 function isPermanentWhatsAppStop(message?: string | null) {
@@ -262,7 +259,6 @@ export const sendResultsToParentsAction = action
         queued: false,
         notified: 0,
         whatsappQueued: 0,
-        estimatedWhatsAppMs: 0,
         skippedNoContact,
         skippedNoGrades,
       };
@@ -270,8 +266,6 @@ export const sendResultsToParentsAction = action
 
     const whatsappQueued = ready.filter((row) => Boolean(row.phone?.trim()))
       .length;
-    const estimatedWhatsAppMs =
-      estimateWhatsAppBatchDurationMs(whatsappQueued);
 
     after(async () => {
       let notified = 0;
@@ -327,7 +321,6 @@ export const sendResultsToParentsAction = action
       queued: true,
       notified: ready.length,
       whatsappQueued,
-      estimatedWhatsAppMs,
       skippedNoContact,
       skippedNoGrades,
     };

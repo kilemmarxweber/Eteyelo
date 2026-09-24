@@ -524,9 +524,7 @@ export default function WhatsAppSettingsPage() {
           <CardHeader>
             <CardTitle>Test d’envoi</CardTitle>
             <CardDescription>
-              Envoie un message de vérification via {providerName}. Les envois
-              en lot (résultats, horaires…) sont espacés d’environ 14&nbsp;s avec
-              jitter aléatoire pour limiter les blocages WhatsApp.
+              Envoie un message de vérification via {providerName}.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

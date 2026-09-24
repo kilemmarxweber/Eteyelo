@@ -638,7 +638,7 @@
       "whatsappSelectCount": "{count, plural, one {# teacher selected} other {# teachers selected}}",
       "whatsappNoSelection": "Select at least one teacher with a phone number.",
       "whatsappConfirmAction": "Send",
-      "whatsappQueued": "{count, plural, one {WhatsApp send started for # teacher. You can keep working; messages are paced (~14 s apart, anti-restriction).} other {WhatsApp send started for # teachers. You can keep working; messages are paced (~14 s apart, anti-restriction).}}",
+      "whatsappQueued": "{count, plural, one {WhatsApp send started for # teacher. You can keep working; messages go out in the background.} other {WhatsApp send started for # teachers. You can keep working; messages go out in the background.}}",
       "whatsappSuccess": "{sent, plural, one {Timetable sent to # teacher.} other {Timetable sent to # teachers.}}",
       "whatsappPartial": "{sent, plural, one {# sent} other {# sent}} · {skipped} without contact · {failed} failed",
       "whatsappFailed": "Unable to send timetables by WhatsApp.",

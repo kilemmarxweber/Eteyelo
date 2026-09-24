@@ -85,15 +85,9 @@ export default function SidebarWithFilters({
       }
 
       if (res.queued) {
-        const etaMin =
-          res.whatsappQueued > 1 && res.estimatedWhatsAppMs > 0
-            ? Math.max(1, Math.ceil(res.estimatedWhatsAppMs / 60_000))
-            : 0;
         const waPart =
           res.whatsappQueued > 0
-            ? ` — ${res.whatsappQueued} WhatsApp espacés (~14 s)${
-                etaMin > 0 ? `, ~${etaMin} min` : ""
-              }`
+            ? ` — ${res.whatsappQueued} WhatsApp`
             : "";
         toast.success(
           `Envoi lancé pour ${res.notified} parent${res.notified > 1 ? "s" : ""}${waPart}. Les messages partent en arrière-plan.`,

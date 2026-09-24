@@ -238,22 +238,13 @@ export function HoraireGlobalClient() {
   function toastWhatsAppResult(result: {
     queued?: boolean;
     count?: number;
-    estimatedWhatsAppMs?: number;
     sent?: number;
     skippedNoContact: number;
     failed?: number;
     error?: string | null;
   }) {
     if (result.queued && (result.count ?? 0) > 0) {
-      const etaMin =
-        (result.count ?? 0) > 1 && (result.estimatedWhatsAppMs ?? 0) > 0
-          ? Math.max(1, Math.ceil((result.estimatedWhatsAppMs ?? 0) / 60_000))
-          : 0;
-      toast.success(
-        etaMin > 0
-          ? `${t("whatsappQueued", { count: result.count ?? 0 })} (~${etaMin} min)`
-          : t("whatsappQueued", { count: result.count ?? 0 }),
-      );
+      toast.success(t("whatsappQueued", { count: result.count ?? 0 }));
       return;
     }
     if ((result.sent ?? 0) > 0 && (result.failed ?? 0) === 0 && result.skippedNoContact === 0) {
