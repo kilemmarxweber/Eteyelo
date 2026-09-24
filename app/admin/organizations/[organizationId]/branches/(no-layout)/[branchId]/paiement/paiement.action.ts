@@ -35,8 +35,11 @@ import {
   computeScopedDiscountAmount,
   EMPTY_DISCOUNT,
   getBestDiscountInfo,
+  parentAccessibleInBranchWhere,
+  studentAccessibleInBranchWhere,
   type DiscountInfo,
 } from "@/lib/payment-discount";
+import { usesPaymentDiscountsForBranch } from "@/lib/branch-capabilities";
 import {
   resolveOverallReceiptSettlementStatus,
   resolveReceiptSettlementStatus,
@@ -597,8 +600,9 @@ export const createPaiementAction = action
       throw new Error("❌ Montant invalide");
     }
 
-    const { branchId, organizationId, userId } =
+    const { branchId, organizationId, userId, typebranch } =
       await requireFinanceCollectBranchContext();
+    const discountsEnabled = usesPaymentDiscountsForBranch(typebranch);
     const {
       rates: exchangeRates,
       baseCurrency,
@@ -706,25 +710,52 @@ export const createPaiementAction = action
 
       /* ======================================================
          PARENT + DISCOUNT RULE
+         Parent peut être natif de la branche ou parent d'un
+         élève importé / inscrit (cas atelier).
       ====================================================== */
       const parent = await tx.parent.findFirst({
-        where: {
-          id: parentId,
-          branchMember: { branchId },
-        },
+        where: parentAccessibleInBranchWhere(parentId, branchId),
         include: {
           students: {
-            where: {
-              branchMember: { branchId },
-            },
+            where: studentAccessibleInBranchWhere(branchId),
           },
         },
       });
 
       if (!parent) throw new Error("Parent introuvable");
 
-      // Aligné sur getBestDiscountInfo (GROUP = tous les enfants du parent)
-      const discountInfo = await getBestDiscountInfo(tx, parentId, branchId);
+      const enrollmentsForParent = await tx.classEnrollment.findMany({
+        where: {
+          id: { in: uniqueClassEnrollIds },
+          branchId,
+          statusEnrollment: true,
+          student: { parentId },
+        },
+        select: { id: true },
+      });
+
+      if (enrollmentsForParent.length !== uniqueClassEnrollIds.length) {
+        throw new Error(
+          "Inscription(s) invalide(s) pour ce parent dans cette branche",
+        );
+      }
+
+      const fraisInBranch = await tx.frais.count({
+        where: {
+          id: { in: uniqueFraisIds },
+          branchId,
+        },
+      });
+      if (fraisInBranch !== uniqueFraisIds.length) {
+        throw new Error(
+          "Frais invalides : seuls les frais de cette branche sont acceptes",
+        );
+      }
+
+      // Atelier : jamais de remise ; frais scolaires et atelier restent separes.
+      const discountInfo = discountsEnabled
+        ? await getBestDiscountInfo(tx, parentId, branchId)
+        : EMPTY_DISCOUNT;
       const discountPercent = discountInfo.percentage;
 
       /* ======================================================
@@ -1966,7 +1997,6 @@ export async function searchFamilyAction(query: string): Promise<Family[]> {
       {
         parent: {
           branchMember: {
-            branchId,
             member: {
               user: {
                 OR: [
@@ -1981,10 +2011,11 @@ export async function searchFamilyAction(query: string): Promise<Family[]> {
     ],
   });
 
+  const branchStudentWhere = studentAccessibleInBranchWhere(branchId);
+
   const matched = await prisma.student.findMany({
     where: {
-      branchMember: { branchId },
-      AND: tokens.map(tokenClause),
+      AND: [branchStudentWhere, ...tokens.map(tokenClause)],
     },
     select: { parentId: true },
   });
@@ -1994,12 +2025,15 @@ export async function searchFamilyAction(query: string): Promise<Family[]> {
   if (!parentIds.length) return [];
 
   const students = await prisma.student.findMany({
-    where: { parentId: { in: parentIds }, branchMember: { branchId } },
+    where: {
+      parentId: { in: parentIds },
+      AND: [branchStudentWhere],
+    },
     include: {
       ...linkedUserInclude,
       parent: { include: linkedUserInclude },
       classEnrollment: {
-        where: { branchId },
+        where: { branchId, statusEnrollment: true },
         include: { classe: true },
       },
     },

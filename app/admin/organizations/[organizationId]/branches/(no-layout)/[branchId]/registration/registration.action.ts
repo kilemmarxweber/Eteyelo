@@ -38,7 +38,7 @@ import {
   getMaternelleOptionForLevel,
 } from "@/lib/maternelle-academic-structure";
 import { getPeopleLabels } from "@/lib/people-labels";
-import { isCentreFormationBranch } from "@/lib/branch-capabilities";
+import { isCentreFormationBranch, usesPaymentDiscountsForBranch } from "@/lib/branch-capabilities";
 import { ensureCentreDefaultParent } from "@/lib/centre-default-parent";
 import { validateRegistrationParentInput } from "@/src/interfaces/registration";
 import { resolveCycle, resolveRequestedCycle } from "@/lib/cycle";
@@ -1884,6 +1884,11 @@ export const createRegistrationFlowAction = action
             },
           });
           if (input.parent && input.parent.discountPercentage > 0) {
+            if (!usesPaymentDiscountsForBranch(typebranch)) {
+              throw new Error(
+                "Les remises ne sont pas disponibles dans une branche atelier.",
+              );
+            }
             const typeFraisId = input.parent.discountTypeFraisId?.trim() || null;
             if (!typeFraisId) {
               throw new Error("Type de frais requis pour la remise.");

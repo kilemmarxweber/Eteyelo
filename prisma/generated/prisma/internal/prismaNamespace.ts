@@ -419,6 +419,7 @@ export const ModelName = {
   TeacherProfileDocument: 'TeacherProfileDocument',
   Teaching: 'Teaching',
   Cours: 'Cours',
+  AtelierCourseLink: 'AtelierCourseLink',
   CoursOptionPonderation: 'CoursOptionPonderation',
   Schedule: 'Schedule',
   CalendarEvent: 'CalendarEvent',
@@ -499,7 +500,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "salaryAdvance" | "salaryAdvanceInstallment" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "attendanceFaceDescriptor" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog" | "temporaryGrant"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "atelierCourseLink" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "salaryAdvance" | "salaryAdvanceInstallment" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "attendanceFaceDescriptor" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog" | "temporaryGrant"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2128,6 +2129,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CoursCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CoursCountAggregateOutputType> | number
+        }
+      }
+    }
+    AtelierCourseLink: {
+      payload: Prisma.$AtelierCourseLinkPayload<ExtArgs>
+      fields: Prisma.AtelierCourseLinkFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AtelierCourseLinkFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AtelierCourseLinkPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AtelierCourseLinkFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AtelierCourseLinkPayload>
+        }
+        findFirst: {
+          args: Prisma.AtelierCourseLinkFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AtelierCourseLinkPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AtelierCourseLinkFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AtelierCourseLinkPayload>
+        }
+        findMany: {
+          args: Prisma.AtelierCourseLinkFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AtelierCourseLinkPayload>[]
+        }
+        create: {
+          args: Prisma.AtelierCourseLinkCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AtelierCourseLinkPayload>
+        }
+        createMany: {
+          args: Prisma.AtelierCourseLinkCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AtelierCourseLinkCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AtelierCourseLinkPayload>[]
+        }
+        delete: {
+          args: Prisma.AtelierCourseLinkDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AtelierCourseLinkPayload>
+        }
+        update: {
+          args: Prisma.AtelierCourseLinkUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AtelierCourseLinkPayload>
+        }
+        deleteMany: {
+          args: Prisma.AtelierCourseLinkDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AtelierCourseLinkUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AtelierCourseLinkUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AtelierCourseLinkPayload>[]
+        }
+        upsert: {
+          args: Prisma.AtelierCourseLinkUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AtelierCourseLinkPayload>
+        }
+        aggregate: {
+          args: Prisma.AtelierCourseLinkAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAtelierCourseLink>
+        }
+        groupBy: {
+          args: Prisma.AtelierCourseLinkGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AtelierCourseLinkGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AtelierCourseLinkCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AtelierCourseLinkCountAggregateOutputType> | number
         }
       }
     }
@@ -7376,6 +7451,19 @@ export const CoursScalarFieldEnum = {
 export type CoursScalarFieldEnum = (typeof CoursScalarFieldEnum)[keyof typeof CoursScalarFieldEnum]
 
 
+export const AtelierCourseLinkScalarFieldEnum = {
+  id: 'id',
+  atelierCoursId: 'atelierCoursId',
+  secondaryCoursId: 'secondaryCoursId',
+  secondaryBranchId: 'secondaryBranchId',
+  targetPeriodKey: 'targetPeriodKey',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AtelierCourseLinkScalarFieldEnum = (typeof AtelierCourseLinkScalarFieldEnum)[keyof typeof AtelierCourseLinkScalarFieldEnum]
+
+
 export const CoursOptionPonderationScalarFieldEnum = {
   id: 'id',
   coursId: 'coursId',
@@ -9545,6 +9633,7 @@ export type GlobalOmitConfig = {
   teacherProfileDocument?: Prisma.TeacherProfileDocumentOmit
   teaching?: Prisma.TeachingOmit
   cours?: Prisma.CoursOmit
+  atelierCourseLink?: Prisma.AtelierCourseLinkOmit
   coursOptionPonderation?: Prisma.CoursOptionPonderationOmit
   schedule?: Prisma.ScheduleOmit
   calendarEvent?: Prisma.CalendarEventOmit

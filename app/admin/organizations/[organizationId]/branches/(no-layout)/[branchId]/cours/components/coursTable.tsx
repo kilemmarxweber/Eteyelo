@@ -14,9 +14,11 @@ import { useRefresh } from "@/src/hooks/RefreshContext";
 const CoursList = ({
   refreshKey = 0,
   isPrimary = false,
+  isAtelier = false,
 }: {
   refreshKey?: number;
   isPrimary?: boolean;
+  isAtelier?: boolean;
 }) => {
   const t = useTranslations("teaching.courses.table");
   const tc = useTranslations("common");
@@ -24,7 +26,7 @@ const CoursList = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { refreshKey: contextRefreshKey } = useRefresh();
-  const columns = useCoursColumns(isPrimary);
+  const columns = useCoursColumns(isPrimary, isAtelier);
 
   useEffect(() => {
     const fetchCours = async () => {
@@ -50,7 +52,7 @@ const CoursList = ({
   if (loading) {
     return (
       <div className="p-4">
-        <TableSkeleton rows={5} columns={isPrimary ? 6 : 5} />
+        <TableSkeleton rows={5} columns={isPrimary || isAtelier ? 6 : 5} />
       </div>
     );
   }

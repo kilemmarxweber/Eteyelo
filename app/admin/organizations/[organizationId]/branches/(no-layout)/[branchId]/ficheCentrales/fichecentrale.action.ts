@@ -10,6 +10,7 @@ import {
   PERMANENT_DELETE_DENIED_MESSAGE,
 } from "@/lib/auth/session-roles";
 import { assertTitulaireClassAccess } from "@/lib/auth/data-scope";
+import { collectLinkedAtelierContributions } from "@/lib/atelier-course-link";
 
 export async function deleteFicheCentrale(params: {
   lessonId: string;
@@ -151,6 +152,8 @@ export type FicheCentraleIntervention = {
   status: boolean;
   notesCount: number;
   averageScore: number | null;
+  /** Présent si l'intervention vient d'un cours atelier lié. */
+  sourceLabel?: string;
 };
 
 type FicheCentraleSummary = {
@@ -293,13 +296,30 @@ export async function getFicheCentraleSummary(params: {
   periodId: number;
   anneeId: string;
 }): Promise<FicheCentraleSummary | null> {
-  const { branchId, session, userId } = await requireBranchContext();
+  const { branchId, session, userId, educationSystem, typebranch } =
+    await requireBranchContext();
   await assertTitulaireClassAccess({
     session,
     userId,
     branchId,
     classId: params.classId,
   });
+
+  const teaching = await prisma.teaching.findFirst({
+    where: { id: params.lessonId, branchId },
+    select: {
+      coursId: true,
+      cours: { select: { nameCours: true } },
+      classe: { select: { nameClasse: true } },
+      schoolYear: { select: { nameYear: true } },
+    },
+  });
+
+  const period = await prisma.period.findFirst({
+    where: { id: params.periodId, branchId },
+    select: { id: true, label: true },
+  });
+
   const fiches = await prisma.fiche.findMany({
     where: {
       branchId,
@@ -338,7 +358,20 @@ export async function getFicheCentraleSummary(params: {
     },
   });
 
-  if (!fiches.length) {
+  const atelierBridge =
+    teaching && period && typebranch === "SECONDAIRE"
+      ? await collectLinkedAtelierContributions({
+          secondaryBranchId: branchId,
+          secondaryCoursId: teaching.coursId,
+          secondaryPeriodId: params.periodId,
+          secondaryPeriodLabel: period.label,
+          secondaryAnneeId: params.anneeId,
+          secondaryClassId: params.classId,
+          educationSystem,
+        })
+      : { notes: [], interventions: [] };
+
+  if (!fiches.length && !atelierBridge.notes.length) {
     return null;
   }
 
@@ -359,6 +392,10 @@ export async function getFicheCentraleSummary(params: {
 
   let ficheCoteNotes: {
     studentId: string;
+    nom?: string;
+    studentSurname?: string;
+    studentusername?: string;
+    studentSexe?: string;
     score?: number | null;
     maxScore?: number | null;
   }[] = [];
@@ -382,6 +419,42 @@ export async function getFicheCentraleSummary(params: {
     }
   >();
 
+  const absorbNotes = (
+    notes: {
+      studentId: string;
+      nom?: string;
+      studentSurname?: string;
+      studentusername?: string;
+      studentSexe?: string;
+      score?: number | null;
+      maxScore?: number | null;
+    }[],
+  ) => {
+    for (const note of notes) {
+      const current = studentMap.get(note.studentId) ?? {
+        studentId: note.studentId,
+        nom: note.nom ?? "",
+        prenom: note.studentSurname ?? note.studentusername ?? "",
+        sexe: note.studentSexe ?? "",
+        totalPoints: 0,
+        totalMax: 0,
+        interventions: 0,
+      };
+
+      if (!current.nom && note.nom) current.nom = note.nom;
+      if (!current.prenom) {
+        current.prenom = note.studentSurname ?? note.studentusername ?? "";
+      }
+      if (!current.sexe && note.studentSexe) current.sexe = note.studentSexe;
+
+      current.totalPoints += Number(note.score ?? 0);
+      current.totalMax += Number(note.maxScore ?? 0);
+      current.interventions += 1;
+
+      studentMap.set(note.studentId, current);
+    }
+  };
+
   for (const fiche of fiches) {
     let notes: {
       studentId: string;
@@ -399,24 +472,10 @@ export async function getFicheCentraleSummary(params: {
       notes = [];
     }
 
-    for (const note of notes) {
-      const current = studentMap.get(note.studentId) ?? {
-        studentId: note.studentId,
-        nom: note.nom ?? "",
-        prenom: note.studentSurname ?? note.studentusername ?? "",
-        sexe: note.studentSexe ?? "",
-        totalPoints: 0,
-        totalMax: 0,
-        interventions: 0,
-      };
-
-      current.totalPoints += Number(note.score ?? 0);
-      current.totalMax += Number(note.maxScore ?? 0);
-      current.interventions += 1;
-
-      studentMap.set(note.studentId, current);
-    }
+    absorbNotes(notes);
   }
+
+  absorbNotes(atelierBridge.notes);
 
   const ficheCoteMaxScore = Number(
     ficheCoteNotes.find((note) => Number(note.maxScore ?? 0) > 0)?.maxScore ??
@@ -450,49 +509,68 @@ export async function getFicheCentraleSummary(params: {
     (note) => Number(note.score ?? 0) > 0,
   );
 
-  const interventions: FicheCentraleIntervention[] = fiches.map((fiche) => {
-    let notes: { score?: number | null }[] = [];
-    try {
-      notes = fiche.notes ? JSON.parse(fiche.notes) : [];
-    } catch {
-      notes = [];
-    }
+  const interventions: FicheCentraleIntervention[] = [
+    ...fiches.map((fiche) => {
+      let notes: { score?: number | null }[] = [];
+      try {
+        notes = fiche.notes ? JSON.parse(fiche.notes) : [];
+      } catch {
+        notes = [];
+      }
 
-    const scored = notes.filter((note) => note.score != null);
-    const averageScore =
-      scored.length > 0
-        ? scored.reduce((sum, note) => sum + Number(note.score ?? 0), 0) /
-          scored.length
-        : null;
+      const scored = notes.filter((note) => note.score != null);
+      const averageScore =
+        scored.length > 0
+          ? scored.reduce((sum, note) => sum + Number(note.score ?? 0), 0) /
+            scored.length
+          : null;
 
-    return {
-      id: fiche.id,
-      typeFiche: fiche.typeFiche,
-      dateCreated:
-        fiche.dateCreated &&
-        !Number.isNaN(new Date(fiche.dateCreated).getTime())
-          ? new Date(fiche.dateCreated).toISOString()
-          : "",
-      teacherName:
-        fiche.teacher?.branchMember?.member?.user?.name ?? "N/A",
-      status: fiche.status,
-      notesCount: notes.length,
-      averageScore:
-        averageScore == null ? null : Number(averageScore.toFixed(2)),
-    };
-  });
+      return {
+        id: fiche.id,
+        typeFiche: fiche.typeFiche,
+        dateCreated:
+          fiche.dateCreated &&
+          !Number.isNaN(new Date(fiche.dateCreated).getTime())
+            ? new Date(fiche.dateCreated).toISOString()
+            : "",
+        teacherName:
+          fiche.teacher?.branchMember?.member?.user?.name ?? "N/A",
+        status: fiche.status,
+        notesCount: notes.length,
+        averageScore:
+          averageScore == null ? null : Number(averageScore.toFixed(2)),
+      };
+    }),
+    ...atelierBridge.interventions.map((item) => ({
+      id: item.id,
+      typeFiche: item.typeFiche,
+      dateCreated: item.dateCreated,
+      teacherName: item.teacherName,
+      status: item.status,
+      notesCount: item.notesCount,
+      averageScore: item.averageScore,
+      sourceLabel: item.sourceLabel,
+    })),
+  ];
 
   return {
     ficheCoteId: ficheCote?.id ?? null,
     ficheCoteValidated,
     ficheCoteMaxScore,
     className:
-      fiches[0]?.lesson?.classe?.nameClasse ?? fiches[0]?.classeName ?? "",
+      fiches[0]?.lesson?.classe?.nameClasse ??
+      teaching?.classe?.nameClasse ??
+      fiches[0]?.classeName ??
+      "",
     subjectName:
-      fiches[0]?.lesson?.cours?.nameCours ?? fiches[0]?.coursName ?? "",
-    periodName: fiches[0]?.period?.label ?? fiches[0]?.periodeName ?? "",
-    anneeName: fiches[0]?.anneeName ?? "",
-    nombreIntervention: fiches.length,
+      fiches[0]?.lesson?.cours?.nameCours ??
+      teaching?.cours?.nameCours ??
+      fiches[0]?.coursName ??
+      "",
+    periodName:
+      fiches[0]?.period?.label ?? period?.label ?? fiches[0]?.periodeName ?? "",
+    anneeName: fiches[0]?.anneeName ?? teaching?.schoolYear?.nameYear ?? "",
+    nombreIntervention: interventions.length,
     interventions,
     students,
   };

@@ -33,6 +33,8 @@ export type BranchCapability = {
   usesAttestation: boolean;
   usesPonderation: boolean;
   usesFinance: boolean;
+  /** Remises famille / orphelin / groupe — desactivees pour atelier (frais isoles). */
+  usesPaymentDiscounts: boolean;
   academicStructureKey: AcademicStructureKey;
   isSchoolBranch: boolean;
 };
@@ -52,6 +54,7 @@ const BRANCH_CAPABILITIES: Record<ManagedBranchType, BranchCapability> = {
     usesAttestation: false,
     usesPonderation: true,
     usesFinance: true,
+    usesPaymentDiscounts: true,
     academicStructureKey: "primary",
     isSchoolBranch: true,
   },
@@ -69,6 +72,7 @@ const BRANCH_CAPABILITIES: Record<ManagedBranchType, BranchCapability> = {
     usesAttestation: false,
     usesPonderation: true,
     usesFinance: true,
+    usesPaymentDiscounts: true,
     academicStructureKey: "secondary",
     isSchoolBranch: true,
   },
@@ -86,6 +90,7 @@ const BRANCH_CAPABILITIES: Record<ManagedBranchType, BranchCapability> = {
     usesAttestation: true,
     usesPonderation: true,
     usesFinance: true,
+    usesPaymentDiscounts: false,
     academicStructureKey: "workshop",
     isSchoolBranch: false,
   },
@@ -103,6 +108,7 @@ const BRANCH_CAPABILITIES: Record<ManagedBranchType, BranchCapability> = {
     usesAttestation: false,
     usesPonderation: true,
     usesFinance: true,
+    usesPaymentDiscounts: true,
     academicStructureKey: "training",
     isSchoolBranch: false,
   },
@@ -120,6 +126,7 @@ const BRANCH_CAPABILITIES: Record<ManagedBranchType, BranchCapability> = {
     usesAttestation: true,
     usesPonderation: true,
     usesFinance: true,
+    usesPaymentDiscounts: true,
     academicStructureKey: "university",
     isSchoolBranch: false,
   },
@@ -151,6 +158,7 @@ const MATERNELLE_CAPABILITY: BranchCapability = {
   usesAttestation: false,
   usesPonderation: true,
   usesFinance: true,
+  usesPaymentDiscounts: true,
   academicStructureKey: "primary",
   isSchoolBranch: true,
 };
@@ -213,6 +221,11 @@ export function usesPonderationForBranch(typebranch: unknown): boolean {
 
 export function usesFinanceForBranch(typebranch: unknown): boolean {
   return getBranchCapabilities(typebranch).usesFinance;
+}
+
+/** Remises de paiement (famille / groupe / orphelin). Faux pour atelier. */
+export function usesPaymentDiscountsForBranch(typebranch: unknown): boolean {
+  return getBranchCapabilities(typebranch).usesPaymentDiscounts;
 }
 
 export function isSchoolBranch(typebranch: unknown): boolean {

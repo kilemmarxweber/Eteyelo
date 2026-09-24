@@ -34,10 +34,11 @@ import {
   familyExtraInfoSchema,
   familyExtraToDb,
 } from "@/lib/registration-extra-info";
+import { usesPaymentDiscountsForBranch } from "@/lib/branch-capabilities";
 import { z } from "zod";
 
 export async function getCurrentBranch() {
-  const { branchId, organizationId, userId, session } =
+  const { branchId, organizationId, userId, session, typebranch } =
     await requireBranchContext();
 
   const branchMember = await prisma.branchMember.findFirst({
@@ -56,6 +57,7 @@ export async function getCurrentBranch() {
     organizationId,
     userId,
     session,
+    typebranch,
     branchMemberId: branchMember?.id ?? null,
     canManageParents: canManageParentRecords(session, branchMember?.role),
     canPurgePermanently: isOrganizationOwnerSession(session, branchMember?.role),
@@ -98,7 +100,7 @@ async function getAvailableUsername(username: string): Promise<string> {
 export const createParentAction = action
   .input(parentSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await getCurrentBranch();
+    const { branchId, organizationId, typebranch } = await getCurrentBranch();
 
     const { discount, orgRole, ...data } = input;
     const count = await prisma.parent.count();
@@ -168,43 +170,49 @@ export const createParentAction = action
       }
 
       // =========================
-      // 4. CREATE DISCOUNT RULE
+      // 4. CREATE DISCOUNT RULE (jamais en atelier)
       // =========================
 
-      const percentage = discount?.percentage ?? 0;
-      let typeFraisId: string | null = null;
-      if (percentage > 0) {
-        const requestedTypeFraisId = discount?.typeFraisId?.trim() || null;
-        if (!requestedTypeFraisId) {
-          throw new Error("Type de frais requis pour la remise.");
+      if (usesPaymentDiscountsForBranch(typebranch)) {
+        const percentage = discount?.percentage ?? 0;
+        let typeFraisId: string | null = null;
+        if (percentage > 0) {
+          const requestedTypeFraisId = discount?.typeFraisId?.trim() || null;
+          if (!requestedTypeFraisId) {
+            throw new Error("Type de frais requis pour la remise.");
+          }
+          const typeFrais = await prisma.typeFrais.findFirst({
+            where: {
+              id: requestedTypeFraisId,
+              branchId,
+              statusType: true,
+            },
+            select: { id: true },
+          });
+          if (!typeFrais) {
+            throw new Error(
+              "Type de frais de remise introuvable dans cette branche.",
+            );
+          }
+          typeFraisId = typeFrais.id;
         }
-        const typeFrais = await prisma.typeFrais.findFirst({
-          where: {
-            id: requestedTypeFraisId,
-            branchId,
-            statusType: true,
-          },
-          select: { id: true },
-        });
-        if (!typeFrais) {
-          throw new Error(
-            "Type de frais de remise introuvable dans cette branche.",
-          );
-        }
-        typeFraisId = typeFrais.id;
-      }
 
-      await prisma.discountRule.create({
-        data: {
-          parentId: parent.id,
-          scope: discount?.scope ?? "PARENT",
-          percentage,
-          minChildren: discount?.minChildren,
-          category: discount?.category,
-          typeFraisId,
-          branchId,
-        },
-      });
+        await prisma.discountRule.create({
+          data: {
+            parentId: parent.id,
+            scope: discount?.scope ?? "PARENT",
+            percentage,
+            minChildren: discount?.minChildren,
+            category: discount?.category,
+            typeFraisId,
+            branchId,
+          },
+        });
+      } else if ((discount?.percentage ?? 0) > 0) {
+        throw new Error(
+          "Les remises ne sont pas disponibles dans une branche atelier.",
+        );
+      }
 
       revalidateParentPages(organizationId, branchId);
       return {
@@ -589,7 +597,7 @@ export const updateParentAction = action
   .input(parentSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId, organizationId } = await getCurrentBranch();
+      const { branchId, organizationId, typebranch } = await getCurrentBranch();
       const { parentId, discount, ...rest } = input;
 
       if (!parentId) throw new Error("Parent ID manquant");
@@ -652,7 +660,7 @@ export const updateParentAction = action
         },
       });
 
-      // 🔥 3. GESTION DISCOUNT
+      // 🔥 3. GESTION DISCOUNT (jamais en atelier)
       const existingDiscount = parent.discountRules?.[0];
 
       if (parent.branchMember?.branchId !== branchId) {
@@ -660,54 +668,62 @@ export const updateParentAction = action
       }
 
       if (discount) {
-        const percentage = discount.percentage ?? 0;
-        let typeFraisId: string | null = null;
-        if (percentage > 0) {
-          const requestedTypeFraisId = discount.typeFraisId?.trim() || null;
-          if (!requestedTypeFraisId) {
-            throw new Error("Type de frais requis pour la remise.");
-          }
-          const typeFrais = await prisma.typeFrais.findFirst({
-            where: {
-              id: requestedTypeFraisId,
-              branchId,
-              statusType: true,
-            },
-            select: { id: true },
-          });
-          if (!typeFrais) {
+        if (!usesPaymentDiscountsForBranch(typebranch)) {
+          if ((discount.percentage ?? 0) > 0) {
             throw new Error(
-              "Type de frais de remise introuvable dans cette branche.",
+              "Les remises ne sont pas disponibles dans une branche atelier.",
             );
           }
-          typeFraisId = typeFrais.id;
-        }
-
-        if (existingDiscount) {
-          // ✅ UPDATE
-          await prisma.discountRule.update({
-            where: { id: existingDiscount.id },
-            data: {
-              scope: discount.scope,
-              percentage,
-              minChildren: discount.minChildren ?? null,
-              category: discount.category ?? null,
-              typeFraisId,
-            },
-          });
         } else {
-          // ✅ CREATE
-          await prisma.discountRule.create({
-            data: {
-              parentId,
-              branchId,
-              scope: discount.scope,
-              percentage,
-              minChildren: discount.minChildren ?? null,
-              category: discount.category ?? null,
-              typeFraisId,
-            },
-          });
+          const percentage = discount.percentage ?? 0;
+          let typeFraisId: string | null = null;
+          if (percentage > 0) {
+            const requestedTypeFraisId = discount.typeFraisId?.trim() || null;
+            if (!requestedTypeFraisId) {
+              throw new Error("Type de frais requis pour la remise.");
+            }
+            const typeFrais = await prisma.typeFrais.findFirst({
+              where: {
+                id: requestedTypeFraisId,
+                branchId,
+                statusType: true,
+              },
+              select: { id: true },
+            });
+            if (!typeFrais) {
+              throw new Error(
+                "Type de frais de remise introuvable dans cette branche.",
+              );
+            }
+            typeFraisId = typeFrais.id;
+          }
+
+          if (existingDiscount) {
+            // ✅ UPDATE
+            await prisma.discountRule.update({
+              where: { id: existingDiscount.id },
+              data: {
+                scope: discount.scope,
+                percentage,
+                minChildren: discount.minChildren ?? null,
+                category: discount.category ?? null,
+                typeFraisId,
+              },
+            });
+          } else {
+            // ✅ CREATE
+            await prisma.discountRule.create({
+              data: {
+                parentId,
+                branchId,
+                scope: discount.scope,
+                percentage,
+                minChildren: discount.minChildren ?? null,
+                category: discount.category ?? null,
+                typeFraisId,
+              },
+            });
+          }
         }
       }
 

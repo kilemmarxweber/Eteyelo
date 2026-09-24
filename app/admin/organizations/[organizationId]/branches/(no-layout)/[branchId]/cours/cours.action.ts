@@ -17,13 +17,20 @@ import {
 import { getCatalogPrimaryPlacement, type PrimaryDomainCode } from "@/lib/primary-domains";
 import { upsertAngolaSecondaryCoursesForBranch } from "@/lib/angola-secondary-catalog-sync";
 import { upsertSecondaryCatalogCoursesForBranch } from "@/lib/secondary-catalog-sync";
-import { normalizeBranchType } from "@/lib/academic-structure";
+import {
+  getAcademicStructure,
+  normalizeBranchType,
+} from "@/lib/academic-structure";
 import { normalizeEducationSystem } from "@/lib/education-system";
 import {
   importCourseToBranch,
   searchOrganizationCoursesForBranchImport,
   supportsCourseImport,
 } from "@/lib/extended-course-import";
+import {
+  getAtelierLinkOptionsForOrganization,
+  upsertAtelierCourseLink,
+} from "@/lib/atelier-course-link";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
 import { getConfiguredCoursIdsForClasse } from "@/lib/course-ponderation";
 import {
@@ -32,7 +39,18 @@ import {
   gradeableCoursFilter,
   slugifyComponentCodePart,
 } from "@/lib/cours-components";
+import { isAtelierBranchType } from "@/lib/atelier-student-access";
 
+function secondaryPeriodLabel(
+  key: string,
+  educationSystem: unknown,
+): string {
+  return (
+    getAcademicStructure("SECONDAIRE", educationSystem).periods.find(
+      (period) => period.key === key,
+    )?.label ?? key
+  );
+}
 function revalidateCoursPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/cours`);
   revalidatePath(
@@ -134,6 +152,18 @@ export const createCoursAction = action
           ...(primaryFields ?? {}),
         },
       });
+
+      if (isAtelierBranchType(typebranch)) {
+        await upsertAtelierCourseLink({
+          atelierBranchId: branchId,
+          organizationId,
+          atelierCoursId: cours.id,
+          secondaryCoursId: input.linkedSecondaryCoursId,
+          secondaryBranchId: input.linkedSecondaryBranchId,
+          targetPeriodKey: input.linkedTargetPeriodKey,
+        });
+      }
+
       revalidateCoursPages(organizationId, branchId);
       return cours;
     } catch (error) {
@@ -208,6 +238,18 @@ export const updateCoursAction = action
         id,
       },
     });
+
+    if (isAtelierBranchType(typebranch)) {
+      await upsertAtelierCourseLink({
+        atelierBranchId: branchId,
+        organizationId,
+        atelierCoursId: id,
+        secondaryCoursId: input.linkedSecondaryCoursId,
+        secondaryBranchId: input.linkedSecondaryBranchId,
+        targetPeriodKey: input.linkedTargetPeriodKey,
+      });
+    }
+
     revalidateCoursPages(organizationId, branchId);
     return cours;
   });
@@ -320,7 +362,7 @@ export const getCoursAction = action
   )
   .handler(async ({ input }): Promise<ICours[]> => {
   try {
-    const { branchId } = await requireBranchContext();
+    const { branchId, typebranch } = await requireBranchContext();
     const includeInactive = input?.includeInactive ?? false;
     const includeComponents = input?.includeComponents ?? false;
     let configuredIds: string[] | null = null;
@@ -356,25 +398,99 @@ export const getCoursAction = action
       include: {
         _count: { select: { teaching: true, components: true } },
         parentCours: { select: { nameCours: true } },
+        ...(isAtelierBranchType(typebranch)
+          ? {
+              atelierCourseLink: {
+                include: {
+                  secondaryCours: { select: { id: true, nameCours: true } },
+                  secondaryBranch: {
+                    select: {
+                      id: true,
+                      name: true,
+                      educationSystem: true,
+                      typebranch: true,
+                    },
+                  },
+                },
+              },
+            }
+          : {}),
       },
       orderBy: [{ sortOrder: "asc" }, { nameCours: "asc" }],
     });
 
     const transformedCourses: ICours[] = Cours.map(
-      ({ _count, parentCours, ...cours }) => ({
-        ...cours,
-        description: cours.description || "",
-        teachingsCount: _count.teaching,
-        componentsCount: _count.components,
-        parentNameCours: parentCours?.nameCours ?? null,
-        kind: cours.kind,
-      }),
+      ({ _count, parentCours, ...cours }) => {
+        const link =
+          "atelierCourseLink" in cours
+            ? (
+                cours as typeof cours & {
+                  atelierCourseLink?: {
+                    secondaryCoursId: string;
+                    secondaryCours: { id: string; nameCours: string };
+                    secondaryBranchId: string;
+                    secondaryBranch: {
+                      id: string;
+                      name: string;
+                      educationSystem: string;
+                      typebranch: string;
+                    };
+                    targetPeriodKey: string;
+                  } | null;
+                }
+              ).atelierCourseLink
+            : null;
+
+        const { atelierCourseLink: _ignored, ...rest } = cours as typeof cours & {
+          atelierCourseLink?: unknown;
+        };
+
+        const atelierLink: ICours["atelierLink"] = link
+          ? {
+              secondaryCoursId: link.secondaryCoursId,
+              secondaryCoursName: link.secondaryCours.nameCours,
+              secondaryBranchId: link.secondaryBranchId,
+              secondaryBranchName: link.secondaryBranch.name,
+              targetPeriodKey: link.targetPeriodKey,
+              targetPeriodLabel: secondaryPeriodLabel(
+                link.targetPeriodKey,
+                link.secondaryBranch.educationSystem,
+              ),
+            }
+          : null;
+
+        return {
+          ...rest,
+          description: rest.description || "",
+          teachingsCount: _count.teaching,
+          componentsCount: _count.components,
+          parentNameCours: parentCours?.nameCours ?? null,
+          kind: rest.kind,
+          atelierLink,
+        };
+      },
     );
     return transformedCourses;
   } catch (error: any) {
     throw new Error(error.message);
   }
 });
+
+export const getAtelierCourseLinkOptionsAction = action.handler(
+  async (): Promise<
+    Awaited<ReturnType<typeof getAtelierLinkOptionsForOrganization>>
+  > => {
+    const { branchId, organizationId, typebranch } =
+      await requireBranchContext();
+    if (!isAtelierBranchType(typebranch)) {
+      return { courses: [], periodsByBranchId: {} };
+    }
+    return getAtelierLinkOptionsForOrganization({
+      organizationId,
+      atelierBranchId: branchId,
+    });
+  },
+);
 
 export const getCoursComponentsAction = action
   .input(z.object({ parentCoursId: z.string().min(1) }))

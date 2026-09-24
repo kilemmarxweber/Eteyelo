@@ -1,5 +1,5 @@
 "use client";
-import { HTMLAttributes, useEffect, useState } from "react";
+import { HTMLAttributes, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,7 +17,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { createCoursAction, updateCoursAction } from "../cours.action";
+import {
+  createCoursAction,
+  getAtelierCourseLinkOptionsAction,
+  updateCoursAction,
+} from "../cours.action";
 import { coursSchema } from "@/src/interfaces/Cours";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -32,6 +36,7 @@ import {
   PRIMARY_DOMAIN_SHORT_LABELS,
 } from "@/lib/primary-domains";
 import { getBranchPrimaryDomainsAction } from "../../settings/settings.action";
+import type { AtelierLinkOptions } from "@/lib/atelier-course-link";
 
 interface CoursUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: () => void;
@@ -41,6 +46,8 @@ interface CoursUpFormProps extends HTMLAttributes<HTMLDivElement> {
   mode: "create" | "update";
   /** Affiche le select domaine (branche primaire uniquement). */
   isPrimary?: boolean;
+  /** Association directe vers un cours secondaire (branche atelier). */
+  isAtelier?: boolean;
   layout?: "default" | "dialog";
 }
 
@@ -52,12 +59,14 @@ export function CoursUpForm({
   initialData,
   mode,
   isPrimary = false,
+  isAtelier = false,
   layout = "default",
   ...props
 }: CoursUpFormProps) {
   const t = useTranslations("teaching.courses.form");
   const tc = useTranslations("common");
   const isDialog = layout === "dialog";
+  const showDomain = isPrimary && !isAtelier;
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [domains, setDomains] = useState<
@@ -68,9 +77,14 @@ export function CoursUpForm({
       shortLabel: PRIMARY_DOMAIN_SHORT_LABELS[code],
     })),
   );
+  const [atelierLinkOptions, setAtelierLinkOptions] =
+    useState<AtelierLinkOptions>({
+      courses: [],
+      periodsByBranchId: {},
+    });
 
   useEffect(() => {
-    if (!isPrimary) return;
+    if (!showDomain) return;
     let ignore = false;
     getBranchPrimaryDomainsAction()
       .then((rows) => {
@@ -85,7 +99,23 @@ export function CoursUpForm({
     return () => {
       ignore = true;
     };
-  }, [isPrimary]);
+  }, [showDomain]);
+
+  useEffect(() => {
+    if (!isAtelier) return;
+    let ignore = false;
+    getAtelierCourseLinkOptionsAction()
+      .then(([rows]) => {
+        if (ignore || !rows) return;
+        setAtelierLinkOptions(rows);
+      })
+      .catch(() => {
+        /* ignore */
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [isAtelier]);
 
   const form = useForm<z.infer<typeof coursSchema>>({
     resolver: zodResolver(coursSchema),
@@ -94,17 +124,56 @@ export function CoursUpForm({
       codeCours: "",
       description: "",
       primaryDomain: null,
+      linkedSecondaryBranchId: null,
+      linkedSecondaryCoursId: null,
+      linkedTargetPeriodKey: null,
     },
   });
+
+  const linkedCoursId = form.watch("linkedSecondaryCoursId");
+  const selectedSecondaryCourse = useMemo(
+    () =>
+      atelierLinkOptions.courses.find((course) => course.id === linkedCoursId) ??
+      null,
+    [atelierLinkOptions.courses, linkedCoursId],
+  );
+  const periodOptions = useMemo(() => {
+    const branchId =
+      selectedSecondaryCourse?.branchId ??
+      form.getValues("linkedSecondaryBranchId") ??
+      null;
+    if (!branchId) return [];
+    return atelierLinkOptions.periodsByBranchId[branchId] ?? [];
+  }, [
+    atelierLinkOptions.periodsByBranchId,
+    selectedSecondaryCourse?.branchId,
+    form,
+    linkedCoursId,
+  ]);
 
   async function onSubmit(data: z.infer<typeof coursSchema>) {
     setIsLoading(true);
     setErrorMessage("");
 
     try {
+      const linkedCourse = isAtelier
+        ? atelierLinkOptions.courses.find(
+            (course) => course.id === data.linkedSecondaryCoursId,
+          )
+        : null;
+
       const payload = {
         ...data,
-        primaryDomain: isPrimary ? (data.primaryDomain ?? null) : undefined,
+        primaryDomain: showDomain ? (data.primaryDomain ?? null) : undefined,
+        linkedSecondaryBranchId: isAtelier
+          ? (linkedCourse?.branchId ?? data.linkedSecondaryBranchId ?? null)
+          : undefined,
+        linkedSecondaryCoursId: isAtelier
+          ? data.linkedSecondaryCoursId ?? null
+          : undefined,
+        linkedTargetPeriodKey: isAtelier
+          ? data.linkedTargetPeriodKey ?? null
+          : undefined,
       };
 
       if (mode === "create") {
@@ -127,6 +196,9 @@ export function CoursUpForm({
           codeCours: "",
           description: "",
           primaryDomain: null,
+          linkedSecondaryBranchId: null,
+          linkedSecondaryCoursId: null,
+          linkedTargetPeriodKey: null,
         });
         onCreated?.();
       } else {
@@ -154,15 +226,13 @@ export function CoursUpForm({
     ? "h-9 rounded-md px-3 text-sm font-normal"
     : undefined;
 
-  const domainField = isPrimary ? (
+  const domainField = showDomain ? (
     <FormField
       control={form.control}
       name="primaryDomain"
       render={({ field }) => (
         <FormItem className={fieldClass}>
-          <FormLabel className={labelClass}>
-            {t("domain")}
-          </FormLabel>
+          <FormLabel className={labelClass}>{t("domain")}</FormLabel>
           <Select
             value={field.value ?? "NONE"}
             onValueChange={(value) =>
@@ -185,14 +255,108 @@ export function CoursUpForm({
             </SelectContent>
           </Select>
           {!isDialog ? (
-            <FormDescription>
-              {t("domainDesc")}
-            </FormDescription>
+            <FormDescription>{t("domainDesc")}</FormDescription>
           ) : null}
           <FormMessage />
         </FormItem>
       )}
     />
+  ) : null;
+
+  const atelierLinkFields = isAtelier ? (
+    <>
+      <FormField
+        control={form.control}
+        name="linkedSecondaryCoursId"
+        render={({ field }) => (
+          <FormItem className={cn(fieldClass, isDialog && "sm:col-span-2")}>
+            <FormLabel className={labelClass}>{t("linkCourse")}</FormLabel>
+            <Select
+              value={field.value ?? "NONE"}
+              onValueChange={(value) => {
+                if (value === "NONE") {
+                  field.onChange(null);
+                  form.setValue("linkedSecondaryBranchId", null);
+                  form.setValue("linkedTargetPeriodKey", null);
+                  return;
+                }
+                const course = atelierLinkOptions.courses.find(
+                  (item) => item.id === value,
+                );
+                field.onChange(value);
+                form.setValue(
+                  "linkedSecondaryBranchId",
+                  course?.branchId ?? null,
+                );
+                form.setValue("linkedTargetPeriodKey", null);
+              }}
+              disabled={isLoading}
+            >
+              <FormControl>
+                <SelectTrigger className={controlClass}>
+                  <SelectValue placeholder={t("linkCoursePlaceholder")} />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="NONE">{t("linkNone")}</SelectItem>
+                {atelierLinkOptions.courses.map((course) => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {course.nameCours}
+                    {atelierLinkOptions.courses.some(
+                      (other) =>
+                        other.id !== course.id &&
+                        other.nameCours === course.nameCours,
+                    )
+                      ? ` · ${course.branchName}`
+                      : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormDescription>{t("linkDesc")}</FormDescription>
+            {atelierLinkOptions.courses.length === 0 ? (
+              <p className="text-xs text-amber-600 dark:text-amber-500">
+                {t("linkNoSecondaryCourses")}
+              </p>
+            ) : null}
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="linkedTargetPeriodKey"
+        render={({ field }) => (
+          <FormItem className={cn(fieldClass, isDialog && "sm:col-span-2")}>
+            <FormLabel className={labelClass}>{t("linkPeriod")}</FormLabel>
+            <Select
+              value={field.value ?? "NONE"}
+              onValueChange={(value) =>
+                field.onChange(value === "NONE" ? null : value)
+              }
+              disabled={isLoading || !selectedSecondaryCourse}
+            >
+              <FormControl>
+                <SelectTrigger className={controlClass}>
+                  <SelectValue placeholder={t("linkPeriodPlaceholder")} />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="NONE">{t("linkNone")}</SelectItem>
+                {periodOptions.map((period) => (
+                  <SelectItem key={period.key} value={period.key}>
+                    {period.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormDescription>{t("linkPeriodDesc")}</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </>
   ) : null;
 
   return (
@@ -215,13 +379,17 @@ export function CoursUpForm({
                 <FormItem
                   className={cn(
                     fieldClass,
-                    isDialog && !isPrimary && "sm:col-span-2",
+                    isDialog && !showDomain && "sm:col-span-2",
                   )}
                 >
                   <FormLabel className={labelClass}>{t("name")}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder={t("namePlaceholder")}
+                      placeholder={
+                        isAtelier
+                          ? t("namePlaceholderAtelier")
+                          : t("namePlaceholder")
+                      }
                       autoFocus
                       className={controlClass}
                       {...field}
@@ -260,6 +428,7 @@ export function CoursUpForm({
             />
 
             {!isDialog ? domainField : null}
+            {atelierLinkFields}
 
             {mode === "create" ? (
               <p
@@ -282,9 +451,7 @@ export function CoursUpForm({
                 )}
                 loading={isLoading}
               >
-                {mode === "create"
-                  ? t("createSubmit")
-                  : t("updateSubmit")}
+                {mode === "create" ? t("createSubmit") : t("updateSubmit")}
               </Button>
             </div>
 

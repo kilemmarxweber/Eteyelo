@@ -8,9 +8,11 @@ import {
 } from "../lib/atelier-student-access";
 import {
   canCreateStudentInBranch,
+  getClassDisplayLabel,
   requiresStudentImport,
   usesAttestationForBranch,
   usesFinanceForBranch,
+  usesPaymentDiscountsForBranch,
   usesPonderationForBranch,
 } from "../lib/branch-capabilities";
 import {
@@ -28,6 +30,16 @@ test("atelier exige import et bloque creation directe", () => {
   assert.equal(requiresStudentImport("ATELIER"), true);
   assert.equal(canCreateStudentInBranch("ATELIER"), false);
   assert.equal(isAtelierBranchType("ATELIER"), true);
+});
+
+test("atelier affiche groupe comme label de classe", () => {
+  assert.equal(getClassDisplayLabel("ATELIER"), "Groupe");
+});
+
+test("atelier : finance sans remises (frais separes de l'ecole)", () => {
+  assert.equal(usesFinanceForBranch("ATELIER"), true);
+  assert.equal(usesPaymentDiscountsForBranch("ATELIER"), false);
+  assert.equal(usesPaymentDiscountsForBranch("SECONDAIRE"), true);
 });
 
 test("atelier n importe que les humanites (pas tronc commun)", () => {

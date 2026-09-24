@@ -128,6 +128,12 @@ export type Teaching = Prisma.TeachingModel
  */
 export type Cours = Prisma.CoursModel
 /**
+ * Model AtelierCourseLink
+ * Associe un cours d'atelier à un cours secondaire : devoirs / évaluations / TP
+ * atelier sont ramenés dans la moyenne du cours secondaire pour la période cible.
+ */
+export type AtelierCourseLink = Prisma.AtelierCourseLinkModel
+/**
  * Model CoursOptionPonderation
  * 
  */

@@ -19,6 +19,15 @@ export interface ICours {
   primarySection?: string | null;
   domainOrder?: number | null;
   teachingsCount?: number;
+  /** Lien atelier → cours secondaire (branches ATELIER uniquement). */
+  atelierLink?: {
+    secondaryCoursId: string;
+    secondaryCoursName: string;
+    secondaryBranchId: string;
+    secondaryBranchName: string;
+    targetPeriodKey: string;
+    targetPeriodLabel: string;
+  } | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -32,6 +41,10 @@ export const coursSchema = z.object({
   description: z.string().optional(),
   /** Domaine bulletin primaire — optionnel */
   primaryDomain: z.string().trim().min(2).max(40).nullable().optional(),
+  /** Association atelier → secondaire (optionnel). */
+  linkedSecondaryBranchId: z.string().nullable().optional(),
+  linkedSecondaryCoursId: z.string().nullable().optional(),
+  linkedTargetPeriodKey: z.string().nullable().optional(),
 });
 
 export const coursComponentSchema = z.object({

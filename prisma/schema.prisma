@@ -636,6 +636,10 @@ model Cours {
   branch            Branch                   @relation(fields: [branchId], references: [id], onDelete: Cascade)
   coursPonderations CoursOptionPonderation[]
   onlineAssignments OnlineAssignment[]
+  /// Lien sortant (cours atelier → cours secondaire).
+  atelierCourseLink     AtelierCourseLink?  @relation("AtelierCourseLinks")
+  /// Liens entrants (cours secondaires alimentés par des ateliers).
+  secondaryAtelierLinks AtelierCourseLink[] @relation("SecondaryCourseAtelierLinks")
 
   @@unique([branchId, codeCours])
   @@unique([branchId, nameCours])
@@ -643,6 +647,26 @@ model Cours {
   @@index([branchId, primaryDomain])
   @@index([parentCoursId])
   @@index([branchId, kind])
+}
+
+/// Associe un cours d'atelier à un cours secondaire : devoirs / évaluations / TP
+/// atelier sont ramenés dans la moyenne du cours secondaire pour la période cible.
+model AtelierCourseLink {
+  id                String   @id @default(cuid())
+  atelierCoursId    String   @unique
+  atelierCours      Cours    @relation("AtelierCourseLinks", fields: [atelierCoursId], references: [id], onDelete: Cascade)
+  secondaryCoursId  String
+  secondaryCours    Cours    @relation("SecondaryCourseAtelierLinks", fields: [secondaryCoursId], references: [id], onDelete: Cascade)
+  secondaryBranchId String
+  secondaryBranch   Branch   @relation(fields: [secondaryBranchId], references: [id], onDelete: Cascade)
+  /// Clé académique de la période secondaire cible (ex. p1, p2, exam1) — stable entre années.
+  targetPeriodKey   String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([secondaryCoursId])
+  @@index([secondaryBranchId])
+  @@index([secondaryCoursId, targetPeriodKey])
 }
 
 enum CoursKind {
@@ -1799,6 +1823,7 @@ model Branch {
   teacherProfileDocuments         TeacherProfileDocument[]
   targetStudentLinks              StudentBranchLink[]              @relation("TargetBranchLinks")
   sourceStudentLinks              StudentBranchLink[]              @relation("SourceBranchLinks")
+  atelierCourseLinks              AtelierCourseLink[]
   issuedDocuments                 IssuedDocument[]
   libraryBooks                    LibraryBook[]
   libraryCatalogSources           LibraryCatalogSource[]

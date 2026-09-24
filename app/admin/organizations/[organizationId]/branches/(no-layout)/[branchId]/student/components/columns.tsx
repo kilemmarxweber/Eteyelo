@@ -31,12 +31,15 @@ import {
 
 export type StudentTableActions = {
   onEdit: (student: IStudent) => void;
+  onAssignGroupe?: (student: IStudent) => void;
 };
 
 export type StudentExamCodesColumnContext = {
   typebranch?: unknown;
   educationSystem?: unknown;
   showExamCodeColumns?: boolean;
+  /** Atelier : afficher l'action d'affectation au groupe */
+  showAssignGroupeAction?: boolean;
 };
 
 function selectedSchoolYearIds(table: {
@@ -300,8 +303,17 @@ export function useStudentColumns(
         null;
 
       return (
-        <span className="font-medium text-primary">
-          {classLabel || tDashboard("notEnrolled")}
+        <span
+          className={
+            classLabel
+              ? "font-medium text-primary"
+              : "font-medium text-amber-700 dark:text-amber-400"
+          }
+        >
+          {classLabel ||
+            (examCodes?.showAssignGroupeAction
+              ? "Sans groupe"
+              : tDashboard("notEnrolled"))}
         </span>
       );
     },
@@ -446,6 +458,16 @@ export function useStudentColumns(
         schoolYearIds: selectedSchoolYearIds(table),
       });
       const examCodesEnabled = examCodesState === "enabled";
+      const needsGroupeAssignment =
+        Boolean(examCodes?.showAssignGroupeAction) &&
+        Boolean(row.original.isLinkedStudent) &&
+        !row.original.className &&
+        !row.original.classeId;
+      const canChangeGroupe =
+        Boolean(examCodes?.showAssignGroupeAction) &&
+        Boolean(actions?.onAssignGroupe) &&
+        Boolean(row.original.isLinkedStudent) &&
+        Boolean(row.original.className || row.original.classeId);
 
       const handleSuccess = () => {
         row.toggleSelected(false);
@@ -510,7 +532,7 @@ export function useStudentColumns(
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onSelect={() => setShowDetailsTaskDialog(true)}>
                 {t("details")}
               </DropdownMenuItem>
@@ -528,6 +550,32 @@ export function useStudentColumns(
                   >
                     {t("edit")}
                   </DropdownMenuItem>
+
+                  {needsGroupeAssignment && actions?.onAssignGroupe ? (
+                    <DropdownMenuItem
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        openOverlayAfterMenuDismiss(() =>
+                          actions.onAssignGroupe?.(row.original),
+                        );
+                      }}
+                    >
+                      Affecter au groupe
+                    </DropdownMenuItem>
+                  ) : null}
+
+                  {canChangeGroupe ? (
+                    <DropdownMenuItem
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        openOverlayAfterMenuDismiss(() =>
+                          actions?.onAssignGroupe?.(row.original),
+                        );
+                      }}
+                    >
+                      Changer de groupe
+                    </DropdownMenuItem>
+                  ) : null}
 
                   {examCodesState !== "hidden" ? (
                     <DropdownMenuItem

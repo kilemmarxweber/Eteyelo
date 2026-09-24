@@ -406,6 +406,7 @@ export type BranchWhereInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentListRelationFilter
   targetStudentLinks?: Prisma.StudentBranchLinkListRelationFilter
   sourceStudentLinks?: Prisma.StudentBranchLinkListRelationFilter
+  atelierCourseLinks?: Prisma.AtelierCourseLinkListRelationFilter
   issuedDocuments?: Prisma.IssuedDocumentListRelationFilter
   libraryBooks?: Prisma.LibraryBookListRelationFilter
   libraryCatalogSources?: Prisma.LibraryCatalogSourceListRelationFilter
@@ -492,6 +493,7 @@ export type BranchOrderByWithRelationInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentOrderByRelationAggregateInput
   targetStudentLinks?: Prisma.StudentBranchLinkOrderByRelationAggregateInput
   sourceStudentLinks?: Prisma.StudentBranchLinkOrderByRelationAggregateInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkOrderByRelationAggregateInput
   issuedDocuments?: Prisma.IssuedDocumentOrderByRelationAggregateInput
   libraryBooks?: Prisma.LibraryBookOrderByRelationAggregateInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceOrderByRelationAggregateInput
@@ -582,6 +584,7 @@ export type BranchWhereUniqueInput = Prisma.AtLeast<{
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentListRelationFilter
   targetStudentLinks?: Prisma.StudentBranchLinkListRelationFilter
   sourceStudentLinks?: Prisma.StudentBranchLinkListRelationFilter
+  atelierCourseLinks?: Prisma.AtelierCourseLinkListRelationFilter
   issuedDocuments?: Prisma.IssuedDocumentListRelationFilter
   libraryBooks?: Prisma.LibraryBookListRelationFilter
   libraryCatalogSources?: Prisma.LibraryCatalogSourceListRelationFilter
@@ -727,6 +730,7 @@ export type BranchCreateInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -812,6 +816,7 @@ export type BranchUncheckedCreateInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -897,6 +902,7 @@ export type BranchUpdateInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -982,6 +988,7 @@ export type BranchUncheckedUpdateInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -1426,6 +1433,20 @@ export type BranchUpdateOneRequiredWithoutCoursNestedInput = {
   upsert?: Prisma.BranchUpsertWithoutCoursInput
   connect?: Prisma.BranchWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.BranchUpdateToOneWithWhereWithoutCoursInput, Prisma.BranchUpdateWithoutCoursInput>, Prisma.BranchUncheckedUpdateWithoutCoursInput>
+}
+
+export type BranchCreateNestedOneWithoutAtelierCourseLinksInput = {
+  create?: Prisma.XOR<Prisma.BranchCreateWithoutAtelierCourseLinksInput, Prisma.BranchUncheckedCreateWithoutAtelierCourseLinksInput>
+  connectOrCreate?: Prisma.BranchCreateOrConnectWithoutAtelierCourseLinksInput
+  connect?: Prisma.BranchWhereUniqueInput
+}
+
+export type BranchUpdateOneRequiredWithoutAtelierCourseLinksNestedInput = {
+  create?: Prisma.XOR<Prisma.BranchCreateWithoutAtelierCourseLinksInput, Prisma.BranchUncheckedCreateWithoutAtelierCourseLinksInput>
+  connectOrCreate?: Prisma.BranchCreateOrConnectWithoutAtelierCourseLinksInput
+  upsert?: Prisma.BranchUpsertWithoutAtelierCourseLinksInput
+  connect?: Prisma.BranchWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BranchUpdateToOneWithWhereWithoutAtelierCourseLinksInput, Prisma.BranchUpdateWithoutAtelierCourseLinksInput>, Prisma.BranchUncheckedUpdateWithoutAtelierCourseLinksInput>
 }
 
 export type BranchCreateNestedOneWithoutCoursPonderationsInput = {
@@ -2146,6 +2167,7 @@ export type BranchCreateWithoutAttendanceSessionsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -2230,6 +2252,7 @@ export type BranchUncheckedCreateWithoutAttendanceSessionsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -2330,6 +2353,7 @@ export type BranchUpdateWithoutAttendanceSessionsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -2414,6 +2438,7 @@ export type BranchUncheckedUpdateWithoutAttendanceSessionsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -2498,6 +2523,7 @@ export type BranchCreateWithoutStudentAttendanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -2582,6 +2608,7 @@ export type BranchUncheckedCreateWithoutStudentAttendanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -2682,6 +2709,7 @@ export type BranchUpdateWithoutStudentAttendanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -2766,6 +2794,7 @@ export type BranchUncheckedUpdateWithoutStudentAttendanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -2850,6 +2879,7 @@ export type BranchCreateWithoutTeacherAttendanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -2934,6 +2964,7 @@ export type BranchUncheckedCreateWithoutTeacherAttendanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -3034,6 +3065,7 @@ export type BranchUpdateWithoutTeacherAttendanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -3118,6 +3150,7 @@ export type BranchUncheckedUpdateWithoutTeacherAttendanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -3202,6 +3235,7 @@ export type BranchCreateWithoutPersonnelAttendanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -3286,6 +3320,7 @@ export type BranchUncheckedCreateWithoutPersonnelAttendanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -3386,6 +3421,7 @@ export type BranchUpdateWithoutPersonnelAttendanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -3470,6 +3506,7 @@ export type BranchUncheckedUpdateWithoutPersonnelAttendanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -3554,6 +3591,7 @@ export type BranchCreateWithoutParentFeedbackInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -3638,6 +3676,7 @@ export type BranchUncheckedCreateWithoutParentFeedbackInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -3738,6 +3777,7 @@ export type BranchUpdateWithoutParentFeedbackInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -3822,6 +3862,7 @@ export type BranchUncheckedUpdateWithoutParentFeedbackInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -3906,6 +3947,7 @@ export type BranchCreateWithoutStudentGradeInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -3990,6 +4032,7 @@ export type BranchUncheckedCreateWithoutStudentGradeInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -4090,6 +4133,7 @@ export type BranchUpdateWithoutStudentGradeInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -4174,6 +4218,7 @@ export type BranchUncheckedUpdateWithoutStudentGradeInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -4258,6 +4303,7 @@ export type BranchCreateWithoutFraisInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -4342,6 +4388,7 @@ export type BranchUncheckedCreateWithoutFraisInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -4442,6 +4489,7 @@ export type BranchUpdateWithoutFraisInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -4526,6 +4574,7 @@ export type BranchUncheckedUpdateWithoutFraisInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -4610,6 +4659,7 @@ export type BranchCreateWithoutTypeFraisInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -4694,6 +4744,7 @@ export type BranchUncheckedCreateWithoutTypeFraisInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -4794,6 +4845,7 @@ export type BranchUpdateWithoutTypeFraisInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -4878,6 +4930,7 @@ export type BranchUncheckedUpdateWithoutTypeFraisInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -4962,6 +5015,7 @@ export type BranchCreateWithoutClassesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -5046,6 +5100,7 @@ export type BranchUncheckedCreateWithoutClassesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -5146,6 +5201,7 @@ export type BranchUpdateWithoutClassesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -5230,6 +5286,7 @@ export type BranchUncheckedUpdateWithoutClassesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -5314,6 +5371,7 @@ export type BranchCreateWithoutCreneauInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -5398,6 +5456,7 @@ export type BranchUncheckedCreateWithoutCreneauInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -5498,6 +5557,7 @@ export type BranchUpdateWithoutCreneauInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -5582,6 +5642,7 @@ export type BranchUncheckedUpdateWithoutCreneauInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -5666,6 +5727,7 @@ export type BranchCreateWithoutOptionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -5750,6 +5812,7 @@ export type BranchUncheckedCreateWithoutOptionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -5850,6 +5913,7 @@ export type BranchUpdateWithoutOptionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -5934,6 +5998,7 @@ export type BranchUncheckedUpdateWithoutOptionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -6018,6 +6083,7 @@ export type BranchCreateWithoutSectionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -6102,6 +6168,7 @@ export type BranchUncheckedCreateWithoutSectionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -6202,6 +6269,7 @@ export type BranchUpdateWithoutSectionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -6286,6 +6354,7 @@ export type BranchUncheckedUpdateWithoutSectionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -6370,6 +6439,7 @@ export type BranchCreateWithoutSchoolYearInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -6454,6 +6524,7 @@ export type BranchUncheckedCreateWithoutSchoolYearInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -6554,6 +6625,7 @@ export type BranchUpdateWithoutSchoolYearInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -6638,6 +6710,7 @@ export type BranchUncheckedUpdateWithoutSchoolYearInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -6722,6 +6795,7 @@ export type BranchCreateWithoutClassEnrollmentInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -6806,6 +6880,7 @@ export type BranchUncheckedCreateWithoutClassEnrollmentInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -6906,6 +6981,7 @@ export type BranchUpdateWithoutClassEnrollmentInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -6990,6 +7066,7 @@ export type BranchUncheckedUpdateWithoutClassEnrollmentInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -7074,6 +7151,7 @@ export type BranchCreateWithoutTeacherProfileDocumentsInput = {
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -7158,6 +7236,7 @@ export type BranchUncheckedCreateWithoutTeacherProfileDocumentsInput = {
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -7258,6 +7337,7 @@ export type BranchUpdateWithoutTeacherProfileDocumentsInput = {
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -7342,6 +7422,7 @@ export type BranchUncheckedUpdateWithoutTeacherProfileDocumentsInput = {
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -7426,6 +7507,7 @@ export type BranchCreateWithoutTeachingInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -7510,6 +7592,7 @@ export type BranchUncheckedCreateWithoutTeachingInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -7610,6 +7693,7 @@ export type BranchUpdateWithoutTeachingInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -7694,6 +7778,7 @@ export type BranchUncheckedUpdateWithoutTeachingInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -7778,6 +7863,7 @@ export type BranchCreateWithoutCoursInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -7862,6 +7948,7 @@ export type BranchUncheckedCreateWithoutCoursInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -7962,6 +8049,7 @@ export type BranchUpdateWithoutCoursInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -8012,6 +8100,363 @@ export type BranchUncheckedUpdateWithoutCoursInput = {
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
   eventType?: Prisma.EventTypeUncheckedUpdateManyWithoutBranchNestedInput
   period?: Prisma.periodUncheckedUpdateManyWithoutBranchNestedInput
+  schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
+  typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
+  option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
+  section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
+  semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
+  frais?: Prisma.FraisUncheckedUpdateManyWithoutBranchNestedInput
+  calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
+  periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
+  cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
+  invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
+  creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
+  paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutBranchNestedInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUncheckedUpdateManyWithoutBranchNestedInput
+  branchInvitation?: Prisma.BranchInvitationUncheckedUpdateManyWithoutBranchNestedInput
+  attendanceSessions?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutBranchNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  studentGrade?: Prisma.StudentGradeUncheckedUpdateManyWithoutBranchNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutBranchNestedInput
+  transaction?: Prisma.TransactionUncheckedUpdateManyWithoutBranchNestedInput
+  discountRule?: Prisma.DiscountRuleUncheckedUpdateManyWithoutBranchNestedInput
+  paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
+  partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
+  jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
+  teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
+  targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
+  libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
+  libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
+  payrollPolicy?: Prisma.BranchPayrollPolicyUncheckedUpdateOneWithoutBranchNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedUpdateManyWithoutBranchNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutBranchNestedInput
+  supportTickets?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutBranchNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutBranchNestedInput
+  primaryDomains?: Prisma.BranchPrimaryDomainUncheckedUpdateManyWithoutBranchNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutBranchNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutBranchNestedInput
+  sourceConversations?: Prisma.ConversationUncheckedUpdateManyWithoutSourceBranchNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  attendanceFaceDescriptors?: Prisma.AttendanceFaceDescriptorUncheckedUpdateManyWithoutBranchNestedInput
+}
+
+export type BranchCreateWithoutAtelierCourseLinksInput = {
+  id?: string
+  name: string
+  code?: string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  description?: string | null
+  note?: string | null
+  adresse?: string | null
+  province?: string | null
+  ville?: string | null
+  commune?: string | null
+  pays?: string | null
+  idnat?: string | null
+  tel?: string | null
+  latitude: number
+  longitude: number
+  attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
+  educationSystem?: $Enums.EducationSystem
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
+  cycles?: Prisma.BranchCycleCreateNestedManyWithoutBranchInput
+  studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
+  branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
+  classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutBranchInput
+  paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
+  familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
+  fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
+  eventType?: Prisma.EventTypeCreateNestedManyWithoutBranchInput
+  period?: Prisma.periodCreateNestedManyWithoutBranchInput
+  cours?: Prisma.CoursCreateNestedManyWithoutBranchInput
+  schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
+  typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
+  option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
+  section?: Prisma.SectionCreateNestedManyWithoutBranchInput
+  semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
+  frais?: Prisma.FraisCreateNestedManyWithoutBranchInput
+  calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
+  periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
+  cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
+  invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
+  creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
+  paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
+  teaching?: Prisma.TeachingCreateNestedManyWithoutBranchInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionCreateNestedManyWithoutBranchInput
+  branchInvitation?: Prisma.BranchInvitationCreateNestedManyWithoutBranchInput
+  attendanceSessions?: Prisma.AttendanceSessionCreateNestedManyWithoutBranchInput
+  teacherAttendance?: Prisma.TeacherAttendanceCreateNestedManyWithoutBranchInput
+  personnelAttendance?: Prisma.PersonnelAttendanceCreateNestedManyWithoutBranchInput
+  studentGrade?: Prisma.StudentGradeCreateNestedManyWithoutBranchInput
+  parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutBranchInput
+  transaction?: Prisma.TransactionCreateNestedManyWithoutBranchInput
+  discountRule?: Prisma.DiscountRuleCreateNestedManyWithoutBranchInput
+  paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
+  partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
+  jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
+  teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
+  targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
+  libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
+  libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
+  payrollPolicy?: Prisma.BranchPayrollPolicyCreateNestedOneWithoutBranchInput
+  teacherPayslips?: Prisma.TeacherPayslipCreateNestedManyWithoutBranchInput
+  salaryAdvances?: Prisma.SalaryAdvanceCreateNestedManyWithoutBranchInput
+  supportTickets?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutBranchInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutBranchInput
+  primaryDomains?: Prisma.BranchPrimaryDomainCreateNestedManyWithoutBranchInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutBranchInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutBranchInput
+  sourceConversations?: Prisma.ConversationCreateNestedManyWithoutSourceBranchInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutBranchInput
+  attendanceFaceDescriptors?: Prisma.AttendanceFaceDescriptorCreateNestedManyWithoutBranchInput
+}
+
+export type BranchUncheckedCreateWithoutAtelierCourseLinksInput = {
+  id?: string
+  name: string
+  code?: string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  description?: string | null
+  note?: string | null
+  adresse?: string | null
+  province?: string | null
+  ville?: string | null
+  commune?: string | null
+  pays?: string | null
+  idnat?: string | null
+  tel?: string | null
+  latitude: number
+  longitude: number
+  attendanceRadius?: number
+  organizationId: string
+  typebranch: $Enums.TypeBrache
+  educationSystem?: $Enums.EducationSystem
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  cycles?: Prisma.BranchCycleUncheckedCreateNestedManyWithoutBranchInput
+  studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
+  classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutBranchInput
+  paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
+  familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
+  fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
+  eventType?: Prisma.EventTypeUncheckedCreateNestedManyWithoutBranchInput
+  period?: Prisma.periodUncheckedCreateNestedManyWithoutBranchInput
+  cours?: Prisma.CoursUncheckedCreateNestedManyWithoutBranchInput
+  schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
+  typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
+  option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
+  section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
+  semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
+  frais?: Prisma.FraisUncheckedCreateNestedManyWithoutBranchInput
+  calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
+  periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
+  cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
+  invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
+  creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
+  paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutBranchInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUncheckedCreateNestedManyWithoutBranchInput
+  branchInvitation?: Prisma.BranchInvitationUncheckedCreateNestedManyWithoutBranchInput
+  attendanceSessions?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutBranchInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  studentGrade?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutBranchInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutBranchInput
+  transaction?: Prisma.TransactionUncheckedCreateNestedManyWithoutBranchInput
+  discountRule?: Prisma.DiscountRuleUncheckedCreateNestedManyWithoutBranchInput
+  paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
+  partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
+  jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
+  teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
+  targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
+  libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
+  libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
+  payrollPolicy?: Prisma.BranchPayrollPolicyUncheckedCreateNestedOneWithoutBranchInput
+  teacherPayslips?: Prisma.TeacherPayslipUncheckedCreateNestedManyWithoutBranchInput
+  salaryAdvances?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutBranchInput
+  supportTickets?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutBranchInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutBranchInput
+  primaryDomains?: Prisma.BranchPrimaryDomainUncheckedCreateNestedManyWithoutBranchInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutBranchInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutBranchInput
+  sourceConversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutSourceBranchInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutBranchInput
+  attendanceFaceDescriptors?: Prisma.AttendanceFaceDescriptorUncheckedCreateNestedManyWithoutBranchInput
+}
+
+export type BranchCreateOrConnectWithoutAtelierCourseLinksInput = {
+  where: Prisma.BranchWhereUniqueInput
+  create: Prisma.XOR<Prisma.BranchCreateWithoutAtelierCourseLinksInput, Prisma.BranchUncheckedCreateWithoutAtelierCourseLinksInput>
+}
+
+export type BranchUpsertWithoutAtelierCourseLinksInput = {
+  update: Prisma.XOR<Prisma.BranchUpdateWithoutAtelierCourseLinksInput, Prisma.BranchUncheckedUpdateWithoutAtelierCourseLinksInput>
+  create: Prisma.XOR<Prisma.BranchCreateWithoutAtelierCourseLinksInput, Prisma.BranchUncheckedCreateWithoutAtelierCourseLinksInput>
+  where?: Prisma.BranchWhereInput
+}
+
+export type BranchUpdateToOneWithWhereWithoutAtelierCourseLinksInput = {
+  where?: Prisma.BranchWhereInput
+  data: Prisma.XOR<Prisma.BranchUpdateWithoutAtelierCourseLinksInput, Prisma.BranchUncheckedUpdateWithoutAtelierCourseLinksInput>
+}
+
+export type BranchUpdateWithoutAtelierCourseLinksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commune?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  idnat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  longitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
+  educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
+  cycles?: Prisma.BranchCycleUpdateManyWithoutBranchNestedInput
+  studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
+  branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
+  classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutBranchNestedInput
+  paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
+  familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
+  fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
+  eventType?: Prisma.EventTypeUpdateManyWithoutBranchNestedInput
+  period?: Prisma.periodUpdateManyWithoutBranchNestedInput
+  cours?: Prisma.CoursUpdateManyWithoutBranchNestedInput
+  schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
+  typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
+  option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
+  section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
+  semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
+  frais?: Prisma.FraisUpdateManyWithoutBranchNestedInput
+  calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
+  periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
+  cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
+  invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
+  creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
+  paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
+  teaching?: Prisma.TeachingUpdateManyWithoutBranchNestedInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUpdateManyWithoutBranchNestedInput
+  branchInvitation?: Prisma.BranchInvitationUpdateManyWithoutBranchNestedInput
+  attendanceSessions?: Prisma.AttendanceSessionUpdateManyWithoutBranchNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUpdateManyWithoutBranchNestedInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUpdateManyWithoutBranchNestedInput
+  studentGrade?: Prisma.StudentGradeUpdateManyWithoutBranchNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutBranchNestedInput
+  transaction?: Prisma.TransactionUpdateManyWithoutBranchNestedInput
+  discountRule?: Prisma.DiscountRuleUpdateManyWithoutBranchNestedInput
+  paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
+  partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
+  jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
+  teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
+  targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
+  libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
+  libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
+  payrollPolicy?: Prisma.BranchPayrollPolicyUpdateOneWithoutBranchNestedInput
+  teacherPayslips?: Prisma.TeacherPayslipUpdateManyWithoutBranchNestedInput
+  salaryAdvances?: Prisma.SalaryAdvanceUpdateManyWithoutBranchNestedInput
+  supportTickets?: Prisma.PlatformSupportEscalationUpdateManyWithoutBranchNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutBranchNestedInput
+  primaryDomains?: Prisma.BranchPrimaryDomainUpdateManyWithoutBranchNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutBranchNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutBranchNestedInput
+  sourceConversations?: Prisma.ConversationUpdateManyWithoutSourceBranchNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutBranchNestedInput
+  attendanceFaceDescriptors?: Prisma.AttendanceFaceDescriptorUpdateManyWithoutBranchNestedInput
+}
+
+export type BranchUncheckedUpdateWithoutAtelierCourseLinksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commune?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  idnat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  longitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
+  educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  cycles?: Prisma.BranchCycleUncheckedUpdateManyWithoutBranchNestedInput
+  studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
+  classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutBranchNestedInput
+  paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
+  familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
+  fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
+  eventType?: Prisma.EventTypeUncheckedUpdateManyWithoutBranchNestedInput
+  period?: Prisma.periodUncheckedUpdateManyWithoutBranchNestedInput
+  cours?: Prisma.CoursUncheckedUpdateManyWithoutBranchNestedInput
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
@@ -8130,6 +8575,7 @@ export type BranchCreateWithoutCoursPonderationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -8214,6 +8660,7 @@ export type BranchUncheckedCreateWithoutCoursPonderationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -8314,6 +8761,7 @@ export type BranchUpdateWithoutCoursPonderationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -8398,6 +8846,7 @@ export type BranchUncheckedUpdateWithoutCoursPonderationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -8482,6 +8931,7 @@ export type BranchCreateWithoutCalendarEventInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -8566,6 +9016,7 @@ export type BranchUncheckedCreateWithoutCalendarEventInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -8666,6 +9117,7 @@ export type BranchUpdateWithoutCalendarEventInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -8750,6 +9202,7 @@ export type BranchUncheckedUpdateWithoutCalendarEventInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -8834,6 +9287,7 @@ export type BranchCreateWithoutEventTypeInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -8918,6 +9372,7 @@ export type BranchUncheckedCreateWithoutEventTypeInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -9018,6 +9473,7 @@ export type BranchUpdateWithoutEventTypeInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -9102,6 +9558,7 @@ export type BranchUncheckedUpdateWithoutEventTypeInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -9186,6 +9643,7 @@ export type BranchCreateWithoutSemesterInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -9270,6 +9728,7 @@ export type BranchUncheckedCreateWithoutSemesterInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -9370,6 +9829,7 @@ export type BranchUpdateWithoutSemesterInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -9454,6 +9914,7 @@ export type BranchUncheckedUpdateWithoutSemesterInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -9538,6 +9999,7 @@ export type BranchCreateWithoutPeriodInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -9622,6 +10084,7 @@ export type BranchUncheckedCreateWithoutPeriodInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -9722,6 +10185,7 @@ export type BranchUpdateWithoutPeriodInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -9806,6 +10270,7 @@ export type BranchUncheckedUpdateWithoutPeriodInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -9890,6 +10355,7 @@ export type BranchCreateWithoutPeriodResultLockInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -9974,6 +10440,7 @@ export type BranchUncheckedCreateWithoutPeriodResultLockInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -10074,6 +10541,7 @@ export type BranchUpdateWithoutPeriodResultLockInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -10158,6 +10626,7 @@ export type BranchUncheckedUpdateWithoutPeriodResultLockInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -10242,6 +10711,7 @@ export type BranchCreateWithoutFicheInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -10326,6 +10796,7 @@ export type BranchUncheckedCreateWithoutFicheInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -10426,6 +10897,7 @@ export type BranchUpdateWithoutFicheInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -10510,6 +10982,7 @@ export type BranchUncheckedUpdateWithoutFicheInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -10594,6 +11067,7 @@ export type BranchCreateWithoutInvoiceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -10678,6 +11152,7 @@ export type BranchUncheckedCreateWithoutInvoiceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -10778,6 +11253,7 @@ export type BranchUpdateWithoutInvoiceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -10862,6 +11338,7 @@ export type BranchUncheckedUpdateWithoutInvoiceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -10946,6 +11423,7 @@ export type BranchCreateWithoutPaymentBatchInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -11030,6 +11508,7 @@ export type BranchUncheckedCreateWithoutPaymentBatchInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -11130,6 +11609,7 @@ export type BranchUpdateWithoutPaymentBatchInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -11214,6 +11694,7 @@ export type BranchUncheckedUpdateWithoutPaymentBatchInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -11298,6 +11779,7 @@ export type BranchCreateWithoutFamilyPaymentInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -11382,6 +11864,7 @@ export type BranchUncheckedCreateWithoutFamilyPaymentInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -11482,6 +11965,7 @@ export type BranchUpdateWithoutFamilyPaymentInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -11566,6 +12050,7 @@ export type BranchUncheckedUpdateWithoutFamilyPaymentInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -11650,6 +12135,7 @@ export type BranchCreateWithoutCashierExpenseInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -11734,6 +12220,7 @@ export type BranchUncheckedCreateWithoutCashierExpenseInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -11834,6 +12321,7 @@ export type BranchUpdateWithoutCashierExpenseInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -11918,6 +12406,7 @@ export type BranchUncheckedUpdateWithoutCashierExpenseInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -12002,6 +12491,7 @@ export type BranchCreateWithoutCashierOpeningBalanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -12086,6 +12576,7 @@ export type BranchUncheckedCreateWithoutCashierOpeningBalanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -12186,6 +12677,7 @@ export type BranchUpdateWithoutCashierOpeningBalanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -12270,6 +12762,7 @@ export type BranchUncheckedUpdateWithoutCashierOpeningBalanceInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -12354,6 +12847,7 @@ export type BranchCreateWithoutPaymentAllocationInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -12438,6 +12932,7 @@ export type BranchUncheckedCreateWithoutPaymentAllocationInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -12538,6 +13033,7 @@ export type BranchUpdateWithoutPaymentAllocationInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -12622,6 +13118,7 @@ export type BranchUncheckedUpdateWithoutPaymentAllocationInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -12706,6 +13203,7 @@ export type BranchCreateWithoutMobileMoneyTransactionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -12790,6 +13288,7 @@ export type BranchUncheckedCreateWithoutMobileMoneyTransactionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -12890,6 +13389,7 @@ export type BranchUpdateWithoutMobileMoneyTransactionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -12974,6 +13474,7 @@ export type BranchUncheckedUpdateWithoutMobileMoneyTransactionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -13058,6 +13559,7 @@ export type BranchCreateWithoutPaymentEventInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -13142,6 +13644,7 @@ export type BranchUncheckedCreateWithoutPaymentEventInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -13242,6 +13745,7 @@ export type BranchUpdateWithoutPaymentEventInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -13326,6 +13830,7 @@ export type BranchUncheckedUpdateWithoutPaymentEventInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -13410,6 +13915,7 @@ export type BranchCreateWithoutDiscountRuleInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -13494,6 +14000,7 @@ export type BranchUncheckedCreateWithoutDiscountRuleInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -13594,6 +14101,7 @@ export type BranchUpdateWithoutDiscountRuleInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -13678,6 +14186,7 @@ export type BranchUncheckedUpdateWithoutDiscountRuleInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -13762,6 +14271,7 @@ export type BranchCreateWithoutTransactionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -13846,6 +14356,7 @@ export type BranchUncheckedCreateWithoutTransactionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -13946,6 +14457,7 @@ export type BranchUpdateWithoutTransactionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -14030,6 +14542,7 @@ export type BranchUncheckedUpdateWithoutTransactionInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -14115,6 +14628,7 @@ export type BranchCreateWithoutGradeModificationRequestsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -14199,6 +14713,7 @@ export type BranchUncheckedCreateWithoutGradeModificationRequestsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -14299,6 +14814,7 @@ export type BranchUpdateWithoutGradeModificationRequestsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -14383,6 +14899,7 @@ export type BranchUncheckedUpdateWithoutGradeModificationRequestsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -14467,6 +14984,7 @@ export type BranchCreateWithoutAbsenceCasesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -14551,6 +15069,7 @@ export type BranchUncheckedCreateWithoutAbsenceCasesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -14651,6 +15170,7 @@ export type BranchUpdateWithoutAbsenceCasesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -14735,6 +15255,7 @@ export type BranchUncheckedUpdateWithoutAbsenceCasesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -14819,6 +15340,7 @@ export type BranchCreateWithoutAppNotificationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -14903,6 +15425,7 @@ export type BranchUncheckedCreateWithoutAppNotificationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -15003,6 +15526,7 @@ export type BranchUpdateWithoutAppNotificationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -15087,6 +15611,7 @@ export type BranchUncheckedUpdateWithoutAppNotificationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -15171,6 +15696,7 @@ export type BranchCreateWithoutPayrollPolicyInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -15255,6 +15781,7 @@ export type BranchUncheckedCreateWithoutPayrollPolicyInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -15355,6 +15882,7 @@ export type BranchUpdateWithoutPayrollPolicyInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -15439,6 +15967,7 @@ export type BranchUncheckedUpdateWithoutPayrollPolicyInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -15523,6 +16052,7 @@ export type BranchCreateWithoutTeacherPayslipsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -15607,6 +16137,7 @@ export type BranchUncheckedCreateWithoutTeacherPayslipsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -15707,6 +16238,7 @@ export type BranchUpdateWithoutTeacherPayslipsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -15791,6 +16323,7 @@ export type BranchUncheckedUpdateWithoutTeacherPayslipsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -15875,6 +16408,7 @@ export type BranchCreateWithoutSalaryAdvancesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -15959,6 +16493,7 @@ export type BranchUncheckedCreateWithoutSalaryAdvancesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -16059,6 +16594,7 @@ export type BranchUpdateWithoutSalaryAdvancesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -16143,6 +16679,7 @@ export type BranchUncheckedUpdateWithoutSalaryAdvancesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -16226,6 +16763,7 @@ export type BranchCreateWithoutOrganizationInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -16310,6 +16848,7 @@ export type BranchUncheckedCreateWithoutOrganizationInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -16450,6 +16989,7 @@ export type BranchCreateWithoutAttendanceFaceDescriptorsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -16534,6 +17074,7 @@ export type BranchUncheckedCreateWithoutAttendanceFaceDescriptorsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -16634,6 +17175,7 @@ export type BranchUpdateWithoutAttendanceFaceDescriptorsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -16718,6 +17260,7 @@ export type BranchUncheckedUpdateWithoutAttendanceFaceDescriptorsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -16801,6 +17344,7 @@ export type BranchCreateWithoutCyclesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -16885,6 +17429,7 @@ export type BranchUncheckedCreateWithoutCyclesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -16985,6 +17530,7 @@ export type BranchUpdateWithoutCyclesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -17069,6 +17615,7 @@ export type BranchUncheckedUpdateWithoutCyclesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -17154,6 +17701,7 @@ export type BranchCreateWithoutPrimaryDomainsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -17238,6 +17786,7 @@ export type BranchUncheckedCreateWithoutPrimaryDomainsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -17338,6 +17887,7 @@ export type BranchUpdateWithoutPrimaryDomainsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -17422,6 +17972,7 @@ export type BranchUncheckedUpdateWithoutPrimaryDomainsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -17505,6 +18056,7 @@ export type BranchCreateWithoutRegistrationInfosInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -17589,6 +18141,7 @@ export type BranchUncheckedCreateWithoutRegistrationInfosInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -17689,6 +18242,7 @@ export type BranchUpdateWithoutRegistrationInfosInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -17773,6 +18327,7 @@ export type BranchUncheckedUpdateWithoutRegistrationInfosInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -17857,6 +18412,7 @@ export type BranchCreateWithoutRegistrationRequestsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -17941,6 +18497,7 @@ export type BranchUncheckedCreateWithoutRegistrationRequestsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -18041,6 +18598,7 @@ export type BranchUpdateWithoutRegistrationRequestsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -18125,6 +18683,7 @@ export type BranchUncheckedUpdateWithoutRegistrationRequestsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -18209,6 +18768,7 @@ export type BranchCreateWithoutJobApplicationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -18293,6 +18853,7 @@ export type BranchUncheckedCreateWithoutJobApplicationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -18393,6 +18954,7 @@ export type BranchUpdateWithoutJobApplicationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -18477,6 +19039,7 @@ export type BranchUncheckedUpdateWithoutJobApplicationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -18561,6 +19124,7 @@ export type BranchCreateWithoutPartnairesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -18645,6 +19209,7 @@ export type BranchUncheckedCreateWithoutPartnairesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -18745,6 +19310,7 @@ export type BranchUpdateWithoutPartnairesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -18829,6 +19395,7 @@ export type BranchUncheckedUpdateWithoutPartnairesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -18913,6 +19480,7 @@ export type BranchCreateWithoutBranchemembersInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -18997,6 +19565,7 @@ export type BranchUncheckedCreateWithoutBranchemembersInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -19097,6 +19666,7 @@ export type BranchUpdateWithoutBranchemembersInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -19181,6 +19751,7 @@ export type BranchUncheckedUpdateWithoutBranchemembersInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -19265,6 +19836,7 @@ export type BranchCreateWithoutTargetStudentLinksInput = {
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -19349,6 +19921,7 @@ export type BranchUncheckedCreateWithoutTargetStudentLinksInput = {
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -19438,6 +20011,7 @@ export type BranchCreateWithoutSourceStudentLinksInput = {
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -19522,6 +20096,7 @@ export type BranchUncheckedCreateWithoutSourceStudentLinksInput = {
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -19622,6 +20197,7 @@ export type BranchUpdateWithoutTargetStudentLinksInput = {
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -19706,6 +20282,7 @@ export type BranchUncheckedUpdateWithoutTargetStudentLinksInput = {
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -19801,6 +20378,7 @@ export type BranchUpdateWithoutSourceStudentLinksInput = {
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -19885,6 +20463,7 @@ export type BranchUncheckedUpdateWithoutSourceStudentLinksInput = {
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -19970,6 +20549,7 @@ export type BranchCreateWithoutIssuedDocumentsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
   payrollPolicy?: Prisma.BranchPayrollPolicyCreateNestedOneWithoutBranchInput
@@ -20054,6 +20634,7 @@ export type BranchUncheckedCreateWithoutIssuedDocumentsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
   payrollPolicy?: Prisma.BranchPayrollPolicyUncheckedCreateNestedOneWithoutBranchInput
@@ -20154,6 +20735,7 @@ export type BranchUpdateWithoutIssuedDocumentsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
   payrollPolicy?: Prisma.BranchPayrollPolicyUpdateOneWithoutBranchNestedInput
@@ -20238,6 +20820,7 @@ export type BranchUncheckedUpdateWithoutIssuedDocumentsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
   payrollPolicy?: Prisma.BranchPayrollPolicyUncheckedUpdateOneWithoutBranchNestedInput
@@ -20321,6 +20904,7 @@ export type BranchCreateWithoutBranchInvitationInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -20405,6 +20989,7 @@ export type BranchUncheckedCreateWithoutBranchInvitationInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -20505,6 +21090,7 @@ export type BranchUpdateWithoutBranchInvitationInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -20589,6 +21175,7 @@ export type BranchUncheckedUpdateWithoutBranchInvitationInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -20674,6 +21261,7 @@ export type BranchCreateWithoutLibraryCatalogSourcesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   payrollPolicy?: Prisma.BranchPayrollPolicyCreateNestedOneWithoutBranchInput
@@ -20758,6 +21346,7 @@ export type BranchUncheckedCreateWithoutLibraryCatalogSourcesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   payrollPolicy?: Prisma.BranchPayrollPolicyUncheckedCreateNestedOneWithoutBranchInput
@@ -20858,6 +21447,7 @@ export type BranchUpdateWithoutLibraryCatalogSourcesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   payrollPolicy?: Prisma.BranchPayrollPolicyUpdateOneWithoutBranchNestedInput
@@ -20942,6 +21532,7 @@ export type BranchUncheckedUpdateWithoutLibraryCatalogSourcesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   payrollPolicy?: Prisma.BranchPayrollPolicyUncheckedUpdateOneWithoutBranchNestedInput
@@ -21026,6 +21617,7 @@ export type BranchCreateWithoutLibraryBooksInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
   payrollPolicy?: Prisma.BranchPayrollPolicyCreateNestedOneWithoutBranchInput
@@ -21110,6 +21702,7 @@ export type BranchUncheckedCreateWithoutLibraryBooksInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
   payrollPolicy?: Prisma.BranchPayrollPolicyUncheckedCreateNestedOneWithoutBranchInput
@@ -21210,6 +21803,7 @@ export type BranchUpdateWithoutLibraryBooksInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
   payrollPolicy?: Prisma.BranchPayrollPolicyUpdateOneWithoutBranchNestedInput
@@ -21294,6 +21888,7 @@ export type BranchUncheckedUpdateWithoutLibraryBooksInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
   payrollPolicy?: Prisma.BranchPayrollPolicyUncheckedUpdateOneWithoutBranchNestedInput
@@ -21377,6 +21972,7 @@ export type BranchCreateWithoutOrganizationSupportBranchScopesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -21461,6 +22057,7 @@ export type BranchUncheckedCreateWithoutOrganizationSupportBranchScopesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -21561,6 +22158,7 @@ export type BranchUpdateWithoutOrganizationSupportBranchScopesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -21645,6 +22243,7 @@ export type BranchUncheckedUpdateWithoutOrganizationSupportBranchScopesInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -21730,6 +22329,7 @@ export type BranchCreateWithoutSupportTicketsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -21814,6 +22414,7 @@ export type BranchUncheckedCreateWithoutSupportTicketsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -21914,6 +22515,7 @@ export type BranchUpdateWithoutSupportTicketsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -21998,6 +22600,7 @@ export type BranchUncheckedUpdateWithoutSupportTicketsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -22082,6 +22685,7 @@ export type BranchCreateWithoutOnlineAssignmentsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -22166,6 +22770,7 @@ export type BranchUncheckedCreateWithoutOnlineAssignmentsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -22266,6 +22871,7 @@ export type BranchUpdateWithoutOnlineAssignmentsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -22350,6 +22956,7 @@ export type BranchUncheckedUpdateWithoutOnlineAssignmentsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -22434,6 +23041,7 @@ export type BranchCreateWithoutSourceConversationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -22518,6 +23126,7 @@ export type BranchUncheckedCreateWithoutSourceConversationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -22618,6 +23227,7 @@ export type BranchUpdateWithoutSourceConversationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -22702,6 +23312,7 @@ export type BranchUncheckedUpdateWithoutSourceConversationsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -22785,6 +23396,7 @@ export type BranchCreateWithoutTemporaryGrantsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceCreateNestedManyWithoutBranchInput
@@ -22869,6 +23481,7 @@ export type BranchUncheckedCreateWithoutTemporaryGrantsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
   libraryBooks?: Prisma.LibraryBookUncheckedCreateNestedManyWithoutBranchInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedCreateNestedManyWithoutBranchInput
@@ -22969,6 +23582,7 @@ export type BranchUpdateWithoutTemporaryGrantsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -23053,6 +23667,7 @@ export type BranchUncheckedUpdateWithoutTemporaryGrantsInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -23162,6 +23777,7 @@ export type BranchUpdateWithoutOrganizationInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUpdateManyWithoutBranchNestedInput
@@ -23246,6 +23862,7 @@ export type BranchUncheckedUpdateWithoutOrganizationInput = {
   teacherProfileDocuments?: Prisma.TeacherProfileDocumentUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  atelierCourseLinks?: Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
   libraryBooks?: Prisma.LibraryBookUncheckedUpdateManyWithoutBranchNestedInput
   libraryCatalogSources?: Prisma.LibraryCatalogSourceUncheckedUpdateManyWithoutBranchNestedInput
@@ -23338,6 +23955,7 @@ export type BranchCountOutputType = {
   teacherProfileDocuments: number
   targetStudentLinks: number
   sourceStudentLinks: number
+  atelierCourseLinks: number
   issuedDocuments: number
   libraryBooks: number
   libraryCatalogSources: number
@@ -23399,6 +24017,7 @@ export type BranchCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   teacherProfileDocuments?: boolean | BranchCountOutputTypeCountTeacherProfileDocumentsArgs
   targetStudentLinks?: boolean | BranchCountOutputTypeCountTargetStudentLinksArgs
   sourceStudentLinks?: boolean | BranchCountOutputTypeCountSourceStudentLinksArgs
+  atelierCourseLinks?: boolean | BranchCountOutputTypeCountAtelierCourseLinksArgs
   issuedDocuments?: boolean | BranchCountOutputTypeCountIssuedDocumentsArgs
   libraryBooks?: boolean | BranchCountOutputTypeCountLibraryBooksArgs
   libraryCatalogSources?: boolean | BranchCountOutputTypeCountLibraryCatalogSourcesArgs
@@ -23742,6 +24361,13 @@ export type BranchCountOutputTypeCountSourceStudentLinksArgs<ExtArgs extends run
 /**
  * BranchCountOutputType without action
  */
+export type BranchCountOutputTypeCountAtelierCourseLinksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AtelierCourseLinkWhereInput
+}
+
+/**
+ * BranchCountOutputType without action
+ */
 export type BranchCountOutputTypeCountIssuedDocumentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.IssuedDocumentWhereInput
 }
@@ -23901,6 +24527,7 @@ export type BranchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   teacherProfileDocuments?: boolean | Prisma.Branch$teacherProfileDocumentsArgs<ExtArgs>
   targetStudentLinks?: boolean | Prisma.Branch$targetStudentLinksArgs<ExtArgs>
   sourceStudentLinks?: boolean | Prisma.Branch$sourceStudentLinksArgs<ExtArgs>
+  atelierCourseLinks?: boolean | Prisma.Branch$atelierCourseLinksArgs<ExtArgs>
   issuedDocuments?: boolean | Prisma.Branch$issuedDocumentsArgs<ExtArgs>
   libraryBooks?: boolean | Prisma.Branch$libraryBooksArgs<ExtArgs>
   libraryCatalogSources?: boolean | Prisma.Branch$libraryCatalogSourcesArgs<ExtArgs>
@@ -24046,6 +24673,7 @@ export type BranchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   teacherProfileDocuments?: boolean | Prisma.Branch$teacherProfileDocumentsArgs<ExtArgs>
   targetStudentLinks?: boolean | Prisma.Branch$targetStudentLinksArgs<ExtArgs>
   sourceStudentLinks?: boolean | Prisma.Branch$sourceStudentLinksArgs<ExtArgs>
+  atelierCourseLinks?: boolean | Prisma.Branch$atelierCourseLinksArgs<ExtArgs>
   issuedDocuments?: boolean | Prisma.Branch$issuedDocumentsArgs<ExtArgs>
   libraryBooks?: boolean | Prisma.Branch$libraryBooksArgs<ExtArgs>
   libraryCatalogSources?: boolean | Prisma.Branch$libraryCatalogSourcesArgs<ExtArgs>
@@ -24118,6 +24746,7 @@ export type $BranchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     teacherProfileDocuments: Prisma.$TeacherProfileDocumentPayload<ExtArgs>[]
     targetStudentLinks: Prisma.$StudentBranchLinkPayload<ExtArgs>[]
     sourceStudentLinks: Prisma.$StudentBranchLinkPayload<ExtArgs>[]
+    atelierCourseLinks: Prisma.$AtelierCourseLinkPayload<ExtArgs>[]
     issuedDocuments: Prisma.$IssuedDocumentPayload<ExtArgs>[]
     libraryBooks: Prisma.$LibraryBookPayload<ExtArgs>[]
     libraryCatalogSources: Prisma.$LibraryCatalogSourcePayload<ExtArgs>[]
@@ -24606,6 +25235,7 @@ export interface Prisma__BranchClient<T, Null = never, ExtArgs extends runtime.T
   teacherProfileDocuments<T extends Prisma.Branch$teacherProfileDocumentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$teacherProfileDocumentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeacherProfileDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   targetStudentLinks<T extends Prisma.Branch$targetStudentLinksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$targetStudentLinksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StudentBranchLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sourceStudentLinks<T extends Prisma.Branch$sourceStudentLinksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$sourceStudentLinksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StudentBranchLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  atelierCourseLinks<T extends Prisma.Branch$atelierCourseLinksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$atelierCourseLinksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AtelierCourseLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   issuedDocuments<T extends Prisma.Branch$issuedDocumentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$issuedDocumentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IssuedDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   libraryBooks<T extends Prisma.Branch$libraryBooksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$libraryBooksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LibraryBookPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   libraryCatalogSources<T extends Prisma.Branch$libraryCatalogSourcesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$libraryCatalogSourcesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LibraryCatalogSourcePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -26150,6 +26780,30 @@ export type Branch$sourceStudentLinksArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.StudentBranchLinkScalarFieldEnum | Prisma.StudentBranchLinkScalarFieldEnum[]
+}
+
+/**
+ * Branch.atelierCourseLinks
+ */
+export type Branch$atelierCourseLinksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AtelierCourseLink
+   */
+  select?: Prisma.AtelierCourseLinkSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AtelierCourseLink
+   */
+  omit?: Prisma.AtelierCourseLinkOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AtelierCourseLinkInclude<ExtArgs> | null
+  where?: Prisma.AtelierCourseLinkWhereInput
+  orderBy?: Prisma.AtelierCourseLinkOrderByWithRelationInput | Prisma.AtelierCourseLinkOrderByWithRelationInput[]
+  cursor?: Prisma.AtelierCourseLinkWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AtelierCourseLinkScalarFieldEnum | Prisma.AtelierCourseLinkScalarFieldEnum[]
 }
 
 /**

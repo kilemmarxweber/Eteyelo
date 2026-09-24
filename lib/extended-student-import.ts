@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import {
+  isAtelierBranch,
   isCentreFormationBranch,
   isUniversiteBranch,
   requiresStudentImport,
@@ -222,12 +223,19 @@ export async function linkStudentToExtendedBranch(params: {
         },
       });
 
-  if (isUniversiteBranch(params.typebranch) || isCentreFormationBranch(params.typebranch)) {
+  const needsClassOnImport =
+    isUniversiteBranch(params.typebranch) ||
+    isCentreFormationBranch(params.typebranch) ||
+    isAtelierBranch(params.typebranch);
+
+  if (needsClassOnImport) {
     if (!params.classeId) {
       throw new Error(
         isUniversiteBranch(params.typebranch)
           ? "L'auditoire est obligatoire pour importer un etudiant"
-          : "La session est obligatoire pour importer un apprenant",
+          : isCentreFormationBranch(params.typebranch)
+            ? "La session est obligatoire pour importer un apprenant"
+            : "Le groupe est obligatoire pour importer un eleve dans l'atelier",
       );
     }
 
@@ -274,9 +282,11 @@ export async function enrollStudentInBranchClass(params: {
 
   if (!classe) {
     throw new Error(
-      isCentreFormationBranch(params.typebranch)
-        ? "Session ou module invalide"
-        : "Auditoire ou filiere invalide",
+      isAtelierBranch(params.typebranch)
+        ? "Groupe invalide pour cette branche atelier"
+        : isCentreFormationBranch(params.typebranch)
+          ? "Session ou module invalide"
+          : "Auditoire ou filiere invalide",
     );
   }
 

@@ -1,3 +1,8 @@
+import {
+  isAtelierBranch,
+  usesPaymentDiscountsForBranch,
+} from "@/lib/branch-capabilities";
+
 export type DiscountInfo = {
   percentage: number;
   typeFraisId: string | null;
@@ -10,9 +15,48 @@ export const EMPTY_DISCOUNT: DiscountInfo = {
   typeFraisName: null,
 };
 
+/** Élèves natifs, importés (lien) ou inscrits dans la branche (ex. atelier). */
+export function studentAccessibleInBranchWhere(branchId: string) {
+  return {
+    OR: [
+      { branchMember: { branchId } },
+      {
+        branchLinks: {
+          some: { targetBranchId: branchId, isActive: true },
+        },
+      },
+      {
+        classEnrollment: {
+          some: { branchId, statusEnrollment: true },
+        },
+      },
+    ],
+  };
+}
+
+/** Parent membre de la branche, ou parent d'un élève accessible dans la branche. */
+export function parentAccessibleInBranchWhere(
+  parentId: string,
+  branchId: string,
+) {
+  return {
+    id: parentId,
+    OR: [
+      { branchMember: { branchId } },
+      {
+        students: {
+          some: studentAccessibleInBranchWhere(branchId),
+        },
+      },
+    ],
+  };
+}
+
 /**
  * Remise % sur le montant brut des frais éligibles (pas sur le reste à payer).
  * Sinon, après un paiement partiel, 10 % de 50 000 devient 500 au lieu de 5 000.
+ *
+ * Safe côté client (pas d'import Prisma / Node).
  */
 export function computeScopedDiscountAmount(
   items: Array<{ base: number; typeFraisId?: string | null }>,
@@ -33,26 +77,40 @@ export function computeScopedDiscountAmount(
   return (eligibleBase * percentage) / 100;
 }
 
+/**
+ * Résolution serveur des remises. Passer `prisma` ou un client de transaction
+ * qui expose `branch.findFirst` (pas d'import Prisma ici — bundle client safe).
+ */
 export async function getBestDiscountInfo(
   tx: {
     parent: { findFirst: (args?: any) => Promise<any> };
     discountRule: {
       findFirst: (args?: any) => Promise<any>;
     };
+    branch: { findFirst: (args?: any) => Promise<any> };
   },
   parentId: string,
   branchId: string,
 ): Promise<DiscountInfo> {
+  const branch = await tx.branch.findFirst({
+    where: { id: branchId },
+    select: { typebranch: true },
+  });
+
+  // Atelier : aucun mélange avec les remises scolaires ; frais isolés, 0 remise.
+  if (
+    !branch ||
+    isAtelierBranch(branch.typebranch) ||
+    !usesPaymentDiscountsForBranch(branch.typebranch)
+  ) {
+    return EMPTY_DISCOUNT;
+  }
+
   const parent = await tx.parent.findFirst({
-    where: {
-      id: parentId,
-      branchMember: { branchId },
-    },
+    where: parentAccessibleInBranchWhere(parentId, branchId),
     include: {
       students: {
-        where: {
-          branchMember: { branchId },
-        },
+        where: studentAccessibleInBranchWhere(branchId),
       },
     },
   });

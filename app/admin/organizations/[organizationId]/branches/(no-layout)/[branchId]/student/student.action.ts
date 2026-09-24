@@ -369,7 +369,9 @@ function mapStudentRecord(
       createdAt?: Date;
       e13?: string | null;
       e80?: string | null;
+      classeId?: string;
       classe: {
+        id?: string;
         codeClasse: string;
         nameClasse: string;
         level?: string | null;
@@ -400,6 +402,7 @@ function mapStudentRecord(
         schoolYearId: year.id,
         schoolYearName: year.nameYear,
         isCurrentYear: year.isCurrentYear,
+        classeId: enrollment.classeId ?? enrollment.classe?.id ?? null,
         classCode: enrollment.classe?.codeClasse ?? null,
         className: enrollment.classe?.nameClasse ?? null,
         optionName: enrollment.classe?.option?.nameOption ?? null,
@@ -418,6 +421,7 @@ function mapStudentRecord(
         schoolYearId: string;
         schoolYearName: string;
         isCurrentYear: boolean;
+        classeId: string | null;
         classCode: string | null;
         className: string | null;
         optionName: string | null;
@@ -479,6 +483,7 @@ function mapStudentRecord(
     langue: student.langue,
     classCode: preferredEnrollment?.classCode ?? null,
     className: preferredEnrollment?.className ?? null,
+    classeId: preferredEnrollment?.classeId ?? null,
     optionName: preferredEnrollment?.optionName ?? null,
     classLevel: preferredEnrollment?.classLevel ?? null,
     classCycle: preferredEnrollment?.classCycle ?? null,
@@ -490,6 +495,7 @@ function mapStudentRecord(
     enrollments: enrollments.map((enrollment) => ({
       schoolYearId: enrollment.schoolYearId,
       schoolYearName: enrollment.schoolYearName,
+      classeId: enrollment.classeId,
       classCode: enrollment.classCode,
       className: enrollment.className,
       optionName: enrollment.optionName,
@@ -654,7 +660,10 @@ export const getStudentsAction = action.handler(
         include: {
           sourceBranch: { select: { id: true, name: true } },
           student: {
-            include: studentListInclude,
+            include: {
+              ...studentListInclude,
+              classEnrollment: classEnrollmentForBranch(branchId),
+            },
           },
         },
         orderBy: { enrolledAt: "desc" },

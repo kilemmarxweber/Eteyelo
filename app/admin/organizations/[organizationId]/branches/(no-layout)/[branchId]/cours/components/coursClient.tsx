@@ -37,9 +37,11 @@ import { ImportCourseDialog } from "./import-course-dialog";
 
 export default function Cours({
   isPrimary = false,
+  isAtelier = false,
   supportsCourseImport = false,
 }: {
   isPrimary?: boolean;
+  isAtelier?: boolean;
   supportsCourseImport?: boolean;
 }) {
   const t = useTranslations("teaching.courses");
@@ -99,7 +101,7 @@ export default function Cours({
 
   const headerActions = canCreate ? (
     <div className="flex flex-wrap gap-2">
-      {!isPrimary && !supportsCourseImport ? (
+      {!isPrimary && !isAtelier && !supportsCourseImport ? (
         <Button
           type="button"
           size="sm"
@@ -143,7 +145,9 @@ export default function Cours({
             <SheetDescription>
               {isPrimary
                 ? t("createDescPrimary")
-                : t("createDescSecondary")}
+                : isAtelier
+                  ? t("createDescAtelier")
+                  : t("createDescSecondary")}
             </SheetDescription>
           </SheetHeader>
           <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
@@ -151,6 +155,7 @@ export default function Cours({
               mode="create"
               layout="dialog"
               isPrimary={isPrimary}
+              isAtelier={isAtelier}
               onCreated={handleSaved}
             />
           </div>
@@ -165,9 +170,11 @@ export default function Cours({
           description={
             isPrimary
               ? t("descPrimary")
-              : supportsCourseImport
-                ? t("descImportOrg")
-                : t("descImportCatalog")
+              : isAtelier
+                ? t("descAtelier")
+                : supportsCourseImport
+                  ? t("descImportOrg")
+                  : t("descImportCatalog")
           }
           badge={
             <Badge variant="outline-primary" icon={<IconBooks size={14} />}>
@@ -201,7 +208,11 @@ export default function Cours({
           variant="elevated"
           className="mt-0 rounded-md border p-1 shadow-sm md:p-4"
         >
-          <CoursList refreshKey={refreshKey} isPrimary={isPrimary} />
+          <CoursList
+            refreshKey={refreshKey}
+            isPrimary={isPrimary}
+            isAtelier={isAtelier}
+          />
         </Card>
 
         {supportsCourseImport ? (

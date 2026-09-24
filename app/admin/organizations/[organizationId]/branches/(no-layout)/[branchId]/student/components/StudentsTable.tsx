@@ -13,11 +13,16 @@ import { getStudentsAction } from "../student.action";
 import { getStudentPageContextAction } from "../../brevets/brevet.action";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { ImportStudentDialog } from "./import-student-dialog";
+import { AssignGroupeDialog } from "./assign-groupe-dialog";
 import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { UpdateStudentDialog } from "./edit-student-dialog";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
-import { getClassDisplayLabel, isSchoolBranch } from "@/lib/branch-capabilities";
+import {
+  getClassDisplayLabel,
+  isAtelierBranch,
+  isSchoolBranch,
+} from "@/lib/branch-capabilities";
 import { getBranchCycles } from "@/lib/cycle";
 import { examCodesExistForCycle } from "@/lib/exam-export-meta";
 import { sortActiveStatusUserFirst } from "@/lib/archive";
@@ -53,13 +58,16 @@ const StudentsList = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingStudent, setEditingStudent] = useState<IStudent | null>(null);
+  const [assigningStudents, setAssigningStudents] = useState<IStudent[] | null>(
+    null,
+  );
   const [requiresImport, setRequiresImport] = useState(false);
   const [supportsImport, setSupportsImport] = useState(false);
   const [importScope, setImportScope] = useState<"school_only" | "organization">(
     "school_only",
   );
   const [importEnrollmentMode, setImportEnrollmentMode] = useState<
-    "university" | "centre" | null
+    "university" | "centre" | "atelier" | null
   >(null);
   const peopleLabels = useBranchPeopleLabels();
   const t = useTranslations("users.students.table");
@@ -89,6 +97,7 @@ const StudentsList = ({
   const tableActions = useMemo(
     () => ({
       onEdit: (student: IStudent) => setEditingStudent(student),
+      onAssignGroupe: (student: IStudent) => setAssigningStudents([student]),
     }),
     [],
   );
@@ -112,6 +121,7 @@ const StudentsList = ({
       showExamCodeColumns: cycles.some((cycle) =>
         examCodesExistForCycle(cycle, educationSystem),
       ),
+      showAssignGroupeAction: isAtelierBranch(typebranch),
     };
   }, [session?.branch]);
 
@@ -217,6 +227,19 @@ const StudentsList = ({
         peopleLabels={peopleLabels}
         onSuccess={onRefresh}
       />
+      {assigningStudents && canManageStudents ? (
+        <AssignGroupeDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setAssigningStudents(null);
+          }}
+          students={assigningStudents}
+          onSuccess={() => {
+            setAssigningStudents(null);
+            onRefresh();
+          }}
+        />
+      ) : null}
       {editingStudent && canManageStudents ? (
         <UpdateStudentDialog
           open

@@ -164,6 +164,11 @@ export default function InterventionsDetailButton({
                       },
                     )}
                   </p>
+                  {intervention.sourceLabel ? (
+                    <p className="text-xs text-muted-foreground">
+                      Source atelier : {intervention.sourceLabel}
+                    </p>
+                  ) : null}
                   <p className="text-xs text-muted-foreground">
                     {intervention.notesCount} note
                     {intervention.notesCount > 1 ? "s" : ""}
@@ -174,6 +179,12 @@ export default function InterventionsDetailButton({
                 </div>
 
                 <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                  {intervention.id.startsWith("atelier:") ? (
+                    <p className="text-xs text-muted-foreground sm:max-w-40">
+                      Gérée depuis la branche atelier
+                    </p>
+                  ) : (
+                    <>
                   <Button
                     asChild
                     variant="outline"
@@ -188,6 +199,8 @@ export default function InterventionsDetailButton({
                     intervention={intervention}
                     index={index}
                   />
+                    </>
+                  )}
                 </div>
               </div>
             </div>

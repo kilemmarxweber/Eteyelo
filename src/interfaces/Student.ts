@@ -26,6 +26,8 @@ export interface IStudent extends Omit<
   langue?: string | null;
   classCode?: string | null;
   className?: string | null;
+  /** Id de la classe/groupe affiche (inscription preferentielle / annee courante). */
+  classeId?: string | null;
   optionName?: string | null;
   classLevel?: string | null;
   classCycle?: string | null;
@@ -38,6 +40,7 @@ export interface IStudent extends Omit<
   enrollments?: Array<{
     schoolYearId: string;
     schoolYearName: string;
+    classeId?: string | null;
     classCode: string | null;
     className: string | null;
     optionName?: string | null;

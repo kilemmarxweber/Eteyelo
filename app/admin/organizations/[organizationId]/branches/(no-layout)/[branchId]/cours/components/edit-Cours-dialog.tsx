@@ -21,6 +21,7 @@ interface UpdateCoursDialogProps extends React.ComponentPropsWithoutRef<
   onSuccess?: () => void;
   cours: ICours;
   isPrimary?: boolean;
+  isAtelier?: boolean;
 }
 
 export function UpdateCoursDialog({
@@ -28,6 +29,7 @@ export function UpdateCoursDialog({
   onSuccess,
   cours,
   isPrimary = false,
+  isAtelier = false,
   ...props
 }: UpdateCoursDialogProps) {
   const t = useTranslations("teaching.courses");
@@ -44,7 +46,11 @@ export function UpdateCoursDialog({
         <DialogHeader>
           <DialogTitle>{t("editTitle")}</DialogTitle>
           <DialogDescription>
-            {isPrimary ? t("editDescPrimary") : t("editDescSecondary")}
+            {isPrimary
+              ? t("editDescPrimary")
+              : isAtelier
+                ? t("editDescAtelier")
+                : t("editDescSecondary")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid w-full min-w-0 gap-4">
@@ -52,6 +58,7 @@ export function UpdateCoursDialog({
             mode="update"
             layout="dialog"
             isPrimary={isPrimary}
+            isAtelier={isAtelier}
             className="w-full min-w-0"
             initialData={{
               id: cours.id,
@@ -59,13 +66,21 @@ export function UpdateCoursDialog({
               nameCours: cours.nameCours,
               description: cours.description,
               primaryDomain: cours.primaryDomain ?? null,
+              linkedSecondaryBranchId:
+                cours.atelierLink?.secondaryBranchId ?? null,
+              linkedSecondaryCoursId:
+                cours.atelierLink?.secondaryCoursId ?? null,
+              linkedTargetPeriodKey:
+                cours.atelierLink?.targetPeriodKey ?? null,
             }}
             onUpdated={handleUpdate}
           />
-          <CoursComponentsPanel
-            parentCoursId={cours.id}
-            parentName={cours.nameCours}
-          />
+          {!isAtelier ? (
+            <CoursComponentsPanel
+              parentCoursId={cours.id}
+              parentName={cours.nameCours}
+            />
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>

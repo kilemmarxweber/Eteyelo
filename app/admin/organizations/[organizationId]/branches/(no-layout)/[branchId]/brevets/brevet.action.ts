@@ -5,12 +5,14 @@ import { revalidatePath } from "next/cache";
 import { isAtelierBranchType } from "@/lib/atelier-student-access";
 import {
   canCreateStudentInBranch,
+  isAtelierBranch,
   isCentreFormationBranch,
   isUniversiteBranch,
   requiresStudentImport,
   usesBrevetForBranch,
 } from "@/lib/branch-capabilities";
 import {
+  enrollStudentInBranchClass,
   generateBrevetNumber,
   linkStudentToExtendedBranch,
   searchOrganizationStudentsForBranchImport,
@@ -101,6 +103,13 @@ export async function linkStudentToBranchAction(input: {
     };
   }
 
+  if (isAtelierBranch(typebranch) && !input.classeId?.trim()) {
+    return {
+      ok: false as const,
+      message: "Selectionnez un groupe avant l'import",
+    };
+  }
+
   const parsed = importStudentSchema.safeParse({
     studentId: input.studentId,
     targetBranchId: branchId,
@@ -132,6 +141,230 @@ export async function linkStudentToBranchAction(input: {
       message: error instanceof Error ? error.message : "Import impossible",
     };
   }
+}
+
+export async function linkStudentsToBranchAction(input: {
+  students: Array<{ studentId: string; sourceBranchId: string }>;
+  classeId: string;
+}) {
+  const { branchId, organizationId, canManageStudents, typebranch } =
+    await getCurrentBranch();
+
+  if (!canManageStudents) {
+    return { ok: false as const, message: "Action non autorisee" };
+  }
+
+  if (!supportsOptionalStudentImport(typebranch)) {
+    return { ok: false as const, message: "Import non autorise pour cette branche" };
+  }
+
+  if (!isAtelierBranch(typebranch)) {
+    return {
+      ok: false as const,
+      message: "L'import par lot est reserve aux ateliers",
+    };
+  }
+
+  const classeId = input.classeId?.trim();
+  if (!classeId) {
+    return {
+      ok: false as const,
+      message: "Selectionnez un groupe avant l'import",
+    };
+  }
+
+  if (!input.students.length) {
+    return {
+      ok: false as const,
+      message: "Selectionnez au moins un eleve a importer",
+    };
+  }
+
+  const imported: string[] = [];
+  const failures: Array<{ studentId: string; message: string }> = [];
+
+  for (const student of input.students) {
+    const parsed = importStudentSchema.safeParse({
+      studentId: student.studentId,
+      targetBranchId: branchId,
+      sourceBranchId: student.sourceBranchId,
+    });
+
+    if (!parsed.success) {
+      failures.push({
+        studentId: student.studentId,
+        message: parsed.error.issues[0]?.message ?? "Donnees invalides",
+      });
+      continue;
+    }
+
+    try {
+      await linkStudentToExtendedBranch({
+        studentId: parsed.data.studentId,
+        sourceBranchId: parsed.data.sourceBranchId,
+        targetBranchId: branchId,
+        organizationId,
+        typebranch,
+        classeId,
+      });
+      imported.push(parsed.data.studentId);
+    } catch (error) {
+      failures.push({
+        studentId: student.studentId,
+        message: error instanceof Error ? error.message : "Import impossible",
+      });
+    }
+  }
+
+  if (imported.length > 0) {
+    revalidateExtendedStudentPages(organizationId, branchId);
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/paiement`,
+    );
+  }
+
+  if (imported.length === 0) {
+    return {
+      ok: false as const,
+      message: failures[0]?.message ?? "Aucun eleve importe",
+      importedCount: 0,
+      failures,
+    };
+  }
+
+  return {
+    ok: true as const,
+    importedCount: imported.length,
+    failures,
+  };
+}
+
+export async function assignStudentsToGroupeAction(input: {
+  studentIds: string[];
+  classeId: string;
+}) {
+  const { branchId, organizationId, canManageStudents, typebranch } =
+    await getCurrentBranch();
+
+  if (!canManageStudents) {
+    return { ok: false as const, message: "Action non autorisee" };
+  }
+
+  if (!isAtelierBranch(typebranch)) {
+    return {
+      ok: false as const,
+      message: "Affectation de groupe disponible uniquement en atelier",
+    };
+  }
+
+  const classeId = input.classeId?.trim();
+  if (!classeId) {
+    return { ok: false as const, message: "Selectionnez un groupe" };
+  }
+
+  const studentIds = [...new Set(input.studentIds.filter(Boolean))];
+  if (!studentIds.length) {
+    return {
+      ok: false as const,
+      message: "Selectionnez au moins un eleve",
+    };
+  }
+
+  const links = await prisma.studentBranchLink.findMany({
+    where: {
+      targetBranchId: branchId,
+      isActive: true,
+      studentId: { in: studentIds },
+    },
+    select: { studentId: true },
+  });
+  const linkedIds = new Set(links.map((link) => link.studentId));
+
+  const schoolYear = await prisma.schoolYear.findFirst({
+    where: { branchId, isCurrentYear: true, isArchived: false },
+    select: { id: true },
+  });
+
+  if (!schoolYear) {
+    return {
+      ok: false as const,
+      message: "Aucune annee academique en cours",
+    };
+  }
+
+  const existingEnrollments = await prisma.classEnrollment.findMany({
+    where: {
+      branchId,
+      schoolYearId: schoolYear.id,
+      studentId: { in: studentIds },
+      statusEnrollment: true,
+    },
+    select: { studentId: true, classeId: true },
+  });
+  const currentClasseByStudent = new Map(
+    existingEnrollments.map((enrollment) => [
+      enrollment.studentId,
+      enrollment.classeId,
+    ]),
+  );
+
+  const assigned: string[] = [];
+  const failures: Array<{ studentId: string; message: string }> = [];
+
+  for (const studentId of studentIds) {
+    if (!linkedIds.has(studentId)) {
+      failures.push({
+        studentId,
+        message: "Eleve non importe dans cet atelier",
+      });
+      continue;
+    }
+
+    if (currentClasseByStudent.get(studentId) === classeId) {
+      failures.push({
+        studentId,
+        message: "Eleve deja dans ce groupe",
+      });
+      continue;
+    }
+
+    try {
+      await enrollStudentInBranchClass({
+        studentId,
+        branchId,
+        classeId,
+        typebranch,
+      });
+      assigned.push(studentId);
+    } catch (error) {
+      failures.push({
+        studentId,
+        message: error instanceof Error ? error.message : "Affectation impossible",
+      });
+    }
+  }
+
+  if (assigned.length > 0) {
+    revalidateExtendedStudentPages(organizationId, branchId);
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/paiement`,
+    );
+  }
+
+  if (assigned.length === 0) {
+    return {
+      ok: false as const,
+      message: failures[0]?.message ?? "Aucune affectation effectuee",
+      assignedCount: 0,
+      failures,
+    };
+  }
+
+  return {
+    ok: true as const,
+    assignedCount: assigned.length,
+    failures,
+  };
 }
 
 /** @deprecated Utiliser linkStudentToBranchAction */
@@ -189,7 +422,9 @@ export async function getStudentPageContextAction() {
       ? ("university" as const)
       : isCentreFormationBranch(ctx.typebranch)
         ? ("centre" as const)
-        : null,
+        : isAtelierBranch(ctx.typebranch)
+          ? ("atelier" as const)
+          : null,
     importScope: requiresStudentImport(ctx.typebranch)
       ? ("school_only" as const)
       : ("organization" as const),
@@ -206,15 +441,88 @@ export async function getImportEnrollmentOptionsAction() {
 
   const isUniversity = isUniversiteBranch(typebranch);
   const isCentre = isCentreFormationBranch(typebranch);
+  const isAtelier = isAtelierBranch(typebranch);
 
-  if (!isUniversity && !isCentre) {
+  if (!isUniversity && !isCentre && !isAtelier) {
     return {
       ok: false as const,
-      message: "Disponible uniquement pour une branche universite ou centre de formation",
+      message:
+        "Disponible uniquement pour une branche universite, centre de formation ou atelier",
     };
   }
 
-  const [modules, sessions, schoolYear] = await Promise.all([
+  const schoolYear = await prisma.schoolYear.findFirst({
+    where: { branchId, isCurrentYear: true, isArchived: false },
+    select: { id: true, nameYear: true },
+  });
+
+  if (!schoolYear) {
+    return {
+      ok: false as const,
+      message: "Aucune annee academique en cours. Creez-en une avant l'import.",
+    };
+  }
+
+  if (isAtelier) {
+    const groupes = await prisma.classe.findMany({
+      where: {
+        branchId,
+        statusClasse: { not: false },
+        cycle: "ATELIER",
+        optionId: { not: null },
+      },
+      include: {
+        option: { select: { id: true, nameOption: true } },
+        _count: {
+          select: {
+            classEnrollment: {
+              where: {
+                statusEnrollment: true,
+                schoolYearId: schoolYear.id,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { nameClasse: "asc" },
+    });
+
+    if (!groupes.length) {
+      return {
+        ok: false as const,
+        message:
+          "Aucun groupe atelier disponible. Creez un groupe avant d'importer des eleves.",
+      };
+    }
+
+    return {
+      ok: true as const,
+      mode: "atelier" as const,
+      schoolYear,
+      modules: [] as Array<{
+        id: string;
+        nameOption: string;
+        sectionName: string | null;
+      }>,
+      sessions: groupes.map((groupe) => ({
+        id: groupe.id,
+        nameClasse: groupe.nameClasse,
+        optionId: groupe.optionId!,
+        optionName: groupe.option?.nameOption ?? "Groupe",
+        enrolledCount: groupe._count.classEnrollment,
+        capacity: groupe.capacity,
+      })),
+      groupes: groupes.map((groupe) => ({
+        id: groupe.id,
+        nameClasse: groupe.nameClasse,
+        optionName: groupe.option?.nameOption ?? "Groupe",
+        enrolledCount: groupe._count.classEnrollment,
+        capacity: groupe.capacity,
+      })),
+    };
+  }
+
+  const [modules, sessions] = await Promise.all([
     prisma.option.findMany({
       where: { branchId, statusOption: { not: false } },
       include: { section: { select: { nameSection: true } } },
@@ -231,18 +539,7 @@ export async function getImportEnrollmentOptionsAction() {
       },
       orderBy: { nameClasse: "asc" },
     }),
-    prisma.schoolYear.findFirst({
-      where: { branchId, isCurrentYear: true, isArchived: false },
-      select: { id: true, nameYear: true },
-    }),
   ]);
-
-  if (!schoolYear) {
-    return {
-      ok: false as const,
-      message: "Aucune annee academique en cours. Creez-en une avant l'import.",
-    };
-  }
 
   return {
     ok: true as const,

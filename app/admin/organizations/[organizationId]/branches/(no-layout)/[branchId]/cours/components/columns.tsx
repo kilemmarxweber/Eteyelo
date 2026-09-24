@@ -27,7 +27,10 @@ import { DeleteCoursDialog } from "./delete-Cours-dialog";
 import { UpdateCoursDialog } from "./edit-Cours-dialog";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 
-export function useCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
+export function useCoursColumns(
+  isPrimary = false,
+  isAtelier = false,
+): ColumnDef<ICours>[] {
   const t = useTranslations("teaching.courses.table");
   const tf = useTranslations("teaching.courses.form");
   const tc = useTranslations("common");
@@ -101,6 +104,32 @@ export function useCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
     });
   }
 
+  if (isAtelier) {
+    cols.push({
+      id: "atelierLink",
+      accessorFn: (row) => row.atelierLink?.secondaryCoursName ?? "",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("linkedCourse")} />
+      ),
+      cell: ({ row }) => {
+        const link = row.original.atelierLink;
+        if (!link) {
+          return <Badge variant="secondary">{t("noLink")}</Badge>;
+        }
+        return (
+          <div className="min-w-0 space-y-0.5">
+            <p className="truncate text-sm font-medium">
+              {link.secondaryCoursName}
+            </p>
+            <p className="truncate text-xs text-muted-foreground">
+              {link.secondaryBranchName} · {link.targetPeriodLabel}
+            </p>
+          </div>
+        );
+      },
+    });
+  }
+
   cols.push(
     {
       id: "statusCours",
@@ -144,6 +173,7 @@ export function useCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
               onOpenChange={setEditOpen}
               cours={row.original}
               isPrimary={isPrimary}
+              isAtelier={isAtelier}
               onSuccess={() => row.toggleSelected(false)}
             />
             <DeleteCoursDialog
@@ -235,5 +265,5 @@ export function useCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
   );
 
   return cols;
-  }, [isPrimary, locale, t, tf, tc]);
+  }, [isPrimary, isAtelier, locale, t, tf, tc]);
 }

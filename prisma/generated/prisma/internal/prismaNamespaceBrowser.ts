@@ -73,6 +73,7 @@ export const ModelName = {
   TeacherProfileDocument: 'TeacherProfileDocument',
   Teaching: 'Teaching',
   Cours: 'Cours',
+  AtelierCourseLink: 'AtelierCourseLink',
   CoursOptionPonderation: 'CoursOptionPonderation',
   Schedule: 'Schedule',
   CalendarEvent: 'CalendarEvent',
@@ -550,6 +551,19 @@ export const CoursScalarFieldEnum = {
 } as const
 
 export type CoursScalarFieldEnum = (typeof CoursScalarFieldEnum)[keyof typeof CoursScalarFieldEnum]
+
+
+export const AtelierCourseLinkScalarFieldEnum = {
+  id: 'id',
+  atelierCoursId: 'atelierCoursId',
+  secondaryCoursId: 'secondaryCoursId',
+  secondaryBranchId: 'secondaryBranchId',
+  targetPeriodKey: 'targetPeriodKey',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AtelierCourseLinkScalarFieldEnum = (typeof AtelierCourseLinkScalarFieldEnum)[keyof typeof AtelierCourseLinkScalarFieldEnum]
 
 
 export const CoursOptionPonderationScalarFieldEnum = {
