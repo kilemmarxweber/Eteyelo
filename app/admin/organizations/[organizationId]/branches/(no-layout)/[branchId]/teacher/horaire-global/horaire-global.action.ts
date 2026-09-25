@@ -12,7 +12,10 @@ import {
   buildLocalizedSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
-import { parseWhatsAppRetryWaitMs } from "@/lib/whatsapp-pace";
+import {
+  isWhatsAppCircuitOpen,
+  parseWhatsAppRetryWaitMs,
+} from "@/lib/whatsapp-pace";
 import { action } from "@/lib/zsa";
 import { resolveWhatsAppTo, sendTransactionalWhatsApp } from "@/lib/zindua";
 import { getGlobalScheduleByCycleAction } from "../../schedule/schedule.action";
@@ -59,10 +62,12 @@ function teacherPdfMeta(
 
 function isPermanentWhatsAppStop(message?: string | null) {
   if (!message) return false;
-  if (parseWhatsAppRetryWaitMs(message)) return false;
+  if (isWhatsAppCircuitOpen()) return true;
+  if (parseWhatsAppRetryWaitMs(message)) return true;
   return (
     message.includes("pas connecté") ||
-    message.includes("désactivé")
+    message.includes("désactivé") ||
+    /restrict|bloqu|spam|anti-ban|RATE_LIMIT/i.test(message)
   );
 }
 
@@ -213,8 +218,13 @@ export const sendGlobalScheduleWhatsAppAction = action
       let skipWhatsApp = false;
 
       for (const teacher of ready) {
-        if (skipWhatsApp) {
+        if (skipWhatsApp || isWhatsAppCircuitOpen()) {
           failed += 1;
+          if (isWhatsAppCircuitOpen() && !error) {
+            error =
+              "WhatsApp a restreint les envois — pause automatique, lot interrompu.";
+            skipWhatsApp = true;
+          }
           continue;
         }
         try {
@@ -231,6 +241,13 @@ export const sendGlobalScheduleWhatsAppAction = action
           });
           if (result.sent) {
             sent += 1;
+            if (isWhatsAppCircuitOpen()) {
+              skipWhatsApp = true;
+              if (!error) {
+                error =
+                  "WhatsApp a restreint les envois — pause automatique, lot interrompu.";
+              }
+            }
             continue;
           }
           failed += 1;

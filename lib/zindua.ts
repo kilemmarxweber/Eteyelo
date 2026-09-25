@@ -9,6 +9,7 @@ import {
 } from "@/lib/whatsapp-settings";
 import {
   enqueueWhatsAppTask,
+  setWhatsAppPaceProfile,
   withWhatsAppGuardianRetry,
 } from "@/lib/whatsapp-pace";
 
@@ -234,6 +235,9 @@ export async function sendWhatsApp(
         key === "code" ? truncateWhatsAppCode(value) : sanitizeWhatsAppVariable(value);
     }
   }
+
+  // QR / GOWA / Zindua = profil strict ; Meta Cloud = plus souple
+  setWhatsAppPaceProfile(config.provider === "meta" ? "cloud" : "qr");
 
   return enqueueWhatsAppTask(() =>
     withWhatsAppGuardianRetry(async () => {

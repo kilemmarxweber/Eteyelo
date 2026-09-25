@@ -10,15 +10,20 @@ import {
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { sendStudentResultsNotification } from "@/lib/email/send-student-results-notification";
-import { parseWhatsAppRetryWaitMs } from "@/lib/whatsapp-pace";
+import {
+  isWhatsAppCircuitOpen,
+  parseWhatsAppRetryWaitMs,
+} from "@/lib/whatsapp-pace";
 import { action } from "@/lib/zsa";
 
 function isPermanentWhatsAppStop(message?: string | null) {
   if (!message) return false;
-  if (parseWhatsAppRetryWaitMs(message)) return false;
+  if (isWhatsAppCircuitOpen()) return true;
+  if (parseWhatsAppRetryWaitMs(message)) return true;
   return (
     message.includes("pas connecté") ||
-    message.includes("désactivé")
+    message.includes("désactivé") ||
+    /restrict|bloqu|spam|anti-ban|RATE_LIMIT/i.test(message)
   );
 }
 
@@ -274,6 +279,35 @@ export const sendResultsToParentsAction = action
       let skipWhatsApp = false;
 
       for (const row of ready) {
+        if (skipWhatsApp || isWhatsAppCircuitOpen()) {
+          if (isWhatsAppCircuitOpen() && !whatsappError) {
+            whatsappError =
+              "WhatsApp a restreint les envois — pause automatique, lot interrompu.";
+            skipWhatsApp = true;
+          }
+          if (skipWhatsApp) {
+            // Email seul si possible
+            try {
+              await sendStudentResultsNotification({
+                to: row.email,
+                phone: null,
+                parentName: row.parentName,
+                studentName: row.studentName,
+                schoolName,
+                className: row.className,
+                periodLabel,
+                yearLabel: input.yearName,
+                lines: row.lines,
+                percentage: row.percentage,
+                organizationId,
+              });
+              notified += 1;
+            } catch {
+              // ignore
+            }
+            continue;
+          }
+        }
         try {
           const result = await sendStudentResultsNotification({
             to: row.email,
@@ -294,6 +328,13 @@ export const sendResultsToParentsAction = action
             whatsappError = result.whatsappError;
             if (isPermanentWhatsAppStop(result.whatsappError)) {
               skipWhatsApp = true;
+            }
+          }
+          if (isWhatsAppCircuitOpen()) {
+            skipWhatsApp = true;
+            if (!whatsappError) {
+              whatsappError =
+                "WhatsApp a restreint les envois — pause automatique, lot interrompu.";
             }
           }
         } catch (cause) {

@@ -1,51 +1,104 @@
 import "server-only";
 
 /**
- * File WhatsApp process-wide : un message après l’autre, rythme « humain ».
+ * File WhatsApp process-wide — un message après l’autre.
  *
- * Objectifs :
- * - ne jamais bombarder (plancher anti-Guardian / TVS ~14 s)
- * - éviter un métronome (jitter asymétrique, dérive, pauses irrégulières)
- * - ralentir naturellement sur les gros lots et après un rate-limit
+ * Profil `qr` (GOWA / Zindua / Klambo QR) : très prudent (lots ~50+).
+ * Profil `cloud` (Meta Cloud API) : plus rapide, templates officiels.
+ *
+ * Les chats sortants apparaissent toujours sur le téléphone scanné (sync
+ * multi-appareils WhatsApp) — ce n’est pas une « copie » API, c’est normal.
  */
 
-/** Écart de base (TVS = 14 s). Surcharge : WHATSAPP_SEND_GAP_MS */
-export const WHATSAPP_SEND_GAP_MS = readEnvMs(
-  "WHATSAPP_SEND_GAP_MS",
-  14_000,
-);
+export type WhatsAppPaceProfile = "qr" | "cloud";
 
-const MIN_GAP_MS = 3_500;
-const MAX_GAP_MS = 90_000;
-const MAX_GUARDIAN_RETRIES = 5;
+type ProfileConfig = {
+  baseGapMs: number;
+  minGapMs: number;
+  maxGapMs: number;
+  /** Pause longue tous les N envois réussis. */
+  chunkEvery: number;
+  chunkBreakMinMs: number;
+  chunkBreakMaxMs: number;
+  /** Au-delà : écarts nettement plus longs. */
+  softCap: number;
+  /** Au-delà : pause forcée longue avant de continuer. */
+  hardCap: number;
+  hardBreakMinMs: number;
+  hardBreakMaxMs: number;
+};
 
-/** Si aucun envoi depuis si longtemps → nouvelle « session » (warm-up). */
-const SESSION_IDLE_MS = 3 * 60_000;
+const PROFILES: Record<WhatsAppPaceProfile, ProfileConfig> = {
+  // ~30–45 s entre msgs + pause 3–6 min tous les 8 + pause longue vers 45+
+  qr: {
+    baseGapMs: readEnvMs("WHATSAPP_SEND_GAP_MS", 32_000, 12_000),
+    minGapMs: 12_000,
+    maxGapMs: 12 * 60_000,
+    chunkEvery: 8,
+    chunkBreakMinMs: 3 * 60_000,
+    chunkBreakMaxMs: 6 * 60_000,
+    softCap: 32,
+    hardCap: 48,
+    hardBreakMinMs: 8 * 60_000,
+    hardBreakMaxMs: 14 * 60_000,
+  },
+  cloud: {
+    baseGapMs: readEnvMs("WHATSAPP_SEND_GAP_MS", 8_000, 3_500),
+    minGapMs: 3_500,
+    maxGapMs: 90_000,
+    chunkEvery: 20,
+    chunkBreakMinMs: 20_000,
+    chunkBreakMaxMs: 45_000,
+    softCap: 80,
+    hardCap: 150,
+    hardBreakMinMs: 60_000,
+    hardBreakMaxMs: 120_000,
+  },
+};
 
-/** Après un rate-limit, gap élevé pendant… */
-const ELEVATED_HOLD_MS = 2 * 60_000;
-const ELEVATED_GAP_MULTIPLIER = 1.75;
+const MAX_GUARDIAN_RETRIES = 4;
+const SESSION_IDLE_MS = 8 * 60_000;
+/** Après restriction détectée : refuser / attendre longtemps. */
+const CIRCUIT_HOLD_MS = 20 * 60_000;
 
+let profile: WhatsAppPaceProfile = "qr";
 let chain: Promise<void> = Promise.resolve();
 let lastSendAt = 0;
 let consecutiveOk = 0;
 let elevatedUntil = 0;
 let elevatedGapMs = 0;
-
-/**
- * Pace « d’humeur » (facteur ~0.85–1.35) qui dérive doucement :
- * deux écarts successifs se ressemblent un peu, sans être identiques.
- */
 let moodFactor = 1;
-/** Compteur depuis la dernière vraie pause « café ». */
 let sinceHumanBreak = 0;
+let sinceChunk = 0;
+let circuitOpenUntil = 0;
 
-function readEnvMs(name: string, fallback: number): number {
+function readEnvMs(name: string, fallback: number, minFloor: number): number {
   const raw = process.env[name];
   if (!raw) return fallback;
   const n = Number(raw);
-  if (!Number.isFinite(n) || n < MIN_GAP_MS) return fallback;
-  return Math.min(Math.round(n), MAX_GAP_MS);
+  if (!Number.isFinite(n) || n < minFloor) return fallback;
+  return Math.round(n);
+}
+
+function cfg(): ProfileConfig {
+  return PROFILES[profile];
+}
+
+export function setWhatsAppPaceProfile(next: WhatsAppPaceProfile) {
+  profile = next;
+}
+
+export function getWhatsAppPaceProfile(): WhatsAppPaceProfile {
+  return profile;
+}
+
+/** true si WhatsApp a récemment restreint — les lots doivent s’arrêter. */
+export function isWhatsAppCircuitOpen(): boolean {
+  return Date.now() < circuitOpenUntil;
+}
+
+export function getWhatsAppCircuitRemainingMs(): number {
+  return Math.max(0, circuitOpenUntil - Date.now());
 }
 
 export function sleepMs(ms: number) {
@@ -58,105 +111,96 @@ function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
 }
 
-/** Uniforme [0, 1). */
 function rand() {
   return Math.random();
 }
 
-/** Entier inclusif. */
 function randInt(min: number, max: number) {
   return Math.floor(rand() * (max - min + 1)) + min;
 }
 
-/**
- * Bruit gaussien approximatif (Box–Muller).
- * Les humains s’écartent surtout un peu du rythme, rarement beaucoup.
- */
 function gaussianNoise(sigma = 1) {
   const u = Math.max(1e-9, rand());
   const v = Math.max(1e-9, rand());
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v) * sigma;
 }
 
-/** Jitter asymétrique : un peu plus souvent un peu plus lent que plus rapide. */
 function humanJitter(baseMs: number): number {
-  // sigma ~ 18 % du base ; biais +6 % (légère tendance à traîner)
-  const noisy = baseMs * (1.06 + gaussianNoise(0.18));
-  // micro-irrégularité (évite les .000 / multiples ronds)
-  const crumbs = randInt(47, 891);
-  return Math.round(clamp(noisy + crumbs, MIN_GAP_MS, MAX_GAP_MS));
+  const { minGapMs, maxGapMs } = cfg();
+  const noisy = baseMs * (1.08 + gaussianNoise(0.2));
+  const crumbs = randInt(73, 1_247);
+  return Math.round(clamp(noisy + crumbs, minGapMs, maxGapMs));
 }
 
 function driftMood() {
-  // Marche aléatoire amortie vers 1.0
-  moodFactor += gaussianNoise(0.04);
-  moodFactor = clamp(moodFactor * 0.92 + 0.08 * 1, 0.82, 1.38);
+  moodFactor += gaussianNoise(0.045);
+  moodFactor = clamp(moodFactor * 0.9 + 0.1 * 1, 0.88, 1.45);
 }
 
 function warmUpExtraMs(): number {
-  // Premiers messages d’une session : un peu plus prudents
-  if (consecutiveOk === 0) return randInt(1_200, 4_800);
-  if (consecutiveOk === 1) return randInt(400, 2_200);
-  if (consecutiveOk === 2) return randInt(0, 1_100);
+  if (consecutiveOk === 0) return randInt(2_000, 8_000);
+  if (consecutiveOk === 1) return randInt(800, 4_000);
+  if (consecutiveOk === 2) return randInt(0, 2_000);
   return 0;
 }
 
 function fatigueExtraMs(okCount: number): number {
-  // Montée douce, non linéaire (pas +X toutes les N piles)
-  if (okCount < 4) return 0;
-  const t = okCount - 3;
-  const soft = Math.sqrt(t) * 2_800 + t * 900;
-  // Petite variation pour ne pas plafonner toujours au même ms
-  return Math.round(clamp(soft + gaussianNoise(400), 0, 28_000));
+  const { softCap } = cfg();
+  if (okCount < 5) return 0;
+  const t = okCount - 4;
+  let soft = Math.sqrt(t) * 3_500 + t * 1_200;
+  if (okCount >= softCap) {
+    soft += (okCount - softCap + 1) * 4_500;
+  }
+  return Math.round(clamp(soft + gaussianNoise(600), 0, 90_000));
 }
 
-/**
- * Pause « humaine » occasionnelle : comme si on regardait l’écran,
- * répondait à quelqu’un, ou changeait de destinataire.
- */
 function maybeHumanBreakMs(): number {
   sinceHumanBreak += 1;
-
-  // Plus le lot avance, plus une pause devient probable
-  const pressure = Math.min(0.55, 0.08 + sinceHumanBreak * 0.035);
+  const pressure = Math.min(0.5, 0.06 + sinceHumanBreak * 0.028);
   if (rand() > pressure) return 0;
 
   sinceHumanBreak = 0;
-
-  // Trois styles de pause (weights)
   const roll = rand();
-  if (roll < 0.55) {
-    // micro-hésitation
-    return randInt(2_500, 7_500);
-  }
-  if (roll < 0.88) {
-    // pause moyenne (relire / chercher un numéro)
-    return randInt(8_000, 22_000);
-  }
-  // vraie coupure (rare)
-  return randInt(25_000, 55_000);
+  if (roll < 0.5) return randInt(3_000, 9_000);
+  if (roll < 0.85) return randInt(12_000, 35_000);
+  return randInt(40_000, 90_000);
+}
+
+/** Pause structurée tous les N messages (anti-rafale WhatsApp). */
+function maybeChunkBreakMs(): number {
+  const { chunkEvery, chunkBreakMinMs, chunkBreakMaxMs } = cfg();
+  sinceChunk += 1;
+  if (sinceChunk < chunkEvery) return 0;
+  sinceChunk = 0;
+  return randInt(chunkBreakMinMs, chunkBreakMaxMs);
+}
+
+/** Pause longue après un gros volume dans la session. */
+function maybeHardBreakMs(): number {
+  const { hardCap, hardBreakMinMs, hardBreakMaxMs } = cfg();
+  if (consecutiveOk === 0 || consecutiveOk % hardCap !== 0) return 0;
+  return randInt(hardBreakMinMs, hardBreakMaxMs);
 }
 
 function currentBaseGapMs(): number {
   const now = Date.now();
+  const base = cfg().baseGapMs;
   if (now < elevatedUntil && elevatedGapMs > 0) {
-    return Math.max(WHATSAPP_SEND_GAP_MS, elevatedGapMs);
+    return Math.max(base, elevatedGapMs);
   }
-  return WHATSAPP_SEND_GAP_MS;
+  return base;
 }
 
 function refreshSessionIfIdle() {
   if (lastSendAt > 0 && Date.now() - lastSendAt > SESSION_IDLE_MS) {
     consecutiveOk = 0;
     sinceHumanBreak = 0;
+    sinceChunk = 0;
     moodFactor = 0.95 + rand() * 0.2;
   }
 }
 
-/**
- * Calcule l’écart avant le prochain envoi :
- * base × humeur + fatigue + warm-up + pause humaine + jitter.
- */
 export function nextWhatsAppGapMs(): number {
   refreshSessionIfIdle();
   driftMood();
@@ -165,28 +209,19 @@ export function nextWhatsAppGapMs(): number {
     currentBaseGapMs() * moodFactor +
     fatigueExtraMs(consecutiveOk) +
     warmUpExtraMs() +
-    maybeHumanBreakMs();
+    maybeHumanBreakMs() +
+    maybeChunkBreakMs() +
+    maybeHardBreakMs();
 
   return humanJitter(base);
 }
 
-/**
- * Micro-délai juste avant l’appel API (« doigt sur Envoyer »).
- * Cassure le pattern wait→send→wait→send parfaitement cadencé.
- */
 function preSendHesitationMs(): number {
   const roll = rand();
-  if (roll < 0.15) return 0;
-  if (roll < 0.7) return randInt(180, 900);
-  if (roll < 0.92) return randInt(900, 2_200);
-  return randInt(2_200, 4_500);
-}
-
-export function estimateWhatsAppBatchDurationMs(count: number): number {
-  if (count <= 1) return 0;
-  // Moyenne approximative (sans pauses rares extrêmes)
-  const avg = currentBaseGapMs() * 1.15 + 3_500;
-  return Math.round(avg * (count - 1));
+  if (roll < 0.12) return 0;
+  if (roll < 0.65) return randInt(250, 1_200);
+  if (roll < 0.9) return randInt(1_200, 3_000);
+  return randInt(3_000, 6_500);
 }
 
 export function parseWhatsAppRetryWaitMs(
@@ -202,35 +237,43 @@ export function parseWhatsAppRetryWaitMs(
   if (waitSec) {
     const sec = Number(waitSec[1]);
     if (Number.isFinite(sec) && sec > 0) {
-      return humanJitter((sec + 1.2) * 1000);
+      return humanJitter((sec + 2) * 1000);
     }
   }
 
   if (
-    /Guardian|anti-ban|RATE_LIMIT|rate.?limit|too many|pace WhatsApp|429/i.test(
+    /Guardian|anti-ban|RATE_LIMIT|rate.?limit|too many|pace WhatsApp|429|restrict|bloqu|spam|temporarily banned|connexion.*limit/i.test(
       message,
     )
   ) {
     return humanJitter(
-      Math.max(WHATSAPP_SEND_GAP_MS, currentBaseGapMs()) * 1.35,
+      Math.max(cfg().baseGapMs, currentBaseGapMs()) * 2.2,
     );
   }
 
   return null;
 }
 
+function openCircuit(reasonMs?: number) {
+  const hold = Math.max(reasonMs ?? 0, CIRCUIT_HOLD_MS);
+  circuitOpenUntil = Date.now() + hold;
+  consecutiveOk = 0;
+  sinceChunk = 0;
+  sinceHumanBreak = 0;
+  moodFactor = 1.25;
+  elevatedGapMs = cfg().baseGapMs * 2.5;
+  elevatedUntil = circuitOpenUntil;
+}
+
 function noteRateLimitHit(waitMs: number) {
   consecutiveOk = 0;
   sinceHumanBreak = 0;
-  moodFactor = clamp(moodFactor + 0.15, 1.05, 1.38);
+  sinceChunk = 0;
+  moodFactor = clamp(moodFactor + 0.2, 1.1, 1.45);
   elevatedGapMs = Math.round(
-    Math.max(
-      waitMs,
-      WHATSAPP_SEND_GAP_MS * ELEVATED_GAP_MULTIPLIER,
-      currentBaseGapMs() * ELEVATED_GAP_MULTIPLIER,
-    ),
+    Math.max(waitMs, cfg().baseGapMs * 2, currentBaseGapMs() * 2),
   );
-  elevatedUntil = Date.now() + ELEVATED_HOLD_MS;
+  elevatedUntil = Date.now() + Math.max(waitMs * 3, 5 * 60_000);
 }
 
 function noteSuccessfulSend() {
@@ -241,17 +284,23 @@ function noteSuccessfulSend() {
 }
 
 /**
- * File unique : chaque message attend la fin du précédent + un écart humain.
+ * File unique : sérialise tous les envois du process.
+ * Attend le circuit, le gap humain, puis une micro-hésitation.
  */
 export function enqueueWhatsAppTask<T>(task: () => Promise<T>): Promise<T> {
   const run = async () => {
     refreshSessionIfIdle();
 
+    // Circuit ouvert : attendre la fin (évite d’aggraver un ban)
+    const circuitWait = getWhatsAppCircuitRemainingMs();
+    if (circuitWait > 0) {
+      await sleepMs(circuitWait);
+    }
+
     const gap = nextWhatsAppGapMs();
     const wait = lastSendAt > 0 ? lastSendAt + gap - Date.now() : 0;
     if (wait > 0) await sleepMs(wait);
 
-    // Hesitation juste avant l’envoi (après le gros écart)
     const hesitate = preSendHesitationMs();
     if (hesitate > 0) await sleepMs(hesitate);
 
@@ -287,16 +336,32 @@ export async function withWhatsAppGuardianRetry<T>(
       const waitMs = parseWhatsAppRetryWaitMs(message);
 
       if (waitMs == null || attempt === MAX_GUARDIAN_RETRIES - 1) {
+        if (waitMs != null) {
+          // Restriction confirmée : coupe-circuit, on arrête de marteler
+          openCircuit(Math.max(waitMs * 5, CIRCUIT_HOLD_MS));
+        }
         throw error;
       }
 
       noteRateLimitHit(waitMs);
-      const backoff = waitMs * Math.pow(1.4, attempt) + randInt(400, 2_500);
-      await sleepMs(clamp(Math.round(backoff), MIN_GAP_MS, MAX_GAP_MS));
+      const backoff =
+        waitMs * Math.pow(1.5, attempt) + randInt(1_000, 5_000);
+      await sleepMs(
+        clamp(Math.round(backoff), cfg().minGapMs, cfg().maxGapMs),
+      );
     }
   }
 
   throw lastError;
+}
+
+export function estimateWhatsAppBatchDurationMs(count: number): number {
+  if (count <= 1) return 0;
+  const c = cfg();
+  const avgGap = c.baseGapMs * 1.25;
+  const chunks = Math.floor((count - 1) / c.chunkEvery);
+  const chunkAvg = (c.chunkBreakMinMs + c.chunkBreakMaxMs) / 2;
+  return Math.round(avgGap * (count - 1) + chunks * chunkAvg);
 }
 
 /** Réservé aux tests / debug. */
@@ -308,4 +373,7 @@ export function __resetWhatsAppPaceForTests() {
   elevatedGapMs = 0;
   moodFactor = 1;
   sinceHumanBreak = 0;
+  sinceChunk = 0;
+  circuitOpenUntil = 0;
+  profile = "qr";
 }
