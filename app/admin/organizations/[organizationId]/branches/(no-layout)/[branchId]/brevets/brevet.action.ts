@@ -450,7 +450,7 @@ export async function getAssignableGroupesForStudentsAction(input: {
     if (!enrollment.classeId || !enrollment.classe) continue;
     let set = sourceClasseIdsByStudent.get(enrollment.studentId);
     if (!set) {
-      set = new Set();
+      set = new Set<string>();
       sourceClasseIdsByStudent.set(enrollment.studentId, set);
     }
     set.add(enrollment.classeId);
@@ -494,19 +494,17 @@ export async function getAssignableGroupesForStudentsAction(input: {
   }
 
   // Intersection : uniquement les classes source communes a tous les eleves.
-  let commonSourceIds: Set<string> | null = null;
+  let commonSourceIds: string[] | null = null;
   for (const studentId of studentIds) {
-    const ids = sourceClasseIdsByStudent.get(studentId)!;
+    const ids = sourceClasseIdsByStudent.get(studentId) ?? new Set<string>();
     if (!commonSourceIds) {
-      commonSourceIds = new Set(ids);
+      commonSourceIds = Array.from(ids);
     } else {
-      commonSourceIds = new Set(
-        [...commonSourceIds].filter((id) => ids.has(id)),
-      );
+      commonSourceIds = commonSourceIds.filter((id) => ids.has(id));
     }
   }
 
-  const allowedSourceIds = [...(commonSourceIds ?? [])];
+  const allowedSourceIds = commonSourceIds ?? [];
   if (!allowedSourceIds.length) {
     return {
       ok: true as const,

@@ -70,7 +70,7 @@ export function filterCoursesForSecondaryClass(
 export function courseMatchesSecondaryClass(
   course: Pick<
     AtelierLinkSecondaryCourseOption,
-    "secondaryOptionKeys" | "branchId"
+    "id" | "secondaryOptionKeys" | "branchId"
   >,
   classe: Pick<
     AtelierLinkSecondaryClassOption,
