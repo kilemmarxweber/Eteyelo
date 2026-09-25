@@ -109,6 +109,7 @@ export async function sendParentPaymentNotificationEmail(input: {
     await sendTransactionalWhatsApp({
       to: phone,
       organizationId: input.organizationId,
+      queueKind: "payment",
       parts: [
         input.schoolName,
         `Bonjour ${input.parentName},`,

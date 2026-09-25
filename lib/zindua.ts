@@ -11,6 +11,7 @@ import {
   enqueueWhatsAppTask,
   withWhatsAppGuardianRetry,
   type WhatsAppPaceProfile,
+  type WhatsAppQueueKind,
 } from "@/lib/whatsapp-pace";
 
 export type WhatsAppSendOutcome = {
@@ -198,6 +199,8 @@ type SendWhatsAppOptions = {
   force?: boolean;
   /** Pièces jointes : email seulement. Un seul /send WhatsApp (file + pacing). */
   attachments?: Array<{ url: string; filename?: string }>;
+  /** Nature du message pour l’alternance multi-files (absence ↔ paiement…). */
+  queueKind?: WhatsAppQueueKind;
 };
 
 /**
@@ -293,6 +296,7 @@ export async function sendWhatsApp(
         };
       }, formatZinduaError),
     paceProfile,
+    options.queueKind ?? "other",
   );
 }
 
@@ -344,6 +348,7 @@ export async function mirrorEmailToWhatsApp(
       template: config.template,
       organizationId: options.organizationId,
       lang: options.lang ?? "fr",
+      queueKind: "mirror",
       variables: {
         code,
       },
@@ -397,6 +402,7 @@ export async function sendTransactionalWhatsApp(options: {
   organizationId?: string | null;
   parts: Array<string | null | undefined>;
   attachments?: Array<{ url: string; filename?: string }>;
+  queueKind?: WhatsAppQueueKind;
 }): Promise<WhatsAppSendOutcome> {
   const to = resolveWhatsAppTo(options.to);
   if (!to) {
@@ -408,6 +414,7 @@ export async function sendTransactionalWhatsApp(options: {
       to,
       organizationId: options.organizationId,
       lang: "fr",
+      queueKind: options.queueKind ?? "other",
       variables: {
         code: buildWhatsAppBody(options.parts),
       },
@@ -466,6 +473,7 @@ export async function sendNewUserCredentialsWhatsApp(options: {
       to,
       organizationId: options.organizationId,
       lang: "fr",
+      queueKind: "credentials",
       variables: {
         code: message,
       },
@@ -519,6 +527,7 @@ export async function sendResetPasswordWhatsApp(
       to,
       organizationId: options.organizationId,
       lang: "fr",
+      queueKind: "credentials",
       variables: {
         code: message,
       },
@@ -645,6 +654,7 @@ export async function sendWhatsAppTest(options: {
       organizationId: options.organizationId,
       force: true,
       lang: "fr",
+      queueKind: "test",
       variables: {
         code: `Test Klambocore — vérification ${label}. Ignorez si vous n'êtes pas concerné.`,
       },

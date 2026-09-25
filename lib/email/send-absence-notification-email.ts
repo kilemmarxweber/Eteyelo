@@ -103,6 +103,7 @@ async function sendAbsenceMail(input: {
     await sendTransactionalWhatsApp({
       to: input.phone,
       organizationId: input.organizationId,
+      queueKind: "absence",
       parts: [
         input.rows.find((row) => row.label === "Établissement")?.value,
         `Bonjour ${input.recipientName},`,

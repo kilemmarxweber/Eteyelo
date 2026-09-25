@@ -90,6 +90,7 @@ export async function sendOwnerDailyFinanceSummary(input: {
       const wa = await sendTransactionalWhatsApp({
         to: phone,
         organizationId: input.summary.organizationId,
+        queueKind: "finance",
         parts: [
           input.summary.organizationName,
           `Bonjour ${input.recipient.name},`,

@@ -3,11 +3,12 @@ import "server-only";
 /**
  * File WhatsApp process-wide — un message après l’autre.
  *
+ * Plusieurs files par nature (absence, paiement, résultats, horaire…).
+ * Quand plusieurs lots coexistent, round-robin : un d’absence, puis un
+ * paiement, etc. — plutôt qu’écouler 50 résultats d’affilée.
+ *
  * Profil `qr` (GOWA / Zindua / Klambo QR) : très prudent (lots ~50+).
  * Profil `cloud` (Meta Cloud API) : plus rapide, templates officiels.
- *
- * Les chats sortants apparaissent toujours sur le téléphone scanné (sync
- * multi-appareils WhatsApp) — ce n’est pas une « copie » API, c’est normal.
  */
 
 export type WhatsAppPaceProfile = "qr" | "cloud";
@@ -62,7 +63,6 @@ const SESSION_IDLE_MS = 8 * 60_000;
 const CIRCUIT_HOLD_MS = 20 * 60_000;
 
 let profile: WhatsAppPaceProfile = "qr";
-let chain: Promise<void> = Promise.resolve();
 let lastSendAt = 0;
 let consecutiveOk = 0;
 let elevatedUntil = 0;
@@ -286,49 +286,146 @@ function noteSuccessfulSend() {
 
 /**
  * File unique : sérialise tous les envois du process.
- * Attend le circuit, le gap humain, puis une micro-hésitation.
+ * Files par type (absence / paiement / résultats…) + round-robin :
+ * on alterne les natures de message quand plusieurs lots coexistent.
  *
- * `paceProfile` is captured at enqueue and applied when this task runs
- * (not when it is enqueued), so a concurrent meta/qr send cannot overwrite
- * the profile of tasks already waiting in the queue.
+ * `paceProfile` et `kind` sont capturés à l’enqueue et appliqués à l’exécution.
  */
+export type WhatsAppQueueKind =
+  | "absence"
+  | "payment"
+  | "results"
+  | "schedule"
+  | "credentials"
+  | "finance"
+  | "mirror"
+  | "test"
+  | "other";
+
+const KIND_ROTATION: WhatsAppQueueKind[] = [
+  "absence",
+  "payment",
+  "results",
+  "schedule",
+  "credentials",
+  "finance",
+  "mirror",
+  "test",
+  "other",
+];
+
+type QueuedWhatsAppJob = {
+  kind: WhatsAppQueueKind;
+  paceProfile: WhatsAppPaceProfile;
+  runTask: () => Promise<unknown>;
+  resolve: (value: unknown) => void;
+  reject: (reason?: unknown) => void;
+};
+
+const lanes = new Map<WhatsAppQueueKind, QueuedWhatsAppJob[]>();
+let lastServedKind: WhatsAppQueueKind | null = null;
+let pumpRunning = false;
+
+function laneOf(kind: WhatsAppQueueKind): QueuedWhatsAppJob[] {
+  let lane = lanes.get(kind);
+  if (!lane) {
+    lane = [];
+    lanes.set(kind, lane);
+  }
+  return lane;
+}
+
+function pendingKinds(): WhatsAppQueueKind[] {
+  return KIND_ROTATION.filter((kind) => (lanes.get(kind)?.length ?? 0) > 0);
+}
+
+/** Choisit une file différente de la précédente dès que possible. */
+function pickNextJob(): QueuedWhatsAppJob | null {
+  const ready = pendingKinds();
+  if (ready.length === 0) return null;
+
+  let start = 0;
+  if (lastServedKind) {
+    const idx = KIND_ROTATION.indexOf(lastServedKind);
+    start = idx >= 0 ? (idx + 1) % KIND_ROTATION.length : 0;
+  }
+
+  for (let step = 0; step < KIND_ROTATION.length; step += 1) {
+    const kind = KIND_ROTATION[(start + step) % KIND_ROTATION.length]!;
+    const lane = lanes.get(kind);
+    if (lane && lane.length > 0) {
+      return lane.shift() ?? null;
+    }
+  }
+  return null;
+}
+
+async function executeQueuedJob(job: QueuedWhatsAppJob): Promise<void> {
+  profile = job.paceProfile;
+  refreshSessionIfIdle();
+
+  const circuitWait = getWhatsAppCircuitRemainingMs();
+  if (circuitWait > 0) {
+    await sleepMs(circuitWait);
+  }
+
+  const gap = nextWhatsAppGapMs();
+  const wait = lastSendAt > 0 ? lastSendAt + gap - Date.now() : 0;
+  if (wait > 0) await sleepMs(wait);
+
+  // Petit extra si on enchaîne le même type (moins naturel)
+  if (lastServedKind === job.kind && lastSendAt > 0) {
+    await sleepMs(randInt(1_500, 4_500));
+  }
+
+  const hesitate = preSendHesitationMs();
+  if (hesitate > 0) await sleepMs(hesitate);
+
+  try {
+    const result = await job.runTask();
+    noteSuccessfulSend();
+    job.resolve(result);
+  } catch (error) {
+    job.reject(error);
+  } finally {
+    lastSendAt = Date.now();
+    lastServedKind = job.kind;
+  }
+}
+
+async function pumpWhatsAppQueue(): Promise<void> {
+  if (pumpRunning) return;
+  pumpRunning = true;
+  try {
+    for (;;) {
+      const job = pickNextJob();
+      if (!job) break;
+      await executeQueuedJob(job);
+    }
+  } finally {
+    pumpRunning = false;
+    // Des jobs ont pu arriver pendant le finally
+    if (pendingKinds().length > 0) {
+      void pumpWhatsAppQueue();
+    }
+  }
+}
+
 export function enqueueWhatsAppTask<T>(
   task: () => Promise<T>,
   paceProfile: WhatsAppPaceProfile = "qr",
+  kind: WhatsAppQueueKind = "other",
 ): Promise<T> {
-  const run = async () => {
-    // Bind this task's profile before any gap / retry math
-    profile = paceProfile;
-    refreshSessionIfIdle();
-
-    // Circuit ouvert : attendre la fin (évite d’aggraver un ban)
-    const circuitWait = getWhatsAppCircuitRemainingMs();
-    if (circuitWait > 0) {
-      await sleepMs(circuitWait);
-    }
-
-    const gap = nextWhatsAppGapMs();
-    const wait = lastSendAt > 0 ? lastSendAt + gap - Date.now() : 0;
-    if (wait > 0) await sleepMs(wait);
-
-    const hesitate = preSendHesitationMs();
-    if (hesitate > 0) await sleepMs(hesitate);
-
-    try {
-      const result = await task();
-      noteSuccessfulSend();
-      return result;
-    } finally {
-      lastSendAt = Date.now();
-    }
-  };
-
-  const next = chain.then(run, run);
-  chain = next.then(
-    () => undefined,
-    () => undefined,
-  );
-  return next;
+  return new Promise<T>((resolve, reject) => {
+    laneOf(kind).push({
+      kind,
+      paceProfile,
+      runTask: () => task(),
+      resolve: (value) => resolve(value as T),
+      reject,
+    });
+    void pumpWhatsAppQueue();
+  });
 }
 
 export async function withWhatsAppGuardianRetry<T>(
@@ -379,7 +476,6 @@ export function estimateWhatsAppBatchDurationMs(
 
 /** Réservé aux tests / debug. */
 export function __resetWhatsAppPaceForTests() {
-  chain = Promise.resolve();
   lastSendAt = 0;
   consecutiveOk = 0;
   elevatedUntil = 0;
@@ -389,4 +485,7 @@ export function __resetWhatsAppPaceForTests() {
   sinceChunk = 0;
   circuitOpenUntil = 0;
   profile = "qr";
+  lastServedKind = null;
+  pumpRunning = false;
+  lanes.clear();
 }

@@ -126,6 +126,7 @@ async function sendTeacherScheduleWhatsApp(params: {
   return sendTransactionalWhatsApp({
     to: teacher.telephone,
     organizationId,
+    queueKind: "schedule",
     attachments: [{ url: pdfUrl, filename: saved.fileName }],
     parts: [
       schoolName,

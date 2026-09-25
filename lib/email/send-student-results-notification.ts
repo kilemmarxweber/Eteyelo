@@ -115,6 +115,7 @@ export async function sendStudentResultsNotification(input: {
     const wa = await sendTransactionalWhatsApp({
       to: phone,
       organizationId: input.organizationId,
+      queueKind: "results",
       parts: [
         input.schoolName,
         `Bonjour ${input.parentName},`,
