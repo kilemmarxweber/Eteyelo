@@ -18,6 +18,7 @@ import {
 } from "@/lib/payroll/teacher-payslip-line-detail";
 import { recordPayslipSalaryExpense } from "@/lib/payroll/payslip-salary-expense";
 import { settlePayrollTotals } from "@/lib/payroll/session-rate";
+import { weeklyHoursFromPayslipLines } from "@/lib/payroll/payslip-hours";
 import { prisma } from "@/lib/prisma";
 import { action } from "@/lib/zsa";
 import { StatusPaiement } from "@/src/interfaces/Paiement";
@@ -528,6 +529,7 @@ function toListItem(row: {
         : row.agentKind === "BOTH"
           ? "Non matriculé + forfait"
           : "Non matriculé";
+  const hours = weeklyHoursFromPayslipLines(row.lines);
   return {
     id: row.id,
     teacherId: row.teacherId,
@@ -566,6 +568,7 @@ function toListItem(row: {
     difference: Math.round((row.gross - row.net) * 100) / 100,
     status: row.status,
     sessions: row.lines.reduce((sum, line) => sum + line.sessions, 0),
+    hours,
     createdAt: row.createdAt,
   };
 }
@@ -709,6 +712,7 @@ export const getTeacherPayslipsAction = action
           select: {
             sessions: true,
             label: true,
+            detail: true,
             cycle: true,
             minutes: true,
             kind: true,

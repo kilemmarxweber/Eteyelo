@@ -32,6 +32,7 @@ import {
 import type { TeacherPayslipLineDetailSnapshot } from "@/lib/payroll/teacher-payslip-line-detail";
 import { waivedSessionIdsFromLines } from "@/lib/payroll/teacher-payslip-line-detail";
 import type { PersonnelPayrollResult } from "@/lib/payroll/personnel-payroll";
+import { teachingHoursFromMinutes } from "@/lib/teacher-schedule-load";
 
 export type { TeacherPayslipLineDetailSnapshot } from "@/lib/payroll/teacher-payslip-line-detail";
 
@@ -967,6 +968,10 @@ export async function persistTeacherPayroll(
           : result.ratePerMinute > 0
             ? ` · ${roundInternal(result.weeklyPlannedMinutes)} min/sem · ${roundInternal(primaryMinutes)} min/mois · ${result.ratePerMinute.toFixed(3)} /min`
             : "";
+      const primaryWeeklyHours = teachingHoursFromMinutes(
+        result.weeklyPlannedMinutes,
+        result.policy.primarySessionMinutes,
+      );
       lines.unshift({
         payslipId: payslip.id,
         cycle: "PRIMAIRE",
@@ -977,6 +982,12 @@ export async function persistTeacherPayroll(
         sessions: result.details.filter((detail) => detail.cycle === "PRIMAIRE").length,
         minutes: primaryMinutes,
         amount: primaryGrossAmount,
+        detail: {
+          weeklyPlannedMinutes: roundInternal(result.weeklyPlannedMinutes),
+          weeklySessions: result.weeklySessions,
+          hourUnitMinutes: result.policy.primarySessionMinutes,
+          weeklyHours: primaryWeeklyHours,
+        },
       });
     }
     if (result.details.some((detail) => detail.cycle === "MATERNELLE")) {
@@ -1000,6 +1011,10 @@ export async function persistTeacherPayroll(
         ratePerSession > 0
           ? ` · ${result.maternelleWeeklySessions > 0 ? `${result.maternelleWeeklySessions} séances/sem · ` : ""}${roundInternal(result.maternelleWeeklyPlannedMinutes)} min/sem · ${result.policy.maternelleSessionMinutes} min/séance · ${ratePerSession} /séance · ${ratePerMinute.toFixed(3)} /min`
           : "";
+      const maternelleWeeklyHours = teachingHoursFromMinutes(
+        result.maternelleWeeklyPlannedMinutes,
+        result.policy.maternelleSessionMinutes,
+      );
       lines.unshift({
         payslipId: payslip.id,
         cycle: "MATERNELLE",
@@ -1011,6 +1026,14 @@ export async function persistTeacherPayroll(
           .length,
         minutes: maternelleMinutes,
         amount: maternelleGrossAmount,
+        detail: {
+          weeklyPlannedMinutes: roundInternal(
+            result.maternelleWeeklyPlannedMinutes,
+          ),
+          weeklySessions: result.maternelleWeeklySessions,
+          hourUnitMinutes: result.policy.maternelleSessionMinutes,
+          weeklyHours: maternelleWeeklyHours,
+        },
       });
     }
     if (result.secondaryGross > 0 || result.details.some((detail) => detail.cycle === "SECONDAIRE")) {
@@ -1042,6 +1065,10 @@ export async function persistTeacherPayroll(
           : result.details.filter((detail) => detail.cycle === "SECONDAIRE").length;
       const secondaryLabel =
         ` · ${billedSessions} séances du mois × ${secondaryRatesForLabel.ratePerSession}${result.secondaryWeeklySessions > 0 ? ` · ${result.secondaryWeeklySessions} séances/sem` : ""} · ${roundInternal(result.secondaryWeeklyPlannedMinutes)} min/sem · ${result.policy.secondarySessionMinutes} min/séance · ${result.employmentKind === "MATRICULE" ? `${result.policy.secondaryMatriculePrimePercent} % · ` : ""}${secondaryRatesForLabel.ratePerMinute.toFixed(3)} /min`;
+      const secondaryWeeklyHours = teachingHoursFromMinutes(
+        result.secondaryWeeklyPlannedMinutes,
+        result.policy.secondarySessionMinutes,
+      );
       lines.unshift({
         payslipId: payslip.id,
         cycle: "SECONDAIRE",
@@ -1052,6 +1079,14 @@ export async function persistTeacherPayroll(
         sessions: billedSessions,
         minutes: secondaryMinutes,
         amount: secondaryGrossAmount,
+        detail: {
+          weeklyPlannedMinutes: roundInternal(
+            result.secondaryWeeklyPlannedMinutes,
+          ),
+          weeklySessions: result.secondaryWeeklySessions,
+          hourUnitMinutes: result.policy.secondarySessionMinutes,
+          weeklyHours: secondaryWeeklyHours,
+        },
       });
     }
     if (personnelPayroll && personnelGross > 0) {

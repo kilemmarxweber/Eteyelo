@@ -26,6 +26,7 @@ import SalaryCreditsClient from "../credits/credits-client";
 import PayrollNotificationLogs from "./payroll-notification-logs";
 import { exportPayrollRegisterPdf } from "./export-payroll-register-pdf";
 import { exportPayrollRegisterExcel } from "./export-payroll-register-excel";
+import { formatPayrollHoursValue } from "@/lib/payroll/payslip-hours";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import {
   AlertDialog,
@@ -103,6 +104,7 @@ type PayslipRow = {
   difference: number;
   status: string;
   sessions: number;
+  hours: number | null;
 };
 
 type CashSnapshot = {
@@ -406,11 +408,16 @@ export default function PayrollClient() {
     const net = rows.reduce((sum, row) => sum + row.net, 0);
     const lost = rows.reduce((sum, row) => sum + row.deductions, 0);
     const lostMinutes = rows.reduce((sum, row) => sum + row.lostMinutes, 0);
+    const hours = rows.reduce(
+      (sum, row) => sum + (row.hours != null && row.hours > 0 ? row.hours : 0),
+      0,
+    );
     return {
       gross,
       net,
       lost,
       lostMinutes,
+      hours: Math.round(hours * 10) / 10,
       difference: gross - net,
     };
   }, [rows]);
@@ -1017,6 +1024,7 @@ export default function PayrollClient() {
                   <th className="p-2">{t("table.branch")}</th>
                   <th className="p-2">{t("table.classes")}</th>
                   <th className="p-2">{t("table.contract")}</th>
+                  <th className="p-2">{t("table.hours")}</th>
                   <th className="p-2">{t("table.gross")}</th>
                   <th className="p-2">{t("table.losses")}</th>
                   <th className="p-2">{t("table.lostMinutes")}</th>
@@ -1031,7 +1039,7 @@ export default function PayrollClient() {
                   <Fragment key={group.cycleGroup}>
                     <tr className="border-y bg-muted/60">
                       <td
-                        colSpan={isManager ? 13 : 12}
+                        colSpan={isManager ? 14 : 13}
                         className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground"
                       >
                         <span className="inline-flex items-center gap-2">
@@ -1150,6 +1158,9 @@ export default function PayrollClient() {
                         <td className="p-2">
                           {row.contractLabel}
                         </td>
+                        <td className="p-2 tabular-nums">
+                          {formatPayrollHoursValue(row.hours)}
+                        </td>
                         <td className="p-2">{formatAmount(row.gross, row.currency, localeTag)}</td>
                         <td className="p-2 font-medium text-destructive">
                           {formatAmount(row.deductions, row.currency, localeTag)}
@@ -1262,6 +1273,9 @@ export default function PayrollClient() {
                     colSpan={isManager ? 6 : 5}
                   >
                     Totaux ({rows.length})
+                  </td>
+                  <td className="p-2 tabular-nums">
+                    {formatPayrollHoursValue(totals.hours > 0 ? totals.hours : null)}
                   </td>
                   <td className="p-2">{formatAmount(totals.gross, listCurrency, localeTag)}</td>
                   <td className="p-2 text-destructive">

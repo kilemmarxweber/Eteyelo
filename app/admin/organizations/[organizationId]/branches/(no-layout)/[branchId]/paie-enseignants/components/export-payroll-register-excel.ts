@@ -14,6 +14,7 @@ import type {
   PayrollRegisterOptions,
   PayrollRegisterRow,
 } from "./export-payroll-register-pdf";
+import { formatPayrollHoursValue } from "@/lib/payroll/payslip-hours";
 
 const CYCLE_COLORS: Record<string, string> = {
   MATERNELLE: "FFDB2777",
@@ -92,7 +93,13 @@ export async function exportPayrollRegisterExcel(
   const net = rows.reduce((sum, row) => sum + row.net, 0);
   const lostMinutes = rows.reduce((sum, row) => sum + row.lostMinutes, 0);
   const difference = rows.reduce((sum, row) => sum + row.difference, 0);
-  const sessions = rows.reduce((sum, row) => sum + row.sessions, 0);
+  const hoursTotal =
+    Math.round(
+      rows.reduce(
+        (sum, row) => sum + (row.hours != null && row.hours > 0 ? row.hours : 0),
+        0,
+      ) * 10,
+    ) / 10;
 
   const groups: Array<{
     cycleGroup: string;
@@ -186,7 +193,7 @@ export async function exportPayrollRegisterExcel(
     nextRow += 3;
     sheet.mergeCells(nextRow, 1, nextRow, COL_COUNT);
     sheet.getCell(nextRow, 1).value =
-      `Paie du mois : brut ${formatPayrollAmount(cash.payrollGross, currency)} · retenues ${formatPayrollAmount(cash.payrollDeductions, currency)} · à consommer ${formatPayrollAmount(cash.payrollConsume, currency)} · ${cash.unpaidCount} bulletin${cash.unpaidCount > 1 ? "s" : ""} non payé${cash.unpaidCount > 1 ? "s" : ""} · ${sessions} séance${sessions > 1 ? "s" : ""}`;
+      `Paie du mois : brut ${formatPayrollAmount(cash.payrollGross, currency)} · retenues ${formatPayrollAmount(cash.payrollDeductions, currency)} · à consommer ${formatPayrollAmount(cash.payrollConsume, currency)} · ${cash.unpaidCount} bulletin${cash.unpaidCount > 1 ? "s" : ""} non payé${cash.unpaidCount > 1 ? "s" : ""} · ${formatPayrollHoursValue(hoursTotal > 0 ? hoursTotal : null)} h`;
     sheet.getCell(nextRow, 1).font = {
       name: "Calibri",
       size: 9,
@@ -233,7 +240,7 @@ export async function exportPayrollRegisterExcel(
         row.branchName || "—",
         row.classes.length > 0 ? row.classes.join(" · ") : "—",
         row.contractLabel,
-        row.sessions,
+        row.hours != null && row.hours > 0 ? row.hours : "—",
         row.gross,
         row.deductions,
         row.lostMinutes,
@@ -257,9 +264,8 @@ export async function exportPayrollRegisterExcel(
                 : "left",
         };
         if (itemIndex % 2 === 1) cell.fill = fillArgb("FFEFF6FF");
-        if (colIndex >= 6 && colIndex <= 7) {
-          cell.numFmt = amountFmt;
-          cell.font = { name: "Calibri", size: 9, color: { argb: "FFB91C1C" } };
+        if (colIndex === 5 && typeof value === "number") {
+          cell.numFmt = "0.0";
         }
         if (colIndex === 6) {
           cell.font = { name: "Calibri", size: 9, color: { argb: "FF0F172A" } };
@@ -290,7 +296,7 @@ export async function exportPayrollRegisterExcel(
   const totalLabel = sheet.getCell(rowIndex, 1);
   totalLabel.value = `Totaux (${rows.length} bulletin${rows.length > 1 ? "s" : ""})`;
   const totals: Array<number | string> = [
-    sessions,
+    hoursTotal > 0 ? hoursTotal : "—",
     gross,
     deductions,
     lostMinutes,
@@ -314,11 +320,15 @@ export async function exportPayrollRegisterExcel(
   for (const col of [6, 7, 8, 9, 10, 11]) {
     const cell = sheet.getCell(rowIndex, col);
     cell.alignment = { horizontal: "right", vertical: "middle" };
-    if (col === 6 || col === 9) cell.numFmt = "0.0";
-    if (col === 7 || col === 8 || col === 10 || col === 11) cell.numFmt = amountFmt;
   }
-  sheet.getCell(rowIndex, 6).numFmt = "0";
+  if (typeof totals[0] === "number") {
+    sheet.getCell(rowIndex, 6).numFmt = "0.0";
+  }
+  sheet.getCell(rowIndex, 7).numFmt = amountFmt;
+  sheet.getCell(rowIndex, 8).numFmt = amountFmt;
   sheet.getCell(rowIndex, 9).numFmt = "0.0";
+  sheet.getCell(rowIndex, 10).numFmt = amountFmt;
+  sheet.getCell(rowIndex, 11).numFmt = amountFmt;
 
   const widths = [28, 16, 16, 28, 18, 10, 14, 14, 12, 14, 14, 12];
   widths.forEach((width, index) => {

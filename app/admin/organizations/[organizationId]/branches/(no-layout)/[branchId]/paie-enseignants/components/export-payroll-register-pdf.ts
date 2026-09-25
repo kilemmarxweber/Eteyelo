@@ -17,6 +17,7 @@ import {
   payrollDocumentCopy,
   payrollStatusLabel,
 } from "@/lib/reports/document-locale";
+import { formatPayrollHoursValue } from "@/lib/payroll/payslip-hours";
 
 export type PayrollRegisterRow = {
   teacherName: string;
@@ -33,6 +34,7 @@ export type PayrollRegisterRow = {
   difference: number;
   status: string;
   sessions: number;
+  hours: number | null;
 };
 
 export type PayrollRegisterCash = {
@@ -105,7 +107,13 @@ export async function exportPayrollRegisterPdf(
   const net = rows.reduce((sum, row) => sum + row.net, 0);
   const lostMinutes = rows.reduce((sum, row) => sum + row.lostMinutes, 0);
   const difference = rows.reduce((sum, row) => sum + row.difference, 0);
-  const sessions = rows.reduce((sum, row) => sum + row.sessions, 0);
+  const hoursTotal =
+    Math.round(
+      rows.reduce(
+        (sum, row) => sum + (row.hours != null && row.hours > 0 ? row.hours : 0),
+        0,
+      ) * 10,
+    ) / 10;
 
   const groups: Array<{
     cycleGroup: string;
@@ -228,7 +236,7 @@ export async function exportPayrollRegisterPdf(
     doc.setFontSize(fonts.small);
     doc.setTextColor(100, 116, 139);
     doc.text(
-      `Paie du mois : brut ${money(cash.payrollGross, currency)}  ·  retenues ${money(cash.payrollDeductions, currency)}  ·  à consommer ${money(cash.payrollConsume, currency)}  ·  ${sessions} séance${sessions > 1 ? "s" : ""}`,
+      `Paie du mois : brut ${money(cash.payrollGross, currency)}  ·  retenues ${money(cash.payrollDeductions, currency)}  ·  à consommer ${money(cash.payrollConsume, currency)}  ·  ${formatPayrollHoursValue(hoursTotal > 0 ? hoursTotal : null)} h`,
       pageWidth / 2,
       kpiY + 6,
       { align: "center", maxWidth: usableWidth },
@@ -269,7 +277,7 @@ export async function exportPayrollRegisterPdf(
         row.branchName || "—",
         row.classes.length > 0 ? row.classes.join(" · ") : "—",
         row.contractLabel,
-        String(row.sessions || "—"),
+        formatPayrollHoursValue(row.hours),
         money(row.gross, row.currency || currency),
         money(row.deductions, row.currency || currency),
         minutesLabel(row.lostMinutes),
@@ -288,7 +296,7 @@ export async function exportPayrollRegisterPdf(
     "",
     "",
     "",
-    String(sessions || "—"),
+    formatPayrollHoursValue(hoursTotal > 0 ? hoursTotal : null),
     money(gross, currency),
     money(deductions, currency),
     minutesLabel(lostMinutes),
