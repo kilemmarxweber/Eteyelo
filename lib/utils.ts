@@ -2,6 +2,13 @@ import { clsx, type ClassValue } from "clsx";
 import { FieldError } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
+import {
+  cssBackgroundImage,
+  publicUploadPath,
+  storedUploadFileName,
+} from "@/lib/upload-paths";
+
+export { cssBackgroundImage } from "@/lib/upload-paths";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -63,15 +70,32 @@ export function normalizeImageSrc(src: unknown): string {
 
   // Cas normal
   if (typeof src === "string") {
+    const trimmed = src.trim();
+    if (!trimmed) return fallback;
+
     if (
-      src.startsWith("http") ||
-      src.startsWith("data:") ||
-      src.startsWith("/")
+      trimmed.startsWith("http://") ||
+      trimmed.startsWith("https://") ||
+      trimmed.startsWith("data:")
     ) {
-      return src;
+      return trimmed;
     }
 
-    return `/uploads/${src}`;
+    // Déjà une URL publique /uploads/... (éventuellement encodée)
+    if (
+      trimmed.startsWith("/uploads/") ||
+      trimmed.startsWith("/api/uploads/")
+    ) {
+      const fileName = storedUploadFileName(trimmed);
+      return fileName ? publicUploadPath(fileName) : fallback;
+    }
+
+    if (trimmed.startsWith("/")) {
+      return trimmed;
+    }
+
+    const fileName = storedUploadFileName(trimmed);
+    return fileName ? publicUploadPath(fileName) : fallback;
   }
 
   // Si on reçoit un tableau
@@ -190,6 +214,21 @@ export function firstPublicBranchPhoto(images: BranchImages): string | undefined
   return getPublicBranchPhotos(images)[0];
 }
 
+/**
+ * Image de couverture publique : photos école/galerie/événement,
+ * sinon logo de la branche (jamais le placeholder Klambocore).
+ */
+export function resolveBranchCoverSrc(
+  images: BranchImages,
+): string | undefined {
+  return (
+    firstPublicBranchPhoto(images) ||
+    (images.logo && images.logo !== KLAMBOCORE_DEFAULT_IMAGE_PATH
+      ? images.logo
+      : undefined)
+  );
+}
+
 export function firstPublicSchoolPhoto(school: {
   ecole: string[];
   gallery: string[];
@@ -200,4 +239,13 @@ export function firstPublicSchoolPhoto(school: {
     school.gallery.find(Boolean) ||
     school.event.find(Boolean)
   );
+}
+
+/** Style inline background-image prêt à l’emploi. */
+export function branchImageBackgroundStyle(
+  src: string | null | undefined,
+): { backgroundImage: string } | undefined {
+  const url = src?.trim();
+  if (!url) return undefined;
+  return { backgroundImage: cssBackgroundImage(url) };
 }

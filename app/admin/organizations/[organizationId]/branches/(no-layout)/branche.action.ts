@@ -43,6 +43,26 @@ import {
 } from "@/lib/cycle";
 import { usesTermPeriodCalendar } from "@/lib/education-system";
 import { isExtendedBranch } from "@/lib/branch-capabilities";
+import { normalizeBranchImages } from "@/lib/branch-form-values";
+import {
+  ensureUploadInSharedDirectory,
+} from "@/lib/upload-file.server";
+
+async function persistBranchImages(image: unknown) {
+  const normalized = normalizeBranchImages(image);
+  const allNames = [
+    normalized.logo,
+    ...normalized.ecole,
+    ...normalized.gallery,
+    ...normalized.event,
+  ].filter(Boolean);
+
+  await Promise.all(
+    allNames.map((name) => ensureUploadInSharedDirectory(name)),
+  );
+
+  return normalized;
+}
 
 export async function getBranchNameAction(branchId: string) {
   if (!branchId) return null;
@@ -108,6 +128,7 @@ export async function createBranchAction(
     typebranch,
     schoolCycles,
   });
+  const image = await persistBranchImages(parsed.data.image);
 
   const branch = await prisma.$transaction(async (tx) => {
     const createdBranch = await tx.branch.create({
@@ -124,12 +145,7 @@ export async function createBranchAction(
         commune: parsed.data.commune?.trim() || null,
         pays: parsed.data.pays?.trim() || null,
         idnat: parsed.data.idnat?.trim() || null,
-        image: parsed.data.image ?? {
-          logo: "",
-          event: [],
-          gallery: [],
-          ecole: [],
-        },
+        image,
         latitude: parsed.data.latitude,
         longitude: parsed.data.longitude,
         attendanceRadius: parsed.data.attendanceRadius,
@@ -401,6 +417,8 @@ export async function updateBranchAction(
       ),
   });
 
+  const image = await persistBranchImages(parsed.data.image);
+
   const { branch, activatedCycles } = await prisma.$transaction(
     async (tx) => {
       const updated = await tx.branch.update({
@@ -417,12 +435,7 @@ export async function updateBranchAction(
           commune: parsed.data.commune?.trim() || null,
           pays: parsed.data.pays?.trim() || null,
           idnat: parsed.data.idnat?.trim() || null,
-          image: parsed.data.image ?? {
-            logo: "",
-            event: [],
-            gallery: [],
-            ecole: [],
-          },
+          image,
           latitude: parsed.data.latitude,
           longitude: parsed.data.longitude,
           attendanceRadius: parsed.data.attendanceRadius,

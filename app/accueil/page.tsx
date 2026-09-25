@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { HeroRotatingContent } from "@/components/home/hero-rotating-content";
+import { HeroSchoolRotator } from "@/components/home/hero-school-rotator";
 import { HomeBranchesMapSection } from "@/components/home/home-branches-map-section";
 import {
   HomeFeaturedEventsFooter,
@@ -30,11 +31,11 @@ import {
 } from "@/components/home/home-featured-events-grid";
 import { HomeFeaturedSectionHeader } from "@/components/home/home-featured-section-header";
 import { HomeGallerySection } from "@/components/home/home-gallery-section";
+import { HomeSideImageRotator } from "@/components/home/home-side-image-rotator";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { KlambocoreLogoMark } from "@/components/brand/klambocore-logo-mark";
 import { galleryImages, getHomeData } from "@/lib/home/home-data";
-import { firstPublicSchoolPhoto } from "@/lib/utils";
 import {
   JsonLd,
   organizationJsonLd,
@@ -89,14 +90,17 @@ export default async function HomePage() {
   } = await getHomeData();
 
   const schoolImageSlides = schools
-    .map((school) => ({
-      ...school,
-      slideImage: firstPublicSchoolPhoto(school),
-    }))
-    .filter(
-      (school): school is typeof school & { slideImage: string } =>
-        Boolean(school.slideImage),
-    );
+    .map((school) => {
+      const slideImage = school.cover || school.logo;
+      if (!slideImage) return null;
+      return {
+        id: school.id,
+        heroLabel: school.heroLabel,
+        heroTitle: school.heroTitle,
+        image: slideImage,
+      };
+    })
+    .filter((slide): slide is NonNullable<typeof slide> => Boolean(slide));
 
   /** Images d'événements réelles uniquement (pas de logo ni de placeholder). */
   const eventSliderImages = Array.from(
@@ -111,9 +115,11 @@ export default async function HomePage() {
     new Set(
       schools
         .flatMap((school) => [
+          school.cover,
           ...school.ecole,
           ...school.gallery,
           ...school.event,
+          school.logo,
         ])
         .filter((src): src is string => Boolean(src)),
     ),
@@ -247,55 +253,7 @@ export default async function HomePage() {
           {/* Ecole images schools*/}
           <div className="mx-auto w-full rounded-[1.5rem] bg-white/15 p-2 shadow-2xl backdrop-blur sm:w-[36rem] sm:rounded-[2rem] sm:p-3 lg:w-full">
             <div className="relative min-h-[260px] overflow-hidden rounded-[1.25rem] bg-blue-950 sm:min-h-[340px] sm:rounded-[1.5rem] lg:min-h-[400px]">
-              {schoolImageSlides.length > 0 ? (
-                schoolImageSlides.map((school, index) => {
-                  const image = school.slideImage;
-
-                  return (
-                    <div
-                      key={`${school.id}-hero-${index}`}
-                      className="absolute inset-0 opacity-0 motion-reduce:animate-none"
-                      style={{
-                        animation: `hero-school-slide ${
-                          Math.max(schoolImageSlides.length, 1) * 5
-                        }s infinite`,
-                        animationDelay: `${index * 5}s`,
-                        opacity: index === 0 ? 1 : 0,
-                      }}
-                    >
-                      <div
-                        className="absolute inset-0 bg-cover bg-center"
-                        style={{
-                          backgroundImage: `url("${image}")`,
-                        }}
-                      />
-
-                      <div className="relative z-10 flex min-h-[260px] items-end rounded-[1.25rem] bg-blue-950/45 p-4 sm:min-h-[340px] sm:rounded-[1.5rem] sm:p-5 lg:min-h-[400px]">
-                        <div className="w-full rounded-2xl bg-white p-4 text-slate-900 shadow-xl sm:w-[26rem] sm:p-5">
-                          <p className="text-sm font-bold text-blue-600">
-                            {school.heroLabel}
-                          </p>
-
-                          <h3 className="mt-1 text-lg font-black sm:text-xl">
-                            {school.heroTitle}
-                          </h3>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="relative z-10 flex min-h-[260px] items-end rounded-[1.25rem] bg-blue-950/45 p-4 sm:min-h-[340px] sm:rounded-[1.5rem] sm:p-5 lg:min-h-[400px]">
-                  <div className="w-full rounded-2xl bg-white p-4 text-slate-900 shadow-xl sm:w-[26rem] sm:p-5">
-                    <p className="text-sm font-bold text-blue-600">
-                      Établissement partenaire vérifié
-                    </p>
-                    <h3 className="mt-1 text-lg font-black sm:text-xl">
-                      Donnez plus de visibilité à votre établissement
-                    </h3>
-                  </div>
-                </div>
-              )}
+              <HeroSchoolRotator slides={schoolImageSlides} intervalMs={5000} />
             </div>
           </div>
         </div>
@@ -397,43 +355,10 @@ export default async function HomePage() {
 
           {/* BLOC IMAGE DROITE — photos d’événements, sinon photos d’établissement */}
           <div className="relative h-[500px] self-start overflow-hidden rounded-3xl bg-slate-100 shadow-2xl shadow-blue-950/15">
-            {rightSliderImages.length > 0 ? (
-              rightSliderImages.map((sliderImage, index) => {
-                const shouldRotate = rightSliderImages.length > 1;
-
-                return (
-                  <div
-                    key={`event-slider-${sliderImage}-${index}`}
-                    className="absolute inset-0 motion-reduce:animate-none"
-                    style={
-                      shouldRotate
-                        ? {
-                            animation: `hero-school-slide ${
-                              rightSliderImages.length * 60
-                            }s infinite`,
-                            animationDelay: `${index * 60}s`,
-                            opacity: index === 0 ? 1 : 0,
-                          }
-                        : { opacity: 1 }
-                    }
-                  >
-                    <Image
-                      src={sliderImage}
-                      alt=""
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 1024px) 100vw, 40vw"
-                      unoptimized
-                      priority={index === 0}
-                    />
-                  </div>
-                );
-              })
-            ) : (
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-950 to-cyan-700 p-6 text-center text-sm font-semibold text-white/80">
-                Photos des établissements et événements à venir
-              </div>
-            )}
+            <HomeSideImageRotator
+              images={rightSliderImages}
+              intervalMs={6000}
+            />
           </div>
         </div>
       </section>

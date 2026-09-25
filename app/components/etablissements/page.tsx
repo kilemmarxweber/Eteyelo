@@ -5,9 +5,10 @@ import { ArrowRight, MapPin, School, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
+import { resolvePublicBranchMedia } from "@/lib/branch-public-images";
 import { prisma } from "@/lib/prisma";
 import { SITE_NAME, SITE_OG_IMAGE } from "@/lib/seo/site";
-import { firstPublicBranchPhoto, getBranchImage } from "@/lib/utils";
+import { branchImageBackgroundStyle } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,26 @@ export default async function EtablissementsPage() {
     },
   });
 
+  const cards = await Promise.all(
+    branches.map(async (branch) => {
+      const media = await resolvePublicBranchMedia(branch.image);
+      const studentsCount = branch.branchemembers.reduce(
+        (total, member) => total + member._count.student,
+        0,
+      );
+
+      return {
+        id: branch.id,
+        name: branch.name,
+        adresse: branch.adresse,
+        ville: branch.ville,
+        pays: branch.pays,
+        cover: media.cover,
+        studentsCount,
+      };
+    }),
+  );
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <HomeNavbar />
@@ -76,24 +97,13 @@ export default async function EtablissementsPage() {
 
       <section className="mx-auto max-w-7xl px-6 py-14">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {branches.map((branch) => {
-            const images = getBranchImage(branch.image);
-            const cover = firstPublicBranchPhoto(images);
-
-            const studentsCount = branch.branchemembers.reduce(
-              (total, member) => total + member._count.student,
-              0,
-            );
-
-            return (
+          {cards.map((branch) => (
               <Link key={branch.id} href={`/etablissements/${branch.id}`}>
                 <article className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-md">
-                  {cover ? (
+                  {branch.cover ? (
                     <div
                       className="h-52 bg-cover bg-center transition duration-500 group-hover:scale-105"
-                      style={{
-                        backgroundImage: `url('${cover}')`,
-                      }}
+                      style={branchImageBackgroundStyle(branch.cover)}
                     />
                   ) : (
                     <div className="flex h-52 items-center justify-center bg-gradient-to-br from-blue-950 to-cyan-700">
@@ -128,13 +138,12 @@ export default async function EtablissementsPage() {
 
                     <p className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-primary/5 px-3 py-2 text-sm font-semibold text-foreground">
                       <Users className="size-4 text-primary" />
-                      {studentsCount} eleves inscrits
+                      {branch.studentsCount} eleves inscrits
                     </p>
                   </div>
                 </article>
               </Link>
-            );
-          })}
+          ))}
         </div>
       </section>
 

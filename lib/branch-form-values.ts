@@ -6,6 +6,7 @@ import {
   normalizeEducationSystem,
 } from "@/lib/education-system";
 import { branchTypeSchema } from "@/lib/schemas/extended-branch";
+import { storedUploadFileName } from "@/lib/upload-paths";
 
 export const DEFAULT_BRANCH_LATITUDE = -4.4419;
 export const DEFAULT_BRANCH_LONGITUDE = 15.2663;
@@ -30,16 +31,32 @@ type BranchImageItem = {
   ecole: string[];
 };
 
+function normalizeStoredImageName(value: unknown): string {
+  if (typeof value !== "string") return "";
+  return storedUploadFileName(value);
+}
+
+function normalizeStoredImageList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const item of value) {
+    const name = normalizeStoredImageName(item);
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    result.push(name);
+  }
+  return result;
+}
+
 export function normalizeBranchImages(value: unknown): BranchImageItem {
   if (typeof value === "object" && value !== null && !Array.isArray(value)) {
     const image = value as Partial<BranchImageItem>;
     return {
-      logo: typeof image.logo === "string" ? image.logo : "",
-      event: Array.isArray(image.event) ? image.event.filter(Boolean) : [],
-      gallery: Array.isArray(image.gallery)
-        ? image.gallery.filter(Boolean)
-        : [],
-      ecole: Array.isArray(image.ecole) ? image.ecole.filter(Boolean) : [],
+      logo: normalizeStoredImageName(image.logo),
+      event: normalizeStoredImageList(image.event),
+      gallery: normalizeStoredImageList(image.gallery),
+      ecole: normalizeStoredImageList(image.ecole),
     };
   }
 

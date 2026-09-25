@@ -1,16 +1,13 @@
 import "server-only";
 
 import { getStudentCountsByBranchId } from "@/lib/branch-student-count";
+import { resolvePublicBranchMedia } from "@/lib/branch-public-images";
 import { getBranchCycles, isSchoolCycle } from "@/lib/cycle";
 import { getPeopleLabels, pluralizeStudentLabelLower } from "@/lib/people-labels";
 import { prisma } from "@/lib/prisma";
 import { getHomeResultHighlights } from "@/lib/public-results";
 import { ensureUploadInSharedDirectory } from "@/lib/upload-file.server";
-import {
-  getBranchImage,
-  getPublicBranchPhotos,
-  normalizeImageSrc,
-} from "@/lib/utils";
+import { normalizeImageSrc } from "@/lib/utils";
 
 export type HomeStatsSegmentKey = "schools" | "centres" | "universities";
 
@@ -27,6 +24,9 @@ export type HomeSchool = {
   heroTitle: string;
   /** Texte optionnel « à la une » (Branch.note) */
   note: string | null;
+  /** Couverture publique (photo école/galerie/événement, sinon logo) */
+  cover?: string;
+  logo?: string;
   ecole: string[];
   event: string[];
   gallery: string[];
@@ -571,12 +571,12 @@ export async function getHomeData(): Promise<HomeData> {
         longitude: branch.longitude,
       }));
 
-    const dynamicSchools: HomeSchool[] = allBranches.map((branch) => {
+    const dynamicSchools: HomeSchool[] = await Promise.all(
+      allBranches.map(async (branch) => {
       const studentsCount = studentCountsByBranchId.get(branch.id) ?? 0;
 
       const city = branch.ville || branch.pays || "RDC";
-      const images = getBranchImage(branch.image);
-      const publicPhotos = new Set(getPublicBranchPhotos(images));
+      const media = await resolvePublicBranchMedia(branch.image);
       const presentation = presentHomeSchool({
         typebranch: branch.typebranch,
         cycles: branch.cycles,
@@ -592,11 +592,14 @@ export async function getHomeData(): Promise<HomeData> {
         students: studentsCount,
         ...presentation,
         note: branch.note?.trim() || null,
-        ecole: images.ecole.filter((src) => publicPhotos.has(src)),
-        event: images.event.filter((src) => publicPhotos.has(src)),
-        gallery: images.gallery.filter((src) => publicPhotos.has(src)),
+        cover: media.cover,
+        logo: media.logo,
+        ecole: media.images.ecole,
+        event: media.images.event,
+        gallery: media.images.gallery,
       };
-    });
+    }),
+    );
 
     const dynamicEvents: HomeEvent[] = calendarEvents.map((event) => {
       return {

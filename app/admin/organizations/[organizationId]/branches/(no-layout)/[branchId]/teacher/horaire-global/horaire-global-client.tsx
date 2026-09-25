@@ -45,9 +45,11 @@ import {
   exportGlobalSchedulePdf,
   type GlobalSchedulePdfTable,
 } from "./export-global-schedule-pdf";
+import { exportTeacherHoursListPdf } from "./export-teacher-hours-list-pdf";
 import { GlobalScheduleGrid } from "./global-schedule-grid";
 import {
   alignSaturdayHours,
+  teacherSaturdayRange,
   teacherScheduleClock,
   unionWorkingDays,
 } from "./saturday-clock";
@@ -59,7 +61,7 @@ import type {
 } from "./types";
 import type { Cycle } from "@/lib/cycle";
 
-type ViewMode = "teachers" | "grid";
+type ViewMode = "teachers" | "grid" | "hours";
 
 function isAssignedTeacher(teacher: GlobalScheduleTeacher) {
   return (
@@ -107,6 +109,35 @@ function formatTeacherMeta(
     ),
     hours: teacher.hoursLabel,
   });
+}
+
+function teacherHoursClock(
+  teacher: GlobalScheduleTeacher,
+  schedule: GlobalScheduleByCycle,
+) {
+  const teacherCreneaux =
+    teacher.creneauIds.length > 0
+      ? schedule.creneaux.filter((creneau) =>
+          teacher.creneauIds.includes(creneau.id),
+        )
+      : schedule.creneaux;
+  return teacherScheduleClock({
+    teacherCreneaux,
+    fallbackHours: teacher.entries.map((entry) => entry.hour),
+    allCreneaux: schedule.creneaux,
+  });
+}
+
+/** Nom + charge : « 1 classe · 10 cours · … · 31H · Samedi : 07:30 – 12:15 » */
+function formatTeacherHoursDetails(
+  t: ReturnType<typeof useTranslations>,
+  teacher: GlobalScheduleTeacher,
+  schedule: GlobalScheduleByCycle,
+) {
+  const meta = formatTeacherMeta(t, teacher);
+  const saturday = teacherSaturdayRange(teacherHoursClock(teacher, schedule));
+  if (!saturday) return meta;
+  return `${meta} · ${t("saturdayLabel", { range: saturday })}`;
 }
 
 export function HoraireGlobalClient() {
@@ -219,6 +250,13 @@ export function HoraireGlobalClient() {
     );
   }, [query, schedule?.teachers]);
 
+  const hoursListTeachers = useMemo(() => {
+    return [...filteredTeachers].sort((a, b) => {
+      if (b.hoursCount !== a.hoursCount) return b.hoursCount - a.hoursCount;
+      return a.name.localeCompare(b.name, "fr");
+    });
+  }, [filteredTeachers]);
+
   const whatsappTargets = useMemo(() => {
     const teachers = schedule?.teachers ?? [];
     return {
@@ -258,7 +296,10 @@ export function HoraireGlobalClient() {
     schedule &&
       schedule.periodCount > 0 &&
       !loadingSchedule &&
-      (view !== "teachers" || filteredTeachers.length > 0),
+      (view === "grid" ||
+        (view === "hours"
+          ? hoursListTeachers.length > 0
+          : filteredTeachers.length > 0)),
   );
 
   const canSendAllWhatsApp = Boolean(
@@ -362,6 +403,28 @@ export function HoraireGlobalClient() {
       const [context, err] = await getTeacherReportContextAction();
       if (err || !context) {
         toast.error(t("printFailed"));
+        return;
+      }
+
+      if (view === "hours") {
+        const rows = hoursListTeachers.map((teacher) => ({
+          name: teacher.name,
+          details: formatTeacherHoursDetails(t, teacher, schedule),
+        }));
+        if (!rows.length) {
+          toast.error(t("empty"));
+          return;
+        }
+        await exportTeacherHoursListPdf({
+          context,
+          title: t("printHoursPdfTitle", { cycle: schedule.cycleLabel }),
+          details: [t("viewHours")],
+          yearLabel: String(t.raw("yearLabel")),
+          teacherColumn: t("hoursListTeacher"),
+          loadColumn: t("hoursListLoad"),
+          rows,
+        });
+        toast.success(t("printSuccess"));
         return;
       }
 
@@ -563,7 +626,7 @@ export function HoraireGlobalClient() {
                   value={view}
                   onValueChange={(value) => setView(value as ViewMode)}
                 >
-                  <TabsList className="grid h-auto grid-cols-2 border border-primary/20 bg-primary/10">
+                  <TabsList className="grid h-auto grid-cols-3 border border-primary/20 bg-primary/10">
                     <TabsTrigger
                       value="teachers"
                       className="px-3 py-1.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:text-sm"
@@ -576,9 +639,15 @@ export function HoraireGlobalClient() {
                     >
                       {t("viewGrid")}
                     </TabsTrigger>
+                    <TabsTrigger
+                      value="hours"
+                      className="px-3 py-1.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:text-sm"
+                    >
+                      {t("viewHours")}
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
-                {view === "teachers" ? (
+                {view === "teachers" || view === "hours" ? (
                   <div className="relative min-w-[16rem]">
                     <IconSearch className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
@@ -720,6 +789,32 @@ export function HoraireGlobalClient() {
                   </p>
                 ) : null}
               </div>
+            ) : view === "hours" ? (
+              hoursListTeachers.length === 0 ? (
+                <EmptyTableState
+                  title={t("noTeacherMatch")}
+                  description={t("noTeacherMatchHint")}
+                />
+              ) : (
+                <ul className="divide-y rounded-lg border">
+                  {hoursListTeachers.map((teacher) => (
+                    <li
+                      key={teacher.id || teacher.name}
+                      className="flex flex-col gap-0.5 px-3 py-3 sm:flex-row sm:items-baseline sm:gap-2"
+                    >
+                      <span className="shrink-0 text-sm font-semibold uppercase tracking-wide">
+                        {teacher.name}
+                      </span>
+                      <span className="hidden text-muted-foreground sm:inline">
+                        :
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {formatTeacherHoursDetails(t, teacher, schedule)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )
             ) : filteredTeachers.length === 0 ? (
               <EmptyTableState
                 title={t("noTeacherMatch")}
@@ -728,17 +823,7 @@ export function HoraireGlobalClient() {
             ) : (
               <div className="space-y-8">
                 {filteredTeachers.map((teacher) => {
-                  const teacherCreneaux =
-                    teacher.creneauIds.length > 0
-                      ? schedule.creneaux.filter((creneau) =>
-                          teacher.creneauIds.includes(creneau.id),
-                        )
-                      : schedule.creneaux;
-                  const clock = teacherScheduleClock({
-                    teacherCreneaux,
-                    fallbackHours: teacher.entries.map((entry) => entry.hour),
-                    allCreneaux: schedule.creneaux,
-                  });
+                  const clock = teacherHoursClock(teacher, schedule);
 
                   return (
                     <section key={teacher.id || teacher.name} className="space-y-3">

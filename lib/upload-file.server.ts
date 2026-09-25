@@ -2,6 +2,13 @@ import crypto from "crypto";
 import fs from "fs/promises";
 import path from "path";
 
+import {
+  publicUploadPath,
+  storedUploadFileName,
+} from "@/lib/upload-paths";
+
+export { publicUploadPath, storedUploadFileName } from "@/lib/upload-paths";
+
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 export const MAX_DOCUMENT_UPLOAD_BYTES = 10 * 1024 * 1024;
 
@@ -160,16 +167,6 @@ async function mirrorUploadToPublicDirectory(
   }
 }
 
-/** URL publique identique aux images (`/uploads/photo.jpg`). */
-export function publicUploadPath(fileName: string): string {
-  const urlPath = fileName.replace(/\\/g, "/").replace(/^\/+/, "");
-  return `/uploads/${urlPath
-    .split("/")
-    .filter(Boolean)
-    .map((part) => encodeURIComponent(part))
-    .join("/")}`;
-}
-
 export async function writeUploadBuffer(
   fileName: string,
   buffer: Buffer,
@@ -188,23 +185,32 @@ export async function writeUploadBuffer(
   };
 }
 
-/** Nom de fichier stocké en base → nom sûr, sans préfixe /uploads. */
-export function storedUploadFileName(
+/** True si le fichier est lisible dans un des dossiers d’upload connus. */
+export async function uploadedFileExists(
   storedName: string | null | undefined,
-): string {
-  const raw = storedName?.trim() ?? "";
-  if (!raw) return "";
+): Promise<boolean> {
+  const fileName = storedUploadFileName(storedName);
+  if (!fileName) return false;
 
-  const withoutQuery = raw.split("?")[0] ?? raw;
-  const normalized = withoutQuery
-    .replace(/\\/g, "/")
-    .replace(/^https?:\/\/[^/]+/i, "");
-  const stripped = normalized
-    .replace(/^\/+/, "")
-    .replace(/^api\/uploads\//, "")
-    .replace(/^uploads\//, "");
+  let relative: string;
+  try {
+    relative = safeUploadRelativePath(fileName);
+  } catch {
+    return false;
+  }
 
-  return path.basename(stripped);
+  for (const directory of listUploadDirectories()) {
+    const fullPath = path.join(directory, relative);
+    if (!isPathInsideDirectory(directory, fullPath)) continue;
+    try {
+      await fs.access(fullPath);
+      return true;
+    } catch {
+      // essayer le dossier suivant
+    }
+  }
+
+  return false;
 }
 
 /**

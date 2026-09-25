@@ -17,7 +17,7 @@ type HomeFeaturedEventsGridProps = {
 };
 
 function schoolImage(school: HomeSchool) {
-  return firstPublicSchoolPhoto(school);
+  return school.cover || firstPublicSchoolPhoto(school) || school.logo;
 }
 
 export function HomeFeaturedEventsGrid({

@@ -30,7 +30,8 @@ import {
   educationalOrganizationJsonLd,
 } from "@/lib/seo/json-ld";
 import { SITE_NAME } from "@/lib/seo/site";
-import { firstPublicBranchPhoto, getBranchImage, getPublicBranchPhotos } from "@/lib/utils";
+import { resolvePublicBranchMedia } from "@/lib/branch-public-images";
+import { branchImageBackgroundStyle } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -136,9 +137,9 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
 
   const libraryBooksCount = branch._count.libraryBooks;
   const hasLibrary = libraryBooksCount > 0;
-  const images = getBranchImage(branch.image);
-  const cover = firstPublicBranchPhoto(images);
-  const gallery = getPublicBranchPhotos(images).slice(0, 8);
+  const media = await resolvePublicBranchMedia(branch.image);
+  const cover = media.cover;
+  const gallery = media.gallery.slice(0, 8);
 
   const students = branch.branchemembers.flatMap((member) => member.student);
 
@@ -220,8 +221,8 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
       <section className="relative overflow-hidden bg-primary text-primary-foreground">
         {cover ? (
           <div
-            className="absolute inset-0 bg-cover bg-center opacity-30"
-            style={{ backgroundImage: `url('${cover}')` }}
+            className="absolute inset-0 bg-cover bg-center opacity-45"
+            style={branchImageBackgroundStyle(cover)}
           />
         ) : null}
 
@@ -334,9 +335,16 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
                 {gallery.map((image, index) => (
                   <div
                     key={`${image}-${index}`}
-                    className="aspect-square rounded-2xl bg-cover bg-center"
-                    style={{ backgroundImage: `url('${image}')` }}
-                  />
+                    className="relative aspect-square overflow-hidden rounded-2xl bg-muted"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={image}
+                      alt={`${branch.name} — photo ${index + 1}`}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
                 ))}
               </div>
             ) : (

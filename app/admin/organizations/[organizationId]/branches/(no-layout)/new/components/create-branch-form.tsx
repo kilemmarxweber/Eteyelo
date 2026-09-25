@@ -58,15 +58,17 @@ import {
 } from "../../branche.action";
 import type { BranchFormActionResult } from "@/app/components/inscription-ecole/ecole.action";
 import { uploadFile, uploadFiles } from "@/lib/upload-file";
-import { cn } from "@/lib/utils";
+import { cn, normalizeImageSrc } from "@/lib/utils";
+import { storedUploadFileName } from "@/lib/upload-paths";
 import { getCurrentGeoCoords } from "@/lib/browser-geolocation";
 import {
   DEFAULT_BRANCH_ATTENDANCE_RADIUS,
   DEFAULT_BRANCH_LATITUDE,
   DEFAULT_BRANCH_LONGITUDE,
   isPinnedBranchGeo,
+  normalizeBranchImages,
 } from "@/lib/branch-form-values";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { writeLocaleCookie } from "@/lib/user-locale";
 
 type BranchImages = {
@@ -172,8 +174,8 @@ export function CreateBranchForm({
   const [locating, setLocating] = useState(false);
   const [gpsAccuracy, setGpsAccuracy] = useState<number | undefined>();
   const [activeTab, setActiveTab] = useState<BranchFormTab>("identity");
-  const [savedImages, setSavedImages] = useState<BranchImages>(
-    defaultValues?.image ?? emptyBranchImages(),
+  const [savedImages, setSavedImages] = useState<BranchImages>(() =>
+    normalizeBranchImages(defaultValues?.image),
   );
   const [pendingFiles, setPendingFiles] =
     useState<PendingBranchFiles>(emptyPendingFiles);
@@ -334,29 +336,40 @@ export function CreateBranchForm({
   }
 
   async function buildFinalImages(): Promise<BranchImages> {
-    let logo = savedImages.logo;
+    let logo = storedUploadFileName(savedImages.logo);
 
     if (pendingFiles.logo) {
       const uploadedLogo = await uploadFile(pendingFiles.logo);
       if (!uploadedLogo.ok) {
         throw new Error(uploadedLogo.message);
       }
-      logo = uploadedLogo.fileName;
+      logo = storedUploadFileName(uploadedLogo.fileName);
     }
 
-    const [event, gallery, ecole] = await Promise.all([
-      uploadFiles(pendingFiles.event).then(
-        (names) => [...savedImages.event, ...names],
-      ),
-      uploadFiles(pendingFiles.gallery).then(
-        (names) => [...savedImages.gallery, ...names],
-      ),
-      uploadFiles(pendingFiles.ecole).then(
-        (names) => [...savedImages.ecole, ...names],
-      ),
+    const [eventNames, galleryNames, ecoleNames] = await Promise.all([
+      uploadFiles(pendingFiles.event),
+      uploadFiles(pendingFiles.gallery),
+      uploadFiles(pendingFiles.ecole),
     ]);
 
-    return { logo, event, gallery, ecole };
+    const mergeNames = (saved: string[], uploaded: string[]) => {
+      const seen = new Set<string>();
+      const result: string[] = [];
+      for (const value of [...saved, ...uploaded]) {
+        const name = storedUploadFileName(value);
+        if (!name || seen.has(name)) continue;
+        seen.add(name);
+        result.push(name);
+      }
+      return result;
+    };
+
+    return {
+      logo,
+      event: mergeNames(savedImages.event, eventNames),
+      gallery: mergeNames(savedImages.gallery, galleryNames),
+      ecole: mergeNames(savedImages.ecole, ecoleNames),
+    };
   }
 
   async function onSubmit(values: CreateBranchFormValues) {
@@ -1143,6 +1156,12 @@ export function CreateBranchForm({
                           <ImageChip
                             label="Logo"
                             name={pendingFiles.logo?.name ?? savedImages.logo}
+                            previewUrl={
+                              pendingFiles.logo
+                                ? undefined
+                                : normalizeImageSrc(savedImages.logo)
+                            }
+                            pendingFile={pendingFiles.logo}
                             pending={Boolean(pendingFiles.logo)}
                             onRemove={removeLogo}
                           />
@@ -1152,6 +1171,7 @@ export function CreateBranchForm({
                             key={`saved-ecole-${fileName}-${index}`}
                             label="École"
                             name={fileName}
+                            previewUrl={normalizeImageSrc(fileName)}
                             onRemove={() => removeSavedImage("ecole", index)}
                           />
                         ))}
@@ -1160,6 +1180,7 @@ export function CreateBranchForm({
                             key={`pending-ecole-${file.name}-${index}`}
                             label="École"
                             name={file.name}
+                            pendingFile={file}
                             pending
                             onRemove={() => removePendingImage("ecole", index)}
                           />
@@ -1169,6 +1190,7 @@ export function CreateBranchForm({
                             key={`saved-gallery-${fileName}-${index}`}
                             label="Galerie"
                             name={fileName}
+                            previewUrl={normalizeImageSrc(fileName)}
                             onRemove={() => removeSavedImage("gallery", index)}
                           />
                         ))}
@@ -1177,6 +1199,7 @@ export function CreateBranchForm({
                             key={`pending-gallery-${file.name}-${index}`}
                             label="Galerie"
                             name={file.name}
+                            pendingFile={file}
                             pending
                             onRemove={() =>
                               removePendingImage("gallery", index)
@@ -1188,6 +1211,7 @@ export function CreateBranchForm({
                             key={`saved-event-${fileName}-${index}`}
                             label="Événement"
                             name={fileName}
+                            previewUrl={normalizeImageSrc(fileName)}
                             onRemove={() => removeSavedImage("event", index)}
                           />
                         ))}
@@ -1196,6 +1220,7 @@ export function CreateBranchForm({
                             key={`pending-event-${file.name}-${index}`}
                             label="Événement"
                             name={file.name}
+                            pendingFile={file}
                             pending
                             onRemove={() =>
                               removePendingImage("event", index)
@@ -1345,20 +1370,53 @@ function ImageChip({
   label,
   name,
   pending,
+  previewUrl,
+  pendingFile,
   onRemove,
 }: {
   label: string;
   name: string;
   pending?: boolean;
+  previewUrl?: string;
+  pendingFile?: File | null;
   onRemove: () => void;
 }) {
+  const objectUrl = useMemo(() => {
+    if (!pendingFile) return null;
+    return URL.createObjectURL(pendingFile);
+  }, [pendingFile]);
+
+  useEffect(() => {
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [objectUrl]);
+
+  const src = objectUrl || previewUrl || null;
+
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border bg-muted/40 px-3 py-2 text-sm">
-      <span className="min-w-0 truncate">
-        <strong>{label}</strong>
-        {pending ? " (nouveau) : " : " : "}
-        {name}
-      </span>
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="relative size-12 shrink-0 overflow-hidden rounded-lg border bg-muted">
+          {src ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={src}
+              alt={label}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span className="flex h-full w-full items-center justify-center text-muted-foreground">
+              <ImageIcon className="size-4" />
+            </span>
+          )}
+        </div>
+        <span className="min-w-0 truncate">
+          <strong>{label}</strong>
+          {pending ? " (nouveau) : " : " : "}
+          {name}
+        </span>
+      </div>
       <Button
         type="button"
         variant="ghost"

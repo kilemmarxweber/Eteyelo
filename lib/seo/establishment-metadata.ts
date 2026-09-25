@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { prisma } from "@/lib/prisma";
 import { absoluteUrl, SITE_NAME, SITE_OG_IMAGE } from "@/lib/seo/site";
-import { firstPublicBranchPhoto, getBranchImage } from "@/lib/utils";
+import { getBranchImage, resolveBranchCoverSrc } from "@/lib/utils";
 
 export type EstablishmentSeoBranch = {
   id: string;
@@ -43,7 +43,7 @@ function locationLabel(branch: EstablishmentSeoBranch): string {
 
 function coverImage(branch: EstablishmentSeoBranch): string {
   const images = getBranchImage(branch.image);
-  return firstPublicBranchPhoto(images) || SITE_OG_IMAGE;
+  return resolveBranchCoverSrc(images) || SITE_OG_IMAGE;
 }
 
 function buildDescription(branch: EstablishmentSeoBranch): string {

@@ -2,8 +2,8 @@ import { Camera } from "lucide-react";
 
 import { HomeNavbar } from "@/components/home-navbar";
 import { HomeFooter } from "@/components/home-footer";
+import { resolvePublicBranchMedia } from "@/lib/branch-public-images";
 import { prisma } from "@/lib/prisma";
-import { getBranchImage, normalizeImageSrc } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -20,15 +20,24 @@ export default async function GalleryPage() {
     },
   });
 
-  const images = branches.flatMap((branch) => {
-    const branchImages = getBranchImage(branch.image);
+  const resolved = await Promise.all(
+    branches.map(async (branch) => {
+      const media = await resolvePublicBranchMedia(branch.image);
+      return {
+        school: branch.name,
+        city: branch.ville || branch.pays || "RDC",
+        photos: media.gallery,
+      };
+    }),
+  );
 
-    return branchImages.gallery.map((image) => ({
-      image: normalizeImageSrc(image),
-      school: branch.name,
-      city: branch.ville || branch.pays || "RDC",
-    }));
-  });
+  const images = resolved.flatMap((branch) =>
+    branch.photos.map((image) => ({
+      image,
+      school: branch.school,
+      city: branch.city,
+    })),
+  );
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -50,28 +59,37 @@ export default async function GalleryPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-14">
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {images.map((item, index) => (
-            <article
-              key={`${item.image}-${index}`}
-              className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition hover:border-primary/30"
-            >
-              <div
-                className="aspect-square bg-cover bg-center transition duration-500 group-hover:scale-105"
-                style={{
-                  backgroundImage: `url('${item.image}')`,
-                }}
-              />
+        {images.length ? (
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {images.map((item, index) => (
+              <article
+                key={`${item.image}-${index}`}
+                className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition hover:border-primary/30"
+              >
+                <div className="aspect-square overflow-hidden bg-muted">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.image}
+                    alt={`${item.school} — photo`}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
 
-              <div className="p-4">
-                <h2 className="line-clamp-1 text-sm font-bold text-foreground">
-                  {item.school}
-                </h2>
-                <p className="mt-1 text-xs text-muted-foreground">{item.city}</p>
-              </div>
-            </article>
-          ))}
-        </div>
+                <div className="p-4">
+                  <h2 className="line-clamp-1 text-sm font-bold text-foreground">
+                    {item.school}
+                  </h2>
+                  <p className="mt-1 text-xs text-muted-foreground">{item.city}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-3xl border border-dashed p-10 text-center text-sm text-muted-foreground">
+            Aucune photo disponible pour le moment.
+          </p>
+        )}
       </section>
 
       <HomeFooter />

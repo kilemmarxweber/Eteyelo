@@ -1,4 +1,8 @@
 import { DEFAULT_CRENEAU_WORKING_DAYS } from "@/lib/creneau-working-days";
+import {
+  SATURDAY_SESSION_END,
+  SATURDAY_SESSION_START,
+} from "@/lib/creneau-saturday";
 import type { GlobalScheduleCreneau } from "./types";
 
 function sortHm(a: string, b: string) {
@@ -77,4 +81,17 @@ export function teacherScheduleClock(params: {
     saturdayHours,
     saturdayEndTime,
   };
+}
+
+/** Ex. "07:30 – 12:15" si le samedi a un horaire décalé (matin). */
+export function teacherSaturdayRange(
+  clock: ReturnType<typeof teacherScheduleClock>,
+): string | null {
+  const saturdayHours = clock.saturdayHours ?? [];
+  const showSaturday = saturdayHours.some(
+    (hour, index) => hour && hour !== clock.hours[index],
+  );
+  if (!showSaturday) return null;
+  const end = clock.saturdayEndTime || SATURDAY_SESSION_END;
+  return `${SATURDAY_SESSION_START} – ${end}`;
 }

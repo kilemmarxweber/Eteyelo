@@ -4,7 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { HomeNavbar } from "@/components/home-navbar";
 import { HomeFooter } from "@/components/home-footer";
 import { prisma } from "@/lib/prisma";
-import { normalizeImageSrc } from "@/lib/utils";
+import {
+  ensureUploadInSharedDirectory,
+  uploadedFileExists,
+} from "@/lib/upload-file.server";
+import { branchImageBackgroundStyle, normalizeImageSrc } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +18,14 @@ function formatDate(date: Date) {
     month: "long",
     year: "numeric",
   }).format(date);
+}
+
+async function resolveEventImage(image: string | null | undefined) {
+  if (!image?.trim()) return "/uploads/galery-1.jpeg";
+  const src = normalizeImageSrc(image);
+  await ensureUploadInSharedDirectory(image);
+  if (await uploadedFileExists(image)) return src;
+  return "/uploads/galery-1.jpeg";
 }
 
 export default async function EventsPage() {
@@ -40,6 +52,13 @@ export default async function EventsPage() {
     },
   });
 
+  const cards = await Promise.all(
+    events.map(async (event) => ({
+      ...event,
+      imageSrc: await resolveEventImage(event.image),
+    })),
+  );
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <HomeNavbar />
@@ -62,20 +81,14 @@ export default async function EventsPage() {
 
       <section className="mx-auto max-w-7xl px-6 py-14">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {events.map((event) => (
+          {cards.map((event) => (
             <article
               key={event.id}
               className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition hover:border-primary/30"
             >
               <div
                 className="h-52 bg-cover bg-center"
-                style={{
-                  backgroundImage: `url('${
-                    event.image
-                      ? normalizeImageSrc(event.image)
-                      : "/uploads/galery-1.jpeg"
-                  }')`,
-                }}
+                style={branchImageBackgroundStyle(event.imageSrc)}
               />
 
               <div className="p-5">
@@ -104,7 +117,7 @@ export default async function EventsPage() {
                 ) : null}
 
                 {event.description ? (
-                  <p className="mt-4 line-clamp-3 text-sm leading-6 text-muted-foreground">
+                  <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">
                     {event.description}
                   </p>
                 ) : null}

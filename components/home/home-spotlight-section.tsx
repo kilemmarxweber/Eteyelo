@@ -26,7 +26,7 @@ type HomeSpotlightSectionProps = {
 };
 
 function schoolSpotlightImage(school: HomeSchool) {
-  return firstPublicSchoolPhoto(school);
+  return school.cover || firstPublicSchoolPhoto(school) || school.logo;
 }
 
 function EventCard({

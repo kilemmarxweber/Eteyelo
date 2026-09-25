@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Camera, MapPin, Users } from "lucide-react";
 
 import type { HomeSchool } from "@/lib/home/home-data";
-import { cn } from "@/lib/utils";
+import { branchImageBackgroundStyle, cn } from "@/lib/utils";
 
 export type HomeGalleryItem = {
   src: string;
@@ -30,18 +30,25 @@ function buildGalleryPool(
   fallbackImages: string[],
 ): HomeGalleryItem[] {
   const seen = new Set<string>();
-  const items: HomeGalleryItem[] = [];
+  const perSchoolQueues: HomeGalleryItem[][] = [];
 
   for (const school of schools) {
-    const urls = [...school.gallery, ...school.ecole, ...school.event].filter(
+    const urls = [
+      ...school.ecole,
+      ...school.gallery,
+      ...school.event,
+      school.cover,
+      school.logo,
+    ].filter(
       (url): url is string =>
         typeof url === "string" && url.trim().length > 0,
     );
 
+    const queue: HomeGalleryItem[] = [];
     for (const src of urls) {
       if (seen.has(src)) continue;
       seen.add(src);
-      items.push({
+      queue.push({
         src,
         schoolName: school.name,
         schoolId: school.id,
@@ -49,6 +56,20 @@ function buildGalleryPool(
         students: school.students,
         peopleLabel: school.peopleLabelPlural,
       });
+    }
+    if (queue.length > 0) perSchoolQueues.push(queue);
+  }
+
+  // Round-robin entre branches pour éviter qu’une seule école monopolise la grille
+  const items: HomeGalleryItem[] = [];
+  let added = true;
+  while (added) {
+    added = false;
+    for (const queue of perSchoolQueues) {
+      const next = queue.shift();
+      if (!next) continue;
+      items.push(next);
+      added = true;
     }
   }
 
@@ -89,7 +110,7 @@ function GalleryTile({
           "group-hover:scale-125",
           !src && "bg-gradient-to-br from-blue-950 to-cyan-700",
         )}
-        style={src ? { backgroundImage: `url('${src}')` } : undefined}
+        style={src ? branchImageBackgroundStyle(src) : undefined}
       />
 
       {/* Overlay détail au hover */}
@@ -197,7 +218,9 @@ export function HomeGallerySection({
     const timer = window.setInterval(() => {
       setFading(true);
       window.setTimeout(() => {
-        setOffset((current) => (current + 1) % pool.length);
+        // Avance d’un « écran » pour faire tourner plusieurs branches à la fois
+        const step = Math.min(slotCount, Math.max(1, pool.length - slotCount));
+        setOffset((current) => (current + step) % pool.length);
         setFading(false);
       }, 380);
     }, intervalMs);

@@ -28,8 +28,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: "/uploads/:fileName",
-        destination: "/api/uploads/:fileName",
+        source: "/uploads/:path*",
+        destination: "/api/uploads/:path*",
       },
     ];
   },
