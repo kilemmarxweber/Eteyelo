@@ -63,6 +63,13 @@ import type {
   GlobalScheduleEntry,
 } from "../teacher/horaire-global/types";
 import {
+  academicScheduleCalendarMeta,
+  formatTeachingHoursLabel,
+  sumScheduleMinutes,
+  teachingHourUnitMinutes,
+  teachingHoursFromMinutes,
+} from "@/lib/teacher-schedule-load";
+import {
   classeCycleWhere,
   primaryOrgRoleFromSession,
   resolveAccessibleCycles,
@@ -2091,6 +2098,7 @@ export const getGlobalScheduleByCycleAction = action
       },
       select: {
         typebranch: true,
+        educationSystem: true,
         cycles: {
           where: { isActive: true },
           select: { cycle: true, sortOrder: true, isActive: true },
@@ -2098,6 +2106,11 @@ export const getGlobalScheduleByCycleAction = action
       },
     });
     const multiCycle = isMultiCycleBranch(branch ?? {});
+    const hourUnitMinutes = teachingHourUnitMinutes(input.cycle);
+    const calendar = academicScheduleCalendarMeta(
+      input.cycle,
+      branch?.educationSystem,
+    );
 
     const classes = await prisma.classe.findMany({
       where: {
@@ -2198,6 +2211,13 @@ export const getGlobalScheduleByCycleAction = action
         classeIds: new Set([classe.id]),
       });
     }
+
+    const durationByCreneauId = new Map(
+      [...creneauMap.values()].map((creneau) => [
+        creneau.id,
+        creneau.durationCourse > 0 ? creneau.durationCourse : hourUnitMinutes,
+      ]),
+    );
 
     const schedules =
       classIds.length === 0
@@ -2414,31 +2434,58 @@ export const getGlobalScheduleByCycleAction = action
           teacher.entries.length > 0,
       )
       .sort((a, b) => a.name.localeCompare(b.name, "fr"))
-      .map((teacher) => ({
-        id: teacher.id,
-        nom: teacher.nom,
-        postnom: teacher.postnom,
-        prenom: teacher.prenom,
-        name: teacher.name,
-        telephone: teacher.telephone,
-        classCount: teacher.classIds.size,
-        courseCount: teacher.courseIds.size,
-        periodCount: teacher.entries.length,
-        creneauIds: [...teacher.creneauIds],
-        entries: teacher.entries.sort((left, right) => {
-          const hour = left.hour.localeCompare(right.hour);
-          if (hour !== 0) return hour;
-          const day = left.day.localeCompare(right.day, "fr");
-          if (day !== 0) return day;
-          return left.classe.codeClasse.localeCompare(
-            right.classe.codeClasse,
-            "fr",
-          );
-        }),
-      }));
+      .map((teacher) => {
+        const totalMinutes = sumScheduleMinutes(
+          teacher.entries,
+          durationByCreneauId,
+          hourUnitMinutes,
+        );
+        const hoursCount = teachingHoursFromMinutes(
+          totalMinutes,
+          hourUnitMinutes,
+        );
+        return {
+          id: teacher.id,
+          nom: teacher.nom,
+          postnom: teacher.postnom,
+          prenom: teacher.prenom,
+          name: teacher.name,
+          telephone: teacher.telephone,
+          classCount: teacher.classIds.size,
+          courseCount: teacher.courseIds.size,
+          periodCount: teacher.entries.length,
+          totalMinutes,
+          hoursCount,
+          hoursLabel: formatTeachingHoursLabel(hoursCount),
+          academicPeriodCount: calendar.academicPeriodCount,
+          academicGroupCount: calendar.academicGroupCount,
+          academicGroupKind: calendar.groupKind,
+          creneauIds: [...teacher.creneauIds],
+          entries: teacher.entries.sort((left, right) => {
+            const hour = left.hour.localeCompare(right.hour);
+            if (hour !== 0) return hour;
+            const day = left.day.localeCompare(right.day, "fr");
+            if (day !== 0) return day;
+            return left.classe.codeClasse.localeCompare(
+              right.classe.codeClasse,
+              "fr",
+            );
+          }),
+        };
+      });
 
     const courseIds = new Set(
       entries.map((entry) => entry.cours.id).filter(Boolean),
+    );
+
+    const cycleTotalMinutes = sumScheduleMinutes(
+      entries,
+      durationByCreneauId,
+      hourUnitMinutes,
+    );
+    const cycleHoursCount = teachingHoursFromMinutes(
+      cycleTotalMinutes,
+      hourUnitMinutes,
     );
 
     return {
@@ -2448,10 +2495,22 @@ export const getGlobalScheduleByCycleAction = action
       courseCount: courseIds.size,
       teacherCount: teachers.length,
       periodCount: entries.length,
-      classesWithoutCreneau: cycleClasses.filter((classe) => !classe.creneau).length,
+      totalMinutes: cycleTotalMinutes,
+      hoursCount: cycleHoursCount,
+      hoursLabel: formatTeachingHoursLabel(cycleHoursCount),
+      academicPeriodCount: calendar.academicPeriodCount,
+      academicGroupCount: calendar.academicGroupCount,
+      academicGroupKind: calendar.groupKind,
+      hourUnitMinutes,
+      classesWithoutCreneau: cycleClasses.filter((classe) => !classe.creneau)
+        .length,
       creneaux: [...creneauMap.values()]
         .map(({ classeIds: _classeIds, ...creneau }) => creneau)
-        .sort((a, b) => a.startTime.localeCompare(b.startTime) || a.nameCreneau.localeCompare(b.nameCreneau, "fr")),
+        .sort(
+          (a, b) =>
+            a.startTime.localeCompare(b.startTime) ||
+            a.nameCreneau.localeCompare(b.nameCreneau, "fr"),
+        ),
       teachers,
       entries,
     };

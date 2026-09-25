@@ -75,6 +75,40 @@ function teacherHasContact(teacher: GlobalScheduleTeacher) {
   return isAssignedTeacher(teacher) && Boolean(teacher.telephone?.trim());
 }
 
+function academicGroupsLabel(
+  t: ReturnType<typeof useTranslations>,
+  kind: GlobalScheduleTeacher["academicGroupKind"],
+  count: number,
+) {
+  switch (kind) {
+    case "semester":
+      return t("groupsSemesters", { count });
+    case "module":
+      return t("groupsModules", { count });
+    case "session":
+      return t("groupsSessions", { count });
+    default:
+      return t("groupsTrimesters", { count });
+  }
+}
+
+function formatTeacherMeta(
+  t: ReturnType<typeof useTranslations>,
+  teacher: GlobalScheduleTeacher,
+) {
+  return t("teacherMeta", {
+    classes: teacher.classCount,
+    courses: teacher.courseCount,
+    periods: teacher.academicPeriodCount,
+    groupsLabel: academicGroupsLabel(
+      t,
+      teacher.academicGroupKind,
+      teacher.academicGroupCount,
+    ),
+    hours: teacher.hoursLabel,
+  });
+}
+
 export function HoraireGlobalClient() {
   const t = useTranslations("users.teachers.globalSchedule");
   const tCommon = useTranslations("common");
@@ -337,11 +371,7 @@ export function HoraireGlobalClient() {
               teacherSchedulePdfTable(
                 teacher,
                 schedule,
-                t("teacherMeta", {
-                  classes: teacher.classCount,
-                  courses: teacher.courseCount,
-                  periods: teacher.periodCount,
-                }),
+                formatTeacherMeta(t, teacher),
               ),
             )
           : schedule.creneaux.length === 0
@@ -463,7 +493,7 @@ export function HoraireGlobalClient() {
           </Tabs>
         ) : null}
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
           <BranchStatCard
             label={t("statTeachers", { teachers: peopleLabels.teacherPlural })}
             value={schedule?.teacherCount ?? "—"}
@@ -487,6 +517,36 @@ export function HoraireGlobalClient() {
             value={schedule?.periodCount ?? "—"}
             description={t("statSlotsHint")}
             icon={IconClockHour4}
+          />
+          <BranchStatCard
+            label={t("statHours")}
+            value={schedule?.hoursLabel ?? "—"}
+            description={
+              schedule
+                ? t("statHoursHint", { minutes: schedule.hourUnitMinutes })
+                : undefined
+            }
+            icon={IconClockHour4}
+          />
+          <BranchStatCard
+            label={t("statAcademic")}
+            value={
+              schedule
+                ? t("statAcademicValue", {
+                    periods: schedule.academicPeriodCount,
+                  })
+                : "—"
+            }
+            description={
+              schedule
+                ? academicGroupsLabel(
+                    t,
+                    schedule.academicGroupKind,
+                    schedule.academicGroupCount,
+                  )
+                : undefined
+            }
+            icon={IconCalendarTime}
           />
         </div>
 
@@ -688,11 +748,7 @@ export function HoraireGlobalClient() {
                             {teacher.name}
                           </h3>
                           <p className="text-sm text-muted-foreground">
-                            {t("teacherMeta", {
-                              classes: teacher.classCount,
-                              courses: teacher.courseCount,
-                              periods: teacher.periodCount,
-                            })}
+                            {formatTeacherMeta(t, teacher)}
                             {teacher.telephone?.trim()
                               ? ` · ${teacher.telephone.trim()}`
                               : ` · ${t("whatsappNoContact")}`}

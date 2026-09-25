@@ -74,6 +74,14 @@ export function globalSchedulePdfLabels(locale?: unknown) {
       classes: "classes",
       courses: "courses",
       periods: "periods",
+      groupsTrimesters: (count: number) =>
+        count === 1 ? "1 term" : `${count} terms`,
+      groupsSemesters: (count: number) =>
+        count === 1 ? "1 semester" : `${count} semesters`,
+      groupsModules: (count: number) =>
+        count === 1 ? "1 module" : `${count} modules`,
+      groupsSessions: (count: number) =>
+        count === 1 ? "1 session" : `${count} sessions`,
     };
   }
   if (loc === "pt") {
@@ -87,6 +95,14 @@ export function globalSchedulePdfLabels(locale?: unknown) {
       classes: "turmas",
       courses: "disciplinas",
       periods: "períodos",
+      groupsTrimesters: (count: number) =>
+        count === 1 ? "1 trimestre" : `${count} trimestres`,
+      groupsSemesters: (count: number) =>
+        count === 1 ? "1 semestre" : `${count} semestres`,
+      groupsModules: (count: number) =>
+        count === 1 ? "1 módulo" : `${count} módulos`,
+      groupsSessions: (count: number) =>
+        count === 1 ? "1 sessão" : `${count} sessões`,
     };
   }
   return {
@@ -99,6 +115,14 @@ export function globalSchedulePdfLabels(locale?: unknown) {
     classes: "classes",
     courses: "cours",
     periods: "périodes",
+    groupsTrimesters: (count: number) =>
+      count === 1 ? "1 trimestre" : `${count} trimestres`,
+    groupsSemesters: (count: number) =>
+      count === 1 ? "1 semestre" : `${count} semestres`,
+    groupsModules: (count: number) =>
+      count === 1 ? "1 module" : `${count} modules`,
+    groupsSessions: (count: number) =>
+      count === 1 ? "1 session" : `${count} sessions`,
   };
 }
 

@@ -54,7 +54,18 @@ export type GlobalScheduleTeacher = {
   telephone: string;
   classCount: number;
   courseCount: number;
+  /** Créneaux hebdomadaires planifiés (lignes d'horaire). */
   periodCount: number;
+  /** Minutes totales (Σ durée séance du créneau). */
+  totalMinutes: number;
+  /** Heures de charge = totalMinutes / unité (30 primaire, 45 secondaire). */
+  hoursCount: number;
+  hoursLabel: string;
+  /** Périodes de notation du cycle (6 primaire, 4 secondaire…). */
+  academicPeriodCount: number;
+  /** Trimestres / semestres du cycle. */
+  academicGroupCount: number;
+  academicGroupKind: "trimester" | "semester" | "module" | "session";
   creneauIds: string[];
   entries: GlobalScheduleEntry[];
 };
@@ -65,7 +76,15 @@ export type GlobalScheduleByCycle = {
   classCount: number;
   courseCount: number;
   teacherCount: number;
+  /** Créneaux hebdomadaires du cycle. */
   periodCount: number;
+  totalMinutes: number;
+  hoursCount: number;
+  hoursLabel: string;
+  academicPeriodCount: number;
+  academicGroupCount: number;
+  academicGroupKind: "trimester" | "semester" | "module" | "session";
+  hourUnitMinutes: number;
   classesWithoutCreneau: number;
   creneaux: GlobalScheduleCreneau[];
   teachers: GlobalScheduleTeacher[];

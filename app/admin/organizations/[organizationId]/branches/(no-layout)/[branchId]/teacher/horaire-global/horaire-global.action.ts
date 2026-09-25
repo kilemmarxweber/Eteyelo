@@ -45,7 +45,16 @@ function teacherPdfMeta(
   teacher: GlobalScheduleTeacher,
   labels: ReturnType<typeof globalSchedulePdfLabels>,
 ) {
-  return `${teacher.classCount} ${labels.classes} · ${teacher.courseCount} ${labels.courses} · ${teacher.periodCount} ${labels.periods}`;
+  const groupsLabel =
+    teacher.academicGroupKind === "semester"
+      ? labels.groupsSemesters(teacher.academicGroupCount)
+      : teacher.academicGroupKind === "module"
+        ? labels.groupsModules(teacher.academicGroupCount)
+        : teacher.academicGroupKind === "session"
+          ? labels.groupsSessions(teacher.academicGroupCount)
+          : labels.groupsTrimesters(teacher.academicGroupCount);
+
+  return `${teacher.classCount} ${labels.classes} · ${teacher.courseCount} ${labels.courses} · ${teacher.academicPeriodCount} ${labels.periods} · ${groupsLabel} · ${teacher.hoursLabel}`;
 }
 
 function isPermanentWhatsAppStop(message?: string | null) {
