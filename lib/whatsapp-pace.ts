@@ -84,6 +84,7 @@ function cfg(): ProfileConfig {
   return PROFILES[profile];
 }
 
+/** Pour estimations / tests — les envois passent le profil via `enqueueWhatsAppTask`. */
 export function setWhatsAppPaceProfile(next: WhatsAppPaceProfile) {
   profile = next;
 }
@@ -286,9 +287,18 @@ function noteSuccessfulSend() {
 /**
  * File unique : sérialise tous les envois du process.
  * Attend le circuit, le gap humain, puis une micro-hésitation.
+ *
+ * `paceProfile` is captured at enqueue and applied when this task runs
+ * (not when it is enqueued), so a concurrent meta/qr send cannot overwrite
+ * the profile of tasks already waiting in the queue.
  */
-export function enqueueWhatsAppTask<T>(task: () => Promise<T>): Promise<T> {
+export function enqueueWhatsAppTask<T>(
+  task: () => Promise<T>,
+  paceProfile: WhatsAppPaceProfile = "qr",
+): Promise<T> {
   const run = async () => {
+    // Bind this task's profile before any gap / retry math
+    profile = paceProfile;
     refreshSessionIfIdle();
 
     // Circuit ouvert : attendre la fin (évite d’aggraver un ban)
@@ -355,9 +365,12 @@ export async function withWhatsAppGuardianRetry<T>(
   throw lastError;
 }
 
-export function estimateWhatsAppBatchDurationMs(count: number): number {
+export function estimateWhatsAppBatchDurationMs(
+  count: number,
+  paceProfile: WhatsAppPaceProfile = profile,
+): number {
   if (count <= 1) return 0;
-  const c = cfg();
+  const c = PROFILES[paceProfile];
   const avgGap = c.baseGapMs * 1.25;
   const chunks = Math.floor((count - 1) / c.chunkEvery);
   const chunkAvg = (c.chunkBreakMinMs + c.chunkBreakMaxMs) / 2;

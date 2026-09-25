@@ -19,11 +19,11 @@ import { action } from "@/lib/zsa";
 function isPermanentWhatsAppStop(message?: string | null) {
   if (!message) return false;
   if (isWhatsAppCircuitOpen()) return true;
-  if (parseWhatsAppRetryWaitMs(message)) return true;
+  // Wait / Guardian / RATE_LIMIT → temporaire (retry côté pace), ne pas couper le lot
+  if (parseWhatsAppRetryWaitMs(message)) return false;
   return (
     message.includes("pas connecté") ||
-    message.includes("désactivé") ||
-    /restrict|bloqu|spam|anti-ban|RATE_LIMIT/i.test(message)
+    message.includes("désactivé")
   );
 }
 
@@ -280,33 +280,35 @@ export const sendResultsToParentsAction = action
 
       for (const row of ready) {
         if (skipWhatsApp || isWhatsAppCircuitOpen()) {
-          if (isWhatsAppCircuitOpen() && !whatsappError) {
-            whatsappError =
-              "WhatsApp a restreint les envois — pause automatique, lot interrompu.";
+          // Circuit open doit toujours couper WhatsApp, même si une erreur
+          // temporaire était déjà enregistrée (sinon fallthrough vers un envoi WA).
+          if (isWhatsAppCircuitOpen()) {
             skipWhatsApp = true;
-          }
-          if (skipWhatsApp) {
-            // Email seul si possible
-            try {
-              await sendStudentResultsNotification({
-                to: row.email,
-                phone: null,
-                parentName: row.parentName,
-                studentName: row.studentName,
-                schoolName,
-                className: row.className,
-                periodLabel,
-                yearLabel: input.yearName,
-                lines: row.lines,
-                percentage: row.percentage,
-                organizationId,
-              });
-              notified += 1;
-            } catch {
-              // ignore
+            if (!whatsappError) {
+              whatsappError =
+                "WhatsApp a restreint les envois — pause automatique, lot interrompu.";
             }
-            continue;
           }
+          // Email seul si possible
+          try {
+            await sendStudentResultsNotification({
+              to: row.email,
+              phone: null,
+              parentName: row.parentName,
+              studentName: row.studentName,
+              schoolName,
+              className: row.className,
+              periodLabel,
+              yearLabel: input.yearName,
+              lines: row.lines,
+              percentage: row.percentage,
+              organizationId,
+            });
+            notified += 1;
+          } catch {
+            // ignore
+          }
+          continue;
         }
         try {
           const result = await sendStudentResultsNotification({

@@ -9,8 +9,8 @@ import {
 } from "@/lib/whatsapp-settings";
 import {
   enqueueWhatsAppTask,
-  setWhatsAppPaceProfile,
   withWhatsAppGuardianRetry,
+  type WhatsAppPaceProfile,
 } from "@/lib/whatsapp-pace";
 
 export type WhatsAppSendOutcome = {
@@ -236,59 +236,63 @@ export async function sendWhatsApp(
     }
   }
 
-  // QR / GOWA / Zindua = profil strict ; Meta Cloud = plus souple
-  setWhatsAppPaceProfile(config.provider === "meta" ? "cloud" : "qr");
+  // QR / GOWA / Zindua = profil strict ; Meta Cloud = plus souple.
+  // Bound at enqueue, applied when the queued task runs (avoids cross-provider races).
+  const paceProfile: WhatsAppPaceProfile =
+    config.provider === "meta" ? "cloud" : "qr";
 
-  return enqueueWhatsAppTask(() =>
-    withWhatsAppGuardianRetry(async () => {
-      if (usesMessagingApi(config.provider)) {
-        const client = new MessagingClient({
+  return enqueueWhatsAppTask(
+    () =>
+      withWhatsAppGuardianRetry(async () => {
+        if (usesMessagingApi(config.provider)) {
+          const client = new MessagingClient({
+            apiKey: config.apiKey,
+            baseUrl: config.baseUrl,
+          });
+          // Klambo / GOWA (TVS) : texte libre. Meta Cloud : template approuvé.
+          const res =
+            config.provider === "klambo"
+              ? await client.send({
+                  to,
+                  channel: "whatsapp",
+                  type: "text",
+                  text:
+                    variables.code ||
+                    Object.values(variables).filter(Boolean).join(" | "),
+                })
+              : await client.send({
+                  to,
+                  channel: "whatsapp",
+                  type: "template",
+                  template,
+                  lang: options.lang ?? "fr",
+                  variables,
+                });
+          return {
+            success: res.success,
+            logId: res.logId,
+            status: res.status,
+          };
+        }
+
+        const client = getZindua({
+          siteUrl: config.siteUrl,
           apiKey: config.apiKey,
-          baseUrl: config.baseUrl,
         });
-        // Klambo / GOWA (TVS) : texte libre. Meta Cloud : template approuvé.
-        const res =
-          config.provider === "klambo"
-            ? await client.send({
-                to,
-                channel: "whatsapp",
-                type: "text",
-                text:
-                  variables.code ||
-                  Object.values(variables).filter(Boolean).join(" | "),
-              })
-            : await client.send({
-                to,
-                channel: "whatsapp",
-                type: "template",
-                template,
-                lang: options.lang ?? "fr",
-                variables,
-              });
+        const res = (await client.send({
+          to,
+          channel: "whatsapp",
+          template,
+          lang: options.lang ?? "fr",
+          variables,
+        })) as ZinduaSendResult;
         return {
-          success: res.success,
+          success: Boolean(res.success),
           logId: res.logId,
           status: res.status,
         };
-      }
-
-      const client = getZindua({
-        siteUrl: config.siteUrl,
-        apiKey: config.apiKey,
-      });
-      const res = (await client.send({
-        to,
-        channel: "whatsapp",
-        template,
-        lang: options.lang ?? "fr",
-        variables,
-      })) as ZinduaSendResult;
-      return {
-        success: Boolean(res.success),
-        logId: res.logId,
-        status: res.status,
-      };
-    }, formatZinduaError),
+      }, formatZinduaError),
+    paceProfile,
   );
 }
 

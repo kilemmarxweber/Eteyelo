@@ -63,11 +63,11 @@ function teacherPdfMeta(
 function isPermanentWhatsAppStop(message?: string | null) {
   if (!message) return false;
   if (isWhatsAppCircuitOpen()) return true;
-  if (parseWhatsAppRetryWaitMs(message)) return true;
+  // Wait / Guardian / RATE_LIMIT → temporaire (retry côté pace), ne pas couper le lot
+  if (parseWhatsAppRetryWaitMs(message)) return false;
   return (
     message.includes("pas connecté") ||
-    message.includes("désactivé") ||
-    /restrict|bloqu|spam|anti-ban|RATE_LIMIT/i.test(message)
+    message.includes("désactivé")
   );
 }
 
@@ -220,10 +220,14 @@ export const sendGlobalScheduleWhatsAppAction = action
       for (const teacher of ready) {
         if (skipWhatsApp || isWhatsAppCircuitOpen()) {
           failed += 1;
-          if (isWhatsAppCircuitOpen() && !error) {
-            error =
-              "WhatsApp a restreint les envois — pause automatique, lot interrompu.";
+          // Circuit open doit toujours couper WhatsApp, même si une erreur
+          // temporaire était déjà enregistrée.
+          if (isWhatsAppCircuitOpen()) {
             skipWhatsApp = true;
+            if (!error) {
+              error =
+                "WhatsApp a restreint les envois — pause automatique, lot interrompu.";
+            }
           }
           continue;
         }
