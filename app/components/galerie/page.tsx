@@ -26,6 +26,7 @@ export default async function GalleryPage() {
       return {
         school: branch.name,
         city: branch.ville || branch.pays || "RDC",
+        // Bloc galerie uniquement — pas école / événement / logo
         photos: media.gallery,
       };
     }),
@@ -53,7 +54,7 @@ export default async function GalleryPage() {
             Galerie photos
           </h1>
           <p className="mt-3 max-w-4xl text-sm leading-relaxed text-primary-foreground/90 md:text-base">
-            Photos des ecoles, evenements et activites partenaires.
+            Photos issues des galeries des établissements partenaires.
           </p>
         </div>
       </section>
@@ -87,7 +88,7 @@ export default async function GalleryPage() {
           </div>
         ) : (
           <p className="rounded-3xl border border-dashed p-10 text-center text-sm text-muted-foreground">
-            Aucune photo disponible pour le moment.
+            Aucune photo de galerie disponible pour le moment.
           </p>
         )}
       </section>

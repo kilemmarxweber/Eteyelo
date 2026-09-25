@@ -140,6 +140,7 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
   const media = await resolvePublicBranchMedia(branch.image);
   const cover = media.cover;
   const gallery = media.gallery.slice(0, 8);
+  const logo = media.logo;
 
   const students = branch.branchemembers.flatMap((member) => member.student);
 
@@ -228,8 +229,21 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
 
         <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary/30" />
 
-        <div className="relative mx-auto grid max-w-7xl gap-8 px-6 py-20 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+        <div className="relative mx-auto grid max-w-7xl gap-8 px-6 pb-16 pt-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:pb-20 lg:pt-12">
           <div>
+            {logo ? (
+              <div className="mb-5 flex justify-start">
+                <span className="relative size-16 shrink-0 overflow-hidden rounded-full border-2 border-primary-foreground/30 bg-primary-foreground/10 shadow-md sm:size-20">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={logo}
+                    alt={`Logo ${branch.name}`}
+                    className="h-full w-full object-cover"
+                  />
+                </span>
+              </div>
+            ) : null}
+
             <Badge className="bg-primary-foreground/15 text-primary-foreground">
               <School className="mr-1 h-3 w-3" />
               Établissement partenaire

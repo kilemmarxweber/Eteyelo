@@ -215,30 +215,23 @@ export function firstPublicBranchPhoto(images: BranchImages): string | undefined
 }
 
 /**
- * Image de couverture publique : photos école/galerie/événement,
- * sinon logo de la branche (jamais le placeholder Klambocore).
+ * Image de couverture publique (à la une) : uniquement photos école.
+ * Jamais le logo, ni galerie, ni événement.
  */
 export function resolveBranchCoverSrc(
   images: BranchImages,
 ): string | undefined {
-  return (
-    firstPublicBranchPhoto(images) ||
-    (images.logo && images.logo !== KLAMBOCORE_DEFAULT_IMAGE_PATH
-      ? images.logo
-      : undefined)
+  return images.ecole.find(
+    (src) => Boolean(src?.trim()) && src !== KLAMBOCORE_DEFAULT_IMAGE_PATH,
   );
 }
 
 export function firstPublicSchoolPhoto(school: {
   ecole: string[];
-  gallery: string[];
-  event: string[];
+  gallery?: string[];
+  event?: string[];
 }): string | undefined {
-  return (
-    school.ecole.find(Boolean) ||
-    school.gallery.find(Boolean) ||
-    school.event.find(Boolean)
-  );
+  return school.ecole.find(Boolean);
 }
 
 /** Style inline background-image prêt à l’emploi. */

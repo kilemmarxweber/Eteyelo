@@ -7,7 +7,7 @@ import { Clock } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import type { HomeEvent, HomeSchool } from "@/lib/home/home-data";
-import { cn, firstPublicSchoolPhoto } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 type HomeFeaturedEventsGridProps = {
   schools: HomeSchool[];
@@ -17,7 +17,8 @@ type HomeFeaturedEventsGridProps = {
 };
 
 function schoolImage(school: HomeSchool) {
-  return school.cover || firstPublicSchoolPhoto(school) || school.logo;
+  // À la une : photos école uniquement — jamais logo / galerie / événement
+  return school.cover || school.ecole.find(Boolean) || undefined;
 }
 
 export function HomeFeaturedEventsGrid({

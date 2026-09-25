@@ -6,7 +6,7 @@ import { getBranchCycles, isSchoolCycle } from "@/lib/cycle";
 import { getPeopleLabels, pluralizeStudentLabelLower } from "@/lib/people-labels";
 import { prisma } from "@/lib/prisma";
 import { getHomeResultHighlights } from "@/lib/public-results";
-import { ensureUploadInSharedDirectory } from "@/lib/upload-file.server";
+import { ensureUploadInSharedDirectory, uploadedFileExists } from "@/lib/upload-file.server";
 import { normalizeImageSrc } from "@/lib/utils";
 
 export type HomeStatsSegmentKey = "schools" | "centres" | "universities";
@@ -24,7 +24,7 @@ export type HomeSchool = {
   heroTitle: string;
   /** Texte optionnel « à la une » (Branch.note) */
   note: string | null;
-  /** Couverture publique (photo école/galerie/événement, sinon logo) */
+  /** Couverture publique = photo école (jamais logo / galerie / événement) */
   cover?: string;
   logo?: string;
   ecole: string[];
@@ -594,23 +594,35 @@ export async function getHomeData(): Promise<HomeData> {
         note: branch.note?.trim() || null,
         cover: media.cover,
         logo: media.logo,
-        ecole: media.images.ecole,
-        event: media.images.event,
-        gallery: media.images.gallery,
+        ecole: media.ecole,
+        event: media.event,
+        gallery: media.gallery,
       };
     }),
     );
 
-    const dynamicEvents: HomeEvent[] = calendarEvents.map((event) => {
-      return {
-        title: event.title || "Événement scolaire",
-        school: event.branch.name,
-        date: formatShortDate(event.dateStart),
-        dateLabel: formatLongDate(event.dateStart),
-        category: event.eventType?.name?.trim() || "Événements",
-        image: event.image ? normalizeImageSrc(event.image) : "",
-      };
-    });
+    const dynamicEvents: HomeEvent[] = (
+      await Promise.all(
+        calendarEvents.map(async (event) => {
+          let image = "";
+          if (event.image?.trim()) {
+            await ensureUploadInSharedDirectory(event.image);
+            if (await uploadedFileExists(event.image)) {
+              image = normalizeImageSrc(event.image);
+            }
+          }
+
+          return {
+            title: event.title || "Événement scolaire",
+            school: event.branch.name,
+            date: formatShortDate(event.dateStart),
+            dateLabel: formatLongDate(event.dateStart),
+            category: event.eventType?.name?.trim() || "Événements",
+            image,
+          };
+        }),
+      )
+    );
 
     const dynamicNewSchools: NewSchool[] = allBranches
       .slice(0, 4)

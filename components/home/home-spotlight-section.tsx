@@ -7,7 +7,7 @@ import { Clock } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import type { HomeEvent, HomeSchool } from "@/lib/home/home-data";
-import { cn, firstPublicSchoolPhoto } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 type SpotlightSlide = {
   id: string;
@@ -26,7 +26,8 @@ type HomeSpotlightSectionProps = {
 };
 
 function schoolSpotlightImage(school: HomeSchool) {
-  return school.cover || firstPublicSchoolPhoto(school) || school.logo;
+  // À la une : photos école uniquement — jamais logo / galerie / événement
+  return school.cover || school.ecole.find(Boolean) || undefined;
 }
 
 function EventCard({

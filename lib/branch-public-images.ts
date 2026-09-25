@@ -6,15 +6,23 @@ import {
 } from "@/lib/upload-file.server";
 import {
   getBranchImage,
-  getPublicBranchPhotos,
-  resolveBranchCoverSrc,
   type BranchImages,
 } from "@/lib/utils";
 
 export type ResolvedPublicBranchMedia = {
+  /** Logo établissement — branding admin, pas les blocs photo publics. */
   logo?: string;
-  cover?: string;
+  /** Photos « École » — à la une / couverture établissement. */
+  ecole: string[];
+  /** Photos « Galerie » — uniquement le bloc galerie. */
   gallery: string[];
+  /** Photos « Événements » branche — uniquement le bloc événements. */
+  event: string[];
+  /**
+   * Couverture publique (à la une, fiche établissement) :
+   * première photo école existante — jamais le logo.
+   */
+  cover?: string;
   images: BranchImages;
 };
 
@@ -35,36 +43,38 @@ async function keepExistingUrls(urls: string[]): Promise<string[]> {
 }
 
 /**
- * Prépare logo / couverture / galerie pour les pages publiques :
- * - normalise les chemins
- * - migre public/uploads → dossier partagé si besoin
- * - ignore les fichiers absents du disque (évite les cases vides 404)
- * - couverture = photos école/galerie/événement, sinon logo
+ * Sépare et valide les images de branche pour les pages publiques :
+ * - ecole → à la une / cover
+ * - gallery → galerie
+ * - event → événements
+ * - logo → jamais utilisé comme photo de contenu
  */
 export async function resolvePublicBranchMedia(
   image: unknown,
 ): Promise<ResolvedPublicBranchMedia> {
   const images = getBranchImage(image);
-  const photoCandidates = getPublicBranchPhotos(images);
-  const logoCandidate = images.logo;
 
-  const [gallery, logoList] = await Promise.all([
-    keepExistingUrls(photoCandidates),
-    logoCandidate ? keepExistingUrls([logoCandidate]) : Promise.resolve([]),
+  const [ecole, gallery, event, logoList] = await Promise.all([
+    keepExistingUrls(images.ecole),
+    keepExistingUrls(images.gallery),
+    keepExistingUrls(images.event),
+    images.logo ? keepExistingUrls([images.logo]) : Promise.resolve([]),
   ]);
 
   const logo = logoList[0];
-  const cover = gallery[0] || logo;
+  const cover = ecole[0];
 
   return {
     logo,
-    cover,
+    ecole,
     gallery,
+    event,
+    cover,
     images: {
       logo,
-      ecole: images.ecole.filter((src) => gallery.includes(src)),
-      gallery: images.gallery.filter((src) => gallery.includes(src)),
-      event: images.event.filter((src) => gallery.includes(src)),
+      ecole,
+      gallery,
+      event,
     },
   };
 }
@@ -73,5 +83,5 @@ export async function resolvePublicBranchCover(
   image: unknown,
 ): Promise<string | undefined> {
   const media = await resolvePublicBranchMedia(image);
-  return media.cover ?? resolveBranchCoverSrc(media.images);
+  return media.cover;
 }

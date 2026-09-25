@@ -33,13 +33,8 @@ function buildGalleryPool(
   const perSchoolQueues: HomeGalleryItem[][] = [];
 
   for (const school of schools) {
-    const urls = [
-      ...school.ecole,
-      ...school.gallery,
-      ...school.event,
-      school.cover,
-      school.logo,
-    ].filter(
+    // Bloc galerie : uniquement les images « gallery » (pas logo / école / événement)
+    const urls = school.gallery.filter(
       (url): url is string =>
         typeof url === "string" && url.trim().length > 0,
     );

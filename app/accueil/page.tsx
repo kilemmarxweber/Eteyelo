@@ -91,7 +91,8 @@ export default async function HomePage() {
 
   const schoolImageSlides = schools
     .map((school) => {
-      const slideImage = school.cover || school.logo;
+      // Hero / à la une : photos école uniquement (jamais logo)
+      const slideImage = school.cover || school.ecole.find(Boolean);
       if (!slideImage) return null;
       return {
         id: school.id,
@@ -102,7 +103,7 @@ export default async function HomePage() {
     })
     .filter((slide): slide is NonNullable<typeof slide> => Boolean(slide));
 
-  /** Images d'événements réelles uniquement (pas de logo ni de placeholder). */
+  /** Images d'événements calendrier uniquement. */
   const eventSliderImages = Array.from(
     new Set(
       events
@@ -111,16 +112,11 @@ export default async function HomePage() {
     ),
   );
 
-  const schoolFallbackImages = Array.from(
+  /** Photos « événement » des branches — uniquement pour le bloc événements. */
+  const branchEventImages = Array.from(
     new Set(
       schools
-        .flatMap((school) => [
-          school.cover,
-          ...school.ecole,
-          ...school.gallery,
-          ...school.event,
-          school.logo,
-        ])
+        .flatMap((school) => school.event)
         .filter((src): src is string => Boolean(src)),
     ),
   );
@@ -128,7 +124,7 @@ export default async function HomePage() {
   const rightSliderImages =
     eventSliderImages.length > 0
       ? eventSliderImages
-      : schoolFallbackImages;
+      : branchEventImages;
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
