@@ -3,6 +3,11 @@ import {
   teachingHourUnitMinutes,
   teachingHoursFromMinutes,
 } from "@/lib/teacher-schedule-load";
+import {
+  intlLocaleFromUserLocale,
+  normalizeUserLocale,
+  type UserLocale,
+} from "@/lib/user-locale";
 
 /** Heures / semaine (charge) à partir des lignes GROSS du bulletin. */
 export function weeklyHoursFromPayslipLines(
@@ -60,12 +65,16 @@ export function weeklyHoursFromPayslipLines(
   return Math.round(hours * 10) / 10;
 }
 
-/** Affiche juste la valeur (ex. 5), sans suffixe H. */
+/** Affiche juste la valeur (ex. 5 ou 31.5 / 31,5), sans suffixe H. */
 export function formatPayrollHoursValue(
   hours: number | null | undefined,
+  locale?: UserLocale | string | null,
 ): string {
   if (hours == null || !(hours > 0)) return "—";
   const rounded = Math.round(hours * 10) / 10;
-  if (Number.isInteger(rounded)) return String(rounded);
-  return String(rounded).replace(".", ",");
+  const intlLocale = intlLocaleFromUserLocale(normalizeUserLocale(locale));
+  return new Intl.NumberFormat(intlLocale, {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: Number.isInteger(rounded) ? 0 : 1,
+  }).format(rounded);
 }

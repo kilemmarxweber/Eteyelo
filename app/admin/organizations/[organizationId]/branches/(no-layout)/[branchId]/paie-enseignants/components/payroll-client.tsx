@@ -1159,7 +1159,7 @@ export default function PayrollClient() {
                           {row.contractLabel}
                         </td>
                         <td className="p-2 tabular-nums">
-                          {formatPayrollHoursValue(row.hours)}
+                          {formatPayrollHoursValue(row.hours, locale)}
                         </td>
                         <td className="p-2">{formatAmount(row.gross, row.currency, localeTag)}</td>
                         <td className="p-2 font-medium text-destructive">
@@ -1275,7 +1275,10 @@ export default function PayrollClient() {
                     Totaux ({rows.length})
                   </td>
                   <td className="p-2 tabular-nums">
-                    {formatPayrollHoursValue(totals.hours > 0 ? totals.hours : null)}
+                    {formatPayrollHoursValue(
+                      totals.hours > 0 ? totals.hours : null,
+                      locale,
+                    )}
                   </td>
                   <td className="p-2">{formatAmount(totals.gross, listCurrency, localeTag)}</td>
                   <td className="p-2 text-destructive">

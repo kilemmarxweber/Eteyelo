@@ -193,7 +193,7 @@ export async function exportPayrollRegisterExcel(
     nextRow += 3;
     sheet.mergeCells(nextRow, 1, nextRow, COL_COUNT);
     sheet.getCell(nextRow, 1).value =
-      `Paie du mois : brut ${formatPayrollAmount(cash.payrollGross, currency)} · retenues ${formatPayrollAmount(cash.payrollDeductions, currency)} · à consommer ${formatPayrollAmount(cash.payrollConsume, currency)} · ${cash.unpaidCount} bulletin${cash.unpaidCount > 1 ? "s" : ""} non payé${cash.unpaidCount > 1 ? "s" : ""} · ${formatPayrollHoursValue(hoursTotal > 0 ? hoursTotal : null)} h`;
+      `Paie du mois : brut ${formatPayrollAmount(cash.payrollGross, currency)} · retenues ${formatPayrollAmount(cash.payrollDeductions, currency)} · à consommer ${formatPayrollAmount(cash.payrollConsume, currency)} · ${cash.unpaidCount} bulletin${cash.unpaidCount > 1 ? "s" : ""} non payé${cash.unpaidCount > 1 ? "s" : ""} · ${formatPayrollHoursValue(hoursTotal > 0 ? hoursTotal : null, locale)} h`;
     sheet.getCell(nextRow, 1).font = {
       name: "Calibri",
       size: 9,

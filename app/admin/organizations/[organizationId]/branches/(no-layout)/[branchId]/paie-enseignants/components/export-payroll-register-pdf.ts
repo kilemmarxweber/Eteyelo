@@ -236,7 +236,7 @@ export async function exportPayrollRegisterPdf(
     doc.setFontSize(fonts.small);
     doc.setTextColor(100, 116, 139);
     doc.text(
-      `Paie du mois : brut ${money(cash.payrollGross, currency)}  ·  retenues ${money(cash.payrollDeductions, currency)}  ·  à consommer ${money(cash.payrollConsume, currency)}  ·  ${formatPayrollHoursValue(hoursTotal > 0 ? hoursTotal : null)} h`,
+      `Paie du mois : brut ${money(cash.payrollGross, currency)}  ·  retenues ${money(cash.payrollDeductions, currency)}  ·  à consommer ${money(cash.payrollConsume, currency)}  ·  ${formatPayrollHoursValue(hoursTotal > 0 ? hoursTotal : null, locale)} h`,
       pageWidth / 2,
       kpiY + 6,
       { align: "center", maxWidth: usableWidth },
@@ -277,7 +277,7 @@ export async function exportPayrollRegisterPdf(
         row.branchName || "—",
         row.classes.length > 0 ? row.classes.join(" · ") : "—",
         row.contractLabel,
-        formatPayrollHoursValue(row.hours),
+        formatPayrollHoursValue(row.hours, locale),
         money(row.gross, row.currency || currency),
         money(row.deductions, row.currency || currency),
         minutesLabel(row.lostMinutes),
@@ -296,7 +296,7 @@ export async function exportPayrollRegisterPdf(
     "",
     "",
     "",
-    formatPayrollHoursValue(hoursTotal > 0 ? hoursTotal : null),
+    formatPayrollHoursValue(hoursTotal > 0 ? hoursTotal : null, locale),
     money(gross, currency),
     money(deductions, currency),
     minutesLabel(lostMinutes),
