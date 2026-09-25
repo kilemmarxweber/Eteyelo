@@ -18,6 +18,8 @@ export type ResolvedPublicBranchMedia = {
   gallery: string[];
   /** Photos « Événements » branche — uniquement le bloc événements. */
   event: string[];
+  /** Vidéos pub — uniquement la pub page d’accueil. */
+  video: string[];
   /**
    * Couverture publique (à la une, fiche établissement) :
    * première photo école existante — jamais le logo.
@@ -54,10 +56,11 @@ export async function resolvePublicBranchMedia(
 ): Promise<ResolvedPublicBranchMedia> {
   const images = getBranchImage(image);
 
-  const [ecole, gallery, event, logoList] = await Promise.all([
+  const [ecole, gallery, event, video, logoList] = await Promise.all([
     keepExistingUrls(images.ecole),
     keepExistingUrls(images.gallery),
     keepExistingUrls(images.event),
+    keepExistingUrls(images.video),
     images.logo ? keepExistingUrls([images.logo]) : Promise.resolve([]),
   ]);
 
@@ -69,12 +72,14 @@ export async function resolvePublicBranchMedia(
     ecole,
     gallery,
     event,
+    video,
     cover,
     images: {
       logo,
       ecole,
       gallery,
       event,
+      video,
     },
   };
 }

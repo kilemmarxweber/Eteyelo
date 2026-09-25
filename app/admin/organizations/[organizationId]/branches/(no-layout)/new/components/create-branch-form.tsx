@@ -57,7 +57,7 @@ import {
   updateBranchAction,
 } from "../../branche.action";
 import type { BranchFormActionResult } from "@/app/components/inscription-ecole/ecole.action";
-import { uploadFile, uploadFiles } from "@/lib/upload-file";
+import { uploadFile, uploadFiles, uploadVideos } from "@/lib/upload-file";
 import { cn, normalizeImageSrc } from "@/lib/utils";
 import { storedUploadFileName } from "@/lib/upload-paths";
 import { getCurrentGeoCoords } from "@/lib/browser-geolocation";
@@ -76,6 +76,7 @@ type BranchImages = {
   event: string[];
   gallery: string[];
   ecole: string[];
+  video: string[];
 };
 
 type PendingBranchFiles = {
@@ -83,6 +84,7 @@ type PendingBranchFiles = {
   event: File[];
   gallery: File[];
   ecole: File[];
+  video: File[];
 };
 
 type BranchFormTab = "identity" | "type" | "location" | "images";
@@ -99,6 +101,7 @@ const emptyBranchImages = (): BranchImages => ({
   event: [],
   gallery: [],
   ecole: [],
+  video: [],
 });
 
 const emptyPendingFiles = (): PendingBranchFiles => ({
@@ -106,6 +109,7 @@ const emptyPendingFiles = (): PendingBranchFiles => ({
   event: [],
   gallery: [],
   ecole: [],
+  video: [],
 });
 
 const BranchMapPicker = dynamic(() => import("./branch-map-picker"), {
@@ -197,6 +201,7 @@ export function CreateBranchForm({
         event: [],
         gallery: [],
         ecole: [],
+        video: [],
       },
       adresse: defaultValues?.adresse ?? "",
       note: defaultValues?.note ?? "",
@@ -265,7 +270,9 @@ export function CreateBranchForm({
     savedImages.gallery.length +
     pendingFiles.gallery.length +
     savedImages.ecole.length +
-    pendingFiles.ecole.length;
+    pendingFiles.ecole.length +
+    savedImages.video.length +
+    pendingFiles.video.length;
 
   async function reverseGeocode(lat: number, lng: number) {
     try {
@@ -346,10 +353,11 @@ export function CreateBranchForm({
       logo = storedUploadFileName(uploadedLogo.fileName);
     }
 
-    const [eventNames, galleryNames, ecoleNames] = await Promise.all([
+    const [eventNames, galleryNames, ecoleNames, videoNames] = await Promise.all([
       uploadFiles(pendingFiles.event),
       uploadFiles(pendingFiles.gallery),
       uploadFiles(pendingFiles.ecole),
+      uploadVideos(pendingFiles.video),
     ]);
 
     const mergeNames = (saved: string[], uploaded: string[]) => {
@@ -369,6 +377,7 @@ export function CreateBranchForm({
       event: mergeNames(savedImages.event, eventNames),
       gallery: mergeNames(savedImages.gallery, galleryNames),
       ecole: mergeNames(savedImages.ecole, ecoleNames),
+      video: mergeNames(savedImages.video, videoNames),
     };
   }
 
@@ -470,7 +479,7 @@ export function CreateBranchForm({
   }
 
   function addImages(
-    type: "event" | "gallery" | "ecole",
+    type: "event" | "gallery" | "ecole" | "video",
     files: FileList | null,
   ) {
     if (!files?.length) return;
@@ -483,7 +492,7 @@ export function CreateBranchForm({
   }
 
   function removePendingImage(
-    type: "event" | "gallery" | "ecole",
+    type: "event" | "gallery" | "ecole" | "video",
     index: number,
   ) {
     setPendingFiles((current) => ({
@@ -493,7 +502,7 @@ export function CreateBranchForm({
   }
 
   function removeSavedImage(
-    type: "event" | "gallery" | "ecole",
+    type: "event" | "gallery" | "ecole" | "video",
     index: number,
   ) {
     setSavedImages((current) => ({
@@ -1093,7 +1102,7 @@ export function CreateBranchForm({
                     <TabPanelHeader
                       icon={<ImageIcon className="size-4" />}
                       title="Images de l’établissement"
-                      description="Logo, photos de l’école, galerie et visuels événements. La note à la une apparaît sur la page d’accueil."
+                      description="Logo, photos, galerie, événements et vidéos pub. La note à la une apparaît sur la page d’accueil."
                     />
 
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -1124,6 +1133,14 @@ export function CreateBranchForm({
                         multiple
                         disabled={isSubmitting}
                         onChange={(files) => addImages("event", files)}
+                      />
+                      <ImageUploadCard
+                        label="Vidéos pub"
+                        hint="MP4 / WEBM · max 50 Mo"
+                        multiple
+                        accept="video/mp4,video/webm"
+                        disabled={isSubmitting}
+                        onChange={(files) => addImages("video", files)}
                       />
                     </div>
 
@@ -1224,6 +1241,29 @@ export function CreateBranchForm({
                             pending
                             onRemove={() =>
                               removePendingImage("event", index)
+                            }
+                          />
+                        ))}
+                        {savedImages.video.map((fileName, index) => (
+                          <ImageChip
+                            key={`saved-video-${fileName}-${index}`}
+                            label="Vidéo"
+                            name={fileName}
+                            previewUrl={normalizeImageSrc(fileName)}
+                            isVideo
+                            onRemove={() => removeSavedImage("video", index)}
+                          />
+                        ))}
+                        {pendingFiles.video.map((file, index) => (
+                          <ImageChip
+                            key={`pending-video-${file.name}-${index}`}
+                            label="Vidéo"
+                            name={file.name}
+                            pendingFile={file}
+                            pending
+                            isVideo
+                            onRemove={() =>
+                              removePendingImage("video", index)
                             }
                           />
                         ))}
@@ -1340,12 +1380,14 @@ function ImageUploadCard({
   multiple,
   disabled,
   onChange,
+  accept = "image/png,image/jpeg,image/jpg,image/webp",
 }: {
   label: string;
   hint: string;
   multiple: boolean;
   disabled: boolean;
   onChange: (files: FileList | null) => void;
+  accept?: string;
 }) {
   return (
     <label className="group relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-primary/25 bg-muted/20 px-4 py-6 text-center transition hover:border-primary/50 hover:bg-primary/5">
@@ -1357,7 +1399,7 @@ function ImageUploadCard({
       <Input
         type="file"
         multiple={multiple}
-        accept="image/png,image/jpeg,image/jpg,image/webp"
+        accept={accept}
         className="absolute inset-0 cursor-pointer opacity-0"
         disabled={disabled}
         onChange={(e) => onChange(e.target.files)}
@@ -1372,6 +1414,7 @@ function ImageChip({
   pending,
   previewUrl,
   pendingFile,
+  isVideo,
   onRemove,
 }: {
   label: string;
@@ -1379,6 +1422,7 @@ function ImageChip({
   pending?: boolean;
   previewUrl?: string;
   pendingFile?: File | null;
+  isVideo?: boolean;
   onRemove: () => void;
 }) {
   const objectUrl = useMemo(() => {
@@ -1398,7 +1442,14 @@ function ImageChip({
     <div className="flex items-center justify-between gap-3 rounded-xl border bg-muted/40 px-3 py-2 text-sm">
       <div className="flex min-w-0 items-center gap-3">
         <div className="relative size-12 shrink-0 overflow-hidden rounded-lg border bg-muted">
-          {src ? (
+          {src && isVideo ? (
+            <video
+              src={src}
+              muted
+              playsInline
+              className="h-full w-full object-cover"
+            />
+          ) : src ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={src}

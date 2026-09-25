@@ -8,6 +8,7 @@ const branchImagesSchema = z.object({
   event: z.array(z.string()),
   gallery: z.array(z.string()),
   ecole: z.array(z.string()),
+  video: z.array(z.string()).default([]),
 });
 
 function requiredCoordinate(axis: "latitude" | "longitude") {
@@ -84,6 +85,7 @@ export const createBranchFormObjectSchema = z.object({
     event: [],
     gallery: [],
     ecole: [],
+    video: [],
   }),
 });
 

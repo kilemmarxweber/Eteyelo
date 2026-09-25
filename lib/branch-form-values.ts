@@ -29,6 +29,7 @@ type BranchImageItem = {
   event: string[];
   gallery: string[];
   ecole: string[];
+  video: string[];
 };
 
 function normalizeStoredImageName(value: unknown): string {
@@ -57,6 +58,7 @@ export function normalizeBranchImages(value: unknown): BranchImageItem {
       event: normalizeStoredImageList(image.event),
       gallery: normalizeStoredImageList(image.gallery),
       ecole: normalizeStoredImageList(image.ecole),
+      video: normalizeStoredImageList(image.video),
     };
   }
 
@@ -65,6 +67,7 @@ export function normalizeBranchImages(value: unknown): BranchImageItem {
     event: [],
     gallery: [],
     ecole: [],
+    video: [],
   };
 }
 

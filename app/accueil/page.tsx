@@ -34,6 +34,7 @@ import { HomeGallerySection } from "@/components/home/home-gallery-section";
 import { HomeSideImageRotator } from "@/components/home/home-side-image-rotator";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
+import { HomeBranchVideoPromo } from "@/components/home/home-branch-video-promo";
 import { KlambocoreLogoMark } from "@/components/brand/klambocore-logo-mark";
 import { galleryImages, getHomeData } from "@/lib/home/home-data";
 import {
@@ -82,7 +83,7 @@ export default async function HomePage() {
     schools,
     events,
     partners,
-    newSchools,
+    branchVideos,
     mapLocations,
     resultSlides,
     successRate,
@@ -472,48 +473,8 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Droite */}
-          <div className="min-w-0 rounded-3xl bg-white p-5 text-slate-900 shadow-lg sm:p-8">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-lg font-black sm:text-xl">
-                Nouveaux établissements inscrits
-              </h3>
-
-              <Button
-                asChild
-                variant="ghost"
-                className="h-auto justify-start p-0 text-sm text-blue-600 hover:bg-transparent hover:text-blue-700 sm:justify-center"
-              >
-                <Link href="/etablissements">Voir tous les établissements →</Link>
-              </Button>
-            </div>
-
-            <div className="mt-5 space-y-2">
-              {newSchools.map((school) => (
-                <div
-                  key={school.id}
-                  className="grid gap-2 rounded-xl border border-slate-100 px-3 py-3 transition hover:bg-slate-50 sm:flex sm:items-start sm:gap-3 sm:py-2"
-                >
-                  <div className="flex min-w-0 items-start gap-3">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-slate-900">
-                        {school.name}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {school.kindLabel} · {school.city}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className="ml-7 text-[11px] text-slate-400 sm:ml-auto sm:whitespace-nowrap">
-                    {school.date}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Droite — vidéos branches, sinon vidéo stock élèves / classe */}
+          <HomeBranchVideoPromo videos={branchVideos} />
         </div>
       </section>
 

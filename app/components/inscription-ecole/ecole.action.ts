@@ -31,6 +31,7 @@ function stripImages(values: CreateBranchFormValues) {
       event: [],
       gallery: [],
       ecole: [],
+      video: [],
     },
   };
 }

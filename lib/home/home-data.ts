@@ -30,6 +30,7 @@ export type HomeSchool = {
   ecole: string[];
   event: string[];
   gallery: string[];
+  video: string[];
 };
 
 export type HomeEvent = {
@@ -88,6 +89,15 @@ export type BranchImages = {
   ecole: string[];
   event: string[];
   gallery: string[];
+  video: string[];
+};
+
+export type HomeBranchVideo = {
+  src: string;
+  schoolId: string;
+  schoolName: string;
+  /** Vidéo stock en ligne quand aucune branche n’a de pub. */
+  isDefault?: boolean;
 };
 
 export type HomeStatsSegment = {
@@ -140,6 +150,7 @@ export type HomeData = {
   events: HomeEvent[];
   partners: HomePartner[];
   newSchools: NewSchool[];
+  branchVideos: HomeBranchVideo[];
   mapLocations: HomeMapLocation[];
   resultSlides: ResultSlide[];
   successRate: number;
@@ -165,6 +176,7 @@ export const fallbackSchools: HomeSchool[] = [
     ecole: [],
     event: [],
     gallery: [],
+    video: [],
   },
   {
     id: "fallback-bakhita",
@@ -181,6 +193,7 @@ export const fallbackSchools: HomeSchool[] = [
     ecole: [],
     event: [],
     gallery: [],
+    video: [],
   },
   {
     id: "fallback-padre-pitra",
@@ -197,6 +210,7 @@ export const fallbackSchools: HomeSchool[] = [
     ecole: [],
     event: [],
     gallery: [],
+    video: [],
   },
 ];
 
@@ -357,6 +371,19 @@ const fallbackNewSchools: NewSchool[] = [
   },
 ];
 
+/**
+ * Vidéo stock (Pexels) — élèves / apprentissage :
+ * fallback design page d’accueil si aucune branche n’a de vidéo pub.
+ */
+export const DEFAULT_HOME_BRANCH_VIDEOS: HomeBranchVideo[] = [
+  {
+    src: "https://videos.pexels.com/video-files/855289/855289-hd_1280_720_25fps.mp4",
+    schoolId: "",
+    schoolName: "La vie scolaire en images",
+    isDefault: true,
+  },
+];
+
 const fallbackStatsSegments: HomeStatsSegment[] = (
   ["schools", "centres", "universities"] as const
 ).map((key) => ({
@@ -398,6 +425,7 @@ function getFallbackHomeData(): HomeData {
     events: fallbackEvents,
     partners: fallbackPartners,
     newSchools: fallbackNewSchools,
+    branchVideos: DEFAULT_HOME_BRANCH_VIDEOS,
     mapLocations: [],
     resultSlides: [],
     successRate: 0,
@@ -597,9 +625,25 @@ export async function getHomeData(): Promise<HomeData> {
         ecole: media.ecole,
         event: media.event,
         gallery: media.gallery,
+        video: media.video,
       };
     }),
     );
+
+    const branchVideos: HomeBranchVideo[] = [];
+    const seenVideoSrc = new Set<string>();
+    for (const school of dynamicSchools) {
+      for (const src of school.video) {
+        const url = src?.trim();
+        if (!url || seenVideoSrc.has(url)) continue;
+        seenVideoSrc.add(url);
+        branchVideos.push({
+          src: url,
+          schoolId: school.id,
+          schoolName: school.name,
+        });
+      }
+    }
 
     const dynamicEvents: HomeEvent[] = (
       await Promise.all(
@@ -668,6 +712,8 @@ export async function getHomeData(): Promise<HomeData> {
       newSchools: dynamicNewSchools.length
         ? dynamicNewSchools
         : fallbackNewSchools,
+      branchVideos:
+        branchVideos.length > 0 ? branchVideos : DEFAULT_HOME_BRANCH_VIDEOS,
       mapLocations,
       resultSlides: homeResults.resultSlides,
       successRate: homeResults.successRate,

@@ -14,6 +14,7 @@ export type UploadResponse = UploadSuccessResponse | UploadErrorResponse;
 /** Limite images côté client (alignée sur le serveur). */
 export const MAX_IMAGE_UPLOAD_BYTES = 5 * 1024 * 1024;
 export const MAX_DOCUMENT_UPLOAD_BYTES = 10 * 1024 * 1024;
+export const MAX_VIDEO_UPLOAD_BYTES = 50 * 1024 * 1024;
 
 /**
  * Envoie un fichier vers la route `/api/upload`.
@@ -174,4 +175,95 @@ export async function uploadDocument(
       message: "Impossible de joindre le serveur d'upload.",
     };
   }
+}
+
+/**
+ * Envoie une vidéo (MP4, WEBM) vers `/api/upload/video`.
+ */
+export async function uploadVideo(
+  file: File | null | undefined,
+): Promise<UploadResponse> {
+  if (!file) {
+    return {
+      ok: false,
+      message: "Aucun fichier sélectionné.",
+    };
+  }
+
+  if (file.size > MAX_VIDEO_UPLOAD_BYTES) {
+    return {
+      ok: false,
+      message: "La vidéo dépasse la taille maximale autorisée de 50 Mo.",
+    };
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await fetch("/api/upload/video", {
+      method: "POST",
+      body: formData,
+    });
+
+    const contentType = response.headers.get("content-type");
+
+    if (!contentType?.includes("application/json")) {
+      const responseText = await response.text();
+
+      console.error("UPLOAD_VIDEO_INVALID_RESPONSE:", {
+        status: response.status,
+        body: responseText,
+      });
+
+      return {
+        ok: false,
+        message: `Le serveur d'upload a retourné une réponse invalide (${response.status}).`,
+      };
+    }
+
+    const result = (await response.json()) as UploadResponse;
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        message:
+          result.ok === false
+            ? result.message
+            : "Erreur lors de l'upload de la vidéo.",
+      };
+    }
+
+    return result;
+  } catch (error) {
+    console.error("UPLOAD_VIDEO_CLIENT_ERROR:", error);
+
+    return {
+      ok: false,
+      message: "Impossible de joindre le serveur d'upload.",
+    };
+  }
+}
+
+/**
+ * Envoie plusieurs vidéos une après l'autre.
+ */
+export async function uploadVideos(files: File[]): Promise<string[]> {
+  if (files.length === 0) {
+    return [];
+  }
+
+  const uploadedFileNames: string[] = [];
+
+  for (const file of files) {
+    const result = await uploadVideo(file);
+
+    if (!result.ok) {
+      throw new Error(result.message);
+    }
+
+    uploadedFileNames.push(result.fileName);
+  }
+
+  return uploadedFileNames;
 }

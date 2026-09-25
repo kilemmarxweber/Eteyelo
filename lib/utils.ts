@@ -142,6 +142,8 @@ export type BranchImages = {
   ecole: string[];
   event: string[];
   gallery: string[];
+  /** Vidéos pub établissement (mp4/webm) — page d’accueil. */
+  video: string[];
 };
 
 function normalizeStoredImageList(value: unknown): string[] {
@@ -160,6 +162,7 @@ export function getBranchImage(value: unknown): BranchImages {
     ecole: [],
     event: [],
     gallery: [],
+    video: [],
   };
 
   if (!value) return empty;
@@ -189,6 +192,7 @@ export function getBranchImage(value: unknown): BranchImages {
     ecole: normalizeStoredImageList(data.ecole),
     event: normalizeStoredImageList(data.event),
     gallery: normalizeStoredImageList(data.gallery),
+    video: normalizeStoredImageList(data.video),
   };
 }
 

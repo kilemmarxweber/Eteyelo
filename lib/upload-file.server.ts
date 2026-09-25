@@ -11,6 +11,7 @@ export { publicUploadPath, storedUploadFileName } from "@/lib/upload-paths";
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 export const MAX_DOCUMENT_UPLOAD_BYTES = 10 * 1024 * 1024;
+export const MAX_VIDEO_UPLOAD_BYTES = 50 * 1024 * 1024;
 
 export const ALLOWED_IMAGE_TYPES = new Set([
   "image/png",
@@ -23,6 +24,11 @@ export const ALLOWED_DOCUMENT_TYPES = new Set([
   "application/pdf",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+]);
+
+export const ALLOWED_VIDEO_TYPES = new Set([
+  "video/mp4",
+  "video/webm",
 ]);
 
 export type SavedUpload = {
@@ -39,6 +45,8 @@ const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
   "application/msword": ".doc",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
     ".docx",
+  "video/mp4": ".mp4",
+  "video/webm": ".webm",
 };
 
 export const WINDOWS_UPLOAD_DIRECTORY = "C:\\eteyelo-uploads";
@@ -266,7 +274,7 @@ function sanitizeFileName(fileName: string): string {
  */
 function getFileExtension(
   file: File,
-  kind: "image" | "document" = "image",
+  kind: "image" | "document" | "video" = "image",
 ): string {
   const extensionFromMimeType = EXTENSION_BY_MIME_TYPE[file.type];
 
@@ -280,6 +288,10 @@ function getFileExtension(
     return originalExtension || ".pdf";
   }
 
+  if (kind === "video") {
+    return originalExtension || ".mp4";
+  }
+
   return originalExtension || ".jpg";
 }
 
@@ -288,7 +300,7 @@ function getFileExtension(
  */
 function validateUploadedFile(
   file: File,
-  options: { kind: "image" | "document" },
+  options: { kind: "image" | "document" | "video" },
 ): void {
   if (file.size === 0) {
     throw new Error("Le fichier est vide.");
@@ -297,24 +309,34 @@ function validateUploadedFile(
   const maxBytes =
     options.kind === "document"
       ? MAX_DOCUMENT_UPLOAD_BYTES
-      : MAX_UPLOAD_BYTES;
+      : options.kind === "video"
+        ? MAX_VIDEO_UPLOAD_BYTES
+        : MAX_UPLOAD_BYTES;
 
   if (file.size > maxBytes) {
     throw new Error(
       options.kind === "document"
         ? "Le fichier dépasse la taille maximale autorisée de 10 Mo."
-        : "Le fichier dépasse la taille maximale autorisée de 5 Mo.",
+        : options.kind === "video"
+          ? "La vidéo dépasse la taille maximale autorisée de 50 Mo."
+          : "Le fichier dépasse la taille maximale autorisée de 5 Mo.",
     );
   }
 
   const allowedTypes =
-    options.kind === "document" ? ALLOWED_DOCUMENT_TYPES : ALLOWED_IMAGE_TYPES;
+    options.kind === "document"
+      ? ALLOWED_DOCUMENT_TYPES
+      : options.kind === "video"
+        ? ALLOWED_VIDEO_TYPES
+        : ALLOWED_IMAGE_TYPES;
 
   if (!allowedTypes.has(file.type)) {
     throw new Error(
       options.kind === "document"
         ? "Format non autorisé. Utilisez PDF, DOC ou DOCX."
-        : "Format d'image non autorisé. Utilisez PNG, JPG, JPEG ou WEBP.",
+        : options.kind === "video"
+          ? "Format vidéo non autorisé. Utilisez MP4 ou WEBM."
+          : "Format d'image non autorisé. Utilisez PNG, JPG, JPEG ou WEBP.",
     );
   }
 }
@@ -330,9 +352,13 @@ export async function saveUploadedDocument(file: File): Promise<SavedUpload> {
   return saveUploadedFileByKind(file, "document");
 }
 
+export async function saveUploadedVideo(file: File): Promise<SavedUpload> {
+  return saveUploadedFileByKind(file, "video");
+}
+
 async function saveUploadedFileByKind(
   file: File,
-  kind: "image" | "document",
+  kind: "image" | "document" | "video",
 ): Promise<SavedUpload> {
   validateUploadedFile(file, { kind });
   return writeUploadedFileToSharedDirectory(file, kind);
@@ -340,7 +366,7 @@ async function saveUploadedFileByKind(
 
 async function writeUploadedFileToSharedDirectory(
   file: File,
-  kind: "image" | "document",
+  kind: "image" | "document" | "video",
 ): Promise<SavedUpload> {
   const safeName = sanitizeFileName(file.name);
   const extension = getFileExtension(file, kind);
