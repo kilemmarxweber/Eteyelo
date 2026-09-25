@@ -29,6 +29,7 @@ export function getClasseColumns(
   showOption = true,
   actions?: ClasseTableActions,
   canManage = false,
+  showSource = false,
 ): ColumnDef<IClasse>[] {
   const columns: ColumnDef<IClasse>[] = [];
 
@@ -135,6 +136,31 @@ export function getClasseColumns(
       filterFn: (row, _id, value) => {
         const name = row.original.option?.nameOption ?? "";
         return Array.isArray(value) ? value.includes(name) : true;
+      },
+    });
+  }
+
+  if (showSource) {
+    columns.push({
+      id: "sourceClasse",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Classe source" />
+      ),
+      cell: ({ row }) => {
+        const { sourceClasseName, sourceClasseBranchName } = row.original;
+        if (!sourceClasseName) {
+          return <span className="text-sm text-muted-foreground">—</span>;
+        }
+        return (
+          <div className="min-w-0 leading-tight">
+            <div className="truncate text-sm font-medium">{sourceClasseName}</div>
+            {sourceClasseBranchName ? (
+              <div className="truncate text-xs text-muted-foreground">
+                {sourceClasseBranchName}
+              </div>
+            ) : null}
+          </div>
+        );
       },
     });
   }

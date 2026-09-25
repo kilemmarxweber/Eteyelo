@@ -1,25 +1,173 @@
 import type { Prisma } from "@/prisma/generated/prisma/client";
 import { generateCode, ensureUniqueIdentifier } from "@/lib/generated-identifiers";
 import { ensurePracticalDomainsForBranch } from "@/lib/branch-practical-domains";
+import { DEFAULT_CRENEAU_WORKING_DAYS } from "@/lib/creneau-working-days";
 
 type AcademicDb = Pick<
   Prisma.TransactionClient,
-  "section" | "option" | "classe" | "typeFrais" | "practicalDomain" | "room"
+  | "section"
+  | "option"
+  | "classe"
+  | "typeFrais"
+  | "practicalDomain"
+  | "room"
+  | "creneau"
 >;
 
 export const WORKSHOP_SECTION_CODE = "ATELIER";
 export const WORKSHOP_OPTION_CODE = "ATL-GROUPE";
 export const WORKSHOP_OPTION_NAME = "Groupe";
 export const WORKSHOP_FEE_TYPE_NAME = "Frais atelier";
+/** Vacation matin (avant-midi) — sans récréation. */
+export const WORKSHOP_CRENEAU_NAME = "Vacation atelier — Matin";
+export const WORKSHOP_CRENEAU_NAME_SOIR = "Vacation atelier — Soir";
+export const WORKSHOP_CRENEAU_LEGACY_NAMES = [
+  "Vacation atelier",
+  "ATELIER",
+] as const;
 
 export type WorkshopAcademicStructure = {
   section: { id: string; nameSection: string };
   option: { id: string; nameOption: string; codeOption: string };
+  creneau: { id: string; nameCreneau: string };
+  creneauSoir: { id: string; nameCreneau: string };
 };
 
+function workshopTimeUtc(hours: number, minutes = 0) {
+  return new Date(Date.UTC(2000, 0, 1, hours, minutes, 0, 0));
+}
+
+async function ensureWorkshopCreneauSlot(
+  db: AcademicDb,
+  branchId: string,
+  params: {
+    name: string;
+    legacyNames?: readonly string[];
+    startH: number;
+    startM: number;
+    endH: number;
+    endM: number;
+    durationCourse: number;
+  },
+): Promise<{ id: string; nameCreneau: string }> {
+  const nameMatchers = [
+    params.name,
+    ...(params.legacyNames ?? []),
+  ];
+
+  let creneau = await db.creneau.findFirst({
+    where: {
+      branchId,
+      isArchived: false,
+      OR: nameMatchers.map((name) => ({
+        nameCreneau: { equals: name, mode: "insensitive" as const },
+      })),
+    },
+    select: {
+      id: true,
+      nameCreneau: true,
+      recreationDuration: true,
+      durationCourse: true,
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  if (!creneau) {
+    creneau = await db.creneau.create({
+      data: {
+        branchId,
+        nameCreneau: params.name,
+        startTime: workshopTimeUtc(params.startH, params.startM),
+        endTime: workshopTimeUtc(params.endH, params.endM),
+        durationCourse: params.durationCourse,
+        recreationDuration: 0,
+        recreationHour: workshopTimeUtc(params.startH, params.startM),
+        workingDays: DEFAULT_CRENEAU_WORKING_DAYS,
+      },
+      select: {
+        id: true,
+        nameCreneau: true,
+        recreationDuration: true,
+        durationCourse: true,
+      },
+    });
+  } else {
+    const needsUpdate =
+      creneau.nameCreneau !== params.name ||
+      (creneau.recreationDuration ?? 0) > 0 ||
+      (creneau.durationCourse ?? 0) < 60;
+    if (needsUpdate) {
+      creneau = await db.creneau.update({
+        where: { id: creneau.id },
+        data: {
+          nameCreneau: params.name,
+          startTime: workshopTimeUtc(params.startH, params.startM),
+          endTime: workshopTimeUtc(params.endH, params.endM),
+          durationCourse: Math.max(
+            creneau.durationCourse ?? params.durationCourse,
+            params.durationCourse,
+          ),
+          recreationDuration: 0,
+          recreationHour: workshopTimeUtc(params.startH, params.startM),
+        },
+        select: {
+          id: true,
+          nameCreneau: true,
+          recreationDuration: true,
+          durationCourse: true,
+        },
+      });
+    }
+  }
+
+  return { id: creneau.id, nameCreneau: creneau.nameCreneau };
+}
+
 /**
- * Garantit section + option de pondération internes (non exposées dans le menu).
- * Réassigne les groupes atelier sur cette option pour permettre les affectations.
+ * Vacations atelier matin + soir, sans récréation.
+ * Les groupes sans vacation sont rattachés au créneau matin.
+ */
+export async function ensureWorkshopCreneau(
+  db: AcademicDb,
+  branchId: string,
+): Promise<{
+  matin: { id: string; nameCreneau: string };
+  soir: { id: string; nameCreneau: string };
+}> {
+  const matin = await ensureWorkshopCreneauSlot(db, branchId, {
+    name: WORKSHOP_CRENEAU_NAME,
+    legacyNames: WORKSHOP_CRENEAU_LEGACY_NAMES,
+    startH: 7,
+    startM: 30,
+    endH: 13,
+    endM: 30,
+    durationCourse: 360,
+  });
+
+  const soir = await ensureWorkshopCreneauSlot(db, branchId, {
+    name: WORKSHOP_CRENEAU_NAME_SOIR,
+    startH: 13,
+    startM: 30,
+    endH: 19,
+    endM: 30,
+    durationCourse: 360,
+  });
+
+  await db.classe.updateMany({
+    where: {
+      branchId,
+      creneauId: null,
+      OR: [{ cycle: "ATELIER" }, { cycle: null, level: "Groupe" }],
+    },
+    data: { creneauId: matin.id },
+  });
+
+  return { matin, soir };
+}
+
+/**
+ * Garantit section + option internes + vacation atelier (sans récréation).
+ * Réassigne les groupes atelier sur cette option.
  */
 export async function ensureWorkshopAcademicStructure(
   db: AcademicDb,
@@ -126,6 +274,7 @@ export async function ensureWorkshopAcademicStructure(
 
   await ensureWorkshopFeeType(db, branchId);
   await ensurePracticalDomainsForBranch(db, branchId);
+  const { matin, soir } = await ensureWorkshopCreneau(db, branchId);
 
   return {
     section: { id: section.id, nameSection: section.nameSection },
@@ -134,6 +283,8 @@ export async function ensureWorkshopAcademicStructure(
       nameOption: option.nameOption,
       codeOption: option.codeOption,
     },
+    creneau: matin,
+    creneauSoir: soir,
   };
 }
 

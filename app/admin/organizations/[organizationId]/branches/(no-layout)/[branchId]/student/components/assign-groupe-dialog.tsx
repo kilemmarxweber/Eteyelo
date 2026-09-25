@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import {
   assignStudentsToGroupeAction,
-  getImportEnrollmentOptionsAction,
+  getAssignableGroupesForStudentsAction,
 } from "../../brevets/brevet.action";
 import type { IStudent } from "@/src/interfaces/Student";
 
@@ -33,6 +33,8 @@ type AtelierGroupeOption = {
   optionName: string;
   enrolledCount: number;
   capacity: number | null;
+  sourceClasseId?: string | null;
+  sourceClasseName?: string | null;
 };
 
 type AssignGroupeDialogProps = {
@@ -65,7 +67,19 @@ export function AssignGroupeDialog({
   const [assigning, setAssigning] = useState(false);
   const [groupes, setGroupes] = useState<AtelierGroupeOption[]>([]);
   const [schoolYearName, setSchoolYearName] = useState<string | null>(null);
+  const [sourceClassLabel, setSourceClassLabel] = useState<string | null>(null);
+  const [emptyReason, setEmptyReason] = useState<string | null>(null);
   const [selectedGroupeId, setSelectedGroupeId] = useState("");
+
+  const studentIdsKey = useMemo(
+    () =>
+      students
+        .map((student) => student.id)
+        .filter(Boolean)
+        .sort()
+        .join(","),
+    [students],
+  );
 
   const isChangeMode = useMemo(
     () =>
@@ -100,33 +114,47 @@ export function AssignGroupeDialog({
     if (!open) {
       setGroupes([]);
       setSchoolYearName(null);
+      setSourceClassLabel(null);
+      setEmptyReason(null);
       setSelectedGroupeId("");
       setAssigning(false);
       return;
     }
 
+    const studentIds = students.map((student) => student.id).filter(Boolean);
+    if (!studentIds.length) {
+      setGroupes([]);
+      setEmptyReason("Aucun eleve a affecter");
+      return;
+    }
+
     setLoadingOptions(true);
-    void getImportEnrollmentOptionsAction()
+    setSelectedGroupeId("");
+    void getAssignableGroupesForStudentsAction({ studentIds })
       .then((response) => {
         if (!response.ok) {
           toast.error(response.message);
           setGroupes([]);
-          return;
-        }
-
-        if (response.mode !== "atelier" || !("groupes" in response)) {
-          toast.error("Affectation disponible uniquement en atelier");
-          setGroupes([]);
+          setSourceClassLabel(null);
+          setEmptyReason(response.message);
           return;
         }
 
         setSchoolYearName(response.schoolYear.nameYear);
         setGroupes(response.groupes);
+        setSourceClassLabel(
+          response.sourceClasses.length
+            ? response.sourceClasses.map((c) => c.name).join(", ")
+            : null,
+        );
+        setEmptyReason(response.emptyReason);
       })
       .finally(() => {
         setLoadingOptions(false);
       });
-  }, [open]);
+    // studentIdsKey stabilise la dependance ; students est lu dans l'effet.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- studentIdsKey
+  }, [open, studentIdsKey]);
 
   async function handleAssign() {
     if (!selectedGroupeId) {
@@ -202,20 +230,27 @@ export function AssignGroupeDialog({
           </DialogTitle>
           <DialogDescription>
             {isChangeMode
-              ? `Corrigez l'affectation ${students.length > 1 ? "de ces eleves" : "de cet eleve"} vers un autre groupe de l'annee en cours.`
-              : `Placez ${students.length > 1 ? "ces eleves" : "cet eleve"} dans un groupe de l'annee en cours pour les rendre visibles en paiements.`}
+              ? `Corrigez l'affectation ${students.length > 1 ? "de ces eleves" : "de cet eleve"} vers un autre groupe lie a sa classe secondaire.`
+              : `Placez ${students.length > 1 ? "ces eleves" : "cet eleve"} dans un groupe lie a sa classe secondaire pour les rendre visibles en paiements.`}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="rounded-xl border bg-muted/20 p-3">
-            <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-medium">
                 {students.length} eleve{students.length > 1 ? "s" : ""}
               </p>
-              {schoolYearName ? (
-                <Badge variant="secondary">{schoolYearName}</Badge>
-              ) : null}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {schoolYearName ? (
+                  <Badge variant="secondary">{schoolYearName}</Badge>
+                ) : null}
+                {sourceClassLabel ? (
+                  <Badge variant="outline" className="max-w-[220px] truncate">
+                    Classe : {sourceClassLabel}
+                  </Badge>
+                ) : null}
+              </div>
             </div>
             <ul className="max-h-28 space-y-1 overflow-y-auto text-sm text-muted-foreground">
               {students.map((student) => (
@@ -253,7 +288,7 @@ export function AssignGroupeDialog({
                     loadingOptions
                       ? "Chargement..."
                       : groupes.length === 0
-                        ? "Aucun groupe disponible"
+                        ? "Aucun groupe compatible"
                         : isChangeMode
                           ? "Selectionner le nouveau groupe"
                           : "Selectionner un groupe"
@@ -288,6 +323,17 @@ export function AssignGroupeDialog({
             {selectingSameGroupe ? (
               <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">
                 Ce groupe est deja celui de l&apos;eleve. Choisissez-en un autre.
+              </p>
+            ) : null}
+            {!loadingOptions && emptyReason && groupes.length === 0 ? (
+              <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">
+                {emptyReason}
+              </p>
+            ) : null}
+            {!loadingOptions && sourceClassLabel && groupes.length > 0 ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Uniquement les groupes lies a la classe source de{" "}
+                {students.length > 1 ? "ces eleves" : "cet eleve"}.
               </p>
             ) : null}
           </div>

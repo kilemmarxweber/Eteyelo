@@ -246,7 +246,8 @@ export const createClasseAction = action
     try {
       const { branchId, organizationId, typebranch, educationSystem, cycles } =
         await requireBranchAreaActionContext("classe", "create");
-      const { creneauId, capacity } = input;
+      const { capacity } = input;
+      let creneauId = input.creneauId ?? null;
       const cycle = resolveActivatedCycle(input.cycle, typebranch, cycles);
 
       const identity = await resolveClassIdentity({
@@ -330,20 +331,18 @@ export const createClasseAction = action
           });
           if (!domain) throw new Error("Domaine pratique introuvable");
           practicalDomainId = domain.id;
-          if (sourceClasseId) {
-            const sourceName = (
-              await prisma.classe.findFirst({
-                where: { id: sourceClasseId },
-                select: { nameClasse: true },
-              })
-            )?.nameClasse;
-            displayName = buildAtelierLabGroupLabel({
-              domainName: domain.name,
-              roomName: domain.rooms[0]?.name,
-              sourceClasseName: sourceName,
-              fallbackName: identity.nameClasse,
-            });
-          }
+          displayName = buildAtelierLabGroupLabel({
+            domainName: domain.name,
+            roomName: domain.rooms[0]?.name,
+            fallbackName: identity.nameClasse,
+          });
+        }
+        if (!creneauId) {
+          const workshop = await ensureWorkshopAcademicStructure(
+            prisma,
+            branchId,
+          );
+          creneauId = workshop.creneau.id;
         }
       }
 
@@ -440,6 +439,7 @@ function transformClasse(classe: any): IClasse {
     studentsCount: classe._count?.classEnrollment ?? classe.studentsCount ?? 0,
     sourceClasseId: classe.sourceClasseId ?? null,
     sourceClasseName: classe.sourceClasse?.nameClasse ?? null,
+    sourceClasseBranchName: classe.sourceClasse?.branch?.name ?? null,
     practicalDomainId: classe.practicalDomainId ?? null,
     practicalDomainName: classe.practicalDomain?.name ?? null,
   };
@@ -477,7 +477,13 @@ export const getClassesAction = action.handler(async (): Promise<IClasse[]> => {
       include: {
         option: { include: { section: true } },
         creneau: true,
-        sourceClasse: { select: { id: true, nameClasse: true } },
+        sourceClasse: {
+          select: {
+            id: true,
+            nameClasse: true,
+            branch: { select: { name: true } },
+          },
+        },
         practicalDomain: { select: { id: true, name: true } },
         _count: { select: { classEnrollment: true } },
       },
@@ -523,7 +529,14 @@ export const updateClasseAction = action
 
     const existing = await prisma.classe.findFirst({
       where: { id, branchId },
-      select: { id: true, level: true, cycle: true, statusClasse: true },
+      select: {
+        id: true,
+        level: true,
+        cycle: true,
+        statusClasse: true,
+        sourceClasseId: true,
+        practicalDomainId: true,
+      },
     });
     if (!existing) throw new Error("Classe introuvable dans cette branche");
 
@@ -567,8 +580,56 @@ export const updateClasseAction = action
         ),
     });
 
+    let sourceClasseId = existing.sourceClasseId;
+    let practicalDomainId = existing.practicalDomainId;
+    let displayName = identity.nameClasse;
+    if (isAtelierBranchType(typebranch) || cycle === "ATELIER") {
+      if (input.sourceClasseId !== undefined) {
+        sourceClasseId = input.sourceClasseId || null;
+        if (sourceClasseId) {
+          await assertValidAtelierSourceClasse({
+            atelierBranchId: branchId,
+            organizationId,
+            sourceClasseId,
+          });
+          const taken = await prisma.classe.findFirst({
+            where: { branchId, sourceClasseId, id: { not: id } },
+            select: { id: true },
+          });
+          if (taken) {
+            throw new Error(
+              "Un groupe atelier existe déjà pour cette classe source",
+            );
+          }
+        }
+      }
+      if (input.practicalDomainId !== undefined) {
+        practicalDomainId = input.practicalDomainId || null;
+        if (practicalDomainId) {
+          const domain = await prisma.practicalDomain.findFirst({
+            where: { id: practicalDomainId, branchId },
+            select: {
+              id: true,
+              name: true,
+              rooms: {
+                take: 1,
+                select: { name: true },
+                orderBy: { name: "asc" },
+              },
+            },
+          });
+          if (!domain) throw new Error("Domaine pratique introuvable");
+          displayName = buildAtelierLabGroupLabel({
+            domainName: domain.name,
+            roomName: domain.rooms[0]?.name,
+            fallbackName: identity.nameClasse,
+          });
+        }
+      }
+    }
+
     const duplicate = await prisma.classe.findFirst({
-      where: { branchId, nameClasse: identity.nameClasse, id: { not: id } },
+      where: { branchId, nameClasse: displayName, id: { not: id } },
       select: { id: true },
     });
     if (duplicate) throw new Error("La classe existe deja dans cette branche");
@@ -576,7 +637,7 @@ export const updateClasseAction = action
     const updatedClasse = await prisma.classe.update({
       where: { id },
       data: {
-        nameClasse: identity.nameClasse,
+        nameClasse: displayName,
         codeClasse,
         cycle,
         level: identity.level ?? null,
@@ -586,6 +647,8 @@ export const updateClasseAction = action
         statusClasse: statusClasse ?? existing.statusClasse ?? true,
         creneauId: creneauId || null,
         horaireType: getAngolaHoraireType(identity.level),
+        sourceClasseId,
+        practicalDomainId,
       },
     });
     revalidateClassePages(organizationId, branchId);
@@ -804,62 +867,60 @@ export const statusClasseAction = action
   });
 
 /** Classes secondaires (même org) utilisables comme provenance d'un groupe atelier. */
-export const getAtelierSourceClassesAction = action.handler(async () => {
-  const { branchId, organizationId, typebranch } = await requireBranchContext();
-  if (!isAtelierBranchType(typebranch)) return [];
+export const getAtelierSourceClassesAction = action
+  .input(z.object({ currentClasseId: z.string().optional() }))
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, typebranch } = await requireBranchContext();
+    if (!isAtelierBranchType(typebranch)) return [];
 
-  const secondaryBranches = await prisma.branch.findMany({
-    where: {
-      organizationId,
-      id: { not: branchId },
-      isActive: true,
-      typebranch: "SECONDAIRE",
-    },
-    select: { id: true, name: true },
+    const usedSourceIds = (
+      await prisma.classe.findMany({
+        where: {
+          branchId,
+          sourceClasseId: { not: null },
+          id: input.currentClasseId ? { not: input.currentClasseId } : undefined,
+        },
+        select: { sourceClasseId: true },
+      })
+    )
+      .map((c) => c.sourceClasseId)
+      .filter(Boolean) as string[];
+
+    const classes = await prisma.classe.findMany({
+      where: {
+        branch: {
+          organizationId,
+          id: { not: branchId },
+          isActive: true,
+          typebranch: "SECONDAIRE",
+        },
+        statusClasse: true,
+        OR: [{ cycle: "SECONDAIRE" }, { cycle: null }],
+        id: usedSourceIds.length ? { notIn: usedSourceIds } : undefined,
+      },
+      select: {
+        id: true,
+        nameClasse: true,
+        level: true,
+        option: { select: { nameOption: true, codeOption: true } },
+        branch: { select: { id: true, name: true } },
+      },
+      orderBy: [{ branch: { name: "asc" } }, { nameClasse: "asc" }],
+    });
+
+    return classes.map((c) => {
+      const optionName = c.option?.nameOption?.trim() || "Sans option";
+      return {
+        id: c.id,
+        nameClasse: c.nameClasse,
+        level: c.level,
+        optionName,
+        branchId: c.branch.id,
+        branchName: c.branch.name,
+        label: `${c.nameClasse} · ${optionName}`,
+      };
+    });
   });
-
-  const schoolIds = secondaryBranches.map((b) => b.id);
-  if (!schoolIds.length) return [];
-
-  const usedSourceIds = (
-    await prisma.classe.findMany({
-      where: { branchId, sourceClasseId: { not: null } },
-      select: { sourceClasseId: true },
-    })
-  )
-    .map((c) => c.sourceClasseId)
-    .filter(Boolean) as string[];
-
-  const classes = await prisma.classe.findMany({
-    where: {
-      branchId: { in: schoolIds },
-      statusClasse: true,
-      OR: [{ cycle: "SECONDAIRE" }, { cycle: null }],
-      id: usedSourceIds.length ? { notIn: usedSourceIds } : undefined,
-    },
-    select: {
-      id: true,
-      nameClasse: true,
-      level: true,
-      option: { select: { nameOption: true, codeOption: true } },
-      branch: { select: { id: true, name: true } },
-    },
-    orderBy: [{ nameClasse: "asc" }],
-  });
-
-  return classes.map((c) => {
-    const optionName = c.option?.nameOption?.trim() || "—";
-    return {
-      id: c.id,
-      nameClasse: c.nameClasse,
-      level: c.level,
-      optionName,
-      branchId: c.branch.id,
-      branchName: c.branch.name,
-      label: `${c.nameClasse} · ${optionName} · ${c.branch.name}`,
-    };
-  });
-});
 
 /**
  * Importe le catalogue de classes pour la branche courante.

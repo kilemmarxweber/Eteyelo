@@ -9,6 +9,9 @@ import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { buildIsArchivedUpdate } from "@/lib/archive";
 import { normalizeCreneauWorkingDays } from "@/lib/creneau-working-days";
 import type { Day } from "@/prisma/generated/prisma/client";
+import { isAtelierBranch } from "@/lib/branch-capabilities";
+import { ensureWorkshopAcademicStructure } from "@/lib/workshop-academic-structure";
+import { stripRecreationForAtelier } from "@/src/interfaces/creneau";
 
 function revalidateCreneauPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/creneau`);
@@ -23,7 +26,11 @@ export const createCreneauAction = action
   .input(creneauSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId, organizationId } = await requireBranchContext();
+      const { branchId, organizationId, typebranch } =
+        await requireBranchContext();
+      const payload = isAtelierBranch(typebranch)
+        ? stripRecreationForAtelier(input)
+        : input;
       const {
         nameCreneau,
         startTime,
@@ -32,10 +39,11 @@ export const createCreneauAction = action
         recreationDuration,
         recreationHour,
         workingDays,
-      } = input;
+      } = payload;
       const [heuresDebut, minutesDebut] = startTime.split(":").map(Number);
       const [heuresFin, minutesFin] = endTime.split(":").map(Number);
-      const [RecreHeure, RecreMinutes] = recreationHour.split(":").map(Number);
+      const recreTime = recreationHour || startTime;
+      const [RecreHeure, RecreMinutes] = recreTime.split(":").map(Number);
       const normalizedWorkingDays = normalizeCreneauWorkingDays(workingDays) as Day[];
       const existingCreneau = await prisma.creneau.findFirst({
         where: { branchId, nameCreneau },
@@ -54,7 +62,9 @@ export const createCreneauAction = action
           startTime: new Date(Date.UTC(2000, 1, 1, heuresDebut, minutesDebut)),
           endTime: new Date(Date.UTC(2000, 1, 1, heuresFin, minutesFin)),
           durationCourse,
-          recreationDuration,
+          recreationDuration: isAtelierBranch(typebranch)
+            ? 0
+            : recreationDuration,
           branchId,
           recreationHour: new Date(
             Date.UTC(2000, 1, 1, RecreHeure, RecreMinutes),
@@ -73,7 +83,11 @@ export const createCreneauAction = action
 export const updateCreneauAction = action
   .input(creneauSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, typebranch } =
+      await requireBranchContext();
+    const payload = isAtelierBranch(typebranch)
+      ? stripRecreationForAtelier(input)
+      : input;
     const {
       id,
       nameCreneau,
@@ -83,7 +97,7 @@ export const updateCreneauAction = action
       recreationDuration,
       recreationHour,
       workingDays,
-    } = input;
+    } = payload;
     const existing = await prisma.creneau.findFirst({
       where: { id, branchId },
       select: { id: true },
@@ -100,7 +114,8 @@ export const updateCreneauAction = action
 
     const [heuresDebut, minutesDebut] = startTime.split(":").map(Number);
     const [heuresFin, minutesFin] = endTime.split(":").map(Number);
-    const [RecreHeure, RecreMinutes] = recreationHour.split(":").map(Number);
+    const recreTime = recreationHour || startTime;
+    const [RecreHeure, RecreMinutes] = recreTime.split(":").map(Number);
     const normalizedWorkingDays = normalizeCreneauWorkingDays(workingDays) as Day[];
     // MET À JOURLE CRENEAU AVEC LES NOUVELLES DONNÉES
     const updatedCreneau = await prisma.creneau.update({
@@ -112,7 +127,9 @@ export const updateCreneauAction = action
         startTime: new Date(Date.UTC(2000, 1, 1, heuresDebut, minutesDebut)),
         endTime: new Date(Date.UTC(2000, 1, 1, heuresFin, minutesFin)),
         durationCourse,
-        recreationDuration,
+        recreationDuration: isAtelierBranch(typebranch)
+          ? 0
+          : recreationDuration,
         recreationHour: new Date(
           Date.UTC(2000, 1, 1, RecreHeure, RecreMinutes),
         ),
@@ -236,7 +253,10 @@ export const getCreneauxAction = action
   )
   .handler(async ({ input }): Promise<ICreneau[]> => {
     try {
-      const { branchId } = await requireBranchContext();
+      const { branchId, typebranch } = await requireBranchContext();
+      if (isAtelierBranch(typebranch)) {
+        await ensureWorkshopAcademicStructure(prisma, branchId);
+      }
       const includeArchived = input?.includeArchived ?? false;
       const creneaux = await prisma.creneau.findMany({
         where: {

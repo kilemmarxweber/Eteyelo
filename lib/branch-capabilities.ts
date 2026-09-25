@@ -88,7 +88,7 @@ const BRANCH_CAPABILITIES: Record<ManagedBranchType, BranchCapability> = {
     usesReleve: false,
     usesBrevet: false,
     usesAttestation: true,
-    usesPonderation: true,
+    usesPonderation: false,
     usesFinance: true,
     usesPaymentDiscounts: false,
     academicStructureKey: "workshop",

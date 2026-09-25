@@ -5,7 +5,7 @@ import {
   resolveRotationCours,
   weeksBetweenMondays,
 } from "../lib/atelier-rotation";
-import { buildAtelierLabGroupLabel } from "../lib/atelier-lab-groups";
+import { buildAtelierLabGroupLabel } from "../lib/atelier-lab-groups-shared";
 import {
   isPracticalDomainCode,
   PRACTICAL_DOMAIN_CATALOG,
@@ -94,14 +94,21 @@ test("férié : séance fermée, cycle non décalé", () => {
   );
 });
 
-test("libellé groupe labo", () => {
+test("libellé groupe labo = nom du laboratoire uniquement", () => {
   assert.equal(
     buildAtelierLabGroupLabel({
       roomName: "Laboratoire sciences",
       sourceClasseName: "3ème A",
       fallbackName: "Groupe",
     }),
-    "Laboratoire sciences — 3ème A",
+    "Laboratoire sciences",
+  );
+  assert.equal(
+    buildAtelierLabGroupLabel({
+      domainName: "Domaine technique",
+      fallbackName: "Groupe",
+    }),
+    "Domaine technique",
   );
 });
 

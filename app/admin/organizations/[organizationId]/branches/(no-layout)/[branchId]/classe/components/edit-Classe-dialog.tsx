@@ -44,7 +44,10 @@ export function UpdateClasseDialog({
         <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
           <SheetTitle>Modifier la classe</SheetTitle>
           <SheetDescription>
-            Niveau, nom, option, vacation et capacité.
+            Niveau, vacation, capacité
+            {classe.sourceClasseId
+              ? ", classe source et domaine pratique."
+              : " et option."}
           </SheetDescription>
         </SheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
@@ -63,6 +66,8 @@ export function UpdateClasseDialog({
                 optionId: classe.optionId || classe.option?.id || "",
                 sectionId: classe.option?.sectionId || "",
                 creneauId: classe.creneauId || classe.creneau?.id || "",
+                sourceClasseId: classe.sourceClasseId || "",
+                practicalDomainId: classe.practicalDomainId || "",
               }}
               onUpdated={handleUpdated}
             />

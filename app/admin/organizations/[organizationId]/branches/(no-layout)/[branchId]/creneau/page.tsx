@@ -2,7 +2,7 @@
 
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { IconBeach, IconPlus } from "@tabler/icons-react";
 
@@ -19,11 +19,29 @@ import CreneauList from "./components/CreneausTable";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { isAtelierBranch } from "@/lib/branch-capabilities";
+import { getBranchTypeAction } from "../classe/classe.action";
 
 export default function Creneaus() {
   const t = useTranslations("teaching.vacation");
   const [open, setOpen] = useState(false);
+  const [isAtelier, setIsAtelier] = useState(false);
   const { refreshKey, refresh } = useRefresh();
+
+  useEffect(() => {
+    let ignore = false;
+    getBranchTypeAction()
+      .then(([result]) => {
+        if (ignore || !result) return;
+        setIsAtelier(isAtelierBranch(result.typebranch));
+      })
+      .catch(() => {
+        /* ignore */
+      });
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const handleCreneauAction = () => {
     refresh();
@@ -33,7 +51,9 @@ export default function Creneaus() {
   return (
     <BranchPageShell
       title={t("title")}
-      description={t("description")}
+      description={
+        isAtelier ? t("descriptionAtelier") : t("description")
+      }
       badge={
         <Badge variant="outline-primary" icon={<IconBeach size={14} />}>
           {t("badge")}
@@ -59,7 +79,7 @@ export default function Creneaus() {
           <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
             <SheetTitle>{t("newTitle")}</SheetTitle>
             <SheetDescription>
-              {t("newDesc")}
+              {isAtelier ? t("newDescAtelier") : t("newDesc")}
             </SheetDescription>
           </SheetHeader>
           <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">

@@ -4,7 +4,7 @@ import { HTMLAttributes, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
+import { Building2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Form,
@@ -27,6 +27,10 @@ import {
 } from "../classe.action";
 import { getPracticalDomainsAction } from "../../settings/practical-domains.action";
 import { isAtelierBranch } from "@/lib/branch-capabilities";
+import { buildAtelierLabGroupLabel } from "@/lib/atelier-lab-groups-shared";
+import {
+  WORKSHOP_OPTION_CODE,
+} from "@/lib/workshop-academic-structure";
 import {
   buildClassName,
   getClassLevelsForBranch,
@@ -118,11 +122,18 @@ export function ClasseUpForm({
   const [educationSystem, setEducationSystem] =
     useState<EducationSystem>("CONGOLAIS");
   const [sourceClasses, setSourceClasses] = useState<
-    Array<{ id: string; label: string }>
+    Array<{
+      id: string;
+      nameClasse: string;
+      optionName: string;
+      branchName: string;
+      label: string;
+    }>
   >([]);
   const [practicalDomains, setPracticalDomains] = useState<
-    Array<{ id: string; name: string }>
+    Array<{ id: string; name: string; labName: string }>
   >([]);
+  const [atelierOptionsLoading, setAtelierOptionsLoading] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -156,22 +167,33 @@ export function ClasseUpForm({
   );
 
   useEffect(() => {
+    let ignore = false;
+
     const fetchData = async () => {
+      setAtelierOptionsLoading(true);
+
       const [
         [branchResult, branchErr],
         [rawOptions, optionsErr],
         [rawCreneaux, creneauxErr],
+        [sources, sourcesErr],
+        [domains, domainsErr],
       ] = await Promise.all([
         getBranchTypeAction(),
         getOptionsAction(),
         getCreneauxAction({ includeArchived: mode === "update" }),
+        getAtelierSourceClassesAction({ currentClasseId: initialData?.id }),
+        getPracticalDomainsAction(),
       ]);
+
+      if (ignore) return;
 
       if (branchErr) throw branchErr;
       if (optionsErr) throw optionsErr;
       if (creneauxErr) throw creneauxErr;
 
-      setBranchType(branchResult.typebranch as ManagedBranchType);
+      const type = branchResult.typebranch as ManagedBranchType;
+      setBranchType(type);
       const cycles = (branchResult.cycles?.length
         ? branchResult.cycles
         : [branchResult.typebranch]) as Cycle[];
@@ -206,13 +228,65 @@ export function ClasseUpForm({
         if (currentOptionId) form.setValue("optionId", currentOptionId);
         if (currentCreneauId) form.setValue("creneauId", currentCreneauId);
       }
+
+      if (isAtelierBranch(type)) {
+        form.setValue("cycle", "ATELIER");
+        form.setValue("level", "Groupe");
+        const workshopOption =
+          loadedOptions.find(
+            (option) =>
+              option.codeOption === WORKSHOP_OPTION_CODE ||
+              option.nameOption.toLowerCase() === "groupe",
+          ) ?? loadedOptions[0];
+        if (workshopOption && !form.getValues("optionId")) {
+          form.setValue("optionId", workshopOption.id);
+          if (workshopOption.sectionId) {
+            setSelectedSectionId(workshopOption.sectionId);
+            form.setValue("sectionId", workshopOption.sectionId);
+          }
+        }
+        if (!currentCreneauId && loadedCreneaux.length === 1) {
+          form.setValue("creneauId", loadedCreneaux[0].id);
+        }
+      }
+
       setCatalogReady(true);
+
+      if (isAtelierBranch(type)) {
+        if (sourcesErr || domainsErr) {
+          console.error(sourcesErr || domainsErr);
+          toast.error("Impossible de charger les options atelier");
+        } else {
+          setSourceClasses(sources ?? []);
+          setPracticalDomains(
+            (domains ?? []).map((d) => ({
+              id: d.id,
+              name: d.name,
+              labName: buildAtelierLabGroupLabel({
+                domainName: d.name,
+                roomName: d.rooms?.[0]?.name,
+                fallbackName: d.name,
+              }),
+            })),
+          );
+        }
+      } else {
+        setSourceClasses([]);
+        setPracticalDomains([]);
+      }
+      setAtelierOptionsLoading(false);
     };
 
     fetchData().catch((error) => {
+      if (ignore) return;
       console.error(error);
+      setAtelierOptionsLoading(false);
       toast.error("Impossible de charger les donnees du formulaire");
     });
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const initialId = initialData?.id;
@@ -226,6 +300,8 @@ export function ClasseUpForm({
             optionId: initialData?.optionId ?? "",
             sectionId: initialData?.sectionId ?? "",
             capacity: initialData?.capacity ?? undefined,
+            sourceClasseId: initialData?.sourceClasseId ?? "",
+            practicalDomainId: initialData?.practicalDomainId ?? "",
           }
         : {
             id: initialData?.id,
@@ -237,6 +313,8 @@ export function ClasseUpForm({
             creneauId: initialData?.creneauId ?? "",
             optionId: initialData?.optionId ?? "",
             sectionId: initialData?.sectionId ?? "",
+            sourceClasseId: initialData?.sourceClasseId ?? "",
+            practicalDomainId: initialData?.practicalDomainId ?? "",
           },
     );
     setSelectedSectionId(initialData?.sectionId ?? "");
@@ -248,6 +326,8 @@ export function ClasseUpForm({
   const watchedParallel = form.watch("parallel");
   const watchedOptionId = form.watch("optionId");
   const watchedCycle = form.watch("cycle");
+  const watchedSourceClasseId = form.watch("sourceClasseId");
+  const watchedPracticalDomainId = form.watch("practicalDomainId");
 
   const classCycle = (watchedCycle || activatedCycles[0] || branchType) as Cycle;
   const multiCycle = activatedCycles.length > 1;
@@ -257,6 +337,12 @@ export function ClasseUpForm({
   const showOptionField = classCycle !== "ATELIER";
   const showAtelierLabFields =
     isAtelierBranch(branchType) || classCycle === "ATELIER";
+  const selectedSourceClass = sourceClasses.find(
+    (c) => c.id === watchedSourceClasseId,
+  );
+  const selectedPracticalDomain = practicalDomains.find(
+    (d) => d.id === watchedPracticalDomainId,
+  );
   const angolaCycle1 = angolaSecondary && isAngolaFirstCycleLevel(watchedLevel);
   const horaireHelp = angolaSecondary
     ? angolaHoraireHelp(watchedLevel)
@@ -466,6 +552,9 @@ export function ClasseUpForm({
 
   const previewName = useMemo(() => {
     if (isLegacyUpdate) return null;
+    if (showAtelierLabFields) {
+      return selectedPracticalDomain?.labName ?? null;
+    }
 
     const level = watchedLevel?.trim();
     if (!level) return null;
@@ -485,45 +574,20 @@ export function ClasseUpForm({
     educationSystem,
     isLegacyUpdate,
     options,
+    selectedPracticalDomain?.labName,
+    showAtelierLabFields,
     watchedLevel,
     watchedOptionId,
     watchedParallel,
   ]);
 
   useEffect(() => {
-    if (!showAtelierLabFields) return;
-    let ignore = false;
-    Promise.all([
-      getAtelierSourceClassesAction(),
-      getPracticalDomainsAction(),
-    ])
-      .then(([[sources], [domains]]) => {
-        if (ignore) return;
-        setSourceClasses(
-          (sources ?? []).map((s: { id: string; label: string }) => ({
-            id: s.id,
-            label: s.label,
-          })),
-        );
-        setPracticalDomains(
-          (domains ?? []).map((d: { id: string; name: string }) => ({
-            id: d.id,
-            name: d.name,
-          })),
-        );
-      })
-      .catch(() => undefined);
-    return () => {
-      ignore = true;
-    };
-  }, [showAtelierLabFields]);
-
-  useEffect(() => {
     if (isLegacyUpdate || !previewName) return;
-    if (!nameTouchedRef.current) {
+    if (showAtelierLabFields || !nameTouchedRef.current) {
       form.setValue("nameClasse", previewName);
+      if (showAtelierLabFields) nameTouchedRef.current = false;
     }
-  }, [form, isLegacyUpdate, previewName]);
+  }, [form, isLegacyUpdate, previewName, showAtelierLabFields]);
 
   async function onSubmit(data: FormValues) {
     setIsLoading(true);
@@ -531,13 +595,20 @@ export function ClasseUpForm({
 
     try {
       if (mode === "create") {
-        if (!data.level?.trim()) {
+        if (showAtelierLabFields) {
+          if (!data.practicalDomainId?.trim()) {
+            throw new Error("Veuillez selectionner un laboratoire");
+          }
+          data.level = data.level?.trim() || "Groupe";
+          data.nameClasse =
+            selectedPracticalDomain?.labName || data.nameClasse || "Groupe";
+        } else if (!data.level?.trim()) {
           throw new Error("Veuillez selectionner un niveau");
         }
         const [, err] = await createClasseAction({
           cycle: classCycle,
           level: data.level,
-          parallel: data.parallel,
+          parallel: showAtelierLabFields ? undefined : data.parallel,
           nameClasse: data.nameClasse,
           capacity: data.capacity,
           optionId: data.optionId,
@@ -552,36 +623,64 @@ export function ClasseUpForm({
         if (err) throw new Error(err.message);
         toast.success("Classe creee avec succes");
         nameTouchedRef.current = false;
+        const workshopOptionId = showAtelierLabFields
+          ? options.find(
+              (option) =>
+                option.codeOption === WORKSHOP_OPTION_CODE ||
+                option.nameOption.toLowerCase() === "groupe",
+            )?.id ?? ""
+          : "";
         form.reset({
-          cycle: multiCycle ? "" : classCycle,
-          level: "",
+          cycle: showAtelierLabFields ? "ATELIER" : multiCycle ? "" : classCycle,
+          level: showAtelierLabFields ? "Groupe" : "",
           parallel: "",
           nameClasse: "",
           capacity: undefined,
-          creneauId: "",
-          optionId: "",
+          creneauId:
+            showAtelierLabFields && creneaux.length === 1 ? creneaux[0].id : "",
+          optionId: workshopOptionId,
           sourceClasseId: "",
           practicalDomainId: "",
         });
         onCreated?.();
       } else {
+        if (showAtelierLabFields) {
+          if (!data.practicalDomainId?.trim()) {
+            throw new Error("Veuillez selectionner un laboratoire");
+          }
+          data.level = data.level?.trim() || "Groupe";
+          data.nameClasse =
+            selectedPracticalDomain?.labName || data.nameClasse || "Groupe";
+        }
         const payload = isLegacyUpdate
           ? {
               id: data.id,
               nameClasse: data.nameClasse,
-              parallel: data.parallel,
+              parallel: showAtelierLabFields ? undefined : data.parallel,
               capacity: data.capacity,
               optionId: data.optionId,
               creneauId: data.creneauId,
+              sourceClasseId: showAtelierLabFields
+                ? data.sourceClasseId || null
+                : undefined,
+              practicalDomainId: showAtelierLabFields
+                ? data.practicalDomainId || null
+                : undefined,
             }
           : {
               id: data.id,
               nameClasse: data.nameClasse,
               level: data.level,
-              parallel: data.parallel,
+              parallel: showAtelierLabFields ? undefined : data.parallel,
               capacity: data.capacity,
               optionId: data.optionId,
               creneauId: data.creneauId,
+              sourceClasseId: showAtelierLabFields
+                ? data.sourceClasseId || null
+                : undefined,
+              practicalDomainId: showAtelierLabFields
+                ? data.practicalDomainId || null
+                : undefined,
             };
         const [, err] = await updateClasseAction(payload);
         if (err) throw new Error(err.message);
@@ -673,42 +772,58 @@ export function ClasseUpForm({
                     )}
                   />
                 ) : null}
-                <FormField
-                  control={form.control}
-                  name="level"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Niveau</FormLabel>
-                      <FormControl>
-                        <SearchableSelect
-                          searchable="auto"
-                          options={classLevels.map((level) => ({
-                            value: level,
-                            label: getClassLevelLabel(
-                              classCycle,
-                              level,
-                              educationSystem,
-                            ),
-                          }))}
-                          value={field.value ?? ""}
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            form.setValue("optionId", "");
-                            form.setValue("nameClasse", "");
-                            nameTouchedRef.current = false;
-                            setSelectedSectionId("");
-                          }}
-                          placeholder="Selectionner un niveau"
-                          searchPlaceholder="Rechercher un niveau…"
-                          triggerClassName="h-9"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-                {watchedLevel ? (
+                {showAtelierLabFields ? (
+                  <div className="rounded-md border bg-muted/30 px-3 py-2 sm:col-span-2">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Niveau
+                    </p>
+                    <p className="text-sm font-medium">Groupe atelier</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Sélectionné automatiquement. Le nom du groupe reprend celui
+                      du laboratoire.
+                    </p>
+                    <input type="hidden" {...form.register("level")} />
+                    <input type="hidden" {...form.register("nameClasse")} />
+                  </div>
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="level"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Niveau</FormLabel>
+                        <FormControl>
+                          <SearchableSelect
+                            searchable="auto"
+                            options={classLevels.map((level) => ({
+                              value: level,
+                              label: getClassLevelLabel(
+                                classCycle,
+                                level,
+                                educationSystem,
+                              ),
+                            }))}
+                            value={field.value ?? ""}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              form.setValue("optionId", "");
+                              form.setValue("nameClasse", "");
+                              nameTouchedRef.current = false;
+                              setSelectedSectionId("");
+                            }}
+                            placeholder="Selectionner un niveau"
+                            searchPlaceholder="Rechercher un niveau…"
+                            triggerClassName="h-9"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {!showAtelierLabFields && watchedLevel ? (
                   <FormField
                     control={form.control}
                     name="nameClasse"
@@ -751,28 +866,30 @@ export function ClasseUpForm({
                   </div>
                 ) : null}
 
-                <FormField
-                  control={form.control}
-                  name="parallel"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Parallele (optionnel)</FormLabel>
-                      <FormControl>
-                        <Input
-                          className="h-9"
-                          placeholder="Ex: A, B, C"
-                          maxLength={3}
-                          {...field}
-                          value={field.value ?? ""}
-                          onChange={(event) =>
-                            field.onChange(event.target.value.toUpperCase())
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!showAtelierLabFields ? (
+                  <FormField
+                    control={form.control}
+                    name="parallel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Parallele (optionnel)</FormLabel>
+                        <FormControl>
+                          <Input
+                            className="h-9"
+                            placeholder="Ex: A, B, C"
+                            maxLength={3}
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(event) =>
+                              field.onChange(event.target.value.toUpperCase())
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : null}
               </>
             )}
 
@@ -865,63 +982,136 @@ export function ClasseUpForm({
             ) : null}
 
             {showAtelierLabFields ? (
-              <>
-                <FormField
-                  control={form.control}
-                  name="practicalDomainId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Domaine pratique</FormLabel>
-                      <FormControl>
-                        <SearchableSelect
-                          searchable
-                          options={practicalDomains.map((d) => ({
-                            value: d.id,
-                            label: d.name,
-                          }))}
-                          value={field.value ?? ""}
-                          onValueChange={field.onChange}
-                          placeholder="Sciences, technique…"
-                          searchPlaceholder="Rechercher…"
-                          triggerClassName="h-9"
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Détermine le labo (ex. Laboratoire sciences).
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="sourceClasseId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Classe source (école)</FormLabel>
-                      <FormControl>
-                        <SearchableSelect
-                          searchable
-                          options={sourceClasses.map((c) => ({
-                            value: c.id,
-                            label: c.label,
-                          }))}
-                          value={field.value ?? ""}
-                          onValueChange={field.onChange}
-                          placeholder="Classe de provenance"
-                          searchPlaceholder="Rechercher une classe…"
-                          triggerClassName="h-9"
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Classes du secondaire uniquement : nom · option ·
-                        établissement. Un seul groupe par classe source.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
+              <section className="space-y-3 rounded-lg border bg-muted/20 p-3 sm:col-span-2 sm:p-4">
+                <div className="flex items-start gap-2">
+                  <Building2 className="mt-0.5 size-4 shrink-0 text-primary" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">Configuration atelier</p>
+                    <p className="text-xs text-muted-foreground">
+                      Classe et établissement scolaire d&apos;origine du groupe.
+                    </p>
+                  </div>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="sourceClasseId"
+                    render={({ field }) => (
+                      <FormItem className="sm:col-span-2">
+                        <FormLabel>Classe source (école)</FormLabel>
+                        <FormControl>
+                          <SearchableSelect
+                            searchable
+                            options={sourceClasses.map((c) => ({
+                              value: c.id,
+                              label: c.label,
+                              description: c.branchName,
+                              search: `${c.nameClasse} ${c.optionName} ${c.branchName}`,
+                            }))}
+                            value={field.value ?? ""}
+                            onValueChange={field.onChange}
+                            disabled={atelierOptionsLoading}
+                            placeholder={
+                              atelierOptionsLoading
+                                ? "Chargement des classes…"
+                                : sourceClasses.length
+                                  ? "Choisir une classe source"
+                                  : "Aucune classe source disponible"
+                            }
+                            searchPlaceholder="Classe, option ou établissement…"
+                            emptyMessage="Aucune classe ne correspond."
+                            triggerClassName="h-auto min-h-10"
+                          />
+                        </FormControl>
+                        {selectedSourceClass ? (
+                          <p className="rounded-md border bg-background/80 px-2.5 py-1.5 text-xs text-muted-foreground">
+                            <span className="font-medium text-foreground">
+                              {selectedSourceClass.nameClasse}
+                            </span>
+                            {" · "}
+                            {selectedSourceClass.optionName}
+                            {" — "}
+                            <span className="text-foreground">
+                              {selectedSourceClass.branchName}
+                            </span>
+                          </p>
+                        ) : (
+                          <FormDescription>
+                            Affiche clairement la branche (établissement) de la
+                            classe. Une source ne peut alimenter qu&apos;un seul
+                            groupe.
+                          </FormDescription>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="practicalDomainId"
+                    render={({ field }) => (
+                      <FormItem className="sm:col-span-2">
+                        <FormLabel>Domaine et laboratoire</FormLabel>
+                        <FormControl>
+                          <SearchableSelect
+                            searchable
+                            options={practicalDomains.map((d) => {
+                              const hasDedicatedLab =
+                                Boolean(d.labName) && d.labName !== d.name;
+                              return {
+                                value: d.id,
+                                label: d.name,
+                                description: hasDedicatedLab
+                                  ? `Laboratoire : ${d.labName}`
+                                  : undefined,
+                                search: `${d.name} ${d.labName}`,
+                              };
+                            })}
+                            value={field.value ?? ""}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              const domain = practicalDomains.find(
+                                (d) => d.id === value,
+                              );
+                              if (domain) {
+                                form.setValue("nameClasse", domain.labName);
+                                nameTouchedRef.current = false;
+                              }
+                            }}
+                            disabled={atelierOptionsLoading}
+                            placeholder={
+                              atelierOptionsLoading
+                                ? "Chargement…"
+                                : practicalDomains.length
+                                  ? "Choisir un domaine / laboratoire"
+                                  : "Aucun domaine disponible"
+                            }
+                            searchPlaceholder="Domaine ou laboratoire…"
+                            emptyMessage="Aucun domaine ne correspond."
+                          />
+                        </FormControl>
+                        {selectedPracticalDomain ? (
+                          <p className="rounded-md border bg-background/80 px-2.5 py-1.5 text-xs leading-relaxed text-muted-foreground">
+                            Nom du groupe :{" "}
+                            <span className="font-medium text-foreground">
+                              {selectedPracticalDomain.labName}
+                            </span>
+                            <span className="mt-0.5 block">
+                              Domaine : {selectedPracticalDomain.name}
+                            </span>
+                          </p>
+                        ) : (
+                          <FormDescription>
+                            Le nom du groupe reprend le laboratoire (salle),
+                            sinon le nom du domaine.
+                          </FormDescription>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </section>
             ) : null}
 
             <FormField
@@ -954,7 +1144,7 @@ export function ClasseUpForm({
               control={form.control}
               name="creneauId"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className={showAtelierLabFields ? "hidden" : undefined}>
                   <FormLabel>Vacation</FormLabel>
                   <FormControl>
                     <SearchableSelect

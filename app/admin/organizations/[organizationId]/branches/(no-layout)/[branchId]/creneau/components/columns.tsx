@@ -20,15 +20,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { formatCreneauWorkingDaysLabel } from "@/lib/creneau-working-days";
 
-export function useCreneauColumns(): ColumnDef<ICreneau>[] {
+export function useCreneauColumns(options?: {
+  hideRecreation?: boolean;
+}): ColumnDef<ICreneau>[] {
   const t = useTranslations("teaching.vacation");
   const tc = useTranslations("teaching.vacation.columns");
   const tf = useTranslations("teaching.vacation.form");
   const tCommon = useTranslations("common");
   const locale = useLocale();
+  const hideRecreation = options?.hideRecreation ?? false;
 
-  return React.useMemo(
-    () => [
+  return React.useMemo(() => {
+    const cols: ColumnDef<ICreneau>[] = [
       {
         id: "select",
         header: ({ table }) => (
@@ -92,25 +95,33 @@ export function useCreneauColumns(): ColumnDef<ICreneau>[] {
           </span>
         ),
       },
-      {
-        accessorKey: "recreationHour",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={tc("recreation")} />
-        ),
-        cell: ({ row }) => row.original.recreationHour,
-      },
-      {
-        accessorKey: "recreationDuration",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title={tc("recreationDuration")}
-          />
-        ),
-        cell: ({ row }) => (
-          <span>{row.original.recreationDuration} min</span>
-        ),
-      },
+    ];
+
+    if (!hideRecreation) {
+      cols.push(
+        {
+          accessorKey: "recreationHour",
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column} title={tc("recreation")} />
+          ),
+          cell: ({ row }) => row.original.recreationHour,
+        },
+        {
+          accessorKey: "recreationDuration",
+          header: ({ column }) => (
+            <DataTableColumnHeader
+              column={column}
+              title={tc("recreationDuration")}
+            />
+          ),
+          cell: ({ row }) => (
+            <span>{row.original.recreationDuration} min</span>
+          ),
+        },
+      );
+    }
+
+    cols.push(
       {
         accessorKey: "createdAt",
         cell: (row) =>
@@ -148,7 +159,7 @@ export function useCreneauColumns(): ColumnDef<ICreneau>[] {
                   <Button
                     aria-label="Open menu"
                     variant="ghost"
-                    className="flex size-8 p-0 data-[state= open]:bg-muted"
+                    className="flex size-8 p-0 data-[state=open]:bg-muted"
                   >
                     <IconDots className="size-4" aria-hidden="true" />
                   </Button>
@@ -172,9 +183,10 @@ export function useCreneauColumns(): ColumnDef<ICreneau>[] {
           );
         },
       },
-    ],
-    [locale, t, tc, tf, tCommon],
-  );
+    );
+
+    return cols;
+  }, [hideRecreation, locale, t, tc, tf, tCommon]);
 }
 
 /** @deprecated Use useCreneauColumns() instead */

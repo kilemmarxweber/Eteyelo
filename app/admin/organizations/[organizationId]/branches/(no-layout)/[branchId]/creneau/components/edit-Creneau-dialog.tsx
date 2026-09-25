@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/sheet";
 import { CreneauUpForm } from "./creneau-form";
 import { ICreneau } from "@/src/interfaces/creneau";
+import { isAtelierBranch } from "@/lib/branch-capabilities";
+import { getBranchTypeAction } from "../../classe/classe.action";
 
 interface UpdateCreneauDialogProps extends React.ComponentPropsWithoutRef<
   typeof Sheet
@@ -30,6 +32,23 @@ export function UpdateCreneauDialog({
   ...props
 }: UpdateCreneauDialogProps) {
   const t = useTranslations("teaching.vacation");
+  const [isAtelier, setIsAtelier] = React.useState(false);
+
+  React.useEffect(() => {
+    let ignore = false;
+    getBranchTypeAction()
+      .then(([result]) => {
+        if (ignore || !result) return;
+        setIsAtelier(isAtelierBranch(result.typebranch));
+      })
+      .catch(() => {
+        /* ignore */
+      });
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   const handleUpdate = () => {
     onSuccess?.();
   };
@@ -42,7 +61,9 @@ export function UpdateCreneauDialog({
       >
         <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
           <SheetTitle>{t("editTitle")}</SheetTitle>
-          <SheetDescription>{t("editDesc")}</SheetDescription>
+          <SheetDescription>
+            {isAtelier ? t("editDescAtelier") : t("editDesc")}
+          </SheetDescription>
         </SheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
           {open ? (

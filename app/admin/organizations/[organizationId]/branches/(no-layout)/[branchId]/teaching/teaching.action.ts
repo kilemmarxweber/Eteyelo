@@ -28,6 +28,12 @@ import { compareClassesByLevel } from "@/lib/class-structure";
 import { isAtelierBranch } from "@/lib/branch-capabilities";
 import { ensureWorkshopAcademicStructure } from "@/lib/workshop-academic-structure";
 import {
+  atelierConfiguredEmptyMessage,
+  getConfiguredCoursIdsByAtelierGroupes,
+  getConfiguredCoursIdsForAtelierGroupe,
+  type AtelierConfiguredEmptyReason,
+} from "@/lib/atelier-teaching-courses";
+import {
   classeCycleWhere,
   isCycleGlobalRole,
   primaryOrgRoleFromSession,
@@ -116,9 +122,39 @@ function classeWhereForViewerCycles(
   };
 }
 
+async function resolveConfiguredParentIdsForClasse(params: {
+  branchId: string;
+  typebranch: unknown;
+  classeId: string;
+  optionId?: string | null;
+  level?: string | null;
+}): Promise<{
+  configuredParents: string[];
+  emptyReason: AtelierConfiguredEmptyReason | null;
+}> {
+  if (isAtelierBranch(params.typebranch)) {
+    const resolved = await getConfiguredCoursIdsForAtelierGroupe({
+      atelierBranchId: params.branchId,
+      groupeId: params.classeId,
+    });
+    return {
+      configuredParents: resolved.coursIds,
+      emptyReason: resolved.emptyReason,
+    };
+  }
+
+  const configuredParents = await getConfiguredCoursIdsForClasse({
+    branchId: params.branchId,
+    optionId: params.optionId,
+    level: params.level,
+  });
+  return { configuredParents, emptyReason: null };
+}
+
 async function requireConfiguredCoursesForClasse(params: {
   branchId: string;
   organizationId: string;
+  typebranch: unknown;
   classeId: string;
   coursIds: string[];
   accessibleCycles: Cycle[];
@@ -136,28 +172,36 @@ async function requireConfiguredCoursesForClasse(params: {
   });
   if (!classe) throw new Error("Classe introuvable dans cette branche");
 
-  const configuredParents = await getConfiguredCoursIdsForClasse({
-    branchId: params.branchId,
-    optionId: classe.optionId,
-    level: classe.level,
-  });
+  const { configuredParents, emptyReason } =
+    await resolveConfiguredParentIdsForClasse({
+      branchId: params.branchId,
+      typebranch: params.typebranch,
+      classeId: classe.id,
+      optionId: classe.optionId,
+      level: classe.level,
+    });
   const configured = new Set(
     await expandConfiguredCoursIdsForSchedule({
       branchId: params.branchId,
       configuredParentIds: configuredParents,
     }),
   );
-  // Autoriser aussi le parent bulletin (Teaching notes N1) s'il est pondéré.
+  // Autoriser aussi le parent bulletin (Teaching notes N1) s'il est configuré.
   for (const parentId of configuredParents) configured.add(parentId);
 
+  const atelierMode = isAtelierBranch(params.typebranch);
   if (!configured.size) {
     throw new Error(
-      "Aucun cours pondéré pour cette classe. Configurez d'abord les pondérations.",
+      atelierMode
+        ? atelierConfiguredEmptyMessage(emptyReason)
+        : "Aucun cours pondéré pour cette classe. Configurez d'abord les pondérations.",
     );
   }
   if (params.coursIds.some((coursId) => !configured.has(coursId))) {
     throw new Error(
-      "Un ou plusieurs cours n'ont pas de pondération pour cette classe.",
+      atelierMode
+        ? "Un ou plusieurs cours ne sont pas liés à la classe source de ce groupe."
+        : "Un ou plusieurs cours n'ont pas de pondération pour cette classe.",
     );
   }
 
@@ -201,6 +245,8 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
     orgRole: primaryOrgRoleFromSession(session, orgMember?.role),
   });
 
+  const atelierMode = isAtelierBranch(typebranch);
+
   const [classes, teachers, schoolYear, ponderations, teachings, branch] =
     await Promise.all([
       prisma.classe.findMany({
@@ -217,6 +263,15 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
           optionId: true,
           level: true,
           cycle: true,
+          sourceClasseId: true,
+          sourceClasse: {
+            select: {
+              id: true,
+              optionId: true,
+              level: true,
+              branchId: true,
+            },
+          },
           creneau: { select: { durationCourse: true } },
           option: {
             select: {
@@ -278,10 +333,18 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
         },
         select: { id: true, nameYear: true },
       }),
-      prisma.coursOptionPonderation.findMany({
-        where: { branchId },
-        select: { coursId: true, optionId: true, level: true },
-      }),
+      atelierMode
+        ? Promise.resolve(
+            [] as Array<{
+              coursId: string;
+              optionId: string;
+              level: string;
+            }>,
+          )
+        : prisma.coursOptionPonderation.findMany({
+            where: { branchId },
+            select: { coursId: true, optionId: true, level: true },
+          }),
       prisma.teaching.findMany({
         where: {
           branchId,
@@ -316,13 +379,26 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
     assignedByClass.set(item.classeId, current);
   }
 
+  const atelierConfiguredByClasse = atelierMode
+    ? await getConfiguredCoursIdsByAtelierGroupes({
+        atelierBranchId: branchId,
+        groupes: classes.map((classe) => ({
+          id: classe.id,
+          sourceClasseId: classe.sourceClasseId,
+          sourceClasse: classe.sourceClasse,
+        })),
+      })
+    : null;
+
   // Compter comme la grille d'affectation : postes d'horaire (composants),
   // pas les Teachings parents créés pour les notes (N1).
   const allConfiguredParentIds = [
     ...new Set(
-      classes.flatMap((classe) => [
-        ...configuredCoursIdsForClass(ponderations, classe),
-      ]),
+      atelierConfiguredByClasse
+        ? [...atelierConfiguredByClasse.values()].flatMap((row) => row.coursIds)
+        : classes.flatMap((classe) => [
+            ...configuredCoursIdsForClass(ponderations, classe),
+          ]),
     ),
   ];
   const scheduleComponents =
@@ -358,18 +434,22 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
   }
 
   return {
+    isAtelier: atelierMode,
     classes: classes
       .map((classe) => {
-      const configuredIds = scheduleIdsForParents(
-        configuredCoursIdsForClass(ponderations, classe),
-      );
+      const atelierResolved = atelierConfiguredByClasse?.get(classe.id);
+      const parentIds = atelierResolved
+        ? atelierResolved.coursIds
+        : configuredCoursIdsForClass(ponderations, classe);
+      const configuredIds = scheduleIdsForParents(parentIds);
       const assignedIds = assignedByClass.get(classe.id);
       const assignedCount = assignedIds
         ? [...configuredIds].filter((coursId) => assignedIds.has(coursId))
             .length
         : 0;
       const cycle = resolveCycle(classe, branch);
-      const { creneau, ...classeFields } = classe;
+      const { creneau, sourceClasseId: _sid, sourceClasse: _sc, ...classeFields } =
+        classe;
       return {
         ...classeFields,
         durationCourse: resolveSessionDurationMinutes(creneau?.durationCourse),
@@ -377,6 +457,7 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
         cycleLabel: cycleLabel(cycle),
         configuredCount: configuredIds.size,
         assignedCount,
+        configuredEmptyReason: atelierResolved?.emptyReason ?? null,
       };
     })
       .sort(compareClassesByLevel),
@@ -403,7 +484,7 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
 export const getTeachingClassCoursesAction = action
   .input(z.object({ classeId: z.string().min(1) }))
   .handler(async ({ input }) => {
-    const { branchId, organizationId, userId, session } =
+    const { branchId, organizationId, userId, session, typebranch } =
       await requireBranchContext();
     const accessibleCycles = await resolveViewerAccessibleCycles({
       branchId,
@@ -440,11 +521,14 @@ export const getTeachingClassCoursesAction = action
     ]);
     if (!classe) throw new Error("Classe introuvable dans cette branche");
 
-    const configuredParentIds = await getConfiguredCoursIdsForClasse({
-      branchId,
-      optionId: classe.optionId,
-      level: classe.level,
-    });
+    const { configuredParents: configuredParentIds, emptyReason } =
+      await resolveConfiguredParentIdsForClasse({
+        branchId,
+        typebranch,
+        classeId: classe.id,
+        optionId: classe.optionId,
+        level: classe.level,
+      });
 
     if (!configuredParentIds.length) {
       return {
@@ -454,6 +538,7 @@ export const getTeachingClassCoursesAction = action
         ),
         courses: [],
         teachings: [],
+        configuredEmptyReason: emptyReason,
       };
     }
 
@@ -522,6 +607,7 @@ export const getTeachingClassCoursesAction = action
         sortOrder: course.sortOrder,
       })),
       teachings,
+      configuredEmptyReason: null as AtelierConfiguredEmptyReason | null,
     };
   });
 
@@ -585,7 +671,8 @@ async function assertTeacherMatchesClasseCycle(params: {
 }
 
 export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).handler(async ({ input }) => {
-  const { branchId, organizationId, session, userId } = await requireBranchContext();
+  const { branchId, organizationId, session, userId, typebranch } =
+    await requireBranchContext();
   const teachingFlags = await getBranchAreaMutationFlags(
     "teaching",
     session,
@@ -604,6 +691,7 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
   await requireConfiguredCoursesForClasse({
     branchId,
     organizationId,
+    typebranch,
     classeId: input.classeId,
     coursIds: input.coursIds,
     accessibleCycles,
@@ -1042,7 +1130,7 @@ async function weeklyHoursForClasse(params: {
 export const createTeachingAction = action
   .input(teachingSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, userId, session } =
+    const { branchId, organizationId, userId, session, typebranch } =
       await requireBranchContext();
     const {
       teacherId,
@@ -1065,6 +1153,7 @@ export const createTeachingAction = action
     await requireConfiguredCoursesForClasse({
       branchId,
       organizationId,
+      typebranch,
       classeId,
       coursIds: [coursId],
       accessibleCycles,
@@ -1145,7 +1234,7 @@ export const deleteTeachingAction = archiveTeachingAction;
 export const updateTeachingAction = action
   .input(teachingSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, userId, session } =
+    const { branchId, organizationId, userId, session, typebranch } =
       await requireBranchContext();
     const {
       id,
@@ -1172,6 +1261,7 @@ export const updateTeachingAction = action
     await requireConfiguredCoursesForClasse({
       branchId,
       organizationId,
+      typebranch,
       classeId,
       coursIds: [coursId],
       accessibleCycles,

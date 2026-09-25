@@ -1050,10 +1050,24 @@ export default function TeachingWorkspacePage() {
                 <div className="p-10 text-center text-muted-foreground">
                   <IconBooks className="mx-auto mb-2 size-8" />
                   {!classCourses && selectedClassId
-                    ? t("loadingWeighted")
+                    ? data?.isAtelier
+                      ? t("loadingConfigured")
+                      : t("loadingWeighted")
                     : selectedClass && selectedClass.configuredCount === 0
-                      ? t("noWeightedConfigure")
-                      : t("noMatching")}
+                      ? data?.isAtelier
+                        ? selectedClass.configuredEmptyReason === "NO_SOURCE"
+                          ? t("noSourceClasse")
+                          : selectedClass.configuredEmptyReason ===
+                              "NO_MATCHING_LINKS"
+                            ? t("noAtelierCourseLinks")
+                            : t("noAtelierCourses")
+                        : t("noWeightedConfigure")
+                      : classCourses?.configuredEmptyReason === "NO_SOURCE"
+                        ? t("noSourceClasse")
+                        : classCourses?.configuredEmptyReason ===
+                            "NO_MATCHING_LINKS"
+                          ? t("noAtelierCourseLinks")
+                          : t("noMatching")}
                 </div>
               )}
             </div>

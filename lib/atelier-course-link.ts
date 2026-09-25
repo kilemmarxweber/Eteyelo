@@ -11,18 +11,25 @@ import {
   isAtelierPeriodAuto,
   listSecondaryPeriodOptions,
   periodLabelForKey,
+  secondaryOptionKey,
   type AtelierCourseLinkView,
   type AtelierLinkOptions,
+  type AtelierLinkSecondaryClassOption,
   type AtelierLinkSecondaryCourseOption,
 } from "@/lib/atelier-course-link-shared";
+import { configuredCoursIdsForClass } from "@/lib/course-ponderation-shared";
 
 export {
   ATELIER_LINK_PERIOD_AUTO,
   isAtelierPeriodAuto,
   listSecondaryPeriodOptions,
   periodLabelForKey,
+  secondaryOptionKey,
+  courseMatchesSecondaryClass,
+  filterCoursesForSecondaryClass,
   type AtelierCourseLinkView,
   type AtelierLinkOptions,
+  type AtelierLinkSecondaryClassOption,
   type AtelierLinkSecondaryCourseOption,
 } from "@/lib/atelier-course-link-shared";
 
@@ -154,8 +161,9 @@ export async function resolveActiveSecondaryPeriodKey(params: {
 /**
  * Options UI atelier → secondaire :
  * - uniquement des cours SUBJECT de branches SECONDAIRE
+ * - pondérés sur une option secondaire (exclut maternelle / primaire)
+ * - classes secondaires pour filtrer le curriculum
  * - priorité aux branches sources déjà liées (élèves importés)
- * - pas de domaines bulletin / primaire / maternelle
  */
 export async function getAtelierLinkOptionsForOrganization(params: {
   organizationId: string;
@@ -186,35 +194,114 @@ export async function getAtelierLinkOptionsForOrganization(params: {
       id: true,
       name: true,
       educationSystem: true,
-      cours: {
-        where: {
-          ...activeCoursStatusFilter,
-          ...gradeableCoursFilter,
-        },
-        select: { id: true, nameCours: true, codeCours: true },
-        orderBy: { nameCours: "asc" },
-      },
     },
     orderBy: { name: "asc" },
   });
 
-  const courses: AtelierLinkSecondaryCourseOption[] = [];
-  const periodsByBranchId: AtelierLinkOptions["periodsByBranchId"] = {};
+  const secondaryBranchIds = secondaryBranches.map((b) => b.id);
+  const empty: AtelierLinkOptions = {
+    courses: [],
+    classes: [],
+    periodsByBranchId: {},
+  };
+  if (!secondaryBranchIds.length) return empty;
 
-  for (const branch of secondaryBranches) {
-    periodsByBranchId[branch.id] = listSecondaryPeriodOptions(
-      branch.educationSystem,
-    );
-    for (const cours of branch.cours) {
-      courses.push({
-        id: cours.id,
-        nameCours: cours.nameCours,
-        codeCours: cours.codeCours,
-        branchId: branch.id,
-        branchName: branch.name,
-        label: `${cours.nameCours} · ${branch.name}`,
-      });
+  const [ponderations, classesRows, coursRows] = await Promise.all([
+    prisma.coursOptionPonderation.findMany({
+      where: {
+        branchId: { in: secondaryBranchIds },
+        option: {
+          OR: [
+            { cycle: "SECONDAIRE" },
+            {
+              cycle: null,
+              section: { cycle: "SECONDAIRE" },
+            },
+            {
+              cycle: null,
+              section: { cycle: null },
+              branch: { typebranch: "SECONDAIRE" },
+            },
+          ],
+          NOT: {
+            OR: [
+              { cycle: "MATERNELLE" },
+              { cycle: "PRIMAIRE" },
+              { section: { cycle: "MATERNELLE" } },
+              { section: { cycle: "PRIMAIRE" } },
+            ],
+          },
+        },
+      },
+      select: {
+        coursId: true,
+        optionId: true,
+        level: true,
+      },
+    }),
+    prisma.classe.findMany({
+      where: {
+        branchId: { in: secondaryBranchIds },
+        statusClasse: { not: false },
+        OR: [{ cycle: "SECONDAIRE" }, { cycle: null }],
+        NOT: {
+          OR: [{ cycle: "MATERNELLE" }, { cycle: "PRIMAIRE" }],
+        },
+      },
+      select: {
+        id: true,
+        nameClasse: true,
+        level: true,
+        optionId: true,
+        option: { select: { nameOption: true } },
+        branch: { select: { id: true, name: true } },
+      },
+      orderBy: [{ nameClasse: "asc" }],
+    }),
+    prisma.cours.findMany({
+      where: {
+        branchId: { in: secondaryBranchIds },
+        ...activeCoursStatusFilter,
+        ...gradeableCoursFilter,
+      },
+      select: {
+        id: true,
+        nameCours: true,
+        codeCours: true,
+        branchId: true,
+      },
+      orderBy: { nameCours: "asc" },
+    }),
+  ]);
+
+  const optionKeysByCours = new Map<string, Set<string>>();
+  for (const row of ponderations) {
+    let set = optionKeysByCours.get(row.coursId);
+    if (!set) {
+      set = new Set();
+      optionKeysByCours.set(row.coursId, set);
     }
+    set.add(secondaryOptionKey(row.optionId, row.level));
+  }
+
+  const branchNameById = new Map(
+    secondaryBranches.map((b) => [b.id, b.name] as const),
+  );
+
+  const courses: AtelierLinkSecondaryCourseOption[] = [];
+  for (const cours of coursRows) {
+    const keys = optionKeysByCours.get(cours.id);
+    if (!keys?.size) continue; // pas de pondération secondaire → exclu (maternelle/primaire seuls)
+    const branchName = branchNameById.get(cours.branchId) ?? "";
+    courses.push({
+      id: cours.id,
+      nameCours: cours.nameCours,
+      codeCours: cours.codeCours,
+      branchId: cours.branchId,
+      branchName,
+      label: `${cours.nameCours} · ${branchName}`,
+      secondaryOptionKeys: [...keys],
+    });
   }
 
   courses.sort((a, b) => {
@@ -223,7 +310,35 @@ export async function getAtelierLinkOptionsForOrganization(params: {
     return a.branchName.localeCompare(b.branchName, "fr");
   });
 
-  return { courses, periodsByBranchId };
+  const courseBranchIds = new Set(courses.map((c) => c.branchId));
+
+  const periodsByBranchId: AtelierLinkOptions["periodsByBranchId"] = {};
+  for (const branch of secondaryBranches) {
+    periodsByBranchId[branch.id] = listSecondaryPeriodOptions(
+      branch.educationSystem,
+    );
+  }
+
+  const classes: AtelierLinkSecondaryClassOption[] = classesRows
+    .map((c) => {
+      const optionName = c.option?.nameOption?.trim() || "—";
+      const configuredCoursIds = configuredCoursIdsForClass(ponderations, {
+        optionId: c.optionId,
+        level: c.level,
+      }).filter((coursId) => optionKeysByCours.has(coursId));
+      return {
+        id: c.id,
+        branchId: c.branch.id,
+        optionId: c.optionId,
+        level: c.level,
+        label: `${c.nameClasse} · ${optionName} · ${c.branch.name}`,
+        configuredCoursIds,
+      };
+    })
+    // Uniquement les écoles qui ont au moins un cours secondaire listable
+    .filter((c) => courseBranchIds.has(c.branchId));
+
+  return { courses, classes, periodsByBranchId };
 }
 
 export async function getAtelierCourseLinkForCours(

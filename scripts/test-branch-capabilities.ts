@@ -47,7 +47,7 @@ test("atelier : import obligatoire, pas de creation directe", () => {
   assert.equal(canCreateStudentInBranch("ATELIER"), false);
   assert.equal(usesBulletinForBranch("ATELIER"), false);
   assert.equal(usesFinanceForBranch("ATELIER"), true);
-  assert.equal(usesPonderationForBranch("ATELIER"), true);
+  assert.equal(usesPonderationForBranch("ATELIER"), false);
 });
 
 test("centre de formation : creation ou import + brevet", () => {

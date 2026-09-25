@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 
-import { isAtelierBranchType } from "@/lib/atelier-student-access";
+import {
+  isAtelierBranchType,
+  secondaryCycleCurrentEnrollmentWhere,
+} from "@/lib/atelier-student-access";
 import {
   canCreateStudentInBranch,
   isAtelierBranch,
@@ -367,6 +370,233 @@ export async function assignStudentsToGroupeAction(input: {
     ok: true as const,
     assignedCount: assigned.length,
     failures,
+  };
+}
+
+/**
+ * Groupes atelier compatibles avec la (les) classe(s) secondaire(s) source
+ * des élèves sélectionnés — pour le popup Affecter / Changer de groupe.
+ */
+export async function getAssignableGroupesForStudentsAction(input: {
+  studentIds: string[];
+}) {
+  const { branchId, organizationId, canManageStudents, typebranch } =
+    await getCurrentBranch();
+
+  if (!canManageStudents) {
+    return { ok: false as const, message: "Action non autorisee" };
+  }
+
+  if (!isAtelierBranch(typebranch)) {
+    return {
+      ok: false as const,
+      message: "Affectation disponible uniquement en atelier",
+    };
+  }
+
+  const studentIds = [...new Set(input.studentIds.filter(Boolean))];
+  if (!studentIds.length) {
+    return {
+      ok: false as const,
+      message: "Selectionnez au moins un eleve",
+    };
+  }
+
+  const schoolYear = await prisma.schoolYear.findFirst({
+    where: { branchId, isCurrentYear: true, isArchived: false },
+    select: { id: true, nameYear: true },
+  });
+
+  if (!schoolYear) {
+    return {
+      ok: false as const,
+      message: "Aucune annee academique en cours",
+    };
+  }
+
+  const sourceEnrollments = await prisma.classEnrollment.findMany({
+    where: {
+      studentId: { in: studentIds },
+      ...secondaryCycleCurrentEnrollmentWhere(),
+      classe: {
+        branch: {
+          organizationId,
+          isActive: true,
+          id: { not: branchId },
+        },
+      },
+    },
+    select: {
+      studentId: true,
+      classeId: true,
+      classe: {
+        select: {
+          id: true,
+          nameClasse: true,
+          option: { select: { nameOption: true } },
+          branch: { select: { name: true } },
+        },
+      },
+    },
+  });
+
+  const sourceClasseIdsByStudent = new Map<string, Set<string>>();
+  const sourceClasseMeta = new Map<
+    string,
+    { id: string; name: string }
+  >();
+
+  for (const enrollment of sourceEnrollments) {
+    if (!enrollment.classeId || !enrollment.classe) continue;
+    let set = sourceClasseIdsByStudent.get(enrollment.studentId);
+    if (!set) {
+      set = new Set();
+      sourceClasseIdsByStudent.set(enrollment.studentId, set);
+    }
+    set.add(enrollment.classeId);
+    if (!sourceClasseMeta.has(enrollment.classeId)) {
+      const label = [
+        enrollment.classe.nameClasse,
+        enrollment.classe.option?.nameOption,
+        enrollment.classe.branch?.name,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      sourceClasseMeta.set(enrollment.classeId, {
+        id: enrollment.classeId,
+        name: label,
+      });
+    }
+  }
+
+  const studentsWithoutSource = studentIds.filter(
+    (id) => !sourceClasseIdsByStudent.get(id)?.size,
+  );
+  if (studentsWithoutSource.length > 0) {
+    return {
+      ok: true as const,
+      schoolYear,
+      sourceClasses: [] as Array<{ id: string; name: string }>,
+      groupes: [] as Array<{
+        id: string;
+        nameClasse: string;
+        optionName: string;
+        enrolledCount: number;
+        capacity: number | null;
+        sourceClasseId: string | null;
+        sourceClasseName: string | null;
+      }>,
+      emptyReason:
+        studentIds.length === 1
+          ? "Cet eleve n'a pas d'inscription secondaire (humanites) pour l'annee en cours."
+          : "Certains eleves n'ont pas d'inscription secondaire (humanites) pour l'annee en cours.",
+    };
+  }
+
+  // Intersection : uniquement les classes source communes a tous les eleves.
+  let commonSourceIds: Set<string> | null = null;
+  for (const studentId of studentIds) {
+    const ids = sourceClasseIdsByStudent.get(studentId)!;
+    if (!commonSourceIds) {
+      commonSourceIds = new Set(ids);
+    } else {
+      commonSourceIds = new Set(
+        [...commonSourceIds].filter((id) => ids.has(id)),
+      );
+    }
+  }
+
+  const allowedSourceIds = [...(commonSourceIds ?? [])];
+  if (!allowedSourceIds.length) {
+    return {
+      ok: true as const,
+      schoolYear,
+      sourceClasses: [] as Array<{ id: string; name: string }>,
+      groupes: [] as Array<{
+        id: string;
+        nameClasse: string;
+        optionName: string;
+        enrolledCount: number;
+        capacity: number | null;
+        sourceClasseId: string | null;
+        sourceClasseName: string | null;
+      }>,
+      emptyReason:
+        "Les eleves selectionnes n'appartiennent pas a la meme classe secondaire source.",
+    };
+  }
+
+  const groupes = await prisma.classe.findMany({
+    where: {
+      branchId,
+      statusClasse: { not: false },
+      cycle: "ATELIER",
+      optionId: { not: null },
+      sourceClasseId: { in: allowedSourceIds },
+    },
+    include: {
+      option: { select: { id: true, nameOption: true } },
+      sourceClasse: {
+        select: {
+          id: true,
+          nameClasse: true,
+          option: { select: { nameOption: true } },
+          branch: { select: { name: true } },
+        },
+      },
+      _count: {
+        select: {
+          classEnrollment: {
+            where: {
+              statusEnrollment: true,
+              schoolYearId: schoolYear.id,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { nameClasse: "asc" },
+  });
+
+  const sourceClasses = allowedSourceIds
+    .map((id) => sourceClasseMeta.get(id))
+    .filter((row): row is { id: string; name: string } => Boolean(row));
+
+  if (!groupes.length) {
+    const sourceLabel = sourceClasses.map((c) => c.name).join(", ");
+    return {
+      ok: true as const,
+      schoolYear,
+      sourceClasses,
+      groupes: [],
+      emptyReason: sourceLabel
+        ? `Aucun groupe atelier lie a la classe « ${sourceLabel} ».`
+        : "Aucun groupe atelier compatible avec la classe source de ces eleves.",
+    };
+  }
+
+  return {
+    ok: true as const,
+    schoolYear,
+    sourceClasses,
+    emptyReason: null as string | null,
+    groupes: groupes.map((groupe) => {
+      const source = groupe.sourceClasse;
+      const sourceLabel = source
+        ? [source.nameClasse, source.option?.nameOption, source.branch?.name]
+            .filter(Boolean)
+            .join(" · ")
+        : null;
+      return {
+        id: groupe.id,
+        nameClasse: groupe.nameClasse,
+        optionName: groupe.option?.nameOption ?? "Groupe",
+        enrolledCount: groupe._count.classEnrollment,
+        capacity: groupe.capacity,
+        sourceClasseId: source?.id ?? null,
+        sourceClasseName: sourceLabel,
+      };
+    }),
   };
 }
 

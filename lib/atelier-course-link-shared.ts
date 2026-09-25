@@ -14,13 +14,85 @@ export type AtelierLinkSecondaryCourseOption = {
   branchName: string;
   /** Libellé UI : « Chimie · Collège X » */
   label: string;
+  /**
+   * Clés option:niveau pour lesquelles le cours est pondéré en secondaire
+   * (niveau vide = tous les niveaux de l'option).
+   */
+  secondaryOptionKeys: string[];
+};
+
+export type AtelierLinkSecondaryClassOption = {
+  id: string;
+  label: string;
+  branchId: string;
+  optionId: string | null;
+  level: string | null;
+  /** Cours secondaires du curriculum (option + niveau). Peut être vide. */
+  configuredCoursIds: string[];
 };
 
 export type AtelierLinkOptions = {
   /** Cours SUBJECT des branches SECONDAIRE uniquement (jamais domaines bulletin). */
   courses: AtelierLinkSecondaryCourseOption[];
+  /** Classes secondaires pour filtrer les cours (curriculum). */
+  classes: AtelierLinkSecondaryClassOption[];
   periodsByBranchId: Record<string, Array<{ key: string; label: string }>>;
 };
+
+/** Clé option + niveau pour filtrer un cours par classe source. */
+export function secondaryOptionKey(
+  optionId: string,
+  level?: string | null,
+): string {
+  return `${optionId}:${(level ?? "").trim()}`;
+}
+
+/**
+ * Cours visibles pour une classe :
+ * 1) curriculum pondéré (option + niveau)
+ * 2) sinon tous les cours secondaires de la même école (branche)
+ */
+export function filterCoursesForSecondaryClass(
+  courses: AtelierLinkSecondaryCourseOption[],
+  classe: Pick<
+    AtelierLinkSecondaryClassOption,
+    "branchId" | "configuredCoursIds"
+  >,
+): AtelierLinkSecondaryCourseOption[] {
+  const configured = new Set(classe.configuredCoursIds);
+  if (configured.size > 0) {
+    return courses.filter((course) => configured.has(course.id));
+  }
+  return courses.filter((course) => course.branchId === classe.branchId);
+}
+
+/** @deprecated Préférer filterCoursesForSecondaryClass */
+export function courseMatchesSecondaryClass(
+  course: Pick<
+    AtelierLinkSecondaryCourseOption,
+    "secondaryOptionKeys" | "branchId"
+  >,
+  classe: Pick<
+    AtelierLinkSecondaryClassOption,
+    "optionId" | "level" | "branchId" | "configuredCoursIds"
+  >,
+): boolean {
+  if (classe.configuredCoursIds?.length) {
+    return classe.configuredCoursIds.includes(course.id);
+  }
+  if (classe.optionId) {
+    const level = (classe.level ?? "").trim();
+    const specific = secondaryOptionKey(classe.optionId, level);
+    const shared = secondaryOptionKey(classe.optionId, "");
+    if (
+      course.secondaryOptionKeys.includes(specific) ||
+      course.secondaryOptionKeys.includes(shared)
+    ) {
+      return true;
+    }
+  }
+  return course.branchId === classe.branchId;
+}
 
 export type AtelierCourseLinkView = {
   secondaryCoursId: string;

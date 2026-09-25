@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { isAtelierBranchType } from "@/lib/atelier-student-access";
 
+export { buildAtelierLabGroupLabel } from "@/lib/atelier-lab-groups-shared";
+
 /**
  * Vérifie qu'une classe source appartient à une branche école de la même org.
  */
@@ -113,26 +115,6 @@ export async function assertStudentAllowedInAtelierGroup(params: {
       `Seuls les élèves de la classe « ${atelierClasse.sourceClasse.nameClasse} » peuvent être inscrits dans ce groupe`,
     );
   }
-}
-
-/**
- * Libellé d'affichage : « Laboratoire sciences — 3ème A » ou domaine + classe source.
- */
-export function buildAtelierLabGroupLabel(params: {
-  domainName?: string | null;
-  roomName?: string | null;
-  sourceClasseName?: string | null;
-  fallbackName: string;
-}): string {
-  const place =
-    params.roomName?.trim() ||
-    params.domainName?.trim() ||
-    null;
-  const source = params.sourceClasseName?.trim() || null;
-  if (place && source) return `${place} — ${source}`;
-  if (place) return place;
-  if (source) return `Groupe — ${source}`;
-  return params.fallbackName;
 }
 
 /**

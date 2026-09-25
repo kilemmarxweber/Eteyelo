@@ -571,7 +571,7 @@ export const getAtelierCourseLinkOptionsAction = action.handler(
     const { branchId, organizationId, typebranch } =
       await requireBranchContext();
     if (!isAtelierBranchType(typebranch)) {
-      return { courses: [], periodsByBranchId: {} };
+      return { courses: [], classes: [], periodsByBranchId: {} };
     }
     return getAtelierLinkOptionsForOrganization({
       organizationId,

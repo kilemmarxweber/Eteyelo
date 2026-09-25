@@ -16,6 +16,7 @@ export interface IClasse {
   /** Atelier : classe école source. */
   sourceClasseId?: string | null;
   sourceClasseName?: string | null;
+  sourceClasseBranchName?: string | null;
   practicalDomainId?: string | null;
   practicalDomainName?: string | null;
   option?: IOption;

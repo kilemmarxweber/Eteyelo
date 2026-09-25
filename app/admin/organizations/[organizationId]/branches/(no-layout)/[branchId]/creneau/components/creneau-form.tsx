@@ -18,9 +18,13 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/sonner";
 import { Check, Coffee } from "lucide-react";
 import { createCreneauAction, updateCreneauAction } from "../creneau.action";
+import { getBranchTypeAction } from "../../classe/classe.action";
+import { isAtelierBranch } from "@/lib/branch-capabilities";
 import {
   creneauSchema,
+  defaultAtelierCreneauValues,
   defaultCreneauValues,
+  stripRecreationForAtelier,
   type CreneauFormValues,
 } from "@/src/interfaces/creneau";
 import { previewPeriodsAroundRecreation } from "@/src/hooks/getCourseHours";
@@ -33,32 +37,45 @@ import {
 } from "@/lib/creneau-working-days";
 import { Checkbox } from "@/components/ui/checkbox";
 
-const emptyCreneauValues = (): CreneauFormValues => ({
-  ...defaultCreneauValues,
-  workingDays: [...DEFAULT_CRENEAU_WORKING_DAYS],
-});
+const emptyCreneauValues = (atelier = false): CreneauFormValues =>
+  atelier
+    ? {
+        ...defaultAtelierCreneauValues,
+        workingDays: [...DEFAULT_CRENEAU_WORKING_DAYS],
+      }
+    : {
+        ...defaultCreneauValues,
+        workingDays: [...DEFAULT_CRENEAU_WORKING_DAYS],
+      };
 
 const normalizeCreneauValues = (
   initialData?: Partial<CreneauFormValues>,
-): CreneauFormValues => ({
-  ...emptyCreneauValues(),
-  ...initialData,
-  nameCreneau: initialData?.nameCreneau ?? "",
-  startTime: initialData?.startTime ?? "",
-  endTime: initialData?.endTime ?? "",
-  durationCourse:
-    typeof initialData?.durationCourse === "number" &&
-    Number.isFinite(initialData.durationCourse)
-      ? initialData.durationCourse
-      : defaultCreneauValues.durationCourse,
-  recreationHour: initialData?.recreationHour ?? "",
-  recreationDuration:
-    typeof initialData?.recreationDuration === "number" &&
-    Number.isFinite(initialData.recreationDuration)
-      ? initialData.recreationDuration
-      : defaultCreneauValues.recreationDuration,
-  workingDays: normalizeCreneauWorkingDays(initialData?.workingDays),
-});
+  atelier = false,
+): CreneauFormValues => {
+  const defaults = emptyCreneauValues(atelier);
+  return {
+    ...defaults,
+    ...initialData,
+    nameCreneau: initialData?.nameCreneau ?? defaults.nameCreneau,
+    startTime: initialData?.startTime ?? defaults.startTime,
+    endTime: initialData?.endTime ?? defaults.endTime,
+    durationCourse:
+      typeof initialData?.durationCourse === "number" &&
+      Number.isFinite(initialData.durationCourse)
+        ? initialData.durationCourse
+        : defaults.durationCourse,
+    recreationHour: atelier
+      ? initialData?.startTime || defaults.recreationHour
+      : (initialData?.recreationHour ?? defaults.recreationHour),
+    recreationDuration: atelier
+      ? 0
+      : typeof initialData?.recreationDuration === "number" &&
+          Number.isFinite(initialData.recreationDuration)
+        ? initialData.recreationDuration
+        : defaults.recreationDuration,
+    workingDays: normalizeCreneauWorkingDays(initialData?.workingDays),
+  };
+};
 
 const controlledTime = (value: unknown) =>
   typeof value === "string" ? value : "";
@@ -68,7 +85,6 @@ const controlledNumber = (value: unknown) =>
 
 const toFormNumber = (value: string, fallback: number) => {
   if (value === "") return fallback;
-
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 };
@@ -80,10 +96,42 @@ type StructurePreset = {
   values: Partial<CreneauFormValues>;
 };
 
-function useStructurePresets(): StructurePreset[] {
+function useStructurePresets(atelier: boolean): StructurePreset[] {
   const t = useTranslations("teaching.vacation.form");
-  return useMemo(
-    () => [
+  return useMemo(() => {
+    if (atelier) {
+      return [
+        {
+          id: "atelier-matin",
+          label: t("presetAtelierMorning"),
+          description: t("presetAtelierMorningDesc"),
+          values: {
+            nameCreneau: t("presetAtelierMorningName"),
+            startTime: "07:30",
+            endTime: "13:30",
+            durationCourse: 360,
+            recreationHour: "07:30",
+            recreationDuration: 0,
+            workingDays: [...DEFAULT_CRENEAU_WORKING_DAYS],
+          },
+        },
+        {
+          id: "atelier-soir",
+          label: t("presetAtelierEvening"),
+          description: t("presetAtelierEveningDesc"),
+          values: {
+            nameCreneau: t("presetAtelierEveningName"),
+            startTime: "13:30",
+            endTime: "19:30",
+            durationCourse: 360,
+            recreationHour: "13:30",
+            recreationDuration: 0,
+            workingDays: [...DEFAULT_CRENEAU_WORKING_DAYS],
+          },
+        },
+      ];
+    }
+    return [
       {
         id: "secondaire-matin",
         label: t("presetSecondaryMorning"),
@@ -124,9 +172,8 @@ function useStructurePresets(): StructurePreset[] {
           workingDays: [...PRIMARY_CRENEAU_WORKING_DAYS],
         },
       },
-    ],
-    [t],
-  );
+    ];
+  }, [atelier, t]);
 }
 
 interface CreneauUpFormProps extends HTMLAttributes<HTMLDivElement> {
@@ -152,29 +199,47 @@ export function CreneauUpForm({
 }: CreneauUpFormProps) {
   const t = useTranslations("teaching.vacation.form");
   const tc = useTranslations("common");
-  const structurePresets = useStructurePresets();
   const isDialog = layout === "dialog";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
+  const [isAtelier, setIsAtelier] = useState(false);
+
+  useEffect(() => {
+    let ignore = false;
+    getBranchTypeAction()
+      .then(([result]) => {
+        if (ignore || !result) return;
+        setIsAtelier(isAtelierBranch(result.typebranch));
+      })
+      .catch(() => {
+        /* ignore */
+      });
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const structurePresets = useStructurePresets(isAtelier);
 
   const form = useForm<CreneauFormValues>({
     resolver: zodResolver(creneauSchema),
-    defaultValues: normalizeCreneauValues(initialData),
+    defaultValues: normalizeCreneauValues(initialData, isAtelier),
   });
 
   useEffect(() => {
-    form.reset(normalizeCreneauValues(initialData));
+    form.reset(normalizeCreneauValues(initialData, isAtelier));
     setActivePresetId(null);
-  }, [form, mode, initialData?.id]);
+  }, [form, mode, initialData?.id, isAtelier]);
 
-  const watched = useWatch({ control: form.control }) ?? emptyCreneauValues();
+  const watched =
+    useWatch({ control: form.control }) ?? emptyCreneauValues(isAtelier);
   const saturdaySelected = (watched.workingDays ?? []).includes("Samedi");
   const afternoonVacation =
     (watched.startTime ?? "") >= "12:00" && (watched.startTime ?? "") !== "";
 
   const saturdayPreview = useMemo(() => {
-    if (!saturdaySelected || !afternoonVacation) return null;
+    if (!saturdaySelected || !afternoonVacation || isAtelier) return null;
     if (!watched.startTime || !watched.endTime || !watched.durationCourse) {
       return null;
     }
@@ -188,26 +253,40 @@ export function CreneauUpForm({
       },
       "Samedi",
     );
-  }, [afternoonVacation, saturdaySelected, watched]);
+  }, [afternoonVacation, isAtelier, saturdaySelected, watched]);
 
-  const periodPreview = useMemo(
-    () =>
-      previewPeriodsAroundRecreation(
-        watched.startTime ?? "",
-        watched.endTime ?? "",
-        Number(watched.durationCourse) || 0,
-        watched.recreationHour ?? "",
-        Number(watched.recreationDuration) || 0,
-      ),
-    [watched],
-  );
+  const periodPreview = useMemo(() => {
+    if (isAtelier) {
+      const duration = Number(watched.durationCourse) || 0;
+      if (!watched.startTime || !watched.endTime || duration <= 0) return null;
+      return {
+        before: 1,
+        after: 0,
+        total: 1,
+        slots: [watched.startTime],
+      };
+    }
+    return previewPeriodsAroundRecreation(
+      watched.startTime ?? "",
+      watched.endTime ?? "",
+      Number(watched.durationCourse) || 0,
+      watched.recreationHour ?? "",
+      Number(watched.recreationDuration) || 0,
+    );
+  }, [isAtelier, watched]);
 
   function applyPreset(preset: StructurePreset) {
     setActivePresetId(preset.id);
     form.reset({
-      ...normalizeCreneauValues(form.getValues()),
+      ...normalizeCreneauValues(form.getValues(), isAtelier),
       ...preset.values,
       id: form.getValues("id"),
+      ...(isAtelier
+        ? {
+            recreationDuration: 0,
+            recreationHour: preset.values.startTime ?? "07:30",
+          }
+        : {}),
     });
   }
 
@@ -216,26 +295,19 @@ export function CreneauUpForm({
     setErrorMessage("");
 
     try {
+      const payload = isAtelier ? stripRecreationForAtelier(data) : data;
       if (mode === "create") {
-        const [, err] = await createCreneauAction({
-          ...data,
-        });
-        if (err) {
-          throw new Error(err.message);
-        }
+        const [, err] = await createCreneauAction(payload);
+        if (err) throw new Error(err.message);
         toast.success(t("created"));
       } else {
-        const [, err] = await updateCreneauAction({
-          ...data,
-        });
-        if (err) {
-          throw new Error(err.message);
-        }
+        const [, err] = await updateCreneauAction(payload);
+        if (err) throw new Error(err.message);
         toast.success(t("updated"));
       }
 
       if (mode === "create") {
-        form.reset(emptyCreneauValues());
+        form.reset(emptyCreneauValues(isAtelier));
         setActivePresetId(null);
         onCreated?.();
       } else {
@@ -288,14 +360,18 @@ export function CreneauUpForm({
                 </h3>
                 {!isDialog ? (
                   <p className="text-sm text-muted-foreground">
-                    {t("presetsDesc")}
+                    {isAtelier ? t("presetsDescAtelier") : t("presetsDesc")}
                   </p>
                 ) : null}
               </div>
               <div
                 className={cn(
                   "grid gap-2",
-                  isDialog ? "sm:grid-cols-3" : "sm:grid-cols-1",
+                  isDialog
+                    ? isAtelier
+                      ? "sm:grid-cols-2"
+                      : "sm:grid-cols-3"
+                    : "sm:grid-cols-1",
                 )}
               >
                 {structurePresets.map((preset) => {
@@ -338,7 +414,11 @@ export function CreneauUpForm({
                 <FormLabel className={labelClass}>{t("name")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={t("namePlaceholder")}
+                    placeholder={
+                      isAtelier
+                        ? t("namePlaceholderAtelier")
+                        : t("namePlaceholder")
+                    }
                     className={controlClass}
                     {...field}
                     value={field.value ?? ""}
@@ -346,7 +426,7 @@ export function CreneauUpForm({
                 </FormControl>
                 {!isDialog ? (
                   <FormDescription>
-                    {t("nameDesc")}
+                    {isAtelier ? t("nameDescAtelier") : t("nameDesc")}
                   </FormDescription>
                 ) : null}
                 <FormMessage />
@@ -359,7 +439,7 @@ export function CreneauUpForm({
               <div>
                 <h3 className="text-sm font-medium">{t("scheduleTitle")}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {t("scheduleDesc")}
+                  {isAtelier ? t("scheduleDescAtelier") : t("scheduleDesc")}
                 </p>
               </div>
             ) : (
@@ -418,7 +498,10 @@ export function CreneauUpForm({
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="45"
+                        min={1}
+                        max={720}
+                        step={15}
+                        placeholder={isAtelier ? "360" : "45"}
                         className={controlClass}
                         {...field}
                         value={controlledNumber(field.value)}
@@ -426,7 +509,9 @@ export function CreneauUpForm({
                           field.onChange(
                             toFormNumber(
                               e.target.value,
-                              defaultCreneauValues.durationCourse,
+                              isAtelier
+                                ? defaultAtelierCreneauValues.durationCourse
+                                : defaultCreneauValues.durationCourse,
                             ),
                           )
                         }
@@ -434,7 +519,9 @@ export function CreneauUpForm({
                     </FormControl>
                     {!isDialog ? (
                       <FormDescription>
-                        {t("sessionDurationDesc")}
+                        {isAtelier
+                          ? t("sessionDurationDescAtelier")
+                          : t("sessionDurationDesc")}
                       </FormDescription>
                     ) : null}
                     <FormMessage />
@@ -444,75 +531,86 @@ export function CreneauUpForm({
             </div>
           </div>
 
-          <div
-            className={cn(
-              "rounded-lg border border-dashed bg-muted/30",
-              isDialog ? "p-3" : "rounded-xl p-4 sm:p-5",
-            )}
-          >
-            <div className={cn("flex items-center gap-2", isDialog ? "mb-2.5" : "mb-4")}>
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground shadow-sm">
-                <Coffee className="size-3.5" />
-              </span>
-              <div>
-                <h3 className="text-sm font-medium">{t("recreation")}</h3>
-                {!isDialog ? (
-                  <p className="text-sm text-muted-foreground">
-                    {t("recreationDesc")}
-                  </p>
-                ) : null}
+          {!isAtelier ? (
+            <div
+              className={cn(
+                "rounded-lg border border-dashed bg-muted/30",
+                isDialog ? "p-3" : "rounded-xl p-4 sm:p-5",
+              )}
+            >
+              <div
+                className={cn(
+                  "flex items-center gap-2",
+                  isDialog ? "mb-2.5" : "mb-4",
+                )}
+              >
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground shadow-sm">
+                  <Coffee className="size-3.5" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-medium">{t("recreation")}</h3>
+                  {!isDialog ? (
+                    <p className="text-sm text-muted-foreground">
+                      {t("recreationDesc")}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="recreationHour"
+                  render={({ field }) => (
+                    <FormItem className={fieldClass}>
+                      <FormLabel className={labelClass}>
+                        {t("recreationTime")}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="time"
+                          className={controlClass}
+                          {...field}
+                          value={controlledTime(field.value)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="recreationDuration"
+                  render={({ field }) => (
+                    <FormItem className={fieldClass}>
+                      <FormLabel className={labelClass}>
+                        {t("recreationDuration")}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="15"
+                          className={controlClass}
+                          {...field}
+                          value={controlledNumber(field.value)}
+                          onChange={(e) =>
+                            field.onChange(
+                              toFormNumber(
+                                e.target.value,
+                                defaultCreneauValues.recreationDuration,
+                              ),
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
-
-            <div className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="recreationHour"
-                render={({ field }) => (
-                  <FormItem className={fieldClass}>
-                    <FormLabel className={labelClass}>{t("recreationTime")}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="time"
-                        className={controlClass}
-                        {...field}
-                        value={controlledTime(field.value)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="recreationDuration"
-                render={({ field }) => (
-                  <FormItem className={fieldClass}>
-                    <FormLabel className={labelClass}>{t("recreationDuration")}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="15"
-                        className={controlClass}
-                        {...field}
-                        value={controlledNumber(field.value)}
-                        onChange={(e) =>
-                          field.onChange(
-                            toFormNumber(
-                              e.target.value,
-                              defaultCreneauValues.recreationDuration,
-                            ),
-                          )
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
+          ) : null}
 
           <FormField
             control={form.control}
@@ -525,7 +623,9 @@ export function CreneauUpForm({
                   </FormLabel>
                   {!isDialog ? (
                     <FormDescription>
-                      {t("workingDaysDesc")}
+                      {isAtelier
+                        ? t("workingDaysDescAtelier")
+                        : t("workingDaysDesc")}
                     </FormDescription>
                   ) : (
                     <p className="text-[11px] text-muted-foreground">
@@ -566,7 +666,7 @@ export function CreneauUpForm({
                   })}
                 </div>
                 <FormMessage />
-                {saturdaySelected ? (
+                {saturdaySelected && !isAtelier ? (
                   <p className="text-[11px] text-muted-foreground">
                     {afternoonVacation
                       ? t("saturdayAfternoonNote")
@@ -586,15 +686,23 @@ export function CreneauUpForm({
             >
               <p className="font-medium">{t("previewTitle")}</p>
               <p className="mt-1 text-muted-foreground">
-                {t("previewSummary", {
-                  before: periodPreview.before,
-                  after: periodPreview.after,
-                  total: periodPreview.total,
-                })}
+                {isAtelier
+                  ? t("previewSummaryAtelier", {
+                      minutes: Number(watched.durationCourse) || 0,
+                      start: watched.startTime ?? "",
+                      end: watched.endTime ?? "",
+                    })
+                  : t("previewSummary", {
+                      before: periodPreview.before,
+                      after: periodPreview.after,
+                      total: periodPreview.total,
+                    })}
               </p>
-              {periodPreview.slots.length > 0 ? (
+              {!isAtelier && periodPreview.slots.length > 0 ? (
                 <p className="mt-1.5 text-xs text-muted-foreground">
-                  {t("previewStarts", { slots: periodPreview.slots.join(" · ") })}
+                  {t("previewStarts", {
+                    slots: periodPreview.slots.join(" · "),
+                  })}
                 </p>
               ) : null}
               {saturdayPreview?.slots.length ? (
@@ -618,9 +726,7 @@ export function CreneauUpForm({
             )}
             loading={isLoading}
           >
-            {mode === "create"
-              ? t("createSubmit")
-              : t("updateSubmit")}
+            {mode === "create" ? t("createSubmit") : t("updateSubmit")}
           </Button>
 
           {errorMessage ? (

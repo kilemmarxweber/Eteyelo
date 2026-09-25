@@ -47,7 +47,7 @@ export const ensurePracticalDomainsAction = action.handler(async () => {
 });
 
 export const getPracticalDomainsAction = action.handler(async () => {
-  const { branchId, typebranch } = await requireAtelierBranch();
+  const { branchId, typebranch } = await requireBranchContext();
   if (!isAtelierBranchType(typebranch)) return [];
 
   let domains = await prisma.practicalDomain.findMany({

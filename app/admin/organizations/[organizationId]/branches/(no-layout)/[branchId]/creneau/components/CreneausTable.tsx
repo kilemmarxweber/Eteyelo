@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Coffee, Edit, Archive, MoreHorizontal, Clock, Trash2 } from "lucide-react";
 
@@ -22,6 +22,8 @@ import {
 import { previewPeriodsAroundRecreation } from "@/src/hooks/getCourseHours";
 import { ICreneau } from "@/src/interfaces/creneau";
 import { saturdayUsesShiftedMorningHours } from "@/lib/creneau-saturday";
+import { isAtelierBranch } from "@/lib/branch-capabilities";
+import { getBranchTypeAction } from "../../classe/classe.action";
 
 import { getCreneauxAction } from "../creneau.action";
 import { DeleteCreneausDialog } from "./delete-Creneau-dialog";
@@ -35,10 +37,25 @@ interface CreneausTableProps {
 function PeriodBadge({
   creneau,
   sessionsLabel,
+  isAtelier,
 }: {
   creneau: ICreneau;
   sessionsLabel: (count: number) => string;
+  isAtelier: boolean;
 }) {
+  if (isAtelier) {
+    return (
+      <div className="flex flex-wrap items-center gap-1.5">
+        <Badge variant="secondary" size="xs">
+          {creneau.durationCourse} min
+        </Badge>
+        <span className="text-xs text-muted-foreground">
+          {sessionsLabel(1)}
+        </span>
+      </div>
+    );
+  }
+
   const preview = previewPeriodsAroundRecreation(
     creneau.startTime,
     creneau.endTime,
@@ -72,12 +89,28 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] =
     useState<ActiveArchiveFilter>("active");
+  const [isAtelier, setIsAtelier] = useState(false);
 
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedCreneau, setSelectedCreneau] = useState<ICreneau | null>(null);
   const [localRefreshKey, setLocalRefreshKey] = useState(0);
+
+  useEffect(() => {
+    let ignore = false;
+    getBranchTypeAction()
+      .then(([result]) => {
+        if (ignore || !result) return;
+        setIsAtelier(isAtelierBranch(result.typebranch));
+      })
+      .catch(() => {
+        /* ignore */
+      });
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   useEffect(() => {
     const fetchCreneaus = async () => {
@@ -117,20 +150,20 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
     },
   );
 
-  const handleEdit = (creneau: ICreneau) => {
+  const handleEdit = useCallback((creneau: ICreneau) => {
     setSelectedCreneau(creneau);
     openOverlayAfterMenuDismiss(() => setShowUpdateDialog(true));
-  };
+  }, []);
 
-  const handleArchive = (creneau: ICreneau) => {
+  const handleArchive = useCallback((creneau: ICreneau) => {
     setSelectedCreneau(creneau);
     openOverlayAfterMenuDismiss(() => setShowArchiveDialog(true));
-  };
+  }, []);
 
-  const handleDelete = (creneau: ICreneau) => {
+  const handleDelete = useCallback((creneau: ICreneau) => {
     setSelectedCreneau(creneau);
     openOverlayAfterMenuDismiss(() => setShowDeleteDialog(true));
-  };
+  }, []);
 
   const handleActionSuccess = () => {
     setShowUpdateDialog(false);
@@ -140,182 +173,201 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
     setLocalRefreshKey((value) => value + 1);
   };
 
-  const columns = useMemo(
-    () => [
-    {
-      key: "nameCreneau",
-      header: t("columnName"),
-      cell: (creneau: ICreneau) => (
-        <div className="flex min-w-0 flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <span className="truncate font-medium">{creneau.nameCreneau}</span>
-            {creneau.isArchived ? (
-              <Badge variant="outline" size="xs">
-                {t("archived")}
-              </Badge>
-            ) : null}
-          </div>
-          <span className="text-xs text-muted-foreground">
-            {t("createdOn", {
-              date: new Date(creneau.createdAt).toLocaleDateString(locale),
-            })}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "schedule",
-      header: t("columnSchedule"),
-      cell: (creneau: ICreneau) => (
-        <div className="flex items-center gap-2">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-            <Clock className="size-3.5" />
-          </span>
-          <div className="leading-tight">
-            <div className="text-sm font-medium tabular-nums">
-              {creneau.startTime}
-              <span className="mx-1 text-muted-foreground">–</span>
-              {creneau.endTime}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {t("sessionDuration", { minutes: creneau.durationCourse })}
-              {creneau.workingDays?.includes("Samedi") &&
-              saturdayUsesShiftedMorningHours(creneau.startTime)
-                ? " · Sam. 07:30–12:30"
-                : ""}
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "recreation",
-      header: t("columnRecreation"),
-      cell: (creneau: ICreneau) => (
-        <div className="flex items-center gap-2">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-            <Coffee className="size-3.5" />
-          </span>
-          <div className="leading-tight">
-            <div className="text-sm font-medium tabular-nums">
-              {creneau.recreationHour || "—"}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {creneau.recreationDuration} min
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "periods",
-      header: t("columnSessions"),
-      cell: (creneau: ICreneau) => (
-        <PeriodBadge
-          creneau={creneau}
-          sessionsLabel={(count) => t("sessionsCount", { count })}
-        />
-      ),
-    },
-    {
-      key: "actions",
-      header: "",
-      cell: (creneau: ICreneau) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="size-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">{tc("actions")}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem onClick={() => handleEdit(creneau)}>
-              <Edit className="mr-2 h-4 w-4" />
-              {tc("edit")}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            {!creneau.isArchived ? (
-              <DropdownMenuItem onClick={() => handleArchive(creneau)}>
-                <Archive className="mr-2 h-4 w-4" />
-                {tc("archive")}
-              </DropdownMenuItem>
-            ) : null}
-            <DropdownMenuItem
-              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-              onClick={() => handleDelete(creneau)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {tc("delete")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
-  ],
-    [handleArchive, handleDelete, handleEdit, locale, t, tc],
-  );
-
-  const cardConfig = useMemo(
-    () => ({
-    title: (creneau: ICreneau) => creneau.nameCreneau,
-    subtitle: (creneau: ICreneau) =>
-      t("cardSubtitle", {
-        start: creneau.startTime,
-        end: creneau.endTime,
-        minutes: creneau.durationCourse,
-      }),
-    details: (creneau: ICreneau) => {
-      const preview = previewPeriodsAroundRecreation(
-        creneau.startTime,
-        creneau.endTime,
-        creneau.durationCourse,
-        creneau.recreationHour,
-        creneau.recreationDuration,
-      );
-
-      return [
-        {
-          label: t("columnRecreation"),
-          value: `${creneau.recreationHour} (${creneau.recreationDuration} min)`,
-        },
-        {
-          label: t("columnSessions"),
-          value: preview
-            ? `${preview.before} + ${preview.after} (${t("sessionsCount", { count: preview.total })})`
-            : "—",
-        },
-        {
-          label: tc("status"),
-          value: creneau.isArchived ? t("archived") : tc("activeFeminine"),
-        },
-      ];
-    },
-    actions: (creneau: ICreneau) => [
+  const columns = useMemo(() => {
+    const cols = [
       {
-        label: tc("edit"),
-        icon: Edit,
-        onClick: () => handleEdit(creneau),
-        variant: "outline" as const,
+        key: "nameCreneau",
+        header: t("columnName"),
+        cell: (creneau: ICreneau) => (
+          <div className="flex min-w-0 flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className="truncate font-medium">{creneau.nameCreneau}</span>
+              {creneau.isArchived ? (
+                <Badge variant="outline" size="xs">
+                  {t("archived")}
+                </Badge>
+              ) : null}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {t("createdOn", {
+                date: new Date(creneau.createdAt).toLocaleDateString(locale),
+              })}
+            </span>
+          </div>
+        ),
       },
-      ...(creneau.isArchived
+      {
+        key: "schedule",
+        header: t("columnSchedule"),
+        cell: (creneau: ICreneau) => (
+          <div className="flex items-center gap-2">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+              <Clock className="size-3.5" />
+            </span>
+            <div className="leading-tight">
+              <div className="text-sm font-medium tabular-nums">
+                {creneau.startTime}
+                <span className="mx-1 text-muted-foreground">–</span>
+                {creneau.endTime}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {t("sessionDuration", { minutes: creneau.durationCourse })}
+                {!isAtelier &&
+                creneau.workingDays?.includes("Samedi") &&
+                saturdayUsesShiftedMorningHours(creneau.startTime)
+                  ? " · Sam. 07:30–12:30"
+                  : ""}
+              </div>
+            </div>
+          </div>
+        ),
+      },
+      ...(isAtelier
         ? []
         : [
             {
-              label: tc("archive"),
-              icon: Archive,
-              onClick: () => handleArchive(creneau),
-              variant: "outline" as const,
+              key: "recreation",
+              header: t("columnRecreation"),
+              cell: (creneau: ICreneau) => (
+                <div className="flex items-center gap-2">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                    <Coffee className="size-3.5" />
+                  </span>
+                  <div className="leading-tight">
+                    <div className="text-sm font-medium tabular-nums">
+                      {creneau.recreationHour || "—"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {creneau.recreationDuration} min
+                    </div>
+                  </div>
+                </div>
+              ),
             },
           ]),
       {
-        label: tc("delete"),
-        icon: Trash2,
-        onClick: () => handleDelete(creneau),
-        variant: "outline" as const,
+        key: "periods",
+        header: t("columnSessions"),
+        cell: (creneau: ICreneau) => (
+          <PeriodBadge
+            creneau={creneau}
+            isAtelier={isAtelier}
+            sessionsLabel={(count) => t("sessionsCount", { count })}
+          />
+        ),
       },
-    ],
-  }),
-    [handleArchive, handleDelete, handleEdit, t, tc],
+      {
+        key: "actions",
+        header: "",
+        cell: (creneau: ICreneau) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="size-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">{tc("actions")}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem onClick={() => handleEdit(creneau)}>
+                <Edit className="mr-2 h-4 w-4" />
+                {tc("edit")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {!creneau.isArchived ? (
+                <DropdownMenuItem onClick={() => handleArchive(creneau)}>
+                  <Archive className="mr-2 h-4 w-4" />
+                  {tc("archive")}
+                </DropdownMenuItem>
+              ) : null}
+              <DropdownMenuItem
+                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                onClick={() => handleDelete(creneau)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {tc("delete")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
+      },
+    ];
+    return cols;
+  }, [handleArchive, handleDelete, handleEdit, isAtelier, locale, t, tc]);
+
+  const cardConfig = useMemo(
+    () => ({
+      title: (creneau: ICreneau) => creneau.nameCreneau,
+      subtitle: (creneau: ICreneau) =>
+        t("cardSubtitle", {
+          start: creneau.startTime,
+          end: creneau.endTime,
+          minutes: creneau.durationCourse,
+        }),
+      details: (creneau: ICreneau) => {
+        if (isAtelier) {
+          return [
+            {
+              label: t("columnSessions"),
+              value: t("sessionsCount", { count: 1 }),
+            },
+            {
+              label: tc("status"),
+              value: creneau.isArchived ? t("archived") : tc("activeFeminine"),
+            },
+          ];
+        }
+
+        const preview = previewPeriodsAroundRecreation(
+          creneau.startTime,
+          creneau.endTime,
+          creneau.durationCourse,
+          creneau.recreationHour,
+          creneau.recreationDuration,
+        );
+
+        return [
+          {
+            label: t("columnRecreation"),
+            value: `${creneau.recreationHour} (${creneau.recreationDuration} min)`,
+          },
+          {
+            label: t("columnSessions"),
+            value: preview
+              ? `${preview.before} + ${preview.after} (${t("sessionsCount", { count: preview.total })})`
+              : "—",
+          },
+          {
+            label: tc("status"),
+            value: creneau.isArchived ? t("archived") : tc("activeFeminine"),
+          },
+        ];
+      },
+      actions: (creneau: ICreneau) => [
+        {
+          label: tc("edit"),
+          icon: Edit,
+          onClick: () => handleEdit(creneau),
+          variant: "outline" as const,
+        },
+        ...(creneau.isArchived
+          ? []
+          : [
+              {
+                label: tc("archive"),
+                icon: Archive,
+                onClick: () => handleArchive(creneau),
+                variant: "outline" as const,
+              },
+            ]),
+        {
+          label: tc("delete"),
+          icon: Trash2,
+          onClick: () => handleDelete(creneau),
+          variant: "outline" as const,
+        },
+      ],
+    }),
+    [handleArchive, handleDelete, handleEdit, isAtelier, t, tc],
   );
 
   const filterOptions = useMemo(

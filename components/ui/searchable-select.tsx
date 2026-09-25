@@ -29,6 +29,8 @@ import {
 export type SearchableSelectOption = {
   value: string;
   label: React.ReactNode;
+  /** Ligne secondaire (ex. branche / établissement). */
+  description?: React.ReactNode;
   /** Texte utilisé pour filtrer (défaut : label si string) */
   search?: string;
   disabled?: boolean;
@@ -63,7 +65,10 @@ const DEFAULT_SEARCH_THRESHOLD = 6;
 
 function optionSearchText(option: SearchableSelectOption): string {
   if (option.search) return option.search;
-  if (typeof option.label === "string") return option.label;
+  const parts: string[] = [];
+  if (typeof option.label === "string") parts.push(option.label);
+  if (typeof option.description === "string") parts.push(option.description);
+  if (parts.length) return parts.join(" ");
   return option.value;
 }
 
@@ -93,6 +98,8 @@ function SearchableCombobox({
 
   const selected = options.find((option) => option.value === value);
   const displayLabel = selected?.label ?? (value ? value : null);
+  const displayDescription = selected?.description;
+  const hasSecondaryLine = Boolean(displayDescription);
 
   const trimmedQuery = query.trim();
   const canCreate =
@@ -129,14 +136,27 @@ function SearchableCombobox({
           onBlur={onBlur}
           onPointerDown={() => markRadixPortalInteraction()}
           className={cn(
-            "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
-            !displayLabel && "text-muted-foreground",
+            "flex w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
             triggerClassName,
             className,
+            // Keep last so two-line values are never clipped by a fixed h-*.
+            hasSecondaryLine ? "h-auto min-h-10 py-1.5" : "h-10",
+            !displayLabel && "text-muted-foreground",
           )}
         >
-          <span className="truncate text-left">
-            {displayLabel ?? placeholder}
+          <span className="min-w-0 flex-1 overflow-hidden text-left">
+            {displayLabel ? (
+              <>
+                <span className="block truncate leading-snug">{displayLabel}</span>
+                {displayDescription ? (
+                  <span className="mt-0.5 block truncate text-xs font-normal leading-snug text-muted-foreground">
+                    {displayDescription}
+                  </span>
+                ) : null}
+              </>
+            ) : (
+              <span className="truncate">{placeholder}</span>
+            )}
           </span>
           <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
         </button>
@@ -146,8 +166,10 @@ function SearchableCombobox({
         id={listboxId}
         role="listbox"
         align="start"
+        sideOffset={4}
+        collisionPadding={12}
         data-eteyelo-portal=""
-        className="z-[80] w-[var(--radix-popover-trigger-width)] p-0"
+        className="z-[80] w-[var(--radix-popover-trigger-width)] min-w-[var(--radix-popover-trigger-width)] max-w-[min(100vw-1.5rem,36rem)] overflow-hidden p-0"
         onOpenAutoFocus={(event) => {
           markRadixPortalInteraction();
           event.preventDefault();
@@ -160,9 +182,11 @@ function SearchableCombobox({
           event.preventDefault();
         }}
         onPointerDownOutside={() => markRadixPortalInteraction(400)}
+        onWheel={(event) => event.stopPropagation()}
       >
         <Command
           shouldFilter={shouldFilter}
+          className="overflow-hidden"
           onPointerDown={() => markRadixPortalInteraction()}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
@@ -179,17 +203,26 @@ function SearchableCombobox({
               onQueryChange?.(next);
             }}
           />
-          <CommandList>
+          <CommandList
+            className="max-h-[min(18rem,45vh)] scroll-py-1 overflow-y-auto overscroll-contain"
+            onWheelCapture={(event) => event.stopPropagation()}
+            onTouchMove={(event) => event.stopPropagation()}
+          >
             <CommandEmpty>{emptyMessage}</CommandEmpty>
-            <CommandGroup>
+            <CommandGroup className="overflow-visible">
               {options.map((option) => {
                 const searchValue = optionSearchText(option).toLowerCase();
+                const selectedOption = value === option.value;
 
                 return (
                   <CommandItem
                     key={option.value}
                     value={searchValue}
                     disabled={option.disabled}
+                    className={cn(
+                      "items-start gap-2 py-2",
+                      option.description && "min-h-11",
+                    )}
                     onSelect={() => {
                       markRadixPortalInteraction();
                       onValueChange(option.value);
@@ -198,11 +231,20 @@ function SearchableCombobox({
                   >
                     <Check
                       className={cn(
-                        "mr-2 size-4 shrink-0",
-                        value === option.value ? "opacity-100" : "opacity-0",
+                        "mt-0.5 size-4 shrink-0",
+                        selectedOption ? "opacity-100" : "opacity-0",
                       )}
                     />
-                    <span className="truncate">{option.label}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate leading-snug">
+                        {option.label}
+                      </span>
+                      {option.description ? (
+                        <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                          {option.description}
+                        </span>
+                      ) : null}
+                    </span>
                   </CommandItem>
                 );
               })}

@@ -145,6 +145,7 @@ export default function Schedule({
   const [Cours, setCours] = useState<ICours[]>([]);
   const [heuresDebut, setHeuresDebut] = useState<string[]>([]);
   const [recreationHour, setRecreationHour] = useState("");
+  const [recreationDuration, setRecreationDuration] = useState(0);
   const [endTime, setEndTime] = useState("");
   const [saturdayHeuresDebut, setSaturdayHeuresDebut] = useState<string[]>([]);
   const [saturdayEndTime, setSaturdayEndTime] = useState("");
@@ -172,8 +173,12 @@ export default function Schedule({
   const vacationHref = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/creneau`;
 
   const displayHeuresDebut = useMemo(
-    () => buildDisplayTimeSlots(heuresDebut, recreationHour),
-    [heuresDebut, recreationHour],
+    () =>
+      buildDisplayTimeSlots(
+        heuresDebut,
+        recreationDuration > 0 ? recreationHour : "",
+      ),
+    [heuresDebut, recreationHour, recreationDuration],
   );
   const saturdayDisplayHeures = useMemo(
     () =>
@@ -271,6 +276,7 @@ export default function Schedule({
           );
           setHeuresDebut(generatedTimes);
           setRecreationHour(creneaux[0].recreationHour);
+          setRecreationDuration(creneaux[0].recreationDuration ?? 0);
           setEndTime(creneaux[0].endTime);
           if (saturdayUsesShiftedMorningHours(creneaux[0].startTime)) {
             const saturday = buildVacationDisplaySlots(
@@ -680,7 +686,7 @@ export default function Schedule({
                 </TableHeader>
                 <TableBody>
                   {displayHeuresDebut.map((heure, index) =>
-                    heure === recreationHour ? (
+                    recreationDuration > 0 && heure === recreationHour ? (
                       <TableRow key={heure}>
                         <TableCell
                           colSpan={joursList.length + 1}

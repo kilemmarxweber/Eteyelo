@@ -128,17 +128,17 @@ test("route registration redirige vers student pour atelier", () => {
   );
 });
 
-test("attestations, finance et ponderation visibles pour atelier", () => {
+test("attestations et finance visibles, ponderation masquee pour atelier", () => {
   assert.equal(usesAttestationForBranch("ATELIER"), true);
   assert.equal(usesAttestationForBranch("UNIVERSITE"), true);
   assert.equal(shouldHideSidebarHref("/admin/attestations", "SECONDAIRE"), true);
   assert.equal(shouldHideSidebarHref("/admin/attestations", "ATELIER"), false);
   assert.equal(usesFinanceForBranch("ATELIER"), true);
-  assert.equal(usesPonderationForBranch("ATELIER"), true);
+  assert.equal(usesPonderationForBranch("ATELIER"), false);
   assert.equal(shouldHideSidebarHref("/admin/frais", "ATELIER"), false);
   assert.equal(shouldHideSidebarHref("/admin/paiement", "ATELIER"), false);
   assert.equal(shouldHideSidebarHref("/admin/transactions", "ATELIER"), false);
-  assert.equal(shouldHideSidebarHref("/admin/coursPonderationOption", "ATELIER"), false);
+  assert.equal(shouldHideSidebarHref("/admin/coursPonderationOption", "ATELIER"), true);
 });
 
 test("generateAttestationPdf est invocable", () => {

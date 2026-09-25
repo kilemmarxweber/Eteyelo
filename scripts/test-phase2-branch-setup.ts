@@ -24,15 +24,15 @@ function test(name: string, assertion: () => void) {
 const ORG_ID = "org-test";
 const BRANCH_ID = "branch-test";
 
-test("atelier masque sections et fiches, autorise ponderations et finance", () => {
+test("atelier masque sections, fiches et ponderations, autorise finance", () => {
   assert.equal(shouldHideSidebarHref("/admin/section", "ATELIER"), true);
   assert.equal(shouldHideSidebarHref("/admin/fiches", "ATELIER"), true);
-  assert.equal(shouldHideSidebarHref("/admin/coursPonderationOption", "ATELIER"), false);
+  assert.equal(shouldHideSidebarHref("/admin/coursPonderationOption", "ATELIER"), true);
   assert.equal(shouldHideSidebarHref("/admin/frais", "ATELIER"), false);
   assert.equal(shouldHideSidebarHref("/admin/paiement", "ATELIER"), false);
   assert.equal(shouldHideSidebarHref("/admin/transactions", "ATELIER"), false);
   assert.equal(usesFinanceForBranch("ATELIER"), true);
-  assert.equal(usesPonderationForBranch("ATELIER"), true);
+  assert.equal(usesPonderationForBranch("ATELIER"), false);
 });
 
 test("universite autorise sections mais pas bulletins", () => {
@@ -116,7 +116,12 @@ test("sidebar affiche finance pour atelier", () => {
 
   const teachingMenu = links.find((item) => item.title === "teaching");
   const teachingHrefs = (teachingMenu?.sub ?? []).map((item) => item.href);
-  assert.ok(teachingHrefs.some((href) => href.endsWith("/coursPonderationOption")));
+  assert.ok(teachingHrefs.some((href) => href.endsWith("/teaching")));
+  assert.ok(teachingHrefs.some((href) => href.endsWith("/creneau")));
+  assert.equal(
+    teachingHrefs.some((href) => href.endsWith("/coursPonderationOption")),
+    false,
+  );
 });
 
 test("structures academiques bootstrap par type", () => {

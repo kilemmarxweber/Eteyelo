@@ -17,6 +17,7 @@ import { IconAlertCircle, IconSchool } from "@tabler/icons-react";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { isPrimaryBranch } from "@/lib/class-structure";
 import { ManagedBranchType } from "@/lib/academic-structure";
+import { isAtelierBranch } from "@/lib/branch-capabilities";
 import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
 import { UpdateClasseDialog } from "./edit-Classe-dialog";
 import { DeleteClassesDialog } from "./delete-Classe-dialog";
@@ -46,7 +47,8 @@ const ClassesList = ({
   const { refreshKey: contextRefreshKey } = useRefresh();
   const { canManage } = useTemporaryGrantActions("classe");
 
-  const showOption = !isPrimaryBranch(branchType);
+  const showOption = !isPrimaryBranch(branchType) && !isAtelierBranch(branchType);
+  const showSource = isAtelierBranch(branchType);
 
   const fetchClasses = useCallback(async () => {
     const isInitialLoad = !hasLoadedOnce.current;
@@ -117,8 +119,8 @@ const ClassesList = ({
   );
 
   const columns = useMemo(
-    () => getClasseColumns(showOption, tableActions, canManage),
-    [showOption, tableActions, canManage],
+    () => getClasseColumns(showOption, tableActions, canManage, showSource),
+    [showOption, showSource, tableActions, canManage],
   );
 
   useEffect(() => {

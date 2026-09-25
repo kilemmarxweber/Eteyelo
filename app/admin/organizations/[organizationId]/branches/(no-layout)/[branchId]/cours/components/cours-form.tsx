@@ -37,8 +37,12 @@ import {
 } from "@/lib/primary-domains";
 import { getBranchPrimaryDomainsAction } from "../../settings/settings.action";
 import { getPracticalDomainsAction } from "../../settings/practical-domains.action";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import type { AtelierLinkOptions } from "@/lib/atelier-course-link-shared";
-import { ATELIER_LINK_PERIOD_AUTO } from "@/lib/atelier-course-link-shared";
+import {
+  ATELIER_LINK_PERIOD_AUTO,
+  filterCoursesForSecondaryClass,
+} from "@/lib/atelier-course-link-shared";
 
 interface CoursUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: () => void;
@@ -82,8 +86,10 @@ export function CoursUpForm({
   const [atelierLinkOptions, setAtelierLinkOptions] =
     useState<AtelierLinkOptions>({
       courses: [],
+      classes: [],
       periodsByBranchId: {},
     });
+  const [linkFilterClasseId, setLinkFilterClasseId] = useState<string>("");
   const [practicalDomains, setPracticalDomains] = useState<
     Array<{ id: string; name: string; code: string }>
   >([]);
@@ -153,6 +159,49 @@ export function CoursUpForm({
       null,
     [atelierLinkOptions.courses, linkedCoursId],
   );
+
+  const filteredLinkCourses = useMemo(() => {
+    const filterClasse = linkFilterClasseId
+      ? atelierLinkOptions.classes.find((c) => c.id === linkFilterClasseId)
+      : null;
+    if (!filterClasse) return atelierLinkOptions.courses;
+    return filterCoursesForSecondaryClass(
+      atelierLinkOptions.courses,
+      filterClasse,
+    );
+  }, [
+    atelierLinkOptions.classes,
+    atelierLinkOptions.courses,
+    linkFilterClasseId,
+  ]);
+
+  const linkFilterUsesBranchFallback = useMemo(() => {
+    if (!linkFilterClasseId) return false;
+    const filterClasse = atelierLinkOptions.classes.find(
+      (c) => c.id === linkFilterClasseId,
+    );
+    return Boolean(
+      filterClasse &&
+        filterClasse.configuredCoursIds.length === 0 &&
+        filteredLinkCourses.length > 0,
+    );
+  }, [
+    atelierLinkOptions.classes,
+    filteredLinkCourses.length,
+    linkFilterClasseId,
+  ]);
+
+  useEffect(() => {
+    if (!linkedCoursId || !linkFilterClasseId) return;
+    const stillVisible = filteredLinkCourses.some(
+      (course) => course.id === linkedCoursId,
+    );
+    if (!stillVisible) {
+      form.setValue("linkedSecondaryCoursId", null);
+      form.setValue("linkedSecondaryBranchId", null);
+      form.setValue("linkedTargetPeriodKey", null);
+    }
+  }, [filteredLinkCourses, form, linkFilterClasseId, linkedCoursId]);
 
   async function onSubmit(data: z.infer<typeof coursSchema>) {
     setIsLoading(true);
@@ -316,47 +365,92 @@ export function CoursUpForm({
         name="linkedSecondaryCoursId"
         render={({ field }) => (
           <FormItem className={cn(fieldClass, isDialog && "sm:col-span-2")}>
-            <FormLabel className={labelClass}>{t("linkCourse")}</FormLabel>
-            <Select
-              value={field.value ?? "NONE"}
-              onValueChange={(value) => {
-                if (value === "NONE") {
-                  field.onChange(null);
-                  form.setValue("linkedSecondaryBranchId", null);
+            <FormLabel className={labelClass}>{t("linkFilterClass")}</FormLabel>
+            <FormControl>
+              <SearchableSelect
+                searchable
+                disabled={isLoading}
+                value={linkFilterClasseId || "__ALL__"}
+                onValueChange={(value) => {
+                  setLinkFilterClasseId(value === "__ALL__" ? "" : value);
+                }}
+                options={[
+                  {
+                    value: "__ALL__",
+                    label: t("linkFilterClassAll"),
+                    search: t("linkFilterClassAll"),
+                  },
+                  ...atelierLinkOptions.classes.map((classe) => ({
+                    value: classe.id,
+                    label: classe.label,
+                    search: classe.label,
+                  })),
+                ]}
+                placeholder={t("linkFilterClassPlaceholder")}
+                searchPlaceholder={t("linkFilterClassSearch")}
+                emptyMessage={t("linkFilterClassEmpty")}
+                triggerClassName={controlClass}
+              />
+            </FormControl>
+            <FormDescription>{t("linkFilterClassDesc")}</FormDescription>
+
+            <FormLabel className={cn(labelClass, "mt-3 block")}>
+              {t("linkCourse")}
+            </FormLabel>
+            <FormControl>
+              <SearchableSelect
+                searchable
+                disabled={isLoading}
+                value={field.value ?? "__NONE__"}
+                onValueChange={(value) => {
+                  if (value === "__NONE__") {
+                    field.onChange(null);
+                    form.setValue("linkedSecondaryBranchId", null);
+                    form.setValue("linkedTargetPeriodKey", null);
+                    return;
+                  }
+                  const course = atelierLinkOptions.courses.find(
+                    (item) => item.id === value,
+                  );
+                  field.onChange(value);
+                  form.setValue(
+                    "linkedSecondaryBranchId",
+                    course?.branchId ?? null,
+                  );
                   form.setValue("linkedTargetPeriodKey", null);
-                  return;
-                }
-                const course = atelierLinkOptions.courses.find(
-                  (item) => item.id === value,
-                );
-                field.onChange(value);
-                form.setValue(
-                  "linkedSecondaryBranchId",
-                  course?.branchId ?? null,
-                );
-                form.setValue("linkedTargetPeriodKey", null);
-              }}
-              disabled={isLoading}
-            >
-              <FormControl>
-                <SelectTrigger className={controlClass}>
-                  <SelectValue placeholder={t("linkCoursePlaceholder")} />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="NONE">{t("linkNone")}</SelectItem>
-                {atelierLinkOptions.courses.map((course) => (
-                  <SelectItem key={course.id} value={course.id}>
-                    {course.label ??
-                      `${course.nameCours} · ${course.branchName}`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                }}
+                options={[
+                  {
+                    value: "__NONE__",
+                    label: t("linkNone"),
+                    search: t("linkNone"),
+                  },
+                  ...filteredLinkCourses.map((course) => ({
+                    value: course.id,
+                    label:
+                      course.label ??
+                      `${course.nameCours} · ${course.branchName}`,
+                    search: `${course.nameCours} ${course.codeCours} ${course.branchName}`,
+                  })),
+                ]}
+                placeholder={t("linkCoursePlaceholder")}
+                searchPlaceholder={t("linkCourseSearch")}
+                emptyMessage={t("linkCourseEmpty")}
+                triggerClassName={controlClass}
+              />
+            </FormControl>
             <FormDescription>{t("linkDesc")}</FormDescription>
             {atelierLinkOptions.courses.length === 0 ? (
               <p className="text-xs text-amber-600 dark:text-amber-500">
                 {t("linkNoSecondaryCourses")}
+              </p>
+            ) : linkFilterClasseId && filteredLinkCourses.length === 0 ? (
+              <p className="text-xs text-amber-600 dark:text-amber-500">
+                {t("linkNoCoursesForClass")}
+              </p>
+            ) : linkFilterUsesBranchFallback ? (
+              <p className="text-xs text-muted-foreground">
+                {t("linkClassBranchFallback")}
               </p>
             ) : null}
             <FormMessage />
