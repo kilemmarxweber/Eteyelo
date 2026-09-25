@@ -239,45 +239,48 @@ export async function sendWhatsApp(
     }
   }
 
-  // QR / GOWA / Zindua = profil strict ; Meta Cloud = plus souple.
-  // Bound at enqueue, applied when the queued task runs (avoids cross-provider races).
-  const paceProfile: WhatsAppPaceProfile =
-    config.provider === "meta" ? "cloud" : "qr";
+  const queueKind = options.queueKind ?? "other";
 
+  // Klambo / Meta : le pacing vit dans l’API (file appareil). Pas de double délai ici.
+  if (usesMessagingApi(config.provider)) {
+    return withWhatsAppGuardianRetry(async () => {
+      const client = new MessagingClient({
+        apiKey: config.apiKey,
+        baseUrl: config.baseUrl,
+      });
+      const res =
+        config.provider === "klambo"
+          ? await client.send({
+              to,
+              channel: "whatsapp",
+              type: "text",
+              text:
+                variables.code ||
+                Object.values(variables).filter(Boolean).join(" | "),
+              queue_kind: queueKind,
+            })
+          : await client.send({
+              to,
+              channel: "whatsapp",
+              type: "template",
+              template,
+              lang: options.lang ?? "fr",
+              variables,
+              queue_kind: queueKind,
+            });
+      return {
+        success: res.success,
+        logId: res.logId,
+        status: res.status,
+      };
+    }, formatZinduaError);
+  }
+
+  // Zindua : pacing local (ne passe pas par Klambo API)
+  const paceProfile: WhatsAppPaceProfile = "qr";
   return enqueueWhatsAppTask(
     () =>
       withWhatsAppGuardianRetry(async () => {
-        if (usesMessagingApi(config.provider)) {
-          const client = new MessagingClient({
-            apiKey: config.apiKey,
-            baseUrl: config.baseUrl,
-          });
-          // Klambo / GOWA (TVS) : texte libre. Meta Cloud : template approuvé.
-          const res =
-            config.provider === "klambo"
-              ? await client.send({
-                  to,
-                  channel: "whatsapp",
-                  type: "text",
-                  text:
-                    variables.code ||
-                    Object.values(variables).filter(Boolean).join(" | "),
-                })
-              : await client.send({
-                  to,
-                  channel: "whatsapp",
-                  type: "template",
-                  template,
-                  lang: options.lang ?? "fr",
-                  variables,
-                });
-          return {
-            success: res.success,
-            logId: res.logId,
-            status: res.status,
-          };
-        }
-
         const client = getZindua({
           siteUrl: config.siteUrl,
           apiKey: config.apiKey,
@@ -296,7 +299,7 @@ export async function sendWhatsApp(
         };
       }, formatZinduaError),
     paceProfile,
-    options.queueKind ?? "other",
+    queueKind,
   );
 }
 

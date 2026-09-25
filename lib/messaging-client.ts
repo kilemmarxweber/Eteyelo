@@ -44,6 +44,8 @@ export class MessagingClient {
     lang?: string;
     variables?: Record<string, string>;
     text?: string;
+    /** Alternance multi-files côté API Klambo (absence, payment, results…). */
+    queue_kind?: string;
   }): Promise<MessagingSendResult> {
     const res = await this.request<{
       id: string;
