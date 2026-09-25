@@ -105,9 +105,6 @@ export async function exportTeacherHoursListPdf(
     alternateRowStyles: {
       fillColor: ROW_ALT,
     },
-    didDrawPage: () => {
-      drawHeader();
-    },
   });
 
   drawReportFooterOnAllPages(doc, context, {
