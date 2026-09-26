@@ -1,16 +1,41 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { Combobox } from "@/components/ui/combox";
+import { Label } from "@/components/ui/label";
 import { getAcademicPeriodOrder } from "@/lib/academic-structure";
+import { isAngolaNucleoComumOption } from "@/lib/angola-secondary-structure";
+import { isCtebOption } from "@/lib/class-catalog";
+import { compareClassesByLevel } from "@/lib/class-structure";
+import {
+  CYCLE_SORT_ORDER,
+  cycleLabel,
+  normalizeCycle,
+  type Cycle,
+} from "@/lib/cycle";
 import { StudentType } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 import { MultiSelect } from "../paiement/components/MultiSelect";
+
+const NO_OPTION_VALUE = "__none__";
+
+type ClassOptionInfo = {
+  id: string;
+  nameOption: string;
+  codeOption?: string | null;
+};
 
 type ClassType = {
   id: string;
   name: string;
+  nameClasse?: string;
+  codeClasse?: string;
+  level?: string | null;
+  cycle?: string | null;
+  option?: ClassOptionInfo | null;
   capacity: number;
   supervisor: string;
 };
@@ -31,6 +56,43 @@ type FiltersComboxProps = {
   role?: string;
 };
 
+function classeCycle(classe: ClassType): Cycle {
+  return normalizeCycle(classe.cycle);
+}
+
+function classDisplayName(classe: ClassType) {
+  return classe.name || classe.codeClasse || classe.nameClasse || classe.id;
+}
+
+function optionKey(classe: ClassType) {
+  return classe.option?.id || NO_OPTION_VALUE;
+}
+
+function isCommonCoreOption(option: ClassOptionInfo | null | undefined) {
+  if (!option) return false;
+  return (
+    isCtebOption({
+      nameOption: option.nameOption,
+      codeOption: option.codeOption,
+    }) ||
+    isAngolaNucleoComumOption({
+      nameOption: option.nameOption,
+      codeOption: option.codeOption,
+    })
+  );
+}
+
+function optionLabel(
+  option: ClassOptionInfo | null | undefined,
+  t: ReturnType<typeof useTranslations>,
+) {
+  if (!option) return t("filters.noOption");
+  if (isCommonCoreOption(option)) {
+    return t("filters.commonCoreOption", { name: option.nameOption });
+  }
+  return option.nameOption;
+}
+
 export default function FiltersCombox({
   classOptions,
   selectedClassIds,
@@ -46,19 +108,173 @@ export default function FiltersCombox({
   years,
   role,
 }: FiltersComboxProps) {
-  // ✅ Classes uniques
-  const uniqueClasses = useMemo(
-    () => Array.from(new Map(classOptions.map((c) => [c.id, c])).values()),
-    [classOptions],
+  const t = useTranslations("cursus.results");
+  const [selectedCycle, setSelectedCycle] = useState("");
+  const [selectedOptionId, setSelectedOptionId] = useState("");
+
+  const uniqueClasses = useMemo(() => {
+    const classes = Array.from(
+      new Map(classOptions.map((c) => [c.id, c])).values(),
+    );
+    return [...classes].sort((left, right) => {
+      const cycleDiff =
+        CYCLE_SORT_ORDER[classeCycle(left)] -
+        CYCLE_SORT_ORDER[classeCycle(right)];
+      if (cycleDiff !== 0) return cycleDiff;
+      const optionDiff = (left.option?.nameOption || "").localeCompare(
+        right.option?.nameOption || "",
+        "fr",
+      );
+      if (optionDiff !== 0) return optionDiff;
+      return compareClassesByLevel(
+        {
+          level: left.level,
+          nameClasse: left.nameClasse || left.name,
+          codeClasse: left.codeClasse || left.name,
+          cycle: left.cycle,
+        },
+        {
+          level: right.level,
+          nameClasse: right.nameClasse || right.name,
+          codeClasse: right.codeClasse || right.name,
+          cycle: right.cycle,
+        },
+      );
+    });
+  }, [classOptions]);
+
+  const cycleOptions = useMemo(() => {
+    const values = new Set(uniqueClasses.map((classe) => classeCycle(classe)));
+    return [...values]
+      .sort((a, b) => CYCLE_SORT_ORDER[a] - CYCLE_SORT_ORDER[b])
+      .map((cycle) => ({
+        value: cycle,
+        label: cycleLabel(cycle),
+        search: `${cycleLabel(cycle)} ${cycle}`,
+      }));
+  }, [uniqueClasses]);
+
+  const showCycleField = cycleOptions.length > 0;
+  const isSecondary = selectedCycle === "SECONDAIRE";
+
+  const classesForCycle = useMemo(() => {
+    if (!selectedCycle) return [];
+    return uniqueClasses.filter(
+      (classe) => classeCycle(classe) === selectedCycle,
+    );
+  }, [selectedCycle, uniqueClasses]);
+
+  const secondaryOptionItems = useMemo(() => {
+    if (!isSecondary) return [];
+    const seen = new Set<string>();
+    const items: Array<{
+      value: string;
+      label: string;
+      search: string;
+      isCommonCore: boolean;
+    }> = [];
+
+    for (const classe of classesForCycle) {
+      const value = optionKey(classe);
+      if (seen.has(value)) continue;
+      seen.add(value);
+      const commonCore = isCommonCoreOption(classe.option);
+      const label = optionLabel(classe.option, t);
+      items.push({
+        value,
+        label,
+        search: `${label} ${classe.option?.codeOption ?? ""} ${classe.option?.nameOption ?? ""}`,
+        isCommonCore: commonCore,
+      });
+    }
+
+    return items.sort((a, b) => {
+      if (a.isCommonCore !== b.isCommonCore) {
+        return a.isCommonCore ? -1 : 1;
+      }
+      return a.label.localeCompare(b.label, "fr");
+    });
+  }, [classesForCycle, isSecondary, t]);
+
+  const needsOptionFilter = isSecondary && secondaryOptionItems.length > 0;
+
+  const classesForSelection = useMemo(() => {
+    if (!selectedCycle) return [];
+    if (!needsOptionFilter) return classesForCycle;
+    if (!selectedOptionId) return [];
+    return classesForCycle.filter(
+      (classe) => optionKey(classe) === selectedOptionId,
+    );
+  }, [classesForCycle, needsOptionFilter, selectedCycle, selectedOptionId]);
+
+  const selectedOptionMeta = useMemo(
+    () => secondaryOptionItems.find((item) => item.value === selectedOptionId),
+    [secondaryOptionItems, selectedOptionId],
   );
 
-  // ✅ Students uniques (évite bug React key + boucle useEffect)
+  const classMultiOptions = useMemo(
+    () =>
+      classesForSelection.map((classe) => {
+        const label = classDisplayName(classe);
+        const cycleName = cycleLabel(classeCycle(classe));
+        const optName = classe.option?.nameOption ?? "";
+        return {
+          value: classe.id.toString(),
+          label,
+          search: `${cycleName} ${optName} ${label} ${classe.nameClasse ?? ""} ${classe.codeClasse ?? ""}`,
+        };
+      }),
+    [classesForSelection],
+  );
+
+  useEffect(() => {
+    if (cycleOptions.length === 0) {
+      if (selectedCycle) setSelectedCycle("");
+      return;
+    }
+    // Ne pas auto-sélectionner : laisser le placeholder « Sélectionner un cycle ».
+    if (
+      selectedCycle &&
+      !cycleOptions.some((option) => option.value === selectedCycle)
+    ) {
+      setSelectedCycle("");
+    }
+  }, [cycleOptions, selectedCycle]);
+
+  // Secondaire : prioriser Tronc commun / CTEB seulement après choix du cycle.
+  useEffect(() => {
+    if (!needsOptionFilter) {
+      if (selectedOptionId) setSelectedOptionId("");
+      return;
+    }
+    if (
+      selectedOptionId &&
+      secondaryOptionItems.some((item) => item.value === selectedOptionId)
+    ) {
+      return;
+    }
+    const commonCore = secondaryOptionItems.find((item) => item.isCommonCore);
+    setSelectedOptionId(
+      commonCore?.value ?? secondaryOptionItems[0]?.value ?? "",
+    );
+  }, [needsOptionFilter, secondaryOptionItems, selectedOptionId]);
+
+  useEffect(() => {
+    if (!selectedCycle) return;
+    const allowed = new Set(
+      classesForSelection.map((classe) => classe.id.toString()),
+    );
+    setSelectedClassIds((current) => {
+      const next = current.filter((id) => allowed.has(id));
+      return next.length === current.length ? current : next;
+    });
+  }, [classesForSelection, selectedCycle, setSelectedClassIds]);
+
   const uniqueStudents = useMemo(
     () => Array.from(new Map(students.map((s) => [s.studentid, s])).values()),
     [students],
   );
 
-  // ✅ Ordre des périodes
   const sortedPeriods = useMemo(
     () =>
       [...periods].sort(
@@ -67,7 +283,6 @@ export default function FiltersCombox({
     [periods],
   );
 
-  // ✅ Admin seulement → filtre par classe
   const filteredStudents = useMemo(
     () =>
       role === "admin"
@@ -78,14 +293,12 @@ export default function FiltersCombox({
     [role, uniqueStudents, selectedClassIds],
   );
 
-  // 🔥 Reset student quand classe change (admin only)
   useEffect(() => {
     if (role === "admin") {
       setSelectedStudentId("");
     }
   }, [role, selectedClassIds, setSelectedStudentId]);
 
-  // 🔥 Parent / élève → forcer un studentId (jamais « tous » — unit-10)
   useEffect(() => {
     if (
       (role === "parent" || role === "student") &&
@@ -96,7 +309,6 @@ export default function FiltersCombox({
     }
   }, [role, uniqueStudents, selectedStudentId, setSelectedStudentId]);
 
-  // 🔥 Parent / élève → auto définir classe depuis student
   useEffect(() => {
     if (!(role === "parent" || role === "student") || !selectedStudentId) {
       return;
@@ -108,15 +320,36 @@ export default function FiltersCombox({
     if (!student) return;
 
     const nextClassId = String(student.classid);
+    const studentClass = uniqueClasses.find(
+      (c) => c.id.toString() === nextClassId,
+    );
+    if (studentClass) {
+      const nextCycle = classeCycle(studentClass);
+      setSelectedCycle((current) =>
+        current === nextCycle ? current : nextCycle,
+      );
+      if (nextCycle === "SECONDAIRE") {
+        const nextOption = optionKey(studentClass);
+        setSelectedOptionId((current) =>
+          current === nextOption ? current : nextOption,
+        );
+      }
+    }
+
     setSelectedClassIds((current) => {
       if (current.length === 1 && current[0] === nextClassId) {
         return current;
       }
       return [nextClassId];
     });
-  }, [selectedStudentId, role, uniqueStudents, setSelectedClassIds]);
+  }, [
+    selectedStudentId,
+    role,
+    uniqueStudents,
+    uniqueClasses,
+    setSelectedClassIds,
+  ]);
 
-  // 🔥 Période auto
   useEffect(() => {
     if (
       selectedClassIds.length > 0 &&
@@ -127,72 +360,143 @@ export default function FiltersCombox({
     }
   }, [selectedClassIds, sortedPeriods, selectedPeriod, setSelectedPeriod]);
 
+  function handleCycleChange(nextCycle: string) {
+    if (nextCycle === selectedCycle) return;
+    setSelectedCycle(nextCycle);
+    setSelectedOptionId("");
+    setSelectedClassIds([]);
+    setSelectedStudentId("");
+  }
+
+  function handleOptionChange(nextOption: string) {
+    if (nextOption === selectedOptionId) return;
+    setSelectedOptionId(nextOption);
+    setSelectedClassIds([]);
+    setSelectedStudentId("");
+  }
+
+  const classesReady =
+    Boolean(selectedCycle) &&
+    (!needsOptionFilter || Boolean(selectedOptionId));
+
+  const adminFilterGridClass = cn(
+    "grid w-full gap-3 sm:items-end",
+    showCycleField && needsOptionFilter && "sm:grid-cols-3",
+    showCycleField &&
+      !needsOptionFilter &&
+      "sm:grid-cols-[minmax(11rem,14rem)_minmax(14rem,1fr)]",
+    !showCycleField &&
+      needsOptionFilter &&
+      "sm:grid-cols-[minmax(12rem,16rem)_minmax(14rem,1fr)]",
+    !showCycleField && !needsOptionFilter && "sm:max-w-sm",
+  );
+
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between w-full">
-      <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full">
-        {/* ✅ Classe → ADMIN ONLY */}
+    <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex w-full flex-col flex-wrap gap-3 sm:flex-row">
         {role === "admin" && (
-          <div className="flex flex-col gap-1 w-full sm:w-[250px]">
-            <span className="text-xs font-medium text-gray-500 ml-1">
-              Classes
-            </span>
-            <MultiSelect
-              className="w-full"
-              options={uniqueClasses.map((c) => ({
-                label: c.name,
-                value: c.id.toString(),
-              }))}
-              value={selectedClassIds}
-              onValueChange={setSelectedClassIds}
-              placeholder="Classes"
-            />
+          <div className={adminFilterGridClass}>
+            {showCycleField ? (
+              <Combobox
+                label={t("filters.cycle")}
+                items={cycleOptions}
+                value={selectedCycle}
+                onChange={handleCycleChange}
+                placeholder={t("filters.cyclePlaceholder")}
+              />
+            ) : null}
+
+            {needsOptionFilter ? (
+              <Combobox
+                label={t("filters.option")}
+                items={secondaryOptionItems}
+                value={selectedOptionId}
+                onChange={handleOptionChange}
+                placeholder={t("filters.optionPlaceholder")}
+              />
+            ) : null}
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">
+                {t("filters.classes")}
+                {selectedOptionMeta?.isCommonCore ? (
+                  <span className="ml-1 font-normal text-muted-foreground/80">
+                    · {t("filters.commonCoreHint")}
+                  </span>
+                ) : null}
+              </Label>
+              <MultiSelect
+                className="h-9 min-h-9 w-full"
+                options={classMultiOptions}
+                value={selectedClassIds}
+                onValueChange={setSelectedClassIds}
+                placeholder={
+                  !selectedCycle
+                    ? t("filters.pickCycleFirst")
+                    : needsOptionFilter && !selectedOptionId
+                      ? t("filters.pickOptionFirst")
+                      : t("filters.classesPlaceholder")
+                }
+                searchPlaceholder={t("filters.classSearch")}
+                selectedCountLabel={(count) =>
+                  t("filters.classCount", { count })
+                }
+                maxCount={1}
+                showSelectAll
+                disabled={!classesReady || classMultiOptions.length === 0}
+              />
+              {classesReady && classMultiOptions.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  {needsOptionFilter
+                    ? t("filters.noClassesInOption")
+                    : t("filters.noClassesInCycle")}
+                </p>
+              ) : null}
+            </div>
           </div>
         )}
 
-        {/* ✅ Étudiant → ADMIN + PARENT */}
         {(role === "admin" || role === "parent") && (
-          <div className="w-full sm:w-auto min-w-[200px]">
+          <div className="w-full min-w-[200px] sm:w-auto">
             <Combobox
-              label="Élève"
+              label={t("filters.student")}
               items={filteredStudents.map((s) => ({
                 value: String(s.studentid),
                 label: `${s.username} ${s.nom}`,
               }))}
               value={selectedStudentId ? String(selectedStudentId) : ""}
               onChange={setSelectedStudentId}
-              placeholder="Sélectionnez un élève"
+              placeholder={t("filters.studentPlaceholder")}
             />
           </div>
         )}
 
-        {/* ✅ Période */}
         {selectedClassIds.length > 0 && (
-          <div className="w-full sm:w-auto min-w-[180px]">
+          <div className="w-full min-w-[180px] sm:w-auto">
             <Combobox
-              label="Période"
+              label={t("filters.period")}
               items={sortedPeriods.map((p) => ({
                 value: p,
                 label: p,
               }))}
               value={selectedPeriod}
               onChange={setSelectedPeriod}
-              placeholder="Sélectionnez une période"
+              placeholder={t("filters.periodPlaceholder")}
             />
           </div>
         )}
 
-        {/* ✅ Année */}
         {selectedClassIds.length > 0 && (
-          <div className="w-full sm:w-auto min-w-[120px]">
+          <div className="w-full min-w-[120px] sm:w-auto">
             <Combobox
-              label="Année"
+              label={t("filters.year")}
               items={years.map((y) => ({
                 value: y,
                 label: y,
               }))}
               value={selectedYear}
               onChange={setSelectedYear}
-              placeholder="Année scolaire"
+              placeholder={t("filters.yearPlaceholder")}
             />
           </div>
         )}

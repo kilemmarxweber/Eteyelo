@@ -36,6 +36,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
 import {
   Card,
   CardContent,
@@ -2182,16 +2183,21 @@ export function RegistrationForm({
           {studentFields ? (
             <>
               <Field label={tReg("fields.dateOfBirthRequired")}>
-                <Input
-                  type="date"
-                  title={tReg("fields.dateOfBirthRequired")}
-                  value={value.dateOfBirth}
-                  onChange={(event) =>
+                <DateOfBirthPicker
+                  value={value.dateOfBirth || undefined}
+                  placeholder={tReg("fields.dateOfBirthRequired")}
+                  onChange={(date) =>
                     updatePerson(
                       value,
                       setter,
                       "dateOfBirth",
-                      event.target.value,
+                      date
+                        ? [
+                            date.getFullYear(),
+                            String(date.getMonth() + 1).padStart(2, "0"),
+                            String(date.getDate()).padStart(2, "0"),
+                          ].join("-")
+                        : "",
                     )
                   }
                 />
@@ -3673,7 +3679,7 @@ function Field({
 }) {
   return (
     <div
-      className={`[&_input:not([type=file]):not([type=hidden])]:h-8 [&_input:not([type=file]):not([type=hidden])]:px-3 [&_input:not([type=file]):not([type=hidden])]:py-1.5 [&_input:not([type=file]):not([type=hidden])]:text-xs [&_[role=combobox]]:h-8 [&_textarea]:min-h-[52px] [&_textarea]:py-1.5 [&_textarea]:text-xs ${keepLabel ? "space-y-1" : ""} ${className}`}
+      className={`[&_input:not([type=file]):not([type=hidden])]:h-10 [&_input:not([type=file]):not([type=hidden])]:px-3.5 [&_input:not([type=file]):not([type=hidden])]:py-2 [&_input:not([type=file]):not([type=hidden])]:text-sm [&_[role=combobox]]:h-10 [&_button[role=combobox]]:h-10 [&_.PhoneInputCountry]_button]:h-10 [&_textarea]:min-h-[64px] [&_textarea]:py-2 [&_textarea]:text-sm ${keepLabel ? "space-y-1.5" : ""} ${className}`}
     >
       <Label className={keepLabel ? "text-xs leading-none" : "sr-only"}>
         {label}

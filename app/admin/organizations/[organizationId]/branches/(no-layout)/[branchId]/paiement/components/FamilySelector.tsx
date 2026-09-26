@@ -362,6 +362,7 @@ export default function FamilySelector({
         </label>
         <Input
           id="student-search"
+          autoFocus
           placeholder={t("searchFamily.placeholder", {
             student: peopleLabels.studentDefinite,
           })}

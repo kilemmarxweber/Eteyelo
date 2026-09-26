@@ -12,7 +12,7 @@ import {
   getPaymentReportContextAction,
 } from "../paiement.action";
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
-import { SearchInput } from "@/components/ui/search-input";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -818,7 +818,7 @@ const PaiementsTable = ({
             <span>{t("table.searchLabel")}</span>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <SearchInput
+              <Input
                 placeholder={t("table.search")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}

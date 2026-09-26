@@ -150,7 +150,11 @@ export default function PaymentsForm({
   const userDeselectedFraisIdsRef = useRef<Set<string>>(new Set());
   const selectionParentIdRef = useRef("");
   const lastSelectableKeyRef = useRef("");
-  const [isLargeScreen, setIsLargeScreen] = useState(false);
+  const [isLargeScreen, setIsLargeScreen] = useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia("(min-width: 1024px)").matches
+      : false,
+  );
   const [exchangeRates, setExchangeRates] = useState<ExchangeRatePair[]>([]);
   const [receivedCurrency, setReceivedCurrency] = useState<CurrencyCode>(
     CurrencyCode.USD,

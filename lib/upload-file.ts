@@ -16,6 +16,17 @@ export const MAX_IMAGE_UPLOAD_BYTES = 5 * 1024 * 1024;
 export const MAX_DOCUMENT_UPLOAD_BYTES = 10 * 1024 * 1024;
 export const MAX_VIDEO_UPLOAD_BYTES = 50 * 1024 * 1024;
 
+/** Message lisible quand le serveur / proxy renvoie une réponse non-JSON. */
+function invalidUploadResponseMessage(status: number): string {
+  if (status === 413) {
+    return "La vidéo est trop volumineuse pour le serveur (limite 50 Mo). Choisissez un fichier plus léger.";
+  }
+  if (status === 502 || status === 504) {
+    return "Le serveur d'upload a mis trop de temps à répondre. Réessayez avec une vidéo plus courte.";
+  }
+  return `Le serveur d'upload a retourné une réponse invalide (${status}).`;
+}
+
 /**
  * Envoie un fichier vers la route `/api/upload`.
  */
@@ -57,7 +68,7 @@ export async function uploadFile(
 
       return {
         ok: false,
-        message: `Le serveur d'upload a retourné une réponse invalide (${response.status}).`,
+        message: invalidUploadResponseMessage(response.status),
       };
     }
 
@@ -150,7 +161,7 @@ export async function uploadDocument(
 
       return {
         ok: false,
-        message: `Le serveur d'upload a retourné une réponse invalide (${response.status}).`,
+        message: invalidUploadResponseMessage(response.status),
       };
     }
 
@@ -218,7 +229,7 @@ export async function uploadVideo(
 
       return {
         ok: false,
-        message: `Le serveur d'upload a retourné une réponse invalide (${response.status}).`,
+        message: invalidUploadResponseMessage(response.status),
       };
     }
 

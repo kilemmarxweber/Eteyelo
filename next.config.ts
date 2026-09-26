@@ -17,6 +17,13 @@ const nextConfig: NextConfig = {
     "@prisma/client",
     "pg",
   ],
+  experimental: {
+    // Défaut Next = 10 Mo ; les vidéos branche vont jusqu’à 50 Mo (+ overhead multipart).
+    middlewareClientMaxBodySize: "64mb",
+    serverActions: {
+      bodySizeLimit: "64mb",
+    },
+  },
   turbopack: {
     resolveAlias: {
       "@/prisma/generated/prisma/client": "./prisma/generated/prisma/client.ts",

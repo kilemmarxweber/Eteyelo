@@ -3,7 +3,30 @@
     "title": "Gestão dos resultados",
     "description": "Gerir as informações dos resultados dos alunos.",
     "badge": "Resultados",
-    "detail": "Detalhe das intervenções"
+    "detail": "Detalhe das intervenções",
+    "filters": {
+      "cycle": "Ciclo",
+      "cyclePlaceholder": "Seleccionar um ciclo",
+      "option": "Opção",
+      "optionPlaceholder": "Escolher uma opção",
+      "noOption": "Sem opção",
+      "commonCoreOption": "{name} (CTEB)",
+      "commonCoreHint": "turmas do tronco comum",
+      "classes": "Turmas",
+      "classesPlaceholder": "Escolher uma ou várias turmas",
+      "classSearch": "Pesquisar uma turma…",
+      "pickCycleFirst": "Escolha primeiro um ciclo",
+      "pickOptionFirst": "Escolha primeiro uma opção",
+      "noClassesInCycle": "Nenhuma turma neste ciclo.",
+      "noClassesInOption": "Nenhuma turma nesta opção.",
+      "classCount": "{count, plural, one {# turma} other {# turmas}}",
+      "student": "Aluno",
+      "studentPlaceholder": "Seleccione um aluno",
+      "period": "Período",
+      "periodPlaceholder": "Seleccione um período",
+      "year": "Ano",
+      "yearPlaceholder": "Ano lectivo"
+    }
   },
   "notes": {
     "title": "Lançamento de notas",

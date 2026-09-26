@@ -24,6 +24,8 @@ export interface MultiSelectOption {
   label: string;
   value: string;
   disabled?: boolean;
+  /** Texte additionnel pour la recherche (ex. cycle + classe). */
+  search?: string;
 }
 
 interface MultiSelectProps {
@@ -32,6 +34,7 @@ interface MultiSelectProps {
   onValueChange: (value: string[]) => void;
   placeholder?: string;
   searchable?: boolean;
+  searchPlaceholder?: string;
   maxCount?: number;
   closeOnSelect?: boolean;
   className?: string;
@@ -53,6 +56,7 @@ export function MultiSelect({
   onValueChange,
   placeholder = "Select options",
   searchable = true,
+  searchPlaceholder = "Rechercher…",
   maxCount = 1,
   closeOnSelect = false,
   className,
@@ -77,11 +81,14 @@ export function MultiSelect({
 
   const filteredOptions = React.useMemo(() => {
     if (!search) return options;
-    return options.filter(
-      (o) =>
-        o.label.toLowerCase().includes(search.toLowerCase()) ||
-        o.value.toLowerCase().includes(search.toLowerCase()),
-    );
+    const needle = search.toLowerCase().trim();
+    return options.filter((o) => {
+      const haystack = [o.label, o.value, o.search]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(needle);
+    });
   }, [options, search]);
 
   const toggle = (val: string) => {
@@ -172,7 +179,7 @@ export function MultiSelect({
           <div className="flex items-center border-b px-2">
             {searchable && (
               <CommandInput
-                placeholder="Rechercher..."
+                placeholder={searchPlaceholder}
                 value={search}
                 onValueChange={setSearch}
                 className="flex-1 h-9 text-sm border-none shadow-none focus-visible:ring-0"

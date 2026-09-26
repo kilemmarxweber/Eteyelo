@@ -67,6 +67,7 @@ export type MontantInputProps = {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  id?: string;
 };
 
 export const MontantInput = forwardRef<HTMLInputElement, MontantInputProps>(
@@ -79,6 +80,7 @@ export const MontantInput = forwardRef<HTMLInputElement, MontantInputProps>(
       placeholder = "0",
       disabled,
       className,
+      id,
     },
     ref,
   ) {
@@ -143,8 +145,10 @@ export const MontantInput = forwardRef<HTMLInputElement, MontantInputProps>(
 
     return (
       <Input
+        id={id}
         type="text"
         inputMode="numeric"
+        autoComplete="off"
         placeholder={placeholder}
         name={name}
         disabled={disabled}
@@ -175,7 +179,13 @@ export const MontantInput = forwardRef<HTMLInputElement, MontantInputProps>(
           onChange(nextValue);
           onBlur?.();
         }}
-        onChange={() => {}}
+        onChange={(e) => {
+          if (disabled) return;
+          // Clavier mobile / IME : digits via l’événement input
+          const nextDigits = e.target.value.replace(/\D/g, "");
+          if (nextDigits === digits) return;
+          syncFromDigits(nextDigits);
+        }}
         onPaste={(e) => {
           if (disabled) return;
           e.preventDefault();

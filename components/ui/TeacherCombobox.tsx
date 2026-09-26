@@ -10,6 +10,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -52,30 +53,36 @@ export function TeacherCombobox({ teachers, value, onChange }: Props) {
       <PopoverContent
         align="start"
         className="w-[var(--radix-popover-trigger-width)] p-0"
+        onWheel={(event) => event.stopPropagation()}
       >
         <Command>
           <CommandInput placeholder="Rechercher un enseignant..." />
-          <CommandEmpty>Aucun enseignant trouvé.</CommandEmpty>
-          <CommandGroup>
-            {teachers.map((teacher) => (
-              <CommandItem
-                key={teacher.id}
-                value={teacher.name}
-                onSelect={() => {
-                  onChange(teacher.id);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === teacher.id ? "opacity-100" : "opacity-0",
-                  )}
-                />
-                {teacher.name}
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          <CommandList
+            className="max-h-[min(18rem,45vh)] scroll-py-1 overflow-y-auto overscroll-contain"
+            onWheelCapture={(event) => event.stopPropagation()}
+          >
+            <CommandEmpty>Aucun enseignant trouvé.</CommandEmpty>
+            <CommandGroup>
+              {teachers.map((teacher) => (
+                <CommandItem
+                  key={teacher.id}
+                  value={teacher.name}
+                  onSelect={() => {
+                    onChange(teacher.id);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === teacher.id ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                  {teacher.name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>

@@ -15,7 +15,7 @@ import {
   CommandItem,
   CommandList,
 } from "./command";
-import { Input, InputProps } from "./input";
+import { inputVariants, type InputProps } from "./input";
 import {
   Popover,
   PopoverContent,
@@ -79,7 +79,12 @@ const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
         <RPNInput.default
           {...props}
           ref={ref}
-          className={cn("flex", className)}
+          className={cn(
+            "flex h-10 w-full items-stretch",
+            "[&_.PhoneInputCountry]:flex [&_.PhoneInputCountry]:h-10 [&_.PhoneInputCountry]:shrink-0 [&_.PhoneInputCountry]:items-stretch",
+            "[&_.PhoneInputInput]:h-10 [&_.PhoneInputInput]:min-h-10",
+            className,
+          )}
           flagComponent={FlagComponent}
           countrySelectComponent={CountrySelect}
           inputComponent={InputComponent}
@@ -113,9 +118,14 @@ const InputComponent = React.forwardRef<HTMLInputElement, InputProps>(
       return input.value.slice(0, start) + inserted + input.value.slice(end);
     }
 
+    // Input brut (sans wrapper) pour aligner pile avec le bouton pays en h-10
     return (
-      <Input
-        className={cn("rounded-e-lg rounded-s-none", className)}
+      <input
+        className={cn(
+          inputVariants({ inputSize: "default" }),
+          "h-10 min-h-10 flex-1 rounded-e-lg rounded-s-none",
+          className,
+        )}
         inputMode="numeric"
         {...props}
         ref={ref}
@@ -196,8 +206,11 @@ const CountrySelect = ({
       <PopoverTrigger asChild>
         <Button
           type="button"
-          variant={"outline"}
-          className={cn("flex gap-1 rounded-e-none rounded-s-lg px-3")}
+          variant="outline"
+          size="lg"
+          className={cn(
+            "h-10 min-h-10 shrink-0 gap-1 rounded-e-none rounded-s-lg px-3 py-0",
+          )}
           disabled={disabled}
         >
           <FlagComponent country={value} countryName={value} />

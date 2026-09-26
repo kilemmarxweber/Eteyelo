@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IconCalendar } from "@tabler/icons-react";
+import { useLocale } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -20,7 +20,28 @@ type DateOfBirthPickerProps = {
   className?: string;
   id?: string;
   placeholder?: string;
+  /** Année mini (défaut 1900). */
+  fromYear?: number;
+  /** Année maxi (défaut année courante). */
+  toYear?: number;
 };
+
+function parseLocalDate(value: Date | string | null | undefined): Date | undefined {
+  if (value == null || value === "") return undefined;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? undefined : value;
+  }
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value).trim());
+  if (!match) {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+  }
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
 
 export function DateOfBirthPicker({
   value,
@@ -29,80 +50,77 @@ export function DateOfBirthPicker({
   className,
   id,
   placeholder = "Choisir une date",
+  fromYear = 1900,
+  toYear = new Date().getFullYear(),
 }: DateOfBirthPickerProps) {
+  const locale = useLocale();
   const [mounted, setMounted] = useState(false);
+  const [open, setOpen] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const selected =
-    value instanceof Date
-      ? value
-      : value
-        ? new Date(value)
-        : undefined;
-  const validSelected =
-    selected && !Number.isNaN(selected.getTime()) ? selected : undefined;
-  const inputValue = validSelected
-    ? [
-        validSelected.getFullYear(),
-        String(validSelected.getMonth() + 1).padStart(2, "0"),
-        String(validSelected.getDate()).padStart(2, "0"),
-      ].join("-")
-    : "";
+  const validSelected = useMemo(() => parseLocalDate(value), [value]);
 
-  function handleManualChange(event: ChangeEvent<HTMLInputElement>) {
-    const raw = event.target.value;
-    if (!raw) {
-      onChange(undefined);
-      return;
-    }
-    const [year, month, day] = raw.split("-").map(Number);
-    if (
-      !Number.isInteger(year) ||
-      !Number.isInteger(month) ||
-      !Number.isInteger(day)
-    ) {
-      return;
-    }
-    onChange(new Date(year, month - 1, day));
-  }
+  const startMonth = useMemo(() => new Date(fromYear, 0, 1), [fromYear]);
+  const endMonth = useMemo(() => new Date(toYear, 11, 31), [toYear]);
+
+  const [displayMonth, setDisplayMonth] = useState<Date>(() => {
+    if (validSelected) return validSelected;
+    return new Date(Math.min(toYear, new Date().getFullYear() - 10), 0, 1);
+  });
+
+  useEffect(() => {
+    if (validSelected) setDisplayMonth(validSelected);
+  }, [validSelected]);
+
+  const displayLabel = validSelected
+    ? new Intl.DateTimeFormat(locale, {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }).format(validSelected)
+    : placeholder;
 
   return (
-    <div className="flex min-w-0 gap-2">
-      <Input
-        id={id}
-        type="date"
-        value={inputValue}
-        onChange={handleManualChange}
-        disabled={disabled}
-        className={cn("min-w-0 flex-1", className)}
-        aria-label={placeholder}
-      />
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={disabled}
-            className="size-10 shrink-0 px-0"
-            aria-label="Ouvrir le calendrier"
-            title={placeholder}
-          >
-            <IconCalendar className="h-4 w-4 opacity-70" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          {mounted ? (
-            <Calendar
-              mode="single"
-              captionLayout="dropdown"
-              fromYear={1900}
-              toYear={new Date().getFullYear()}
-              selected={validSelected}
-              onSelect={onChange}
-            />
-          ) : null}
-        </PopoverContent>
-      </Popover>
-    </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          id={id}
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          className={cn(
+            "h-10 w-full justify-start px-3.5 text-left text-sm font-normal",
+            !validSelected && "text-muted-foreground",
+            className,
+          )}
+          aria-label={placeholder}
+        >
+          <IconCalendar className="mr-2 size-4 shrink-0 opacity-70" />
+          <span className="truncate">{displayLabel}</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        {mounted ? (
+          <Calendar
+            mode="single"
+            captionLayout="dropdown"
+            startMonth={startMonth}
+            endMonth={endMonth}
+            month={displayMonth}
+            onMonthChange={setDisplayMonth}
+            selected={validSelected}
+            onSelect={(date) => {
+              onChange(date);
+              if (date) {
+                setDisplayMonth(date);
+                setOpen(false);
+              }
+            }}
+            disabled={(date) => date > endMonth || date < startMonth}
+            className="rounded-md"
+          />
+        ) : null}
+      </PopoverContent>
+    </Popover>
   );
 }

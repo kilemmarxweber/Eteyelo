@@ -3,7 +3,30 @@
     "title": "Gestion des résultats",
     "description": "Gérer les informations des résultats des élèves.",
     "badge": "Résultats",
-    "detail": "Détail des interventions"
+    "detail": "Détail des interventions",
+    "filters": {
+      "cycle": "Cycle",
+      "cyclePlaceholder": "Sélectionner un cycle",
+      "option": "Option",
+      "optionPlaceholder": "Choisir une option",
+      "noOption": "Sans option",
+      "commonCoreOption": "{name} (CTEB)",
+      "commonCoreHint": "classes tronc commun",
+      "classes": "Classes",
+      "classesPlaceholder": "Choisir une ou plusieurs classes",
+      "classSearch": "Rechercher une classe…",
+      "pickCycleFirst": "Choisissez d’abord un cycle",
+      "pickOptionFirst": "Choisissez d’abord une option",
+      "noClassesInCycle": "Aucune classe pour ce cycle.",
+      "noClassesInOption": "Aucune classe pour cette option.",
+      "classCount": "{count, plural, one {# classe} other {# classes}}",
+      "student": "Élève",
+      "studentPlaceholder": "Sélectionnez un élève",
+      "period": "Période",
+      "periodPlaceholder": "Sélectionnez une période",
+      "year": "Année",
+      "yearPlaceholder": "Année scolaire"
+    }
   },
   "notes": {
     "title": "Saisie des notes",

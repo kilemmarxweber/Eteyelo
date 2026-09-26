@@ -22,7 +22,7 @@ function toIsoStringSafe(value: Date | string | null | undefined): string {
 
 const ResultListPage = async () => {
   const t = await getServerTranslator("cursus");
-  const { session, userId: currentUserId, branchId } =
+  const { session, userId: currentUserId, branchId, typebranch } =
     await requireBranchContext();
   await assertBranchAreaAccess("results", session);
 
@@ -121,6 +121,13 @@ const ResultListPage = async () => {
         branchId,
       },
       include: {
+        option: {
+          select: {
+            id: true,
+            nameOption: true,
+            codeOption: true,
+          },
+        },
         classEnrollment: {
           where: {
             branchId,
@@ -465,7 +472,18 @@ const ResultListPage = async () => {
   // ================= CLASS OPTIONS =================
   const classOptions = classData.map((c) => ({
     id: c.id,
-    name: c.codeClasse,
+    name: c.codeClasse || c.nameClasse,
+    nameClasse: c.nameClasse ?? "",
+    codeClasse: c.codeClasse ?? "",
+    level: c.level ?? null,
+    cycle: c.cycle ?? typebranch ?? null,
+    option: c.option
+      ? {
+          id: c.option.id as string,
+          nameOption: c.option.nameOption as string,
+          codeOption: (c.option.codeOption as string | null) ?? null,
+        }
+      : null,
     capacity: 25,
     supervisor: "",
   }));

@@ -3,6 +3,8 @@ import { saveUploadedVideo } from "@/lib/upload-file.server";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+/** Uploads vidéo jusqu’à 50 Mo — laisser le temps au réseau lent. */
+export const maxDuration = 120;
 
 export async function POST(
   request: Request,

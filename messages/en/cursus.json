@@ -3,7 +3,30 @@
     "title": "Results management",
     "description": "Manage student results information.",
     "badge": "Results",
-    "detail": "Intervention details"
+    "detail": "Intervention details",
+    "filters": {
+      "cycle": "Cycle",
+      "cyclePlaceholder": "Select a cycle",
+      "option": "Option",
+      "optionPlaceholder": "Choose an option",
+      "noOption": "No option",
+      "commonCoreOption": "{name} (CTEB)",
+      "commonCoreHint": "common-core classes",
+      "classes": "Classes",
+      "classesPlaceholder": "Choose one or more classes",
+      "classSearch": "Search a class…",
+      "pickCycleFirst": "Choose a cycle first",
+      "pickOptionFirst": "Choose an option first",
+      "noClassesInCycle": "No classes in this cycle.",
+      "noClassesInOption": "No classes for this option.",
+      "classCount": "{count, plural, one {# class} other {# classes}}",
+      "student": "Student",
+      "studentPlaceholder": "Select a student",
+      "period": "Period",
+      "periodPlaceholder": "Select a period",
+      "year": "Year",
+      "yearPlaceholder": "School year"
+    }
   },
   "notes": {
     "title": "Grade entry",
