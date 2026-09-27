@@ -16,16 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient, useSession } from "@/lib/auth-client";
 import {
+  SESSION_IDLE_MS,
   SESSION_LOCK_OPEN_EVENT,
   clearSessionLockSnapshot,
-  isSessionIdleExpired,
-  markSessionActivity,
   parseAdminContextFromPath,
-  readLastSessionActivity,
   readLastSessionIdentity,
   readSessionLockSnapshot,
   rememberSessionIdentity,
-  SESSION_IDLE_MS,
   writeSessionLockSnapshot,
   type SessionLockSnapshot,
 } from "@/lib/session-lock-storage";
@@ -40,15 +37,19 @@ function isIdleSkipPath(pathname: string) {
 }
 
 type SessionLockProps = {
-  /** Forcer le popup (ex. layout admin sans session serveur). */
+  /** Forcer le popup (layout admin sans cookie session). */
   forceLocked?: boolean;
 };
 
+/**
+ * Soft-lock d’origine : popup mot de passe après inactivité,
+ * restauration du snapshot au refresh, pas de redirect login.
+ */
 export function SessionLock({ forceLocked = false }: SessionLockProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const skipIdle = isIdleSkipPath(pathname);
-  const { data: session, isPending } = useSession();
+  const { data: session } = useSession();
   const [ready, setReady] = useState(false);
   const [locked, setLocked] = useState(false);
   const [snapshot, setSnapshot] = useState<SessionLockSnapshot | null>(null);
@@ -58,14 +59,11 @@ export function SessionLock({ forceLocked = false }: SessionLockProps = {}) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lockedRef = useRef(false);
   const lastIdentityRef = useRef<SessionLockSnapshot | null>(null);
-  const sessionRef = useRef(session);
-  sessionRef.current = session;
 
   useEffect(() => {
     lockedRef.current = locked;
   }, [locked]);
 
-  // Mémorise la dernière identité connue tant que la session est valide.
   useEffect(() => {
     const email = session?.user?.email?.trim();
     if (!email) return;
@@ -96,32 +94,19 @@ export function SessionLock({ forceLocked = false }: SessionLockProps = {}) {
     setLocked(true);
   }
 
+  // Au chargement : restaurer le verrou s’il était déjà actif (comportement d’origine).
   useEffect(() => {
     if (!skipIdle) {
       const existing = readSessionLockSnapshot();
-      if (forceLocked || (existing && isSessionIdleExpired())) {
-        const next =
-          existing ??
-          lastIdentityRef.current ??
-          ({
-            email: "",
-            organizationId: parseAdminContextFromPath(pathname).organizationId,
-            branchId: parseAdminContextFromPath(pathname).branchId,
-          } satisfies SessionLockSnapshot);
-        if (next.email) {
-          lockedRef.current = true;
-          setSnapshot(next);
-          setPassword("");
-          setError(null);
-          setLocked(true);
-        }
-      } else {
-        clearSessionLockSnapshot();
-        markSessionActivity();
+      if (existing?.email) {
+        applyLock(existing);
+      } else if (forceLocked) {
+        const next = lastIdentityRef.current ?? readLastSessionIdentity();
+        if (next?.email) applyLock(next);
       }
     }
     setReady(true);
-  }, [skipIdle, forceLocked, pathname]);
+  }, [skipIdle, forceLocked]);
 
   useEffect(() => {
     const onOpen = (event: Event) => {
@@ -144,51 +129,33 @@ export function SessionLock({ forceLocked = false }: SessionLockProps = {}) {
     };
   }, [locked, skipIdle]);
 
-  // Idle → soft-lock. Le délai repart seulement sur une action réelle,
-  // pas quand la session est simplement relue.
+  // Timer d’inactivité d’origine (mousemove / clavier / scroll…).
   useEffect(() => {
     const email = session?.user?.email;
     if (!ready || !email || locked || skipIdle) return;
 
-    const arm = () => {
+    const resetTimer = () => {
       if (lockedRef.current) return;
       if (document.querySelector('[data-idle-logout="off"]')) return;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      const last = readLastSessionActivity();
-      const elapsed = last > 0 ? Date.now() - last : 0;
-      const wait = Math.max(1000, SESSION_IDLE_MS - elapsed);
+
       timeoutRef.current = setTimeout(() => {
         if (document.querySelector('[data-idle-logout="off"]')) return;
-        if (!isSessionIdleExpired()) {
-          arm();
-          return;
-        }
-        const current = sessionRef.current;
         const fromPath = parseAdminContextFromPath(window.location.pathname);
         applyLock({
           email,
           organizationId:
             fromPath.organizationId ??
-            current?.session?.activeOrganizationId ??
-            current?.organization?.id ??
+            session.session?.activeOrganizationId ??
+            session.organization?.id ??
             null,
           branchId:
             fromPath.branchId ??
-            current?.session?.activeBranchId ??
-            current?.branch?.id ??
+            session.session?.activeBranchId ??
+            session.branch?.id ??
             null,
         });
-      }, wait);
-    };
-
-    let lastMark = 0;
-    const onActivity = () => {
-      if (lockedRef.current) return;
-      const now = Date.now();
-      if (now - lastMark < 1000) return;
-      lastMark = now;
-      markSessionActivity();
-      arm();
+      }, SESSION_IDLE_MS);
     };
 
     const events = [
@@ -200,32 +167,17 @@ export function SessionLock({ forceLocked = false }: SessionLockProps = {}) {
     ] as const;
 
     for (const event of events) {
-      window.addEventListener(event, onActivity, { passive: true });
+      window.addEventListener(event, resetTimer, { passive: true });
     }
-    arm();
+    resetTimer();
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       for (const event of events) {
-        window.removeEventListener(event, onActivity);
+        window.removeEventListener(event, resetTimer);
       }
     };
-  }, [session?.user?.email, locked, ready, skipIdle]);
-
-  // Un refetch qui vide brièvement la session ne verrouille pas.
-  // Le popup n’apparaît qu’après 30 minutes sans action.
-  useEffect(() => {
-    if (!ready || skipIdle || locked || isPending) return;
-    if (session) return;
-    if (!isSessionIdleExpired()) return;
-
-    const next =
-      readSessionLockSnapshot() ??
-      lastIdentityRef.current ??
-      readLastSessionIdentity();
-    if (!next?.email) return;
-    applyLock(next);
-  }, [ready, skipIdle, locked, isPending, session]);
+  }, [session, locked, ready, skipIdle]);
 
   function unlock() {
     clearSessionLockSnapshot();

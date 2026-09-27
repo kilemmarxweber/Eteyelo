@@ -1,11 +1,10 @@
-/** Soft-lock session (idle / session expirée) — partagé client. */
-/** Exports: readLastSessionIdentity, rememberSessionIdentity, requestSessionLock, … */
+/** Soft-lock session (idle) — partagé client. Même logique que l’implémentation d’origine. */
 
 export const SESSION_LOCK_STORAGE_KEY = "eteyelo:session-lock";
 export const SESSION_LAST_IDENTITY_KEY = "eteyelo:session-last-identity";
-export const SESSION_LAST_ACTIVITY_KEY = "eteyelo:last-activity";
-/** Verrouillage seulement après 30 minutes sans action sur la page. */
-export const SESSION_IDLE_MS = 30 * 60 * 1000;
+
+/** Inactivité avant verrouillage (système d’origine). */
+export const SESSION_IDLE_MS = 15 * 60 * 1000;
 
 /** Event pour forcer l’ouverture du popup depuis un autre composant. */
 export const SESSION_LOCK_OPEN_EVENT = "eteyelo:session-lock-open";
@@ -72,24 +71,6 @@ export function writeSessionLockSnapshot(snapshot: SessionLockSnapshot) {
 export function clearSessionLockSnapshot() {
   if (typeof window === "undefined") return;
   sessionStorage.removeItem(SESSION_LOCK_STORAGE_KEY);
-}
-
-export function markSessionActivity() {
-  if (typeof window === "undefined") return;
-  sessionStorage.setItem(SESSION_LAST_ACTIVITY_KEY, String(Date.now()));
-}
-
-export function readLastSessionActivity(): number {
-  if (typeof window === "undefined") return 0;
-  const value = Number(sessionStorage.getItem(SESSION_LAST_ACTIVITY_KEY) ?? 0);
-  return Number.isFinite(value) ? value : 0;
-}
-
-/** True seulement après 30 minutes sans action enregistrée. */
-export function isSessionIdleExpired(): boolean {
-  const last = readLastSessionActivity();
-  if (!last) return false;
-  return Date.now() - last >= SESSION_IDLE_MS;
 }
 
 export function parseAdminContextFromPath(pathname: string): {

@@ -17,7 +17,7 @@ import { BranchSessionResume } from "@/components/branch-session-resume";
 import { RouteChangeLoader } from "@/components/ui/route-change-loader";
 import { hideRouteLoader } from "@/lib/route-loader";
 import {
-  isSessionIdleExpired,
+  readSessionLockSnapshot,
   requestSessionLock,
 } from "@/lib/session-lock-storage";
 import { RefreshProvider, useRefresh } from "@/src/hooks/RefreshContext";
@@ -32,13 +32,14 @@ function BranchShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isPending || session) return;
 
-    // Un refetch vide ne verrouille pas. Le popup n’arrive qu’après 30 min sans action.
+    // Soft-lock actif → popup. Sinon attendre un peu (refetch), puis login.
     const timeout = window.setTimeout(() => {
       hideRouteLoader();
-      if (!isSessionIdleExpired()) return;
-      if (!requestSessionLock()) {
-        window.location.assign("/auth/sign-in");
+      if (readSessionLockSnapshot()?.email) {
+        requestSessionLock();
+        return;
       }
+      window.location.assign("/auth/sign-in");
     }, 2500);
 
     return () => window.clearTimeout(timeout);
