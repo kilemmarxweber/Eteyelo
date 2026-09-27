@@ -66,7 +66,7 @@ export function SessionLock({ forceLocked = false }: SessionLockProps = {}) {
 
   useEffect(() => {
     const email = session?.user?.email?.trim();
-    if (!email) return;
+    if (!email || !session) return;
     const fromPath = parseAdminContextFromPath(pathname);
     const identity: SessionLockSnapshot = {
       email,
@@ -132,7 +132,14 @@ export function SessionLock({ forceLocked = false }: SessionLockProps = {}) {
   // Timer d’inactivité d’origine (mousemove / clavier / scroll…).
   useEffect(() => {
     const email = session?.user?.email;
-    if (!ready || !email || locked || skipIdle) return;
+    if (!ready || !email || !session || locked || skipIdle) return;
+
+    const activeOrganizationId =
+      session.session?.activeOrganizationId ??
+      session.organization?.id ??
+      null;
+    const activeBranchId =
+      session.session?.activeBranchId ?? session.branch?.id ?? null;
 
     const arm = () => {
       if (lockedRef.current) return;
@@ -144,16 +151,8 @@ export function SessionLock({ forceLocked = false }: SessionLockProps = {}) {
         const fromPath = parseAdminContextFromPath(window.location.pathname);
         applyLock({
           email,
-          organizationId:
-            fromPath.organizationId ??
-            session.session?.activeOrganizationId ??
-            session.organization?.id ??
-            null,
-          branchId:
-            fromPath.branchId ??
-            session.session?.activeBranchId ??
-            session.branch?.id ??
-            null,
+          organizationId: fromPath.organizationId ?? activeOrganizationId,
+          branchId: fromPath.branchId ?? activeBranchId,
         });
       }, SESSION_IDLE_MS);
     };
