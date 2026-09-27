@@ -6,10 +6,7 @@ import { useEffect, useRef } from "react";
 import { useAppLoading } from "@/hooks/use-app-loading";
 
 import { NotFoundView } from "@/components/not-found-view";
-import {
-  readSessionLockSnapshot,
-  requestSessionLock,
-} from "@/lib/session-lock-storage";
+import { requestSessionLock } from "@/lib/session-lock-storage";
 
 function AuthGuard({
   children,
@@ -33,11 +30,8 @@ function AuthGuard({
 
     resetLoading();
 
-    // Soft-lock actif → popup (SessionLock), pas de page login.
-    if (readSessionLockSnapshot()?.email) {
-      requestSessionLock();
-      return;
-    }
+    // Soft-lock possible (snapshot ou lastIdentity) → popup, pas /auth/sign-in.
+    if (requestSessionLock()) return;
 
     // Laisser un court refetch si on avait déjà une session, puis login.
     if (!seenSession.current) {
@@ -46,10 +40,7 @@ function AuthGuard({
     }
 
     const timeout = window.setTimeout(() => {
-      if (readSessionLockSnapshot()?.email) {
-        requestSessionLock();
-        return;
-      }
+      if (requestSessionLock()) return;
       window.location.assign("/auth/sign-in");
     }, 2500);
 

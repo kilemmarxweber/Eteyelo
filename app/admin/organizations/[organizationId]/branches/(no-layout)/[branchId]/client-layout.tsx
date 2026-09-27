@@ -16,10 +16,7 @@ import { authClient } from "@/lib/auth-client";
 import { BranchSessionResume } from "@/components/branch-session-resume";
 import { RouteChangeLoader } from "@/components/ui/route-change-loader";
 import { hideRouteLoader } from "@/lib/route-loader";
-import {
-  readSessionLockSnapshot,
-  requestSessionLock,
-} from "@/lib/session-lock-storage";
+import { requestSessionLock } from "@/lib/session-lock-storage";
 import { RefreshProvider, useRefresh } from "@/src/hooks/RefreshContext";
 import type { UserLocale } from "@/lib/user-locale";
 import { cn } from "@/lib/utils";
@@ -32,13 +29,10 @@ function BranchShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isPending || session) return;
 
-    // Soft-lock actif → popup. Sinon attendre un peu (refetch), puis login.
+    // Soft-lock possible (snapshot ou lastIdentity) → popup. Sinon login.
     const timeout = window.setTimeout(() => {
       hideRouteLoader();
-      if (readSessionLockSnapshot()?.email) {
-        requestSessionLock();
-        return;
-      }
+      if (requestSessionLock()) return;
       window.location.assign("/auth/sign-in");
     }, 2500);
 

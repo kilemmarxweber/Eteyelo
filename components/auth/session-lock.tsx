@@ -134,7 +134,7 @@ export function SessionLock({ forceLocked = false }: SessionLockProps = {}) {
     const email = session?.user?.email;
     if (!ready || !email || locked || skipIdle) return;
 
-    const resetTimer = () => {
+    const arm = () => {
       if (lockedRef.current) return;
       if (document.querySelector('[data-idle-logout="off"]')) return;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -158,6 +158,16 @@ export function SessionLock({ forceLocked = false }: SessionLockProps = {}) {
       }, SESSION_IDLE_MS);
     };
 
+    // Debounce 1s : évite querySelector + clear/setTimeout à chaque mousemove.
+    let lastArm = 0;
+    const onActivity = () => {
+      if (lockedRef.current) return;
+      const now = Date.now();
+      if (now - lastArm < 1000) return;
+      lastArm = now;
+      arm();
+    };
+
     const events = [
       "mousemove",
       "keydown",
@@ -167,14 +177,14 @@ export function SessionLock({ forceLocked = false }: SessionLockProps = {}) {
     ] as const;
 
     for (const event of events) {
-      window.addEventListener(event, resetTimer, { passive: true });
+      window.addEventListener(event, onActivity, { passive: true });
     }
-    resetTimer();
+    arm();
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       for (const event of events) {
-        window.removeEventListener(event, resetTimer);
+        window.removeEventListener(event, onActivity);
       }
     };
   }, [session, locked, ready, skipIdle]);
