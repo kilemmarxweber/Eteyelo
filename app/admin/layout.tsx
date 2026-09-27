@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 
 import { AppIntlProvider } from "@/components/app-intl-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { UserLocaleSync } from "@/components/user-locale-sync";
 import { UserThemeSync } from "@/components/user-theme-sync";
+import { AdminSessionExpiredGate } from "@/components/auth/admin-session-expired-gate";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { TemporaryPrivilegeBanner } from "@/components/layout/temporary-privilege-banner";
 import { auth } from "@/lib/auth";
@@ -42,8 +42,9 @@ export default async function AdminLayout({
     headers: requestHeaders,
   });
 
+  // Soft-lock (popup) plutôt que /auth/sign-in — l’identité est en sessionStorage.
   if (!session?.user) {
-    redirect("/auth/sign-in");
+    return <AdminSessionExpiredGate />;
   }
 
   const pathname = requestHeaders.get("x-pathname") ?? "/admin";

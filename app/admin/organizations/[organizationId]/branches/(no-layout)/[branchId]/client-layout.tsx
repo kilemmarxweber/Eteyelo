@@ -16,6 +16,10 @@ import { authClient } from "@/lib/auth-client";
 import { BranchSessionResume } from "@/components/branch-session-resume";
 import { RouteChangeLoader } from "@/components/ui/route-change-loader";
 import { hideRouteLoader } from "@/lib/route-loader";
+import {
+  isSessionIdleExpired,
+  requestSessionLock,
+} from "@/lib/session-lock-storage";
 import { RefreshProvider, useRefresh } from "@/src/hooks/RefreshContext";
 import type { UserLocale } from "@/lib/user-locale";
 import { cn } from "@/lib/utils";
@@ -28,10 +32,13 @@ function BranchShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isPending || session) return;
 
-    // Ne démonte plus le shell si la session clignote — redirection douce seulement.
+    // Un refetch vide ne verrouille pas. Le popup n’arrive qu’après 30 min sans action.
     const timeout = window.setTimeout(() => {
       hideRouteLoader();
-      window.location.assign("/auth/sign-in");
+      if (!isSessionIdleExpired()) return;
+      if (!requestSessionLock()) {
+        window.location.assign("/auth/sign-in");
+      }
     }, 2500);
 
     return () => window.clearTimeout(timeout);

@@ -7,7 +7,7 @@ import {
   useTransition,
   type FormEvent,
 } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LockKeyhole } from "lucide-react";
 
 import { restoreSessionLockContextAction } from "@/app/admin/session-lock/restore-context.action";
@@ -15,15 +15,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient, useSession } from "@/lib/auth-client";
-
-const INACTIVE_MS = 15 * 60 * 1000;
-const LOCK_STORAGE_KEY = "eteyelo:session-lock";
-
-type LockSnapshot = {
-  email: string;
-  organizationId: string | null;
-  branchId: string | null;
-};
+import {
+  SESSION_LOCK_OPEN_EVENT,
+  clearSessionLockSnapshot,
+  isSessionIdleExpired,
+  markSessionActivity,
+  parseAdminContextFromPath,
+  readLastSessionActivity,
+  readLastSessionIdentity,
+  readSessionLockSnapshot,
+  rememberSessionIdentity,
+  SESSION_IDLE_MS,
+  writeSessionLockSnapshot,
+  type SessionLockSnapshot,
+} from "@/lib/session-lock-storage";
 
 function isIdleSkipPath(pathname: string) {
   return (
@@ -34,80 +39,100 @@ function isIdleSkipPath(pathname: string) {
   );
 }
 
-function parseAdminContext(pathname: string): {
-  organizationId: string | null;
-  branchId: string | null;
-} {
-  const orgMatch = pathname.match(/^\/admin\/organizations\/([^/]+)/);
-  const branchMatch = pathname.match(
-    /^\/admin\/organizations\/[^/]+\/branches\/([^/]+)/,
-  );
-  const rawBranchId = branchMatch?.[1] ?? null;
-  const branchId =
-    rawBranchId && !["new", "edit", "enter"].includes(rawBranchId)
-      ? rawBranchId
-      : null;
+type SessionLockProps = {
+  /** Forcer le popup (ex. layout admin sans session serveur). */
+  forceLocked?: boolean;
+};
 
-  return {
-    organizationId: orgMatch?.[1] ?? null,
-    branchId,
-  };
-}
-
-function readLockSnapshot(): LockSnapshot | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = sessionStorage.getItem(LOCK_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as LockSnapshot;
-    if (!parsed?.email) return null;
-    return {
-      email: parsed.email,
-      organizationId: parsed.organizationId ?? null,
-      branchId: parsed.branchId ?? null,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function writeLockSnapshot(snapshot: LockSnapshot) {
-  sessionStorage.setItem(LOCK_STORAGE_KEY, JSON.stringify(snapshot));
-}
-
-function clearLockSnapshot() {
-  sessionStorage.removeItem(LOCK_STORAGE_KEY);
-}
-
-export function SessionLock() {
+export function SessionLock({ forceLocked = false }: SessionLockProps = {}) {
   const pathname = usePathname();
+  const router = useRouter();
   const skipIdle = isIdleSkipPath(pathname);
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
   const [ready, setReady] = useState(false);
   const [locked, setLocked] = useState(false);
-  const [snapshot, setSnapshot] = useState<LockSnapshot | null>(null);
+  const [snapshot, setSnapshot] = useState<SessionLockSnapshot | null>(null);
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [isPendingUnlock, startTransition] = useTransition();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lockedRef = useRef(false);
+  const lastIdentityRef = useRef<SessionLockSnapshot | null>(null);
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
 
   useEffect(() => {
     lockedRef.current = locked;
   }, [locked]);
 
+  // Mémorise la dernière identité connue tant que la session est valide.
+  useEffect(() => {
+    const email = session?.user?.email?.trim();
+    if (!email) return;
+    const fromPath = parseAdminContextFromPath(pathname);
+    const identity: SessionLockSnapshot = {
+      email,
+      organizationId:
+        fromPath.organizationId ??
+        session.session?.activeOrganizationId ??
+        session.organization?.id ??
+        null,
+      branchId:
+        fromPath.branchId ??
+        session.session?.activeBranchId ??
+        session.branch?.id ??
+        null,
+    };
+    lastIdentityRef.current = identity;
+    rememberSessionIdentity(identity);
+  }, [session, pathname]);
+
+  function applyLock(next: SessionLockSnapshot) {
+    writeSessionLockSnapshot(next);
+    lockedRef.current = true;
+    setSnapshot(next);
+    setPassword("");
+    setError(null);
+    setLocked(true);
+  }
+
   useEffect(() => {
     if (!skipIdle) {
-      const existing = readLockSnapshot();
-      if (existing) {
-        lockedRef.current = true;
-        setSnapshot(existing);
-        setPassword("");
-        setError(null);
-        setLocked(true);
+      const existing = readSessionLockSnapshot();
+      if (forceLocked || (existing && isSessionIdleExpired())) {
+        const next =
+          existing ??
+          lastIdentityRef.current ??
+          ({
+            email: "",
+            organizationId: parseAdminContextFromPath(pathname).organizationId,
+            branchId: parseAdminContextFromPath(pathname).branchId,
+          } satisfies SessionLockSnapshot);
+        if (next.email) {
+          lockedRef.current = true;
+          setSnapshot(next);
+          setPassword("");
+          setError(null);
+          setLocked(true);
+        }
+      } else {
+        clearSessionLockSnapshot();
+        markSessionActivity();
       }
     }
     setReady(true);
+  }, [skipIdle, forceLocked, pathname]);
+
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      if (skipIdle) return;
+      const detail = (event as CustomEvent<SessionLockSnapshot>).detail;
+      const next = detail?.email ? detail : readSessionLockSnapshot();
+      if (!next?.email) return;
+      applyLock(next);
+    };
+    window.addEventListener(SESSION_LOCK_OPEN_EVENT, onOpen);
+    return () => window.removeEventListener(SESSION_LOCK_OPEN_EVENT, onOpen);
   }, [skipIdle]);
 
   useEffect(() => {
@@ -119,38 +144,51 @@ export function SessionLock() {
     };
   }, [locked, skipIdle]);
 
+  // Idle → soft-lock. Le délai repart seulement sur une action réelle,
+  // pas quand la session est simplement relue.
   useEffect(() => {
     const email = session?.user?.email;
     if (!ready || !email || locked || skipIdle) return;
 
-    const resetTimer = () => {
+    const arm = () => {
       if (lockedRef.current) return;
       if (document.querySelector('[data-idle-logout="off"]')) return;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
+      const last = readLastSessionActivity();
+      const elapsed = last > 0 ? Date.now() - last : 0;
+      const wait = Math.max(1000, SESSION_IDLE_MS - elapsed);
       timeoutRef.current = setTimeout(() => {
         if (document.querySelector('[data-idle-logout="off"]')) return;
-        const fromPath = parseAdminContext(window.location.pathname);
-        const nextSnapshot: LockSnapshot = {
+        if (!isSessionIdleExpired()) {
+          arm();
+          return;
+        }
+        const current = sessionRef.current;
+        const fromPath = parseAdminContextFromPath(window.location.pathname);
+        applyLock({
           email,
           organizationId:
             fromPath.organizationId ??
-            session.session?.activeOrganizationId ??
-            session.organization?.id ??
+            current?.session?.activeOrganizationId ??
+            current?.organization?.id ??
             null,
           branchId:
             fromPath.branchId ??
-            session.session?.activeBranchId ??
-            session.branch?.id ??
+            current?.session?.activeBranchId ??
+            current?.branch?.id ??
             null,
-        };
-        writeLockSnapshot(nextSnapshot);
-        lockedRef.current = true;
-        setSnapshot(nextSnapshot);
-        setPassword("");
-        setError(null);
-        setLocked(true);
-      }, INACTIVE_MS);
+        });
+      }, wait);
+    };
+
+    let lastMark = 0;
+    const onActivity = () => {
+      if (lockedRef.current) return;
+      const now = Date.now();
+      if (now - lastMark < 1000) return;
+      lastMark = now;
+      markSessionActivity();
+      arm();
     };
 
     const events = [
@@ -162,20 +200,35 @@ export function SessionLock() {
     ] as const;
 
     for (const event of events) {
-      window.addEventListener(event, resetTimer, { passive: true });
+      window.addEventListener(event, onActivity, { passive: true });
     }
-    resetTimer();
+    arm();
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       for (const event of events) {
-        window.removeEventListener(event, resetTimer);
+        window.removeEventListener(event, onActivity);
       }
     };
-  }, [session, locked, ready, skipIdle]);
+  }, [session?.user?.email, locked, ready, skipIdle]);
+
+  // Un refetch qui vide brièvement la session ne verrouille pas.
+  // Le popup n’apparaît qu’après 30 minutes sans action.
+  useEffect(() => {
+    if (!ready || skipIdle || locked || isPending) return;
+    if (session) return;
+    if (!isSessionIdleExpired()) return;
+
+    const next =
+      readSessionLockSnapshot() ??
+      lastIdentityRef.current ??
+      readLastSessionIdentity();
+    if (!next?.email) return;
+    applyLock(next);
+  }, [ready, skipIdle, locked, isPending, session]);
 
   function unlock() {
-    clearLockSnapshot();
+    clearSessionLockSnapshot();
     lockedRef.current = false;
     setLocked(false);
     setSnapshot(null);
@@ -217,11 +270,12 @@ export function SessionLock() {
 
       await authClient.getSession();
       unlock();
+      router.refresh();
     });
   }
 
   async function handleSignOut() {
-    clearLockSnapshot();
+    clearSessionLockSnapshot();
     try {
       await authClient.signOut();
     } catch {
@@ -283,7 +337,7 @@ export function SessionLock() {
               autoFocus
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              disabled={isPending}
+              disabled={isPendingUnlock}
               className="h-11"
               placeholder="Votre mot de passe"
             />
@@ -299,7 +353,7 @@ export function SessionLock() {
             <Button
               type="button"
               className="h-11 rounded-md bg-red-600 text-white hover:bg-red-700"
-              disabled={isPending}
+              disabled={isPendingUnlock}
               onClick={() => void handleSignOut()}
             >
               Se déconnecter
@@ -307,9 +361,9 @@ export function SessionLock() {
             <Button
               type="submit"
               className="h-11 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-              disabled={isPending || !password.trim()}
+              disabled={isPendingUnlock || !password.trim()}
             >
-              {isPending ? "Vérification…" : "Continuer"}
+              {isPendingUnlock ? "Vérification…" : "Continuer"}
             </Button>
           </div>
         </form>
