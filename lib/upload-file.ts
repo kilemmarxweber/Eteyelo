@@ -17,9 +17,24 @@ export const MAX_DOCUMENT_UPLOAD_BYTES = 10 * 1024 * 1024;
 export const MAX_VIDEO_UPLOAD_BYTES = 50 * 1024 * 1024;
 
 /** Message lisible quand le serveur / proxy renvoie une réponse non-JSON. */
-function invalidUploadResponseMessage(status: number): string {
+function invalidUploadResponseMessage(
+  status: number,
+  responseText?: string,
+): string {
   if (status === 413) {
-    return "La vidéo est trop volumineuse pour le serveur (limite 50 Mo). Choisissez un fichier plus léger.";
+    const fromNginx = /nginx|Request Entity Too Large/i.test(
+      responseText ?? "",
+    );
+    if (fromNginx) {
+      return (
+        "Le reverse proxy (nginx) refuse l’upload (client_max_body_size trop bas, souvent 1 Mo). " +
+        "Augmentez-le à 64m côté serveur, puis rechargez nginx — ce n’est pas la limite app (50 Mo)."
+      );
+    }
+    return (
+      "Upload refusé (HTTP 413) : un proxy ou le serveur limite la taille du corps de requête. " +
+      "Vérifiez client_max_body_size (nginx) / maxAllowedContentLength (IIS). Limite app : 50 Mo."
+    );
   }
   if (status === 502 || status === 504) {
     return "Le serveur d'upload a mis trop de temps à répondre. Réessayez avec une vidéo plus courte.";
@@ -68,7 +83,7 @@ export async function uploadFile(
 
       return {
         ok: false,
-        message: invalidUploadResponseMessage(response.status),
+        message: invalidUploadResponseMessage(response.status, responseText),
       };
     }
 
@@ -161,7 +176,7 @@ export async function uploadDocument(
 
       return {
         ok: false,
-        message: invalidUploadResponseMessage(response.status),
+        message: invalidUploadResponseMessage(response.status, responseText),
       };
     }
 
@@ -229,7 +244,7 @@ export async function uploadVideo(
 
       return {
         ok: false,
-        message: invalidUploadResponseMessage(response.status),
+        message: invalidUploadResponseMessage(response.status, responseText),
       };
     }
 
