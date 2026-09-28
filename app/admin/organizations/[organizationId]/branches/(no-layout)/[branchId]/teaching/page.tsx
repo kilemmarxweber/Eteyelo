@@ -13,6 +13,7 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconSearch,
+  IconTrash,
   IconUserOff,
   IconUsers,
   IconX,
@@ -1028,14 +1029,15 @@ export default function TeachingWorkspacePage() {
                           {assignment ? (
                             <Button
                               type="button"
-                              size="sm"
+                              size="icon"
                               variant="ghost"
-                              className="text-destructive hover:text-destructive"
+                              className="size-8 text-destructive hover:text-destructive"
                               disabled={isSaving || pending}
                               onClick={() => removeAssignments([course.id])}
+                              title={t("removeAction")}
+                              aria-label={t("removeAction")}
                             >
-                              <IconX className="mr-1 size-4" />
-                              {t("removeAction")}
+                              <IconTrash className="size-4" />
                             </Button>
                           ) : (
                             <span className="text-xs text-muted-foreground">—</span>
