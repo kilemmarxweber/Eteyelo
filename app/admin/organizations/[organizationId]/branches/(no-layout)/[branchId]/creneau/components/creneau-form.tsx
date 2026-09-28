@@ -88,7 +88,9 @@ const controlledNumber = (value: unknown) =>
 const toFormNumber = (value: string, fallback: number) => {
   if (value === "") return fallback;
   const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
+  if (!Number.isFinite(parsed)) return fallback;
+  // Entier exact (évite 30.0001 → 31 via arrondi navigateur / step).
+  return Math.trunc(parsed);
 };
 
 type StructurePreset = {
@@ -527,7 +529,8 @@ export function CreneauUpForm({
                         type="number"
                         min={1}
                         max={720}
-                        step={isAtelier ? 1 : 15}
+                        step={1}
+                        inputMode="numeric"
                         placeholder={isAtelier ? "360" : "45"}
                         className={controlClass}
                         {...field}

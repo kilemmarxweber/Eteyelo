@@ -403,7 +403,7 @@
       "start": "Start",
       "end": "End",
       "sessionDurationLabel": "Session duration (min)",
-      "sessionDurationDesc": "Standard session duration.",
+      "sessionDurationDesc": "Free entry (e.g. 30, 40, 45…). No automatic rounding.",
       "sessionDurationDescAtelier": "Calculated automatically: end − start (e.g. 07:30–13:30 = 360 min).",
       "recreation": "Break",
       "recreationDesc": "Break scheduled in the middle of the time slot.",

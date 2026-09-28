@@ -403,7 +403,7 @@
       "start": "Início",
       "end": "Fim",
       "sessionDurationLabel": "Duração da sessão (min)",
-      "sessionDurationDesc": "Duração standard de uma sessão.",
+      "sessionDurationDesc": "Entrada livre (ex. 30, 40, 45…). Sem arredondamento automático.",
       "sessionDurationDescAtelier": "Calculada automaticamente: fim − início (ex. 07:30–13:30 = 360 min).",
       "recreation": "Intervalo",
       "recreationDesc": "Pausa prevista a meio do turno.",

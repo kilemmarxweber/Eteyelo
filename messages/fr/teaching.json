@@ -403,7 +403,7 @@
       "start": "Début",
       "end": "Fin",
       "sessionDurationLabel": "Durée séance (min)",
-      "sessionDurationDesc": "Durée standard d'une séance.",
+      "sessionDurationDesc": "Saisie libre (ex. 30, 40, 45…). Pas d’arrondi automatique.",
       "sessionDurationDescAtelier": "Calculée automatiquement : fin − début (ex. 07:30–13:30 = 360 min).",
       "recreation": "Récréation",
       "recreationDesc": "Pause prévue au milieu de la vacation.",
