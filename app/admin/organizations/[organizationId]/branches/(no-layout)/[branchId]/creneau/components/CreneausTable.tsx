@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Coffee, Edit, Archive, MoreHorizontal, Clock, Trash2 } from "lucide-react";
+import { Coffee, Edit, Archive, ArchiveRestore, MoreHorizontal, Clock, Trash2 } from "lucide-react";
 
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
@@ -93,6 +93,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
 
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedCreneau, setSelectedCreneau] = useState<ICreneau | null>(null);
   const [localRefreshKey, setLocalRefreshKey] = useState(0);
@@ -102,7 +103,10 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
     getBranchTypeAction()
       .then(([result]) => {
         if (ignore || !result) return;
-        setIsAtelier(isAtelierBranch(result.typebranch));
+        const atelier = isAtelierBranch(result.typebranch);
+        setIsAtelier(atelier);
+        // Atelier : voir actives + archivées pour éviter « disparition » après archive.
+        if (atelier) setStatusFilter("all");
       })
       .catch(() => {
         /* ignore */
@@ -160,6 +164,11 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
     openOverlayAfterMenuDismiss(() => setShowArchiveDialog(true));
   }, []);
 
+  const handleRestore = useCallback((creneau: ICreneau) => {
+    setSelectedCreneau(creneau);
+    openOverlayAfterMenuDismiss(() => setShowRestoreDialog(true));
+  }, []);
+
   const handleDelete = useCallback((creneau: ICreneau) => {
     setSelectedCreneau(creneau);
     openOverlayAfterMenuDismiss(() => setShowDeleteDialog(true));
@@ -168,6 +177,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
   const handleActionSuccess = () => {
     setShowUpdateDialog(false);
     setShowArchiveDialog(false);
+    setShowRestoreDialog(false);
     setShowDeleteDialog(false);
     setSelectedCreneau(null);
     setLocalRefreshKey((value) => value + 1);
@@ -278,7 +288,12 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
                   <Archive className="mr-2 h-4 w-4" />
                   {tc("archive")}
                 </DropdownMenuItem>
-              ) : null}
+              ) : (
+                <DropdownMenuItem onClick={() => handleRestore(creneau)}>
+                  <ArchiveRestore className="mr-2 h-4 w-4" />
+                  {t("unarchive")}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 className="text-destructive focus:bg-destructive/10 focus:text-destructive"
                 onClick={() => handleDelete(creneau)}
@@ -292,7 +307,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
       },
     ];
     return cols;
-  }, [handleArchive, handleDelete, handleEdit, isAtelier, locale, t, tc]);
+  }, [handleArchive, handleDelete, handleEdit, handleRestore, isAtelier, locale, t, tc]);
 
   const cardConfig = useMemo(
     () => ({
@@ -350,7 +365,14 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
           variant: "outline" as const,
         },
         ...(creneau.isArchived
-          ? []
+          ? [
+              {
+                label: t("unarchive"),
+                icon: ArchiveRestore,
+                onClick: () => handleRestore(creneau),
+                variant: "outline" as const,
+              },
+            ]
           : [
               {
                 label: tc("archive"),
@@ -367,7 +389,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
         },
       ],
     }),
-    [handleArchive, handleDelete, handleEdit, isAtelier, t, tc],
+    [handleArchive, handleDelete, handleEdit, handleRestore, isAtelier, t, tc],
   );
 
   const filterOptions = useMemo(
@@ -399,7 +421,13 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
         columns={columns}
         cardConfig={cardConfig}
         loading={loading}
-        emptyMessage={t("empty")}
+        emptyMessage={
+          statusFilter === "active"
+            ? t("emptyActive")
+            : statusFilter === "archived"
+              ? t("emptyArchived")
+              : t("empty")
+        }
         searchTerm={searchTerm}
       />
 
@@ -416,6 +444,14 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
             onOpenChange={setShowArchiveDialog}
             Creneaus={[selectedCreneau]}
             showTrigger={false}
+            onSuccess={handleActionSuccess}
+          />
+          <DeleteCreneausDialog
+            open={showRestoreDialog}
+            onOpenChange={setShowRestoreDialog}
+            Creneaus={[selectedCreneau]}
+            showTrigger={false}
+            restore
             onSuccess={handleActionSuccess}
           />
           <DeleteCreneausDialog

@@ -23,6 +23,7 @@ import { ICreneau } from "@/src/interfaces/creneau";
 import {
   archiveCreneauAction,
   deleteCreneauPermanentlyAction,
+  unarchiveCreneauAction,
 } from "../creneau.action";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
@@ -32,6 +33,8 @@ interface DeleteCreneausDialogProps
   onSuccess?: () => void;
   Creneaus: Row<ICreneau>["original"][];
   permanent?: boolean;
+  /** Désarchiver (réactiver) au lieu d’archiver. */
+  restore?: boolean;
 }
 
 function creneauClassesCount(creneau: ICreneau) {
@@ -43,6 +46,7 @@ export function DeleteCreneausDialog({
   onSuccess,
   Creneaus,
   permanent = false,
+  restore = false,
   ...props
 }: DeleteCreneausDialogProps) {
   const t = useTranslations("teaching.vacation.deleteDialog");
@@ -56,32 +60,47 @@ export function DeleteCreneausDialog({
     0,
   );
   const blocked = permanent && blockedCount > 0;
+  const mode = permanent ? "delete" : restore ? "restore" : "archive";
 
   const handleConfirm = () => {
     if (blocked) return;
     startTransition(async () => {
       let hasError = false;
       for (const creneau of Creneaus) {
-        const [, err] = permanent
-          ? await deleteCreneauPermanentlyAction({ id: creneau.id })
-          : await archiveCreneauAction(creneau);
+        const [, err] =
+          mode === "delete"
+            ? await deleteCreneauPermanentlyAction({ id: creneau.id })
+            : mode === "restore"
+              ? await unarchiveCreneauAction({
+                  id: creneau.id,
+                  nameCreneau: creneau.nameCreneau,
+                })
+              : await archiveCreneauAction(creneau);
         if (err) {
           toast.error(
             err.message ??
-              (permanent ? tc("errorDelete") : tc("errorArchive")),
+              (mode === "delete"
+                ? tc("errorDelete")
+                : mode === "restore"
+                  ? t("restoreFailed")
+                  : tc("errorArchive")),
           );
           hasError = true;
         }
       }
       if (!hasError) {
         toast.success(
-          permanent
+          mode === "delete"
             ? count === 1
               ? t("deletedOne")
               : t("deletedMany")
-            : count === 1
-              ? t("archivedOne")
-              : t("archivedMany"),
+            : mode === "restore"
+              ? count === 1
+                ? t("restoredOne")
+                : t("restoredMany")
+              : count === 1
+                ? t("archivedOne")
+                : t("archivedMany"),
         );
         refresh();
         onSuccess?.();
@@ -95,14 +114,18 @@ export function DeleteCreneausDialog({
       {showTrigger ? (
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            {permanent ? (
+            {mode === "delete" ? (
               <IconTrash className="mr-2 size-4" aria-hidden="true" />
+            ) : mode === "restore" ? (
+              <IconReload className="mr-2 size-4" aria-hidden="true" />
             ) : (
               <IconArchive className="mr-2 size-4" aria-hidden="true" />
             )}
-            {permanent
+            {mode === "delete"
               ? t("deleteCount", { count })
-              : t("archiveCount", { count })}
+              : mode === "restore"
+                ? t("restoreCount", { count })
+                : t("archiveCount", { count })}
           </Button>
         </DialogTrigger>
       ) : null}
@@ -114,26 +137,34 @@ export function DeleteCreneausDialog({
           <DialogTitle>
             {blocked
               ? tc("cannotDelete")
-              : permanent
+              : mode === "delete"
                 ? count === 1
                   ? t("titleDeleteOne")
                   : t("titleDeleteMany", { count })
-                : count === 1
-                  ? t("titleArchiveOne")
-                  : t("titleArchiveMany", { count })}
+                : mode === "restore"
+                  ? count === 1
+                    ? t("titleRestoreOne")
+                    : t("titleRestoreMany", { count })
+                  : count === 1
+                    ? t("titleArchiveOne")
+                    : t("titleArchiveMany", { count })}
           </DialogTitle>
           <DialogDescription>
             {blocked
               ? count === 1
                 ? t("blockedOne", { count: blockedCount })
                 : t("blockedMany", { count: blockedCount })
-              : permanent
+              : mode === "delete"
                 ? count === 1
                   ? t("permanentOne")
                   : t("permanentMany")
-                : count === 1
-                  ? t("archiveOne")
-                  : t("archiveMany")}
+                : mode === "restore"
+                  ? count === 1
+                    ? t("restoreOne")
+                    : t("restoreMany")
+                  : count === 1
+                    ? t("archiveOne")
+                    : t("archiveMany")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
@@ -145,9 +176,13 @@ export function DeleteCreneausDialog({
           {blocked ? null : (
             <Button
               aria-label={
-                permanent ? tc("deleteSelection") : tc("archiveSelection")
+                mode === "delete"
+                  ? tc("deleteSelection")
+                  : mode === "restore"
+                    ? t("restoreCount", { count })
+                    : tc("archiveSelection")
               }
-              variant="destructive"
+              variant={mode === "restore" ? "default" : "destructive"}
               onClick={handleConfirm}
               disabled={isPending}
             >
@@ -156,12 +191,18 @@ export function DeleteCreneausDialog({
                   className="mr-2 size-4 animate-spin"
                   aria-hidden="true"
                 />
-              ) : permanent ? (
+              ) : mode === "delete" ? (
                 <IconTrash className="mr-2 size-4" aria-hidden="true" />
+              ) : mode === "restore" ? (
+                <IconReload className="mr-2 size-4" aria-hidden="true" />
               ) : (
                 <IconArchive className="mr-2 size-4" aria-hidden="true" />
               )}
-              {permanent ? tc("delete") : tc("archive")}
+              {mode === "delete"
+                ? tc("delete")
+                : mode === "restore"
+                  ? t("restore")
+                  : tc("archive")}
             </Button>
           )}
         </DialogFooter>

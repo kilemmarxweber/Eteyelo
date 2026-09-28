@@ -170,6 +170,37 @@ export const archiveCreneauAction = action
 /** @deprecated Utiliser archiveCreneauAction */
 export const deleteCreneauAction = archiveCreneauAction;
 
+export const unarchiveCreneauAction = action
+  .input(
+    z.object({
+      id: z.string().min(1),
+      nameCreneau: z.string().min(1),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireBranchContext();
+    const { id, nameCreneau } = input;
+
+    const existCreneau = await prisma.creneau.findFirst({
+      where: { id, branchId, nameCreneau, isArchived: true },
+      select: { id: true },
+    });
+    if (!existCreneau) {
+      throw new Error("Vacation archivée introuvable");
+    }
+
+    const restored = await prisma.creneau.update({
+      where: { id },
+      data: {
+        isArchived: false,
+        archivedAt: null,
+        archivedById: null,
+      },
+    });
+    revalidateCreneauPages(organizationId, branchId);
+    return restored;
+  });
+
 export const deleteCreneauPermanentlyAction = action
   .input(z.object({ id: z.string().min(1) }))
   .handler(async ({ input }) => {

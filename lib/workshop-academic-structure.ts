@@ -49,49 +49,33 @@ async function ensureWorkshopCreneauSlot(
     endM: number;
     durationCourse: number;
   },
-): Promise<{ id: string; nameCreneau: string }> {
+): Promise<{ id: string; nameCreneau: string; isArchived: boolean }> {
   const nameMatchers = [
     params.name,
     ...(params.legacyNames ?? []),
   ];
+  const nameOr = nameMatchers.map((name) => ({
+    nameCreneau: { equals: name, mode: "insensitive" as const },
+  }));
 
+  // 1) Slot actif
   let creneau = await db.creneau.findFirst({
     where: {
       branchId,
       isArchived: false,
-      OR: nameMatchers.map((name) => ({
-        nameCreneau: { equals: name, mode: "insensitive" as const },
-      })),
+      OR: nameOr,
     },
     select: {
       id: true,
       nameCreneau: true,
       recreationDuration: true,
       durationCourse: true,
+      isArchived: true,
     },
     orderBy: { createdAt: "asc" },
   });
 
-  if (!creneau) {
-    creneau = await db.creneau.create({
-      data: {
-        branchId,
-        nameCreneau: params.name,
-        startTime: workshopTimeUtc(params.startH, params.startM),
-        endTime: workshopTimeUtc(params.endH, params.endM),
-        durationCourse: params.durationCourse,
-        recreationDuration: 0,
-        recreationHour: workshopTimeUtc(params.startH, params.startM),
-        workingDays: DEFAULT_CRENEAU_WORKING_DAYS,
-      },
-      select: {
-        id: true,
-        nameCreneau: true,
-        recreationDuration: true,
-        durationCourse: true,
-      },
-    });
-  } else {
+  if (creneau) {
     const needsUpdate =
       creneau.nameCreneau !== params.name ||
       (creneau.recreationDuration ?? 0) > 0 ||
@@ -115,24 +99,71 @@ async function ensureWorkshopCreneauSlot(
           nameCreneau: true,
           recreationDuration: true,
           durationCourse: true,
+          isArchived: true,
         },
       });
     }
+    return {
+      id: creneau.id,
+      nameCreneau: creneau.nameCreneau,
+      isArchived: Boolean(creneau.isArchived),
+    };
   }
 
-  return { id: creneau.id, nameCreneau: creneau.nameCreneau };
+  // 2) Déjà existant mais archivé → on respecte l’archivage (pas de recreate).
+  const archived = await db.creneau.findFirst({
+    where: {
+      branchId,
+      OR: nameOr,
+    },
+    select: { id: true, nameCreneau: true, isArchived: true },
+    orderBy: { createdAt: "asc" },
+  });
+  if (archived) {
+    return {
+      id: archived.id,
+      nameCreneau: archived.nameCreneau,
+      isArchived: Boolean(archived.isArchived),
+    };
+  }
+
+  // 3) Aucun slot → créer
+  const created = await db.creneau.create({
+    data: {
+      branchId,
+      nameCreneau: params.name,
+      startTime: workshopTimeUtc(params.startH, params.startM),
+      endTime: workshopTimeUtc(params.endH, params.endM),
+      durationCourse: params.durationCourse,
+      recreationDuration: 0,
+      recreationHour: workshopTimeUtc(params.startH, params.startM),
+      workingDays: DEFAULT_CRENEAU_WORKING_DAYS,
+    },
+    select: {
+      id: true,
+      nameCreneau: true,
+      isArchived: true,
+    },
+  });
+
+  return {
+    id: created.id,
+    nameCreneau: created.nameCreneau,
+    isArchived: Boolean(created.isArchived),
+  };
 }
 
 /**
  * Vacations atelier matin + soir, sans récréation.
- * Les groupes sans vacation sont rattachés au créneau matin.
+ * Les groupes sans vacation sont rattachés au premier créneau actif.
+ * Un créneau archivé n’est jamais recrée ni réactivé automatiquement.
  */
 export async function ensureWorkshopCreneau(
   db: AcademicDb,
   branchId: string,
 ): Promise<{
-  matin: { id: string; nameCreneau: string };
-  soir: { id: string; nameCreneau: string };
+  matin: { id: string; nameCreneau: string; isArchived: boolean };
+  soir: { id: string; nameCreneau: string; isArchived: boolean };
 }> {
   const matin = await ensureWorkshopCreneauSlot(db, branchId, {
     name: WORKSHOP_CRENEAU_NAME,
@@ -153,14 +184,22 @@ export async function ensureWorkshopCreneau(
     durationCourse: 360,
   });
 
-  await db.classe.updateMany({
-    where: {
-      branchId,
-      creneauId: null,
-      OR: [{ cycle: "ATELIER" }, { cycle: null, level: "Groupe" }],
-    },
-    data: { creneauId: matin.id },
-  });
+  const defaultActive = !matin.isArchived
+    ? matin
+    : !soir.isArchived
+      ? soir
+      : null;
+
+  if (defaultActive) {
+    await db.classe.updateMany({
+      where: {
+        branchId,
+        creneauId: null,
+        OR: [{ cycle: "ATELIER" }, { cycle: null, level: "Groupe" }],
+      },
+      data: { creneauId: defaultActive.id },
+    });
+  }
 
   return { matin, soir };
 }
@@ -275,6 +314,11 @@ export async function ensureWorkshopAcademicStructure(
   await ensureWorkshopFeeType(db, branchId);
   await ensurePracticalDomainsForBranch(db, branchId);
   const { matin, soir } = await ensureWorkshopCreneau(db, branchId);
+  const defaultCreneau = !matin.isArchived
+    ? matin
+    : !soir.isArchived
+      ? soir
+      : matin;
 
   return {
     section: { id: section.id, nameSection: section.nameSection },
@@ -283,8 +327,8 @@ export async function ensureWorkshopAcademicStructure(
       nameOption: option.nameOption,
       codeOption: option.codeOption,
     },
-    creneau: matin,
-    creneauSoir: soir,
+    creneau: { id: defaultCreneau.id, nameCreneau: defaultCreneau.nameCreneau },
+    creneauSoir: { id: soir.id, nameCreneau: soir.nameCreneau },
   };
 }
 
