@@ -58,6 +58,7 @@ import { vacationBelongsToCycle } from "@/lib/creneau-cycle";
 import { compareClassesByLevel } from "@/lib/class-structure";
 import { genererCreneaux } from "@/src/hooks/getCourseHours";
 import type {
+  GlobalScheduleAtelierWeek,
   GlobalScheduleByCycle,
   GlobalScheduleCycleOption,
   GlobalScheduleEntry,
@@ -74,6 +75,16 @@ import {
   primaryOrgRoleFromSession,
   resolveAccessibleCycles,
 } from "@/lib/auth/cycle-scope";
+import { isAtelierBranchType } from "@/lib/atelier-student-access";
+import {
+  mondayOfWeekContaining,
+  resolveRotationCours,
+} from "@/lib/atelier-rotation";
+import { listBranchClosedDayKeys } from "@/lib/branch-closed-days";
+import {
+  calendarDateKeyInTimezone,
+  nowLocal,
+} from "@/lib/timezone";
 
 type ScheduleContext = {
   branchId: string;
@@ -2284,7 +2295,7 @@ export const getGlobalScheduleByCycleAction = action
         .filter((id): id is string => Boolean(id)),
     });
 
-    const entries: GlobalScheduleEntry[] = schedules
+    const fixedEntries: GlobalScheduleEntry[] = schedules
       .filter(
         (schedule) =>
           !replacedParentIds.has(schedule.teaching?.cours?.id ?? ""),
@@ -2322,6 +2333,232 @@ export const getGlobalScheduleByCycleAction = action
           creneauId: classeById.get(classe?.id || "")?.creneauId ?? null,
         };
       });
+
+    let atelierWeeks: GlobalScheduleAtelierWeek[] | null = null;
+    let entries = fixedEntries;
+
+    if (isAtelierBranchType(branch?.typebranch) && classIds.length > 0) {
+      const thisMonday = mondayOfWeekContaining(nowLocal());
+      const nextMonday = new Date(thisMonday.getTime() + 7 * 86_400_000);
+      const rangeEnd = new Date(nextMonday.getTime() + 7 * 86_400_000);
+
+      const closedKeys = await listBranchClosedDayKeys(
+        ctx.branchId,
+        thisMonday,
+        rangeEnd,
+        "students",
+      );
+
+      const rotationSlots = await prisma.rotationSlot.findMany({
+        where: {
+          branchId: ctx.branchId,
+          classeId: { in: classIds },
+        },
+        include: {
+          practicalDomain: { select: { name: true } },
+          teacher: {
+            include: {
+              branchMember: {
+                include: {
+                  member: {
+                    include: {
+                      user: {
+                        select: {
+                          name: true,
+                          postnom: true,
+                          prenom: true,
+                          telephone: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          items: {
+            orderBy: { sortOrder: "asc" },
+            include: {
+              cours: {
+                select: { id: true, nameCours: true, codeCours: true },
+              },
+              teacher: {
+                include: {
+                  branchMember: {
+                    include: {
+                      member: {
+                        include: {
+                          user: {
+                            select: {
+                              name: true,
+                              postnom: true,
+                              prenom: true,
+                              telephone: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const dayIndex: Record<string, number> = {
+        Lundi: 0,
+        Mardi: 1,
+        Mercredi: 2,
+        Jeudi: 3,
+        Vendredi: 4,
+        Samedi: 5,
+        Dimanche: 6,
+      };
+
+      const teacherUserFrom = (teacher: {
+        id: string;
+        branchMember?: {
+          member?: {
+            user?: {
+              name?: string | null;
+              postnom?: string | null;
+              prenom?: string | null;
+              telephone?: string | null;
+            } | null;
+          } | null;
+        } | null;
+      } | null) => {
+        const user = teacher?.branchMember?.member?.user;
+        return {
+          id: teacher?.id || "",
+          nom: user?.name || "",
+          postnom: user?.postnom || "",
+          prenom: user?.prenom || "",
+          name: formatTeacherFullName(user) || "Non assigné",
+          telephone: user?.telephone?.trim() || "",
+        };
+      };
+
+      const formatWeekRangeLabel = (monday: Date) => {
+        const sunday = new Date(monday.getTime() + 6 * 86_400_000);
+        const fmt = (d: Date) =>
+          d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+        return `${fmt(monday)} – ${fmt(sunday)}`;
+      };
+
+      const resolveRotationEntries = (
+        weekMonday: Date,
+        weekKey: "current" | "next",
+      ): GlobalScheduleEntry[] => {
+        const out: GlobalScheduleEntry[] = [];
+        for (const slot of rotationSlots) {
+          if (slot.items.length < 2) continue;
+          const offset = dayIndex[slot.day] ?? 0;
+          const slotDate = new Date(
+            weekMonday.getTime() + offset * 86_400_000,
+          );
+          const dateKey = calendarDateKeyInTimezone(slotDate);
+          const defaultTeacher = teacherUserFrom(slot.teacher);
+          const resolved = resolveRotationCours({
+            anchorDate: slot.anchorDate,
+            date: slotDate,
+            isClosed: closedKeys.has(dateKey),
+            defaultTeacherId: slot.teacherId,
+            defaultTeacherName: defaultTeacher.name,
+            items: slot.items.map((item) => {
+              const itemTeacher = teacherUserFrom(item.teacher);
+              return {
+                coursId: item.coursId,
+                nameCours: item.cours.nameCours,
+                sortOrder: item.sortOrder,
+                teacherId: item.teacherId,
+                teacherName: itemTeacher.name,
+              };
+            }),
+          });
+          if (resolved.isClosed || !resolved.coursId || !resolved.nameCours) {
+            continue;
+          }
+
+          const itemTeacherRow =
+            slot.items.find((i) => i.coursId === resolved.coursId)?.teacher ??
+            null;
+          const teacher =
+            resolved.teacherId && itemTeacherRow
+              ? teacherUserFrom(itemTeacherRow)
+              : resolved.teacherId && slot.teacher?.id === resolved.teacherId
+                ? defaultTeacher
+                : resolved.teacherId
+                  ? {
+                      id: resolved.teacherId,
+                      nom: "",
+                      postnom: "",
+                      prenom: "",
+                      name: resolved.teacherName || "Non assigné",
+                      telephone: "",
+                    }
+                  : defaultTeacher;
+
+          if (
+            !ctx.canManageSchedules &&
+            ctx.teacherId &&
+            teacher.id !== ctx.teacherId
+          ) {
+            continue;
+          }
+
+          const classe = classeById.get(slot.classeId);
+          if (!classe) continue;
+
+          const matchedItem = slot.items.find(
+            (i) => i.coursId === resolved.coursId,
+          );
+
+          out.push({
+            id: `rot:${slot.id}:${weekKey}`,
+            day: slot.day,
+            hour: formatHourLabel(slot.hour),
+            teacher,
+            classe: {
+              id: classe.id,
+              codeClasse: classe.codeClasse,
+              nameClasse: classe.nameClasse,
+            },
+            cours: {
+              id: resolved.coursId,
+              codeCours: matchedItem?.cours.codeCours || "",
+              nameCours: `${slot.practicalDomain.name} · ${resolved.nameCours}`,
+            },
+            creneauId: classe.creneauId ?? null,
+          });
+        }
+        return out;
+      };
+
+      const currentRot = resolveRotationEntries(thisMonday, "current");
+      const nextRot = resolveRotationEntries(nextMonday, "next");
+
+      atelierWeeks = [
+        {
+          key: "current",
+          label: "Semaine actuelle",
+          rangeLabel: formatWeekRangeLabel(thisMonday),
+          mondayIso: thisMonday.toISOString().slice(0, 10),
+          entries: [...fixedEntries, ...currentRot],
+        },
+        {
+          key: "next",
+          label: "Semaine suivante",
+          rangeLabel: formatWeekRangeLabel(nextMonday),
+          mondayIso: nextMonday.toISOString().slice(0, 10),
+          entries: [...fixedEntries, ...nextRot],
+        },
+      ];
+
+      entries = atelierWeeks[0]!.entries;
+    }
 
     const teacherMap = new Map<
       string,
@@ -2513,5 +2750,6 @@ export const getGlobalScheduleByCycleAction = action
         ),
       teachers,
       entries,
+      atelierWeeks,
     };
   });

@@ -157,6 +157,9 @@ export function HoraireGlobalClient() {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<ViewMode>("teachers");
   const [query, setQuery] = useState("");
+  const [atelierWeekKey, setAtelierWeekKey] = useState<"current" | "next">(
+    "current",
+  );
   const [printing, setPrinting] = useState(false);
   const [canSendWhatsApp, setCanSendWhatsApp] = useState(false);
   const [whatsappConfirmOpen, setWhatsappConfirmOpen] = useState(false);
@@ -229,6 +232,7 @@ export function HoraireGlobalClient() {
         return;
       }
       setSchedule(data);
+      setAtelierWeekKey("current");
       setSelectedTeacherIds(
         data.teachers.filter(teacherHasContact).map((teacher) => teacher.id),
       );
@@ -242,13 +246,108 @@ export function HoraireGlobalClient() {
   }, [loadingCycles, selectedCycle, session, sessionReady, t]);
 
   const filteredTeachers = useMemo(() => {
-    const teachers = schedule?.teachers ?? [];
     const needle = query.trim().toLowerCase();
+    const week =
+      schedule?.atelierWeeks?.find((w) => w.key === atelierWeekKey) ?? null;
+
+    if (week && schedule) {
+      const metaById = new Map(
+        schedule.teachers.map((teacher) => [teacher.id, teacher]),
+      );
+      const grouped = new Map<
+        string,
+        {
+          teacher: (typeof schedule.teachers)[number] | null;
+          entryTeacher: (typeof week.entries)[number]["teacher"];
+          entries: typeof week.entries;
+        }
+      >();
+
+      for (const entry of week.entries) {
+        const tid = entry.teacher.id || `unassigned:${entry.id}`;
+        const existing = grouped.get(tid);
+        if (existing) {
+          existing.entries.push(entry);
+          continue;
+        }
+        grouped.set(tid, {
+          teacher: entry.teacher.id
+            ? (metaById.get(entry.teacher.id) ?? null)
+            : null,
+          entryTeacher: entry.teacher,
+          entries: [entry],
+        });
+      }
+
+      const teachers = [...grouped.entries()]
+        .filter(([id]) => Boolean(id) && !id.startsWith("unassigned:"))
+        .map(([id, row]) => {
+          const meta = row.teacher;
+          if (meta) {
+            return { ...meta, entries: row.entries };
+          }
+          const classIds = new Set(
+            row.entries.map((e) => e.classe.id).filter(Boolean),
+          );
+          const courseIds = new Set(
+            row.entries.map((e) => e.cours.id).filter(Boolean),
+          );
+          return {
+            id,
+            nom: row.entryTeacher.nom,
+            postnom: row.entryTeacher.postnom,
+            prenom: row.entryTeacher.prenom,
+            name: row.entryTeacher.name,
+            telephone: row.entryTeacher.telephone,
+            classCount: classIds.size,
+            courseCount: courseIds.size,
+            periodCount: row.entries.length,
+            totalMinutes: 0,
+            hoursCount: 0,
+            hoursLabel: "—",
+            academicPeriodCount: schedule.academicPeriodCount,
+            academicGroupCount: schedule.academicGroupCount,
+            academicGroupKind: schedule.academicGroupKind,
+            creneauIds: [
+              ...new Set(
+                row.entries
+                  .map((e) => e.creneauId)
+                  .filter((v): v is string => Boolean(v)),
+              ),
+            ],
+            entries: row.entries,
+          };
+        })
+        .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+
+      if (!needle) return teachers;
+      return teachers.filter((teacher) =>
+        teacher.name.toLowerCase().includes(needle),
+      );
+    }
+
+    const teachers = schedule?.teachers ?? [];
     if (!needle) return teachers;
     return teachers.filter((teacher) =>
       teacher.name.toLowerCase().includes(needle),
     );
-  }, [query, schedule?.teachers]);
+  }, [atelierWeekKey, query, schedule]);
+
+  const activeGridWeeks = useMemo(() => {
+    if (!schedule) return [];
+    if (schedule.atelierWeeks && schedule.atelierWeeks.length > 0) {
+      return schedule.atelierWeeks;
+    }
+    return [
+      {
+        key: "current" as const,
+        label: schedule.cycleLabel,
+        rangeLabel: "",
+        mondayIso: "",
+        entries: schedule.entries,
+      },
+    ];
+  }, [schedule]);
 
   const hoursListTeachers = useMemo(() => {
     return [...filteredTeachers].sort((a, b) => {
@@ -437,23 +536,30 @@ export function HoraireGlobalClient() {
                 formatTeacherMeta(t, teacher),
               ),
             )
-          : schedule.creneaux.length === 0
-            ? [
-                {
-                  title: t("cycleTitle", { cycle: schedule.cycleLabel }),
-                  hours: [
-                    ...new Set(schedule.entries.map((entry) => entry.hour)),
-                  ].sort(),
-                  workingDays: [...DEFAULT_CRENEAU_WORKING_DAYS],
-                  entries: schedule.entries,
-                  showTeacher: true,
-                },
-              ]
-            : [
+          : activeGridWeeks.flatMap((week) => {
+              const weekTitle = schedule.atelierWeeks
+                ? `${week.label}${week.rangeLabel ? ` · ${week.rangeLabel}` : ""}`
+                : t("cycleTitle", { cycle: schedule.cycleLabel });
+              if (schedule.creneaux.length === 0) {
+                return [
+                  {
+                    title: weekTitle,
+                    hours: [
+                      ...new Set(week.entries.map((entry) => entry.hour)),
+                    ].sort(),
+                    workingDays: [...DEFAULT_CRENEAU_WORKING_DAYS],
+                    entries: week.entries,
+                    showTeacher: true,
+                  } satisfies GlobalSchedulePdfTable,
+                ];
+              }
+              return [
                 ...schedule.creneaux.map((creneau) => {
                   const saturday = alignSaturdayHours(creneau.slots, [creneau]);
                   return {
-                    title: t("vacation", { name: creneau.nameCreneau }),
+                    title: schedule.atelierWeeks
+                      ? `${weekTitle} — ${t("vacation", { name: creneau.nameCreneau })}`
+                      : t("vacation", { name: creneau.nameCreneau }),
                     subtitle: `${creneau.startTime} – ${creneau.endTime} · ${t("vacationClasses", { count: creneau.classeCount })}`,
                     hours: creneau.slots,
                     workingDays: creneau.workingDays,
@@ -461,25 +567,27 @@ export function HoraireGlobalClient() {
                     endTime: creneau.endTime,
                     saturdayHours: saturday.saturdayHours,
                     saturdayEndTime: saturday.saturdayEndTime,
-                    entries: schedule.entries.filter(
+                    entries: week.entries.filter(
                       (entry) => entry.creneauId === creneau.id,
                     ),
                     showTeacher: true,
-                  };
+                  } satisfies GlobalSchedulePdfTable;
                 }),
-                ...(schedule.entries.some((entry) => !entry.creneauId)
+                ...(week.entries.some((entry) => !entry.creneauId)
                   ? [
                       {
-                        title: t("noCreneauTitle"),
+                        title: schedule.atelierWeeks
+                          ? `${weekTitle} — ${t("noCreneauTitle")}`
+                          : t("noCreneauTitle"),
                         hours: [
                           ...new Set(
-                            schedule.entries
+                            week.entries
                               .filter((entry) => !entry.creneauId)
                               .map((entry) => entry.hour),
                           ),
                         ].sort(),
                         workingDays: unionWorkingDays(schedule.creneaux),
-                        entries: schedule.entries.filter(
+                        entries: week.entries.filter(
                           (entry) => !entry.creneauId,
                         ),
                         showTeacher: true,
@@ -487,6 +595,7 @@ export function HoraireGlobalClient() {
                     ]
                   : []),
               ];
+            });
 
       if (!tables.length) {
         toast.error(t("empty"));
@@ -708,81 +817,102 @@ export function HoraireGlobalClient() {
                 description={t("emptyHint")}
               />
             ) : view === "grid" ? (
-              <div className="space-y-8">
-                {schedule.creneaux.length === 0 ? (
-                  <GlobalScheduleGrid
-                    hours={[
-                      ...new Set(schedule.entries.map((entry) => entry.hour)),
-                    ].sort()}
-                    entries={schedule.entries}
-                    emptyLabel={t("empty")}
-                    hoursLabel={t("hoursColumn")}
-                    recreationLabel={(start, end) =>
-                      t("recreationRow", { start, end })
-                    }
-                  />
-                ) : (
-                  <>
-                    {schedule.creneaux.map((creneau) => {
-                      const saturday = alignSaturdayHours(creneau.slots, [
-                        creneau,
-                      ]);
-                      return (
-                    <section key={creneau.id} className="space-y-3">
-                      <div>
-                        <h3 className="text-base font-semibold">
-                          {t("vacation", { name: creneau.nameCreneau })}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {creneau.startTime} – {creneau.endTime} ·{" "}
-                          {t("vacationClasses", { count: creneau.classeCount })}
+              <div className="space-y-10">
+                {activeGridWeeks.map((week) => (
+                  <div key={week.key} className="space-y-8">
+                    {schedule.atelierWeeks ? (
+                      <div className="border-b border-amber-200/80 pb-2 dark:border-amber-900/50">
+                        <h2 className="text-base font-semibold text-amber-950 dark:text-amber-100">
+                          {week.label}
+                          {week.rangeLabel ? (
+                            <span className="ml-2 font-normal text-muted-foreground">
+                              · {week.rangeLabel}
+                            </span>
+                          ) : null}
+                        </h2>
+                        <p className="text-xs text-muted-foreground">
+                          Cours de rotation résolus pour cette semaine
                         </p>
                       </div>
+                    ) : null}
+                    {schedule.creneaux.length === 0 ? (
                       <GlobalScheduleGrid
-                        hours={creneau.slots}
-                        workingDays={creneau.workingDays}
-                        recreationHour={creneau.recreationHour}
-                        endTime={creneau.endTime}
-                        saturdayHours={saturday.saturdayHours}
-                        saturdayEndTime={saturday.saturdayEndTime}
-                        entries={schedule.entries.filter(
-                          (entry) => entry.creneauId === creneau.id,
-                        )}
+                        hours={[
+                          ...new Set(week.entries.map((entry) => entry.hour)),
+                        ].sort()}
+                        entries={week.entries}
                         emptyLabel={t("empty")}
                         hoursLabel={t("hoursColumn")}
                         recreationLabel={(start, end) =>
                           t("recreationRow", { start, end })
                         }
                       />
-                    </section>
-                      );
-                    })}
-                    {schedule.entries.some((entry) => !entry.creneauId) ? (
-                      <section className="space-y-3">
-                        <h3 className="text-base font-semibold">
-                          {t("noCreneauTitle")}
-                        </h3>
-                        <GlobalScheduleGrid
-                          hours={[
-                            ...new Set(
-                              schedule.entries
-                                .filter((entry) => !entry.creneauId)
-                                .map((entry) => entry.hour),
-                            ),
-                          ].sort()}
-                          entries={schedule.entries.filter(
-                            (entry) => !entry.creneauId,
-                          )}
-                          emptyLabel={t("empty")}
-                          hoursLabel={t("hoursColumn")}
-                          recreationLabel={(start, end) =>
-                            t("recreationRow", { start, end })
-                          }
-                        />
-                      </section>
-                    ) : null}
-                  </>
-                )}
+                    ) : (
+                      <>
+                        {schedule.creneaux.map((creneau) => {
+                          const saturday = alignSaturdayHours(creneau.slots, [
+                            creneau,
+                          ]);
+                          return (
+                            <section key={`${week.key}-${creneau.id}`} className="space-y-3">
+                              <div>
+                                <h3 className="text-base font-semibold">
+                                  {t("vacation", { name: creneau.nameCreneau })}
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {creneau.startTime} – {creneau.endTime} ·{" "}
+                                  {t("vacationClasses", {
+                                    count: creneau.classeCount,
+                                  })}
+                                </p>
+                              </div>
+                              <GlobalScheduleGrid
+                                hours={creneau.slots}
+                                workingDays={creneau.workingDays}
+                                recreationHour={creneau.recreationHour}
+                                endTime={creneau.endTime}
+                                saturdayHours={saturday.saturdayHours}
+                                saturdayEndTime={saturday.saturdayEndTime}
+                                entries={week.entries.filter(
+                                  (entry) => entry.creneauId === creneau.id,
+                                )}
+                                emptyLabel={t("empty")}
+                                hoursLabel={t("hoursColumn")}
+                                recreationLabel={(start, end) =>
+                                  t("recreationRow", { start, end })
+                                }
+                              />
+                            </section>
+                          );
+                        })}
+                        {week.entries.some((entry) => !entry.creneauId) ? (
+                          <section className="space-y-3">
+                            <h3 className="text-base font-semibold">
+                              {t("noCreneauTitle")}
+                            </h3>
+                            <GlobalScheduleGrid
+                              hours={[
+                                ...new Set(
+                                  week.entries
+                                    .filter((entry) => !entry.creneauId)
+                                    .map((entry) => entry.hour),
+                                ),
+                              ].sort()}
+                              entries={week.entries.filter(
+                                (entry) => !entry.creneauId,
+                              )}
+                              emptyLabel={t("empty")}
+                              hoursLabel={t("hoursColumn")}
+                              recreationLabel={(start, end) =>
+                                t("recreationRow", { start, end })
+                              }
+                            />
+                          </section>
+                        ) : null}
+                      </>
+                    )}
+                  </div>
+                ))}
                 {schedule.classesWithoutCreneau > 0 ? (
                   <p className="text-sm text-muted-foreground">
                     {t("noCreneau", { count: schedule.classesWithoutCreneau })}
@@ -822,6 +952,31 @@ export function HoraireGlobalClient() {
               />
             ) : (
               <div className="space-y-8">
+                {schedule.atelierWeeks && schedule.atelierWeeks.length > 0 ? (
+                  <Tabs
+                    value={atelierWeekKey}
+                    onValueChange={(value) =>
+                      setAtelierWeekKey(value as "current" | "next")
+                    }
+                  >
+                    <TabsList className="grid h-auto w-full max-w-md grid-cols-2 border border-amber-200/80 bg-amber-50/60 dark:border-amber-900/50 dark:bg-amber-950/30">
+                      {schedule.atelierWeeks.map((week) => (
+                        <TabsTrigger
+                          key={week.key}
+                          value={week.key}
+                          className="px-3 py-1.5 text-xs data-[state=active]:bg-amber-200 data-[state=active]:text-amber-950 sm:text-sm dark:data-[state=active]:bg-amber-800 dark:data-[state=active]:text-amber-50"
+                        >
+                          <span className="flex flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:gap-1.5">
+                            <span>{week.label}</span>
+                            <span className="text-[10px] font-normal opacity-80 sm:text-xs">
+                              {week.rangeLabel}
+                            </span>
+                          </span>
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </Tabs>
+                ) : null}
                 {filteredTeachers.map((teacher) => {
                   const clock = teacherHoursClock(teacher, schedule);
 

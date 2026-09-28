@@ -89,4 +89,18 @@ export type GlobalScheduleByCycle = {
   creneaux: GlobalScheduleCreneau[];
   teachers: GlobalScheduleTeacher[];
   entries: GlobalScheduleEntry[];
+  /**
+   * Atelier uniquement : semaine actuelle + suivante avec cours de rotation résolus.
+   * `entries` / `teachers` restent ceux de la semaine actuelle.
+   */
+  atelierWeeks?: GlobalScheduleAtelierWeek[] | null;
+};
+
+/** Tranches semaine actuelle / suivante pour l'horaire global atelier. */
+export type GlobalScheduleAtelierWeek = {
+  key: "current" | "next";
+  label: string;
+  rangeLabel: string;
+  mondayIso: string;
+  entries: GlobalScheduleEntry[];
 };
