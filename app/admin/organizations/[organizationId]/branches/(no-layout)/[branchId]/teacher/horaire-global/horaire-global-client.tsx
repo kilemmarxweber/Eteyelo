@@ -347,10 +347,10 @@ export function HoraireGlobalClient() {
       }
 
       const teachers = [...grouped.entries()]
-        .filter(([id]) => Boolean(id) && !id.startsWith("unassigned:"))
         .map(([id, row]) => {
           const load = teacherLoadFromEntries(row.entries, schedule);
           const meta = row.teacher;
+          const isUnassigned = id.startsWith("unassigned:");
           if (meta) {
             return {
               ...meta,
@@ -360,11 +360,11 @@ export function HoraireGlobalClient() {
             };
           }
           return {
-            id,
+            id: isUnassigned ? id : id,
             nom: row.entryTeacher.nom,
             postnom: row.entryTeacher.postnom,
             prenom: row.entryTeacher.prenom,
-            name: row.entryTeacher.name,
+            name: row.entryTeacher.name || "Non assigné",
             telephone: row.entryTeacher.telephone,
             ...load,
             academicPeriodCount: schedule.academicPeriodCount,
@@ -866,7 +866,11 @@ export function HoraireGlobalClient() {
                 title={t("selectCycle")}
                 description={t("selectCycleHint")}
               />
-            ) : !schedule || schedule.periodCount === 0 ? (
+            ) : !schedule ||
+              (schedule.periodCount === 0 &&
+                !(schedule.atelierWeeks ?? []).some(
+                  (week) => week.entries.length > 0,
+                )) ? (
               <EmptyTableState
                 title={t("empty")}
                 description={t("emptyHint")}
@@ -1017,7 +1021,7 @@ export function HoraireGlobalClient() {
                   <div
                     role="tablist"
                     aria-label="Semaine d'affichage"
-                    className="flex w-full max-w-2xl flex-col gap-2 sm:flex-row"
+                    className="grid w-full grid-cols-1 gap-2 min-[480px]:grid-cols-2"
                   >
                     {schedule.atelierWeeks.map((week) => {
                       const active = atelierWeekKey === week.key;
@@ -1029,17 +1033,17 @@ export function HoraireGlobalClient() {
                           aria-selected={active}
                           onClick={() => setAtelierWeekKey(week.key)}
                           className={cn(
-                            "flex min-w-0 flex-1 flex-col items-start gap-0.5 rounded-lg border px-3 py-2.5 text-left transition-colors",
+                            "flex w-full min-w-0 flex-col items-stretch gap-0.5 rounded-lg border px-3 py-2.5 text-left transition-colors",
                             active
-                              ? "border-amber-400 bg-amber-100 text-amber-950 shadow-sm dark:border-amber-600 dark:bg-amber-900/50 dark:text-amber-50"
+                              ? "border-amber-500 bg-amber-200 text-amber-950 shadow-sm ring-2 ring-amber-400/60 dark:border-amber-400 dark:bg-amber-800 dark:text-amber-50 dark:ring-amber-500/50"
                               : "border-amber-200/80 bg-amber-50/50 text-amber-950/80 hover:bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-100/80 dark:hover:bg-amber-950/40",
                           )}
                         >
-                          <span className="text-sm font-semibold leading-tight">
+                          <span className="truncate text-sm font-semibold leading-tight">
                             {week.label}
                           </span>
                           {week.rangeLabel ? (
-                            <span className="text-xs font-normal text-muted-foreground">
+                            <span className="truncate text-[11px] font-normal text-muted-foreground sm:text-xs">
                               {week.rangeLabel}
                             </span>
                           ) : null}

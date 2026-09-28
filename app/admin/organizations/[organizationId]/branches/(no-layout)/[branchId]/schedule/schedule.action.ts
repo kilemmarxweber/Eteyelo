@@ -2051,19 +2051,23 @@ function generateSlotsFromHm(params: {
   if (!params.startTime || !params.endTime || params.durationCourse <= 0) {
     return [] as string[];
   }
-  const start = new Date(`2000-01-01T${params.startTime}`);
-  const end = new Date(`2000-01-01T${params.endTime}`);
-  const recreation = new Date(
-    `2000-01-01T${params.recreationHour || params.startTime}`,
-  );
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+  const parseHm = (hm: string) => {
+    const [h, m] = hm.split(":").map(Number);
+    if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+    // Constructeur local → getHours() = horloge murale (indépendant du fuseau serveur).
+    return new Date(2000, 0, 1, h, m, 0, 0);
+  };
+  const start = parseHm(params.startTime);
+  const end = parseHm(params.endTime);
+  const recreation = parseHm(params.recreationHour || params.startTime);
+  if (!start || !end) {
     return [] as string[];
   }
   return genererCreneaux(
     start,
     end,
     params.durationCourse,
-    Number.isNaN(recreation.getTime()) ? start : recreation,
+    recreation ?? start,
     params.recreationDuration || 0,
   );
 }
@@ -2457,7 +2461,7 @@ export const getGlobalScheduleByCycleAction = action
         const out: GlobalScheduleEntry[] = [];
         const now = nowLocal();
         for (const slot of rotationSlots) {
-          if (slot.items.length < 2) continue;
+          if (slot.items.length === 0) continue;
           const offset = dayIndex[slot.day] ?? 0;
           const slotDate = new Date(
             weekMonday.getTime() + offset * 86_400_000,

@@ -60,7 +60,7 @@ export function teacherScheduleClock(params: {
   const slotHours = source.flatMap((creneau) => creneau.slots).filter(Boolean);
   const entryHours = params.fallbackHours.filter(Boolean);
   const hours = [
-    ...new Set(slotHours.length > 0 ? [...slotHours, ...entryHours] : entryHours),
+    ...new Set([...slotHours, ...entryHours]),
   ].sort(sortHm);
   const { saturdayHours, saturdayEndTime } = alignSaturdayHours(hours, source);
   const single =

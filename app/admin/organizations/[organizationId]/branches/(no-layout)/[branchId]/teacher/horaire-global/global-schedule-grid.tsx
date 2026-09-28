@@ -21,8 +21,16 @@ import {
 } from "@/lib/reports/document-locale";
 import { normalizeUserLocale } from "@/lib/user-locale";
 
+function normalizeHm(value: string) {
+  const match = String(value ?? "")
+    .trim()
+    .match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return String(value ?? "").trim();
+  return `${match[1]!.padStart(2, "0")}:${match[2]}`;
+}
+
 function timeToMinutes(value: string) {
-  const [hours, minutes] = value.split(":").map(Number);
+  const [hours, minutes] = normalizeHm(value).split(":").map(Number);
   if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return 0;
   return hours * 60 + minutes;
 }
@@ -71,36 +79,59 @@ export function GlobalScheduleGrid({
   const locale = normalizeUserLocale(useLocale());
   const saturdayShort = weekdayShortLabel("Samedi", locale);
   const collator = intlLocaleFromUnknown(locale);
-  const days =
-    workingDays && workingDays.length > 0
-      ? workingDays
-      : DEFAULT_CRENEAU_WORKING_DAYS;
+
+  const days = useMemo(() => {
+    const base =
+      workingDays && workingDays.length > 0
+        ? workingDays
+        : DEFAULT_CRENEAU_WORKING_DAYS;
+    const entryDays = new Set(
+      entries.map((entry) => entry.day).filter(Boolean),
+    );
+    const ordered = DEFAULT_CRENEAU_WORKING_DAYS.filter(
+      (day) => base.includes(day) || entryDays.has(day),
+    );
+    if (ordered.length > 0) return ordered;
+    return [...entryDays];
+  }, [workingDays, entries]);
 
   const displayHours = useMemo(() => {
-    const unique = new Set(hours.filter(Boolean));
-    if (recreationHour) unique.add(recreationHour);
+    const unique = new Set<string>();
+    for (const hour of hours) {
+      const n = normalizeHm(hour);
+      if (n) unique.add(n);
+    }
+    // Toujours inclure les heures des séances (rotation atelier, etc.).
+    for (const entry of entries) {
+      const n = normalizeHm(entry.hour);
+      if (n) unique.add(n);
+    }
+    const recreation = normalizeHm(recreationHour);
+    if (recreation) unique.add(recreation);
     return Array.from(unique).sort(
       (a, b) => timeToMinutes(a) - timeToMinutes(b),
     );
-  }, [hours, recreationHour]);
+  }, [hours, recreationHour, entries]);
 
-  const saturdayDisplayHours = saturdayHours.filter(Boolean);
+  const saturdayDisplayHours = saturdayHours.map(normalizeHm).filter(Boolean);
   const showSaturdayClock =
     saturdayDisplayHours.length > 0 &&
     saturdayDisplayHours.some((hour, index) => hour !== displayHours[index]);
 
   const hourOnDay = (day: string, weekdayHour: string) =>
-    slotHourOnDay({
-      day,
-      weekdaySlot: weekdayHour,
-      weekdaySlots: displayHours,
-      saturdaySlots: saturdayDisplayHours,
-    });
+    normalizeHm(
+      slotHourOnDay({
+        day,
+        weekdaySlot: weekdayHour,
+        weekdaySlots: displayHours,
+        saturdaySlots: saturdayDisplayHours,
+      }),
+    );
 
   const entriesByCell = useMemo(() => {
     const map = new Map<string, GlobalScheduleGridEntry[]>();
     for (const entry of entries) {
-      const key = `${entry.day}|${entry.hour}`;
+      const key = `${entry.day}|${normalizeHm(entry.hour)}`;
       const list = map.get(key) ?? [];
       list.push(entry);
       map.set(key, list);
@@ -115,6 +146,16 @@ export function GlobalScheduleGrid({
     }
     return map;
   }, [entries, collator]);
+
+  const recreationNorm = normalizeHm(recreationHour);
+  const entryHoursSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const entry of entries) {
+      const n = normalizeHm(entry.hour);
+      if (n) set.add(n);
+    }
+    return set;
+  }, [entries]);
 
   return (
     <div className="overflow-x-auto rounded-xl border">
@@ -138,36 +179,46 @@ export function GlobalScheduleGrid({
           {displayHours.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={days.length + 1}
+                colSpan={Math.max(days.length, 1) + 1}
                 className="text-center text-muted-foreground"
               >
                 {emptyLabel}
               </TableCell>
             </TableRow>
           ) : (
-            displayHours.map((heure, index) =>
-              recreationHour && heure === recreationHour ? (
-                <TableRow key={`recreation-${heure}`}>
-                  <TableCell
-                    colSpan={days.length + 1}
-                    className="bg-muted/40 text-center"
-                  >
-                    <span className="text-sm font-medium tracking-wide text-muted-foreground">
-                      {recreationLabel(
-                        heure,
-                        displayHours[index + 1] || endTime,
-                      )}
-                      {showSaturdayClock && saturdayDisplayHours[index]
-                        ? ` · ${saturdayShort} ${saturdayDisplayHours[index]} – ${
-                            saturdayDisplayHours[index + 1] ||
-                            saturdayEndTime ||
-                            endTime
-                          }`
-                        : ""}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              ) : (
+            displayHours.map((heure, index) => {
+              // Ne pas masquer un cours placé pile à l'heure de récréation.
+              const isRecreationRow =
+                Boolean(recreationNorm) &&
+                heure === recreationNorm &&
+                !entryHoursSet.has(heure);
+
+              if (isRecreationRow) {
+                return (
+                  <TableRow key={`recreation-${heure}`}>
+                    <TableCell
+                      colSpan={days.length + 1}
+                      className="bg-muted/40 text-center"
+                    >
+                      <span className="text-sm font-medium tracking-wide text-muted-foreground">
+                        {recreationLabel(
+                          heure,
+                          displayHours[index + 1] || endTime,
+                        )}
+                        {showSaturdayClock && saturdayDisplayHours[index]
+                          ? ` · ${saturdayShort} ${saturdayDisplayHours[index]} – ${
+                              saturdayDisplayHours[index + 1] ||
+                              saturdayEndTime ||
+                              endTime
+                            }`
+                          : ""}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                );
+              }
+
+              return (
                 <TableRow key={heure}>
                   <TableCell className="whitespace-nowrap text-sm font-medium">
                     <span>
@@ -188,7 +239,9 @@ export function GlobalScheduleGrid({
                   {days.map((day) => {
                     const cellHour = hourOnDay(day, heure);
                     const cellEntries =
-                      entriesByCell.get(`${day}|${cellHour}`) ?? [];
+                      entriesByCell.get(`${day}|${cellHour}`) ??
+                      entriesByCell.get(`${day}|${heure}`) ??
+                      [];
                     const crowded = showTeacher
                       ? cellEntries.length > 4
                       : cellEntries.length > 1;
@@ -231,8 +284,8 @@ export function GlobalScheduleGrid({
                     );
                   })}
                 </TableRow>
-              ),
-            )
+              );
+            })
           )}
         </TableBody>
       </Table>
