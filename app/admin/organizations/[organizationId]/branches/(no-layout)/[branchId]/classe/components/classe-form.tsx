@@ -1144,7 +1144,7 @@ export function ClasseUpForm({
               control={form.control}
               name="creneauId"
               render={({ field }) => (
-                <FormItem className={showAtelierLabFields ? "hidden" : undefined}>
+                <FormItem>
                   <FormLabel>Vacation</FormLabel>
                   <FormControl>
                     <SearchableSelect
