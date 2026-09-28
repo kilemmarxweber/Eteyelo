@@ -404,7 +404,7 @@
       "end": "Fim",
       "sessionDurationLabel": "Duração da sessão (min)",
       "sessionDurationDesc": "Duração standard de uma sessão.",
-      "sessionDurationDescAtelier": "Duração de uma sessão de atelier (muitas vezes 360 minutos ou mais).",
+      "sessionDurationDescAtelier": "Calculada automaticamente: fim − início (ex. 07:30–13:30 = 360 min).",
       "recreation": "Intervalo",
       "recreationDesc": "Pausa prevista a meio do turno.",
       "recreationTime": "Hora",

@@ -22,6 +22,38 @@ export interface ICreneau {
 
 export const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
 
+/** Normalise `HH:MM` ou `HH:MM:SS` (input type=time) → `HH:MM`. */
+export function normalizeCreneauTimeInput(value: string): string {
+  const match = String(value ?? "")
+    .trim()
+    .match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return String(value ?? "").trim();
+  return `${match[1]!.padStart(2, "0")}:${match[2]}`;
+}
+
+/** Minutes depuis minuit pour `HH:MM` (entier exact, sans arrondi flottant). */
+export function creneauHmToMinutes(hm: string): number | null {
+  const normalized = normalizeCreneauTimeInput(hm);
+  if (!timeRegex.test(normalized)) return null;
+  const [h, m] = normalized.split(":").map(Number);
+  return h * 60 + m;
+}
+
+/**
+ * Durée en minutes entre début et fin (fin exclusive).
+ * Ex. 07:30 → 13:30 = 360 (pas 361).
+ */
+export function minutesBetweenCreneauTimes(
+  startTime: string,
+  endTime: string,
+): number | null {
+  const start = creneauHmToMinutes(startTime);
+  const end = creneauHmToMinutes(endTime);
+  if (start == null || end == null) return null;
+  const diff = end - start;
+  return diff > 0 ? diff : null;
+}
+
 const weekdayEnum = z.enum(
   CRENEAU_WEEKDAY_OPTIONS.map((d) => d.value) as [
     (typeof CRENEAU_WEEKDAY_OPTIONS)[number]["value"],
@@ -111,9 +143,19 @@ export type CreneauFormValues = z.infer<typeof creneauSchema>;
 export function stripRecreationForAtelier(
   data: CreneauFormValues,
 ): CreneauFormValues {
+  const startTime = normalizeCreneauTimeInput(data.startTime);
+  const endTime = normalizeCreneauTimeInput(data.endTime);
+  const span = minutesBetweenCreneauTimes(startTime, endTime);
   return {
     ...data,
+    startTime,
+    endTime,
+    // Atelier : durée = plage début→fin (entier exact).
+    durationCourse:
+      span != null
+        ? span
+        : Math.max(1, Math.round(Number(data.durationCourse) || 0)),
     recreationDuration: 0,
-    recreationHour: data.startTime || "07:30",
+    recreationHour: startTime || "07:30",
   };
 }

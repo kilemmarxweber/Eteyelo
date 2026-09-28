@@ -24,6 +24,8 @@ import {
   creneauSchema,
   defaultAtelierCreneauValues,
   defaultCreneauValues,
+  minutesBetweenCreneauTimes,
+  normalizeCreneauTimeInput,
   stripRecreationForAtelier,
   type CreneauFormValues,
 } from "@/src/interfaces/creneau";
@@ -237,6 +239,21 @@ export function CreneauUpForm({
   const saturdaySelected = (watched.workingDays ?? []).includes("Samedi");
   const afternoonVacation =
     (watched.startTime ?? "") >= "12:00" && (watched.startTime ?? "") !== "";
+
+  // Atelier : durée = fin − début (minutes entières, ex. 07:30–13:30 → 360).
+  useEffect(() => {
+    if (!isAtelier) return;
+    const start = normalizeCreneauTimeInput(String(watched.startTime ?? ""));
+    const end = normalizeCreneauTimeInput(String(watched.endTime ?? ""));
+    const span = minutesBetweenCreneauTimes(start, end);
+    if (span == null) return;
+    if (Number(watched.durationCourse) !== span) {
+      form.setValue("durationCourse", span, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [isAtelier, form, watched.startTime, watched.endTime, watched.durationCourse]);
 
   const saturdayPreview = useMemo(() => {
     if (!saturdaySelected || !afternoonVacation || isAtelier) return null;
@@ -461,6 +478,11 @@ export function CreneauUpForm({
                         className={controlClass}
                         {...field}
                         value={controlledTime(field.value)}
+                        onChange={(e) =>
+                          field.onChange(
+                            normalizeCreneauTimeInput(e.target.value),
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -480,6 +502,11 @@ export function CreneauUpForm({
                         className={controlClass}
                         {...field}
                         value={controlledTime(field.value)}
+                        onChange={(e) =>
+                          field.onChange(
+                            normalizeCreneauTimeInput(e.target.value),
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -500,21 +527,21 @@ export function CreneauUpForm({
                         type="number"
                         min={1}
                         max={720}
-                        step={15}
+                        step={isAtelier ? 1 : 15}
                         placeholder={isAtelier ? "360" : "45"}
                         className={controlClass}
                         {...field}
                         value={controlledNumber(field.value)}
-                        onChange={(e) =>
+                        readOnly={isAtelier}
+                        onChange={(e) => {
+                          if (isAtelier) return;
                           field.onChange(
                             toFormNumber(
                               e.target.value,
-                              isAtelier
-                                ? defaultAtelierCreneauValues.durationCourse
-                                : defaultCreneauValues.durationCourse,
+                              defaultCreneauValues.durationCourse,
                             ),
-                          )
-                        }
+                          );
+                        }}
                       />
                     </FormControl>
                     {!isDialog ? (
