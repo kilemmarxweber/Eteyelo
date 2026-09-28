@@ -10,6 +10,7 @@ import {
 } from "@/lib/auth/require-branch-context";
 import { isAtelierBranchType } from "@/lib/atelier-student-access";
 import {
+  advanceRotationAfterSlotEnded,
   compareSlotsByLivePriority,
   formatRotationCellLabel,
   getLiveSlotPhase,
@@ -55,10 +56,22 @@ function formatHourHm(hour: Date) {
 
 function teacherNameFrom(teacher: {
   branchMember?: {
-    member?: { user?: { name?: string | null } | null } | null;
+    member?: {
+      user?: {
+        name?: string | null;
+        postnom?: string | null;
+        prenom?: string | null;
+      } | null;
+    } | null;
   } | null;
 } | null): string | null {
-  return teacher?.branchMember?.member?.user?.name ?? null;
+  const user = teacher?.branchMember?.member?.user;
+  if (!user) return null;
+  const full = [user.name, user.postnom, user.prenom]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  return full || null;
 }
 
 function revalidateRotation(organizationId: string, branchId: string) {
@@ -80,7 +93,11 @@ async function requireAtelierWrite(
 const teacherInclude = {
   branchMember: {
     include: {
-      member: { include: { user: { select: { name: true } } } },
+      member: {
+        include: {
+          user: { select: { name: true, postnom: true, prenom: true } },
+        },
+      },
     },
   },
 } as const;
@@ -158,19 +175,20 @@ export const getResolvedRotationSlotsAction = action
       const hourEnd = rotationSlotEndHm(hour, durationMinutes);
 
       const defaultTeacherName = teacherNameFrom(slot.teacher);
-      const resolved = resolveRotationCours({
+      const items = slot.items.map((item) => ({
+        coursId: item.coursId,
+        nameCours: item.cours.nameCours,
+        sortOrder: item.sortOrder,
+        teacherId: item.teacherId,
+        teacherName: teacherNameFrom(item.teacher),
+      }));
+      let resolved = resolveRotationCours({
         anchorDate: slot.anchorDate,
         date: slotDate,
         isClosed: closedKeys.has(dateKey),
         defaultTeacherId: slot.teacherId,
         defaultTeacherName,
-        items: slot.items.map((item) => ({
-          coursId: item.coursId,
-          nameCours: item.cours.nameCours,
-          sortOrder: item.sortOrder,
-          teacherId: item.teacherId,
-          teacherName: teacherNameFrom(item.teacher),
-        })),
+        items,
       });
 
       const phase = resolved.isClosed
@@ -181,6 +199,15 @@ export const getResolvedRotationSlotsAction = action
             durationMinutes,
             now,
           });
+
+      // Fin de créneau (ex. après 10h) → activer S2 directement dans l'horaire.
+      resolved = advanceRotationAfterSlotEnded({
+        resolved,
+        items,
+        phase,
+        defaultTeacherId: slot.teacherId,
+        defaultTeacherName,
+      });
 
       return {
         id: slot.id,
@@ -199,6 +226,7 @@ export const getResolvedRotationSlotsAction = action
         isRotating: resolved.isRotating,
         cycleLength: resolved.cycleLength,
         weekInCycle: resolved.weekInCycle,
+        advancedAfterEnd: Boolean(resolved.advancedAfterEnd),
         isClosed: resolved.isClosed,
         coursId: resolved.coursId,
         nameCours: resolved.nameCours,
@@ -245,10 +273,7 @@ export const upsertRotationSlotAction = action
             teacherId: z.string().nullable().optional(),
           }),
         )
-        .min(
-          2,
-          "La rotation nécessite au moins deux cours le même jour (ex. Chimie puis Biologie). Un seul cours = horaire classique, sans rotation.",
-        ),
+        .min(1, "Sélectionnez au moins un cours"),
     }),
   )
   .handler(async ({ input }) => {
@@ -291,10 +316,33 @@ export const upsertRotationSlotAction = action
       ).map((r) => r.coursId),
     );
 
-    for (const item of input.items) {
-      if (!domainCoursIds.has(item.coursId)) {
+    const itemCoursIds = [...new Set(input.items.map((i) => i.coursId))];
+    for (const coursId of itemCoursIds) {
+      if (!domainCoursIds.has(coursId)) {
         throw new Error(
           "Chaque cours du cycle doit appartenir au domaine pratique",
+        );
+      }
+    }
+
+    const taughtRows = await prisma.teaching.findMany({
+      where: {
+        classeId: input.classeId,
+        coursId: { in: itemCoursIds },
+        OR: [{ statusTeaching: true }, { statusTeaching: null }],
+        schoolYear: {
+          branchId,
+          isCurrentYear: true,
+          isArchived: false,
+        },
+      },
+      select: { coursId: true },
+    });
+    const taughtIds = new Set(taughtRows.map((r) => r.coursId));
+    for (const coursId of itemCoursIds) {
+      if (!taughtIds.has(coursId)) {
+        throw new Error(
+          "Chaque cours doit être affecté à ce groupe (enseignement année en cours)",
         );
       }
     }
@@ -414,10 +462,15 @@ export const getDomainCoursForRotationAction = action
     }));
   });
 
-/** Options du formulaire rotation (domaines, salles, enseignants, cours). */
+/** Options du formulaire rotation (domaines, salles, enseignants, cours du groupe). */
 export const getRotationFormOptionsAction = action
-  .input(z.object({}).optional())
-  .handler(async () => {
+  .input(
+    z.object({
+      /** Si fourni : ne propose que les cours affectés à ce groupe (enseignement année en cours). */
+      classeId: z.string().min(1).optional(),
+    }).optional(),
+  )
+  .handler(async ({ input }) => {
     const { branchId, typebranch } = await requireBranchContext();
     if (!isAtelierBranchType(typebranch)) {
       return {
@@ -429,6 +482,32 @@ export const getRotationFormOptionsAction = action
           Array<{ id: string; nameCours: string; code: string | null }>
         >,
       };
+    }
+
+    const classeId = input?.classeId?.trim() || null;
+    if (classeId) {
+      const classe = await prisma.classe.findFirst({
+        where: { id: classeId, branchId },
+        select: { id: true },
+      });
+      if (!classe) throw new Error("Groupe introuvable");
+    }
+
+    const assignedCoursIds = new Set<string>();
+    if (classeId) {
+      const teachings = await prisma.teaching.findMany({
+        where: {
+          classeId,
+          OR: [{ statusTeaching: true }, { statusTeaching: null }],
+          schoolYear: {
+            branchId,
+            isCurrentYear: true,
+            isArchived: false,
+          },
+        },
+        select: { coursId: true },
+      });
+      for (const row of teachings) assignedCoursIds.add(row.coursId);
     }
 
     const [domains, rooms, teachers, domainCours] = await Promise.all([
@@ -464,7 +543,14 @@ export const getRotationFormOptionsAction = action
         },
       }),
       prisma.practicalDomainCours.findMany({
-        where: { practicalDomain: { branchId } },
+        where: {
+          practicalDomain: { branchId },
+          ...(classeId && assignedCoursIds.size > 0
+            ? { coursId: { in: [...assignedCoursIds] } }
+            : classeId
+              ? { coursId: { in: [] } }
+              : {}),
+        },
         orderBy: { sortOrderDefault: "asc" },
         select: {
           practicalDomainId: true,
@@ -480,6 +566,7 @@ export const getRotationFormOptionsAction = action
       Array<{ id: string; nameCours: string; code: string | null }>
     > = {};
     for (const row of domainCours) {
+      if (classeId && !assignedCoursIds.has(row.cours.id)) continue;
       const list = coursesByDomain[row.practicalDomainId] ?? [];
       list.push({
         id: row.cours.id,
@@ -489,8 +576,13 @@ export const getRotationFormOptionsAction = action
       coursesByDomain[row.practicalDomainId] = list;
     }
 
+    const domainIdsWithCourses = new Set(Object.keys(coursesByDomain));
+    const filteredDomains = classeId
+      ? domains.filter((d) => domainIdsWithCourses.has(d.id))
+      : domains;
+
     return {
-      domains,
+      domains: filteredDomains,
       rooms,
       teachers: teachers.map((t) => {
         const u = t.branchMember?.member?.user;
@@ -502,4 +594,219 @@ export const getRotationFormOptionsAction = action
       }),
       coursesByDomain,
     };
+  });
+
+/**
+ * Placement depuis la grille horaire atelier :
+ * - 1 cours → créneau fixe (Schedule classique)
+ * - 2 cours → rotation hebdomadaire sur le même jour/heure
+ */
+export const placeAtelierScheduleCellAction = action
+  .input(
+    z.object({
+      classeId: z.string().min(1),
+      day: dayEnum,
+      hour: z.string().regex(/^\d{2}:\d{2}$/),
+      coursIds: z
+        .array(z.string().min(1))
+        .min(1)
+        .max(2),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const ctx = await requireAtelierWrite("create");
+    const { branchId, organizationId } = ctx;
+
+    const uniqueCoursIds = [...new Set(input.coursIds)];
+    if (uniqueCoursIds.length !== input.coursIds.length) {
+      throw new Error("Choisissez deux cours différents pour la rotation");
+    }
+
+    const classe = await prisma.classe.findFirst({
+      where: { id: input.classeId, branchId },
+      select: { id: true },
+    });
+    if (!classe) throw new Error("Groupe introuvable");
+
+    const hour = parseScheduleHour(input.hour);
+
+    // ─── 1 cours : horaire classique ─────────────────────────────
+    if (uniqueCoursIds.length === 1) {
+      const coursId = uniqueCoursIds[0]!;
+      const teaching = await prisma.teaching.findFirst({
+        where: {
+          classeId: input.classeId,
+          coursId,
+          OR: [{ statusTeaching: true }, { statusTeaching: null }],
+          schoolYear: {
+            branchId,
+            isCurrentYear: true,
+            isArchived: false,
+          },
+        },
+        select: { id: true, teacherId: true },
+      });
+      if (!teaching?.teacherId) {
+        throw new Error(
+          "Affectez d'abord un enseignant à ce cours dans ce groupe, puis replacez-le.",
+        );
+      }
+
+      const busyClass = await prisma.schedule.findFirst({
+        where: {
+          day: input.day as Day,
+          hour,
+          isArchived: false,
+          teaching: { classeId: input.classeId },
+        },
+        select: { id: true },
+      });
+      if (busyClass) {
+        throw new Error("Cette case est déjà occupée dans l'horaire classique");
+      }
+
+      const busyTeacher = await prisma.schedule.findFirst({
+        where: {
+          day: input.day as Day,
+          hour,
+          isArchived: false,
+          teaching: { teacherId: teaching.teacherId },
+        },
+        select: { id: true },
+      });
+      if (busyTeacher) {
+        throw new Error(
+          "L'enseignant a déjà un cours à cette heure (autre classe)",
+        );
+      }
+
+      await prisma.schedule.deleteMany({
+        where: {
+          day: input.day as Day,
+          hour,
+          teachingId: teaching.id,
+          isArchived: true,
+        },
+      });
+
+      const schedule = await prisma.schedule.create({
+        data: {
+          day: input.day as Day,
+          hour,
+          teachingId: teaching.id,
+        },
+      });
+      revalidateRotation(organizationId, branchId);
+      return { mode: "fixed" as const, id: schedule.id };
+    }
+
+    // ─── 2 cours : rotation ──────────────────────────────────────
+    const links = await prisma.practicalDomainCours.findMany({
+      where: {
+        coursId: { in: uniqueCoursIds },
+        practicalDomain: { branchId },
+      },
+      select: { coursId: true, practicalDomainId: true },
+    });
+
+    const domainCounts = new Map<string, number>();
+    for (const link of links) {
+      domainCounts.set(
+        link.practicalDomainId,
+        (domainCounts.get(link.practicalDomainId) ?? 0) + 1,
+      );
+    }
+    const sharedDomainId = [...domainCounts.entries()].find(
+      ([, count]) => count >= uniqueCoursIds.length,
+    )?.[0];
+    if (!sharedDomainId) {
+      throw new Error(
+        "Les deux cours doivent appartenir au même domaine pratique (fiche cours → Domaine pratique).",
+      );
+    }
+
+    const teachings = await prisma.teaching.findMany({
+      where: {
+        classeId: input.classeId,
+        coursId: { in: uniqueCoursIds },
+        OR: [{ statusTeaching: true }, { statusTeaching: null }],
+        schoolYear: {
+          branchId,
+          isCurrentYear: true,
+          isArchived: false,
+        },
+      },
+      select: { coursId: true, teacherId: true },
+    });
+    const taughtIds = new Set(teachings.map((t) => t.coursId));
+    for (const coursId of uniqueCoursIds) {
+      if (!taughtIds.has(coursId)) {
+        throw new Error(
+          "Chaque cours doit être affecté à ce groupe (enseignement année en cours)",
+        );
+      }
+    }
+    const teacherByCours = new Map(
+      teachings
+        .filter((t) => t.teacherId)
+        .map((t) => [t.coursId, t.teacherId!]),
+    );
+    const defaultTeacherId =
+      teacherByCours.get(uniqueCoursIds[0]!) ??
+      teacherByCours.get(uniqueCoursIds[1]!) ??
+      null;
+
+    const existing = await prisma.rotationSlot.findFirst({
+      where: {
+        branchId,
+        classeId: input.classeId,
+        day: input.day as Day,
+        hour,
+      },
+      select: { id: true },
+    });
+
+    const anchorDate = mondayOfWeekContaining(nowLocal());
+
+    const slotId = await prisma.$transaction(async (tx) => {
+      let id = existing?.id;
+      if (id) {
+        await tx.rotationSlot.update({
+          where: { id },
+          data: {
+            practicalDomainId: sharedDomainId,
+            teacherId: defaultTeacherId,
+            anchorDate,
+          },
+        });
+        await tx.rotationSlotItem.deleteMany({ where: { rotationSlotId: id } });
+      } else {
+        const created = await tx.rotationSlot.create({
+          data: {
+            branchId,
+            classeId: input.classeId,
+            day: input.day as Day,
+            hour,
+            practicalDomainId: sharedDomainId,
+            teacherId: defaultTeacherId,
+            anchorDate,
+          },
+        });
+        id = created.id;
+      }
+
+      await tx.rotationSlotItem.createMany({
+        data: uniqueCoursIds.map((coursId, sortOrder) => ({
+          rotationSlotId: id!,
+          coursId,
+          sortOrder,
+          teacherId: teacherByCours.get(coursId) ?? null,
+        })),
+      });
+
+      return id!;
+    });
+
+    revalidateRotation(organizationId, branchId);
+    return { mode: "rotation" as const, id: slotId };
   });

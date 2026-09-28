@@ -23,6 +23,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   ChevronLeft,
   ChevronRight,
   Loader2,
@@ -55,6 +65,7 @@ type RotationRow = {
   isRotating: boolean;
   cycleLength: number;
   weekInCycle: number;
+  advancedAfterEnd?: boolean;
   isClosed: boolean;
   coursId: string | null;
   nameCours: string | null;
@@ -119,7 +130,16 @@ function toWeekDateIso(monday: Date): string {
   return monday.toISOString();
 }
 
-export function AtelierRotationPanel({ classeId }: { classeId: string }) {
+export function AtelierRotationPanel({
+  classeId,
+  syncToken = 0,
+  onChanged,
+}: {
+  classeId: string;
+  /** Incrémente quand la grille horaire change → recharge la liste. */
+  syncToken?: number;
+  onChanged?: () => void;
+}) {
   const [weekMonday, setWeekMonday] = useState(() => mondayOf(new Date()));
   const [rows, setRows] = useState<RotationRow[]>([]);
   const [options, setOptions] = useState<FormOptions | null>(null);
@@ -127,6 +147,8 @@ export function AtelierRotationPanel({ classeId }: { classeId: string }) {
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<RotationRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [day, setDay] = useState<string>("Lundi");
   const [hour, setHour] = useState("08:00");
@@ -141,12 +163,12 @@ export function AtelierRotationPanel({ classeId }: { classeId: string }) {
 
   const loadOptions = useCallback(async () => {
     try {
-      const [optsRes] = await getRotationFormOptionsAction({});
+      const [optsRes] = await getRotationFormOptionsAction({ classeId });
       setOptions((optsRes as FormOptions) ?? null);
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [classeId]);
 
   const loadSlots = useCallback(async () => {
     setLoading(true);
@@ -170,6 +192,11 @@ export function AtelierRotationPanel({ classeId }: { classeId: string }) {
   useEffect(() => {
     void loadSlots();
   }, [loadSlots]);
+
+  useEffect(() => {
+    if (syncToken === 0) return;
+    void loadSlots();
+  }, [syncToken, loadSlots]);
 
   const load = loadSlots;
 
@@ -244,10 +271,8 @@ export function AtelierRotationPanel({ classeId }: { classeId: string }) {
       toast.error("Choisissez un domaine pratique");
       return;
     }
-    if (cycleCoursIds.length < 2) {
-      toast.error(
-        "La rotation nécessite au moins deux cours le même jour (ex. Chimie puis Biologie). Un seul cours = horaire classique.",
-      );
+    if (cycleCoursIds.length === 0) {
+      toast.error("Ajoutez au moins un cours");
       return;
     }
     setSaving(true);
@@ -277,6 +302,7 @@ export function AtelierRotationPanel({ classeId }: { classeId: string }) {
       setShowForm(false);
       resetForm();
       await load();
+      onChanged?.();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erreur");
     } finally {
@@ -284,16 +310,21 @@ export function AtelierRotationPanel({ classeId }: { classeId: string }) {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Supprimer ce créneau en rotation ?")) return;
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      const [res, err] = await deleteRotationSlotAction({ id });
+      const [res, err] = await deleteRotationSlotAction({ id: deleteTarget.id });
       if (err) throw err;
       if (!res?.ok) throw new Error("Échec de la suppression");
       toast.success("Créneau rotation supprimé");
+      setDeleteTarget(null);
       await load();
+      onChanged?.();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erreur");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -308,15 +339,13 @@ export function AtelierRotationPanel({ classeId }: { classeId: string }) {
           <h3 className="text-base font-semibold text-amber-950 dark:text-amber-100">
             Horaires en rotation (atelier)
           </h3>
-          <p className="max-w-2xl text-sm text-muted-foreground">
-            La rotation s&apos;active seulement si vous placez{" "}
-            <strong className="font-medium text-foreground">
-              au moins deux cours le même jour
-            </strong>{" "}
-            (ex. lundi 08:00–10:00 : Chimie une semaine, Biologie la suivante).
-            Un seul cours → pas de rotation, utilisez l&apos;horaire classique
-            ci-dessus. Quand un créneau se termine (ex. fin à 10h), le cours
-            suivant de la journée est mis devant dans la liste.
+          <p className="max-w-7xl text-sm text-muted-foreground">
+            Placez 1 ou 2 cours sur un créneau (grille ci-dessus ou formulaire).
+            <strong className="font-medium text-foreground"> 2 cours</strong>{" "}
+            (ex. Chimie / Biologie) → rotation semaine actuelle / suivante.{" "}
+            <strong className="font-medium text-foreground">1 cours</strong> →
+            créneau fixe. Après la fin d&apos;un créneau (ex. 10h), le suivant
+            remonte devant.
           </p>
         </div>
         <Button
@@ -435,6 +464,7 @@ export function AtelierRotationPanel({ classeId }: { classeId: string }) {
                       {row.isRotating ? (
                         <span className="rounded-md bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">
                           Rotation {row.weekInCycle}/{row.cycleLength}
+                          {row.advancedAfterEnd ? " · S suivant actif" : ""}
                         </span>
                       ) : (
                         <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
@@ -497,7 +527,7 @@ export function AtelierRotationPanel({ classeId }: { classeId: string }) {
                       variant="ghost"
                       size="icon"
                       className="size-8 text-destructive"
-                      onClick={() => void handleDelete(row.id)}
+                      onClick={() => setDeleteTarget(row)}
                       aria-label="Supprimer"
                     >
                       <Trash2 className="size-3.5" />
@@ -509,6 +539,51 @@ export function AtelierRotationPanel({ classeId }: { classeId: string }) {
           })}
         </ul>
       )}
+
+      <AlertDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open && !deleting) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent className="bg-background">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce créneau en rotation ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget ? (
+                <>
+                  {deleteTarget.domainName} · {deleteTarget.day} ·{" "}
+                  {deleteTarget.hour}–{deleteTarget.hourEnd}
+                  {deleteTarget.label ? ` · ${deleteTarget.label}` : ""}. Cette
+                  action est définitive.
+                </>
+              ) : (
+                "Cette action est définitive."
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleting}
+              onClick={(e) => {
+                e.preventDefault();
+                void confirmDelete();
+              }}
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Suppression…
+                </>
+              ) : (
+                "Supprimer"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {showForm ? (
         <div className="mt-4 space-y-3 rounded-lg border bg-background p-4">
@@ -530,9 +605,9 @@ export function AtelierRotationPanel({ classeId }: { classeId: string }) {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Même jour et même heure (ex. Lundi 08:00–10:00). Cochez au moins{" "}
-            <strong>deux</strong> cours dans l&apos;ordre du cycle. Un seul cours
-            ne crée pas de rotation.
+            Même jour et heure. 1 cours = fixe. 2 cours ou plus = rotation par
+            semaine (cochez dans l&apos;ordre du cycle). Seuls les cours du
+            domaine affectés à ce groupe sont proposés.
           </p>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -636,8 +711,8 @@ export function AtelierRotationPanel({ classeId }: { classeId: string }) {
               </Label>
               {domainCourses.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
-                  Aucun cours lié à ce domaine. Créez des cours avec ce domaine
-                  pratique.
+                  Aucun cours de ce domaine affecté à ce groupe. Liez le cours au
+                  domaine pratique, puis affectez-le au groupe (enseignement).
                 </p>
               ) : (
                 <ul className="space-y-1.5">
@@ -714,9 +789,9 @@ export function AtelierRotationPanel({ classeId }: { classeId: string }) {
                     .join(" → ")}
                 </p>
               ) : cycleCoursIds.length === 1 ? (
-                <p className="text-xs text-amber-800 dark:text-amber-200">
-                  Un seul cours sélectionné — ajoutez-en un second pour activer
-                  la rotation, sinon placez-le dans l&apos;horaire classique.
+                <p className="text-xs text-muted-foreground">
+                  1 cours sélectionné — créneau fixe (ajoutez un 2ᵉ cours pour
+                  activer la rotation).
                 </p>
               ) : null}
             </div>

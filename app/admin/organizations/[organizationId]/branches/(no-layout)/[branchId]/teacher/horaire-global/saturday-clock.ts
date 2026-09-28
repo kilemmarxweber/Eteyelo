@@ -55,12 +55,12 @@ export function teacherScheduleClock(params: {
     params.teacherCreneaux.length > 0
       ? params.teacherCreneaux
       : params.allCreneaux;
+  // Si le créneau n'a pas de slots (durée invalide, etc.), on garde les
+  // heures des séances planifiées pour que la grille ne reste pas vide.
+  const slotHours = source.flatMap((creneau) => creneau.slots).filter(Boolean);
+  const entryHours = params.fallbackHours.filter(Boolean);
   const hours = [
-    ...new Set(
-      source.length > 0
-        ? source.flatMap((creneau) => creneau.slots)
-        : params.fallbackHours,
-    ),
+    ...new Set(slotHours.length > 0 ? [...slotHours, ...entryHours] : entryHours),
   ].sort(sortHm);
   const { saturdayHours, saturdayEndTime } = alignSaturdayHours(hours, source);
   const single =

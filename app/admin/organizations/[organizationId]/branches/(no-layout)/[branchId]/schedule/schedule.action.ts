@@ -77,6 +77,8 @@ import {
 } from "@/lib/auth/cycle-scope";
 import { isAtelierBranchType } from "@/lib/atelier-student-access";
 import {
+  advanceRotationAfterSlotEnded,
+  getLiveSlotPhase,
   mondayOfWeekContaining,
   resolveRotationCours,
 } from "@/lib/atelier-rotation";
@@ -2453,6 +2455,7 @@ export const getGlobalScheduleByCycleAction = action
         weekKey: "current" | "next",
       ): GlobalScheduleEntry[] => {
         const out: GlobalScheduleEntry[] = [];
+        const now = nowLocal();
         for (const slot of rotationSlots) {
           if (slot.items.length < 2) continue;
           const offset = dayIndex[slot.day] ?? 0;
@@ -2461,23 +2464,54 @@ export const getGlobalScheduleByCycleAction = action
           );
           const dateKey = calendarDateKeyInTimezone(slotDate);
           const defaultTeacher = teacherUserFrom(slot.teacher);
-          const resolved = resolveRotationCours({
+          const hourLabel = formatHourLabel(slot.hour);
+          const classe = classeById.get(slot.classeId);
+          if (!classe) continue;
+          const durationMinutes =
+            classe.creneau?.durationCourse && classe.creneau.durationCourse > 0
+              ? classe.creneau.durationCourse
+              : 60;
+
+          const items = slot.items.map((item) => {
+            const itemTeacher = teacherUserFrom(item.teacher);
+            return {
+              coursId: item.coursId,
+              nameCours: item.cours.nameCours,
+              sortOrder: item.sortOrder,
+              teacherId: item.teacherId,
+              teacherName: itemTeacher.name,
+            };
+          });
+
+          let resolved = resolveRotationCours({
             anchorDate: slot.anchorDate,
             date: slotDate,
             isClosed: closedKeys.has(dateKey),
             defaultTeacherId: slot.teacherId,
             defaultTeacherName: defaultTeacher.name,
-            items: slot.items.map((item) => {
-              const itemTeacher = teacherUserFrom(item.teacher);
-              return {
-                coursId: item.coursId,
-                nameCours: item.cours.nameCours,
-                sortOrder: item.sortOrder,
-                teacherId: item.teacherId,
-                teacherName: itemTeacher.name,
-              };
-            }),
+            items,
           });
+
+          const phase = resolved.isClosed
+            ? ("past" as const)
+            : getLiveSlotPhase({
+                slotDate,
+                startHm: hourLabel,
+                durationMinutes,
+                now,
+              });
+
+          // Avancer S2 seulement pour la semaine en cours (créneau déjà fini).
+          if (weekKey === "current") {
+            resolved = advanceRotationAfterSlotEnded({
+              resolved,
+              items,
+              phase,
+              defaultTeacherId: slot.teacherId,
+              defaultTeacherName: defaultTeacher.name,
+            });
+          }
+
           if (resolved.isClosed || !resolved.coursId || !resolved.nameCours) {
             continue;
           }
@@ -2509,9 +2543,6 @@ export const getGlobalScheduleByCycleAction = action
             continue;
           }
 
-          const classe = classeById.get(slot.classeId);
-          if (!classe) continue;
-
           const matchedItem = slot.items.find(
             (i) => i.coursId === resolved.coursId,
           );
@@ -2519,7 +2550,7 @@ export const getGlobalScheduleByCycleAction = action
           out.push({
             id: `rot:${slot.id}:${weekKey}`,
             day: slot.day,
-            hour: formatHourLabel(slot.hour),
+            hour: hourLabel,
             teacher,
             classe: {
               id: classe.id,
@@ -2529,7 +2560,13 @@ export const getGlobalScheduleByCycleAction = action
             cours: {
               id: resolved.coursId,
               codeCours: matchedItem?.cours.codeCours || "",
-              nameCours: `${slot.practicalDomain.name} · ${resolved.nameCours}`,
+              nameCours: `${slot.practicalDomain.name} · ${resolved.nameCours}${
+                resolved.advancedAfterEnd
+                  ? ` · S${resolved.weekInCycle}`
+                  : resolved.cycleLength > 1
+                    ? ` · S${resolved.weekInCycle}`
+                    : ""
+              }`,
             },
             creneauId: classe.creneauId ?? null,
           });

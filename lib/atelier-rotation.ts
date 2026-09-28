@@ -26,6 +26,11 @@ export type ResolvedRotation = {
   nameCours: string | null;
   teacherId: string | null;
   teacherName: string | null;
+  /**
+   * true si le créneau de la semaine est déjà terminé et qu'on affiche
+   * le cours suivant du cycle (S2, etc.) directement dans l'horaire.
+   */
+  advancedAfterEnd?: boolean;
 };
 
 /** La rotation hebdo n’est active qu’avec au moins deux cours le même créneau. */
@@ -193,6 +198,45 @@ export function resolveRotationCours(params: {
     nameCours: item.nameCours,
     teacherId,
     teacherName,
+    advancedAfterEnd: false,
+  };
+}
+
+/**
+ * Si le créneau de la semaine est déjà terminé (ex. après 10h),
+ * affiche directement le cours suivant du cycle (S2, S3…).
+ */
+export function advanceRotationAfterSlotEnded(params: {
+  resolved: ResolvedRotation;
+  items: RotationItemInput[];
+  phase: LiveSlotPhase;
+  defaultTeacherId?: string | null;
+  defaultTeacherName?: string | null;
+}): ResolvedRotation {
+  const { resolved, phase } = params;
+  if (
+    phase !== "past" ||
+    resolved.isClosed ||
+    !resolved.isRotating ||
+    resolved.cycleLength < 2
+  ) {
+    return resolved;
+  }
+
+  const items = [...params.items].sort((a, b) => a.sortOrder - b.sortOrder);
+  const nextIndex = resolved.weekInCycle % resolved.cycleLength;
+  const item = items[nextIndex];
+  if (!item) return resolved;
+
+  return {
+    ...resolved,
+    weekInCycle: nextIndex + 1,
+    coursId: item.coursId,
+    nameCours: item.nameCours,
+    teacherId: item.teacherId ?? params.defaultTeacherId ?? resolved.teacherId,
+    teacherName:
+      item.teacherName ?? params.defaultTeacherName ?? resolved.teacherName,
+    advancedAfterEnd: true,
   };
 }
 

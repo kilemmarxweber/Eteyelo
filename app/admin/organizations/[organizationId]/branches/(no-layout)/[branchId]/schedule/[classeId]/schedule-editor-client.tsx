@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { notifyScheduleOptionsUpdated } from "../components/CourseSidebar";
 import Schedule from "./components/schedule";
@@ -15,6 +15,9 @@ export default function ScheduleEditorClient({
 }) {
   const { refreshKey } = useRefresh();
   const [isAtelier, setIsAtelier] = useState(false);
+  /** Sync grille ↔ liste rotation sans resetter la semaine du panneau. */
+  const [atelierSyncToken, setAtelierSyncToken] = useState(0);
+  const [scheduleSyncKey, setScheduleSyncKey] = useState(0);
 
   useEffect(() => {
     let ignore = false;
@@ -29,15 +32,33 @@ export default function ScheduleEditorClient({
     };
   }, []);
 
+  const notifyFromGrid = useCallback(() => {
+    notifyScheduleOptionsUpdated();
+    setAtelierSyncToken((t) => t + 1);
+  }, []);
+
+  const notifyFromRotationList = useCallback(() => {
+    notifyScheduleOptionsUpdated();
+    setScheduleSyncKey((k) => k + 1);
+  }, []);
+
   return (
     <>
       <Schedule
         classeId={classeId}
         mode="create"
-        key={refreshKey}
-        onScheduleAction={notifyScheduleOptionsUpdated}
+        key={`${refreshKey}-${scheduleSyncKey}`}
+        isAtelier={isAtelier}
+        onScheduleAction={notifyFromGrid}
       />
-      {isAtelier ? <AtelierRotationPanel classeId={classeId} /> : null}
+      {isAtelier ? (
+        <AtelierRotationPanel
+          key={`rot-${refreshKey}`}
+          classeId={classeId}
+          syncToken={atelierSyncToken}
+          onChanged={notifyFromRotationList}
+        />
+      ) : null}
     </>
   );
 }

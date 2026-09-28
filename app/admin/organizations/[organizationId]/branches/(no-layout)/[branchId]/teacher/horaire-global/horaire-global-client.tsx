@@ -34,6 +34,11 @@ import { MultiSelect } from "../../paiement/components/MultiSelect";
 import { useSession } from "@/lib/auth-client";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { DEFAULT_CRENEAU_WORKING_DAYS } from "@/lib/creneau-working-days";
+import {
+  formatTeachingHoursLabel,
+  sumScheduleMinutes,
+  teachingHoursFromMinutes,
+} from "@/lib/teacher-schedule-load";
 import { cn } from "@/lib/utils";
 import { getTeacherReportContextAction } from "../teacher.action";
 import {
@@ -56,7 +61,9 @@ import {
 import { teacherSchedulePdfTable } from "./teacher-schedule-pdf-table";
 import type {
   GlobalScheduleByCycle,
+  GlobalScheduleCreneau,
   GlobalScheduleCycleOption,
+  GlobalScheduleEntry,
   GlobalScheduleTeacher,
 } from "./types";
 import type { Cycle } from "@/lib/cycle";
@@ -75,6 +82,66 @@ function isAssignedTeacher(teacher: GlobalScheduleTeacher) {
 
 function teacherHasContact(teacher: GlobalScheduleTeacher) {
   return isAssignedTeacher(teacher) && Boolean(teacher.telephone?.trim());
+}
+
+/** Heures de lignes grille : slots du créneau, sinon heures des séances. */
+function gridHoursForCreneau(
+  creneau: GlobalScheduleCreneau,
+  entries: GlobalScheduleEntry[],
+) {
+  if (creneau.slots.length > 0) {
+    const entryHours = entries
+      .filter((entry) => entry.creneauId === creneau.id)
+      .map((entry) => entry.hour)
+      .filter(Boolean);
+    return [...new Set([...creneau.slots, ...entryHours])].sort();
+  }
+  return [
+    ...new Set(
+      entries
+        .filter((entry) => entry.creneauId === creneau.id)
+        .map((entry) => entry.hour)
+        .filter(Boolean),
+    ),
+  ].sort();
+}
+
+function teacherLoadFromEntries(
+  entries: GlobalScheduleEntry[],
+  schedule: GlobalScheduleByCycle,
+) {
+  const durationByCreneauId = new Map(
+    schedule.creneaux.map((creneau) => [
+      creneau.id,
+      creneau.durationCourse > 0
+        ? creneau.durationCourse
+        : schedule.hourUnitMinutes,
+    ]),
+  );
+  const classIds = new Set(entries.map((e) => e.classe.id).filter(Boolean));
+  const courseIds = new Set(entries.map((e) => e.cours.id).filter(Boolean));
+  const totalMinutes = sumScheduleMinutes(
+    entries,
+    durationByCreneauId,
+    schedule.hourUnitMinutes,
+  );
+  const hoursCount = teachingHoursFromMinutes(
+    totalMinutes,
+    schedule.hourUnitMinutes,
+  );
+  return {
+    classCount: classIds.size,
+    courseCount: courseIds.size,
+    periodCount: entries.length,
+    totalMinutes,
+    hoursCount,
+    hoursLabel: formatTeachingHoursLabel(hoursCount),
+    creneauIds: [
+      ...new Set(
+        entries.map((e) => e.creneauId).filter((v): v is string => Boolean(v)),
+      ),
+    ],
+  };
 }
 
 function academicGroupsLabel(
@@ -282,16 +349,16 @@ export function HoraireGlobalClient() {
       const teachers = [...grouped.entries()]
         .filter(([id]) => Boolean(id) && !id.startsWith("unassigned:"))
         .map(([id, row]) => {
+          const load = teacherLoadFromEntries(row.entries, schedule);
           const meta = row.teacher;
           if (meta) {
-            return { ...meta, entries: row.entries };
+            return {
+              ...meta,
+              ...load,
+              telephone: meta.telephone || row.entryTeacher.telephone,
+              entries: row.entries,
+            };
           }
-          const classIds = new Set(
-            row.entries.map((e) => e.classe.id).filter(Boolean),
-          );
-          const courseIds = new Set(
-            row.entries.map((e) => e.cours.id).filter(Boolean),
-          );
           return {
             id,
             nom: row.entryTeacher.nom,
@@ -299,22 +366,10 @@ export function HoraireGlobalClient() {
             prenom: row.entryTeacher.prenom,
             name: row.entryTeacher.name,
             telephone: row.entryTeacher.telephone,
-            classCount: classIds.size,
-            courseCount: courseIds.size,
-            periodCount: row.entries.length,
-            totalMinutes: 0,
-            hoursCount: 0,
-            hoursLabel: "—",
+            ...load,
             academicPeriodCount: schedule.academicPeriodCount,
             academicGroupCount: schedule.academicGroupCount,
             academicGroupKind: schedule.academicGroupKind,
-            creneauIds: [
-              ...new Set(
-                row.entries
-                  .map((e) => e.creneauId)
-                  .filter((v): v is string => Boolean(v)),
-              ),
-            ],
             entries: row.entries,
           };
         })
@@ -850,9 +905,17 @@ export function HoraireGlobalClient() {
                     ) : (
                       <>
                         {schedule.creneaux.map((creneau) => {
-                          const saturday = alignSaturdayHours(creneau.slots, [
+                          const creneauEntries = week.entries.filter(
+                            (entry) => entry.creneauId === creneau.id,
+                          );
+                          const hours = gridHoursForCreneau(
                             creneau,
-                          ]);
+                            week.entries,
+                          );
+                          const saturday = alignSaturdayHours(
+                            hours.length > 0 ? hours : creneau.slots,
+                            [creneau],
+                          );
                           return (
                             <section key={`${week.key}-${creneau.id}`} className="space-y-3">
                               <div>
@@ -867,15 +930,13 @@ export function HoraireGlobalClient() {
                                 </p>
                               </div>
                               <GlobalScheduleGrid
-                                hours={creneau.slots}
+                                hours={hours}
                                 workingDays={creneau.workingDays}
                                 recreationHour={creneau.recreationHour}
                                 endTime={creneau.endTime}
                                 saturdayHours={saturday.saturdayHours}
                                 saturdayEndTime={saturday.saturdayEndTime}
-                                entries={week.entries.filter(
-                                  (entry) => entry.creneauId === creneau.id,
-                                )}
+                                entries={creneauEntries}
                                 emptyLabel={t("empty")}
                                 hoursLabel={t("hoursColumn")}
                                 recreationLabel={(start, end) =>
@@ -953,29 +1014,39 @@ export function HoraireGlobalClient() {
             ) : (
               <div className="space-y-8">
                 {schedule.atelierWeeks && schedule.atelierWeeks.length > 0 ? (
-                  <Tabs
-                    value={atelierWeekKey}
-                    onValueChange={(value) =>
-                      setAtelierWeekKey(value as "current" | "next")
-                    }
+                  <div
+                    role="tablist"
+                    aria-label="Semaine d'affichage"
+                    className="flex w-full max-w-2xl flex-col gap-2 sm:flex-row"
                   >
-                    <TabsList className="grid h-auto w-full max-w-md grid-cols-2 border border-amber-200/80 bg-amber-50/60 dark:border-amber-900/50 dark:bg-amber-950/30">
-                      {schedule.atelierWeeks.map((week) => (
-                        <TabsTrigger
+                    {schedule.atelierWeeks.map((week) => {
+                      const active = atelierWeekKey === week.key;
+                      return (
+                        <button
                           key={week.key}
-                          value={week.key}
-                          className="px-3 py-1.5 text-xs data-[state=active]:bg-amber-200 data-[state=active]:text-amber-950 sm:text-sm dark:data-[state=active]:bg-amber-800 dark:data-[state=active]:text-amber-50"
+                          type="button"
+                          role="tab"
+                          aria-selected={active}
+                          onClick={() => setAtelierWeekKey(week.key)}
+                          className={cn(
+                            "flex min-w-0 flex-1 flex-col items-start gap-0.5 rounded-lg border px-3 py-2.5 text-left transition-colors",
+                            active
+                              ? "border-amber-400 bg-amber-100 text-amber-950 shadow-sm dark:border-amber-600 dark:bg-amber-900/50 dark:text-amber-50"
+                              : "border-amber-200/80 bg-amber-50/50 text-amber-950/80 hover:bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-100/80 dark:hover:bg-amber-950/40",
+                          )}
                         >
-                          <span className="flex flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:gap-1.5">
-                            <span>{week.label}</span>
-                            <span className="text-[10px] font-normal opacity-80 sm:text-xs">
+                          <span className="text-sm font-semibold leading-tight">
+                            {week.label}
+                          </span>
+                          {week.rangeLabel ? (
+                            <span className="text-xs font-normal text-muted-foreground">
                               {week.rangeLabel}
                             </span>
-                          </span>
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
-                  </Tabs>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
                 ) : null}
                 {filteredTeachers.map((teacher) => {
                   const clock = teacherHoursClock(teacher, schedule);

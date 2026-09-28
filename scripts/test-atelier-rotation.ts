@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  advanceRotationAfterSlotEnded,
   compareSlotsByLivePriority,
   formatRotationCellLabel,
   getLiveSlotPhase,
@@ -111,6 +112,48 @@ test("après fin créneau, le suivant est prioritaire", () => {
     { phase: phaseAfternoon, startHm: "14:00", day: "Lundi" },
   ].sort(compareSlotsByLivePriority);
   assert.equal(sorted[0]!.startHm, "14:00");
+});
+
+test("fin de créneau → active S2 directement", () => {
+  const items = [
+    {
+      coursId: "c1",
+      nameCours: "Chimie",
+      sortOrder: 0,
+      teacherName: "A B C",
+    },
+    {
+      coursId: "c2",
+      nameCours: "Biologie",
+      sortOrder: 1,
+      teacherName: "D E F",
+    },
+  ];
+  const resolved = resolveRotationCours({
+    anchorDate: new Date("2026-09-21T00:00:00.000Z"),
+    items,
+    date: new Date("2026-09-21T12:00:00.000Z"),
+  });
+  assert.equal(resolved.nameCours, "Chimie");
+  assert.equal(resolved.weekInCycle, 1);
+
+  const advanced = advanceRotationAfterSlotEnded({
+    resolved,
+    items,
+    phase: "past",
+  });
+  assert.equal(advanced.nameCours, "Biologie");
+  assert.equal(advanced.weekInCycle, 2);
+  assert.equal(advanced.advancedAfterEnd, true);
+  assert.equal(advanced.teacherName, "D E F");
+
+  const stillCurrent = advanceRotationAfterSlotEnded({
+    resolved,
+    items,
+    phase: "current",
+  });
+  assert.equal(stillCurrent.nameCours, "Chimie");
+  assert.equal(stillCurrent.advancedAfterEnd ?? false, false);
 });
 
 test("férié : séance fermée, cycle non décalé", () => {

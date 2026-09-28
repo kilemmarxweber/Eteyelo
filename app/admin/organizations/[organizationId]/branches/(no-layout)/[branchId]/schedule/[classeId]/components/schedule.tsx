@@ -41,6 +41,11 @@ import {
   getSchedulesByClasseAction,
   regenerateScheduleForClasseAction,
 } from "../../schedule.action";
+import {
+  deleteRotationSlotAction,
+  getResolvedRotationSlotsAction,
+  placeAtelierScheduleCellAction,
+} from "../../rotation.action";
 import { ICours } from "@/src/interfaces/Cours";
 import { z } from "zod";
 import { scheduleSchema } from "@/src/interfaces/Schedule";
@@ -87,6 +92,9 @@ type Horaire = {
   teacherName: string;
   heureDebut: string;
   heureFin: string;
+  /** Créneau RotationSlot (atelier), pas un Schedule classique. */
+  isRotation?: boolean;
+  rotationLabel?: string | null;
 };
 
 type CellTarget = {
@@ -100,6 +108,8 @@ interface ScheduleUpFormProps extends HTMLAttributes<HTMLDivElement> {
   initialData?: z.infer<typeof scheduleSchema>;
   classeId?: string;
   mode: "create" | "update";
+  /** Branche atelier : placer 1 cours (fixe) ou 2 (rotation). */
+  isAtelier?: boolean;
 }
 
 const ALL_JOURS = Day;
@@ -133,6 +143,7 @@ export default function Schedule({
   className,
   onScheduleAction,
   classeId,
+  isAtelier = false,
   ...props
 }: ScheduleUpFormProps) {
   const t = useTranslations("teaching.schedule");
@@ -163,6 +174,7 @@ export default function Schedule({
   const [reconduireOpen, setReconduireOpen] = useState(false);
   const [cellTarget, setCellTarget] = useState<CellTarget | null>(null);
   const [selectedCours, setSelectedCours] = useState("");
+  const [selectedCours2, setSelectedCours2] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Horaire | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -211,24 +223,96 @@ export default function Schedule({
     if (!classeId) return;
     const [schedules, err] = await getSchedulesByClasseAction({ classeId });
     if (err) throw new Error("Failed to fetch schedules");
-    setHoraires(
-      schedules.map((schedule) => ({
-        id: schedule.id,
-        jour: schedule.day,
-        cours: schedule.cours as ICours,
-        teacherLastName: schedule.teacher?.nom ?? "",
-        teacherName: [
-          schedule.teacher?.nom,
-          schedule.teacher?.postnom,
-          schedule.teacher?.prenom,
-        ]
-          .filter(Boolean)
-          .join(" "),
-        heureDebut: schedule.hour,
-        heureFin: "",
-      })),
-    );
-  }, [classeId]);
+
+    const classic: Horaire[] = (schedules ?? []).map((schedule) => ({
+      id: schedule.id,
+      jour: schedule.day,
+      cours: schedule.cours as ICours,
+      teacherLastName: schedule.teacher?.nom ?? "",
+      teacherName: [
+        schedule.teacher?.nom,
+        schedule.teacher?.postnom,
+        schedule.teacher?.prenom,
+      ]
+        .filter(Boolean)
+        .join(" "),
+      heureDebut: schedule.hour,
+      heureFin: "",
+      isRotation: false,
+    }));
+
+    if (!isAtelier) {
+      setHoraires(classic);
+      return;
+    }
+
+    try {
+      const weekDate = new Date();
+      weekDate.setHours(12, 0, 0, 0);
+      const [rotRows, rotErr] = await getResolvedRotationSlotsAction({
+        classeId,
+        weekDate: weekDate.toISOString(),
+      });
+      if (rotErr || !rotRows) {
+        setHoraires(classic);
+        return;
+      }
+
+      const rotationHoraires: Horaire[] = (
+        rotRows as Array<{
+          id: string;
+          day: string;
+          hour: string;
+          isClosed: boolean;
+          isRotating: boolean;
+          advancedAfterEnd?: boolean;
+          coursId: string | null;
+          nameCours: string | null;
+          teacherName: string | null;
+          label: string;
+          weekInCycle: number;
+          cycleLength: number;
+        }>
+      )
+        .filter((row) => !row.isClosed && row.coursId && row.nameCours)
+        .map((row) => {
+          const cycleHint =
+            row.isRotating && row.cycleLength > 1
+              ? ` · S${row.weekInCycle}/${row.cycleLength}`
+              : "";
+          const afterEndHint = row.advancedAfterEnd ? " · actif" : "";
+          return {
+            id: `rotation:${row.id}`,
+            jour: row.day,
+            cours: {
+              id: row.coursId!,
+              nameCours: `${row.nameCours}${cycleHint}${afterEndHint}`,
+              codeCours: "",
+            } as ICours,
+            teacherLastName: row.teacherName?.split(/\s+/)[0] ?? "",
+            teacherName: row.teacherName ?? "",
+            heureDebut: row.hour,
+            heureFin: "",
+            isRotation: true,
+            rotationLabel: row.label,
+          };
+        });
+
+      // Évite le doublon si un Schedule classique occupe déjà la case.
+      const classicKeys = new Set(
+        classic.map((h) => `${h.jour}|${h.heureDebut}`),
+      );
+      const merged = [
+        ...classic,
+        ...rotationHoraires.filter(
+          (h) => !classicKeys.has(`${h.jour}|${h.heureDebut}`),
+        ),
+      ];
+      setHoraires(merged);
+    } catch {
+      setHoraires(classic);
+    }
+  }, [classeId, isAtelier]);
 
   const reloadCours = useCallback(async () => {
     if (!classeId) return;
@@ -360,21 +444,39 @@ export default function Schedule({
     if (!canCreateSchedule) return;
     setCellTarget({ jour, heureDebut, heureFin });
     setSelectedCours("");
+    setSelectedCours2("");
   }
 
   function closeCellDialog() {
     setCellTarget(null);
     setSelectedCours("");
+    setSelectedCours2("");
+  }
+
+  function actionErrorMessage(err: unknown, fallback: string) {
+    if (!err) return fallback;
+    if (typeof err === "string" && err.trim()) return err;
+    if (err instanceof Error && err.message.trim()) return err.message;
+    if (typeof err === "object" && err !== null && "message" in err) {
+      const msg = (err as { message?: unknown }).message;
+      if (typeof msg === "string" && msg.trim()) return msg;
+    }
+    return fallback;
   }
 
   async function assignCourse() {
     if (!canCreateSchedule || !cellTarget || !selectedCours || !classeId) return;
 
+    if (selectedCours2 && selectedCours2 === selectedCours) {
+      toast.warning("Choisissez deux cours différents pour la rotation");
+      return;
+    }
+
     const conflit = horaires.some(
       (h) =>
         h.jour === cellTarget.jour && h.heureDebut === cellTarget.heureDebut,
     );
-    if (conflit) {
+    if (conflit && !(isAtelier && selectedCours2)) {
       toast.warning(
         `Cette case est déjà occupée (${cellTarget.jour} à ${cellTarget.heureDebut}).`,
       );
@@ -383,6 +485,36 @@ export default function Schedule({
 
     setSaving(true);
     try {
+      if (isAtelier) {
+        const coursIds = selectedCours2
+          ? [selectedCours, selectedCours2]
+          : [selectedCours];
+        const [res, err] = await placeAtelierScheduleCellAction({
+          classeId,
+          day: cellTarget.jour,
+          hour: cellTarget.heureDebut,
+          coursIds,
+        });
+        if (err) {
+          throw new Error(
+            actionErrorMessage(
+              err,
+              "Erreur lors de l'enregistrement de l'horaire",
+            ),
+          );
+        }
+        if (!res?.id) throw new Error("Échec de l'enregistrement");
+        await loadHoraires();
+        onScheduleAction?.();
+        toast.success(
+          res.mode === "rotation"
+            ? "Rotation enregistrée (2 cours, alternance par semaine)"
+            : t("coursePlaced"),
+        );
+        closeCellDialog();
+        return;
+      }
+
       const [, err] = await createScheduleAction({
         day: cellTarget.jour,
         coursId: selectedCours,
@@ -390,7 +522,14 @@ export default function Schedule({
         classeId,
         createdBy: "",
       });
-      if (err) throw err;
+      if (err) {
+        throw new Error(
+          actionErrorMessage(
+            err,
+            "Erreur lors de l'enregistrement de l'horaire",
+          ),
+        );
+      }
 
       await loadHoraires();
       onScheduleAction?.();
@@ -398,11 +537,12 @@ export default function Schedule({
       closeCellDialog();
     } catch (error) {
       console.error(error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Erreur lors de l'enregistrement de l'horaire";
-      toast.error(message);
+      toast.error(
+        actionErrorMessage(
+          error,
+          "Erreur lors de l'enregistrement de l'horaire",
+        ),
+      );
     } finally {
       setSaving(false);
     }
@@ -429,8 +569,17 @@ export default function Schedule({
 
     setDeleting(true);
     try {
-      const [, err] = await deleteScheduleAction({ id: deleteTarget.id });
-      if (err) throw err;
+      if (deleteTarget.isRotation || deleteTarget.id.startsWith("rotation:")) {
+        const rotationId = deleteTarget.id.startsWith("rotation:")
+          ? deleteTarget.id.slice("rotation:".length)
+          : deleteTarget.id;
+        const [res, err] = await deleteRotationSlotAction({ id: rotationId });
+        if (err) throw err;
+        if (!res?.ok) throw new Error("Échec de la suppression");
+      } else {
+        const [, err] = await deleteScheduleAction({ id: deleteTarget.id });
+        if (err) throw err;
+      }
       setHoraires((prev) =>
         prev.filter((horaire) => horaire.id !== deleteTarget.id),
       );
@@ -766,6 +915,11 @@ export default function Schedule({
                                     <span className="font-medium">
                                       {horaire.cours.nameCours}
                                     </span>
+                                    {horaire.isRotation ? (
+                                      <span className="mt-0.5 block text-[10px] font-medium uppercase tracking-wide text-amber-700 dark:text-amber-300">
+                                        Rotation
+                                      </span>
+                                    ) : null}
                                     {horaire.teacherName && (
                                       <span className="block text-xs text-muted-foreground">
                                         {horaire.teacherName}
@@ -848,8 +1002,16 @@ export default function Schedule({
           </DialogHeader>
 
           <div className="space-y-2">
-            <Label htmlFor="cours-cell">{t("course")}</Label>
-            <Select value={selectedCours} onValueChange={setSelectedCours}>
+            <Label htmlFor="cours-cell">
+              {isAtelier ? "Cours 1" : t("course")}
+            </Label>
+            <Select
+              value={selectedCours}
+              onValueChange={(v) => {
+                setSelectedCours(v);
+                if (v === selectedCours2) setSelectedCours2("");
+              }}
+            >
               <SelectTrigger id="cours-cell">
                 <SelectValue placeholder={t("chooseCourse")} />
               </SelectTrigger>
@@ -861,6 +1023,37 @@ export default function Schedule({
                 ))}
               </SelectContent>
             </Select>
+            {isAtelier ? (
+              <div className="space-y-2 pt-1">
+                <Label htmlFor="cours-cell-2">
+                  Cours 2 (optionnel — active la rotation)
+                </Label>
+                <Select
+                  value={selectedCours2 || "__none__"}
+                  onValueChange={(v) =>
+                    setSelectedCours2(v === "__none__" ? "" : v)
+                  }
+                >
+                  <SelectTrigger id="cours-cell-2">
+                    <SelectValue placeholder="Aucun — créneau fixe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Aucun — créneau fixe</SelectItem>
+                    {uniqueCours
+                      .filter((c) => c.id !== selectedCours)
+                      .map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.nameCours}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  1 cours = fixe. 2 cours = alternance semaine (ex. Chimie /
+                  Biologie). Même domaine pratique requis.
+                </p>
+              </div>
+            ) : null}
             {uniqueCours.length === 0 && (
               <p className="text-sm text-muted-foreground">
                 {t("noAssignedCourses")}
