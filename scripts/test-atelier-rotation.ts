@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import {
+  compareSlotsByLivePriority,
   formatRotationCellLabel,
+  getLiveSlotPhase,
   mondayOfWeekContaining,
   resolveRotationCours,
+  rotationSlotEndHm,
   weeksBetweenMondays,
 } from "../lib/atelier-rotation";
 import { buildAtelierLabGroupLabel } from "../lib/atelier-lab-groups-shared";
@@ -53,6 +56,7 @@ test("rotation cycle N cours (chimie → biologie)", () => {
   });
   assert.equal(week0.nameCours, "Chimie");
   assert.equal(week0.weekInCycle, 1);
+  assert.equal(week0.isRotating, true);
 
   const week1 = resolveRotationCours({
     anchorDate: anchor,
@@ -68,6 +72,45 @@ test("rotation cycle N cours (chimie → biologie)", () => {
     date: new Date("2026-10-05T12:00:00.000Z"),
   });
   assert.equal(week2.nameCours, "Chimie");
+});
+
+test("un seul cours = pas de rotation", () => {
+  const week0 = resolveRotationCours({
+    anchorDate: new Date("2026-09-21T00:00:00.000Z"),
+    items: [{ coursId: "c1", nameCours: "Chimie", sortOrder: 0 }],
+    date: new Date("2026-09-28T12:00:00.000Z"),
+  });
+  assert.equal(week0.isRotating, false);
+  assert.equal(week0.nameCours, "Chimie");
+  assert.equal(week0.weekInCycle, 1);
+});
+
+test("après fin créneau, le suivant est prioritaire", () => {
+  assert.equal(rotationSlotEndHm("08:00", 120), "10:00");
+
+  const today = new Date();
+  today.setHours(12, 0, 0, 0);
+  const phaseMorning = getLiveSlotPhase({
+    slotDate: today,
+    startHm: "08:00",
+    durationMinutes: 120,
+    now: today,
+  });
+  assert.equal(phaseMorning, "past");
+
+  const phaseAfternoon = getLiveSlotPhase({
+    slotDate: today,
+    startHm: "14:00",
+    durationMinutes: 120,
+    now: today,
+  });
+  assert.equal(phaseAfternoon, "upcoming");
+
+  const sorted = [
+    { phase: phaseMorning, startHm: "08:00", day: "Lundi" },
+    { phase: phaseAfternoon, startHm: "14:00", day: "Lundi" },
+  ].sort(compareSlotsByLivePriority);
+  assert.equal(sorted[0]!.startHm, "14:00");
 });
 
 test("férié : séance fermée, cycle non décalé", () => {

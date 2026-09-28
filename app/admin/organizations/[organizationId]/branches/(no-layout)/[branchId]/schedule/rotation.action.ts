@@ -10,9 +10,12 @@ import {
 } from "@/lib/auth/require-branch-context";
 import { isAtelierBranchType } from "@/lib/atelier-student-access";
 import {
+  compareSlotsByLivePriority,
   formatRotationCellLabel,
+  getLiveSlotPhase,
   mondayOfWeekContaining,
   resolveRotationCours,
+  rotationSlotEndHm,
 } from "@/lib/atelier-rotation";
 import { listBranchClosedDayKeys } from "@/lib/branch-closed-days";
 import {
@@ -96,9 +99,14 @@ export const getResolvedRotationSlotsAction = action
 
     const classe = await prisma.classe.findFirst({
       where: { id: input.classeId, branchId },
-      select: { id: true },
+      select: {
+        id: true,
+        creneau: { select: { durationCourse: true } },
+      },
     });
     if (!classe) throw new Error("Groupe introuvable");
+
+    const durationMinutes = classe.creneau?.durationCourse ?? 60;
 
     const weekDate = input.weekDate
       ? new Date(input.weekDate)
@@ -140,10 +148,14 @@ export const getResolvedRotationSlotsAction = action
       Dimanche: 6,
     };
 
-    return slots.map((slot) => {
+    const now = nowLocal();
+
+    const resolvedRows = slots.map((slot) => {
       const offset = dayIndex[slot.day] ?? 0;
       const slotDate = new Date(weekMonday.getTime() + offset * 86_400_000);
       const dateKey = calendarDateKeyInTimezone(slotDate);
+      const hour = formatHourHm(slot.hour);
+      const hourEnd = rotationSlotEndHm(hour, durationMinutes);
 
       const defaultTeacherName = teacherNameFrom(slot.teacher);
       const resolved = resolveRotationCours({
@@ -161,10 +173,22 @@ export const getResolvedRotationSlotsAction = action
         })),
       });
 
+      const phase = resolved.isClosed
+        ? ("past" as const)
+        : getLiveSlotPhase({
+            slotDate,
+            startHm: hour,
+            durationMinutes,
+            now,
+          });
+
       return {
         id: slot.id,
         day: slot.day,
-        hour: formatHourHm(slot.hour),
+        hour,
+        hourEnd,
+        durationMinutes,
+        phase,
         practicalDomainId: slot.practicalDomainId,
         domainName: slot.practicalDomain.name,
         roomId: slot.roomId,
@@ -172,6 +196,7 @@ export const getResolvedRotationSlotsAction = action
         teacherId: resolved.teacherId,
         teacherName: resolved.teacherName,
         anchorDate: slot.anchorDate.toISOString().slice(0, 10),
+        isRotating: resolved.isRotating,
         cycleLength: resolved.cycleLength,
         weekInCycle: resolved.weekInCycle,
         isClosed: resolved.isClosed,
@@ -190,6 +215,15 @@ export const getResolvedRotationSlotsAction = action
         })),
       };
     });
+
+    // Cours en cours / suivant devant ; après la fin (ex. 10h) le suivant remonte.
+    return resolvedRows.sort((a, b) =>
+      compareSlotsByLivePriority(
+        { phase: a.phase, startHm: a.hour, day: a.day },
+        { phase: b.phase, startHm: b.hour, day: b.day },
+        dayIndex,
+      ),
+    );
   });
 
 export const upsertRotationSlotAction = action
@@ -211,7 +245,10 @@ export const upsertRotationSlotAction = action
             teacherId: z.string().nullable().optional(),
           }),
         )
-        .min(1),
+        .min(
+          2,
+          "La rotation nécessite au moins deux cours le même jour (ex. Chimie puis Biologie). Un seul cours = horaire classique, sans rotation.",
+        ),
     }),
   )
   .handler(async ({ input }) => {
@@ -375,4 +412,94 @@ export const getDomainCoursForRotationAction = action
       nameCours: r.cours.nameCours,
       sortOrder: r.sortOrderDefault,
     }));
+  });
+
+/** Options du formulaire rotation (domaines, salles, enseignants, cours). */
+export const getRotationFormOptionsAction = action
+  .input(z.object({}).optional())
+  .handler(async () => {
+    const { branchId, typebranch } = await requireBranchContext();
+    if (!isAtelierBranchType(typebranch)) {
+      return {
+        domains: [],
+        rooms: [],
+        teachers: [],
+        coursesByDomain: {} as Record<
+          string,
+          Array<{ id: string; nameCours: string; code: string | null }>
+        >,
+      };
+    }
+
+    const [domains, rooms, teachers, domainCours] = await Promise.all([
+      prisma.practicalDomain.findMany({
+        where: { branchId },
+        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+        select: { id: true, name: true, code: true },
+      }),
+      prisma.room.findMany({
+        where: { branchId },
+        orderBy: { name: "asc" },
+        select: { id: true, name: true, practicalDomainId: true },
+      }),
+      prisma.teacher.findMany({
+        where: {
+          isActive: true,
+          branchMember: { branchId, isActive: true },
+        },
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          branchMember: {
+            select: {
+              member: {
+                select: {
+                  user: {
+                    select: { name: true, postnom: true, prenom: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+      prisma.practicalDomainCours.findMany({
+        where: { practicalDomain: { branchId } },
+        orderBy: { sortOrderDefault: "asc" },
+        select: {
+          practicalDomainId: true,
+          cours: {
+            select: { id: true, nameCours: true, codeCours: true },
+          },
+        },
+      }),
+    ]);
+
+    const coursesByDomain: Record<
+      string,
+      Array<{ id: string; nameCours: string; code: string | null }>
+    > = {};
+    for (const row of domainCours) {
+      const list = coursesByDomain[row.practicalDomainId] ?? [];
+      list.push({
+        id: row.cours.id,
+        nameCours: row.cours.nameCours,
+        code: row.cours.codeCours,
+      });
+      coursesByDomain[row.practicalDomainId] = list;
+    }
+
+    return {
+      domains,
+      rooms,
+      teachers: teachers.map((t) => {
+        const u = t.branchMember?.member?.user;
+        const name = [u?.name, u?.postnom, u?.prenom]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+        return { id: t.id, name: name || "Enseignant" };
+      }),
+      coursesByDomain,
+    };
   });
