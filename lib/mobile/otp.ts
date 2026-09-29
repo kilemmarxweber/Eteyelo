@@ -33,6 +33,9 @@ async function countRecentOtpRequests(phoneE164: string) {
 async function sendOtpMessage(phoneE164: string, code: string) {
   const apiKey = process.env.MESSAGING_API_KEY?.trim();
   const baseUrl = process.env.MESSAGING_API_BASE_URL?.trim();
+  // sms (défaut) | whatsapp | auto (SMS puis WA)
+  const preferred =
+    process.env.MESSAGING_OTP_CHANNEL?.trim().toLowerCase() || "sms";
 
   // Dev / CI : log le code si pas d'API messaging
   if (!apiKey) {
@@ -49,26 +52,64 @@ async function sendOtpMessage(phoneE164: string, code: string) {
 
   const text = `Klambo Messagerie : votre code est ${code}. Valide 5 minutes.`;
 
-  try {
-    await client.send({
+  const sendSms = () =>
+    client.send({
       to: phoneE164,
       channel: "sms",
       type: "text",
       text,
       queue_kind: "otp",
     });
-    return { channel: "sms" as const };
-  } catch (smsError) {
-    console.warn("[mobile-otp] SMS failed, trying WhatsApp", smsError);
-    await client.send({
+
+  const sendWhatsApp = () =>
+    client.send({
       to: phoneE164,
       channel: "whatsapp",
       type: "text",
       text,
       queue_kind: "otp",
     });
+
+  if (preferred === "whatsapp") {
+    await sendWhatsApp();
     return { channel: "whatsapp" as const };
   }
+
+  if (preferred === "auto") {
+    try {
+      await sendSms();
+      return { channel: "sms" as const };
+    } catch (smsError) {
+      console.warn("[mobile-otp] SMS failed, trying WhatsApp", smsError);
+      await sendWhatsApp();
+      return { channel: "whatsapp" as const };
+    }
+  }
+
+  // Canal SMS forcé (défaut) — OTP par numéro de téléphone
+  try {
+    await sendSms();
+    return { channel: "sms" as const };
+  } catch (smsError) {
+    const detail =
+      smsError instanceof Error ? smsError.message : String(smsError);
+    console.error("[mobile-otp] SMS send failed", detail);
+    // En local (expose code), on continue pour préremplir l'OTP dans l'app
+    if (shouldExposeOtpCode()) {
+      console.warn("[mobile-otp] Fallback DEV après échec SMS");
+      return { channel: "dev" as const };
+    }
+    throw new Error(
+      "Impossible d'envoyer le SMS OTP. Vérifiez MESSAGING_API_KEY / MESSAGING_API_BASE_URL.",
+    );
+  }
+}
+
+function shouldExposeOtpCode() {
+  const flag = process.env.MESSAGING_OTP_EXPOSE_CODE?.trim().toLowerCase();
+  if (flag === "true" || flag === "1" || flag === "yes") return true;
+  if (flag === "false" || flag === "0" || flag === "no") return false;
+  return process.env.NODE_ENV !== "production";
 }
 
 export async function requestMobileOtp(phoneE164: string) {
@@ -104,7 +145,7 @@ export async function requestMobileOtp(phoneE164: string) {
   });
 
   const delivery = await sendOtpMessage(phoneE164, code);
-  const exposeDevCode = process.env.NODE_ENV !== "production";
+  const exposeDevCode = shouldExposeOtpCode();
   if (exposeDevCode) {
     console.info(
       `[mobile-otp] DEV code for ${maskPhone(phoneE164)}: ${code} (channel=${delivery.channel})`,
@@ -114,7 +155,7 @@ export async function requestMobileOtp(phoneE164: string) {
     expiresAt: expiresAt.toISOString(),
     channel: delivery.channel,
     maskedPhone: maskPhone(phoneE164),
-    // Uniquement hors prod — pour Flutter / tests locaux sans SMS
+    // Préremplissage Flutter (MESSAGING_OTP_EXPOSE_CODE=true ou hors prod)
     ...(exposeDevCode ? { devCode: code } : {}),
   };
 }
