@@ -301,7 +301,9 @@ export const createClasseAction = action
       let sourceClasseId: string | null = null;
       let practicalDomainId: string | null = null;
       let displayName = identity.nameClasse;
-      let sourceClasseName: string | null = null;
+      let sourceClasseCode: string | null = null;
+      let sourceClasseLevel: string | null = null;
+      let sourceOptionCode: string | null = null;
 
       if (isAtelierBranchType(typebranch) || cycle === "ATELIER") {
         if (input.sourceClasseId) {
@@ -311,7 +313,9 @@ export const createClasseAction = action
             sourceClasseId: input.sourceClasseId,
           });
           sourceClasseId = source.id;
-          sourceClasseName = source.nameClasse;
+          sourceClasseCode = source.codeClasse;
+          sourceClasseLevel = source.level;
+          sourceOptionCode = source.option?.codeOption ?? null;
           const taken = await prisma.classe.findFirst({
             where: { branchId, sourceClasseId: source.id },
             select: { id: true },
@@ -328,15 +332,17 @@ export const createClasseAction = action
             select: {
               id: true,
               name: true,
-              rooms: { take: 1, select: { name: true }, orderBy: { name: "asc" } },
+              code: true,
             },
           });
           if (!domain) throw new Error("Domaine pratique introuvable");
           practicalDomainId = domain.id;
           displayName = buildAtelierLabGroupLabel({
             domainName: domain.name,
-            roomName: domain.rooms[0]?.name,
-            sourceClasseName,
+            domainCode: domain.code,
+            sourceClasseCode,
+            sourceClasseLevel,
+            sourceOptionCode,
             fallbackName: identity.nameClasse,
           });
         }
@@ -587,7 +593,9 @@ export const updateClasseAction = action
     let practicalDomainId = existing.practicalDomainId;
     let displayName = identity.nameClasse;
     if (isAtelierBranchType(typebranch) || cycle === "ATELIER") {
-      let sourceClasseName: string | null = null;
+      let sourceClasseCode: string | null = null;
+      let sourceClasseLevel: string | null = null;
+      let sourceOptionCode: string | null = null;
       if (input.sourceClasseId !== undefined) {
         sourceClasseId = input.sourceClasseId || null;
         if (sourceClasseId) {
@@ -596,7 +604,9 @@ export const updateClasseAction = action
             organizationId,
             sourceClasseId,
           });
-          sourceClasseName = source.nameClasse;
+          sourceClasseCode = source.codeClasse;
+          sourceClasseLevel = source.level;
+          sourceOptionCode = source.option?.codeOption ?? null;
           const taken = await prisma.classe.findFirst({
             where: { branchId, sourceClasseId, id: { not: id } },
             select: { id: true },
@@ -610,9 +620,15 @@ export const updateClasseAction = action
       } else if (sourceClasseId) {
         const source = await prisma.classe.findFirst({
           where: { id: sourceClasseId },
-          select: { nameClasse: true },
+          select: {
+            codeClasse: true,
+            level: true,
+            option: { select: { codeOption: true } },
+          },
         });
-        sourceClasseName = source?.nameClasse ?? null;
+        sourceClasseCode = source?.codeClasse ?? null;
+        sourceClasseLevel = source?.level ?? null;
+        sourceOptionCode = source?.option?.codeOption ?? null;
       }
       if (input.practicalDomainId !== undefined) {
         practicalDomainId = input.practicalDomainId || null;
@@ -623,18 +639,16 @@ export const updateClasseAction = action
           select: {
             id: true,
             name: true,
-            rooms: {
-              take: 1,
-              select: { name: true },
-              orderBy: { name: "asc" },
-            },
+            code: true,
           },
         });
         if (!domain) throw new Error("Domaine pratique introuvable");
         displayName = buildAtelierLabGroupLabel({
           domainName: domain.name,
-          roomName: domain.rooms[0]?.name,
-          sourceClasseName,
+          domainCode: domain.code,
+          sourceClasseCode,
+          sourceClasseLevel,
+          sourceOptionCode,
           fallbackName: identity.nameClasse,
         });
       }
@@ -913,6 +927,7 @@ export const getAtelierSourceClassesAction = action
       select: {
         id: true,
         nameClasse: true,
+        codeClasse: true,
         level: true,
         option: { select: { nameOption: true, codeOption: true } },
         branch: { select: { id: true, name: true } },
@@ -925,7 +940,9 @@ export const getAtelierSourceClassesAction = action
       return {
         id: c.id,
         nameClasse: c.nameClasse,
+        codeClasse: c.codeClasse,
         level: c.level,
+        optionCode: c.option?.codeOption ?? null,
         optionName,
         branchId: c.branch.id,
         branchName: c.branch.name,

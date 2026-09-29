@@ -180,21 +180,31 @@ test("férié : séance fermée, cycle non décalé", () => {
   );
 });
 
-test("libellé groupe labo = laboratoire + classe source", () => {
+test("libellé groupe labo = laboratoire + code classe + suffixe domaine", () => {
   assert.equal(
     buildAtelierLabGroupLabel({
-      roomName: "Laboratoire sciences",
-      sourceClasseName: "1ère SC",
+      domainName: "Domaine des sciences",
+      domainCode: "SCIENCES",
+      sourceClasseLevel: "1ère",
+      sourceOptionCode: "SC",
       fallbackName: "Groupe",
     }),
-    "Laboratoire sciences 1ère SC",
+    "laboratoire 1sc sciences",
   );
   assert.equal(
     buildAtelierLabGroupLabel({
       domainName: "Domaine technique",
+      sourceClasseCode: "2TECH",
       fallbackName: "Groupe",
     }),
-    "Domaine technique",
+    "laboratoire 2tech technique",
+  );
+  assert.equal(
+    buildAtelierLabGroupLabel({
+      domainCode: "COMPTABILITE",
+      fallbackName: "Groupe",
+    }),
+    "laboratoire comptabilite",
   );
 });
 

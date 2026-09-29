@@ -27,7 +27,10 @@ import {
 } from "../classe.action";
 import { getPracticalDomainsAction } from "../../settings/practical-domains.action";
 import { isAtelierBranch } from "@/lib/branch-capabilities";
-import { buildAtelierLabGroupLabel } from "@/lib/atelier-lab-groups-shared";
+import {
+  buildAtelierLabGroupLabel,
+  extractPracticalDomainSuffix,
+} from "@/lib/atelier-lab-groups-shared";
 import {
   WORKSHOP_OPTION_CODE,
 } from "@/lib/workshop-academic-structure";
@@ -125,13 +128,22 @@ export function ClasseUpForm({
     Array<{
       id: string;
       nameClasse: string;
+      codeClasse: string | null;
+      level: string | null;
+      optionCode: string | null;
       optionName: string;
       branchName: string;
       label: string;
     }>
   >([]);
   const [practicalDomains, setPracticalDomains] = useState<
-    Array<{ id: string; name: string; labName: string }>
+    Array<{
+      id: string;
+      name: string;
+      code: string;
+      labName: string;
+      domainSuffix: string;
+    }>
   >([]);
   const [atelierOptionsLoading, setAtelierOptionsLoading] = useState(false);
 
@@ -259,15 +271,21 @@ export function ClasseUpForm({
         } else {
           setSourceClasses(sources ?? []);
           setPracticalDomains(
-            (domains ?? []).map((d) => ({
-              id: d.id,
-              name: d.name,
-              labName: buildAtelierLabGroupLabel({
-                domainName: d.name,
-                roomName: d.rooms?.[0]?.name,
-                fallbackName: d.name,
-              }),
-            })),
+            (domains ?? []).map((d) => {
+              const roomName = d.rooms?.[0]?.name ?? null;
+              const domainSuffix =
+                extractPracticalDomainSuffix({
+                  domainName: d.name,
+                  domainCode: d.code,
+                }) ?? d.name.toLowerCase();
+              return {
+                id: d.id,
+                name: d.name,
+                code: d.code,
+                labName: roomName || d.name,
+                domainSuffix,
+              };
+            }),
           );
         }
       } else {
@@ -556,8 +574,10 @@ export function ClasseUpForm({
       if (!selectedPracticalDomain) return null;
       return buildAtelierLabGroupLabel({
         domainName: selectedPracticalDomain.name,
-        roomName: selectedPracticalDomain.labName,
-        sourceClasseName: selectedSourceClass?.nameClasse,
+        domainCode: selectedPracticalDomain.code,
+        sourceClasseCode: selectedSourceClass?.codeClasse,
+        sourceClasseLevel: selectedSourceClass?.level,
+        sourceOptionCode: selectedSourceClass?.optionCode,
         fallbackName: selectedPracticalDomain.labName,
       });
     }
@@ -581,7 +601,9 @@ export function ClasseUpForm({
     isLegacyUpdate,
     options,
     selectedPracticalDomain,
-    selectedSourceClass?.nameClasse,
+    selectedSourceClass?.codeClasse,
+    selectedSourceClass?.level,
+    selectedSourceClass?.optionCode,
     showAtelierLabFields,
     watchedLevel,
     watchedOptionId,
@@ -793,9 +815,9 @@ export function ClasseUpForm({
                     </p>
                     <p className="text-sm font-medium">Groupe atelier</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      Sélectionné automatiquement. Le nom du groupe combine le
-                      laboratoire et la classe source (ex. Laboratoire sciences
-                      1ère SC).
+                      Sélectionné automatiquement. Nom =
+                      laboratoire + code classe + domaine (ex. laboratoire 1sc
+                      sciences).
                     </p>
                     <input type="hidden" {...form.register("level")} />
                     <input type="hidden" {...form.register("nameClasse")} />
@@ -1033,8 +1055,10 @@ export function ClasseUpForm({
                                   "nameClasse",
                                   buildAtelierLabGroupLabel({
                                     domainName: selectedPracticalDomain.name,
-                                    roomName: selectedPracticalDomain.labName,
-                                    sourceClasseName: source?.nameClasse,
+                                    domainCode: selectedPracticalDomain.code,
+                                    sourceClasseCode: source?.codeClasse,
+                                    sourceClasseLevel: source?.level,
+                                    sourceOptionCode: source?.optionCode,
                                     fallbackName: selectedPracticalDomain.labName,
                                   }),
                                 );
@@ -1109,9 +1133,12 @@ export function ClasseUpForm({
                                   "nameClasse",
                                   buildAtelierLabGroupLabel({
                                     domainName: domain.name,
-                                    roomName: domain.labName,
-                                    sourceClasseName:
-                                      selectedSourceClass?.nameClasse,
+                                    domainCode: domain.code,
+                                    sourceClasseCode:
+                                      selectedSourceClass?.codeClasse,
+                                    sourceClasseLevel: selectedSourceClass?.level,
+                                    sourceOptionCode:
+                                      selectedSourceClass?.optionCode,
                                     fallbackName: domain.labName,
                                   }),
                                 );
@@ -1138,15 +1165,15 @@ export function ClasseUpForm({
                             </span>
                             <span className="mt-0.5 block">
                               Domaine : {selectedPracticalDomain.name}
-                              {selectedSourceClass
-                                ? ` · Source : ${selectedSourceClass.nameClasse}`
+                              {selectedSourceClass?.codeClasse
+                                ? ` · Code : ${selectedSourceClass.codeClasse}`
                                 : ""}
                             </span>
                           </p>
                         ) : (
                           <FormDescription>
-                            Le nom du groupe combine le laboratoire et la classe
-                            source (ex. Laboratoire sciences 1ère SC).
+                            Nom automatique : laboratoire + code classe + suffixe
+                            domaine (ex. laboratoire 1sc sciences).
                           </FormDescription>
                         )}
                         <FormMessage />

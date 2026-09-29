@@ -16,6 +16,9 @@ export async function assertValidAtelierSourceClasse(params: {
     select: {
       id: true,
       nameClasse: true,
+      codeClasse: true,
+      level: true,
+      option: { select: { codeOption: true } },
       branchId: true,
       branch: {
         select: {
