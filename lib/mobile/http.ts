@@ -8,7 +8,10 @@ import {
   canSendMessages,
   canCreateGroup,
 } from "@/lib/messaging/messaging-policy";
-import { isOrganizationMessagingEnabled } from "@/lib/messaging/messaging-service";
+import {
+  isOrganizationMessagingEnabled,
+  MessagingError,
+} from "@/lib/messaging/messaging-service";
 import { isProfileComplete } from "@/lib/mobile/session";
 import { formatMessagingPersonName } from "@/lib/messaging/messaging-types";
 
@@ -145,7 +148,7 @@ export async function getMessagingActorFromSession(
   });
 
   if (!member || member.isArchived) {
-    throw new Error("Vous n'appartenez pas à cette organisation.");
+    throw new MessagingError("Vous n'appartenez pas à cette organisation.");
   }
 
   const org = await prisma.organization.findUnique({

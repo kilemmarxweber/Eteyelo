@@ -456,17 +456,35 @@ function extensionLooksLikeDocument(fileName: string): boolean {
 /** Détecte image / PDF / audio / vidéo pour la messagerie mobile. */
 export async function saveMessagingUpload(file: File): Promise<SavedUpload> {
   const mime = (file.type || "").toLowerCase();
-  if (ALLOWED_IMAGE_TYPES.has(mime) || mime.startsWith("image/")) {
+  // Ne pas accepter image/* générique (ex. SVG) hors whitelist.
+  if (ALLOWED_IMAGE_TYPES.has(mime)) {
     return saveUploadedFile(file);
   }
-  if (ALLOWED_AUDIO_TYPES.has(mime) || mime.startsWith("audio/") || extensionLooksLikeAudio(file.name)) {
+  if (
+    ALLOWED_AUDIO_TYPES.has(mime) ||
+    (mime.startsWith("audio/") && extensionLooksLikeAudio(file.name)) ||
+    (!mime && extensionLooksLikeAudio(file.name))
+  ) {
     return saveUploadedAudio(file);
   }
-  if (ALLOWED_VIDEO_TYPES.has(mime) || mime.startsWith("video/")) {
+  if (
+    ALLOWED_VIDEO_TYPES.has(mime) ||
+    (mime.startsWith("video/") &&
+      (path.extname(file.name).toLowerCase() === ".mp4" ||
+        path.extname(file.name).toLowerCase() === ".webm"))
+  ) {
     return saveUploadedVideo(file);
   }
   if (ALLOWED_DOCUMENT_TYPES.has(mime) || extensionLooksLikeDocument(file.name)) {
     return saveUploadedDocument(file);
+  }
+  // MIME vide + extension image (Flutter / Windows)
+  const ext = path.extname(file.name).toLowerCase();
+  if (
+    !mime &&
+    [".png", ".jpg", ".jpeg", ".webp", ".gif"].includes(ext)
+  ) {
+    return saveUploadedFile(file);
   }
   throw new Error(
     "Format non autorisé. Utilisez une image, un PDF ou un audio.",

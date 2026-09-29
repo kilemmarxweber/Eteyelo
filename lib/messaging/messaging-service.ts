@@ -900,6 +900,8 @@ export async function editMessage(params: {
   actor: Actor;
   messageId: string;
   body: string;
+  /** Si fourni, doit correspondre à la conversation du message. */
+  conversationId?: string | null;
 }) {
   assertCanSend(params.actor);
   const body = sanitizeMessageBody(params.body);
@@ -914,6 +916,7 @@ export async function editMessage(params: {
     where: { id: params.messageId, deletedAt: null },
     select: {
       id: true,
+      body: true,
       conversationId: true,
       senderId: true,
       conversation: { select: { organizationId: true } },
@@ -922,8 +925,17 @@ export async function editMessage(params: {
   if (!message || message.conversation.organizationId !== params.organizationId) {
     throw new MessagingError("Message introuvable.");
   }
+  if (
+    params.conversationId &&
+    params.conversationId !== message.conversationId
+  ) {
+    throw new MessagingError("Message hors conversation.");
+  }
   if (message.senderId !== params.actor.userId) {
     throw new MessagingError("Vous ne pouvez modifier que vos propres messages.");
+  }
+  if (message.body.startsWith("__CALL__:")) {
+    throw new MessagingError("Ce message système ne peut pas être modifié.");
   }
   await getParticipantOrThrow(
     message.conversationId,
@@ -959,6 +971,7 @@ export async function deleteMessage(params: {
   organizationId: string;
   actor: Actor;
   messageId: string;
+  conversationId?: string | null;
 }) {
   assertCanSend(params.actor);
   const message = await prisma.message.findFirst({
@@ -972,6 +985,12 @@ export async function deleteMessage(params: {
   });
   if (!message || message.conversation.organizationId !== params.organizationId) {
     throw new MessagingError("Message introuvable.");
+  }
+  if (
+    params.conversationId &&
+    params.conversationId !== message.conversationId
+  ) {
+    throw new MessagingError("Message hors conversation.");
   }
   if (message.senderId !== params.actor.userId) {
     throw new MessagingError("Vous ne pouvez supprimer que vos propres messages.");

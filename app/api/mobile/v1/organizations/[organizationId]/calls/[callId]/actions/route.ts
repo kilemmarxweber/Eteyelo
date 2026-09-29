@@ -78,6 +78,15 @@ export async function POST(request: Request, context: Ctx) {
       call.callerId === session.user.id ? call.calleeId : call.callerId;
 
     if (body.action === "answer") {
+      if (call.calleeId !== session.user.id) {
+        return jsonError("Seul le destinataire peut répondre.", 403);
+      }
+      if (call.status === "ACTIVE") {
+        return jsonOk({ callId, status: "ACTIVE" });
+      }
+      if (call.status !== "RINGING") {
+        return jsonError("Cet appel ne peut plus être accepté.", 409);
+      }
       await prisma.callSession.update({
         where: { id: callId },
         data: { status: "ACTIVE", answeredAt: new Date() },
@@ -94,6 +103,19 @@ export async function POST(request: Request, context: Ctx) {
     }
 
     if (body.action === "reject") {
+      if (call.calleeId !== session.user.id) {
+        return jsonError("Seul le destinataire peut refuser.", 403);
+      }
+      if (
+        call.status === "REJECTED" ||
+        call.status === "ENDED" ||
+        call.status === "MISSED"
+      ) {
+        return jsonOk({ callId, status: call.status });
+      }
+      if (call.status !== "RINGING") {
+        return jsonError("Cet appel ne peut plus être refusé.", 409);
+      }
       await prisma.callSession.update({
         where: { id: callId },
         data: {
@@ -121,6 +143,13 @@ export async function POST(request: Request, context: Ctx) {
     }
 
     if (body.action === "hangup") {
+      if (
+        call.status === "ENDED" ||
+        call.status === "MISSED" ||
+        call.status === "REJECTED"
+      ) {
+        return jsonOk({ callId, status: call.status });
+      }
       let status: "ENDED" | "MISSED" = "ENDED";
       let endReason = body.endReason ?? "hangup";
       if (call.status === "RINGING") {

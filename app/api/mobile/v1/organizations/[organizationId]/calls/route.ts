@@ -37,6 +37,25 @@ export async function POST(request: Request, context: Ctx) {
       return jsonError("Impossible de s'appeler soi-même.", 400);
     }
 
+    if (body.conversationId) {
+      const shared = await prisma.conversationParticipant.findMany({
+        where: {
+          conversationId: body.conversationId,
+          leftAt: null,
+          conversation: { organizationId, deletedAt: null },
+          userId: { in: [session.user.id, body.calleeId] },
+        },
+        select: { userId: true },
+      });
+      const ids = new Set(shared.map((p) => p.userId));
+      if (!ids.has(session.user.id) || !ids.has(body.calleeId)) {
+        return jsonError(
+          "Conversation invalide pour cet appel (participants requis).",
+          400,
+        );
+      }
+    }
+
     const calleeMember = await prisma.member.findUnique({
       where: {
         organizationId_userId: {

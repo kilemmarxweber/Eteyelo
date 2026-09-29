@@ -10,6 +10,7 @@ import {
   editMessage,
   MessagingError,
 } from "@/lib/messaging/messaging-service";
+import { MESSAGING_MAX_BODY_LENGTH } from "@/lib/messaging/messaging-types";
 
 export const runtime = "nodejs";
 
@@ -27,10 +28,19 @@ export async function PATCH(request: Request, context: Ctx) {
     if (!session) return jsonError("Non authentifié.", 401);
 
     const { organizationId, conversationId, messageId } = await context.params;
-    const body = (await request.json()) as { body?: string };
+    let payload: { body?: string };
+    try {
+      payload = (await request.json()) as { body?: string };
+    } catch {
+      return jsonError("Corps JSON invalide.", 400);
+    }
 
-    if (!body.body?.trim()) {
+    const text = typeof payload.body === "string" ? payload.body : "";
+    if (!text.trim()) {
       return jsonError("Message vide.", 400);
+    }
+    if (text.length > MESSAGING_MAX_BODY_LENGTH + 50) {
+      return jsonError("Message trop long.", 400);
     }
 
     const actor = await getMessagingActorFromSession(session, organizationId);
@@ -38,12 +48,9 @@ export async function PATCH(request: Request, context: Ctx) {
       organizationId,
       actor,
       messageId,
-      body: body.body,
+      conversationId,
+      body: text,
     });
-
-    if (data.conversationId !== conversationId) {
-      return jsonError("Message hors conversation.", 400);
-    }
 
     return jsonOk(data);
   } catch (error) {
@@ -66,11 +73,8 @@ export async function DELETE(_request: Request, context: Ctx) {
       organizationId,
       actor,
       messageId,
+      conversationId,
     });
-
-    if (data.conversationId !== conversationId) {
-      return jsonError("Message hors conversation.", 400);
-    }
 
     return jsonOk(data);
   } catch (error) {
