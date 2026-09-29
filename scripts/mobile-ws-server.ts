@@ -26,6 +26,9 @@ type ClientState = {
 const clients = new Set<ClientState>();
 const port = Number(process.env.MOBILE_WS_PORT ?? 3010);
 
+/** Connexion jugée vivante si lastSeen < 120s (ping/heartbeat ~25–30s). */
+const ONLINE_TTL_MS = 120_000;
+
 async function authByToken(token: string) {
   const session = await prisma.session.findUnique({
     where: { token },
@@ -41,10 +44,27 @@ async function authByToken(token: string) {
   return session;
 }
 
+async function membershipOrgIds(userId: string) {
+  const rows = await prisma.member.findMany({
+    where: { userId, isArchived: false },
+    select: { organizationId: true },
+  });
+  return rows.map((r) => r.organizationId);
+}
+
 function send(ws: WebSocket, data: unknown) {
   if (ws.readyState === ws.OPEN) {
     ws.send(JSON.stringify(data));
   }
+}
+
+function isUserLive(userId: string) {
+  for (const client of clients) {
+    if (client.userId === userId && client.ws.readyState === client.ws.OPEN) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function broadcastToUsers(
@@ -58,6 +78,94 @@ function broadcastToUsers(
     if (!set.has(client.userId)) continue;
     send(client.ws, event);
   }
+}
+
+function broadcastPresence(
+  event: Extract<MobileRealtimeEvent, { type: "presence" }>,
+) {
+  // Diffuse à tous les clients de l’org OU qui n’ont pas encore d’org liée.
+  for (const client of clients) {
+    if (
+      !client.organizationId ||
+      client.organizationId === event.organizationId
+    ) {
+      send(client.ws, event);
+    }
+  }
+}
+
+async function publishPresence(
+  organizationId: string,
+  userId: string,
+  status: "ONLINE" | "OFFLINE",
+) {
+  const event: MobileRealtimeEvent = {
+    type: "presence",
+    organizationId,
+    userId,
+    status,
+  };
+  broadcastPresence(event);
+  try {
+    const redis = getRedisConnection();
+    await redis.publish(MOBILE_WS_CHANNEL, JSON.stringify(event));
+  } catch {
+    // ignore
+  }
+}
+
+async function setPresence(
+  userId: string,
+  organizationId: string,
+  status: "ONLINE" | "OFFLINE",
+) {
+  await prisma.userPresence.upsert({
+    where: {
+      userId_organizationId: { userId, organizationId },
+    },
+    create: {
+      userId,
+      organizationId,
+      status,
+      lastSeenAt: new Date(),
+    },
+    update: { status, lastSeenAt: new Date() },
+  });
+  await publishPresence(organizationId, userId, status);
+}
+
+/** Marque ONLINE sur toutes les orgs du membre (évite faux hors-ligne cross-org). */
+async function setPresenceAllOrgs(
+  userId: string,
+  status: "ONLINE" | "OFFLINE",
+  preferredOrgId?: string | null,
+) {
+  const orgIds = await membershipOrgIds(userId);
+  const targets =
+    orgIds.length > 0
+      ? orgIds
+      : preferredOrgId
+        ? [preferredOrgId]
+        : [];
+  await Promise.all(
+    targets.map((orgId) => setPresence(userId, orgId, status)),
+  );
+}
+
+async function touchPresenceAll(userId: string, preferredOrgId?: string | null) {
+  const orgIds = await membershipOrgIds(userId);
+  const targets =
+    orgIds.length > 0
+      ? orgIds
+      : preferredOrgId
+        ? [preferredOrgId]
+        : [];
+  if (targets.length === 0) return;
+  const now = new Date();
+  await prisma.userPresence.updateMany({
+    where: { userId, organizationId: { in: targets } },
+    data: { lastSeenAt: now, status: "ONLINE" },
+  });
 }
 
 async function main() {
@@ -90,23 +198,11 @@ async function main() {
       clients.add(state);
       send(ws, { type: "connected", userId: session.userId });
 
-      if (session.activeOrganizationId) {
-        await prisma.userPresence.upsert({
-          where: {
-            userId_organizationId: {
-              userId: session.userId,
-              organizationId: session.activeOrganizationId,
-            },
-          },
-          create: {
-            userId: session.userId,
-            organizationId: session.activeOrganizationId,
-            status: "ONLINE",
-            lastSeenAt: new Date(),
-          },
-          update: { status: "ONLINE", lastSeenAt: new Date() },
-        });
-      }
+      await setPresenceAllOrgs(
+        session.userId,
+        "ONLINE",
+        session.activeOrganizationId,
+      ).catch((e) => console.warn("[mobile-ws] presence on connect", e));
 
       ws.on("message", async (raw) => {
         try {
@@ -116,11 +212,75 @@ async function main() {
             conversationId?: string;
             callId?: string;
             toUserId?: string;
+            userIds?: string[];
             payload?: unknown;
           };
 
           if (msg.type === "ping") {
-            send(ws, { type: "pong" });
+            await touchPresenceAll(state.userId, state.organizationId).catch(
+              () => undefined,
+            );
+            send(ws, { type: "pong", at: Date.now() });
+            return;
+          }
+
+          if (msg.type === "presence.subscribe" && msg.organizationId) {
+            state.organizationId = msg.organizationId;
+            await setPresenceAllOrgs(
+              state.userId,
+              "ONLINE",
+              msg.organizationId,
+            );
+            return;
+          }
+
+          if (
+            msg.type === "presence.query" &&
+            msg.organizationId &&
+            Array.isArray(msg.userIds)
+          ) {
+            const ids = msg.userIds.filter((id) => typeof id === "string");
+            const rows = await prisma.userPresence.findMany({
+              where: { userId: { in: ids } },
+              select: {
+                userId: true,
+                status: true,
+                lastSeenAt: true,
+              },
+              orderBy: { lastSeenAt: "desc" },
+            });
+            const cutoff = Date.now() - ONLINE_TTL_MS;
+            const best = new Map<
+              string,
+              { status: string; lastSeenAt: Date }
+            >();
+            for (const r of rows) {
+              if (!best.has(r.userId)) {
+                best.set(r.userId, {
+                  status: r.status,
+                  lastSeenAt: r.lastSeenAt,
+                });
+              }
+            }
+
+            send(ws, {
+              type: "presence.snapshot",
+              organizationId: msg.organizationId,
+              items: ids.map((userId) => {
+                const live = isUserLive(userId);
+                const row = best.get(userId);
+                const fresh =
+                  row != null && row.lastSeenAt.getTime() >= cutoff;
+                const online =
+                  live || (row?.status === "ONLINE" && fresh);
+                return {
+                  userId,
+                  status: online ? "ONLINE" : "OFFLINE",
+                  lastSeenAt: row?.lastSeenAt.toISOString() ?? null,
+                  online,
+                };
+              }),
+            });
             return;
           }
 
@@ -168,15 +328,14 @@ async function main() {
 
       ws.on("close", async () => {
         clients.delete(state);
-        if (state.organizationId) {
+        // Ne passe OFFLINE que s’il n’existe plus aucune autre socket pour ce user.
+        if (!isUserLive(state.userId)) {
           try {
-            await prisma.userPresence.updateMany({
-              where: {
-                userId: state.userId,
-                organizationId: state.organizationId,
-              },
-              data: { status: "OFFLINE", lastSeenAt: new Date() },
-            });
+            await setPresenceAllOrgs(
+              state.userId,
+              "OFFLINE",
+              state.organizationId,
+            );
           } catch {
             // ignore
           }
@@ -204,11 +363,7 @@ async function main() {
         return;
       }
       if (event.type === "presence") {
-        for (const client of clients) {
-          if (client.organizationId === event.organizationId) {
-            send(client.ws, event);
-          }
-        }
+        broadcastPresence(event);
       }
     } catch {
       // ignore

@@ -872,6 +872,211 @@ export async function sendMessage(params: {
   return { messageId: message.id, conversationId: params.conversationId, reused: false };
 }
 
+async function publishMessageLifecycle(params: {
+  type: "message.updated" | "message.deleted" | "message.created";
+  organizationId: string;
+  conversationId: string;
+  messageId: string;
+  senderId: string;
+}) {
+  const participants = await prisma.conversationParticipant.findMany({
+    where: { conversationId: params.conversationId, leftAt: null },
+    select: { userId: true },
+  });
+  void import("@/lib/mobile/realtime").then(({ publishMobileEvent }) =>
+    publishMobileEvent({
+      type: params.type,
+      organizationId: params.organizationId,
+      conversationId: params.conversationId,
+      messageId: params.messageId,
+      senderId: params.senderId,
+      recipientUserIds: participants.map((p) => p.userId),
+    }),
+  );
+}
+
+export async function editMessage(params: {
+  organizationId: string;
+  actor: Actor;
+  messageId: string;
+  body: string;
+}) {
+  assertCanSend(params.actor);
+  const body = sanitizeMessageBody(params.body);
+  if (!body) throw new MessagingError("Le message ne peut pas être vide.");
+  if (body.length > MESSAGING_MAX_BODY_LENGTH) {
+    throw new MessagingError(
+      `Le message ne peut pas dépasser ${MESSAGING_MAX_BODY_LENGTH} caractères.`,
+    );
+  }
+
+  const message = await prisma.message.findFirst({
+    where: { id: params.messageId, deletedAt: null },
+    select: {
+      id: true,
+      conversationId: true,
+      senderId: true,
+      conversation: { select: { organizationId: true } },
+    },
+  });
+  if (!message || message.conversation.organizationId !== params.organizationId) {
+    throw new MessagingError("Message introuvable.");
+  }
+  if (message.senderId !== params.actor.userId) {
+    throw new MessagingError("Vous ne pouvez modifier que vos propres messages.");
+  }
+  await getParticipantOrThrow(
+    message.conversationId,
+    params.actor.userId,
+    params.organizationId,
+  );
+
+  await prisma.message.update({
+    where: { id: message.id },
+    data: { body, editedAt: new Date() },
+  });
+  await prisma.conversation.update({
+    where: { id: message.conversationId },
+    data: { updatedAt: new Date() },
+  });
+
+  await publishMessageLifecycle({
+    type: "message.updated",
+    organizationId: params.organizationId,
+    conversationId: message.conversationId,
+    messageId: message.id,
+    senderId: params.actor.userId,
+  });
+
+  return {
+    messageId: message.id,
+    conversationId: message.conversationId,
+    body,
+  };
+}
+
+export async function deleteMessage(params: {
+  organizationId: string;
+  actor: Actor;
+  messageId: string;
+}) {
+  assertCanSend(params.actor);
+  const message = await prisma.message.findFirst({
+    where: { id: params.messageId, deletedAt: null },
+    select: {
+      id: true,
+      conversationId: true,
+      senderId: true,
+      conversation: { select: { organizationId: true } },
+    },
+  });
+  if (!message || message.conversation.organizationId !== params.organizationId) {
+    throw new MessagingError("Message introuvable.");
+  }
+  if (message.senderId !== params.actor.userId) {
+    throw new MessagingError("Vous ne pouvez supprimer que vos propres messages.");
+  }
+  await getParticipantOrThrow(
+    message.conversationId,
+    params.actor.userId,
+    params.organizationId,
+  );
+
+  await prisma.message.update({
+    where: { id: message.id },
+    data: { deletedAt: new Date() },
+  });
+  await prisma.conversation.update({
+    where: { id: message.conversationId },
+    data: { updatedAt: new Date() },
+  });
+
+  await publishMessageLifecycle({
+    type: "message.deleted",
+    organizationId: params.organizationId,
+    conversationId: message.conversationId,
+    messageId: message.id,
+    senderId: params.actor.userId,
+  });
+
+  return {
+    messageId: message.id,
+    conversationId: message.conversationId,
+  };
+}
+
+/** Trace d'appel dans le fil (style WhatsApp), idempotente par callId. */
+export async function appendCallTraceMessage(params: {
+  organizationId: string;
+  conversationId: string;
+  actorUserId: string;
+  callId: string;
+  kind: "AUDIO" | "VIDEO";
+  status: string;
+  endReason?: string | null;
+  durationMs?: number;
+}) {
+  const clientMessageId = `call:${params.callId}`;
+  const existing = await prisma.message.findFirst({
+    where: { clientMessageId },
+    select: { id: true, conversationId: true },
+  });
+  if (existing) {
+    return {
+      messageId: existing.id,
+      conversationId: existing.conversationId,
+      reused: true,
+    };
+  }
+
+  const conversation = await prisma.conversation.findFirst({
+    where: {
+      id: params.conversationId,
+      organizationId: params.organizationId,
+      deletedAt: null,
+    },
+    select: { id: true },
+  });
+  if (!conversation) {
+    return { messageId: null, conversationId: null, reused: false };
+  }
+
+  const body = `__CALL__:${JSON.stringify({
+    kind: params.kind,
+    status: params.status,
+    endReason: params.endReason ?? null,
+    durationMs: Math.max(0, params.durationMs ?? 0),
+    callId: params.callId,
+  })}`;
+
+  const message = await prisma.message.create({
+    data: {
+      conversationId: params.conversationId,
+      senderId: params.actorUserId,
+      body,
+      clientMessageId,
+    },
+  });
+  await prisma.conversation.update({
+    where: { id: params.conversationId },
+    data: { updatedAt: new Date() },
+  });
+
+  await publishMessageLifecycle({
+    type: "message.created",
+    organizationId: params.organizationId,
+    conversationId: params.conversationId,
+    messageId: message.id,
+    senderId: params.actorUserId,
+  });
+
+  return {
+    messageId: message.id,
+    conversationId: params.conversationId,
+    reused: false,
+  };
+}
+
 export async function listMyConversations(params: {
   organizationId: string;
   actor: Actor;
@@ -955,7 +1160,7 @@ export async function listMyConversations(params: {
       lastMessage: last
         ? {
             id: last.id,
-            body: last.body,
+            body: previewMessageBody(last.body, 120),
             senderId: last.senderId,
             senderName: formatMessagingPersonName(last.sender),
             createdAt: last.createdAt.toISOString(),
@@ -1033,6 +1238,17 @@ export async function getConversationMessages(params: {
           sender: { select: userNameSelect },
         },
       },
+      attachments: {
+        select: {
+          id: true,
+          kind: true,
+          url: true,
+          mimeType: true,
+          sizeBytes: true,
+          durationMs: true,
+          fileName: true,
+        },
+      },
       archives: {
         where: { userId: params.actor.userId },
         select: { id: true },
@@ -1068,7 +1284,20 @@ export async function getConversationMessages(params: {
               body: row.replyTo.body,
             }
           : null,
+        attachments: row.attachments.map((att) => ({
+          id: att.id,
+          kind: att.kind,
+          url: att.url,
+          mimeType: att.mimeType,
+          sizeBytes: att.sizeBytes,
+          durationMs: att.durationMs,
+          fileName: att.fileName,
+        })),
         createdAt: row.createdAt.toISOString(),
+        editedAt:
+          "editedAt" in row && row.editedAt instanceof Date
+            ? row.editedAt.toISOString()
+            : null,
         archivedForMe: row.archives.length > 0,
       };
     });

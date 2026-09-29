@@ -7,12 +7,50 @@ import {
 } from "@/lib/mobile/http";
 import { prisma } from "@/lib/prisma";
 import { publishMobileEvent } from "@/lib/mobile/realtime";
+import { appendCallTraceMessage } from "@/lib/messaging/messaging-service";
 
 export const runtime = "nodejs";
 
 type Ctx = {
   params: Promise<{ organizationId: string; callId: string }>;
 };
+
+async function writeCallTrace(params: {
+  organizationId: string;
+  callId: string;
+  actorUserId: string;
+  status: string;
+  endReason?: string | null;
+}) {
+  const call = await prisma.callSession.findFirst({
+    where: { id: params.callId, organizationId: params.organizationId },
+    select: {
+      id: true,
+      kind: true,
+      conversationId: true,
+      answeredAt: true,
+      endedAt: true,
+      startedAt: true,
+    },
+  });
+  if (!call?.conversationId) return;
+
+  const end = call.endedAt ?? new Date();
+  const durationMs = call.answeredAt
+    ? Math.max(0, end.getTime() - call.answeredAt.getTime())
+    : 0;
+
+  await appendCallTraceMessage({
+    organizationId: params.organizationId,
+    conversationId: call.conversationId,
+    actorUserId: params.actorUserId,
+    callId: call.id,
+    kind: call.kind === "VIDEO" ? "VIDEO" : "AUDIO",
+    status: params.status,
+    endReason: params.endReason,
+    durationMs,
+  });
+}
 
 export async function POST(request: Request, context: Ctx) {
   try {
@@ -50,6 +88,7 @@ export async function POST(request: Request, context: Ctx) {
         callId,
         fromUserId: session.user.id,
         toUserId: peerId,
+        payload: { conversationId: call.conversationId },
       });
       return jsonOk({ callId, status: "ACTIVE" });
     }
@@ -69,21 +108,36 @@ export async function POST(request: Request, context: Ctx) {
         callId,
         fromUserId: session.user.id,
         toUserId: peerId,
+        payload: { conversationId: call.conversationId, status: "REJECTED" },
+      });
+      await writeCallTrace({
+        organizationId,
+        callId,
+        actorUserId: session.user.id,
+        status: "REJECTED",
+        endReason: "rejected",
       });
       return jsonOk({ callId, status: "REJECTED" });
     }
 
     if (body.action === "hangup") {
-      const status =
-        call.status === "RINGING" && call.calleeId === session.user.id
-          ? "MISSED"
-          : "ENDED";
+      let status: "ENDED" | "MISSED" = "ENDED";
+      let endReason = body.endReason ?? "hangup";
+      if (call.status === "RINGING") {
+        if (session.user.id === call.callerId) {
+          status = "ENDED";
+          endReason = "cancelled";
+        } else {
+          status = "MISSED";
+          endReason = "missed";
+        }
+      }
       await prisma.callSession.update({
         where: { id: callId },
         data: {
           status,
           endedAt: new Date(),
-          endReason: body.endReason ?? "hangup",
+          endReason,
         },
       });
       await publishMobileEvent({
@@ -92,7 +146,18 @@ export async function POST(request: Request, context: Ctx) {
         callId,
         fromUserId: session.user.id,
         toUserId: peerId,
-        payload: { status },
+        payload: {
+          status,
+          endReason,
+          conversationId: call.conversationId,
+        },
+      });
+      await writeCallTrace({
+        organizationId,
+        callId,
+        actorUserId: session.user.id,
+        status,
+        endReason,
       });
       return jsonOk({ callId, status });
     }

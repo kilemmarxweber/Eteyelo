@@ -6,9 +6,10 @@ import {
   requireSession,
 } from "@/lib/mobile/http";
 import { prisma } from "@/lib/prisma";
-import { saveUploadedFile } from "@/lib/upload-file.server";
+import { saveMessagingUpload } from "@/lib/upload-file.server";
 import { publishMobileEvent } from "@/lib/mobile/realtime";
 import type { MessageAttachmentKind } from "@/prisma/generated/prisma/client";
+import path from "node:path";
 
 export const runtime = "nodejs";
 
@@ -16,10 +17,22 @@ type Ctx = {
   params: Promise<{ organizationId: string; conversationId: string }>;
 };
 
-function kindFromMime(mime: string): MessageAttachmentKind {
-  if (mime.startsWith("image/")) return "IMAGE";
-  if (mime.startsWith("audio/")) return "AUDIO";
-  if (mime.startsWith("video/")) return "VIDEO";
+function kindFromFile(file: File): MessageAttachmentKind {
+  const mime = (file.type || "").toLowerCase();
+  const ext = path.extname(file.name).toLowerCase();
+  if (mime.startsWith("image/") || [".png", ".jpg", ".jpeg", ".webp", ".gif"].includes(ext)) {
+    return "IMAGE";
+  }
+  if (mime.startsWith("audio/") || [".mp3", ".m4a", ".aac", ".wav", ".ogg"].includes(ext)) {
+    return "AUDIO";
+  }
+  if (mime.startsWith("video/") || ext === ".mp4") {
+    return "VIDEO";
+  }
+  // webm peut être audio ou vidéo selon le MIME
+  if (ext === ".webm") {
+    return mime.startsWith("video/") ? "VIDEO" : "AUDIO";
+  }
   return "FILE";
 }
 
@@ -52,8 +65,10 @@ export async function POST(request: Request, context: Ctx) {
       return jsonError("Fichier requis.", 400);
     }
 
-    const saved = await saveUploadedFile(file);
-    const kind = kindFromMime(file.type || "application/octet-stream");
+    const saved = await saveMessagingUpload(file);
+    const kind = kindFromFile(file);
+    const durationRaw = String(form.get("durationMs") ?? "").trim();
+    const durationMs = durationRaw ? Number.parseInt(durationRaw, 10) : null;
     const bodyText = caption || `[${kind.toLowerCase()}]`;
 
     const message = await prisma.$transaction(async (tx) => {
@@ -72,6 +87,10 @@ export async function POST(request: Request, context: Ctx) {
           url: saved.url,
           mimeType: file.type || null,
           sizeBytes: file.size,
+          durationMs:
+            Number.isFinite(durationMs) && (durationMs as number) > 0
+              ? durationMs
+              : null,
           fileName: file.name,
         },
       });

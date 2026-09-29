@@ -21,6 +21,7 @@ export type MessagingRecipient = {
   memberId: string;
   name: string;
   image: string | null;
+  telephone?: string | null;
   role: string;
   roleLabel: string;
   branches: Array<{ id: string; name: string }>;
@@ -48,6 +49,7 @@ export type ConversationListItem = {
     userId: string;
     name: string;
     image: string | null;
+    telephone?: string | null;
     roleLabel: string;
     branches: Array<{ id: string; name: string }>;
   }>;
@@ -68,7 +70,17 @@ export type MessageView = {
     senderName: string;
     body: string;
   } | null;
+  attachments: Array<{
+    id: string;
+    kind: string;
+    url: string;
+    mimeType: string | null;
+    sizeBytes: number | null;
+    durationMs: number | null;
+    fileName: string | null;
+  }>;
   createdAt: string;
+  editedAt: string | null;
   archivedForMe: boolean;
 };
 
@@ -94,7 +106,37 @@ export function sanitizeMessageBody(raw: string) {
 }
 
 export function previewMessageBody(body: string, max = 80) {
-  const text = body.trim();
+  const text = formatCallTracePreview(body).trim();
   if (text.length <= max) return text;
   return `${text.slice(0, max - 1)}…`;
+}
+
+/** Aperçu lisible des traces d'appel stockées en `__CALL__:{json}`. */
+export function formatCallTracePreview(body: string) {
+  if (!body.startsWith("__CALL__:")) return body;
+  try {
+    const data = JSON.parse(body.slice("__CALL__:".length)) as {
+      kind?: string;
+      status?: string;
+      endReason?: string | null;
+      durationMs?: number;
+    };
+    const video = data.kind === "VIDEO";
+    const label = video ? "Appel vidéo" : "Appel audio";
+    if (data.status === "REJECTED") return `${label} · refusé`;
+    if (data.status === "MISSED" || data.endReason === "missed") {
+      return `${label} · manqué`;
+    }
+    if (data.endReason === "cancelled") return `${label} · annulé`;
+    const ms = Number(data.durationMs ?? 0);
+    if (ms > 0) {
+      const totalSec = Math.round(ms / 1000);
+      const m = Math.floor(totalSec / 60);
+      const s = totalSec % 60;
+      return `${label} · ${m}:${String(s).padStart(2, "0")}`;
+    }
+    return label;
+  } catch {
+    return "Appel";
+  }
 }

@@ -15,15 +15,24 @@ function createConnection() {
     maxRetriesPerRequest: null,
     enableOfflineQueue: false,
     lazyConnect: true,
+    connectTimeout: 1500,
     retryStrategy(times) {
-      if (times > 10) return null;
-      return Math.min(times * 200, 2000);
+      if (times > 3) return null;
+      return Math.min(times * 200, 1000);
     },
   });
 
   client.on("error", (error: NodeJS.ErrnoException) => {
     // Évite le flood console (ioredis réémet à chaque tentative).
-    if (error?.code === "ECONNREFUSED") return;
+    if (
+      error?.code === "ECONNREFUSED" ||
+      error?.code === "ECONNRESET" ||
+      error?.code === "ETIMEDOUT" ||
+      error?.message === "Connection is closed." ||
+      error?.message === "aborted"
+    ) {
+      return;
+    }
     console.error("[redis]", error.message);
   });
 
@@ -45,13 +54,16 @@ export function onRedisConnectionReset(listener: () => void) {
 
 export function resetRedisConnection() {
   if (_connection) {
+    const old = _connection;
+    _connection = null;
     try {
-      _connection.removeAllListeners();
-      _connection.disconnect();
+      // Garder un handler d'erreur pendant la coupure pour éviter uncaughtException.
+      old.on("error", () => undefined);
+      old.disconnect();
+      old.removeAllListeners();
     } catch {
       // ignore
     }
-    _connection = null;
   }
   for (const listener of resetListeners) {
     try {
@@ -64,8 +76,9 @@ export function resetRedisConnection() {
 
 /**
  * Garantit une connexion Redis utilisable (reconnexion après Redis coupé).
+ * @param timeoutMs délai max d'attente (court pour le publish mobile).
  */
-export async function ensureRedisReady() {
+export async function ensureRedisReady(timeoutMs = 1500) {
   let redis = getRedisConnection();
 
   if (redis.status === "ready") return redis;
@@ -80,7 +93,20 @@ export async function ensureRedisReady() {
       redis = getRedisConnection();
     }
     if (redis.status !== "ready") {
-      await redis.connect();
+      try {
+        await Promise.race([
+          redis.connect(),
+          new Promise<never>((_, reject) =>
+            setTimeout(
+              () => reject(new Error("Redis connect timeout")),
+              timeoutMs,
+            ),
+          ),
+        ]);
+      } catch (error) {
+        resetRedisConnection();
+        throw error;
+      }
     }
     return redis;
   }
@@ -90,27 +116,37 @@ export async function ensureRedisReady() {
     redis.status === "connect" ||
     redis.status === "reconnecting"
   ) {
-    await new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        cleanup();
-        reject(new Error("Redis connect timeout"));
-      }, 8000);
-      const onReady = () => {
-        cleanup();
-        resolve();
-      };
-      const onEnd = () => {
-        cleanup();
-        reject(new Error("Redis connection ended"));
-      };
-      const cleanup = () => {
-        clearTimeout(timeout);
-        redis.off("ready", onReady);
-        redis.off("end", onEnd);
-      };
-      redis.once("ready", onReady);
-      redis.once("end", onEnd);
-    });
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          cleanup();
+          reject(new Error("Redis connect timeout"));
+        }, timeoutMs);
+        const onReady = () => {
+          cleanup();
+          resolve();
+        };
+        const onEnd = () => {
+          cleanup();
+          reject(new Error("Redis connection ended"));
+        };
+        const cleanup = () => {
+          clearTimeout(timeout);
+          redis.off("ready", onReady);
+          redis.off("end", onEnd);
+        };
+        if (redis.status === "ready") {
+          cleanup();
+          resolve();
+          return;
+        }
+        redis.once("ready", onReady);
+        redis.once("end", onEnd);
+      });
+    } catch (error) {
+      resetRedisConnection();
+      throw error;
+    }
   }
 
   return redis;

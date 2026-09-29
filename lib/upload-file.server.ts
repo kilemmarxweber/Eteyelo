@@ -31,6 +31,21 @@ export const ALLOWED_VIDEO_TYPES = new Set([
   "video/webm",
 ]);
 
+export const ALLOWED_AUDIO_TYPES = new Set([
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/mp4",
+  "audio/m4a",
+  "audio/aac",
+  "audio/wav",
+  "audio/webm",
+  "audio/ogg",
+  "audio/x-m4a",
+  "audio/x-wav",
+]);
+
+export const MAX_AUDIO_UPLOAD_BYTES = 15 * 1024 * 1024;
+
 export type SavedUpload = {
   fileName: string;
   url: string;
@@ -47,6 +62,16 @@ const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
     ".docx",
   "video/mp4": ".mp4",
   "video/webm": ".webm",
+  "audio/mpeg": ".mp3",
+  "audio/mp3": ".mp3",
+  "audio/mp4": ".m4a",
+  "audio/m4a": ".m4a",
+  "audio/aac": ".aac",
+  "audio/wav": ".wav",
+  "audio/x-wav": ".wav",
+  "audio/webm": ".webm",
+  "audio/ogg": ".ogg",
+  "audio/x-m4a": ".m4a",
 };
 
 export const WINDOWS_UPLOAD_DIRECTORY = "C:\\eteyelo-uploads";
@@ -272,9 +297,11 @@ function sanitizeFileName(fileName: string): string {
 /**
  * Détermine l'extension finale à partir du type MIME.
  */
+type UploadKind = "image" | "document" | "video" | "audio";
+
 function getFileExtension(
   file: File,
-  kind: "image" | "document" | "video" = "image",
+  kind: UploadKind = "image",
 ): string {
   const extensionFromMimeType = EXTENSION_BY_MIME_TYPE[file.type];
 
@@ -292,6 +319,10 @@ function getFileExtension(
     return originalExtension || ".mp4";
   }
 
+  if (kind === "audio") {
+    return originalExtension || ".m4a";
+  }
+
   return originalExtension || ".jpg";
 }
 
@@ -300,7 +331,7 @@ function getFileExtension(
  */
 function validateUploadedFile(
   file: File,
-  options: { kind: "image" | "document" | "video" },
+  options: { kind: UploadKind },
 ): void {
   if (file.size === 0) {
     throw new Error("Le fichier est vide.");
@@ -311,7 +342,9 @@ function validateUploadedFile(
       ? MAX_DOCUMENT_UPLOAD_BYTES
       : options.kind === "video"
         ? MAX_VIDEO_UPLOAD_BYTES
-        : MAX_UPLOAD_BYTES;
+        : options.kind === "audio"
+          ? MAX_AUDIO_UPLOAD_BYTES
+          : MAX_UPLOAD_BYTES;
 
   if (file.size > maxBytes) {
     throw new Error(
@@ -319,7 +352,9 @@ function validateUploadedFile(
         ? "Le fichier dépasse la taille maximale autorisée de 10 Mo."
         : options.kind === "video"
           ? "La vidéo dépasse la taille maximale autorisée de 50 Mo."
-          : "Le fichier dépasse la taille maximale autorisée de 5 Mo.",
+          : options.kind === "audio"
+            ? "L'audio dépasse la taille maximale autorisée de 15 Mo."
+            : "Le fichier dépasse la taille maximale autorisée de 5 Mo.",
     );
   }
 
@@ -328,12 +363,17 @@ function validateUploadedFile(
       ? ALLOWED_DOCUMENT_TYPES
       : options.kind === "video"
         ? ALLOWED_VIDEO_TYPES
-        : ALLOWED_IMAGE_TYPES;
+        : options.kind === "audio"
+          ? ALLOWED_AUDIO_TYPES
+          : ALLOWED_IMAGE_TYPES;
 
   const mimeOk = allowedTypes.has(file.type);
   const ext = path.extname(file.name).toLowerCase();
   const videoExtOk =
     options.kind === "video" && (ext === ".mp4" || ext === ".webm");
+  const audioExtOk =
+    options.kind === "audio" &&
+    [".mp3", ".m4a", ".aac", ".wav", ".webm", ".ogg", ".mp4"].includes(ext);
   const imageExtOk =
     options.kind === "image" &&
     (ext === ".png" ||
@@ -341,11 +381,16 @@ function validateUploadedFile(
       ext === ".jpeg" ||
       ext === ".webp" ||
       ext === ".gif");
+  const documentExtOk =
+    options.kind === "document" &&
+    (ext === ".pdf" || ext === ".doc" || ext === ".docx");
 
   // Windows / Flutter web : MIME parfois vide — accepter l’extension.
   if (
     !mimeOk &&
     !(options.kind === "video" && !file.type && videoExtOk) &&
+    !(options.kind === "audio" && (!file.type || audioExtOk) && audioExtOk) &&
+    !(options.kind === "document" && !file.type && documentExtOk) &&
     !(options.kind === "image" && !file.type && imageExtOk)
   ) {
     throw new Error(
@@ -353,7 +398,9 @@ function validateUploadedFile(
         ? "Format non autorisé. Utilisez PDF, DOC ou DOCX."
         : options.kind === "video"
           ? "Format vidéo non autorisé. Utilisez MP4 ou WEBM."
-          : "Format d'image non autorisé. Utilisez PNG, JPG, JPEG ou WEBP.",
+          : options.kind === "audio"
+            ? "Format audio non autorisé. Utilisez MP3, M4A, WAV, OGG ou WEBM."
+            : "Format d'image non autorisé. Utilisez PNG, JPG, JPEG ou WEBP.",
     );
   }
 }
@@ -373,9 +420,13 @@ export async function saveUploadedVideo(file: File): Promise<SavedUpload> {
   return saveUploadedFileByKind(file, "video");
 }
 
+export async function saveUploadedAudio(file: File): Promise<SavedUpload> {
+  return saveUploadedFileByKind(file, "audio");
+}
+
 async function saveUploadedFileByKind(
   file: File,
-  kind: "image" | "document" | "video",
+  kind: UploadKind,
 ): Promise<SavedUpload> {
   validateUploadedFile(file, { kind });
   return writeUploadedFileToSharedDirectory(file, kind);
@@ -383,13 +434,43 @@ async function saveUploadedFileByKind(
 
 async function writeUploadedFileToSharedDirectory(
   file: File,
-  kind: "image" | "document" | "video",
+  kind: UploadKind,
 ): Promise<SavedUpload> {
   const safeName = sanitizeFileName(file.name);
   const extension = getFileExtension(file, kind);
   const fileName = `${Date.now()}-${crypto.randomUUID()}-${safeName}${extension}`;
   const buffer = Buffer.from(await file.arrayBuffer());
   return writeUploadBuffer(fileName, buffer);
+}
+
+function extensionLooksLikeAudio(fileName: string): boolean {
+  const ext = path.extname(fileName).toLowerCase();
+  return [".mp3", ".m4a", ".aac", ".wav", ".webm", ".ogg", ".mp4"].includes(ext);
+}
+
+function extensionLooksLikeDocument(fileName: string): boolean {
+  const ext = path.extname(fileName).toLowerCase();
+  return [".pdf", ".doc", ".docx"].includes(ext);
+}
+
+/** Détecte image / PDF / audio / vidéo pour la messagerie mobile. */
+export async function saveMessagingUpload(file: File): Promise<SavedUpload> {
+  const mime = (file.type || "").toLowerCase();
+  if (ALLOWED_IMAGE_TYPES.has(mime) || mime.startsWith("image/")) {
+    return saveUploadedFile(file);
+  }
+  if (ALLOWED_AUDIO_TYPES.has(mime) || mime.startsWith("audio/") || extensionLooksLikeAudio(file.name)) {
+    return saveUploadedAudio(file);
+  }
+  if (ALLOWED_VIDEO_TYPES.has(mime) || mime.startsWith("video/")) {
+    return saveUploadedVideo(file);
+  }
+  if (ALLOWED_DOCUMENT_TYPES.has(mime) || extensionLooksLikeDocument(file.name)) {
+    return saveUploadedDocument(file);
+  }
+  throw new Error(
+    "Format non autorisé. Utilisez une image, un PDF ou un audio.",
+  );
 }
 
 /**
