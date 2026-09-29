@@ -1,0 +1,157 @@
+{
+  "common": {
+    "hello": "Bonjour {name},",
+    "helloPlain": "Bonjour {name}",
+    "school": "Établissement",
+    "person": "Personne",
+    "quality": "Qualité",
+    "date": "Date",
+    "session": "Séance",
+    "justification": "Justification",
+    "decision": "Décision",
+    "reference": "Référence",
+    "amount": "Montant",
+    "students": "Élève(s)",
+    "fees": "Frais",
+    "student": "Élève",
+    "class": "Classe",
+    "period": "Période",
+    "average": "Moyenne",
+    "otherSubjects": "Autres matières",
+    "otherSubjectsValue": "{count} non listée(s)",
+    "email": "Email",
+    "role": "Rôle",
+    "organization": "Organisation",
+    "branch": "Branche",
+    "branchPhone": "Téléphone branche",
+    "temporaryPassword": "Mot de passe temporaire",
+    "newPassword": "Nouveau mot de passe",
+    "login": "Connexion",
+    "openAccount": "Ouvrir mon compte",
+    "openSpace": "Ouvrir mon espace",
+    "seeSpace": "Voir mon espace",
+    "seeDetail": "Voir le détail",
+    "signInKlambo": "Se connecter sur Klambocore",
+    "spaceUrl": "Espace : {url}",
+    "detailUrl": "Détail : {url}",
+    "downloadUrl": "Télécharger : {url}",
+    "connectHint": "Connectez-vous à votre compte pour consulter le détail.",
+    "connectHere": "Connectez-vous ici : {url}",
+    "signatureApp": "— {app}",
+    "signatureTeam": "— L’équipe {app}",
+    "defaultRole": "Utilisateur",
+    "defaultParent": "Parent"
+  },
+  "attendance": {
+    "absence": {
+      "subject": "{app} — Absence signalée",
+      "title": "Absence signalée",
+      "intro": "Bonjour {recipient}, une absence a été enregistrée automatiquement (aucun scan ni pointage manuel) pour « {person} ». Merci de vous connecter pour justifier.",
+      "introParent": "Bonjour {recipient}, une absence a été enregistrée automatiquement (aucun scan ni pointage manuel) pour l'élève « {person} ». Merci de vous connecter pour justifier.",
+      "note": "Cliquez sur la cloche dans la barre de navigation pour voir le détail et envoyer votre justification.",
+      "cta": "Ouvrir mon espace"
+    },
+    "justification_submitted": {
+      "subject": "{app} — Justification d'absence reçue",
+      "title": "Justification reçue",
+      "intro": "Bonjour {recipient}, votre justification d'absence a bien été transmise à l'établissement « {school} ». Vous serez notifié de la décision.",
+      "introParent": "Bonjour {recipient}, la justification d'absence de l'élève « {person} » a bien été transmise à l'établissement « {school} ». Vous serez notifié de la décision.",
+      "note": "La réponse apparaîtra aussi à la cloche de votre barre de navigation.",
+      "cta": "Voir mon espace"
+    },
+    "justification_received": {
+      "subject": "{app} — Justification d'absence à examiner",
+      "title": "Justification à examiner",
+      "intro": "Bonjour {recipient}, {person} a justifié une absence. Merci d'examiner le dossier depuis la cloche de notifications.",
+      "note": "Acceptez ou refusez la justification depuis la cloche. Un retour est signalé automatiquement si elle est acceptée.",
+      "cta": "Examiner"
+    },
+    "accepted": {
+      "subject": "{app} — Justification d'absence acceptée",
+      "title": "Justification acceptée",
+      "intro": "Bonjour {recipient}, votre justification d'absence a été acceptée par l'établissement « {school} ».",
+      "introParent": "Bonjour {recipient}, la justification d'absence de l'élève « {person} » a été acceptée par l'établissement « {school} ».",
+      "note": "Un retour a également été signalé dans votre compte.",
+      "cta": "Voir le détail"
+    },
+    "rejected": {
+      "subject": "{app} — Justification d'absence refusée",
+      "title": "Justification refusée",
+      "intro": "Bonjour {recipient}, votre justification d'absence n'a pas été retenue par l'établissement « {school} ».",
+      "introParent": "Bonjour {recipient}, la justification d'absence de l'élève « {person} » n'a pas été retenue par l'établissement « {school} ».",
+      "note": "Consultez la cloche pour le motif de la décision.",
+      "cta": "Voir le détail"
+    },
+    "return": {
+      "subject": "{app} — Retour après absence",
+      "title": "Retour signalé",
+      "intro": "Bonjour {recipient}, un retour a été enregistré dans votre compte suite à l'acceptation de votre justification.",
+      "introParent": "Bonjour {recipient}, un retour a été enregistré pour l'élève « {person} » suite à l'acceptation de la justification.",
+      "note": "L'absence est désormais marquée comme excusée.",
+      "cta": "Voir mon espace"
+    }
+  },
+  "payment": {
+    "created": {
+      "title": "Paiement enregistré",
+      "intro": "Un paiement vient d’être enregistré pour votre famille.",
+      "subject": "Paiement enregistré"
+    },
+    "updated": {
+      "title": "Paiement modifié",
+      "intro": "Un paiement de votre famille vient d’être modifié par l’établissement.",
+      "subject": "Paiement modifié"
+    },
+    "deleted": {
+      "title": "Paiement annulé",
+      "intro": "Un paiement de votre famille a été supprimé (erreur de saisie).",
+      "subject": "Paiement annulé"
+    },
+    "subjectLine": "{app} — {subject}",
+    "introHello": "Bonjour {name}, {intro}"
+  },
+  "results": {
+    "subject": "{app} — Résultats de {student}",
+    "title": "Résultats scolaires",
+    "intro": "Bonjour {parent}, voici les résultats de {student}{classSuffix} pour {period} — {year}.",
+    "classSuffix": " ({className})",
+    "extraSubjects": "+ {count} autre(s) matière(s)",
+    "averageLine": "Moyenne : {average}.",
+    "waIntro": "résultats de {student}{classSuffix} — {period}."
+  },
+  "accountCreate": {
+    "subject": "{app} — Votre compte a été créé",
+    "title": "Votre compte a été créé",
+    "intro": "Bonjour {name}, un administrateur vient de créer votre compte {app} avec le {context}. Vos identifiants temporaires sont prêts : connectez-vous sur klambocore.com puis changez votre mot de passe.",
+    "bodyLead": "Un administrateur a créé votre compte {app} avec le {context}.",
+    "contextRole": "rôle « {role} »",
+    "contextOrg": "organisation « {org} »",
+    "contextBranch": "branche « {branch} »",
+    "securityNote": "Pour des raisons de sécurité, changez ce mot de passe après votre première connexion.",
+    "waCreated": "votre compte {app} a été créé (rôle {role}).",
+    "waEmail": "Email : {email}.",
+    "waPassword": "Mot de passe temporaire : {password}.",
+    "waLogin": "Connectez-vous : {url}",
+    "waSecurity": "Changez ce mot de passe après connexion. Ne le partagez avec personne."
+  },
+  "passwordReset": {
+    "subject": "{app} — Réinitialisation de votre mot de passe",
+    "title": "Mot de passe réinitialisé",
+    "intro": "Bonjour {name}, votre mot de passe {app} a été réinitialisé par un administrateur. Utilisez le mot de passe temporaire ci-dessous pour vous reconnecter sur klambocore.com.",
+    "bodyLead": "Votre mot de passe a été réinitialisé par un administrateur.",
+    "securityNote": "Nous vous recommandons de modifier ce mot de passe après connexion.",
+    "securityNoteHtml": "Pour des raisons de sécurité, changez ce mot de passe après connexion.",
+    "waReset": "votre mot de passe {app} a été réinitialisé.",
+    "waPassword": "Nouveau mot de passe temporaire : {password}.",
+    "waLogin": "Connectez-vous : {url}",
+    "waSecurity": "Changez ce mot de passe après connexion."
+  },
+  "teacherSchedule": {
+    "intro": "voici le PDF de votre horaire {cycle}."
+  },
+  "inscription": {
+    "subject": "{app} — Demande d'inscription reçue",
+    "title": "Inscription reçue",
+    "intro": "Bonjour {name}, nous avons bien reçu votre demande d'inscription."
+  }
+}

@@ -9,6 +9,11 @@ import {
 } from "./email-layout";
 import { sendNewUserCredentialsWhatsApp } from "@/lib/zindua";
 import { resolveNotificationChannels } from "@/lib/notification-channels";
+import {
+  getMessagingTranslator,
+  resolveSenderMessagingLocale,
+  type MessagingLocale,
+} from "@/lib/messaging-locale";
 
 const APP_NAME = DEFAULT_APP_NAME;
 
@@ -28,6 +33,8 @@ export async function sendNewUserCredentialsEmail(input: {
   branchAddress?: string;
   loginUrl?: string;
   organizationId?: string | null;
+  branchId?: string | null;
+  locale?: MessagingLocale | null;
 }): Promise<{ emailSent: boolean; whatsappSent: boolean; whatsappError?: string }> {
   const { to, name, temporaryPassword } = input;
   const allow = await resolveNotificationChannels(
@@ -37,7 +44,14 @@ export async function sendNewUserCredentialsEmail(input: {
   if (!allow.email && !allow.whatsapp) {
     return { emailSent: false, whatsappSent: false };
   }
-  const role = input.role?.trim() || "Utilisateur";
+
+  const locale = await resolveSenderMessagingLocale({
+    locale: input.locale,
+    branchId: input.branchId,
+  });
+  const t = await getMessagingTranslator(locale);
+
+  const role = input.role?.trim() || t("common.defaultRole");
   const organizationName = input.organizationName?.trim();
   const branchName = input.branchName?.trim();
   const branchPhone = input.branchPhone?.trim();
@@ -45,62 +59,75 @@ export async function sendNewUserCredentialsEmail(input: {
   const loginUrl = input.loginUrl ?? getSignInUrl();
 
   const contextParts = [
-    `rôle « ${role} »`,
-    organizationName ? `organisation « ${organizationName} »` : null,
-    branchName ? `branche « ${branchName} »` : null,
+    t("accountCreate.contextRole", { role }),
+    organizationName
+      ? t("accountCreate.contextOrg", { org: organizationName })
+      : null,
+    branchName
+      ? t("accountCreate.contextBranch", { branch: branchName })
+      : null,
   ].filter(Boolean);
+  const context = contextParts.join(", ");
 
-  const subject = `${APP_NAME} — Votre compte a été créé`;
-  const introText = `Bonjour ${name}, un administrateur vient de créer votre compte ${APP_NAME} avec le ${contextParts.join(", ")}. Vos identifiants temporaires sont prêts : connectez-vous sur klambocore.com puis changez votre mot de passe.`;
+  const subject = t("accountCreate.subject", { app: APP_NAME });
+  const introText = t("accountCreate.intro", {
+    name,
+    app: APP_NAME,
+    context,
+  });
 
   const text = [
-    `Bonjour ${name},`,
+    t("common.helloPlain", { name }),
     "",
-    `Un administrateur a créé votre compte ${APP_NAME} avec le ${contextParts.join(", ")}.`,
+    t("accountCreate.bodyLead", { app: APP_NAME, context }),
     "",
-    `Email de connexion : ${to}`,
-    `Rôle : ${role}`,
-    ...(organizationName ? [`Organisation : ${organizationName}`] : []),
-    ...(branchName ? [`Branche : ${branchName}`] : []),
-    ...(branchPhone ? [`Téléphone branche : ${branchPhone}`] : []),
+    `${t("common.email")} : ${to}`,
+    `${t("common.role")} : ${role}`,
+    ...(organizationName
+      ? [`${t("common.organization")} : ${organizationName}`]
+      : []),
+    ...(branchName ? [`${t("common.branch")} : ${branchName}`] : []),
+    ...(branchPhone
+      ? [`${t("common.branchPhone")} : ${branchPhone}`]
+      : []),
     ...(branchAddress ? [`Adresse branche : ${branchAddress}`] : []),
-    `Mot de passe temporaire : ${temporaryPassword}`,
+    `${t("common.temporaryPassword")} : ${temporaryPassword}`,
     "",
-    `Connectez-vous ici : ${loginUrl}`,
+    t("common.connectHere", { url: loginUrl }),
     "",
-    "Pour des raisons de sécurité, changez ce mot de passe après votre première connexion.",
+    t("accountCreate.securityNote"),
     "",
-    "— L’équipe " + APP_NAME,
+    t("common.signatureTeam", { app: APP_NAME }),
   ].join("\n");
 
   const infoRows = [
-    { label: "Email", valueHtml: escapeHtml(to) },
-    { label: "Rôle", valueHtml: escapeHtml(role) },
+    { label: t("common.email"), valueHtml: escapeHtml(to) },
+    { label: t("common.role"), valueHtml: escapeHtml(role) },
     ...(organizationName
       ? [
           {
-            label: "Organisation",
+            label: t("common.organization"),
             valueHtml: escapeHtml(organizationName),
           },
         ]
       : []),
     ...(branchName
-      ? [{ label: "Branche", valueHtml: escapeHtml(branchName) }]
+      ? [{ label: t("common.branch"), valueHtml: escapeHtml(branchName) }]
       : []),
     ...(branchPhone
       ? [
           {
-            label: "Téléphone branche",
+            label: t("common.branchPhone"),
             valueHtml: `<a href="tel:${escapeHtml(branchPhone)}" style="color:#1d4ed8;text-decoration:none;">${escapeHtml(branchPhone)}</a>`,
           },
         ]
       : []),
     {
-      label: "Mot de passe temporaire",
+      label: t("common.temporaryPassword"),
       valueHtml: `<code style="background:#e2e8f0;padding:2px 8px;border-radius:6px;font-size:13px;">${escapeHtml(temporaryPassword)}</code>`,
     },
     {
-      label: "Connexion",
+      label: t("common.login"),
       valueHtml: `<a href="${escapeHtml(loginUrl)}" style="color:#1d4ed8;text-decoration:none;">klambocore.com</a>`,
     },
   ];
@@ -108,16 +135,16 @@ export async function sendNewUserCredentialsEmail(input: {
   const bodyHtml = `
     ${emailInfoCard(infoRows)}
     <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">
-      Pour des raisons de sécurité, changez ce mot de passe après votre première connexion.
+      ${escapeHtml(t("accountCreate.securityNote"))}
     </p>
   `;
 
   const html = emailLayoutHtml({
     appName: APP_NAME,
-    title: "Votre compte a été créé",
+    title: t("accountCreate.title"),
     intro: escapeHtml(introText),
     bodyHtml,
-    cta: { href: loginUrl, label: "Se connecter sur Klambocore" },
+    cta: { href: loginUrl, label: t("common.signInKlambo") },
     branchContact: {
       name: branchName,
       phone: branchPhone,
@@ -125,8 +152,6 @@ export async function sendNewUserCredentialsEmail(input: {
     },
   });
 
-  // Email seul — WhatsApp dédié (comme le reset MDP).
-  // Les @klambocore.com générés ne reçoivent pas de SMTP (boîtes inexistantes).
   if (allow.email) {
     await sendMail({
       to,
@@ -151,6 +176,7 @@ export async function sendNewUserCredentialsEmail(input: {
       branchName,
       loginUrl,
       organizationId: input.organizationId,
+      locale,
     });
     whatsappSent = wa.sent;
     whatsappError = wa.error;

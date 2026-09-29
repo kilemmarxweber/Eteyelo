@@ -303,6 +303,7 @@ export const sendResultsToParentsAction = action
               lines: row.lines,
               percentage: row.percentage,
               organizationId,
+              branchId,
             });
             notified += 1;
           } catch {
@@ -323,6 +324,7 @@ export const sendResultsToParentsAction = action
             lines: row.lines,
             percentage: row.percentage,
             organizationId,
+            branchId,
           });
           notified += 1;
           if (result.whatsappSent) whatsappSent += 1;

@@ -1,4 +1,9 @@
 import { resolveNotificationChannels } from "@/lib/notification-channels";
+import {
+  getMessagingTranslator,
+  resolveSenderMessagingLocale,
+  type MessagingLocale,
+} from "@/lib/messaging-locale";
 import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
@@ -13,28 +18,6 @@ const APP_NAME = DEFAULT_APP_NAME;
 
 export type ParentPaymentNotifyKind = "created" | "updated" | "deleted";
 
-const COPY: Record<
-  ParentPaymentNotifyKind,
-  { title: string; intro: string; subject: string }
-> = {
-  created: {
-    title: "Paiement enregistré",
-    intro: "Un paiement vient d’être enregistré pour votre famille.",
-    subject: "Paiement enregistré",
-  },
-  updated: {
-    title: "Paiement modifié",
-    intro:
-      "Un paiement de votre famille vient d’être modifié par l’établissement.",
-    subject: "Paiement modifié",
-  },
-  deleted: {
-    title: "Paiement annulé",
-    intro: "Un paiement de votre famille a été supprimé (erreur de saisie).",
-    subject: "Paiement annulé",
-  },
-};
-
 export async function sendParentPaymentNotificationEmail(input: {
   to?: string | null;
   phone?: string | null;
@@ -46,6 +29,8 @@ export async function sendParentPaymentNotificationEmail(input: {
   studentNames: string;
   feeNames?: string;
   organizationId?: string | null;
+  branchId?: string | null;
+  locale?: MessagingLocale | null;
 }): Promise<void> {
   const email = input.to?.trim() ?? "";
   const phone = input.phone?.trim() ?? "";
@@ -57,15 +42,35 @@ export async function sendParentPaymentNotificationEmail(input: {
   );
   if (!allow.email && !allow.whatsapp) return;
 
-  const copy = COPY[input.kind];
-  const subject = `${APP_NAME} — ${copy.subject}`;
-  const intro = `Bonjour ${input.parentName}, ${copy.intro}`;
+  const locale = await resolveSenderMessagingLocale({
+    locale: input.locale,
+    branchId: input.branchId,
+  });
+  const t = await getMessagingTranslator(locale);
+  const copy = {
+    title: t(`payment.${input.kind}.title`),
+    intro: t(`payment.${input.kind}.intro`),
+    subject: t(`payment.${input.kind}.subject`),
+  };
+  const subject = t("payment.subjectLine", {
+    app: APP_NAME,
+    subject: copy.subject,
+  });
+  const intro = t("payment.introHello", {
+    name: input.parentName,
+    intro: copy.intro,
+  });
   const rows = [
-    { label: "Établissement", value: input.schoolName },
-    { label: "Référence", value: input.reference },
-    { label: "Montant", value: input.amountLabel },
-    { label: "Élève(s)", value: input.studentNames || "—" },
-    ...(input.feeNames ? [{ label: "Frais", value: input.feeNames }] : []),
+    { label: t("common.school"), value: input.schoolName },
+    { label: t("common.reference"), value: input.reference },
+    { label: t("common.amount"), value: input.amountLabel },
+    {
+      label: t("common.students"),
+      value: input.studentNames || "—",
+    },
+    ...(input.feeNames
+      ? [{ label: t("common.fees"), value: input.feeNames }]
+      : []),
   ];
 
   const text = [
@@ -73,9 +78,9 @@ export async function sendParentPaymentNotificationEmail(input: {
     "",
     ...rows.map((row) => `${row.label} : ${row.value}`),
     "",
-    "Connectez-vous à votre compte pour consulter le détail.",
+    t("common.connectHint"),
     "",
-    `— ${APP_NAME}`,
+    t("common.signatureApp", { app: APP_NAME }),
   ].join("\n");
 
   const html = emailLayoutHtml({
@@ -90,7 +95,7 @@ export async function sendParentPaymentNotificationEmail(input: {
     ),
     cta: {
       href: getSignInUrl(),
-      label: "Ouvrir mon compte",
+      label: t("common.openAccount"),
     },
   });
 
@@ -109,17 +114,22 @@ export async function sendParentPaymentNotificationEmail(input: {
     await sendTransactionalWhatsApp({
       to: phone,
       organizationId: input.organizationId,
+      locale,
       queueKind: "payment",
       parts: [
         input.schoolName,
-        `Bonjour ${input.parentName},`,
+        t("common.hello", { name: input.parentName }),
         copy.intro,
-        `Référence : ${input.reference}.`,
-        `Montant : ${input.amountLabel}.`,
-        input.studentNames ? `Élève(s) : ${input.studentNames}.` : null,
-        input.feeNames ? `Frais : ${input.feeNames}.` : null,
-        `Détail : ${getSignInUrl()}`,
-        `— ${input.schoolName || APP_NAME}`,
+        `${t("common.reference")} : ${input.reference}.`,
+        `${t("common.amount")} : ${input.amountLabel}.`,
+        input.studentNames
+          ? `${t("common.students")} : ${input.studentNames}.`
+          : null,
+        input.feeNames ? `${t("common.fees")} : ${input.feeNames}.` : null,
+        t("common.detailUrl", { url: getSignInUrl() }),
+        t("common.signatureApp", {
+          app: input.schoolName || APP_NAME,
+        }),
       ],
     });
   }

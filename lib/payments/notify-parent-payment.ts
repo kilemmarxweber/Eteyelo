@@ -184,6 +184,7 @@ export async function notifyParentOfPaymentNow(input: {
         studentNames,
         feeNames,
         organizationId: input.organizationId,
+        branchId: input.branchId,
       });
 
       if (!group.parentUserId) return;

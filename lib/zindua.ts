@@ -13,6 +13,12 @@ import {
   type WhatsAppPaceProfile,
   type WhatsAppQueueKind,
 } from "@/lib/whatsapp-pace";
+import {
+  getMessagingTranslator,
+  messagingLocaleToWhatsAppLang,
+  resolveSenderMessagingLocale,
+  type MessagingLocale,
+} from "@/lib/messaging-locale";
 
 export type WhatsAppSendOutcome = {
   sent: boolean;
@@ -378,6 +384,8 @@ type ResetPasswordWhatsAppOptions = {
   /** Nom d'établissement affiché en tête du message (ex. CS MARGUERITE). */
   branchName?: string | null;
   organizationId?: string | null;
+  locale?: MessagingLocale | null;
+  branchId?: string | null;
 };
 
 function resolveWhatsAppLoginUrl(loginUrl?: string | null): string {
@@ -406,17 +414,24 @@ export async function sendTransactionalWhatsApp(options: {
   parts: Array<string | null | undefined>;
   attachments?: Array<{ url: string; filename?: string }>;
   queueKind?: WhatsAppQueueKind;
+  locale?: MessagingLocale | null;
+  branchId?: string | null;
 }): Promise<WhatsAppSendOutcome> {
   const to = resolveWhatsAppTo(options.to);
   if (!to) {
     return { sent: false, error: "Numéro WhatsApp invalide." };
   }
 
+  const locale = await resolveSenderMessagingLocale({
+    locale: options.locale,
+    branchId: options.branchId,
+  });
+
   try {
     const result = await sendWhatsApp({
       to,
       organizationId: options.organizationId,
-      lang: "fr",
+      lang: messagingLocaleToWhatsAppLang(locale),
       queueKind: options.queueKind ?? "other",
       variables: {
         code: buildWhatsAppBody(options.parts),
@@ -445,6 +460,8 @@ export async function sendNewUserCredentialsWhatsApp(options: {
   branchName?: string | null;
   loginUrl?: string;
   organizationId?: string | null;
+  locale?: MessagingLocale | null;
+  branchId?: string | null;
 }): Promise<WhatsAppSendOutcome> {
   const to = resolveWhatsAppTo(options.to);
   if (!to) {
@@ -455,27 +472,32 @@ export async function sendNewUserCredentialsWhatsApp(options: {
     return { sent: false, error: "Numéro WhatsApp invalide." };
   }
 
+  const locale = await resolveSenderMessagingLocale({
+    locale: options.locale,
+    branchId: options.branchId,
+  });
+  const t = await getMessagingTranslator(locale);
   const loginUrl = resolveWhatsAppLoginUrl(options.loginUrl);
-  const displayName = options.name.trim() || "Parent";
-  const role = options.role?.trim() || "Utilisateur";
+  const displayName = options.name.trim() || t("common.defaultParent");
+  const role = options.role?.trim() || t("common.defaultRole");
   const branchLabel = options.branchName?.trim() || null;
 
   const message = buildWhatsAppBody([
     branchLabel,
-    `Bonjour ${displayName},`,
-    `votre compte ${APP_NAME} a été créé (rôle ${role}).`,
-    `Email : ${options.email}.`,
-    `Mot de passe temporaire : ${options.temporaryPassword}.`,
-    `Connectez-vous : ${loginUrl}`,
-    "Changez ce mot de passe après connexion. Ne le partagez avec personne.",
-    `— ${branchLabel || APP_NAME}`,
+    t("common.hello", { name: displayName }),
+    t("accountCreate.waCreated", { app: APP_NAME, role }),
+    t("accountCreate.waEmail", { email: options.email }),
+    t("accountCreate.waPassword", { password: options.temporaryPassword }),
+    t("accountCreate.waLogin", { url: loginUrl }),
+    t("accountCreate.waSecurity"),
+    t("common.signatureApp", { app: branchLabel || APP_NAME }),
   ]);
 
   try {
     const result = await sendWhatsApp({
       to,
       organizationId: options.organizationId,
-      lang: "fr",
+      lang: messagingLocaleToWhatsAppLang(locale),
       queueKind: "credentials",
       variables: {
         code: message,
@@ -510,26 +532,32 @@ export async function sendResetPasswordWhatsApp(
     );
     return { sent: false, error: "Numéro WhatsApp invalide." };
   }
+
+  const locale = await resolveSenderMessagingLocale({
+    locale: options.locale,
+    branchId: options.branchId,
+  });
+  const t = await getMessagingTranslator(locale);
   const loginUrl = resolveWhatsAppLoginUrl(options.loginUrl);
-  const displayName = options.name.trim() || "Parent";
+  const displayName = options.name.trim() || t("common.defaultParent");
   const branchLabel = options.branchName?.trim() || null;
 
   const message = buildWhatsAppBody([
     branchLabel,
-    `Bonjour ${displayName},`,
-    `votre mot de passe ${APP_NAME} a été réinitialisé.`,
-    `Email : ${options.email}.`,
-    `Mot de passe temporaire : ${options.temporaryPassword}.`,
-    `Connectez-vous : ${loginUrl}`,
-    "Changez-le après connexion. Ne le partagez avec personne.",
-    `— ${branchLabel || APP_NAME}`,
+    t("common.hello", { name: displayName }),
+    t("passwordReset.waReset", { app: APP_NAME }),
+    t("accountCreate.waEmail", { email: options.email }),
+    t("passwordReset.waPassword", { password: options.temporaryPassword }),
+    t("passwordReset.waLogin", { url: loginUrl }),
+    t("passwordReset.waSecurity"),
+    t("common.signatureApp", { app: branchLabel || APP_NAME }),
   ]);
 
   try {
     const result = await sendWhatsApp({
       to,
       organizationId: options.organizationId,
-      lang: "fr",
+      lang: messagingLocaleToWhatsAppLang(locale),
       queueKind: "credentials",
       variables: {
         code: message,
@@ -642,6 +670,7 @@ export async function getZinduaWhatsAppStatus(
 export async function sendWhatsAppTest(options: {
   to: string;
   organizationId?: string | null;
+  locale?: MessagingLocale | null;
 }): Promise<WhatsAppSendOutcome> {
   const to = resolveWhatsAppTo(options.to);
   if (!to) {
@@ -650,13 +679,16 @@ export async function sendWhatsAppTest(options: {
 
   const config = await getWhatsAppRuntimeConfig(options.organizationId);
   const label = providerLabel(config.provider);
+  const locale = await resolveSenderMessagingLocale({
+    locale: options.locale,
+  });
 
   try {
     const result = await sendWhatsApp({
       to,
       organizationId: options.organizationId,
       force: true,
-      lang: "fr",
+      lang: messagingLocaleToWhatsAppLang(locale),
       queueKind: "test",
       variables: {
         code: `Test Klambocore — vérification ${label}. Ignorez si vous n'êtes pas concerné.`,

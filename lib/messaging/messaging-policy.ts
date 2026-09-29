@@ -1,10 +1,11 @@
 /**
- * Politique messagerie V1
+ * Politique messagerie (web + mobile Klambo)
  *
- * - Élèves et parents : pas d'accès (confidentialité mineurs).
+ * - Élèves : pas d'accès (confidentialité mineurs).
+ * - Parents : read + send (mobile) ; création de groupe autorisée si eligible.
  * - Personnel, enseignants, caissiers, support, direction : read + send + group.
  * - Groupes : toutes les branches de la même organisation, sans validation extra.
- * - Limite : 50 destinataires. Corps : 4 000 caractères. Pas de pièces jointes.
+ * - Limite : 50 destinataires. Corps : 4 000 caractères.
  * - Compte désactivé / archivé : lecture de l'historique, pas de nouveaux messages.
  * - Archivage : personnel (vue). Nettoyage global : propriétaire uniquement.
  */
@@ -13,8 +14,9 @@ import { isPlatformOwnerRole, ORG_ROLE } from "@/lib/permissions";
 
 export const MESSAGING_EXCLUDED_ROLES = new Set<string>([
   ORG_ROLE.STUDENT,
-  ORG_ROLE.PARENT,
 ]);
+
+export const MESSAGING_PARENT_ROLES = new Set<string>([ORG_ROLE.PARENT]);
 
 export const MESSAGING_STAFF_ROLES = new Set<string>([
   ORG_ROLE.OWNER,
@@ -27,6 +29,7 @@ export const MESSAGING_STAFF_ROLES = new Set<string>([
   ORG_ROLE.SUPERVISEUR,
   ORG_ROLE.CAISSIER,
   ORG_ROLE.SUPPORT,
+  ORG_ROLE.PARENT,
   "admin",
   "member",
   "director",

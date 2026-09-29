@@ -19,26 +19,27 @@ function test(name: string, assertion: () => void) {
   console.log(`✓ ${name}`);
 }
 
-test("élèves et parents exclus de la messagerie V1", () => {
+test("élèves exclus ; parents autorisés (mobile Klambo)", () => {
   assert.equal(isMessagingEligibleRole(ORG_ROLE.STUDENT), false);
-  assert.equal(isMessagingEligibleRole(ORG_ROLE.PARENT), false);
+  assert.equal(isMessagingEligibleRole(ORG_ROLE.PARENT), true);
   assert.equal(
     canUseMessaging({ memberRole: ORG_ROLE.STUDENT, appRole: APP_ROLE.USER }),
     false,
   );
   assert.equal(
     canUseMessaging({ memberRole: ORG_ROLE.PARENT, appRole: APP_ROLE.USER }),
-    false,
+    true,
   );
 });
 
-test("enseignants, direction et personnel peuvent lire et envoyer", () => {
+test("enseignants, direction, personnel et parents peuvent lire et envoyer", () => {
   for (const role of [
     ORG_ROLE.TEACHER,
     ORG_ROLE.DIRECTEUR,
     ORG_ROLE.GESTIONNAIRE,
     ORG_ROLE.CAISSIER,
     ORG_ROLE.OWNER,
+    ORG_ROLE.PARENT,
   ]) {
     assert.equal(canUseMessaging({ memberRole: role }), true, role);
     assert.equal(canSendMessages({ memberRole: role }), true, role);

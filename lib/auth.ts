@@ -19,7 +19,12 @@ import {
 } from "@/lib/invitations/config";
 import { INVITATION_MESSAGES } from "@/lib/invitations/messages";
 import { activeTitulaireTeachingWhere } from "@/lib/auth/titulaire-teaching";
-import { admin, customSession, organization } from "better-auth/plugins";
+import {
+  admin,
+  bearer,
+  customSession,
+  organization,
+} from "better-auth/plugins";
 import {
   APP_ROLE,
   ORG_ROLE,
@@ -166,6 +171,7 @@ const authOptions = {
               branchPhone: pending.branchPhone,
               branchAddress: pending.branchAddress,
               organizationId: pending.organizationId,
+              branchId: pending.branchId,
             });
           } catch (err) {
             // eslint-disable-next-line no-console
@@ -285,6 +291,8 @@ export const auth = betterAuth({
   ...authOptions,
   plugins: [
     ...(authOptions.plugins ?? []),
+    /** Auth mobile (Flutter) : Authorization Bearer → session cookie. */
+    bearer(),
 
     customSession(async ({ user, session }) => {
       const [organization, userWithFields] = await Promise.all([

@@ -1,4 +1,10 @@
 import { resolveNotificationChannels } from "@/lib/notification-channels";
+import {
+  formatMessagingDate,
+  getMessagingTranslator,
+  resolveSenderMessagingLocale,
+  type MessagingLocale,
+} from "@/lib/messaging-locale";
 import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
@@ -19,12 +25,6 @@ type AbsenceEmailKind =
   | "rejected"
   | "return";
 
-function formatDateLabel(date: Date) {
-  return new Intl.DateTimeFormat("fr-FR", {
-    dateStyle: "long",
-  }).format(date);
-}
-
 async function sendAbsenceMail(input: {
   to?: string | null;
   phone?: string | null;
@@ -36,6 +36,8 @@ async function sendAbsenceMail(input: {
   note?: string;
   ctaLabel?: string;
   organizationId?: string | null;
+  locale: MessagingLocale;
+  schoolLabel: string;
 }): Promise<void> {
   const email = input.to?.trim();
   if (!email && !input.phone) return;
@@ -46,6 +48,7 @@ async function sendAbsenceMail(input: {
   );
   if (!allow.email && !allow.whatsapp) return;
 
+  const t = await getMessagingTranslator(input.locale);
   const text = [
     `${input.recipientName},`,
     "",
@@ -103,17 +106,18 @@ async function sendAbsenceMail(input: {
     await sendTransactionalWhatsApp({
       to: input.phone,
       organizationId: input.organizationId,
+      locale: input.locale,
       queueKind: "absence",
       parts: [
-        input.rows.find((row) => row.label === "Établissement")?.value,
-        `Bonjour ${input.recipientName},`,
+        input.rows.find((row) => row.label === input.schoolLabel)?.value,
+        t("common.hello", { name: input.recipientName }),
         input.intro,
         ...input.rows
-          .filter((row) => row.label !== "Établissement")
+          .filter((row) => row.label !== input.schoolLabel)
           .map((row) => `${row.label} : ${row.value}`),
         input.note,
-        `Espace : ${getSignInUrl()}`,
-        `— ${APP_NAME}`,
+        t("common.spaceUrl", { url: getSignInUrl() }),
+        t("common.signatureApp", { app: APP_NAME }),
       ],
     });
   }
@@ -134,83 +138,56 @@ export async function sendAbsenceLifecycleEmail(input: {
   justification?: string | null;
   reviewComment?: string | null;
   organizationId?: string | null;
+  branchId?: string | null;
+  locale?: MessagingLocale | null;
   audience?: AbsenceEmailAudience;
 }): Promise<void> {
-  const dateLabel = formatDateLabel(input.occurredOn);
+  const locale = await resolveSenderMessagingLocale({
+    locale: input.locale,
+    branchId: input.branchId,
+  });
+  const t = await getMessagingTranslator(locale);
+  const dateLabel = formatMessagingDate(input.occurredOn, locale);
+  const schoolLabel = t("common.school");
   const rows = [
-    { label: "Établissement", value: input.branchName },
-    { label: "Personne", value: input.personName },
-    { label: "Qualité", value: input.subjectLabel },
-    { label: "Date", value: dateLabel },
-    { label: "Séance", value: input.contextLabel },
+    { label: schoolLabel, value: input.branchName },
+    { label: t("common.person"), value: input.personName },
+    { label: t("common.quality"), value: input.subjectLabel },
+    { label: t("common.date"), value: dateLabel },
+    { label: t("common.session"), value: input.contextLabel },
   ];
   if (input.justification?.trim()) {
-    rows.push({ label: "Justification", value: input.justification.trim() });
+    rows.push({
+      label: t("common.justification"),
+      value: input.justification.trim(),
+    });
   }
   if (input.reviewComment?.trim()) {
-    rows.push({ label: "Décision", value: input.reviewComment.trim() });
+    rows.push({
+      label: t("common.decision"),
+      value: input.reviewComment.trim(),
+    });
   }
 
   const forParent = input.audience === "parent";
-  const copy: Record<
-    AbsenceEmailKind,
-    { subject: string; title: string; intro: string; note: string; cta: string }
-  > = {
-    absence: {
-      subject: `${APP_NAME} — Absence signalée`,
-      title: "Absence signalée",
-      intro: forParent
-        ? `Bonjour ${input.recipientName}, une absence a été enregistrée automatiquement (aucun scan ni pointage manuel) pour l'élève « ${input.personName} ». Merci de vous connecter pour justifier.`
-        : `Bonjour ${input.recipientName}, une absence a été enregistrée automatiquement (aucun scan ni pointage manuel) pour « ${input.personName} ». Merci de vous connecter pour justifier.`,
-      note: "Cliquez sur la cloche dans la barre de navigation pour voir le détail et envoyer votre justification.",
-      cta: "Ouvrir mon espace",
-    },
-    justification_submitted: {
-      subject: `${APP_NAME} — Justification d'absence reçue`,
-      title: "Justification reçue",
-      intro: forParent
-        ? `Bonjour ${input.recipientName}, la justification d'absence de l'élève « ${input.personName} » a bien été transmise à l'établissement « ${input.branchName} ». Vous serez notifié de la décision.`
-        : `Bonjour ${input.recipientName}, votre justification d'absence a bien été transmise à l'établissement « ${input.branchName} ». Vous serez notifié de la décision.`,
-      note: "La réponse apparaîtra aussi à la cloche de votre barre de navigation.",
-      cta: "Voir mon espace",
-    },
-    justification_received: {
-      subject: `${APP_NAME} — Justification d'absence à examiner`,
-      title: "Justification à examiner",
-      intro: `Bonjour ${input.recipientName}, ${input.personName} a justifié une absence. Merci d'examiner le dossier depuis la cloche de notifications.`,
-      note: "Acceptez ou refusez la justification depuis la cloche. Un retour est signalé automatiquement si elle est acceptée.",
-      cta: "Examiner",
-    },
-    accepted: {
-      subject: `${APP_NAME} — Justification d'absence acceptée`,
-      title: "Justification acceptée",
-      intro: forParent
-        ? `Bonjour ${input.recipientName}, la justification d'absence de l'élève « ${input.personName} » a été acceptée par l'établissement « ${input.branchName} ».`
-        : `Bonjour ${input.recipientName}, votre justification d'absence a été acceptée par l'établissement « ${input.branchName} ».`,
-      note: "Un retour a également été signalé dans votre compte.",
-      cta: "Voir le détail",
-    },
-    rejected: {
-      subject: `${APP_NAME} — Justification d'absence refusée`,
-      title: "Justification refusée",
-      intro: forParent
-        ? `Bonjour ${input.recipientName}, la justification d'absence de l'élève « ${input.personName} » n'a pas été retenue par l'établissement « ${input.branchName} ».`
-        : `Bonjour ${input.recipientName}, votre justification d'absence n'a pas été retenue par l'établissement « ${input.branchName} ».`,
-      note: "Consultez la cloche pour le motif de la décision.",
-      cta: "Voir le détail",
-    },
-    return: {
-      subject: `${APP_NAME} — Retour après absence`,
-      title: "Retour signalé",
-      intro: forParent
-        ? `Bonjour ${input.recipientName}, un retour a été enregistré pour l'élève « ${input.personName} » suite à l'acceptation de la justification.`
-        : `Bonjour ${input.recipientName}, un retour a été enregistré dans votre compte suite à l'acceptation de votre justification.`,
-      note: "L'absence est désormais marquée comme excusée.",
-      cta: "Voir mon espace",
-    },
+  const base = `attendance.${input.kind}` as const;
+  const introKey =
+    forParent && input.kind !== "justification_received"
+      ? (`${base}.introParent` as const)
+      : (`${base}.intro` as const);
+
+  const selected = {
+    subject: t(`${base}.subject`, { app: APP_NAME }),
+    title: t(`${base}.title`),
+    intro: t(introKey, {
+      recipient: input.recipientName,
+      person: input.personName,
+      school: input.branchName,
+    }),
+    note: t(`${base}.note`),
+    cta: t(`${base}.cta`),
   };
 
-  const selected = copy[input.kind];
   await sendAbsenceMail({
     to: input.to,
     phone: input.phone,
@@ -222,5 +199,7 @@ export async function sendAbsenceLifecycleEmail(input: {
     note: selected.note,
     ctaLabel: selected.cta,
     organizationId: input.organizationId,
+    locale,
+    schoolLabel,
   });
 }

@@ -1,0 +1,157 @@
+{
+  "common": {
+    "hello": "Olá {name},",
+    "helloPlain": "Olá {name}",
+    "school": "Estabelecimento",
+    "person": "Pessoa",
+    "quality": "Qualidade",
+    "date": "Data",
+    "session": "Sessão",
+    "justification": "Justificação",
+    "decision": "Decisão",
+    "reference": "Referência",
+    "amount": "Montante",
+    "students": "Aluno(s)",
+    "fees": "Propina",
+    "student": "Aluno",
+    "class": "Turma",
+    "period": "Período",
+    "average": "Média",
+    "otherSubjects": "Outras disciplinas",
+    "otherSubjectsValue": "{count} não listada(s)",
+    "email": "Email",
+    "role": "Função",
+    "organization": "Organização",
+    "branch": "Filial",
+    "branchPhone": "Telefone da filial",
+    "temporaryPassword": "Palavra-passe temporária",
+    "newPassword": "Nova palavra-passe",
+    "login": "Início de sessão",
+    "openAccount": "Abrir a minha conta",
+    "openSpace": "Abrir o meu espaço",
+    "seeSpace": "Ver o meu espaço",
+    "seeDetail": "Ver detalhes",
+    "signInKlambo": "Entrar no Klambocore",
+    "spaceUrl": "Espaço: {url}",
+    "detailUrl": "Detalhe: {url}",
+    "downloadUrl": "Descarregar: {url}",
+    "connectHint": "Inicie sessão na sua conta para consultar os detalhes.",
+    "connectHere": "Inicie sessão aqui: {url}",
+    "signatureApp": "— {app}",
+    "signatureTeam": "— A equipa {app}",
+    "defaultRole": "Utilizador",
+    "defaultParent": "Encarregado"
+  },
+  "attendance": {
+    "absence": {
+      "subject": "{app} — Falta registada",
+      "title": "Falta registada",
+      "intro": "Olá {recipient}, foi registada automaticamente uma falta (sem scan nem marcação manual) para « {person} ». Inicie sessão para justificar.",
+      "introParent": "Olá {recipient}, foi registada automaticamente uma falta (sem scan nem marcação manual) do aluno « {person} ». Inicie sessão para justificar.",
+      "note": "Clique no sino na barra de navegação para ver os detalhes e enviar a justificação.",
+      "cta": "Abrir o meu espaço"
+    },
+    "justification_submitted": {
+      "subject": "{app} — Justificação de falta recebida",
+      "title": "Justificação recebida",
+      "intro": "Olá {recipient}, a sua justificação de falta foi enviada ao estabelecimento « {school} ». Será notificado da decisão.",
+      "introParent": "Olá {recipient}, a justificação de falta do aluno « {person} » foi enviada ao estabelecimento « {school} ». Será notificado da decisão.",
+      "note": "A resposta aparecerá também no sino da barra de navegação.",
+      "cta": "Ver o meu espaço"
+    },
+    "justification_received": {
+      "subject": "{app} — Justificação de falta a analisar",
+      "title": "Justificação a analisar",
+      "intro": "Olá {recipient}, {person} justificou uma falta. Analise o processo a partir do sino de notificações.",
+      "note": "Aceite ou recuse a justificação no sino. Um regresso é registado automaticamente se for aceite.",
+      "cta": "Analisar"
+    },
+    "accepted": {
+      "subject": "{app} — Justificação de falta aceite",
+      "title": "Justificação aceite",
+      "intro": "Olá {recipient}, a sua justificação de falta foi aceite pelo estabelecimento « {school} ».",
+      "introParent": "Olá {recipient}, a justificação de falta do aluno « {person} » foi aceite pelo estabelecimento « {school} ».",
+      "note": "Foi também registado um regresso na sua conta.",
+      "cta": "Ver detalhes"
+    },
+    "rejected": {
+      "subject": "{app} — Justificação de falta recusada",
+      "title": "Justificação recusada",
+      "intro": "Olá {recipient}, a sua justificação de falta não foi aceite pelo estabelecimento « {school} ».",
+      "introParent": "Olá {recipient}, a justificação de falta do aluno « {person} » não foi aceite pelo estabelecimento « {school} ».",
+      "note": "Consulte o sino para o motivo da decisão.",
+      "cta": "Ver detalhes"
+    },
+    "return": {
+      "subject": "{app} — Regresso após falta",
+      "title": "Regresso registado",
+      "intro": "Olá {recipient}, foi registado um regresso na sua conta após a aceitação da justificação.",
+      "introParent": "Olá {recipient}, foi registado um regresso do aluno « {person} » após a aceitação da justificação.",
+      "note": "A falta está agora marcada como justificada.",
+      "cta": "Ver o meu espaço"
+    }
+  },
+  "payment": {
+    "created": {
+      "title": "Pagamento registado",
+      "intro": "Foi registado um pagamento para a sua família.",
+      "subject": "Pagamento registado"
+    },
+    "updated": {
+      "title": "Pagamento alterado",
+      "intro": "Um pagamento da sua família foi alterado pelo estabelecimento.",
+      "subject": "Pagamento alterado"
+    },
+    "deleted": {
+      "title": "Pagamento anulado",
+      "intro": "Um pagamento da sua família foi eliminado (erro de introdução).",
+      "subject": "Pagamento anulado"
+    },
+    "subjectLine": "{app} — {subject}",
+    "introHello": "Olá {name}, {intro}"
+  },
+  "results": {
+    "subject": "{app} — Resultados de {student}",
+    "title": "Resultados escolares",
+    "intro": "Olá {parent}, seguem os resultados de {student}{classSuffix} para {period} — {year}.",
+    "classSuffix": " ({className})",
+    "extraSubjects": "+ {count} outra(s) disciplina(s)",
+    "averageLine": "Média: {average}.",
+    "waIntro": "resultados de {student}{classSuffix} — {period}."
+  },
+  "accountCreate": {
+    "subject": "{app} — A sua conta foi criada",
+    "title": "A sua conta foi criada",
+    "intro": "Olá {name}, um administrador criou a sua conta {app} com {context}. As credenciais temporárias estão prontas: inicie sessão em klambocore.com e altere a palavra-passe.",
+    "bodyLead": "Um administrador criou a sua conta {app} com {context}.",
+    "contextRole": "função « {role} »",
+    "contextOrg": "organização « {org} »",
+    "contextBranch": "filial « {branch} »",
+    "securityNote": "Por segurança, altere esta palavra-passe após o primeiro início de sessão.",
+    "waCreated": "a sua conta {app} foi criada (função {role}).",
+    "waEmail": "Email: {email}.",
+    "waPassword": "Palavra-passe temporária: {password}.",
+    "waLogin": "Inicie sessão: {url}",
+    "waSecurity": "Altere esta palavra-passe após iniciar sessão. Não a partilhe."
+  },
+  "passwordReset": {
+    "subject": "{app} — Reposição da palavra-passe",
+    "title": "Palavra-passe reposta",
+    "intro": "Olá {name}, a sua palavra-passe {app} foi reposta por um administrador. Utilize a palavra-passe temporária abaixo para iniciar sessão em klambocore.com.",
+    "bodyLead": "A sua palavra-passe foi reposta por um administrador.",
+    "securityNote": "Recomendamos que altere esta palavra-passe após iniciar sessão.",
+    "securityNoteHtml": "Por segurança, altere esta palavra-passe após iniciar sessão.",
+    "waReset": "a sua palavra-passe {app} foi reposta.",
+    "waPassword": "Nova palavra-passe temporária: {password}.",
+    "waLogin": "Inicie sessão: {url}",
+    "waSecurity": "Altere esta palavra-passe após iniciar sessão."
+  },
+  "teacherSchedule": {
+    "intro": "segue o PDF do seu horário {cycle}."
+  },
+  "inscription": {
+    "subject": "{app} — Pedido de inscrição recebido",
+    "title": "Inscrição recebida",
+    "intro": "Olá {name}, recebemos o seu pedido de inscrição."
+  }
+}

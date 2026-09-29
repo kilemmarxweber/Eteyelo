@@ -400,6 +400,7 @@ export async function createOrganizationMemberAction(
     branchAddress: branchAddress || undefined,
     phone: telephone,
     organizationId,
+    branchId: primaryBranchId || undefined,
   });
 
   let userId: string | null = null;
@@ -1375,7 +1376,7 @@ export async function resetUserPasswordAction(
               take: 1,
               orderBy: { createdAt: "desc" },
               select: {
-                branch: { select: { name: true } },
+                branch: { select: { id: true, name: true } },
               },
             },
           },
@@ -1396,6 +1397,8 @@ export async function resetUserPasswordAction(
 
     const branchName =
       user.members[0]?.branchMember[0]?.branch?.name ?? null;
+    const memberBranchId =
+      user.members[0]?.branchMember[0]?.branch?.id ?? null;
 
     const plainPassword = generateSecurePassword(16);
     stashAdminCreatedUserPlainPassword(email, plainPassword);
@@ -1424,6 +1427,7 @@ export async function resetUserPasswordAction(
       temporaryPassword: plainPassword,
       branchName,
       organizationId,
+      branchId: memberBranchId,
     });
 
     consumeAdminCreatedUserPlainPassword(email);

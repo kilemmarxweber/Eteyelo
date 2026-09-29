@@ -1,4 +1,9 @@
 import { resolveNotificationChannels } from "@/lib/notification-channels";
+import {
+  getMessagingTranslator,
+  resolveSenderMessagingLocale,
+  type MessagingLocale,
+} from "@/lib/messaging-locale";
 import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
@@ -30,6 +35,8 @@ export async function sendStudentResultsNotification(input: {
   lines: StudentResultLine[];
   percentage: number;
   organizationId?: string | null;
+  branchId?: string | null;
+  locale?: MessagingLocale | null;
 }): Promise<{ emailSent: boolean; whatsappSent: boolean; whatsappError?: string }> {
   const email = input.to?.trim() ?? "";
   const phone = input.phone?.trim() ?? "";
@@ -45,6 +52,12 @@ export async function sendStudentResultsNotification(input: {
     return { emailSent: false, whatsappSent: false };
   }
 
+  const locale = await resolveSenderMessagingLocale({
+    locale: input.locale,
+    branchId: input.branchId,
+  });
+  const t = await getMessagingTranslator(locale);
+
   const averageLabel = `${input.percentage.toFixed(1)}%`;
   const shown = input.lines.slice(0, MAX_SUBJECT_LINES);
   const extra = input.lines.length - shown.length;
@@ -54,25 +67,38 @@ export async function sendStudentResultsNotification(input: {
   }));
   if (extra > 0) {
     subjectRows.push({
-      label: "Autres matières",
-      value: `${extra} non listée${extra > 1 ? "s" : ""}`,
+      label: t("common.otherSubjects"),
+      value: t("common.otherSubjectsValue", { count: extra }),
     });
   }
 
-  const subject = `${APP_NAME} — Résultats de ${input.studentName}`;
-  const intro = `Bonjour ${input.parentName}, voici les résultats de ${input.studentName}${
-    input.className ? ` (${input.className})` : ""
-  } pour ${input.periodLabel} — ${input.yearLabel}.`;
+  const classSuffix = input.className
+    ? t("results.classSuffix", { className: input.className })
+    : "";
+  const subject = t("results.subject", {
+    app: APP_NAME,
+    student: input.studentName,
+  });
+  const intro = t("results.intro", {
+    parent: input.parentName,
+    student: input.studentName,
+    classSuffix,
+    period: input.periodLabel,
+    year: input.yearLabel,
+  });
 
   const rows = [
-    { label: "Établissement", value: input.schoolName },
-    { label: "Élève", value: input.studentName },
+    { label: t("common.school"), value: input.schoolName },
+    { label: t("common.student"), value: input.studentName },
     ...(input.className
-      ? [{ label: "Classe", value: input.className }]
+      ? [{ label: t("common.class"), value: input.className }]
       : []),
-    { label: "Période", value: `${input.periodLabel} — ${input.yearLabel}` },
+    {
+      label: t("common.period"),
+      value: `${input.periodLabel} — ${input.yearLabel}`,
+    },
     ...subjectRows,
-    { label: "Moyenne", value: averageLabel },
+    { label: t("common.average"), value: averageLabel },
   ];
 
   const text = [
@@ -80,14 +106,14 @@ export async function sendStudentResultsNotification(input: {
     "",
     ...rows.map((row) => `${row.label} : ${row.value}`),
     "",
-    `Connectez-vous : ${getSignInUrl()}`,
+    t("common.connectHere", { url: getSignInUrl() }),
     "",
-    `— ${input.schoolName || APP_NAME}`,
+    t("common.signatureApp", { app: input.schoolName || APP_NAME }),
   ].join("\n");
 
   const html = emailLayoutHtml({
     appName: APP_NAME,
-    title: "Résultats scolaires",
+    title: t("results.title"),
     intro: escapeHtml(intro),
     bodyHtml: emailInfoCard(
       rows.map((row) => ({
@@ -95,7 +121,7 @@ export async function sendStudentResultsNotification(input: {
         valueHtml: escapeHtml(row.value),
       })),
     ),
-    cta: { href: getSignInUrl(), label: "Ouvrir mon compte" },
+    cta: { href: getSignInUrl(), label: t("common.openAccount") },
   });
 
   if (allow.email && email) {
@@ -115,18 +141,27 @@ export async function sendStudentResultsNotification(input: {
     const wa = await sendTransactionalWhatsApp({
       to: phone,
       organizationId: input.organizationId,
+      locale,
       queueKind: "results",
       parts: [
         input.schoolName,
-        `Bonjour ${input.parentName},`,
-        `résultats de ${input.studentName}${
-          input.className ? ` (${input.className})` : ""
-        } — ${input.periodLabel}.`,
-        ...shown.map((line) => `${line.subject} : ${line.score}/${line.maxScore}`),
-        extra > 0 ? `+ ${extra} autre${extra > 1 ? "s" : ""} matière${extra > 1 ? "s" : ""}` : null,
-        `Moyenne : ${averageLabel}.`,
-        `Détail : ${getSignInUrl()}`,
-        `— ${input.schoolName || APP_NAME}`,
+        t("common.hello", { name: input.parentName }),
+        t("results.waIntro", {
+          student: input.studentName,
+          classSuffix,
+          period: input.periodLabel,
+        }),
+        ...shown.map(
+          (line) => `${line.subject} : ${line.score}/${line.maxScore}`,
+        ),
+        extra > 0
+          ? t("results.extraSubjects", { count: extra })
+          : null,
+        t("results.averageLine", { average: averageLabel }),
+        t("common.detailUrl", { url: getSignInUrl() }),
+        t("common.signatureApp", {
+          app: input.schoolName || APP_NAME,
+        }),
       ],
     });
     whatsappSent = wa.sent;
