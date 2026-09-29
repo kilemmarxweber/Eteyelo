@@ -104,10 +104,18 @@ export async function requestMobileOtp(phoneE164: string) {
   });
 
   const delivery = await sendOtpMessage(phoneE164, code);
+  const exposeDevCode = process.env.NODE_ENV !== "production";
+  if (exposeDevCode) {
+    console.info(
+      `[mobile-otp] DEV code for ${maskPhone(phoneE164)}: ${code} (channel=${delivery.channel})`,
+    );
+  }
   return {
     expiresAt: expiresAt.toISOString(),
     channel: delivery.channel,
     maskedPhone: maskPhone(phoneE164),
+    // Uniquement hors prod — pour Flutter / tests locaux sans SMS
+    ...(exposeDevCode ? { devCode: code } : {}),
   };
 }
 

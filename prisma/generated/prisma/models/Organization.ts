@@ -356,6 +356,8 @@ export type OrganizationWhereInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationListRelationFilter
   conversations?: Prisma.ConversationListRelationFilter
   messagingAuditLogs?: Prisma.MessagingAuditLogListRelationFilter
+  userPresences?: Prisma.UserPresenceListRelationFilter
+  callSessions?: Prisma.CallSessionListRelationFilter
   exchangeRates?: Prisma.ExchangeRateListRelationFilter
   temporaryGrants?: Prisma.TemporaryGrantListRelationFilter
 }
@@ -391,6 +393,8 @@ export type OrganizationOrderByWithRelationInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationOrderByRelationAggregateInput
   conversations?: Prisma.ConversationOrderByRelationAggregateInput
   messagingAuditLogs?: Prisma.MessagingAuditLogOrderByRelationAggregateInput
+  userPresences?: Prisma.UserPresenceOrderByRelationAggregateInput
+  callSessions?: Prisma.CallSessionOrderByRelationAggregateInput
   exchangeRates?: Prisma.ExchangeRateOrderByRelationAggregateInput
   temporaryGrants?: Prisma.TemporaryGrantOrderByRelationAggregateInput
 }
@@ -429,6 +433,8 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   platformSupportEscalations?: Prisma.PlatformSupportEscalationListRelationFilter
   conversations?: Prisma.ConversationListRelationFilter
   messagingAuditLogs?: Prisma.MessagingAuditLogListRelationFilter
+  userPresences?: Prisma.UserPresenceListRelationFilter
+  callSessions?: Prisma.CallSessionListRelationFilter
   exchangeRates?: Prisma.ExchangeRateListRelationFilter
   temporaryGrants?: Prisma.TemporaryGrantListRelationFilter
 }, "id" | "name" | "slug">
@@ -522,6 +528,8 @@ export type OrganizationCreateInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutOrganizationInput
 }
@@ -557,6 +565,8 @@ export type OrganizationUncheckedCreateInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionUncheckedCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateUncheckedCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -592,6 +602,8 @@ export type OrganizationUpdateInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutOrganizationNestedInput
 }
@@ -627,6 +639,8 @@ export type OrganizationUncheckedUpdateInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUncheckedUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUncheckedUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -927,6 +941,34 @@ export type OrganizationUpdateOneRequiredWithoutMessagingAuditLogsNestedInput = 
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutMessagingAuditLogsInput, Prisma.OrganizationUpdateWithoutMessagingAuditLogsInput>, Prisma.OrganizationUncheckedUpdateWithoutMessagingAuditLogsInput>
 }
 
+export type OrganizationCreateNestedOneWithoutUserPresencesInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutUserPresencesInput, Prisma.OrganizationUncheckedCreateWithoutUserPresencesInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutUserPresencesInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutUserPresencesNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutUserPresencesInput, Prisma.OrganizationUncheckedCreateWithoutUserPresencesInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutUserPresencesInput
+  upsert?: Prisma.OrganizationUpsertWithoutUserPresencesInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutUserPresencesInput, Prisma.OrganizationUpdateWithoutUserPresencesInput>, Prisma.OrganizationUncheckedUpdateWithoutUserPresencesInput>
+}
+
+export type OrganizationCreateNestedOneWithoutCallSessionsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCallSessionsInput, Prisma.OrganizationUncheckedCreateWithoutCallSessionsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCallSessionsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutCallSessionsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCallSessionsInput, Prisma.OrganizationUncheckedCreateWithoutCallSessionsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCallSessionsInput
+  upsert?: Prisma.OrganizationUpsertWithoutCallSessionsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutCallSessionsInput, Prisma.OrganizationUpdateWithoutCallSessionsInput>, Prisma.OrganizationUncheckedUpdateWithoutCallSessionsInput>
+}
+
 export type OrganizationCreateNestedOneWithoutTemporaryGrantsInput = {
   create?: Prisma.XOR<Prisma.OrganizationCreateWithoutTemporaryGrantsInput, Prisma.OrganizationUncheckedCreateWithoutTemporaryGrantsInput>
   connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutTemporaryGrantsInput
@@ -974,6 +1016,8 @@ export type OrganizationCreateWithoutExchangeRatesInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutOrganizationInput
 }
 
@@ -1008,6 +1052,8 @@ export type OrganizationUncheckedCreateWithoutExchangeRatesInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionUncheckedCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
@@ -1058,6 +1104,8 @@ export type OrganizationUpdateWithoutExchangeRatesInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -1092,6 +1140,8 @@ export type OrganizationUncheckedUpdateWithoutExchangeRatesInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUncheckedUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -1125,6 +1175,8 @@ export type OrganizationCreateWithoutOrganizationrolesInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutOrganizationInput
 }
@@ -1159,6 +1211,8 @@ export type OrganizationUncheckedCreateWithoutOrganizationrolesInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionUncheckedCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateUncheckedCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1209,6 +1263,8 @@ export type OrganizationUpdateWithoutOrganizationrolesInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutOrganizationNestedInput
 }
@@ -1243,6 +1299,8 @@ export type OrganizationUncheckedUpdateWithoutOrganizationrolesInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUncheckedUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUncheckedUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1277,6 +1335,8 @@ export type OrganizationCreateWithoutMembersInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutOrganizationInput
 }
@@ -1311,6 +1371,8 @@ export type OrganizationUncheckedCreateWithoutMembersInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionUncheckedCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateUncheckedCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1361,6 +1423,8 @@ export type OrganizationUpdateWithoutMembersInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutOrganizationNestedInput
 }
@@ -1395,6 +1459,8 @@ export type OrganizationUncheckedUpdateWithoutMembersInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUncheckedUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUncheckedUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1429,6 +1495,8 @@ export type OrganizationCreateWithoutInvitationsInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutOrganizationInput
 }
@@ -1463,6 +1531,8 @@ export type OrganizationUncheckedCreateWithoutInvitationsInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionUncheckedCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateUncheckedCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1513,6 +1583,8 @@ export type OrganizationUpdateWithoutInvitationsInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutOrganizationNestedInput
 }
@@ -1547,6 +1619,8 @@ export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUncheckedUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUncheckedUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1581,6 +1655,8 @@ export type OrganizationCreateWithoutBranchesInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutOrganizationInput
 }
@@ -1615,6 +1691,8 @@ export type OrganizationUncheckedCreateWithoutBranchesInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionUncheckedCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateUncheckedCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1665,6 +1743,8 @@ export type OrganizationUpdateWithoutBranchesInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutOrganizationNestedInput
 }
@@ -1699,6 +1779,8 @@ export type OrganizationUncheckedUpdateWithoutBranchesInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUncheckedUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUncheckedUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1733,6 +1815,8 @@ export type OrganizationCreateWithoutOrganizationSupportAgentsInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutOrganizationInput
 }
@@ -1767,6 +1851,8 @@ export type OrganizationUncheckedCreateWithoutOrganizationSupportAgentsInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionUncheckedCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateUncheckedCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1817,6 +1903,8 @@ export type OrganizationUpdateWithoutOrganizationSupportAgentsInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutOrganizationNestedInput
 }
@@ -1851,6 +1939,8 @@ export type OrganizationUncheckedUpdateWithoutOrganizationSupportAgentsInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUncheckedUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUncheckedUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1885,6 +1975,8 @@ export type OrganizationCreateWithoutPlatformSupportEscalationsInput = {
   organizationSupportAgents?: Prisma.OrganizationSupportAgentCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutOrganizationInput
 }
@@ -1919,6 +2011,8 @@ export type OrganizationUncheckedCreateWithoutPlatformSupportEscalationsInput = 
   organizationSupportAgents?: Prisma.OrganizationSupportAgentUncheckedCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionUncheckedCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateUncheckedCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1969,6 +2063,8 @@ export type OrganizationUpdateWithoutPlatformSupportEscalationsInput = {
   organizationSupportAgents?: Prisma.OrganizationSupportAgentUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutOrganizationNestedInput
 }
@@ -2003,6 +2099,8 @@ export type OrganizationUncheckedUpdateWithoutPlatformSupportEscalationsInput = 
   organizationSupportAgents?: Prisma.OrganizationSupportAgentUncheckedUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUncheckedUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUncheckedUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -2037,6 +2135,8 @@ export type OrganizationCreateWithoutConversationsInput = {
   organizationSupportAgents?: Prisma.OrganizationSupportAgentCreateNestedManyWithoutOrganizationInput
   platformSupportEscalations?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutOrganizationInput
 }
@@ -2071,6 +2171,8 @@ export type OrganizationUncheckedCreateWithoutConversationsInput = {
   organizationSupportAgents?: Prisma.OrganizationSupportAgentUncheckedCreateNestedManyWithoutOrganizationInput
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionUncheckedCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateUncheckedCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -2121,6 +2223,8 @@ export type OrganizationUpdateWithoutConversationsInput = {
   organizationSupportAgents?: Prisma.OrganizationSupportAgentUpdateManyWithoutOrganizationNestedInput
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutOrganizationNestedInput
 }
@@ -2155,6 +2259,8 @@ export type OrganizationUncheckedUpdateWithoutConversationsInput = {
   organizationSupportAgents?: Prisma.OrganizationSupportAgentUncheckedUpdateManyWithoutOrganizationNestedInput
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUncheckedUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUncheckedUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -2189,6 +2295,8 @@ export type OrganizationCreateWithoutMessagingAuditLogsInput = {
   organizationSupportAgents?: Prisma.OrganizationSupportAgentCreateNestedManyWithoutOrganizationInput
   platformSupportEscalations?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutOrganizationInput
 }
@@ -2223,6 +2331,8 @@ export type OrganizationUncheckedCreateWithoutMessagingAuditLogsInput = {
   organizationSupportAgents?: Prisma.OrganizationSupportAgentUncheckedCreateNestedManyWithoutOrganizationInput
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionUncheckedCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateUncheckedCreateNestedManyWithoutOrganizationInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -2273,6 +2383,8 @@ export type OrganizationUpdateWithoutMessagingAuditLogsInput = {
   organizationSupportAgents?: Prisma.OrganizationSupportAgentUpdateManyWithoutOrganizationNestedInput
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutOrganizationNestedInput
 }
@@ -2307,6 +2419,328 @@ export type OrganizationUncheckedUpdateWithoutMessagingAuditLogsInput = {
   organizationSupportAgents?: Prisma.OrganizationSupportAgentUncheckedUpdateManyWithoutOrganizationNestedInput
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  exchangeRates?: Prisma.ExchangeRateUncheckedUpdateManyWithoutOrganizationNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutUserPresencesInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
+  showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
+  notifyParentOnPayment?: boolean
+  pdfFontSize?: number
+  emailNotificationsEnabled?: boolean
+  notificationChannels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  whatsappEnabled?: boolean
+  whatsappProvider?: string | null
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
+  whatsappBaseUrl?: string | null
+  messagingEnabled?: boolean
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  organizationSupportAgents?: Prisma.OrganizationSupportAgentCreateNestedManyWithoutOrganizationInput
+  platformSupportEscalations?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutOrganizationInput
+  conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionCreateNestedManyWithoutOrganizationInput
+  exchangeRates?: Prisma.ExchangeRateCreateNestedManyWithoutOrganizationInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutUserPresencesInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
+  showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
+  notifyParentOnPayment?: boolean
+  pdfFontSize?: number
+  emailNotificationsEnabled?: boolean
+  notificationChannels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  whatsappEnabled?: boolean
+  whatsappProvider?: string | null
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
+  whatsappBaseUrl?: string | null
+  messagingEnabled?: boolean
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationSupportAgents?: Prisma.OrganizationSupportAgentUncheckedCreateNestedManyWithoutOrganizationInput
+  platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutOrganizationInput
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  exchangeRates?: Prisma.ExchangeRateUncheckedCreateNestedManyWithoutOrganizationInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutUserPresencesInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutUserPresencesInput, Prisma.OrganizationUncheckedCreateWithoutUserPresencesInput>
+}
+
+export type OrganizationUpsertWithoutUserPresencesInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutUserPresencesInput, Prisma.OrganizationUncheckedUpdateWithoutUserPresencesInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutUserPresencesInput, Prisma.OrganizationUncheckedCreateWithoutUserPresencesInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutUserPresencesInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutUserPresencesInput, Prisma.OrganizationUncheckedUpdateWithoutUserPresencesInput>
+}
+
+export type OrganizationUpdateWithoutUserPresencesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pdfFontSize?: Prisma.IntFieldUpdateOperationsInput | number
+  emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notificationChannels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBaseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  organizationSupportAgents?: Prisma.OrganizationSupportAgentUpdateManyWithoutOrganizationNestedInput
+  platformSupportEscalations?: Prisma.PlatformSupportEscalationUpdateManyWithoutOrganizationNestedInput
+  conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUpdateManyWithoutOrganizationNestedInput
+  exchangeRates?: Prisma.ExchangeRateUpdateManyWithoutOrganizationNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutUserPresencesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pdfFontSize?: Prisma.IntFieldUpdateOperationsInput | number
+  emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notificationChannels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBaseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationSupportAgents?: Prisma.OrganizationSupportAgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationNestedInput
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  exchangeRates?: Prisma.ExchangeRateUncheckedUpdateManyWithoutOrganizationNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutCallSessionsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
+  showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
+  notifyParentOnPayment?: boolean
+  pdfFontSize?: number
+  emailNotificationsEnabled?: boolean
+  notificationChannels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  whatsappEnabled?: boolean
+  whatsappProvider?: string | null
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
+  whatsappBaseUrl?: string | null
+  messagingEnabled?: boolean
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  organizationSupportAgents?: Prisma.OrganizationSupportAgentCreateNestedManyWithoutOrganizationInput
+  platformSupportEscalations?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutOrganizationInput
+  conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceCreateNestedManyWithoutOrganizationInput
+  exchangeRates?: Prisma.ExchangeRateCreateNestedManyWithoutOrganizationInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutCallSessionsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
+  showReceiptConversion?: boolean
+  receiptPrintFormat?: $Enums.ReceiptPrintFormat
+  notifyParentOnPayment?: boolean
+  pdfFontSize?: number
+  emailNotificationsEnabled?: boolean
+  notificationChannels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  whatsappEnabled?: boolean
+  whatsappProvider?: string | null
+  whatsappApiKey?: string | null
+  whatsappTemplate?: string | null
+  whatsappSiteUrl?: string | null
+  whatsappBaseUrl?: string | null
+  messagingEnabled?: boolean
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationSupportAgents?: Prisma.OrganizationSupportAgentUncheckedCreateNestedManyWithoutOrganizationInput
+  platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutOrganizationInput
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutOrganizationInput
+  exchangeRates?: Prisma.ExchangeRateUncheckedCreateNestedManyWithoutOrganizationInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutCallSessionsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCallSessionsInput, Prisma.OrganizationUncheckedCreateWithoutCallSessionsInput>
+}
+
+export type OrganizationUpsertWithoutCallSessionsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutCallSessionsInput, Prisma.OrganizationUncheckedUpdateWithoutCallSessionsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCallSessionsInput, Prisma.OrganizationUncheckedCreateWithoutCallSessionsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutCallSessionsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutCallSessionsInput, Prisma.OrganizationUncheckedUpdateWithoutCallSessionsInput>
+}
+
+export type OrganizationUpdateWithoutCallSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pdfFontSize?: Prisma.IntFieldUpdateOperationsInput | number
+  emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notificationChannels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBaseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  organizationSupportAgents?: Prisma.OrganizationSupportAgentUpdateManyWithoutOrganizationNestedInput
+  platformSupportEscalations?: Prisma.PlatformSupportEscalationUpdateManyWithoutOrganizationNestedInput
+  conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUpdateManyWithoutOrganizationNestedInput
+  exchangeRates?: Prisma.ExchangeRateUpdateManyWithoutOrganizationNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutCallSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  receiptPrintFormat?: Prisma.EnumReceiptPrintFormatFieldUpdateOperationsInput | $Enums.ReceiptPrintFormat
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pdfFontSize?: Prisma.IntFieldUpdateOperationsInput | number
+  emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notificationChannels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  whatsappEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsappProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappTemplate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappSiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBaseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationSupportAgents?: Prisma.OrganizationSupportAgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationNestedInput
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUncheckedUpdateManyWithoutOrganizationNestedInput
   temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -2342,6 +2776,8 @@ export type OrganizationCreateWithoutTemporaryGrantsInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateCreateNestedManyWithoutOrganizationInput
 }
 
@@ -2376,6 +2812,8 @@ export type OrganizationUncheckedCreateWithoutTemporaryGrantsInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutOrganizationInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutOrganizationInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutOrganizationInput
+  callSessions?: Prisma.CallSessionUncheckedCreateNestedManyWithoutOrganizationInput
   exchangeRates?: Prisma.ExchangeRateUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
@@ -2426,6 +2864,8 @@ export type OrganizationUpdateWithoutTemporaryGrantsInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -2460,6 +2900,8 @@ export type OrganizationUncheckedUpdateWithoutTemporaryGrantsInput = {
   platformSupportEscalations?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutOrganizationNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutOrganizationNestedInput
+  callSessions?: Prisma.CallSessionUncheckedUpdateManyWithoutOrganizationNestedInput
   exchangeRates?: Prisma.ExchangeRateUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -2477,6 +2919,8 @@ export type OrganizationCountOutputType = {
   platformSupportEscalations: number
   conversations: number
   messagingAuditLogs: number
+  userPresences: number
+  callSessions: number
   exchangeRates: number
   temporaryGrants: number
 }
@@ -2490,6 +2934,8 @@ export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   platformSupportEscalations?: boolean | OrganizationCountOutputTypeCountPlatformSupportEscalationsArgs
   conversations?: boolean | OrganizationCountOutputTypeCountConversationsArgs
   messagingAuditLogs?: boolean | OrganizationCountOutputTypeCountMessagingAuditLogsArgs
+  userPresences?: boolean | OrganizationCountOutputTypeCountUserPresencesArgs
+  callSessions?: boolean | OrganizationCountOutputTypeCountCallSessionsArgs
   exchangeRates?: boolean | OrganizationCountOutputTypeCountExchangeRatesArgs
   temporaryGrants?: boolean | OrganizationCountOutputTypeCountTemporaryGrantsArgs
 }
@@ -2563,6 +3009,20 @@ export type OrganizationCountOutputTypeCountMessagingAuditLogsArgs<ExtArgs exten
 /**
  * OrganizationCountOutputType without action
  */
+export type OrganizationCountOutputTypeCountUserPresencesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserPresenceWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountCallSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CallSessionWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
 export type OrganizationCountOutputTypeCountExchangeRatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ExchangeRateWhereInput
 }
@@ -2606,6 +3066,8 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   platformSupportEscalations?: boolean | Prisma.Organization$platformSupportEscalationsArgs<ExtArgs>
   conversations?: boolean | Prisma.Organization$conversationsArgs<ExtArgs>
   messagingAuditLogs?: boolean | Prisma.Organization$messagingAuditLogsArgs<ExtArgs>
+  userPresences?: boolean | Prisma.Organization$userPresencesArgs<ExtArgs>
+  callSessions?: boolean | Prisma.Organization$callSessionsArgs<ExtArgs>
   exchangeRates?: boolean | Prisma.Organization$exchangeRatesArgs<ExtArgs>
   temporaryGrants?: boolean | Prisma.Organization$temporaryGrantsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
@@ -2696,6 +3158,8 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   platformSupportEscalations?: boolean | Prisma.Organization$platformSupportEscalationsArgs<ExtArgs>
   conversations?: boolean | Prisma.Organization$conversationsArgs<ExtArgs>
   messagingAuditLogs?: boolean | Prisma.Organization$messagingAuditLogsArgs<ExtArgs>
+  userPresences?: boolean | Prisma.Organization$userPresencesArgs<ExtArgs>
+  callSessions?: boolean | Prisma.Organization$callSessionsArgs<ExtArgs>
   exchangeRates?: boolean | Prisma.Organization$exchangeRatesArgs<ExtArgs>
   temporaryGrants?: boolean | Prisma.Organization$temporaryGrantsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
@@ -2714,6 +3178,8 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     platformSupportEscalations: Prisma.$PlatformSupportEscalationPayload<ExtArgs>[]
     conversations: Prisma.$ConversationPayload<ExtArgs>[]
     messagingAuditLogs: Prisma.$MessagingAuditLogPayload<ExtArgs>[]
+    userPresences: Prisma.$UserPresencePayload<ExtArgs>[]
+    callSessions: Prisma.$CallSessionPayload<ExtArgs>[]
     exchangeRates: Prisma.$ExchangeRatePayload<ExtArgs>[]
     temporaryGrants: Prisma.$TemporaryGrantPayload<ExtArgs>[]
   }
@@ -3182,6 +3648,8 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   platformSupportEscalations<T extends Prisma.Organization$platformSupportEscalationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$platformSupportEscalationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PlatformSupportEscalationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   conversations<T extends Prisma.Organization$conversationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$conversationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   messagingAuditLogs<T extends Prisma.Organization$messagingAuditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$messagingAuditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagingAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  userPresences<T extends Prisma.Organization$userPresencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$userPresencesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPresencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  callSessions<T extends Prisma.Organization$callSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$callSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CallSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   exchangeRates<T extends Prisma.Organization$exchangeRatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$exchangeRatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExchangeRatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   temporaryGrants<T extends Prisma.Organization$temporaryGrantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$temporaryGrantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TemporaryGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -3817,6 +4285,54 @@ export type Organization$messagingAuditLogsArgs<ExtArgs extends runtime.Types.Ex
   take?: number
   skip?: number
   distinct?: Prisma.MessagingAuditLogScalarFieldEnum | Prisma.MessagingAuditLogScalarFieldEnum[]
+}
+
+/**
+ * Organization.userPresences
+ */
+export type Organization$userPresencesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserPresence
+   */
+  select?: Prisma.UserPresenceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserPresence
+   */
+  omit?: Prisma.UserPresenceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserPresenceInclude<ExtArgs> | null
+  where?: Prisma.UserPresenceWhereInput
+  orderBy?: Prisma.UserPresenceOrderByWithRelationInput | Prisma.UserPresenceOrderByWithRelationInput[]
+  cursor?: Prisma.UserPresenceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserPresenceScalarFieldEnum | Prisma.UserPresenceScalarFieldEnum[]
+}
+
+/**
+ * Organization.callSessions
+ */
+export type Organization$callSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CallSession
+   */
+  select?: Prisma.CallSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CallSession
+   */
+  omit?: Prisma.CallSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CallSessionInclude<ExtArgs> | null
+  where?: Prisma.CallSessionWhereInput
+  orderBy?: Prisma.CallSessionOrderByWithRelationInput | Prisma.CallSessionOrderByWithRelationInput[]
+  cursor?: Prisma.CallSessionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CallSessionScalarFieldEnum | Prisma.CallSessionScalarFieldEnum[]
 }
 
 /**

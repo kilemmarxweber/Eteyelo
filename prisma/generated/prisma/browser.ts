@@ -479,6 +479,21 @@ export type UserMessageArchive = Prisma.UserMessageArchiveModel
  */
 export type MessagingAuditLog = Prisma.MessagingAuditLogModel
 /**
+ * Model MessageAttachment
+ * 
+ */
+export type MessageAttachment = Prisma.MessageAttachmentModel
+/**
+ * Model UserPresence
+ * 
+ */
+export type UserPresence = Prisma.UserPresenceModel
+/**
+ * Model CallSession
+ * 
+ */
+export type CallSession = Prisma.CallSessionModel
+/**
  * Model TemporaryGrant
  * 
  */

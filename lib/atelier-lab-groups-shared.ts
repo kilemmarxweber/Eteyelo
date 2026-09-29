@@ -1,12 +1,12 @@
 /**
- * Libellé d'affichage du groupe atelier = nom du laboratoire (salle),
- * sinon nom du domaine pratique.
+ * Libellé d'affichage du groupe atelier =
+ * nom du laboratoire (ou domaine) + classe source.
+ * Ex. « Laboratoire sciences 1ère SC »
  * (Sans dépendance Prisma — utilisable côté client.)
  */
 export function buildAtelierLabGroupLabel(params: {
   domainName?: string | null;
   roomName?: string | null;
-  /** Conservé pour compat ; ignoré — le nom vient du labo uniquement. */
   sourceClasseName?: string | null;
   fallbackName: string;
 }): string {
@@ -14,6 +14,9 @@ export function buildAtelierLabGroupLabel(params: {
     params.roomName?.trim() ||
     params.domainName?.trim() ||
     null;
+  const source = params.sourceClasseName?.trim() || null;
+  if (lab && source) return `${lab} ${source}`;
   if (lab) return lab;
+  if (source) return source;
   return params.fallbackName;
 }

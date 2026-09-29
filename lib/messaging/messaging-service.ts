@@ -854,6 +854,21 @@ export async function sendMessage(params: {
     }),
   );
 
+  const participants = await prisma.conversationParticipant.findMany({
+    where: { conversationId: params.conversationId, leftAt: null },
+    select: { userId: true },
+  });
+  void import("@/lib/mobile/realtime").then(({ publishMobileEvent }) =>
+    publishMobileEvent({
+      type: "message.created",
+      organizationId: params.organizationId,
+      conversationId: params.conversationId,
+      messageId: message.id,
+      senderId: params.actor.userId,
+      recipientUserIds: participants.map((p) => p.userId),
+    }),
+  );
+
   return { messageId: message.id, conversationId: params.conversationId, reused: false };
 }
 

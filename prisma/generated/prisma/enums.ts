@@ -494,6 +494,43 @@ export const ConversationContextType = {
 export type ConversationContextType = (typeof ConversationContextType)[keyof typeof ConversationContextType]
 
 
+export const MessageAttachmentKind = {
+  IMAGE: 'IMAGE',
+  AUDIO: 'AUDIO',
+  FILE: 'FILE',
+  VIDEO: 'VIDEO'
+} as const
+
+export type MessageAttachmentKind = (typeof MessageAttachmentKind)[keyof typeof MessageAttachmentKind]
+
+
+export const UserPresenceStatus = {
+  ONLINE: 'ONLINE',
+  OFFLINE: 'OFFLINE'
+} as const
+
+export type UserPresenceStatus = (typeof UserPresenceStatus)[keyof typeof UserPresenceStatus]
+
+
+export const CallKind = {
+  AUDIO: 'AUDIO',
+  VIDEO: 'VIDEO'
+} as const
+
+export type CallKind = (typeof CallKind)[keyof typeof CallKind]
+
+
+export const CallStatus = {
+  RINGING: 'RINGING',
+  ACTIVE: 'ACTIVE',
+  ENDED: 'ENDED',
+  MISSED: 'MISSED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type CallStatus = (typeof CallStatus)[keyof typeof CallStatus]
+
+
 export const TemporaryGrantStatus = {
   ACTIVE: 'ACTIVE',
   EXPIRED: 'EXPIRED',

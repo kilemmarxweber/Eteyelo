@@ -334,9 +334,20 @@ function validateUploadedFile(
   const ext = path.extname(file.name).toLowerCase();
   const videoExtOk =
     options.kind === "video" && (ext === ".mp4" || ext === ".webm");
+  const imageExtOk =
+    options.kind === "image" &&
+    (ext === ".png" ||
+      ext === ".jpg" ||
+      ext === ".jpeg" ||
+      ext === ".webp" ||
+      ext === ".gif");
 
-  // Windows envoie parfois un type MIME vide pour les MP4 — accepter l’extension.
-  if (!mimeOk && !(options.kind === "video" && !file.type && videoExtOk)) {
+  // Windows / Flutter web : MIME parfois vide — accepter l’extension.
+  if (
+    !mimeOk &&
+    !(options.kind === "video" && !file.type && videoExtOk) &&
+    !(options.kind === "image" && !file.type && imageExtOk)
+  ) {
     throw new Error(
       options.kind === "document"
         ? "Format non autorisé. Utilisez PDF, DOC ou DOCX."

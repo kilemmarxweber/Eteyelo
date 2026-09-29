@@ -143,6 +143,9 @@ export const ModelName = {
   Message: 'Message',
   UserMessageArchive: 'UserMessageArchive',
   MessagingAuditLog: 'MessagingAuditLog',
+  MessageAttachment: 'MessageAttachment',
+  UserPresence: 'UserPresence',
+  CallSession: 'CallSession',
   TemporaryGrant: 'TemporaryGrant'
 } as const
 
@@ -1812,6 +1815,52 @@ export const MessagingAuditLogScalarFieldEnum = {
 } as const
 
 export type MessagingAuditLogScalarFieldEnum = (typeof MessagingAuditLogScalarFieldEnum)[keyof typeof MessagingAuditLogScalarFieldEnum]
+
+
+export const MessageAttachmentScalarFieldEnum = {
+  id: 'id',
+  messageId: 'messageId',
+  kind: 'kind',
+  url: 'url',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  durationMs: 'durationMs',
+  fileName: 'fileName',
+  createdAt: 'createdAt'
+} as const
+
+export type MessageAttachmentScalarFieldEnum = (typeof MessageAttachmentScalarFieldEnum)[keyof typeof MessageAttachmentScalarFieldEnum]
+
+
+export const UserPresenceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  status: 'status',
+  lastSeenAt: 'lastSeenAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserPresenceScalarFieldEnum = (typeof UserPresenceScalarFieldEnum)[keyof typeof UserPresenceScalarFieldEnum]
+
+
+export const CallSessionScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  conversationId: 'conversationId',
+  callerId: 'callerId',
+  calleeId: 'calleeId',
+  kind: 'kind',
+  status: 'status',
+  startedAt: 'startedAt',
+  answeredAt: 'answeredAt',
+  endedAt: 'endedAt',
+  endReason: 'endReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CallSessionScalarFieldEnum = (typeof CallSessionScalarFieldEnum)[keyof typeof CallSessionScalarFieldEnum]
 
 
 export const TemporaryGrantScalarFieldEnum = {

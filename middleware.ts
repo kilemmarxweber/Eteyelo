@@ -8,5 +8,10 @@
 export { proxy as middleware } from "./proxy";
 
 export const config = {
-  matcher: ["/api/auth/:path*", "/admin", "/admin/:path*"],
+  matcher: [
+    "/api/auth/:path*",
+    "/api/mobile/:path*",
+    "/admin",
+    "/admin/:path*",
+  ],
 };

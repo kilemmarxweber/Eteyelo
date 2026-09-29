@@ -553,7 +553,13 @@ export function ClasseUpForm({
   const previewName = useMemo(() => {
     if (isLegacyUpdate) return null;
     if (showAtelierLabFields) {
-      return selectedPracticalDomain?.labName ?? null;
+      if (!selectedPracticalDomain) return null;
+      return buildAtelierLabGroupLabel({
+        domainName: selectedPracticalDomain.name,
+        roomName: selectedPracticalDomain.labName,
+        sourceClasseName: selectedSourceClass?.nameClasse,
+        fallbackName: selectedPracticalDomain.labName,
+      });
     }
 
     const level = watchedLevel?.trim();
@@ -574,7 +580,8 @@ export function ClasseUpForm({
     educationSystem,
     isLegacyUpdate,
     options,
-    selectedPracticalDomain?.labName,
+    selectedPracticalDomain,
+    selectedSourceClass?.nameClasse,
     showAtelierLabFields,
     watchedLevel,
     watchedOptionId,
@@ -601,7 +608,10 @@ export function ClasseUpForm({
           }
           data.level = data.level?.trim() || "Groupe";
           data.nameClasse =
-            selectedPracticalDomain?.labName || data.nameClasse || "Groupe";
+            previewName ||
+            selectedPracticalDomain?.labName ||
+            data.nameClasse ||
+            "Groupe";
         } else if (!data.level?.trim()) {
           throw new Error("Veuillez selectionner un niveau");
         }
@@ -650,7 +660,10 @@ export function ClasseUpForm({
           }
           data.level = data.level?.trim() || "Groupe";
           data.nameClasse =
-            selectedPracticalDomain?.labName || data.nameClasse || "Groupe";
+            previewName ||
+            selectedPracticalDomain?.labName ||
+            data.nameClasse ||
+            "Groupe";
         }
         const payload = isLegacyUpdate
           ? {
@@ -780,8 +793,9 @@ export function ClasseUpForm({
                     </p>
                     <p className="text-sm font-medium">Groupe atelier</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      Sélectionné automatiquement. Le nom du groupe reprend celui
-                      du laboratoire.
+                      Sélectionné automatiquement. Le nom du groupe combine le
+                      laboratoire et la classe source (ex. Laboratoire sciences
+                      1ère SC).
                     </p>
                     <input type="hidden" {...form.register("level")} />
                     <input type="hidden" {...form.register("nameClasse")} />
@@ -1009,7 +1023,24 @@ export function ClasseUpForm({
                               search: `${c.nameClasse} ${c.optionName} ${c.branchName}`,
                             }))}
                             value={field.value ?? ""}
-                            onValueChange={field.onChange}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              if (selectedPracticalDomain) {
+                                const source = sourceClasses.find(
+                                  (c) => c.id === value,
+                                );
+                                form.setValue(
+                                  "nameClasse",
+                                  buildAtelierLabGroupLabel({
+                                    domainName: selectedPracticalDomain.name,
+                                    roomName: selectedPracticalDomain.labName,
+                                    sourceClasseName: source?.nameClasse,
+                                    fallbackName: selectedPracticalDomain.labName,
+                                  }),
+                                );
+                                nameTouchedRef.current = false;
+                              }
+                            }}
                             disabled={atelierOptionsLoading}
                             placeholder={
                               atelierOptionsLoading
@@ -1074,7 +1105,16 @@ export function ClasseUpForm({
                                 (d) => d.id === value,
                               );
                               if (domain) {
-                                form.setValue("nameClasse", domain.labName);
+                                form.setValue(
+                                  "nameClasse",
+                                  buildAtelierLabGroupLabel({
+                                    domainName: domain.name,
+                                    roomName: domain.labName,
+                                    sourceClasseName:
+                                      selectedSourceClass?.nameClasse,
+                                    fallbackName: domain.labName,
+                                  }),
+                                );
                                 nameTouchedRef.current = false;
                               }
                             }}
@@ -1094,16 +1134,19 @@ export function ClasseUpForm({
                           <p className="rounded-md border bg-background/80 px-2.5 py-1.5 text-xs leading-relaxed text-muted-foreground">
                             Nom du groupe :{" "}
                             <span className="font-medium text-foreground">
-                              {selectedPracticalDomain.labName}
+                              {previewName || selectedPracticalDomain.labName}
                             </span>
                             <span className="mt-0.5 block">
                               Domaine : {selectedPracticalDomain.name}
+                              {selectedSourceClass
+                                ? ` · Source : ${selectedSourceClass.nameClasse}`
+                                : ""}
                             </span>
                           </p>
                         ) : (
                           <FormDescription>
-                            Le nom du groupe reprend le laboratoire (salle),
-                            sinon le nom du domaine.
+                            Le nom du groupe combine le laboratoire et la classe
+                            source (ex. Laboratoire sciences 1ère SC).
                           </FormDescription>
                         )}
                         <FormMessage />

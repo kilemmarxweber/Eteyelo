@@ -489,6 +489,9 @@ export const ModelName = {
   Message: 'Message',
   UserMessageArchive: 'UserMessageArchive',
   MessagingAuditLog: 'MessagingAuditLog',
+  MessageAttachment: 'MessageAttachment',
+  UserPresence: 'UserPresence',
+  CallSession: 'CallSession',
   TemporaryGrant: 'TemporaryGrant'
 } as const
 
@@ -505,7 +508,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "atelierCourseLink" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "salaryAdvance" | "salaryAdvanceInstallment" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "practicalDomain" | "room" | "practicalDomainCours" | "rotationSlot" | "rotationSlotItem" | "attendanceFaceDescriptor" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog" | "temporaryGrant"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "atelierCourseLink" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "salaryAdvance" | "salaryAdvanceInstallment" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "practicalDomain" | "room" | "practicalDomainCours" | "rotationSlot" | "rotationSlotItem" | "attendanceFaceDescriptor" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog" | "messageAttachment" | "userPresence" | "callSession" | "temporaryGrant"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -7317,6 +7320,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    MessageAttachment: {
+      payload: Prisma.$MessageAttachmentPayload<ExtArgs>
+      fields: Prisma.MessageAttachmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MessageAttachmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MessageAttachmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>
+        }
+        findFirst: {
+          args: Prisma.MessageAttachmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MessageAttachmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>
+        }
+        findMany: {
+          args: Prisma.MessageAttachmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>[]
+        }
+        create: {
+          args: Prisma.MessageAttachmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>
+        }
+        createMany: {
+          args: Prisma.MessageAttachmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MessageAttachmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>[]
+        }
+        delete: {
+          args: Prisma.MessageAttachmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>
+        }
+        update: {
+          args: Prisma.MessageAttachmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.MessageAttachmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MessageAttachmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MessageAttachmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.MessageAttachmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>
+        }
+        aggregate: {
+          args: Prisma.MessageAttachmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMessageAttachment>
+        }
+        groupBy: {
+          args: Prisma.MessageAttachmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MessageAttachmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MessageAttachmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MessageAttachmentCountAggregateOutputType> | number
+        }
+      }
+    }
+    UserPresence: {
+      payload: Prisma.$UserPresencePayload<ExtArgs>
+      fields: Prisma.UserPresenceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserPresenceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPresencePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserPresenceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPresencePayload>
+        }
+        findFirst: {
+          args: Prisma.UserPresenceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPresencePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserPresenceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPresencePayload>
+        }
+        findMany: {
+          args: Prisma.UserPresenceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPresencePayload>[]
+        }
+        create: {
+          args: Prisma.UserPresenceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPresencePayload>
+        }
+        createMany: {
+          args: Prisma.UserPresenceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UserPresenceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPresencePayload>[]
+        }
+        delete: {
+          args: Prisma.UserPresenceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPresencePayload>
+        }
+        update: {
+          args: Prisma.UserPresenceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPresencePayload>
+        }
+        deleteMany: {
+          args: Prisma.UserPresenceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserPresenceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UserPresenceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPresencePayload>[]
+        }
+        upsert: {
+          args: Prisma.UserPresenceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPresencePayload>
+        }
+        aggregate: {
+          args: Prisma.UserPresenceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserPresence>
+        }
+        groupBy: {
+          args: Prisma.UserPresenceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserPresenceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserPresenceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserPresenceCountAggregateOutputType> | number
+        }
+      }
+    }
+    CallSession: {
+      payload: Prisma.$CallSessionPayload<ExtArgs>
+      fields: Prisma.CallSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CallSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CallSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CallSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CallSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.CallSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CallSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CallSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CallSessionPayload>
+        }
+        findMany: {
+          args: Prisma.CallSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CallSessionPayload>[]
+        }
+        create: {
+          args: Prisma.CallSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CallSessionPayload>
+        }
+        createMany: {
+          args: Prisma.CallSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CallSessionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CallSessionPayload>[]
+        }
+        delete: {
+          args: Prisma.CallSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CallSessionPayload>
+        }
+        update: {
+          args: Prisma.CallSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CallSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.CallSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CallSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CallSessionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CallSessionPayload>[]
+        }
+        upsert: {
+          args: Prisma.CallSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CallSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.CallSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCallSession>
+        }
+        groupBy: {
+          args: Prisma.CallSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CallSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CallSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CallSessionCountAggregateOutputType> | number
+        }
+      }
+    }
     TemporaryGrant: {
       payload: Prisma.$TemporaryGrantPayload<ExtArgs>
       fields: Prisma.TemporaryGrantFieldRefs
@@ -9082,6 +9307,52 @@ export const MessagingAuditLogScalarFieldEnum = {
 export type MessagingAuditLogScalarFieldEnum = (typeof MessagingAuditLogScalarFieldEnum)[keyof typeof MessagingAuditLogScalarFieldEnum]
 
 
+export const MessageAttachmentScalarFieldEnum = {
+  id: 'id',
+  messageId: 'messageId',
+  kind: 'kind',
+  url: 'url',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  durationMs: 'durationMs',
+  fileName: 'fileName',
+  createdAt: 'createdAt'
+} as const
+
+export type MessageAttachmentScalarFieldEnum = (typeof MessageAttachmentScalarFieldEnum)[keyof typeof MessageAttachmentScalarFieldEnum]
+
+
+export const UserPresenceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  status: 'status',
+  lastSeenAt: 'lastSeenAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserPresenceScalarFieldEnum = (typeof UserPresenceScalarFieldEnum)[keyof typeof UserPresenceScalarFieldEnum]
+
+
+export const CallSessionScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  conversationId: 'conversationId',
+  callerId: 'callerId',
+  calleeId: 'calleeId',
+  kind: 'kind',
+  status: 'status',
+  startedAt: 'startedAt',
+  answeredAt: 'answeredAt',
+  endedAt: 'endedAt',
+  endReason: 'endReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CallSessionScalarFieldEnum = (typeof CallSessionScalarFieldEnum)[keyof typeof CallSessionScalarFieldEnum]
+
+
 export const TemporaryGrantScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -9895,6 +10166,62 @@ export type ListEnumConversationContextTypeFieldRefInput<$PrismaModel> = FieldRe
 
 
 /**
+ * Reference to a field of type 'MessageAttachmentKind'
+ */
+export type EnumMessageAttachmentKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MessageAttachmentKind'>
+    
+
+
+/**
+ * Reference to a field of type 'MessageAttachmentKind[]'
+ */
+export type ListEnumMessageAttachmentKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MessageAttachmentKind[]'>
+    
+
+
+/**
+ * Reference to a field of type 'UserPresenceStatus'
+ */
+export type EnumUserPresenceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserPresenceStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'UserPresenceStatus[]'
+ */
+export type ListEnumUserPresenceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserPresenceStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'CallKind'
+ */
+export type EnumCallKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CallKind'>
+    
+
+
+/**
+ * Reference to a field of type 'CallKind[]'
+ */
+export type ListEnumCallKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CallKind[]'>
+    
+
+
+/**
+ * Reference to a field of type 'CallStatus'
+ */
+export type EnumCallStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CallStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'CallStatus[]'
+ */
+export type ListEnumCallStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CallStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'TemporaryGrantStatus'
  */
 export type EnumTemporaryGrantStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TemporaryGrantStatus'>
@@ -10150,6 +10477,9 @@ export type GlobalOmitConfig = {
   message?: Prisma.MessageOmit
   userMessageArchive?: Prisma.UserMessageArchiveOmit
   messagingAuditLog?: Prisma.MessagingAuditLogOmit
+  messageAttachment?: Prisma.MessageAttachmentOmit
+  userPresence?: Prisma.UserPresenceOmit
+  callSession?: Prisma.CallSessionOmit
   temporaryGrant?: Prisma.TemporaryGrantOmit
 }
 

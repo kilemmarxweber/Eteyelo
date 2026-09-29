@@ -57,6 +57,9 @@ model User {
   sentMessages                 Message[]                   @relation("SentMessages")
   messageArchives              UserMessageArchive[]
   messagingAuditLogs           MessagingAuditLog[]
+  userPresences                UserPresence[]
+  callsStarted                 CallSession[]               @relation("CallCaller")
+  callsReceived                CallSession[]               @relation("CallCallee")
   temporaryGrants              TemporaryGrant[]            @relation("TemporaryGrantSubject")
   grantsGiven                  TemporaryGrant[]            @relation("TemporaryGrantGiven")
   grantsRevoked                TemporaryGrant[]            @relation("TemporaryGrantRevoked")
@@ -1668,6 +1671,8 @@ model Organization {
   platformSupportEscalations PlatformSupportEscalation[]
   conversations              Conversation[]
   messagingAuditLogs         MessagingAuditLog[]
+  userPresences              UserPresence[]
+  callSessions               CallSession[]
   exchangeRates              ExchangeRate[]
   temporaryGrants            TemporaryGrant[]
   /// Afficher la 2e devise (conversion) sur les reçus. Désactiver pour AOA sans conversion.
@@ -2765,6 +2770,7 @@ model Conversation {
   participants  ConversationParticipant[]
   messages      Message[]
   notifications AppNotification[]
+  callSessions  CallSession[]
 
   @@index([organizationId, updatedAt])
   @@index([organizationId, deletedAt])
@@ -2805,6 +2811,7 @@ model Message {
   deletedAt       DateTime?
   archives        UserMessageArchive[]
   notifications   AppNotification[]
+  attachments     MessageAttachment[]
 
   @@index([conversationId, createdAt])
   @@index([senderId, createdAt])
@@ -2834,6 +2841,87 @@ model MessagingAuditLog {
 
   @@index([organizationId, createdAt])
   @@index([actorUserId, createdAt])
+}
+
+enum MessageAttachmentKind {
+  IMAGE
+  AUDIO
+  FILE
+  VIDEO
+}
+
+model MessageAttachment {
+  id         String                @id @default(cuid())
+  messageId  String
+  message    Message               @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  kind       MessageAttachmentKind
+  url        String
+  mimeType   String?
+  sizeBytes  Int?
+  durationMs Int?
+  fileName   String?
+  createdAt  DateTime              @default(now())
+
+  @@index([messageId])
+}
+
+enum UserPresenceStatus {
+  ONLINE
+  OFFLINE
+}
+
+model UserPresence {
+  id             String             @id @default(cuid())
+  userId         String
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  status         UserPresenceStatus @default(OFFLINE)
+  lastSeenAt     DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@unique([userId, organizationId])
+  @@index([organizationId, status])
+  @@index([userId])
+}
+
+enum CallKind {
+  AUDIO
+  VIDEO
+}
+
+enum CallStatus {
+  RINGING
+  ACTIVE
+  ENDED
+  MISSED
+  REJECTED
+}
+
+model CallSession {
+  id             String     @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  callerId       String
+  caller         User       @relation("CallCaller", fields: [callerId], references: [id], onDelete: Cascade)
+  calleeId       String
+  callee         User       @relation("CallCallee", fields: [calleeId], references: [id], onDelete: Cascade)
+  kind           CallKind   @default(AUDIO)
+  status         CallStatus @default(RINGING)
+  startedAt      DateTime   @default(now())
+  answeredAt     DateTime?
+  endedAt        DateTime?
+  endReason      String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([organizationId, startedAt])
+  @@index([callerId, startedAt])
+  @@index([calleeId, startedAt])
+  @@index([conversationId])
+  @@index([status])
 }
 
 enum TemporaryGrantStatus {

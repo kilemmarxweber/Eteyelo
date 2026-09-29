@@ -180,14 +180,14 @@ test("férié : séance fermée, cycle non décalé", () => {
   );
 });
 
-test("libellé groupe labo = nom du laboratoire uniquement", () => {
+test("libellé groupe labo = laboratoire + classe source", () => {
   assert.equal(
     buildAtelierLabGroupLabel({
       roomName: "Laboratoire sciences",
-      sourceClasseName: "3ème A",
+      sourceClasseName: "1ère SC",
       fallbackName: "Groupe",
     }),
-    "Laboratoire sciences",
+    "Laboratoire sciences 1ère SC",
   );
   assert.equal(
     buildAtelierLabGroupLabel({

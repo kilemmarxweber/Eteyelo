@@ -301,6 +301,7 @@ export const createClasseAction = action
       let sourceClasseId: string | null = null;
       let practicalDomainId: string | null = null;
       let displayName = identity.nameClasse;
+      let sourceClasseName: string | null = null;
 
       if (isAtelierBranchType(typebranch) || cycle === "ATELIER") {
         if (input.sourceClasseId) {
@@ -310,6 +311,7 @@ export const createClasseAction = action
             sourceClasseId: input.sourceClasseId,
           });
           sourceClasseId = source.id;
+          sourceClasseName = source.nameClasse;
           const taken = await prisma.classe.findFirst({
             where: { branchId, sourceClasseId: source.id },
             select: { id: true },
@@ -334,6 +336,7 @@ export const createClasseAction = action
           displayName = buildAtelierLabGroupLabel({
             domainName: domain.name,
             roomName: domain.rooms[0]?.name,
+            sourceClasseName,
             fallbackName: identity.nameClasse,
           });
         }
@@ -584,14 +587,16 @@ export const updateClasseAction = action
     let practicalDomainId = existing.practicalDomainId;
     let displayName = identity.nameClasse;
     if (isAtelierBranchType(typebranch) || cycle === "ATELIER") {
+      let sourceClasseName: string | null = null;
       if (input.sourceClasseId !== undefined) {
         sourceClasseId = input.sourceClasseId || null;
         if (sourceClasseId) {
-          await assertValidAtelierSourceClasse({
+          const source = await assertValidAtelierSourceClasse({
             atelierBranchId: branchId,
             organizationId,
             sourceClasseId,
           });
+          sourceClasseName = source.nameClasse;
           const taken = await prisma.classe.findFirst({
             where: { branchId, sourceClasseId, id: { not: id } },
             select: { id: true },
@@ -602,29 +607,36 @@ export const updateClasseAction = action
             );
           }
         }
+      } else if (sourceClasseId) {
+        const source = await prisma.classe.findFirst({
+          where: { id: sourceClasseId },
+          select: { nameClasse: true },
+        });
+        sourceClasseName = source?.nameClasse ?? null;
       }
       if (input.practicalDomainId !== undefined) {
         practicalDomainId = input.practicalDomainId || null;
-        if (practicalDomainId) {
-          const domain = await prisma.practicalDomain.findFirst({
-            where: { id: practicalDomainId, branchId },
-            select: {
-              id: true,
-              name: true,
-              rooms: {
-                take: 1,
-                select: { name: true },
-                orderBy: { name: "asc" },
-              },
+      }
+      if (practicalDomainId) {
+        const domain = await prisma.practicalDomain.findFirst({
+          where: { id: practicalDomainId, branchId },
+          select: {
+            id: true,
+            name: true,
+            rooms: {
+              take: 1,
+              select: { name: true },
+              orderBy: { name: "asc" },
             },
-          });
-          if (!domain) throw new Error("Domaine pratique introuvable");
-          displayName = buildAtelierLabGroupLabel({
-            domainName: domain.name,
-            roomName: domain.rooms[0]?.name,
-            fallbackName: identity.nameClasse,
-          });
-        }
+          },
+        });
+        if (!domain) throw new Error("Domaine pratique introuvable");
+        displayName = buildAtelierLabGroupLabel({
+          domainName: domain.name,
+          roomName: domain.rooms[0]?.name,
+          sourceClasseName,
+          fallbackName: identity.nameClasse,
+        });
       }
     }
 
