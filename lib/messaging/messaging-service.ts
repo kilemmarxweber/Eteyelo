@@ -27,7 +27,7 @@ import {
   type MessagingFilter,
   type MessagingRecipient,
 } from "@/lib/messaging/messaging-types";
-import type { Prisma } from "@/prisma/generated/prisma/client";
+import { Prisma } from "@/prisma/generated/prisma/client";
 
 const userNameSelect = {
   id: true,
@@ -1121,17 +1121,17 @@ export async function listMyConversations(params: {
     Array.from(new Set(rows.flatMap((row) => row.participants.map((p) => p.userId)))),
   );
 
+  const unreadByConversation = await countUnreadMessagesByConversation({
+    userId: params.actor.userId,
+    conversationIds: rows.map((row) => row.id),
+  });
+
   const items: ConversationListItem[] = [];
   for (const row of rows) {
     const me = row.participants.find((p) => p.userId === params.actor.userId);
     if (!me) continue;
     const last = row.messages[0];
-    const unreadCount =
-      last &&
-      last.senderId !== params.actor.userId &&
-      (!me.lastReadAt || last.createdAt > me.lastReadAt)
-        ? 1
-        : 0;
+    const unreadCount = unreadByConversation.get(row.id) ?? 0;
 
     const participants = row.participants.map((p) => {
       const mapped = recipientMap.get(p.userId);
@@ -1201,12 +1201,18 @@ export async function listMyConversations(params: {
     ? items.findIndex((row) => row.id === params.cursor) + 1
     : 0;
   const page = items.slice(start, start + MESSAGING_CONVERSATIONS_PAGE_SIZE);
+  const unreadConversations = items.filter(
+    (row) => !row.archived && row.unreadCount > 0,
+  ).length;
+  const unreadMessages = items
+    .filter((row) => !row.archived)
+    .reduce((sum, row) => sum + row.unreadCount, 0);
   return {
     items: page,
     nextCursor:
       start + page.length < items.length ? page[page.length - 1]?.id ?? null : null,
-    unreadConversations: items.filter((row) => !row.archived && row.unreadCount > 0)
-      .length,
+    unreadConversations,
+    unreadMessages,
   };
 }
 
@@ -1437,7 +1443,40 @@ export async function countUnreadConversations(params: {
     actor: params.actor,
     filter: "unread",
   });
-  return listed.unreadConversations;
+  // Badge global = total messages non lus (pas seulement le nb de conversations).
+  return listed.unreadMessages;
+}
+
+/**
+ * Compte les messages non lus par conversation (hors messages de l'utilisateur).
+ */
+async function countUnreadMessagesByConversation(params: {
+  userId: string;
+  conversationIds: string[];
+}): Promise<Map<string, number>> {
+  const result = new Map<string, number>();
+  if (params.conversationIds.length === 0) return result;
+
+  const rows = await prisma.$queryRaw<
+    Array<{ conversationId: string; count: bigint | number }>
+  >(Prisma.sql`
+    SELECT m."conversationId" AS "conversationId", COUNT(*)::int AS count
+    FROM "Message" m
+    INNER JOIN "ConversationParticipant" p
+      ON p."conversationId" = m."conversationId"
+     AND p."userId" = ${params.userId}
+     AND p."leftAt" IS NULL
+    WHERE m."conversationId" IN (${Prisma.join(params.conversationIds)})
+      AND m."deletedAt" IS NULL
+      AND m."senderId" <> ${params.userId}
+      AND (p."lastReadAt" IS NULL OR m."createdAt" > p."lastReadAt")
+    GROUP BY m."conversationId"
+  `);
+
+  for (const row of rows) {
+    result.set(row.conversationId, Number(row.count));
+  }
+  return result;
 }
 
 export async function purgeOrganizationMessaging(params: {

@@ -179,7 +179,7 @@ export function MessagingWorkspace({
     }
     setConversations(data.items);
     setUnreadConversations(data.unreadConversations);
-    onUnreadChange?.(data.unreadConversations);
+    onUnreadChange?.(data.unreadMessages ?? data.unreadConversations);
   }, [organizationId, filter, query, onUnreadChange]);
 
   const loadThread = useCallback(
