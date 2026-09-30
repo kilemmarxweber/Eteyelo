@@ -37,12 +37,9 @@ import {
 } from "@/lib/primary-domains";
 import { getBranchPrimaryDomainsAction } from "../../settings/settings.action";
 import { getPracticalDomainsAction } from "../../settings/practical-domains.action";
-import { SearchableSelect } from "@/components/ui/searchable-select";
+import { MultiSelect } from "../../paiement/components/MultiSelect";
 import type { AtelierLinkOptions } from "@/lib/atelier-course-link-shared";
-import {
-  ATELIER_LINK_PERIOD_AUTO,
-  filterCoursesForSecondaryClass,
-} from "@/lib/atelier-course-link-shared";
+import { ATELIER_LINK_PERIOD_AUTO } from "@/lib/atelier-course-link-shared";
 
 interface CoursUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: () => void;
@@ -89,7 +86,6 @@ export function CoursUpForm({
       classes: [],
       periodsByBranchId: {},
     });
-  const [linkFilterClasseId, setLinkFilterClasseId] = useState<string>("");
   const [practicalDomains, setPracticalDomains] = useState<
     Array<{ id: string; name: string; code: string }>
   >([]);
@@ -145,86 +141,46 @@ export function CoursUpForm({
       codeCours: "",
       description: "",
       primaryDomain: null,
-      linkedSecondaryBranchId: null,
-      linkedSecondaryCoursId: null,
+      linkedSecondaryCoursIds: [],
       linkedTargetPeriodKey: null,
       practicalDomainId: null,
     },
   });
 
-  const linkedCoursId = form.watch("linkedSecondaryCoursId");
-  const selectedSecondaryCourse = useMemo(
+  const linkedCoursIds = form.watch("linkedSecondaryCoursIds") ?? [];
+  const selectedSecondaryCourses = useMemo(
     () =>
-      atelierLinkOptions.courses.find((course) => course.id === linkedCoursId) ??
-      null,
-    [atelierLinkOptions.courses, linkedCoursId],
+      atelierLinkOptions.courses.filter((course) =>
+        linkedCoursIds.includes(course.id),
+      ),
+    [atelierLinkOptions.courses, linkedCoursIds],
   );
 
-  const filteredLinkCourses = useMemo(() => {
-    const filterClasse = linkFilterClasseId
-      ? atelierLinkOptions.classes.find((c) => c.id === linkFilterClasseId)
-      : null;
-    if (!filterClasse) return atelierLinkOptions.courses;
-    return filterCoursesForSecondaryClass(
-      atelierLinkOptions.courses,
-      filterClasse,
-    );
-  }, [
-    atelierLinkOptions.classes,
-    atelierLinkOptions.courses,
-    linkFilterClasseId,
-  ]);
-
-  const linkFilterUsesBranchFallback = useMemo(() => {
-    if (!linkFilterClasseId) return false;
-    const filterClasse = atelierLinkOptions.classes.find(
-      (c) => c.id === linkFilterClasseId,
-    );
-    return Boolean(
-      filterClasse &&
-        filterClasse.configuredCoursIds.length === 0 &&
-        filteredLinkCourses.length > 0,
-    );
-  }, [
-    atelierLinkOptions.classes,
-    filteredLinkCourses.length,
-    linkFilterClasseId,
-  ]);
-
-  useEffect(() => {
-    if (!linkedCoursId || !linkFilterClasseId) return;
-    const stillVisible = filteredLinkCourses.some(
-      (course) => course.id === linkedCoursId,
-    );
-    if (!stillVisible) {
-      form.setValue("linkedSecondaryCoursId", null);
-      form.setValue("linkedSecondaryBranchId", null);
-      form.setValue("linkedTargetPeriodKey", null);
-    }
-  }, [filteredLinkCourses, form, linkFilterClasseId, linkedCoursId]);
+  const courseOptions = useMemo(
+    () =>
+      atelierLinkOptions.courses.map((course) => ({
+        value: course.id,
+        label: course.label ?? `${course.nameCours} · ${course.branchName}`,
+        search: `${course.nameCours} ${course.codeCours} ${course.branchName}`,
+      })),
+    [atelierLinkOptions.courses],
+  );
 
   async function onSubmit(data: z.infer<typeof coursSchema>) {
     setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const linkedCourse = isAtelier
-        ? atelierLinkOptions.courses.find(
-            (course) => course.id === data.linkedSecondaryCoursId,
-          )
-        : null;
+      const linkedIds = isAtelier
+        ? [...new Set((data.linkedSecondaryCoursIds ?? []).filter(Boolean))]
+        : [];
 
       const payload = {
         ...data,
         primaryDomain: showDomain ? (data.primaryDomain ?? null) : undefined,
-        linkedSecondaryBranchId: isAtelier
-          ? (linkedCourse?.branchId ?? data.linkedSecondaryBranchId ?? null)
-          : undefined,
-        linkedSecondaryCoursId: isAtelier
-          ? data.linkedSecondaryCoursId ?? null
-          : undefined,
+        linkedSecondaryCoursIds: isAtelier ? linkedIds : undefined,
         linkedTargetPeriodKey: isAtelier
-          ? data.linkedSecondaryCoursId
+          ? linkedIds.length
             ? ATELIER_LINK_PERIOD_AUTO
             : null
           : undefined,
@@ -253,8 +209,7 @@ export function CoursUpForm({
           codeCours: "",
           description: "",
           primaryDomain: null,
-          linkedSecondaryBranchId: null,
-          linkedSecondaryCoursId: null,
+          linkedSecondaryCoursIds: [],
           linkedTargetPeriodKey: null,
           practicalDomainId: null,
         });
@@ -362,81 +317,27 @@ export function CoursUpForm({
       />
       <FormField
         control={form.control}
-        name="linkedSecondaryCoursId"
+        name="linkedSecondaryCoursIds"
         render={({ field }) => (
           <FormItem className={cn(fieldClass, isDialog && "sm:col-span-2")}>
-            <FormLabel className={labelClass}>{t("linkFilterClass")}</FormLabel>
+            <FormLabel className={labelClass}>{t("linkCourse")}</FormLabel>
             <FormControl>
-              <SearchableSelect
+              <MultiSelect
                 searchable
+                modal={false}
                 disabled={isLoading}
-                value={linkFilterClasseId || "__ALL__"}
-                onValueChange={(value) => {
-                  setLinkFilterClasseId(value === "__ALL__" ? "" : value);
-                }}
-                options={[
-                  {
-                    value: "__ALL__",
-                    label: t("linkFilterClassAll"),
-                    search: t("linkFilterClassAll"),
-                  },
-                  ...atelierLinkOptions.classes.map((classe) => ({
-                    value: classe.id,
-                    label: classe.label,
-                    search: classe.label,
-                  })),
-                ]}
-                placeholder={t("linkFilterClassPlaceholder")}
-                searchPlaceholder={t("linkFilterClassSearch")}
-                emptyMessage={t("linkFilterClassEmpty")}
-                triggerClassName={controlClass}
-              />
-            </FormControl>
-            <FormDescription>{t("linkFilterClassDesc")}</FormDescription>
-
-            <FormLabel className={cn(labelClass, "mt-3 block")}>
-              {t("linkCourse")}
-            </FormLabel>
-            <FormControl>
-              <SearchableSelect
-                searchable
-                disabled={isLoading}
-                value={field.value ?? "__NONE__"}
-                onValueChange={(value) => {
-                  if (value === "__NONE__") {
-                    field.onChange(null);
-                    form.setValue("linkedSecondaryBranchId", null);
-                    form.setValue("linkedTargetPeriodKey", null);
-                    return;
-                  }
-                  const course = atelierLinkOptions.courses.find(
-                    (item) => item.id === value,
-                  );
-                  field.onChange(value);
-                  form.setValue(
-                    "linkedSecondaryBranchId",
-                    course?.branchId ?? null,
-                  );
-                  form.setValue("linkedTargetPeriodKey", null);
-                }}
-                options={[
-                  {
-                    value: "__NONE__",
-                    label: t("linkNone"),
-                    search: t("linkNone"),
-                  },
-                  ...filteredLinkCourses.map((course) => ({
-                    value: course.id,
-                    label:
-                      course.label ??
-                      `${course.nameCours} · ${course.branchName}`,
-                    search: `${course.nameCours} ${course.codeCours} ${course.branchName}`,
-                  })),
-                ]}
+                value={field.value ?? []}
+                onValueChange={field.onChange}
+                options={courseOptions}
                 placeholder={t("linkCoursePlaceholder")}
                 searchPlaceholder={t("linkCourseSearch")}
-                emptyMessage={t("linkCourseEmpty")}
-                triggerClassName={controlClass}
+                maxCount={4}
+                className={cn(controlClass, "min-h-9 h-auto")}
+                selectedCountLabel={(count) =>
+                  count === 1
+                    ? t("linkSelectedOne")
+                    : t("linkSelectedMany", { count })
+                }
               />
             </FormControl>
             <FormDescription>{t("linkDesc")}</FormDescription>
@@ -444,30 +345,29 @@ export function CoursUpForm({
               <p className="text-xs text-amber-600 dark:text-amber-500">
                 {t("linkNoSecondaryCourses")}
               </p>
-            ) : linkFilterClasseId && filteredLinkCourses.length === 0 ? (
-              <p className="text-xs text-amber-600 dark:text-amber-500">
-                {t("linkNoCoursesForClass")}
-              </p>
-            ) : linkFilterUsesBranchFallback ? (
-              <p className="text-xs text-muted-foreground">
-                {t("linkClassBranchFallback")}
-              </p>
             ) : null}
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {selectedSecondaryCourse ? (
+      {selectedSecondaryCourses.length > 0 ? (
         <div
           className={cn(
             fieldClass,
             isDialog && "sm:col-span-2",
-            "rounded-md border px-3 py-2 text-sm",
+            "rounded-md border px-3 py-2 text-sm space-y-1",
           )}
         >
           <p className="font-medium">{t("linkPeriod")}</p>
           <p className="text-muted-foreground">{t("linkPeriodDesc")}</p>
+          <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+            {selectedSecondaryCourses.map((course) => (
+              <li key={course.id}>
+                {course.branchName} · {t("linkPeriodAutoShort")}
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
     </>

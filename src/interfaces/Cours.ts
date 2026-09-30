@@ -19,8 +19,11 @@ export interface ICours {
   primarySection?: string | null;
   domainOrder?: number | null;
   teachingsCount?: number;
-  /** Lien atelier → cours secondaire (branches ATELIER uniquement). */
-  atelierLink?: {
+  /**
+   * Liens atelier → cours secondaires (branches ATELIER uniquement).
+   * Un même cours pratique peut alimenter plusieurs écoles.
+   */
+  atelierLinks?: Array<{
     secondaryCoursId: string;
     secondaryCoursName: string;
     secondaryBranchId: string;
@@ -30,7 +33,7 @@ export interface ICours {
     activePeriodKey?: string | null;
     activePeriodLabel?: string | null;
     isPeriodAuto?: boolean;
-  } | null;
+  }>;
   /** Atelier : TP labo. */
   hasPracticalLab?: boolean;
   practicalDomainId?: string | null;
@@ -48,9 +51,8 @@ export const coursSchema = z.object({
   description: z.string().optional(),
   /** Domaine bulletin primaire — optionnel */
   primaryDomain: z.string().trim().min(2).max(40).nullable().optional(),
-  /** Association atelier → secondaire (optionnel). */
-  linkedSecondaryBranchId: z.string().nullable().optional(),
-  linkedSecondaryCoursId: z.string().nullable().optional(),
+  /** Associations atelier → un ou plusieurs cours secondaires (optionnel). */
+  linkedSecondaryCoursIds: z.array(z.string()).optional(),
   linkedTargetPeriodKey: z.string().nullable().optional(),
   /** Domaine pratique atelier (null = pas de TP labo). */
   practicalDomainId: z.string().nullable().optional(),

@@ -62,7 +62,7 @@ test("cours lié hors option de la classe source → exclu si curriculum non vid
   assert.equal(result.emptyReason, null);
 });
 
-test("curriculum vide → repli sur les liens de la même école", () => {
+test("curriculum vide → aucun cours (pas de repli école)", () => {
   const result = resolveAtelierConfiguredParentIds({
     sourceClasseId: "src-3a",
     sourceBranchId: "school-a",
@@ -70,14 +70,27 @@ test("curriculum vide → repli sur les liens de la même école", () => {
     atelierLinks: [
       link("atl-1", "sec-math", "school-a"),
       link("atl-2", "sec-phys", "school-a"),
-      link("atl-other", "sec-x", "school-b"),
     ],
   });
-  assert.equal(result.emptyReason, null);
-  assert.deepEqual(result.coursIds.sort(), ["atl-1", "atl-2"].sort());
+  assert.deepEqual(result.coursIds, []);
+  assert.equal(result.emptyReason, "NO_MATCHING_LINKS");
 });
 
-test("aucun lien curriculum ni école → NO_MATCHING_LINKS", () => {
+test("lien même école hors curriculum (ex. Chimie vs Comptabilité) → exclu", () => {
+  const result = resolveAtelierConfiguredParentIds({
+    sourceClasseId: "src-1ceg-compta",
+    sourceBranchId: "school-a",
+    secondaryConfiguredCoursIds: ["sec-compta", "sec-eco"],
+    atelierLinks: [
+      link("atl-chimie-tp", "sec-chimie", "school-a"),
+      link("atl-compta-tp", "sec-compta", "school-a"),
+    ],
+  });
+  assert.deepEqual(result.coursIds, ["atl-compta-tp"]);
+  assert.equal(result.emptyReason, null);
+});
+
+test("aucun lien curriculum → NO_MATCHING_LINKS", () => {
   const result = resolveAtelierConfiguredParentIds({
     sourceClasseId: "src-3a",
     sourceBranchId: "school-a",

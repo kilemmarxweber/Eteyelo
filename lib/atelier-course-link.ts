@@ -341,25 +341,18 @@ export async function getAtelierLinkOptionsForOrganization(params: {
   return { courses, classes, periodsByBranchId };
 }
 
-export async function getAtelierCourseLinkForCours(
-  atelierCoursId: string,
-): Promise<AtelierCourseLinkView | null> {
-  const link = await prisma.atelierCourseLink.findUnique({
-    where: { atelierCoursId },
-    include: {
-      secondaryCours: { select: { id: true, nameCours: true } },
-      secondaryBranch: {
-        select: {
-          id: true,
-          name: true,
-          educationSystem: true,
-          typebranch: true,
-        },
-      },
-    },
-  });
-  if (!link) return null;
-
+async function toAtelierCourseLinkView(link: {
+  secondaryCoursId: string;
+  secondaryCours: { id: string; nameCours: string };
+  secondaryBranchId: string;
+  secondaryBranch: {
+    id: string;
+    name: string;
+    educationSystem: unknown;
+    typebranch: string;
+  };
+  targetPeriodKey: string;
+}): Promise<AtelierCourseLinkView> {
   const typebranch = normalizeBranchType(link.secondaryBranch.typebranch);
   const educationSystem = normalizeEducationSystem(
     link.secondaryBranch.educationSystem,
@@ -395,17 +388,51 @@ export async function getAtelierCourseLinkForCours(
   };
 }
 
-export async function upsertAtelierCourseLink(params: {
+export async function getAtelierCourseLinksForCours(
+  atelierCoursId: string,
+): Promise<AtelierCourseLinkView[]> {
+  const links = await prisma.atelierCourseLink.findMany({
+    where: { atelierCoursId },
+    include: {
+      secondaryCours: { select: { id: true, nameCours: true } },
+      secondaryBranch: {
+        select: {
+          id: true,
+          name: true,
+          educationSystem: true,
+          typebranch: true,
+        },
+      },
+    },
+    orderBy: [
+      { secondaryBranch: { name: "asc" } },
+      { secondaryCours: { nameCours: "asc" } },
+    ],
+  });
+
+  return Promise.all(links.map((link) => toAtelierCourseLinkView(link)));
+}
+
+/** @deprecated Préférer getAtelierCourseLinksForCours */
+export async function getAtelierCourseLinkForCours(
+  atelierCoursId: string,
+): Promise<AtelierCourseLinkView | null> {
+  const links = await getAtelierCourseLinksForCours(atelierCoursId);
+  return links[0] ?? null;
+}
+
+/**
+ * Synchronise les liens atelier → secondaires (1 cours pratique → N écoles).
+ * Liste vide = suppression de tous les liens.
+ */
+export async function syncAtelierCourseLinks(params: {
   atelierBranchId: string;
   organizationId: string;
   atelierCoursId: string;
-  secondaryCoursId: string | null | undefined;
-  secondaryBranchId: string | null | undefined;
+  secondaryCoursIds: string[] | null | undefined;
   /** null / undefined / AUTO → période active automatique. */
   targetPeriodKey: string | null | undefined;
 }) {
-  const secondaryCoursId = params.secondaryCoursId?.trim() || null;
-  const secondaryBranchId = params.secondaryBranchId?.trim() || null;
   const rawPeriod = params.targetPeriodKey?.trim() || null;
   const targetPeriodKey: string = isAtelierPeriodAuto(rawPeriod)
     ? ATELIER_LINK_PERIOD_AUTO
@@ -419,66 +446,118 @@ export async function upsertAtelierCourseLink(params: {
     throw new Error("Cours atelier introuvable dans cette branche");
   }
 
-  if (!secondaryCoursId && !secondaryBranchId) {
+  const desiredIds = [
+    ...new Set(
+      (params.secondaryCoursIds ?? [])
+        .map((id) => id.trim())
+        .filter(Boolean),
+    ),
+  ];
+
+  if (!desiredIds.length) {
     await prisma.atelierCourseLink.deleteMany({
       where: { atelierCoursId: params.atelierCoursId },
     });
-    return null;
+    return [];
   }
 
-  if (!secondaryCoursId || !secondaryBranchId) {
-    throw new Error("Pour associer l'atelier, choisissez un cours secondaire.");
-  }
-
-  const secondaryBranch = await prisma.branch.findFirst({
+  const secondaryCourses = await prisma.cours.findMany({
     where: {
-      id: secondaryBranchId,
-      organizationId: params.organizationId,
-      typebranch: "SECONDAIRE",
-      isActive: true,
-    },
-    select: { id: true, educationSystem: true },
-  });
-  if (!secondaryBranch) {
-    throw new Error("Branche secondaire introuvable dans l'organisation");
-  }
-
-  const secondaryCours = await prisma.cours.findFirst({
-    where: {
-      id: secondaryCoursId,
-      branchId: secondaryBranch.id,
+      id: { in: desiredIds },
       ...gradeableCoursFilter,
+      branch: {
+        organizationId: params.organizationId,
+        typebranch: "SECONDAIRE",
+        isActive: true,
+      },
     },
-    select: { id: true },
+    select: {
+      id: true,
+      branchId: true,
+      branch: { select: { id: true, educationSystem: true } },
+    },
   });
-  if (!secondaryCours) {
-    throw new Error("Cours secondaire introuvable dans la branche choisie");
+
+  if (secondaryCourses.length !== desiredIds.length) {
+    throw new Error(
+      "Un ou plusieurs cours secondaires sont introuvables dans l'organisation",
+    );
   }
 
   if (targetPeriodKey !== ATELIER_LINK_PERIOD_AUTO) {
-    const validKeys = new Set(
-      listSecondaryPeriodOptions(secondaryBranch.educationSystem).map(
-        (p) => p.key,
-      ),
-    );
-    if (!validKeys.has(targetPeriodKey)) {
-      throw new Error("Période secondaire cible invalide");
+    for (const course of secondaryCourses) {
+      const validKeys = new Set(
+        listSecondaryPeriodOptions(course.branch.educationSystem).map(
+          (p) => p.key,
+        ),
+      );
+      if (!validKeys.has(targetPeriodKey)) {
+        throw new Error("Période secondaire cible invalide");
+      }
     }
   }
 
-  return prisma.atelierCourseLink.upsert({
+  const existing = await prisma.atelierCourseLink.findMany({
     where: { atelierCoursId: params.atelierCoursId },
-    create: {
-      atelierCoursId: params.atelierCoursId,
-      secondaryCoursId,
-      secondaryBranchId: secondaryBranch.id,
-      targetPeriodKey,
-    },
-    update: {
-      secondaryCoursId,
-      secondaryBranchId: secondaryBranch.id,
-      targetPeriodKey,
-    },
+    select: { id: true, secondaryCoursId: true },
+  });
+  const existingBySecondary = new Map(
+    existing.map((row) => [row.secondaryCoursId, row.id] as const),
+  );
+  const desiredSet = new Set(desiredIds);
+
+  const toDelete = existing
+    .filter((row) => !desiredSet.has(row.secondaryCoursId))
+    .map((row) => row.id);
+
+  if (toDelete.length) {
+    await prisma.atelierCourseLink.deleteMany({
+      where: { id: { in: toDelete } },
+    });
+  }
+
+  for (const course of secondaryCourses) {
+    const existingId = existingBySecondary.get(course.id);
+    if (existingId) {
+      await prisma.atelierCourseLink.update({
+        where: { id: existingId },
+        data: {
+          secondaryBranchId: course.branchId,
+          targetPeriodKey,
+        },
+      });
+    } else {
+      await prisma.atelierCourseLink.create({
+        data: {
+          atelierCoursId: params.atelierCoursId,
+          secondaryCoursId: course.id,
+          secondaryBranchId: course.branchId,
+          targetPeriodKey,
+        },
+      });
+    }
+  }
+
+  return getAtelierCourseLinksForCours(params.atelierCoursId);
+}
+
+/** @deprecated Préférer syncAtelierCourseLinks */
+export async function upsertAtelierCourseLink(params: {
+  atelierBranchId: string;
+  organizationId: string;
+  atelierCoursId: string;
+  secondaryCoursId: string | null | undefined;
+  secondaryBranchId: string | null | undefined;
+  /** null / undefined / AUTO → période active automatique. */
+  targetPeriodKey: string | null | undefined;
+}) {
+  const secondaryCoursId = params.secondaryCoursId?.trim() || null;
+  return syncAtelierCourseLinks({
+    atelierBranchId: params.atelierBranchId,
+    organizationId: params.organizationId,
+    atelierCoursId: params.atelierCoursId,
+    secondaryCoursIds: secondaryCoursId ? [secondaryCoursId] : [],
+    targetPeriodKey: params.targetPeriodKey,
   });
 }
 

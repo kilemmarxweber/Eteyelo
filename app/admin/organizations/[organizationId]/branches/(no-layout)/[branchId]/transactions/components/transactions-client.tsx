@@ -33,6 +33,7 @@ import {
   getTransactionFilterOptionsAction,
   unarchiveBranchTransactionAction,
 } from "../transactions.action";
+import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
 
 type TransactionRow = {
   id: string;
@@ -94,9 +95,12 @@ export default function TransactionsClient() {
   const localeTag =
     locale === "fr" ? "fr-FR" : locale === "pt" ? "pt-PT" : "en-US";
   const today = toDateInputValue();
+  const { canDelete: canDeleteByGrant } =
+    useTemporaryGrantActions("transactions");
   const [rows, setRows] = useState<TransactionRow[]>([]);
   const [currency, setCurrency] = useState("USD");
-  const [canDelete, setCanDelete] = useState(false);
+  const [canDeleteFromServer, setCanDeleteFromServer] = useState(false);
+  const canDelete = canDeleteFromServer || canDeleteByGrant;
   const [includeArchived, setIncludeArchived] = useState(false);
   const [mode, setMode] = useState<PeriodMode>("day");
   const [day, setDay] = useState(today);
@@ -158,7 +162,7 @@ export default function TransactionsClient() {
     else if (result) {
       setRows(result.rows as TransactionRow[]);
       setCurrency(result.currency);
-      setCanDelete(Boolean(result.canDelete));
+      setCanDeleteFromServer(Boolean(result.canDelete));
     }
     setLoading(false);
   }, [

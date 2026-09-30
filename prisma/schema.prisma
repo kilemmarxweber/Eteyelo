@@ -654,8 +654,8 @@ model Cours {
   branch            Branch                   @relation(fields: [branchId], references: [id], onDelete: Cascade)
   coursPonderations CoursOptionPonderation[]
   onlineAssignments OnlineAssignment[]
-  /// Lien sortant (cours atelier → cours secondaire).
-  atelierCourseLink     AtelierCourseLink?  @relation("AtelierCourseLinks")
+  /// Liens sortants (cours atelier → un ou plusieurs cours secondaires).
+  atelierCourseLinks    AtelierCourseLink[] @relation("AtelierCourseLinks")
   /// Liens entrants (cours secondaires alimentés par des ateliers).
   secondaryAtelierLinks AtelierCourseLink[] @relation("SecondaryCourseAtelierLinks")
   practicalDomainLinks  PracticalDomainCours[]
@@ -670,11 +670,12 @@ model Cours {
   @@index([branchId, hasPracticalLab])
 }
 
-/// Associe un cours d'atelier à un cours secondaire : devoirs / évaluations / TP
-/// atelier sont ramenés dans la moyenne du cours secondaire pour la période cible.
+/// Associe un cours d'atelier à un ou plusieurs cours secondaires : devoirs /
+/// évaluations / TP atelier sont ramenés dans la moyenne du cours secondaire
+/// pour la période cible (ex. une Chimie pratique → Chimie de plusieurs écoles).
 model AtelierCourseLink {
   id                String   @id @default(cuid())
-  atelierCoursId    String   @unique
+  atelierCoursId    String
   atelierCours      Cours    @relation("AtelierCourseLinks", fields: [atelierCoursId], references: [id], onDelete: Cascade)
   secondaryCoursId  String
   secondaryCours    Cours    @relation("SecondaryCourseAtelierLinks", fields: [secondaryCoursId], references: [id], onDelete: Cascade)
@@ -685,6 +686,8 @@ model AtelierCourseLink {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  @@unique([atelierCoursId, secondaryCoursId])
+  @@index([atelierCoursId])
   @@index([secondaryCoursId])
   @@index([secondaryBranchId])
   @@index([secondaryCoursId, targetPeriodKey])

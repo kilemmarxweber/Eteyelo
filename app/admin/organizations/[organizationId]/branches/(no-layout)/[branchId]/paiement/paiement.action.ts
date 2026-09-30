@@ -29,7 +29,7 @@ import {
 } from "@/lib/exchange-rate";
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import { getSchoolYearForBranch } from "@/lib/school-year";
-import { notifyParentOfPayment, notifyParentOfPaymentNow } from "@/lib/payments/notify-parent-payment";
+import { notifyParentOfPayment, queueParentPaymentDeleteNotify } from "@/lib/payments/notify-parent-payment";
 import { resolveUserDisplayName } from "@/lib/user-display";
 import {
   computeScopedDiscountAmount,
@@ -1717,10 +1717,10 @@ export const deletePaiementAction = action
       ),
     );
 
-    await notifyParentOfPaymentNow({
+    // Snapshot notification avant delete (rapide), envoi e-mail/WhatsApp en arrière-plan.
+    await queueParentPaymentDeleteNotify({
       organizationId,
       branchId,
-      kind: "deleted",
       paymentIds,
     });
 

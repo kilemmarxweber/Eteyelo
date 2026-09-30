@@ -2,7 +2,11 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { requireFinanceBranchContext, requireFinanceOversightBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  requireBranchAreaActionContext,
+  requireFinanceBranchContext,
+  requireFinanceOversightBranchContext,
+} from "@/lib/auth/require-branch-context";
 import type { Prisma } from "@/prisma/generated/prisma/client";
 import { action } from "@/lib/zsa";
 import {
@@ -28,10 +32,6 @@ import { compareClassesByLevel } from "@/lib/class-structure";
 import { isAtelierBranch } from "@/lib/branch-capabilities";
 import { ensureWorkshopAcademicStructure } from "@/lib/workshop-academic-structure";
 import { randomUUID } from "crypto";
-import {
-  canPermanentlyDeleteInformation,
-  PERMANENT_DELETE_DENIED_MESSAGE,
-} from "@/lib/auth/session-roles";
 import { resolveFraisPriority } from "@/lib/optional-frais";
 
 type FraisWithRelations = Prisma.FraisGetPayload<{
@@ -427,15 +427,12 @@ export const archiveFrais = action
     };
   });
 
-/** Suppression définitive — propriétaire uniquement. */
+/** Suppression définitive — propriétaire / DAC delete / octroi temporaire fees:delete. */
 export const deleteFraisPermanentlyAction = action
   .input(deleteFraisSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } =
-      await requireFinanceOversightBranchContext();
-    if (!canPermanentlyDeleteInformation(session)) {
-      throw new Error(PERMANENT_DELETE_DENIED_MESSAGE);
-    }
+    const { branchId, organizationId } =
+      await requireBranchAreaActionContext("fee_catalog", "delete");
 
     const frais = await prisma.frais.findFirst({
       where: { id: input.id, branchId },
@@ -884,8 +881,6 @@ export const replicateFraisAction = action
 export const deleteFraisAcrossClassesAction = action
   .input(deleteFraisAcrossClassesSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } =
-      await requireFinanceOversightBranchContext();
     const {
       sourceClasseId,
       fraisIds,
@@ -894,9 +889,9 @@ export const deleteFraisAcrossClassesAction = action
       permanent = false,
     } = input;
 
-    if (permanent && !canPermanentlyDeleteInformation(session)) {
-      throw new Error(PERMANENT_DELETE_DENIED_MESSAGE);
-    }
+    const { branchId, organizationId } = permanent
+      ? await requireBranchAreaActionContext("fee_catalog", "delete")
+      : await requireFinanceOversightBranchContext();
 
     const currentYear = await getCurrentBranchSchoolYear(branchId);
     const sourceClasse = await requireClasseInBranch(sourceClasseId, branchId);

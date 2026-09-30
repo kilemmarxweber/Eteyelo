@@ -19,7 +19,7 @@ import { IFrais } from "@/src/interfaces/Frais";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { useSession } from "@/lib/auth-client";
-import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
+import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
 
 export const columns: ColumnDef<IFrais>[] = [
   {
@@ -74,22 +74,14 @@ export const columns: ColumnDef<IFrais>[] = [
   {
     id: "actions",
     cell: function Cell({ row }) {
-      const { data: session, isPending: sessionPending } = useSession();
-      const [hasMounted, setHasMounted] = React.useState(false);
-      const canPurgePermanently =
-        hasMounted &&
-        !sessionPending &&
-        isOrganizationOwnerSession(session);
+      const { canDelete, loaded } = useTemporaryGrantActions("fees");
+      const canPurgePermanently = loaded && canDelete;
       const [showUpdateTaskSheet, setShowUpdateTaskSheet] =
         React.useState(false);
       const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
         React.useState(false);
       const [showPurgeTaskDialog, setShowPurgeTaskDialog] =
         React.useState(false);
-
-      React.useEffect(() => {
-        setHasMounted(true);
-      }, []);
 
       return (
         <>

@@ -67,11 +67,9 @@ export function UpdateCoursDialog({
               nameCours: cours.nameCours,
               description: cours.description,
               primaryDomain: cours.primaryDomain ?? null,
-              linkedSecondaryBranchId:
-                cours.atelierLink?.secondaryBranchId ?? null,
-              linkedSecondaryCoursId:
-                cours.atelierLink?.secondaryCoursId ?? null,
-              linkedTargetPeriodKey: cours.atelierLink
+              linkedSecondaryCoursIds:
+                cours.atelierLinks?.map((link) => link.secondaryCoursId) ?? [],
+              linkedTargetPeriodKey: cours.atelierLinks?.length
                 ? ATELIER_LINK_PERIOD_AUTO
                 : null,
               practicalDomainId: cours.practicalDomainId ?? null,

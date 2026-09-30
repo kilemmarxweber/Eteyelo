@@ -17,8 +17,9 @@ export type AtelierCourseLinkRow = {
 
 /**
  * Pure : cours atelier affectables pour un groupe.
- * 1) Liens dont le cours secondaire est dans le curriculum de la classe source
- * 2) Sinon : tous les liens vers la même école (branche) source
+ * Uniquement les liens dont le cours secondaire est dans le curriculum
+ * (option + niveau) de la classe source — pas de repli « toute l'école »
+ * (ex. Chimie TP pour 1–4 SC, pas pour 1 CEG Comptabilité).
  */
 export function resolveAtelierConfiguredParentIds(params: {
   sourceClasseId: string | null | undefined;
@@ -31,6 +32,10 @@ export function resolveAtelierConfiguredParentIds(params: {
   }
 
   const secondarySet = new Set(params.secondaryConfiguredCoursIds);
+  if (!secondarySet.size) {
+    return { coursIds: [], emptyReason: "NO_MATCHING_LINKS" };
+  }
+
   const fromCurriculum = new Set<string>();
   for (const link of params.atelierLinks) {
     if (secondarySet.has(link.secondaryCoursId)) {
@@ -39,19 +44,6 @@ export function resolveAtelierConfiguredParentIds(params: {
   }
   if (fromCurriculum.size > 0) {
     return { coursIds: [...fromCurriculum], emptyReason: null };
-  }
-
-  const sourceBranchId = params.sourceBranchId?.trim() || null;
-  if (sourceBranchId) {
-    const fromSchool = new Set<string>();
-    for (const link of params.atelierLinks) {
-      if (link.secondaryBranchId === sourceBranchId) {
-        fromSchool.add(link.atelierCoursId);
-      }
-    }
-    if (fromSchool.size > 0) {
-      return { coursIds: [...fromSchool], emptyReason: null };
-    }
   }
 
   return { coursIds: [], emptyReason: "NO_MATCHING_LINKS" };
@@ -82,7 +74,7 @@ async function loadAtelierCourseLinks(
 
 /**
  * Cours atelier (parents) affectables pour un groupe :
- * Groupe → classe source → curriculum / école secondaire → AtelierCourseLink.
+ * Groupe → classe source → curriculum secondaire → AtelierCourseLink.
  */
 export async function getConfiguredCoursIdsForAtelierGroupe(params: {
   atelierBranchId: string;
@@ -201,7 +193,7 @@ export function atelierConfiguredEmptyMessage(
     return "Définissez la classe source du groupe avant d'affecter des enseignants.";
   }
   if (reason === "NO_MATCHING_LINKS") {
-    return "Liez les cours atelier aux matières secondaires de la classe / école source.";
+    return "Aucun cours atelier lié aux matières pondérées de la classe source de ce groupe.";
   }
   return "Aucun cours configuré pour ce groupe.";
 }

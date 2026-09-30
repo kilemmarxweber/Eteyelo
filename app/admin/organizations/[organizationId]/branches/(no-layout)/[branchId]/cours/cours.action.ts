@@ -29,7 +29,7 @@ import {
 } from "@/lib/extended-course-import";
 import {
   getAtelierLinkOptionsForOrganization,
-  upsertAtelierCourseLink,
+  syncAtelierCourseLinks,
   ATELIER_LINK_PERIOD_AUTO,
   resolveActiveSecondaryPeriodKey,
   isAtelierPeriodAuto,
@@ -159,12 +159,11 @@ export const createCoursAction = action
       });
 
       if (isAtelierBranchType(typebranch)) {
-        await upsertAtelierCourseLink({
+        await syncAtelierCourseLinks({
           atelierBranchId: branchId,
           organizationId,
           atelierCoursId: cours.id,
-          secondaryCoursId: input.linkedSecondaryCoursId,
-          secondaryBranchId: input.linkedSecondaryBranchId,
+          secondaryCoursIds: input.linkedSecondaryCoursIds,
           targetPeriodKey:
             input.linkedTargetPeriodKey ?? ATELIER_LINK_PERIOD_AUTO,
         });
@@ -264,15 +263,16 @@ export const updateCoursAction = action
     });
 
     if (isAtelierBranchType(typebranch)) {
-      await upsertAtelierCourseLink({
-        atelierBranchId: branchId,
-        organizationId,
-        atelierCoursId: id,
-        secondaryCoursId: input.linkedSecondaryCoursId,
-        secondaryBranchId: input.linkedSecondaryBranchId,
-        targetPeriodKey:
-          input.linkedTargetPeriodKey ?? ATELIER_LINK_PERIOD_AUTO,
-      });
+      if (input.linkedSecondaryCoursIds !== undefined) {
+        await syncAtelierCourseLinks({
+          atelierBranchId: branchId,
+          organizationId,
+          atelierCoursId: id,
+          secondaryCoursIds: input.linkedSecondaryCoursIds,
+          targetPeriodKey:
+            input.linkedTargetPeriodKey ?? ATELIER_LINK_PERIOD_AUTO,
+        });
+      }
 
       if (input.practicalDomainId !== undefined) {
         await prisma.practicalDomainCours.deleteMany({
@@ -445,7 +445,7 @@ export const getCoursAction = action
         parentCours: { select: { nameCours: true } },
         ...(isAtelierBranchType(typebranch)
           ? {
-              atelierCourseLink: {
+              atelierCourseLinks: {
                 include: {
                   secondaryCours: { select: { id: true, nameCours: true } },
                   secondaryBranch: {
@@ -457,6 +457,10 @@ export const getCoursAction = action
                     },
                   },
                 },
+                orderBy: [
+                  { secondaryBranch: { name: "asc" } },
+                  { secondaryCours: { nameCours: "asc" } },
+                ],
               },
               practicalDomainLinks: {
                 take: 1,
@@ -473,11 +477,11 @@ export const getCoursAction = action
 
     const transformedCourses: ICours[] = [];
     for (const { _count, parentCours, ...cours } of Cours) {
-      const link =
-        "atelierCourseLink" in cours
+      const links =
+        "atelierCourseLinks" in cours
           ? (
               cours as typeof cours & {
-                atelierCourseLink?: {
+                atelierCourseLinks?: Array<{
                   secondaryCoursId: string;
                   secondaryCours: { id: string; nameCours: string };
                   secondaryBranchId: string;
@@ -488,10 +492,10 @@ export const getCoursAction = action
                     typebranch: string;
                   };
                   targetPeriodKey: string;
-                } | null;
+                }>;
               }
-            ).atelierCourseLink
-          : null;
+            ).atelierCourseLinks ?? []
+          : [];
 
       const domainLink =
         "practicalDomainLinks" in cours
@@ -506,16 +510,16 @@ export const getCoursAction = action
           : undefined;
 
       const {
-        atelierCourseLink: _ignored,
+        atelierCourseLinks: _ignored,
         practicalDomainLinks: _domains,
         ...rest
       } = cours as typeof cours & {
-        atelierCourseLink?: unknown;
+        atelierCourseLinks?: unknown;
         practicalDomainLinks?: unknown;
       };
 
-      let atelierLink: ICours["atelierLink"] = null;
-      if (link) {
+      const atelierLinks: NonNullable<ICours["atelierLinks"]> = [];
+      for (const link of links) {
         const auto = isAtelierPeriodAuto(link.targetPeriodKey);
         const active = auto
           ? await resolveActiveSecondaryPeriodKey({
@@ -523,7 +527,7 @@ export const getCoursAction = action
               secondaryCoursId: link.secondaryCoursId,
             })
           : null;
-        atelierLink = {
+        atelierLinks.push({
           secondaryCoursId: link.secondaryCoursId,
           secondaryCoursName: link.secondaryCours.nameCours,
           secondaryBranchId: link.secondaryBranchId,
@@ -540,7 +544,7 @@ export const getCoursAction = action
           activePeriodKey: active?.key ?? null,
           activePeriodLabel: active?.label ?? null,
           isPeriodAuto: auto,
-        };
+        });
       }
 
       transformedCourses.push({
@@ -555,7 +559,7 @@ export const getCoursAction = action
         teachingsCount: _count.teaching,
         componentsCount: _count.components,
         parentNameCours: parentCours?.nameCours ?? null,
-        atelierLink,
+        atelierLinks,
       });
     }
     return transformedCourses;

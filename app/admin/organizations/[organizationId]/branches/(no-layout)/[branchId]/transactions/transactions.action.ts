@@ -3,8 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { isCanonicalOrganizationOwnerSession } from "@/lib/auth/session-roles";
-import { requireBranchAreaContext } from "@/lib/auth/require-branch-context";
+import { getBranchAreaMutationFlags } from "@/lib/auth/assert-branch-area-access";
+import {
+  requireBranchAreaActionContext,
+  requireBranchAreaContext,
+} from "@/lib/auth/require-branch-context";
 import { getBaseCurrency } from "@/lib/exchange-rate";
 import { prisma } from "@/lib/prisma";
 import { action } from "@/lib/zsa";
@@ -469,7 +472,14 @@ export const getBranchTransactionsAction = action
 
     return {
       currency: getBaseCurrency(rates),
-      canDelete: isCanonicalOrganizationOwnerSession(context.session),
+      canDelete: (
+        await getBranchAreaMutationFlags(
+          "transactions",
+          context.session,
+          context.organizationId,
+          context.branchId,
+        )
+      ).canDelete,
       mode,
       day: mode === "day" ? (input.day ?? toDateInputValue()) : null,
       startDate: mode === "period" ? input.startDate ?? null : null,
@@ -656,12 +666,10 @@ export const deleteBranchTransactionAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const context = await requireBranchAreaContext("transactions");
-    if (!isCanonicalOrganizationOwnerSession(context.session)) {
-      throw new Error(
-        "Seul le propriétaire peut supprimer définitivement une transaction.",
-      );
-    }
+    const context = await requireBranchAreaActionContext(
+      "transactions",
+      "delete",
+    );
 
     if (input.kind === "PAYMENT") {
       const existing = await prisma.familyPayment.findFirst({

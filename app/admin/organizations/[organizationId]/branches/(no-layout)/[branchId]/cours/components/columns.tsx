@@ -106,24 +106,33 @@ export function useCoursColumns(
 
   if (isAtelier) {
     cols.push({
-      id: "atelierLink",
-      accessorFn: (row) => row.atelierLink?.secondaryCoursName ?? "",
+      id: "atelierLinks",
+      accessorFn: (row) =>
+        (row.atelierLinks ?? [])
+          .map((link) => `${link.secondaryCoursName} ${link.secondaryBranchName}`)
+          .join(" "),
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t("linkedCourse")} />
       ),
       cell: ({ row }) => {
-        const link = row.original.atelierLink;
-        if (!link) {
+        const links = row.original.atelierLinks ?? [];
+        if (!links.length) {
           return <Badge variant="secondary">{t("noLink")}</Badge>;
         }
+        const courseNames = [
+          ...new Set(links.map((link) => link.secondaryCoursName)),
+        ].join(", ");
         return (
           <div className="min-w-0 space-y-0.5">
-            <p className="truncate text-sm font-medium">
-              {link.secondaryCoursName}
-            </p>
-            <p className="truncate text-xs text-muted-foreground">
-              {link.secondaryBranchName} · {link.targetPeriodLabel}
-            </p>
+            <p className="truncate text-sm font-medium">{courseNames}</p>
+            {links.map((link) => (
+              <p
+                key={`${link.secondaryCoursId}-${link.secondaryBranchId}`}
+                className="truncate text-xs text-muted-foreground"
+              >
+                {link.secondaryBranchName} · {link.targetPeriodLabel}
+              </p>
+            ))}
           </div>
         );
       },

@@ -14,8 +14,9 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model AtelierCourseLink
- * Associe un cours d'atelier à un cours secondaire : devoirs / évaluations / TP
- * atelier sont ramenés dans la moyenne du cours secondaire pour la période cible.
+ * Associe un cours d'atelier à un ou plusieurs cours secondaires : devoirs /
+ * évaluations / TP atelier sont ramenés dans la moyenne du cours secondaire
+ * pour la période cible (ex. une Chimie pratique → Chimie de plusieurs écoles).
  */
 export type AtelierCourseLinkModel = runtime.Types.Result.DefaultSelection<Prisma.$AtelierCourseLinkPayload>
 
@@ -219,10 +220,11 @@ export type AtelierCourseLinkOrderByWithRelationInput = {
 
 export type AtelierCourseLinkWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  atelierCoursId?: string
+  atelierCoursId_secondaryCoursId?: Prisma.AtelierCourseLinkAtelierCoursIdSecondaryCoursIdCompoundUniqueInput
   AND?: Prisma.AtelierCourseLinkWhereInput | Prisma.AtelierCourseLinkWhereInput[]
   OR?: Prisma.AtelierCourseLinkWhereInput[]
   NOT?: Prisma.AtelierCourseLinkWhereInput | Prisma.AtelierCourseLinkWhereInput[]
+  atelierCoursId?: Prisma.StringFilter<"AtelierCourseLink"> | string
   secondaryCoursId?: Prisma.StringFilter<"AtelierCourseLink"> | string
   secondaryBranchId?: Prisma.StringFilter<"AtelierCourseLink"> | string
   targetPeriodKey?: Prisma.StringFilter<"AtelierCourseLink"> | string
@@ -231,7 +233,7 @@ export type AtelierCourseLinkWhereUniqueInput = Prisma.AtLeast<{
   atelierCours?: Prisma.XOR<Prisma.CoursScalarRelationFilter, Prisma.CoursWhereInput>
   secondaryCours?: Prisma.XOR<Prisma.CoursScalarRelationFilter, Prisma.CoursWhereInput>
   secondaryBranch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
-}, "id" | "atelierCoursId">
+}, "id" | "atelierCoursId_secondaryCoursId">
 
 export type AtelierCourseLinkOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -264,7 +266,7 @@ export type AtelierCourseLinkCreateInput = {
   targetPeriodKey: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  atelierCours: Prisma.CoursCreateNestedOneWithoutAtelierCourseLinkInput
+  atelierCours: Prisma.CoursCreateNestedOneWithoutAtelierCourseLinksInput
   secondaryCours: Prisma.CoursCreateNestedOneWithoutSecondaryAtelierLinksInput
   secondaryBranch: Prisma.BranchCreateNestedOneWithoutAtelierCourseLinksInput
 }
@@ -284,7 +286,7 @@ export type AtelierCourseLinkUpdateInput = {
   targetPeriodKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  atelierCours?: Prisma.CoursUpdateOneRequiredWithoutAtelierCourseLinkNestedInput
+  atelierCours?: Prisma.CoursUpdateOneRequiredWithoutAtelierCourseLinksNestedInput
   secondaryCours?: Prisma.CoursUpdateOneRequiredWithoutSecondaryAtelierLinksNestedInput
   secondaryBranch?: Prisma.BranchUpdateOneRequiredWithoutAtelierCourseLinksNestedInput
 }
@@ -326,11 +328,6 @@ export type AtelierCourseLinkUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type AtelierCourseLinkNullableScalarRelationFilter = {
-  is?: Prisma.AtelierCourseLinkWhereInput | null
-  isNot?: Prisma.AtelierCourseLinkWhereInput | null
-}
-
 export type AtelierCourseLinkListRelationFilter = {
   every?: Prisma.AtelierCourseLinkWhereInput
   some?: Prisma.AtelierCourseLinkWhereInput
@@ -339,6 +336,11 @@ export type AtelierCourseLinkListRelationFilter = {
 
 export type AtelierCourseLinkOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type AtelierCourseLinkAtelierCoursIdSecondaryCoursIdCompoundUniqueInput = {
+  atelierCoursId: string
+  secondaryCoursId: string
 }
 
 export type AtelierCourseLinkCountOrderByAggregateInput = {
@@ -371,10 +373,11 @@ export type AtelierCourseLinkMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
-export type AtelierCourseLinkCreateNestedOneWithoutAtelierCoursInput = {
-  create?: Prisma.XOR<Prisma.AtelierCourseLinkCreateWithoutAtelierCoursInput, Prisma.AtelierCourseLinkUncheckedCreateWithoutAtelierCoursInput>
-  connectOrCreate?: Prisma.AtelierCourseLinkCreateOrConnectWithoutAtelierCoursInput
-  connect?: Prisma.AtelierCourseLinkWhereUniqueInput
+export type AtelierCourseLinkCreateNestedManyWithoutAtelierCoursInput = {
+  create?: Prisma.XOR<Prisma.AtelierCourseLinkCreateWithoutAtelierCoursInput, Prisma.AtelierCourseLinkUncheckedCreateWithoutAtelierCoursInput> | Prisma.AtelierCourseLinkCreateWithoutAtelierCoursInput[] | Prisma.AtelierCourseLinkUncheckedCreateWithoutAtelierCoursInput[]
+  connectOrCreate?: Prisma.AtelierCourseLinkCreateOrConnectWithoutAtelierCoursInput | Prisma.AtelierCourseLinkCreateOrConnectWithoutAtelierCoursInput[]
+  createMany?: Prisma.AtelierCourseLinkCreateManyAtelierCoursInputEnvelope
+  connect?: Prisma.AtelierCourseLinkWhereUniqueInput | Prisma.AtelierCourseLinkWhereUniqueInput[]
 }
 
 export type AtelierCourseLinkCreateNestedManyWithoutSecondaryCoursInput = {
@@ -384,10 +387,11 @@ export type AtelierCourseLinkCreateNestedManyWithoutSecondaryCoursInput = {
   connect?: Prisma.AtelierCourseLinkWhereUniqueInput | Prisma.AtelierCourseLinkWhereUniqueInput[]
 }
 
-export type AtelierCourseLinkUncheckedCreateNestedOneWithoutAtelierCoursInput = {
-  create?: Prisma.XOR<Prisma.AtelierCourseLinkCreateWithoutAtelierCoursInput, Prisma.AtelierCourseLinkUncheckedCreateWithoutAtelierCoursInput>
-  connectOrCreate?: Prisma.AtelierCourseLinkCreateOrConnectWithoutAtelierCoursInput
-  connect?: Prisma.AtelierCourseLinkWhereUniqueInput
+export type AtelierCourseLinkUncheckedCreateNestedManyWithoutAtelierCoursInput = {
+  create?: Prisma.XOR<Prisma.AtelierCourseLinkCreateWithoutAtelierCoursInput, Prisma.AtelierCourseLinkUncheckedCreateWithoutAtelierCoursInput> | Prisma.AtelierCourseLinkCreateWithoutAtelierCoursInput[] | Prisma.AtelierCourseLinkUncheckedCreateWithoutAtelierCoursInput[]
+  connectOrCreate?: Prisma.AtelierCourseLinkCreateOrConnectWithoutAtelierCoursInput | Prisma.AtelierCourseLinkCreateOrConnectWithoutAtelierCoursInput[]
+  createMany?: Prisma.AtelierCourseLinkCreateManyAtelierCoursInputEnvelope
+  connect?: Prisma.AtelierCourseLinkWhereUniqueInput | Prisma.AtelierCourseLinkWhereUniqueInput[]
 }
 
 export type AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryCoursInput = {
@@ -397,14 +401,18 @@ export type AtelierCourseLinkUncheckedCreateNestedManyWithoutSecondaryCoursInput
   connect?: Prisma.AtelierCourseLinkWhereUniqueInput | Prisma.AtelierCourseLinkWhereUniqueInput[]
 }
 
-export type AtelierCourseLinkUpdateOneWithoutAtelierCoursNestedInput = {
-  create?: Prisma.XOR<Prisma.AtelierCourseLinkCreateWithoutAtelierCoursInput, Prisma.AtelierCourseLinkUncheckedCreateWithoutAtelierCoursInput>
-  connectOrCreate?: Prisma.AtelierCourseLinkCreateOrConnectWithoutAtelierCoursInput
-  upsert?: Prisma.AtelierCourseLinkUpsertWithoutAtelierCoursInput
-  disconnect?: Prisma.AtelierCourseLinkWhereInput | boolean
-  delete?: Prisma.AtelierCourseLinkWhereInput | boolean
-  connect?: Prisma.AtelierCourseLinkWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.AtelierCourseLinkUpdateToOneWithWhereWithoutAtelierCoursInput, Prisma.AtelierCourseLinkUpdateWithoutAtelierCoursInput>, Prisma.AtelierCourseLinkUncheckedUpdateWithoutAtelierCoursInput>
+export type AtelierCourseLinkUpdateManyWithoutAtelierCoursNestedInput = {
+  create?: Prisma.XOR<Prisma.AtelierCourseLinkCreateWithoutAtelierCoursInput, Prisma.AtelierCourseLinkUncheckedCreateWithoutAtelierCoursInput> | Prisma.AtelierCourseLinkCreateWithoutAtelierCoursInput[] | Prisma.AtelierCourseLinkUncheckedCreateWithoutAtelierCoursInput[]
+  connectOrCreate?: Prisma.AtelierCourseLinkCreateOrConnectWithoutAtelierCoursInput | Prisma.AtelierCourseLinkCreateOrConnectWithoutAtelierCoursInput[]
+  upsert?: Prisma.AtelierCourseLinkUpsertWithWhereUniqueWithoutAtelierCoursInput | Prisma.AtelierCourseLinkUpsertWithWhereUniqueWithoutAtelierCoursInput[]
+  createMany?: Prisma.AtelierCourseLinkCreateManyAtelierCoursInputEnvelope
+  set?: Prisma.AtelierCourseLinkWhereUniqueInput | Prisma.AtelierCourseLinkWhereUniqueInput[]
+  disconnect?: Prisma.AtelierCourseLinkWhereUniqueInput | Prisma.AtelierCourseLinkWhereUniqueInput[]
+  delete?: Prisma.AtelierCourseLinkWhereUniqueInput | Prisma.AtelierCourseLinkWhereUniqueInput[]
+  connect?: Prisma.AtelierCourseLinkWhereUniqueInput | Prisma.AtelierCourseLinkWhereUniqueInput[]
+  update?: Prisma.AtelierCourseLinkUpdateWithWhereUniqueWithoutAtelierCoursInput | Prisma.AtelierCourseLinkUpdateWithWhereUniqueWithoutAtelierCoursInput[]
+  updateMany?: Prisma.AtelierCourseLinkUpdateManyWithWhereWithoutAtelierCoursInput | Prisma.AtelierCourseLinkUpdateManyWithWhereWithoutAtelierCoursInput[]
+  deleteMany?: Prisma.AtelierCourseLinkScalarWhereInput | Prisma.AtelierCourseLinkScalarWhereInput[]
 }
 
 export type AtelierCourseLinkUpdateManyWithoutSecondaryCoursNestedInput = {
@@ -421,14 +429,18 @@ export type AtelierCourseLinkUpdateManyWithoutSecondaryCoursNestedInput = {
   deleteMany?: Prisma.AtelierCourseLinkScalarWhereInput | Prisma.AtelierCourseLinkScalarWhereInput[]
 }
 
-export type AtelierCourseLinkUncheckedUpdateOneWithoutAtelierCoursNestedInput = {
-  create?: Prisma.XOR<Prisma.AtelierCourseLinkCreateWithoutAtelierCoursInput, Prisma.AtelierCourseLinkUncheckedCreateWithoutAtelierCoursInput>
-  connectOrCreate?: Prisma.AtelierCourseLinkCreateOrConnectWithoutAtelierCoursInput
-  upsert?: Prisma.AtelierCourseLinkUpsertWithoutAtelierCoursInput
-  disconnect?: Prisma.AtelierCourseLinkWhereInput | boolean
-  delete?: Prisma.AtelierCourseLinkWhereInput | boolean
-  connect?: Prisma.AtelierCourseLinkWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.AtelierCourseLinkUpdateToOneWithWhereWithoutAtelierCoursInput, Prisma.AtelierCourseLinkUpdateWithoutAtelierCoursInput>, Prisma.AtelierCourseLinkUncheckedUpdateWithoutAtelierCoursInput>
+export type AtelierCourseLinkUncheckedUpdateManyWithoutAtelierCoursNestedInput = {
+  create?: Prisma.XOR<Prisma.AtelierCourseLinkCreateWithoutAtelierCoursInput, Prisma.AtelierCourseLinkUncheckedCreateWithoutAtelierCoursInput> | Prisma.AtelierCourseLinkCreateWithoutAtelierCoursInput[] | Prisma.AtelierCourseLinkUncheckedCreateWithoutAtelierCoursInput[]
+  connectOrCreate?: Prisma.AtelierCourseLinkCreateOrConnectWithoutAtelierCoursInput | Prisma.AtelierCourseLinkCreateOrConnectWithoutAtelierCoursInput[]
+  upsert?: Prisma.AtelierCourseLinkUpsertWithWhereUniqueWithoutAtelierCoursInput | Prisma.AtelierCourseLinkUpsertWithWhereUniqueWithoutAtelierCoursInput[]
+  createMany?: Prisma.AtelierCourseLinkCreateManyAtelierCoursInputEnvelope
+  set?: Prisma.AtelierCourseLinkWhereUniqueInput | Prisma.AtelierCourseLinkWhereUniqueInput[]
+  disconnect?: Prisma.AtelierCourseLinkWhereUniqueInput | Prisma.AtelierCourseLinkWhereUniqueInput[]
+  delete?: Prisma.AtelierCourseLinkWhereUniqueInput | Prisma.AtelierCourseLinkWhereUniqueInput[]
+  connect?: Prisma.AtelierCourseLinkWhereUniqueInput | Prisma.AtelierCourseLinkWhereUniqueInput[]
+  update?: Prisma.AtelierCourseLinkUpdateWithWhereUniqueWithoutAtelierCoursInput | Prisma.AtelierCourseLinkUpdateWithWhereUniqueWithoutAtelierCoursInput[]
+  updateMany?: Prisma.AtelierCourseLinkUpdateManyWithWhereWithoutAtelierCoursInput | Prisma.AtelierCourseLinkUpdateManyWithWhereWithoutAtelierCoursInput[]
+  deleteMany?: Prisma.AtelierCourseLinkScalarWhereInput | Prisma.AtelierCourseLinkScalarWhereInput[]
 }
 
 export type AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryCoursNestedInput = {
@@ -510,12 +522,17 @@ export type AtelierCourseLinkCreateOrConnectWithoutAtelierCoursInput = {
   create: Prisma.XOR<Prisma.AtelierCourseLinkCreateWithoutAtelierCoursInput, Prisma.AtelierCourseLinkUncheckedCreateWithoutAtelierCoursInput>
 }
 
+export type AtelierCourseLinkCreateManyAtelierCoursInputEnvelope = {
+  data: Prisma.AtelierCourseLinkCreateManyAtelierCoursInput | Prisma.AtelierCourseLinkCreateManyAtelierCoursInput[]
+  skipDuplicates?: boolean
+}
+
 export type AtelierCourseLinkCreateWithoutSecondaryCoursInput = {
   id?: string
   targetPeriodKey: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  atelierCours: Prisma.CoursCreateNestedOneWithoutAtelierCourseLinkInput
+  atelierCours: Prisma.CoursCreateNestedOneWithoutAtelierCourseLinksInput
   secondaryBranch: Prisma.BranchCreateNestedOneWithoutAtelierCourseLinksInput
 }
 
@@ -538,33 +555,33 @@ export type AtelierCourseLinkCreateManySecondaryCoursInputEnvelope = {
   skipDuplicates?: boolean
 }
 
-export type AtelierCourseLinkUpsertWithoutAtelierCoursInput = {
+export type AtelierCourseLinkUpsertWithWhereUniqueWithoutAtelierCoursInput = {
+  where: Prisma.AtelierCourseLinkWhereUniqueInput
   update: Prisma.XOR<Prisma.AtelierCourseLinkUpdateWithoutAtelierCoursInput, Prisma.AtelierCourseLinkUncheckedUpdateWithoutAtelierCoursInput>
   create: Prisma.XOR<Prisma.AtelierCourseLinkCreateWithoutAtelierCoursInput, Prisma.AtelierCourseLinkUncheckedCreateWithoutAtelierCoursInput>
-  where?: Prisma.AtelierCourseLinkWhereInput
 }
 
-export type AtelierCourseLinkUpdateToOneWithWhereWithoutAtelierCoursInput = {
-  where?: Prisma.AtelierCourseLinkWhereInput
+export type AtelierCourseLinkUpdateWithWhereUniqueWithoutAtelierCoursInput = {
+  where: Prisma.AtelierCourseLinkWhereUniqueInput
   data: Prisma.XOR<Prisma.AtelierCourseLinkUpdateWithoutAtelierCoursInput, Prisma.AtelierCourseLinkUncheckedUpdateWithoutAtelierCoursInput>
 }
 
-export type AtelierCourseLinkUpdateWithoutAtelierCoursInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  targetPeriodKey?: Prisma.StringFieldUpdateOperationsInput | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  secondaryCours?: Prisma.CoursUpdateOneRequiredWithoutSecondaryAtelierLinksNestedInput
-  secondaryBranch?: Prisma.BranchUpdateOneRequiredWithoutAtelierCourseLinksNestedInput
+export type AtelierCourseLinkUpdateManyWithWhereWithoutAtelierCoursInput = {
+  where: Prisma.AtelierCourseLinkScalarWhereInput
+  data: Prisma.XOR<Prisma.AtelierCourseLinkUpdateManyMutationInput, Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutAtelierCoursInput>
 }
 
-export type AtelierCourseLinkUncheckedUpdateWithoutAtelierCoursInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  secondaryCoursId?: Prisma.StringFieldUpdateOperationsInput | string
-  secondaryBranchId?: Prisma.StringFieldUpdateOperationsInput | string
-  targetPeriodKey?: Prisma.StringFieldUpdateOperationsInput | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+export type AtelierCourseLinkScalarWhereInput = {
+  AND?: Prisma.AtelierCourseLinkScalarWhereInput | Prisma.AtelierCourseLinkScalarWhereInput[]
+  OR?: Prisma.AtelierCourseLinkScalarWhereInput[]
+  NOT?: Prisma.AtelierCourseLinkScalarWhereInput | Prisma.AtelierCourseLinkScalarWhereInput[]
+  id?: Prisma.StringFilter<"AtelierCourseLink"> | string
+  atelierCoursId?: Prisma.StringFilter<"AtelierCourseLink"> | string
+  secondaryCoursId?: Prisma.StringFilter<"AtelierCourseLink"> | string
+  secondaryBranchId?: Prisma.StringFilter<"AtelierCourseLink"> | string
+  targetPeriodKey?: Prisma.StringFilter<"AtelierCourseLink"> | string
+  createdAt?: Prisma.DateTimeFilter<"AtelierCourseLink"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"AtelierCourseLink"> | Date | string
 }
 
 export type AtelierCourseLinkUpsertWithWhereUniqueWithoutSecondaryCoursInput = {
@@ -583,25 +600,12 @@ export type AtelierCourseLinkUpdateManyWithWhereWithoutSecondaryCoursInput = {
   data: Prisma.XOR<Prisma.AtelierCourseLinkUpdateManyMutationInput, Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryCoursInput>
 }
 
-export type AtelierCourseLinkScalarWhereInput = {
-  AND?: Prisma.AtelierCourseLinkScalarWhereInput | Prisma.AtelierCourseLinkScalarWhereInput[]
-  OR?: Prisma.AtelierCourseLinkScalarWhereInput[]
-  NOT?: Prisma.AtelierCourseLinkScalarWhereInput | Prisma.AtelierCourseLinkScalarWhereInput[]
-  id?: Prisma.StringFilter<"AtelierCourseLink"> | string
-  atelierCoursId?: Prisma.StringFilter<"AtelierCourseLink"> | string
-  secondaryCoursId?: Prisma.StringFilter<"AtelierCourseLink"> | string
-  secondaryBranchId?: Prisma.StringFilter<"AtelierCourseLink"> | string
-  targetPeriodKey?: Prisma.StringFilter<"AtelierCourseLink"> | string
-  createdAt?: Prisma.DateTimeFilter<"AtelierCourseLink"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"AtelierCourseLink"> | Date | string
-}
-
 export type AtelierCourseLinkCreateWithoutSecondaryBranchInput = {
   id?: string
   targetPeriodKey: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  atelierCours: Prisma.CoursCreateNestedOneWithoutAtelierCourseLinkInput
+  atelierCours: Prisma.CoursCreateNestedOneWithoutAtelierCourseLinksInput
   secondaryCours: Prisma.CoursCreateNestedOneWithoutSecondaryAtelierLinksInput
 }
 
@@ -640,6 +644,15 @@ export type AtelierCourseLinkUpdateManyWithWhereWithoutSecondaryBranchInput = {
   data: Prisma.XOR<Prisma.AtelierCourseLinkUpdateManyMutationInput, Prisma.AtelierCourseLinkUncheckedUpdateManyWithoutSecondaryBranchInput>
 }
 
+export type AtelierCourseLinkCreateManyAtelierCoursInput = {
+  id?: string
+  secondaryCoursId: string
+  secondaryBranchId: string
+  targetPeriodKey: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
 export type AtelierCourseLinkCreateManySecondaryCoursInput = {
   id?: string
   atelierCoursId: string
@@ -649,12 +662,39 @@ export type AtelierCourseLinkCreateManySecondaryCoursInput = {
   updatedAt?: Date | string
 }
 
+export type AtelierCourseLinkUpdateWithoutAtelierCoursInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  targetPeriodKey?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  secondaryCours?: Prisma.CoursUpdateOneRequiredWithoutSecondaryAtelierLinksNestedInput
+  secondaryBranch?: Prisma.BranchUpdateOneRequiredWithoutAtelierCourseLinksNestedInput
+}
+
+export type AtelierCourseLinkUncheckedUpdateWithoutAtelierCoursInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  secondaryCoursId?: Prisma.StringFieldUpdateOperationsInput | string
+  secondaryBranchId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetPeriodKey?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type AtelierCourseLinkUncheckedUpdateManyWithoutAtelierCoursInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  secondaryCoursId?: Prisma.StringFieldUpdateOperationsInput | string
+  secondaryBranchId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetPeriodKey?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type AtelierCourseLinkUpdateWithoutSecondaryCoursInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   targetPeriodKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  atelierCours?: Prisma.CoursUpdateOneRequiredWithoutAtelierCourseLinkNestedInput
+  atelierCours?: Prisma.CoursUpdateOneRequiredWithoutAtelierCourseLinksNestedInput
   secondaryBranch?: Prisma.BranchUpdateOneRequiredWithoutAtelierCourseLinksNestedInput
 }
 
@@ -690,7 +730,7 @@ export type AtelierCourseLinkUpdateWithoutSecondaryBranchInput = {
   targetPeriodKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  atelierCours?: Prisma.CoursUpdateOneRequiredWithoutAtelierCourseLinkNestedInput
+  atelierCours?: Prisma.CoursUpdateOneRequiredWithoutAtelierCourseLinksNestedInput
   secondaryCours?: Prisma.CoursUpdateOneRequiredWithoutSecondaryAtelierLinksNestedInput
 }
 

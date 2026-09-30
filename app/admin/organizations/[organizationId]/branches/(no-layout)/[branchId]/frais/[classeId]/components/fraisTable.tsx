@@ -17,14 +17,11 @@ import { UpdateFraisDialog } from "./edit-Frais-dialog";
 import { DeleteFraissDialog } from "./delete-Frais-dialog";
 import { ReplicateFraisDialog } from "./replicate-Frais-dialog";
 import { DeleteFraisAcrossClassesDialog } from "./delete-Frais-across-classes-dialog";
-import { useSession } from "@/lib/auth-client";
-import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
+import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
 
 const FraissList = ({ params }: { params: { classeId: string } }) => {
-  const { data: session, isPending: sessionPending } = useSession();
-  const [hasMounted, setHasMounted] = useState(false);
-  const canPurgePermanently =
-    hasMounted && !sessionPending && isOrganizationOwnerSession(session);
+  const { canDelete, loaded: grantsLoaded } = useTemporaryGrantActions("fees");
+  const canPurgePermanently = grantsLoaded && canDelete;
   const [fraiss, setFraiss] = useState<IFrais[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,10 +36,6 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
   const [showBulkAcrossDialog, setShowBulkAcrossDialog] = useState(false);
   const [selectedFrais, setSelectedFrais] = useState<IFrais | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
 
   useEffect(() => {
     const fetchFraiss = async () => {
