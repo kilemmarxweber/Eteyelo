@@ -1,3 +1,15 @@
+import { resolveNotificationChannels } from "@/lib/notification-channels";
+import {
+  formatMessagingHello,
+  getMessagingTranslator,
+  resolveSenderMessagingLocale,
+  type MessagingLocale,
+} from "@/lib/messaging-locale";
+import { sendTransactionalWhatsApp } from "@/lib/zindua";
+import {
+  notifyCardToWhatsAppParts,
+  serializeNotifyCard,
+} from "@/lib/notify/notify-message-card";
 import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
@@ -10,7 +22,7 @@ const APP_NAME = DEFAULT_APP_NAME;
 
 export async function sendStudentRegistrationConfirmationEmail(input: {
   to: string;
-  /** Téléphone parent/élève pour miroir WhatsApp. */
+  /** Téléphone parent/élève pour miroir WhatsApp / inbox. */
   phone?: string | null;
   recipientName: string;
   studentName: string;
@@ -18,67 +30,106 @@ export async function sendStudentRegistrationConfirmationEmail(input: {
   branchName: string;
   requestedLevel?: string | null;
   organizationId?: string | null;
+  branchId?: string | null;
+  locale?: MessagingLocale | null;
 }): Promise<void> {
-  const level = input.requestedLevel?.trim() || "Non précisé";
-  const subject = `${APP_NAME} — Inscription reçue (${input.reference})`;
-  const introText = `Bonjour ${input.recipientName}, votre demande d'inscription pour « ${input.studentName} » a bien été envoyée à l'établissement « ${input.branchName} ». Elle est enregistrée sous la référence ${input.reference} et sera examinée par l'école.`;
+  const email = input.to?.trim() ?? "";
+  const phone = input.phone?.trim() ?? "";
+  if (!email && !phone) return;
+
+  const allow = await resolveNotificationChannels(
+    input.organizationId,
+    "inscription",
+  );
+  if (!allow.email && !allow.whatsapp) return;
+
+  const locale = await resolveSenderMessagingLocale({
+    locale: input.locale,
+    branchId: input.branchId,
+  });
+  const t = await getMessagingTranslator(locale);
+  const level = input.requestedLevel?.trim() || "—";
+  const hello = formatMessagingHello(t, input.recipientName);
+  const introBody = t("inscription.intro");
+  const intro = `${hello} ${introBody}`.trim();
+  const subject = `${t("inscription.subject", { app: APP_NAME })} (${input.reference})`;
+  const title = t("inscription.title");
+  const note = t("inscription.note");
+
+  const rows = [
+    { label: t("common.reference"), value: input.reference },
+    { label: t("common.student"), value: input.studentName },
+    { label: t("common.school"), value: input.branchName },
+    { label: t("common.class"), value: level },
+  ];
 
   const text = [
-    `Bonjour ${input.recipientName},`,
+    intro,
     "",
-    "Nous avons bien reçu votre demande d'inscription sur Klambocore.",
+    ...rows.map((row) => `${row.label} : ${row.value}`),
     "",
-    `Référence : ${input.reference}`,
-    `Élève / apprenant : ${input.studentName}`,
-    `Établissement : ${input.branchName}`,
-    `Classe / niveau souhaité : ${level}`,
-    "",
-    "Votre dossier a été transmis à l'établissement. Vous serez contacté dès qu'une suite sera donnée.",
+    note,
     "",
     `klambocore.com`,
   ].join("\n");
 
-  const bodyHtml = `
-    ${emailInfoCard([
-      { label: "Référence", valueHtml: escapeHtml(input.reference) },
-      {
-        label: "Élève / apprenant",
-        valueHtml: escapeHtml(input.studentName),
-      },
-      {
-        label: "Établissement",
-        valueHtml: escapeHtml(input.branchName),
-      },
-      {
-        label: "Classe / niveau souhaité",
-        valueHtml: escapeHtml(level),
-      },
-    ])}
-    <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">
-      Votre dossier a été transmis à l'établissement. Vous serez contacté dès qu'une suite sera donnée.
-    </p>
-  `;
-
   const html = emailLayoutHtml({
     appName: APP_NAME,
-    title: "Inscription bien reçue",
-    intro: escapeHtml(introText),
-    bodyHtml,
+    title,
+    intro: escapeHtml(intro),
+    bodyHtml: `
+      ${emailInfoCard(
+        rows.map((row) => ({
+          label: row.label,
+          valueHtml: escapeHtml(row.value),
+        })),
+      )}
+      <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">
+        ${escapeHtml(note)}
+      </p>
+    `,
   });
 
-  try {
-    await sendMail({
-      to: input.to,
-      whatsappTo: input.phone,
-      whatsappName: input.recipientName,
+  if (allow.email && email) {
+    try {
+      await sendMail({
+        to: email,
+        organizationId: input.organizationId,
+        notificationEvent: "inscription",
+        subject,
+        text,
+        html,
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      throw new Error(`Nodemailer: ${message}`);
+    }
+  }
+
+  if (allow.whatsapp && phone) {
+    const card = {
+      v: 1 as const,
+      tone: "navy" as const,
+      brand: input.branchName || APP_NAME,
+      title,
+      intro,
+      rows: rows.map((row) => ({
+        label: row.label,
+        value: row.value,
+      })),
+      note,
+    };
+    await sendTransactionalWhatsApp({
+      to: phone,
       organizationId: input.organizationId,
-      notificationEvent: "inscription",
-      subject,
-      text,
-      html,
+      locale,
+      branchId: input.branchId,
+      queueKind: "other",
+      parts: [
+        ...notifyCardToWhatsAppParts(card),
+        t("common.signatureApp", { app: input.branchName || APP_NAME }),
+      ],
+      richBody: serializeNotifyCard(card),
     });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    throw new Error(`Nodemailer: ${message}`);
   }
 }

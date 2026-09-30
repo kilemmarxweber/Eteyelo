@@ -37,6 +37,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { BackLink } from "@/components/ui/back-link";
+import { MessageNotifyCard } from "@/components/messaging/message-notify-card";
 import { cn, normalizeImageSrc } from "@/lib/utils";
 import {
   refreshMessagingBell,
@@ -61,12 +62,13 @@ import {
   MESSAGING_MAX_BODY_LENGTH,
   MESSAGING_MAX_SUBJECT_LENGTH,
   MESSAGING_PURGE_CONFIRMATION,
+  formatCallTracePreview,
   type ConversationListItem,
   type MessageView,
   type MessagingFilter,
   type MessagingRecipient,
 } from "@/lib/messaging/messaging-types";
-
+import { isNotifyMessageBody } from "@/lib/notify/notify-message-card";
 const FILTERS: Array<{ id: MessagingFilter; label: string }> = [
   { id: "all", label: "Toutes" },
   { id: "unread", label: "Non lues" },
@@ -648,13 +650,15 @@ export function MessagingWorkspace({
                             <div
                               className={cn(
                                 "max-w-[80%] rounded-2xl px-3 py-2 text-sm",
-                                mine
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-muted",
+                                isNotifyMessageBody(row.body) && !row.deletedAt
+                                  ? "bg-transparent p-0 shadow-none"
+                                  : mine
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted",
                                 row.archivedForMe && "opacity-60",
                               )}
                             >
-                              {!mine ? (
+                              {!mine && !isNotifyMessageBody(row.body) ? (
                                 <p className="mb-0.5 text-[11px] font-medium opacity-80">
                                   {row.senderName}
                                   {row.senderBranches[0]
@@ -667,25 +671,30 @@ export function MessagingWorkspace({
                                   {row.replyTo.senderName} :{" "}
                                   {row.replyTo.deletedAt
                                     ? MESSAGE_DELETED_LABEL
-                                    : row.replyTo.body}
+                                    : isNotifyMessageBody(row.replyTo.body)
+                                      ? "Notification"
+                                      : row.replyTo.body}
                                 </p>
                               ) : null}
-                              <p
-                                className={cn(
-                                  "whitespace-pre-wrap break-words",
-                                  row.deletedAt && "italic opacity-70",
-                                )}
-                              >
-                                {row.deletedAt
-                                  ? MESSAGE_DELETED_LABEL
-                                  : row.body}
-                              </p>
-                              <div className="mt-1 flex items-center justify-end gap-2 text-[10px] opacity-70">
+                              {row.deletedAt ? (
+                                <p className="whitespace-pre-wrap break-words italic opacity-70">
+                                  {MESSAGE_DELETED_LABEL}
+                                </p>
+                              ) : isNotifyMessageBody(row.body) ? (
+                                <MessageNotifyCard body={row.body} />
+                              ) : (
+                                <p className="whitespace-pre-wrap break-words">
+                                  {row.body.startsWith("__CALL__:")
+                                    ? formatCallTracePreview(row.body)
+                                    : row.body}
+                                </p>
+                              )}
+                              <div className="mt-1 flex items-center justify-end gap-2 px-1 text-[10px] opacity-70">
                                 <span>{formatTime(row.createdAt)}</span>
                                 {mine ? <Check className="size-3" /> : null}
                               </div>
                               {!row.deletedAt ? (
-                              <div className="mt-1 flex gap-1">
+                              <div className="mt-1 flex gap-1 px-1">
                                 <button
                                   type="button"
                                   className="text-[10px] underline-offset-2 hover:underline"

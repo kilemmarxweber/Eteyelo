@@ -1,7 +1,10 @@
 {
   "common": {
-    "hello": "Hello {name},",
-    "helloPlain": "Hello {name}",
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "hello": "{greeting} {name},",
+    "helloPlain": "{greeting} {name}",
     "school": "School",
     "person": "Person",
     "quality": "Role",
@@ -35,6 +38,8 @@
     "spaceUrl": "Workspace: {url}",
     "detailUrl": "Details: {url}",
     "downloadUrl": "Download: {url}",
+    "download": "Download",
+    "downloadPdf": "Download PDF",
     "connectHint": "Sign in to your account to view the details.",
     "connectHere": "Sign in here: {url}",
     "signatureApp": "— {app}",
@@ -46,47 +51,47 @@
     "absence": {
       "subject": "{app} — Absence recorded",
       "title": "Absence recorded",
-      "intro": "Hello {recipient}, an absence was recorded automatically (no scan or manual check-in) for “{person}”. Please sign in to justify it.",
-      "introParent": "Hello {recipient}, an absence was recorded automatically (no scan or manual check-in) for student “{person}”. Please sign in to justify it.",
+      "intro": "An absence was recorded automatically (no scan or manual check-in) for “{person}”. Please sign in to justify it.",
+      "introParent": "An absence was recorded automatically (no scan or manual check-in) for student “{person}”. Please sign in to justify it.",
       "note": "Click the bell in the navigation bar to view details and submit your justification.",
       "cta": "Open my workspace"
     },
     "justification_submitted": {
       "subject": "{app} — Absence justification received",
       "title": "Justification received",
-      "intro": "Hello {recipient}, your absence justification was sent to “{school}”. You will be notified of the decision.",
-      "introParent": "Hello {recipient}, the absence justification for student “{person}” was sent to “{school}”. You will be notified of the decision.",
+      "intro": "Your absence justification was sent to “{school}”. You will be notified of the decision.",
+      "introParent": "The absence justification for student “{person}” was sent to “{school}”. You will be notified of the decision.",
       "note": "The response will also appear under the bell in your navigation bar.",
       "cta": "View my workspace"
     },
     "justification_received": {
       "subject": "{app} — Absence justification to review",
       "title": "Justification to review",
-      "intro": "Hello {recipient}, {person} justified an absence. Please review it from the notification bell.",
+      "intro": "{person} justified an absence. Please review it from the notification bell.",
       "note": "Accept or reject the justification from the bell. A return is recorded automatically if accepted.",
       "cta": "Review"
     },
     "accepted": {
       "subject": "{app} — Absence justification accepted",
       "title": "Justification accepted",
-      "intro": "Hello {recipient}, your absence justification was accepted by “{school}”.",
-      "introParent": "Hello {recipient}, the absence justification for student “{person}” was accepted by “{school}”.",
+      "intro": "Your absence justification was accepted by “{school}”.",
+      "introParent": "The absence justification for student “{person}” was accepted by “{school}”.",
       "note": "A return was also recorded in your account.",
       "cta": "View details"
     },
     "rejected": {
       "subject": "{app} — Absence justification rejected",
       "title": "Justification rejected",
-      "intro": "Hello {recipient}, your absence justification was not accepted by “{school}”.",
-      "introParent": "Hello {recipient}, the absence justification for student “{person}” was not accepted by “{school}”.",
+      "intro": "Your absence justification was not accepted by “{school}”.",
+      "introParent": "The absence justification for student “{person}” was not accepted by “{school}”.",
       "note": "Check the bell for the decision reason.",
       "cta": "View details"
     },
     "return": {
       "subject": "{app} — Return after absence",
       "title": "Return recorded",
-      "intro": "Hello {recipient}, a return was recorded in your account after your justification was accepted.",
-      "introParent": "Hello {recipient}, a return was recorded for student “{person}” after the justification was accepted.",
+      "intro": "A return was recorded in your account after your justification was accepted.",
+      "introParent": "A return was recorded for student “{person}” after the justification was accepted.",
       "note": "The absence is now marked as excused.",
       "cta": "View my workspace"
     }
@@ -108,12 +113,12 @@
       "subject": "Payment cancelled"
     },
     "subjectLine": "{app} — {subject}",
-    "introHello": "Hello {name}, {intro}"
+    "introHello": "{greeting} {name}, {intro}"
   },
   "results": {
     "subject": "{app} — Results for {student}",
     "title": "School results",
-    "intro": "Hello {parent}, here are the results for {student}{classSuffix} for {period} — {year}.",
+    "intro": "Here are the results for {student}{classSuffix} for {period} — {year}.",
     "classSuffix": " ({className})",
     "extraSubjects": "+ {count} other subject(s)",
     "averageLine": "Average: {average}.",
@@ -122,7 +127,7 @@
   "accountCreate": {
     "subject": "{app} — Your account has been created",
     "title": "Your account has been created",
-    "intro": "Hello {name}, an administrator created your {app} account with {context}. Your temporary credentials are ready: sign in at klambocore.com then change your password.",
+    "intro": "An administrator created your {app} account with {context}. Your temporary credentials are ready: sign in at klambocore.com then change your password.",
     "bodyLead": "An administrator created your {app} account with {context}.",
     "contextRole": "role “{role}”",
     "contextOrg": "organization “{org}”",
@@ -137,7 +142,7 @@
   "passwordReset": {
     "subject": "{app} — Password reset",
     "title": "Password reset",
-    "intro": "Hello {name}, your {app} password was reset by an administrator. Use the temporary password below to sign in at klambocore.com.",
+    "intro": "Your {app} password was reset by an administrator. Use the temporary password below to sign in at klambocore.com.",
     "bodyLead": "Your password was reset by an administrator.",
     "securityNote": "We recommend changing this password after you sign in.",
     "securityNoteHtml": "For security, change this password after signing in.",
@@ -152,6 +157,7 @@
   "inscription": {
     "subject": "{app} — Registration request received",
     "title": "Registration received",
-    "intro": "Hello {name}, we have received your registration request."
+    "intro": "We have received your registration request.",
+    "note": "Your file has been forwarded to the school. You will be contacted once a decision is made."
   }
 }

@@ -1,6 +1,7 @@
 import { resolveNotificationChannels } from "@/lib/notification-channels";
 import {
   formatMessagingDate,
+  formatMessagingHello,
   getMessagingTranslator,
   resolveSenderMessagingLocale,
   type MessagingLocale,
@@ -14,6 +15,10 @@ import {
   getSignInUrl,
 } from "./email-layout";
 import { sendTransactionalWhatsApp } from "@/lib/zindua";
+import {
+  notifyCardToWhatsAppParts,
+  serializeNotifyCard,
+} from "@/lib/notify/notify-message-card";
 
 const APP_NAME = DEFAULT_APP_NAME;
 
@@ -25,19 +30,30 @@ type AbsenceEmailKind =
   | "rejected"
   | "return";
 
+function absenceTone(
+  kind: AbsenceEmailKind,
+): "rose" | "emerald" | "amber" | "navy" {
+  if (kind === "accepted" || kind === "return") return "emerald";
+  if (kind === "rejected") return "amber";
+  return "rose";
+}
+
 async function sendAbsenceMail(input: {
   to?: string | null;
   phone?: string | null;
   recipientName: string;
   subject: string;
   title: string;
-  intro: string;
+  /** Corps sans salutation (une seule salutation dynamique est ajoutée). */
+  introBody: string;
   rows: Array<{ label: string; value: string }>;
   note?: string;
   ctaLabel?: string;
   organizationId?: string | null;
   locale: MessagingLocale;
   schoolLabel: string;
+  kind: AbsenceEmailKind;
+  brand?: string;
 }): Promise<void> {
   const email = input.to?.trim();
   if (!email && !input.phone) return;
@@ -49,10 +65,12 @@ async function sendAbsenceMail(input: {
   if (!allow.email && !allow.whatsapp) return;
 
   const t = await getMessagingTranslator(input.locale);
+  const hello = formatMessagingHello(t, input.recipientName);
+  const intro = `${hello} ${input.introBody}`.trim();
+  const loginUrl = getSignInUrl();
+
   const text = [
-    `${input.recipientName},`,
-    "",
-    input.intro,
+    intro,
     "",
     ...input.rows.map((row) => `${row.label} : ${row.value}`),
     input.note ? `\n${input.note}` : "",
@@ -79,10 +97,10 @@ async function sendAbsenceMail(input: {
   const html = emailLayoutHtml({
     appName: APP_NAME,
     title: input.title,
-    intro: escapeHtml(input.intro),
+    intro: escapeHtml(intro),
     bodyHtml,
     cta: input.ctaLabel
-      ? { href: getSignInUrl("/auth/sign-in"), label: input.ctaLabel }
+      ? { href: loginUrl, label: input.ctaLabel }
       : undefined,
   });
 
@@ -103,22 +121,38 @@ async function sendAbsenceMail(input: {
   }
 
   if (allow.whatsapp && input.phone?.trim()) {
+    const brand =
+      input.brand ||
+      input.rows.find((row) => row.label === input.schoolLabel)?.value ||
+      APP_NAME;
+    const card = {
+      v: 1 as const,
+      tone: absenceTone(input.kind),
+      brand,
+      title: input.title,
+      intro,
+      rows: input.rows.map((row) => ({
+        label: row.label,
+        value: row.value,
+      })),
+      note: input.note,
+      cta: input.ctaLabel
+        ? { label: input.ctaLabel, href: loginUrl }
+        : undefined,
+    };
+    const richBody = serializeNotifyCard(card);
+    const waParts = [
+      ...notifyCardToWhatsAppParts(card),
+      t("common.signatureApp", { app: APP_NAME }),
+    ];
+
     await sendTransactionalWhatsApp({
       to: input.phone,
       organizationId: input.organizationId,
       locale: input.locale,
       queueKind: "absence",
-      parts: [
-        input.rows.find((row) => row.label === input.schoolLabel)?.value,
-        t("common.hello", { name: input.recipientName }),
-        input.intro,
-        ...input.rows
-          .filter((row) => row.label !== input.schoolLabel)
-          .map((row) => `${row.label} : ${row.value}`),
-        input.note,
-        t("common.spaceUrl", { url: getSignInUrl() }),
-        t("common.signatureApp", { app: APP_NAME }),
-      ],
+      parts: waParts,
+      richBody,
     });
   }
 }
@@ -179,8 +213,7 @@ export async function sendAbsenceLifecycleEmail(input: {
   const selected = {
     subject: t(`${base}.subject`, { app: APP_NAME }),
     title: t(`${base}.title`),
-    intro: t(introKey, {
-      recipient: input.recipientName,
+    introBody: t(introKey, {
       person: input.personName,
       school: input.branchName,
     }),
@@ -194,12 +227,14 @@ export async function sendAbsenceLifecycleEmail(input: {
     recipientName: input.recipientName,
     subject: selected.subject,
     title: selected.title,
-    intro: selected.intro,
+    introBody: selected.introBody,
     rows,
     note: selected.note,
     ctaLabel: selected.cta,
     organizationId: input.organizationId,
     locale,
     schoolLabel,
+    kind: input.kind,
+    brand: input.branchName,
   });
 }

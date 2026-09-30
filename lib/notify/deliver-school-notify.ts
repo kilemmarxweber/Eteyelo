@@ -48,6 +48,8 @@ type SchoolNotifyOptions = {
   to: string;
   organizationId?: string | null;
   parts: Array<string | null | undefined>;
+  /** Corps riche inbox (`__NOTIFY__:{json}`) — prioritaire sur `parts` pour Klambo. */
+  richBody?: string | null;
   attachments?: Array<{ url: string; filename?: string }>;
   queueKind?: WhatsAppQueueKind;
   locale?: MessagingLocale | null;
@@ -266,7 +268,8 @@ async function deliverSchoolNotifyNow(
     return { sent: false, channel: "none", error: "Numéro invalide." };
   }
 
-  const body = buildNotifyBody(options.parts);
+  const body =
+    options.richBody?.trim() || buildNotifyBody(options.parts);
   if (!body) {
     return { sent: false, channel: "none", error: "Message vide." };
   }

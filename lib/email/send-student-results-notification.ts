@@ -1,5 +1,6 @@
 import { resolveNotificationChannels } from "@/lib/notification-channels";
 import {
+  formatMessagingHello,
   getMessagingTranslator,
   resolveSenderMessagingLocale,
   type MessagingLocale,
@@ -13,6 +14,10 @@ import {
   getSignInUrl,
 } from "./email-layout";
 import { sendTransactionalWhatsApp } from "@/lib/zindua";
+import {
+  notifyCardToWhatsAppParts,
+  serializeNotifyCard,
+} from "@/lib/notify/notify-message-card";
 
 const APP_NAME = DEFAULT_APP_NAME;
 const MAX_SUBJECT_LINES = 8;
@@ -79,13 +84,14 @@ export async function sendStudentResultsNotification(input: {
     app: APP_NAME,
     student: input.studentName,
   });
-  const intro = t("results.intro", {
-    parent: input.parentName,
+  const hello = formatMessagingHello(t, input.parentName);
+  const introBody = t("results.intro", {
     student: input.studentName,
     classSuffix,
     period: input.periodLabel,
     year: input.yearLabel,
   });
+  const intro = `${hello} ${introBody}`;
 
   const rows = [
     { label: t("common.school"), value: input.schoolName },
@@ -138,31 +144,57 @@ export async function sendStudentResultsNotification(input: {
   let whatsappSent = false;
   let whatsappError: string | undefined;
   if (allow.whatsapp && phone) {
+    const loginUrl = getSignInUrl();
+    const card = {
+      v: 1 as const,
+      tone: "navy" as const,
+      brand: input.schoolName || APP_NAME,
+      title: t("results.title"),
+      intro,
+      rows: [
+        { label: t("common.student"), value: input.studentName },
+        ...(input.className
+          ? [{ label: t("common.class"), value: input.className }]
+          : []),
+        {
+          label: t("common.period"),
+          value: `${input.periodLabel} — ${input.yearLabel}`,
+        },
+        ...shown.map((line) => ({
+          label: line.subject,
+          value: `${line.score}/${line.maxScore}`,
+        })),
+        ...(extra > 0
+          ? [
+              {
+                label: t("common.otherSubjects"),
+                value: t("common.otherSubjectsValue", { count: extra }),
+              },
+            ]
+          : []),
+        {
+          label: t("common.average"),
+          value: averageLabel,
+          kind: "secret" as const,
+        },
+      ],
+      cta: {
+        label: t("common.openAccount"),
+        href: loginUrl,
+      },
+    };
     const wa = await sendTransactionalWhatsApp({
       to: phone,
       organizationId: input.organizationId,
       locale,
       queueKind: "results",
       parts: [
-        input.schoolName,
-        t("common.hello", { name: input.parentName }),
-        t("results.waIntro", {
-          student: input.studentName,
-          classSuffix,
-          period: input.periodLabel,
-        }),
-        ...shown.map(
-          (line) => `${line.subject} : ${line.score}/${line.maxScore}`,
-        ),
-        extra > 0
-          ? t("results.extraSubjects", { count: extra })
-          : null,
-        t("results.averageLine", { average: averageLabel }),
-        t("common.detailUrl", { url: getSignInUrl() }),
+        ...notifyCardToWhatsAppParts(card),
         t("common.signatureApp", {
           app: input.schoolName || APP_NAME,
         }),
       ],
+      richBody: serializeNotifyCard(card),
     });
     whatsappSent = wa.sent;
     whatsappError = wa.error;

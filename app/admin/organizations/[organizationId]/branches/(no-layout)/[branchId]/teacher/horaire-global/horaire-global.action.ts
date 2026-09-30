@@ -19,9 +19,14 @@ import {
 import { action } from "@/lib/zsa";
 import { resolveWhatsAppTo, sendTransactionalWhatsApp } from "@/lib/zindua";
 import {
+  formatMessagingHello,
   getMessagingTranslator,
   getBranchMessagingLocale,
 } from "@/lib/messaging-locale";
+import {
+  notifyCardToWhatsAppParts,
+  serializeNotifyCard,
+} from "@/lib/notify/notify-message-card";
 import { getGlobalScheduleByCycleAction } from "../../schedule/schedule.action";
 import {
   globalSchedulePdfFileName,
@@ -130,6 +135,34 @@ async function sendTeacherScheduleWhatsApp(params: {
   const pdfUrl = `${origin}${saved.url}`;
   const locale = await getBranchMessagingLocale(branchId);
   const t = await getMessagingTranslator(locale);
+  const hello = formatMessagingHello(t, teacher.name);
+  const intro = `${hello} ${t("teacherSchedule.intro", { cycle: cycleLabel })}`.trim();
+  const card = {
+    v: 1 as const,
+    tone: "navy" as const,
+    brand: schoolName,
+    title: labels.title(cycleLabel),
+    intro,
+    rows: [
+      {
+        label: t("common.person"),
+        value: teacher.name,
+      },
+      {
+        label: t("common.period"),
+        value: cycleLabel,
+      },
+      {
+        label: t("common.download"),
+        value: pdfUrl,
+        kind: "link" as const,
+      },
+    ],
+    cta: {
+      label: t("common.downloadPdf"),
+      href: pdfUrl,
+    },
+  };
 
   return sendTransactionalWhatsApp({
     to: teacher.telephone,
@@ -139,12 +172,10 @@ async function sendTeacherScheduleWhatsApp(params: {
     queueKind: "schedule",
     attachments: [{ url: pdfUrl, filename: saved.fileName }],
     parts: [
-      schoolName,
-      t("common.hello", { name: teacher.name }),
-      t("teacherSchedule.intro", { cycle: cycleLabel }),
-      t("common.downloadUrl", { url: pdfUrl }),
+      ...notifyCardToWhatsAppParts(card),
       t("common.signatureApp", { app: schoolName }),
     ],
+    richBody: serializeNotifyCard(card),
   });
 }
 

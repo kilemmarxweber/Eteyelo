@@ -1,3 +1,5 @@
+import { formatNotifyCardPreview } from "@/lib/notify/notify-message-card";
+
 export const MESSAGING_MAX_BODY_LENGTH = 4000;
 export const MESSAGING_MAX_SUBJECT_LENGTH = 120;
 export const MESSAGING_MAX_RECIPIENTS = 50;
@@ -104,6 +106,14 @@ export function formatMessagingPersonName(user: {
 }
 
 export function sanitizeMessageBody(raw: string) {
+  const trimmed = raw.trim();
+  // Payloads structurés (appels / cartes notif) : ne pas aplatir ni stripper le JSON.
+  if (
+    trimmed.startsWith("__CALL__:") ||
+    trimmed.startsWith("__NOTIFY__:")
+  ) {
+    return trimmed.slice(0, MESSAGING_MAX_BODY_LENGTH);
+  }
   return raw
     .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
     .replace(/<[^>]*>/g, "")
@@ -112,6 +122,9 @@ export function sanitizeMessageBody(raw: string) {
 }
 
 export function previewMessageBody(body: string, max = 80) {
+  if (body.trimStart().startsWith("__NOTIFY__:")) {
+    return formatNotifyCardPreview(body, max);
+  }
   const text = formatCallTracePreview(body).trim();
   if (text.length <= max) return text;
   return `${text.slice(0, max - 1)}…`;

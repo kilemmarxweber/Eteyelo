@@ -9,9 +9,17 @@ import {
 } from "@/lib/email/email-layout";
 import { sendTransactionalWhatsApp } from "@/lib/zindua";
 import {
+  formatMessagingHello,
+  getMessagingTranslator,
+  resolveSenderMessagingLocale,
+} from "@/lib/messaging-locale";
+import {
+  notifyCardToWhatsAppParts,
+  serializeNotifyCard,
+} from "@/lib/notify/notify-message-card";
+import {
   formatOwnerDailyFinanceMoney,
   formatOwnerDailyFinanceText,
-  formatOwnerDailyFinanceWhatsAppLines,
   type OwnerDailyFinanceRecipient,
   type OwnerDailyFinanceSummary,
 } from "@/lib/reports/owner-daily-finance-summary";
@@ -34,9 +42,16 @@ export async function sendOwnerDailyFinanceSummary(input: {
     return { email: false, whatsapp: false };
   }
 
+  const locale = await resolveSenderMessagingLocale({
+    branchId: input.summary.branches[0]?.branchId ?? null,
+  });
+  const t = await getMessagingTranslator(locale);
+  const hello = formatMessagingHello(t, input.recipient.name);
   const textBody = formatOwnerDailyFinanceText(input.summary);
   const subject = `${APP_NAME} — Situation financière du jour (${input.summary.dateLabel})`;
-  const intro = `Bonjour ${input.recipient.name}, voici la situation de caisse et des inscriptions de vos établissements.`;
+  const introBody = `Voici la situation de caisse et des inscriptions de vos établissements.`;
+  const intro = `${hello} ${introBody}`;
+  const loginUrl = getSignInUrl();
 
   const rows = input.summary.branches.map((branch) => ({
     label: branch.branchName,
@@ -57,7 +72,7 @@ export async function sendOwnerDailyFinanceSummary(input: {
     intro: escapeHtml(intro),
     bodyHtml: emailInfoCard(rows),
     cta: {
-      href: getSignInUrl(),
+      href: loginUrl,
       label: "Ouvrir mon compte",
     },
   });
@@ -87,16 +102,31 @@ export async function sendOwnerDailyFinanceSummary(input: {
   let whatsappSent = false;
   if (allow.whatsapp && phone) {
     try {
+      const card = {
+        v: 1 as const,
+        tone: "emerald" as const,
+        brand: input.summary.organizationName || APP_NAME,
+        title: `Situation financière — ${input.summary.dateLabel}`,
+        intro: hello,
+        rows: [
+          ...input.summary.branches.slice(0, 8).map((branch) => ({
+            label: branch.branchName,
+            value: `Caisse ${formatOwnerDailyFinanceMoney(branch.cashBalance, branch.currency)} · ${branch.newEnrollments} inscrit(s)`,
+          })),
+          {
+            label: "Total",
+            value: `Caisse ${formatOwnerDailyFinanceMoney(input.summary.totalCashBalance, input.summary.currency)} · ${input.summary.totalNewEnrollments} élève(s)`,
+          },
+        ],
+        cta: { label: "Ouvrir mon compte", href: loginUrl },
+      };
       const wa = await sendTransactionalWhatsApp({
         to: phone,
         organizationId: input.summary.organizationId,
         queueKind: "finance",
-        parts: [
-          input.summary.organizationName,
-          `Bonjour ${input.recipient.name},`,
-          `Situation financière — ${input.summary.dateLabel}`,
-          ...formatOwnerDailyFinanceWhatsAppLines(input.summary),
-        ],
+        locale,
+        parts: notifyCardToWhatsAppParts(card),
+        richBody: serializeNotifyCard(card),
       });
       whatsappSent = Boolean(wa.sent);
     } catch (error) {

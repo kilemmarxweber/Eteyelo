@@ -87,14 +87,36 @@ test("auth : branche prime sur User.locale", () => {
   );
 });
 
+test("salutation dynamique matin / après-midi / soir", async () => {
+  const {
+    resolveDayGreetingPeriod,
+  } = await import("../lib/messaging-locale");
+  assert.equal(
+    resolveDayGreetingPeriod(new Date("2026-06-15T08:00:00+01:00")),
+    "morning",
+  );
+  assert.equal(
+    resolveDayGreetingPeriod(new Date("2026-06-15T15:00:00+01:00")),
+    "afternoon",
+  );
+  assert.equal(
+    resolveDayGreetingPeriod(new Date("2026-06-15T20:00:00+01:00")),
+    "evening",
+  );
+});
+
 test("WhatsApp lang = locale", () => {
   assert.equal(messagingLocaleToWhatsAppLang("pt"), "pt");
   assert.equal(messagingLocaleToWhatsAppLang("en"), "en");
   assert.equal(messagingLocaleToWhatsAppLang("fr"), "fr");
 });
 
+
 test("catalogues notifications V1 : mêmes clés fr/en/pt", () => {
   const requiredPrefixes = [
+    "common.greetingMorning",
+    "common.greetingAfternoon",
+    "common.greetingEvening",
     "attendance.absence",
     "attendance.justification_submitted",
     "attendance.justification_received",

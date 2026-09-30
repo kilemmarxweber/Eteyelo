@@ -3,6 +3,7 @@ import {
   DEFAULT_APP_NAME,
   emailInfoCard,
   emailLayoutHtml,
+  emailSecretValue,
   escapeHtml,
   getSignInUrl,
 } from "./email-layout";
@@ -10,6 +11,7 @@ import { sendResetPasswordWhatsApp } from "@/lib/zindua";
 import { resolveNotificationChannels } from "@/lib/notification-channels";
 import { isWhatsAppSendingEnabled } from "@/lib/whatsapp-settings";
 import {
+  formatMessagingHelloPlain,
   getMessagingTranslator,
   resolveSenderMessagingLocale,
   type MessagingLocale,
@@ -45,10 +47,11 @@ export async function sendResetPasswordEmail(input: {
   const loginUrl = input.loginUrl ?? getSignInUrl();
 
   const subject = t("passwordReset.subject", { app: APP_NAME });
-  const introText = t("passwordReset.intro", { name, app: APP_NAME });
+  const helloPlain = formatMessagingHelloPlain(t, name);
+  const introText = `${helloPlain}, ${t("passwordReset.intro", { app: APP_NAME })}`;
 
   const text = [
-    t("common.helloPlain", { name }),
+    helloPlain,
     "",
     t("passwordReset.bodyLead"),
     "",
@@ -67,7 +70,7 @@ export async function sendResetPasswordEmail(input: {
       { label: t("common.email"), valueHtml: escapeHtml(to) },
       {
         label: t("common.newPassword"),
-        valueHtml: `<code style="background:#e2e8f0;padding:2px 8px;border-radius:6px;font-size:13px;">${escapeHtml(temporaryPassword)}</code>`,
+        valueHtml: emailSecretValue(temporaryPassword),
       },
       {
         label: t("common.login"),

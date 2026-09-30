@@ -205,3 +205,13 @@ export function emailInfoCard(
     </div>
   `;
 }
+
+/** Mot de passe / secret — pastille ambre bien visible (alignée inbox). */
+export function emailSecretValue(value: string): string {
+  return `<span style="display:inline-block;margin-top:4px;background:#fffbeb;border:1px solid #f59e0b;border-radius:8px;padding:8px 12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px;font-weight:700;letter-spacing:.04em;color:#92400e;">${escapeHtml(value)}</span>`;
+}
+
+/** Ligne générique en code (email, etc.). */
+export function emailCodeValue(value: string): string {
+  return `<code style="background:#e2e8f0;padding:2px 8px;border-radius:6px;font-size:13px;">${escapeHtml(value)}</code>`;
+}

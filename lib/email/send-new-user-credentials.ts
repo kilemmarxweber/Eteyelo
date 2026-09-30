@@ -4,12 +4,14 @@ import {
   DEFAULT_APP_NAME,
   emailInfoCard,
   emailLayoutHtml,
+  emailSecretValue,
   escapeHtml,
   getSignInUrl,
 } from "./email-layout";
 import { sendNewUserCredentialsWhatsApp } from "@/lib/zindua";
 import { resolveNotificationChannels } from "@/lib/notification-channels";
 import {
+  formatMessagingHelloPlain,
   getMessagingTranslator,
   resolveSenderMessagingLocale,
   type MessagingLocale,
@@ -70,14 +72,14 @@ export async function sendNewUserCredentialsEmail(input: {
   const context = contextParts.join(", ");
 
   const subject = t("accountCreate.subject", { app: APP_NAME });
-  const introText = t("accountCreate.intro", {
-    name,
+  const helloPlain = formatMessagingHelloPlain(t, name);
+  const introText = `${helloPlain}, ${t("accountCreate.intro", {
     app: APP_NAME,
     context,
-  });
+  })}`;
 
   const text = [
-    t("common.helloPlain", { name }),
+    helloPlain,
     "",
     t("accountCreate.bodyLead", { app: APP_NAME, context }),
     "",
@@ -124,7 +126,7 @@ export async function sendNewUserCredentialsEmail(input: {
       : []),
     {
       label: t("common.temporaryPassword"),
-      valueHtml: `<code style="background:#e2e8f0;padding:2px 8px;border-radius:6px;font-size:13px;">${escapeHtml(temporaryPassword)}</code>`,
+      valueHtml: emailSecretValue(temporaryPassword),
     },
     {
       label: t("common.login"),

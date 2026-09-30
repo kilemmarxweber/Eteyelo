@@ -14,6 +14,7 @@ import {
   type WhatsAppQueueKind,
 } from "@/lib/whatsapp-pace";
 import {
+  formatMessagingHello,
   getMessagingTranslator,
   messagingLocaleToWhatsAppLang,
   resolveSenderMessagingLocale,
@@ -477,6 +478,8 @@ export async function sendTransactionalWhatsApp(options: {
   to: string;
   organizationId?: string | null;
   parts: Array<string | null | undefined>;
+  /** Carte riche inbox (`__NOTIFY__:{json}`). */
+  richBody?: string | null;
   attachments?: Array<{ url: string; filename?: string }>;
   queueKind?: WhatsAppQueueKind;
   locale?: MessagingLocale | null;
@@ -523,17 +526,48 @@ export async function sendNewUserCredentialsWhatsApp(options: {
   const displayName = options.name.trim() || t("common.defaultParent");
   const role = options.role?.trim() || t("common.defaultRole");
   const branchLabel = options.branchName?.trim() || null;
+  const brand = branchLabel || APP_NAME;
 
-  const message = buildWhatsAppBody([
-    branchLabel,
-    t("common.hello", { name: displayName }),
-    t("accountCreate.waCreated", { app: APP_NAME, role }),
-    t("accountCreate.waEmail", { email: options.email }),
-    t("accountCreate.waPassword", { password: options.temporaryPassword }),
-    t("accountCreate.waLogin", { url: loginUrl }),
-    t("accountCreate.waSecurity"),
-    t("common.signatureApp", { app: branchLabel || APP_NAME }),
-  ]);
+  const { serializeNotifyCard, notifyCardToWhatsAppParts } = await import(
+    "@/lib/notify/notify-message-card"
+  );
+
+  const card = {
+    v: 1 as const,
+    tone: "amber" as const,
+    brand,
+    title: t("accountCreate.title"),
+    intro: formatMessagingHello(t, displayName),
+    rows: [
+      {
+        label: t("common.role"),
+        value: role,
+      },
+      {
+        label: t("common.email"),
+        value: options.email,
+        kind: "email" as const,
+      },
+      {
+        label: t("common.temporaryPassword"),
+        value: options.temporaryPassword,
+        kind: "secret" as const,
+      },
+      {
+        label: t("common.login"),
+        value: loginUrl,
+        kind: "link" as const,
+      },
+    ],
+    note: t("accountCreate.waSecurity"),
+    cta: {
+      label: t("common.signInKlambo"),
+      href: loginUrl,
+    },
+  };
+
+  const richBody = serializeNotifyCard(card);
+  const waParts = notifyCardToWhatsAppParts(card);
 
   try {
     // Inbox Klambo d'abord ; gateway WhatsApp en secours (file + pacing).
@@ -546,7 +580,8 @@ export async function sendNewUserCredentialsWhatsApp(options: {
       locale,
       branchId: options.branchId,
       queueKind: "credentials",
-      parts: [message],
+      parts: waParts,
+      richBody,
     });
     if (result.sent) {
       // eslint-disable-next-line no-console
@@ -586,17 +621,44 @@ export async function sendResetPasswordWhatsApp(
   const loginUrl = resolveWhatsAppLoginUrl(options.loginUrl);
   const displayName = options.name.trim() || t("common.defaultParent");
   const branchLabel = options.branchName?.trim() || null;
+  const brand = branchLabel || APP_NAME;
 
-  const message = buildWhatsAppBody([
-    branchLabel,
-    t("common.hello", { name: displayName }),
-    t("passwordReset.waReset", { app: APP_NAME }),
-    t("accountCreate.waEmail", { email: options.email }),
-    t("passwordReset.waPassword", { password: options.temporaryPassword }),
-    t("passwordReset.waLogin", { url: loginUrl }),
-    t("passwordReset.waSecurity"),
-    t("common.signatureApp", { app: branchLabel || APP_NAME }),
-  ]);
+  const { serializeNotifyCard, notifyCardToWhatsAppParts } = await import(
+    "@/lib/notify/notify-message-card"
+  );
+
+  const card = {
+    v: 1 as const,
+    tone: "amber" as const,
+    brand,
+    title: t("passwordReset.title"),
+    intro: formatMessagingHello(t, displayName),
+    rows: [
+      {
+        label: t("common.email"),
+        value: options.email,
+        kind: "email" as const,
+      },
+      {
+        label: t("common.newPassword"),
+        value: options.temporaryPassword,
+        kind: "secret" as const,
+      },
+      {
+        label: t("common.login"),
+        value: loginUrl,
+        kind: "link" as const,
+      },
+    ],
+    note: t("passwordReset.waSecurity"),
+    cta: {
+      label: t("common.signInKlambo"),
+      href: loginUrl,
+    },
+  };
+
+  const richBody = serializeNotifyCard(card);
+  const waParts = notifyCardToWhatsAppParts(card);
 
   try {
     const { deliverSchoolNotify } = await import(
@@ -608,7 +670,8 @@ export async function sendResetPasswordWhatsApp(
       locale,
       branchId: options.branchId,
       queueKind: "credentials",
-      parts: [message],
+      parts: waParts,
+      richBody,
     });
     if (result.sent) {
       // eslint-disable-next-line no-console

@@ -1,5 +1,6 @@
 import { resolveNotificationChannels } from "@/lib/notification-channels";
 import {
+  formatMessagingHello,
   getMessagingTranslator,
   resolveSenderMessagingLocale,
   type MessagingLocale,
@@ -13,6 +14,10 @@ import {
   getSignInUrl,
 } from "./email-layout";
 import { sendTransactionalWhatsApp } from "@/lib/zindua";
+import {
+  notifyCardToWhatsAppParts,
+  serializeNotifyCard,
+} from "@/lib/notify/notify-message-card";
 
 const APP_NAME = DEFAULT_APP_NAME;
 
@@ -56,10 +61,9 @@ export async function sendParentPaymentNotificationEmail(input: {
     app: APP_NAME,
     subject: copy.subject,
   });
-  const intro = t("payment.introHello", {
-    name: input.parentName,
-    intro: copy.intro,
-  });
+  const hello = formatMessagingHello(t, input.parentName);
+  const intro = `${hello} ${copy.intro}`.trim();
+  const loginUrl = getSignInUrl();
   const rows = [
     { label: t("common.school"), value: input.schoolName },
     { label: t("common.reference"), value: input.reference },
@@ -94,7 +98,7 @@ export async function sendParentPaymentNotificationEmail(input: {
       })),
     ),
     cta: {
-      href: getSignInUrl(),
+      href: loginUrl,
       label: t("common.openAccount"),
     },
   });
@@ -111,26 +115,36 @@ export async function sendParentPaymentNotificationEmail(input: {
   }
 
   if (allow.whatsapp && phone) {
+    const amountLabel = t("common.amount");
+    const card = {
+      v: 1 as const,
+      tone: "emerald" as const,
+      brand: input.schoolName || APP_NAME,
+      title: copy.title,
+      intro,
+      rows: rows.map((row) => ({
+        label: row.label,
+        value: row.value,
+        ...(row.label === amountLabel ? { kind: "secret" as const } : {}),
+      })),
+      note: t("common.connectHint"),
+      cta: {
+        label: t("common.openAccount"),
+        href: loginUrl,
+      },
+    };
     await sendTransactionalWhatsApp({
       to: phone,
       organizationId: input.organizationId,
       locale,
       queueKind: "payment",
       parts: [
-        input.schoolName,
-        t("common.hello", { name: input.parentName }),
-        copy.intro,
-        `${t("common.reference")} : ${input.reference}.`,
-        `${t("common.amount")} : ${input.amountLabel}.`,
-        input.studentNames
-          ? `${t("common.students")} : ${input.studentNames}.`
-          : null,
-        input.feeNames ? `${t("common.fees")} : ${input.feeNames}.` : null,
-        t("common.detailUrl", { url: getSignInUrl() }),
+        ...notifyCardToWhatsAppParts(card),
         t("common.signatureApp", {
           app: input.schoolName || APP_NAME,
         }),
       ],
+      richBody: serializeNotifyCard(card),
     });
   }
 }

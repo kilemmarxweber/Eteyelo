@@ -131,3 +131,61 @@ export async function resolveSenderMessagingLocale(input: {
   if (input.branchId) return getBranchMessagingLocale(input.branchId);
   return "fr";
 }
+
+export type DayGreetingPeriod = "morning" | "afternoon" | "evening";
+
+/**
+ * Salutation selon l’heure (fuseau messagerie, défaut Africa/Kinshasa).
+ * Matin &lt; 12 · après-midi &lt; 18 · sinon soir.
+ */
+export function resolveDayGreetingPeriod(
+  now: Date = new Date(),
+  timeZone =
+    process.env.MESSAGING_TZ?.trim() ||
+    process.env.TZ?.trim() ||
+    "Africa/Kinshasa",
+): DayGreetingPeriod {
+  let hour = now.getHours();
+  try {
+    const raw = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      hour: "numeric",
+      hour12: false,
+    }).format(now);
+    const parsed = Number.parseInt(raw, 10);
+    if (Number.isFinite(parsed)) hour = parsed;
+  } catch {
+    // fuseau invalide → heure locale du process
+  }
+  if (hour < 12) return "morning";
+  if (hour < 18) return "afternoon";
+  return "evening";
+}
+
+/** Clé i18n : common.greetingMorning | Afternoon | Evening */
+export function dayGreetingMessageKey(
+  period: DayGreetingPeriod = resolveDayGreetingPeriod(),
+): "common.greetingMorning" | "common.greetingAfternoon" | "common.greetingEvening" {
+  if (period === "morning") return "common.greetingMorning";
+  if (period === "afternoon") return "common.greetingAfternoon";
+  return "common.greetingEvening";
+}
+
+/** Une seule salutation dynamique : « Bonsoir Jean, » */
+export function formatMessagingHello(
+  t: MessagingTranslator,
+  name: string,
+  now?: Date,
+): string {
+  const greeting = t(dayGreetingMessageKey(resolveDayGreetingPeriod(now)));
+  return t("common.hello", { greeting, name: name.trim() || "…" });
+}
+
+export function formatMessagingHelloPlain(
+  t: MessagingTranslator,
+  name: string,
+  now?: Date,
+): string {
+  const greeting = t(dayGreetingMessageKey(resolveDayGreetingPeriod(now)));
+  return t("common.helloPlain", { greeting, name: name.trim() || "…" });
+}
