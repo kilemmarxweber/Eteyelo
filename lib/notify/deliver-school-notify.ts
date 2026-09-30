@@ -1,6 +1,9 @@
 /**
  * Notification école : inbox Klambo (messagerie Eteyelo) en priorité,
  * WhatsApp / gateway Desktop/Api en secours.
+ *
+ * Les livraisons passent par `enqueueSchoolNotifyTask` (file process-wide,
+ * lanes par nature) pour éviter une rafale de createConversation / WS.
  */
 
 import { prisma } from "@/lib/prisma";
@@ -15,6 +18,10 @@ import {
   isOrganizationMessagingEnabled,
   MessagingError,
 } from "@/lib/messaging/messaging-service";
+import {
+  enqueueSchoolNotifyTask,
+  type SchoolNotifyQueueKind,
+} from "@/lib/notify/school-notify-queue";
 import type { WhatsAppQueueKind } from "@/lib/whatsapp-pace";
 import type { MessagingLocale } from "@/lib/messaging-locale";
 
@@ -25,6 +32,37 @@ export type SchoolNotifyOutcome = {
   error?: string;
   channel: SchoolNotifyChannel;
 };
+
+type SchoolNotifyActor = {
+  userId: string;
+  appRole: string;
+  memberRole: string;
+  memberArchived: boolean;
+  userBanned: boolean;
+  messagingEnabled: boolean;
+};
+
+type SchoolNotifyOptions = {
+  to: string;
+  organizationId?: string | null;
+  parts: Array<string | null | undefined>;
+  attachments?: Array<{ url: string; filename?: string }>;
+  queueKind?: WhatsAppQueueKind;
+  locale?: MessagingLocale | null;
+  branchId?: string | null;
+};
+
+const BOT_CACHE_TTL_MS = 10 * 60_000;
+const ORG_MSG_CACHE_TTL_MS = 60_000;
+
+const botSenderCache = new Map<
+  string,
+  { actor: SchoolNotifyActor; expiresAt: number }
+>();
+const orgMessagingCache = new Map<
+  string,
+  { enabled: boolean; expiresAt: number }
+>();
 
 function isKlamboAppFirstEnabled() {
   const raw = process.env.NOTIFY_KLAMBO_APP_FIRST?.trim().toLowerCase();
@@ -57,36 +95,56 @@ const SCHOOL_NOTIFY_BOT_EMAIL_PREFIX = "school-notify+";
 const SCHOOL_NOTIFY_BOT_EMAIL_DOMAIN = "system.klambo.local";
 
 function schoolNotifyBotEmail(organizationId: string) {
-  // cuid-safe local part
   const local = organizationId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 48);
   return `${SCHOOL_NOTIFY_BOT_EMAIL_PREFIX}${local}@${SCHOOL_NOTIFY_BOT_EMAIL_DOMAIN}`;
 }
 
+async function getMessagingEnabledCached(organizationId: string) {
+  const hit = orgMessagingCache.get(organizationId);
+  if (hit && hit.expiresAt > Date.now()) return hit.enabled;
+  const enabled = await isOrganizationMessagingEnabled(organizationId);
+  orgMessagingCache.set(organizationId, {
+    enabled,
+    expiresAt: Date.now() + ORG_MSG_CACHE_TTL_MS,
+  });
+  return enabled;
+}
+
 /**
  * Expéditeur technique (bot org) — pas un humain.
- * Évite que le propriétaire soit participant de chaque alerte destinataire.
+ * Cache court pour éviter N× find/create sur un lot d'absences.
  */
-async function ensureSchoolNotifySender(organizationId: string) {
-  const messagingEnabled = await isOrganizationMessagingEnabled(organizationId);
+async function ensureSchoolNotifySender(
+  organizationId: string,
+  messagingEnabled: boolean,
+): Promise<SchoolNotifyActor> {
+  const cached = botSenderCache.get(organizationId);
+  if (cached && cached.expiresAt > Date.now()) {
+    return { ...cached.actor, messagingEnabled };
+  }
+
   const email = schoolNotifyBotEmail(organizationId);
-  const org = await prisma.organization.findUnique({
-    where: { id: organizationId },
-    select: { name: true },
-  });
+  const [org, existingUser] = await Promise.all([
+    prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { name: true },
+    }),
+    prisma.user.findFirst({
+      where: { email },
+      select: {
+        id: true,
+        banned: true,
+        role: true,
+        statusUser: true,
+      },
+    }),
+  ]);
+
   const botName = org?.name?.trim()
     ? `${org.name.trim()} · Notifications`
     : "École · Notifications";
 
-  let user = await prisma.user.findFirst({
-    where: { email },
-    select: {
-      id: true,
-      banned: true,
-      role: true,
-      statusUser: true,
-    },
-  });
-
+  let user = existingUser;
   if (!user) {
     user = await prisma.user.create({
       data: {
@@ -120,7 +178,7 @@ async function ensureSchoolNotifySender(organizationId: string) {
 
   const existingMember = await prisma.member.findFirst({
     where: { organizationId, userId: user.id },
-    select: { id: true, role: true, isArchived: true },
+    select: { id: true, isArchived: true },
   });
 
   if (!existingMember) {
@@ -140,7 +198,7 @@ async function ensureSchoolNotifySender(organizationId: string) {
     });
   }
 
-  return {
+  const actor: SchoolNotifyActor = {
     userId: user.id,
     appRole: user.role ?? "user",
     memberRole: ORG_ROLE.GESTIONNAIRE,
@@ -148,17 +206,18 @@ async function ensureSchoolNotifySender(organizationId: string) {
     userBanned: false,
     messagingEnabled,
   };
+
+  botSenderCache.set(organizationId, {
+    actor,
+    expiresAt: Date.now() + BOT_CACHE_TTL_MS,
+  });
+
+  return actor;
 }
 
-async function fallbackWhatsApp(options: {
-  to: string;
-  organizationId?: string | null;
-  parts: Array<string | null | undefined>;
-  attachments?: Array<{ url: string; filename?: string }>;
-  queueKind?: WhatsAppQueueKind;
-  locale?: MessagingLocale | null;
-  branchId?: string | null;
-}): Promise<SchoolNotifyOutcome> {
+async function fallbackWhatsApp(
+  options: SchoolNotifyOptions,
+): Promise<SchoolNotifyOutcome> {
   const { sendTransactionalWhatsAppViaProvider } = await import("@/lib/zindua");
   const wa = await sendTransactionalWhatsAppViaProvider(options);
   return {
@@ -168,18 +227,11 @@ async function fallbackWhatsApp(options: {
 }
 
 /**
- * Tente l'inbox Klambo ; sinon WhatsApp via le provider configuré.
- * Pièces jointes → WhatsApp uniquement (media in-app non branché ici).
+ * Corps synchrone (une tentative) — appelé uniquement depuis la file.
  */
-export async function deliverSchoolNotify(options: {
-  to: string;
-  organizationId?: string | null;
-  parts: Array<string | null | undefined>;
-  attachments?: Array<{ url: string; filename?: string }>;
-  queueKind?: WhatsAppQueueKind;
-  locale?: MessagingLocale | null;
-  branchId?: string | null;
-}): Promise<SchoolNotifyOutcome> {
+async function deliverSchoolNotifyNow(
+  options: SchoolNotifyOptions,
+): Promise<SchoolNotifyOutcome> {
   if (!isKlamboAppFirstEnabled()) {
     return fallbackWhatsApp(options);
   }
@@ -204,8 +256,16 @@ export async function deliverSchoolNotify(options: {
   }
 
   try {
-    const user = await findUserByTelephone(to);
+    const [user, messagingEnabled] = await Promise.all([
+      findUserByTelephone(to),
+      getMessagingEnabledCached(organizationId),
+    ]);
+
     if (!user || user.banned || user.statusUser === false) {
+      return fallbackWhatsApp(options);
+    }
+
+    if (!messagingEnabled) {
       return fallbackWhatsApp(options);
     }
 
@@ -232,12 +292,10 @@ export async function deliverSchoolNotify(options: {
       return fallbackWhatsApp(options);
     }
 
-    const messagingEnabled = await isOrganizationMessagingEnabled(organizationId);
-    if (!messagingEnabled) {
-      return fallbackWhatsApp(options);
-    }
-
-    const sender = await ensureSchoolNotifySender(organizationId);
+    const sender = await ensureSchoolNotifySender(
+      organizationId,
+      messagingEnabled,
+    );
     if (sender.userId === user.id) {
       return fallbackWhatsApp(options);
     }
@@ -265,4 +323,22 @@ export async function deliverSchoolNotify(options: {
     console.warn(`[deliverSchoolNotify] klambo fail → whatsapp: ${message}`);
     return fallbackWhatsApp(options);
   }
+}
+
+/**
+ * Tente l'inbox Klambo ; sinon WhatsApp via le provider configuré.
+ * Toujours enfilé (round-robin par `queueKind`) pour lisser la charge.
+ * Pièces jointes → WhatsApp uniquement (media in-app non branché ici).
+ */
+export async function deliverSchoolNotify(
+  options: SchoolNotifyOptions,
+): Promise<SchoolNotifyOutcome> {
+  const kind = (options.queueKind ?? "other") as SchoolNotifyQueueKind;
+  return enqueueSchoolNotifyTask(() => deliverSchoolNotifyNow(options), kind);
+}
+
+/** Invalide les caches bot / messagingEnabled (tests). */
+export function __resetSchoolNotifyCachesForTests() {
+  botSenderCache.clear();
+  orgMessagingCache.clear();
 }
