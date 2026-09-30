@@ -109,7 +109,7 @@ export default async function OtherServicesPage() {
     <div className="min-h-screen bg-slate-50">
       <HomeNavbar />
 
-      <main className="mx-auto max-w-6xl px-4 py-14">
+      <main className="mx-auto max-w-7xl px-4 py-14">
         <section className="max-w-3xl">
           <div className="inline-flex items-center gap-2 rounded-full bg-blue-950/10 px-3 py-1.5 text-xs font-semibold text-blue-950">
             <MessageCircle className="size-4" />
@@ -140,7 +140,7 @@ export default async function OtherServicesPage() {
 
         <section className="mt-14 rounded-3xl border bg-white p-6 shadow-sm md:p-8">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div className="max-w-2xl">
+            <div className="max-w-7xl">
               <div className="inline-flex items-center gap-2 rounded-full bg-blue-950/10 px-3 py-1.5 text-xs font-semibold text-blue-950">
                 <Smartphone className="size-4" />
                 Application mobile
