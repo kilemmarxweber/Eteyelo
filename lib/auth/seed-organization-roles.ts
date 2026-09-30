@@ -7,7 +7,7 @@ import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getOrgRolePresetSeedRows } from "@/lib/org/role-presets";
 import { completePermissionMatrix } from "@/lib/auth/org-role-permission-shared";
-import { ORG_ROLE, ATTENDANCE_SCHOOL_REPORTS_ROLE_SLUGS } from "@/lib/permissions";
+import { ORG_ROLE, ATTENDANCE_SCHOOL_REPORTS_ROLE_SLUGS, ATTENDANCE_KIOSK_ROLE_SLUGS } from "@/lib/permissions";
 
 const LEADERSHIP_ROLE_SLUGS = [
   ORG_ROLE.PREFET,
@@ -306,6 +306,47 @@ export async function ensureAttendanceSchoolReports(
     const attendance = new Set(permission.attendance ?? []);
     if (!attendance.has("read") || attendance.has("reports")) continue;
     attendance.add("reports");
+
+    await prisma.organizationRole.update({
+      where: { id: row.id },
+      data: {
+        permission: JSON.stringify(
+          completePermissionMatrix({
+            ...permission,
+            attendance: [...attendance],
+          }),
+        ),
+      },
+    });
+    updated += 1;
+  }
+
+  return updated;
+}
+
+/**
+ * Ajoute `attendance:kiosk` aux presets propriétaire / chefs d’établissement
+ * (lien pointage kiosque) sans élargir enseignant / caissier / parent.
+ */
+export async function ensureAttendanceKiosk(
+  organizationId: string,
+): Promise<number> {
+  const rows = await prisma.organizationRole.findMany({
+    where: {
+      organizationId,
+      role: { in: [...ATTENDANCE_KIOSK_ROLE_SLUGS] },
+      isSystem: true,
+    },
+    select: { id: true, permission: true },
+  });
+
+  let updated = 0;
+  for (const row of rows) {
+    const permission = parsePermissionJson(row.permission);
+    const attendance = new Set(permission.attendance ?? []);
+    if (attendance.has("kiosk")) continue;
+    attendance.add("kiosk");
+    if (!attendance.has("read")) attendance.add("read");
 
     await prisma.organizationRole.update({
       where: { id: row.id },

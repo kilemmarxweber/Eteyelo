@@ -17,6 +17,7 @@ import {
   canManageHrDirectory,
   canManageOrganization,
   canViewAttendanceSchoolReports,
+  canOpenAttendanceKiosk,
   canPermanentlyDeleteInformation,
   canReadScheduleArea,
   canSeeCandidatureNotifications,
@@ -93,6 +94,41 @@ test("rapports présence globaux : direction oui ; enseignant seulement via matr
         role: ORG_ROLE.TEACHER,
         rolePermissions: {
           [ORG_ROLE.TEACHER]: { attendance: ["create", "read", "update", "reports"] },
+        },
+      },
+    }),
+    true,
+  );
+});
+
+test("pointage kiosque : chefs d'établissement via seed ; enseignant via matrice kiosk", () => {
+  assert.equal(canOpenAttendanceKiosk(sessionDirecteur), true);
+  assert.equal(canOpenAttendanceKiosk(sessionPrefet), true);
+  assert.equal(
+    canOpenAttendanceKiosk(sessionWithOrgRole(ORG_ROLE.DIRECTEUR_ETUDES)),
+    true,
+  );
+  assert.equal(canOpenAttendanceKiosk(sessionGestionnaire), false);
+  assert.equal(canOpenAttendanceKiosk(sessionTeacher), false);
+  assert.equal(
+    canOpenAttendanceKiosk({
+      organization: {
+        role: ORG_ROLE.TEACHER,
+        rolePermissions: {
+          [ORG_ROLE.TEACHER]: { attendance: ["create", "read", "update", "kiosk"] },
+        },
+      },
+    }),
+    true,
+  );
+  assert.equal(
+    canOpenAttendanceKiosk({
+      organization: {
+        role: ORG_ROLE.GESTIONNAIRE,
+        rolePermissions: {
+          [ORG_ROLE.GESTIONNAIRE]: {
+            attendance: ["create", "read", "update", "reports", "kiosk"],
+          },
         },
       },
     }),

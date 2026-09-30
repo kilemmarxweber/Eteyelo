@@ -46,10 +46,11 @@ test("catalogue déclare les ressources scolaires P1", () => {
   }
 });
 
-test("finance expose encaisser ; teaching expose assign ; attendance expose reports", () => {
+test("finance expose encaisser ; teaching expose assign ; attendance expose reports + kiosk", () => {
   assert.ok(accessControlStatements.finance.includes("encaisser"));
   assert.ok(accessControlStatements.teaching.includes("assign"));
   assert.ok(accessControlStatements.attendance.includes("reports"));
+  assert.ok(accessControlStatements.attendance.includes("kiosk"));
 });
 
 test("owner couvre finance + notes + student + paie + transactions", () => {
@@ -59,6 +60,7 @@ test("owner couvre finance + notes + student + paie + transactions", () => {
   assert.ok(owner.student?.includes("delete"));
   assert.ok(owner.payroll?.includes("pay"));
   assert.ok(owner.transactions?.includes("read"));
+  assert.ok(owner.attendance?.includes("kiosk"));
 });
 
 test("gestionnaire a finance CRU+encaisser sans delete member ; paie complète", () => {
@@ -78,6 +80,7 @@ test("chef d'établissement sans finance ; avec notes", () => {
     assert.ok(s.notes?.includes("update"));
     assert.ok(s.attendance?.includes("create"));
     assert.ok(s.attendance?.includes("reports"));
+    assert.ok(s.attendance?.includes("kiosk"));
     assert.equal(s.settings, undefined);
     assert.equal(s.schoolYear, undefined);
     assert.equal(s.structureCopy, undefined);
@@ -94,6 +97,7 @@ test("directeur des études sans finance ; personnel read ; enseignants read", (
   assert.deepEqual(d.personnel, ["read"]);
   assert.deepEqual(d.teacher, ["read"]);
   assert.ok(d.notes?.includes("create"));
+  assert.ok(d.attendance?.includes("kiosk"));
   assert.equal(d.settings, undefined);
   assert.equal(d.schoolYear, undefined);
   assert.equal(d.structureCopy, undefined);
@@ -116,6 +120,7 @@ test("teacher a notes/attendance ; pas paie, finance, annuaire ni enseignement p
   assert.ok(t.notes?.includes("create"));
   assert.ok(t.attendance?.includes("create"));
   assert.equal(t.attendance?.includes("reports") ?? false, false);
+  assert.equal(t.attendance?.includes("kiosk") ?? false, false);
   assert.equal(t.payroll, undefined);
   assert.equal(t.finance, undefined);
   assert.equal(t.teaching, undefined);
@@ -169,6 +174,10 @@ test("libellés FR finance encaisser et paie bulletin", () => {
   assert.equal(
     permissionLabelFr("attendance", "reports"),
     "Présences · Rapports & historique (tous)",
+  );
+  assert.equal(
+    permissionLabelFr("attendance", "kiosk"),
+    "Présences · Pointage kiosque",
   );
   assert.ok(listCatalogPermissions().length >= ALL_PERMISSIONS.length);
 });

@@ -140,6 +140,14 @@ export const ATTENDANCE_SCHOOL_REPORTS_ROLE_SLUGS = [
   ORG_ROLE.SUPERVISEUR,
 ] as const;
 
+/** Pointage kiosque par défaut : propriétaire + chefs d’établissement / études. */
+export const ATTENDANCE_KIOSK_ROLE_SLUGS = [
+  ORG_ROLE.OWNER,
+  ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.DIRECTEUR_ETUDES,
+] as const;
+
 export const accessControlStatements = {
   ...adminPluginSchemaStatements,
   ...organizationPluginSchemaStatements,
@@ -162,7 +170,7 @@ export const accessControlStatements = {
   fees: ["create", "read", "update", "delete"],
   /** Affectations enseignant ↔ cours. */
   teaching: ["create", "read", "update", "delete", "assign"],
-  attendance: ["create", "read", "update", "delete", "reports"],
+  attendance: ["create", "read", "update", "delete", "reports", "kiosk"],
   notes: ["create", "read", "update", "delete"],
   results: ["create", "read", "update", "delete"],
   devoirs: ["create", "read", "update", "delete"],
@@ -288,6 +296,8 @@ function withSchoolModuleActions(
   actions: readonly CrudAction[],
   options?: {
     includeTeachingAssign?: boolean;
+    /** Pointage kiosque (propriétaire / chefs d’établissement). */
+    includeAttendanceKiosk?: boolean;
     settingsActions?: readonly CrudAction[];
     omit?: ReadonlyArray<(typeof SCHOOL_MODULE_RESOURCES)[number]>;
   },
@@ -306,7 +316,11 @@ function withSchoolModuleActions(
       continue;
     }
     if (resource === "attendance" && actions.includes("read")) {
-      shape.attendance = [...new Set([...actions, "reports"])];
+      const attendanceActions: string[] = [...actions, "reports"];
+      if (options?.includeAttendanceKiosk) {
+        attendanceActions.push("kiosk");
+      }
+      shape.attendance = [...new Set(attendanceActions)];
       continue;
     }
     shape[resource] = actions;
@@ -333,6 +347,7 @@ function leadershipSchoolPreset(
 ) {
   return withSchoolModuleActions(CRU_ACTIONS, {
     includeTeachingAssign: true,
+    includeAttendanceKiosk: true,
     omit: [...LEADERSHIP_DEFAULT_OMIT],
     ...options,
   });
@@ -457,7 +472,10 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
   [ORG_ROLE.OWNER]: {
     ...ownerAc.statements,
     ...withActions(CRUD_ACTIONS),
-    ...withSchoolModuleActions(CRUD_ACTIONS, { includeTeachingAssign: true }),
+    ...withSchoolModuleActions(CRUD_ACTIONS, {
+      includeTeachingAssign: true,
+      includeAttendanceKiosk: true,
+    }),
     ...withFinanceActions(CRUD_ACTIONS),
     ...PAYROLL_FULL,
     transactions: ["create", "read", "update", "delete"],

@@ -51,6 +51,7 @@ const ACTION_OPTIONS = [
   { value: "compute", label: "Calculer la paie (compute) + lecture" },
   { value: "validate", label: "Valider les bulletins (validate) + lecture" },
   { value: "pay", label: "Payer les bulletins (pay) + lecture" },
+  { value: "kiosk", label: "Pointage kiosque (kiosk)" },
 ];
 
 const DURATION_PRESETS = [
@@ -106,7 +107,13 @@ export function TemporaryGrantModal({
   const extraFromSelection = new Set(
     itemValues.flatMap((resource) => extraActionsForResource(resource)),
   );
-  const extraActionValues = new Set(["encaisser", "compute", "validate", "pay"]);
+  const extraActionValues = new Set([
+    "encaisser",
+    "compute",
+    "validate",
+    "pay",
+    "kiosk",
+  ]);
   const canEncaisser = extraFromSelection.has("encaisser");
   const canPayrollMutate = itemValues.includes("payroll");
   const visibleActions = ACTION_OPTIONS.filter((opt) => {

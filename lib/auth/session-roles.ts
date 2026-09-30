@@ -122,21 +122,26 @@ export function canViewAttendanceSchoolReports(
   return false;
 }
 
-/** Ouvre le kiosque de pointage public (sans session) pour la branche active. */
+/** Ouvre le kiosque de pointage (lien UI) — matrice `attendance:kiosk`. */
 export function canOpenAttendanceKiosk(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
-  return hasSessionRole(
-    session,
-    [
-      ORG_ROLE.OWNER,
-      ORG_ROLE.PREFET,
-      ORG_ROLE.DIRECTEUR,
-      ORG_ROLE.DIRECTEUR_ETUDES,
-    ],
-    ...extraRoles,
-  );
+  if (isOrganizationOwnerSession(session, ...extraRoles)) {
+    return true;
+  }
+  if (
+    hasSessionRole(session, [APP_ROLE.OWNER, APP_ROLE.ADMIN], ...extraRoles)
+  ) {
+    return true;
+  }
+  const map = statementsMapFromSession(session);
+  for (const slug of getSessionRoles(session, ...extraRoles)) {
+    const statements = getStatementsForRole(slug, map);
+    const have = new Set((statements?.attendance ?? []).map(String));
+    if (have.has("kiosk")) return true;
+  }
+  return false;
 }
 
 /**

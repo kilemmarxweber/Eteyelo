@@ -100,7 +100,7 @@ export const TEMPORARY_GRANT_CATALOG: TemporaryGrantCatalogGroup[] = [
     items: [
       { resource: "inscription", label: "Inscriptions" },
       { resource: "candidatures", label: "Candidatures" },
-      { resource: "attendance", label: "Présences" },
+      { resource: "attendance", label: "Présences", extraActions: ["kiosk"] },
       { resource: "messaging", label: "Messagerie interne" },
     ],
   },
@@ -160,6 +160,7 @@ const ALLOWED_GRANT_ACTIONS = new Set([
   "compute",
   "validate",
   "pay",
+  "kiosk",
 ]);
 
 export function isAllowedGrantAction(action: string) {
@@ -171,7 +172,7 @@ export function buildTemporaryGrantPairs(
   resources: string[],
   actions: string[],
 ): Array<{ resource: string; action: string }> {
-  const extraOnly = new Set(["encaisser", "compute", "validate", "pay"]);
+  const extraOnly = new Set(["encaisser", "compute", "validate", "pay", "kiosk"]);
   const pairs: Array<{ resource: string; action: string }> = [];
   for (const resource of resources) {
     const extras = extraActionsForResource(resource);

@@ -69,6 +69,7 @@ const ACTION_LABELS_FR: Record<string, string> = {
   encaisser: "Encaisser",
   assign: "Affecter",
   reports: "Rapports & historique (tous)",
+  kiosk: "Pointage kiosque",
   send: "Envoyer",
   group: "Groupe",
   manage: "Gérer",
@@ -88,6 +89,9 @@ export function actionLabelFr(action: string, resource?: string): string {
   if (resource === "finance" && action === "delete") {
     return "Supprimer paiement";
   }
+  if (resource === "attendance" && action === "kiosk") {
+    return "Pointage kiosque";
+  }
   return ACTION_LABELS_FR[action] ?? action;
 }
 
@@ -105,6 +109,9 @@ export function permissionLabelFr(resource: string, action: string): string {
   }
   if (resource === "finance" && action === "delete") {
     return "Paiement · Supprimer (erreur de saisie)";
+  }
+  if (resource === "attendance" && action === "kiosk") {
+    return "Présences · Pointage kiosque";
   }
   return `${resourceLabelFr(resource)} · ${actionLabelFr(action, resource)}`;
 }
