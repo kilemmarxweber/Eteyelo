@@ -18,6 +18,7 @@ import {
   MESSAGING_PURGE_CONFIRMATION,
   MESSAGING_RATE_LIMIT_PER_MINUTE,
   MESSAGING_SEARCH_PAGE_SIZE,
+  previewDeletedOrBody,
   previewMessageBody,
   sanitizeMessageBody,
   type ConversationContextTypeValue,
@@ -1020,13 +1021,18 @@ export async function deleteMessage(params: {
     params.organizationId,
   );
 
-  await prisma.message.update({
-    where: { id: message.id },
-    data: { deletedAt: new Date() },
-  });
-  await prisma.conversation.update({
-    where: { id: message.conversationId },
-    data: { updatedAt: new Date() },
+  // Soft-delete : on conserve la place dans le fil, on retire le contenu
+  // (texte + pièces jointes) pour que l'autre voie « message retiré ».
+  await prisma.$transaction(async (tx) => {
+    await tx.messageAttachment.deleteMany({ where: { messageId: message.id } });
+    await tx.message.update({
+      where: { id: message.id },
+      data: { deletedAt: new Date(), body: "", editedAt: null },
+    });
+    await tx.conversation.update({
+      where: { id: message.conversationId },
+      data: { updatedAt: new Date() },
+    });
   });
 
   await publishMessageLifecycle({
@@ -1040,6 +1046,7 @@ export async function deleteMessage(params: {
   return {
     messageId: message.id,
     conversationId: message.conversationId,
+    deletedAt: new Date().toISOString(),
   };
 }
 
@@ -1144,7 +1151,6 @@ export async function listMyConversations(params: {
         include: { user: { select: userNameSelect } },
       },
       messages: {
-        where: { deletedAt: null },
         orderBy: { createdAt: "desc" },
         take: 1,
         include: { sender: { select: userNameSelect } },
@@ -1198,7 +1204,7 @@ export async function listMyConversations(params: {
       lastMessage: last
         ? {
             id: last.id,
-            body: previewMessageBody(last.body, 120),
+            body: previewDeletedOrBody(last.body, last.deletedAt, 120),
             senderId: last.senderId,
             senderName: formatMessagingPersonName(last.sender),
             createdAt: last.createdAt.toISOString(),
@@ -1270,7 +1276,7 @@ export async function getConversationMessages(params: {
   const rows = await prisma.message.findMany({
     where: {
       conversationId: params.conversationId,
-      deletedAt: null,
+      // Inclure les messages soft-deleted pour afficher la trace « retiré ».
       ...(params.cursor ? { createdAt: { lt: new Date(params.cursor) } } : {}),
     },
     include: {
@@ -1279,6 +1285,7 @@ export async function getConversationMessages(params: {
         select: {
           id: true,
           body: true,
+          deletedAt: true,
           sender: { select: userNameSelect },
         },
       },
@@ -1312,6 +1319,7 @@ export async function getConversationMessages(params: {
     .reverse()
     .map((row) => {
       const mapped = recipientMap.get(row.senderId);
+      const isDeleted = row.deletedAt != null;
       return {
         id: row.id,
         conversationId: row.conversationId,
@@ -1320,28 +1328,34 @@ export async function getConversationMessages(params: {
         senderImage: mapped?.image ?? row.sender.image,
         senderRoleLabel: mapped?.roleLabel ?? "",
         senderBranches: mapped?.branches ?? [],
-        body: row.body,
+        body: isDeleted ? "" : row.body,
         replyTo: row.replyTo
           ? {
               id: row.replyTo.id,
               senderName: formatMessagingPersonName(row.replyTo.sender),
-              body: row.replyTo.body,
+              body: row.replyTo.deletedAt ? "" : row.replyTo.body,
+              deletedAt: row.replyTo.deletedAt
+                ? row.replyTo.deletedAt.toISOString()
+                : null,
             }
           : null,
-        attachments: row.attachments.map((att) => ({
-          id: att.id,
-          kind: att.kind,
-          url: att.url,
-          mimeType: att.mimeType,
-          sizeBytes: att.sizeBytes,
-          durationMs: att.durationMs,
-          fileName: att.fileName,
-        })),
+        attachments: isDeleted
+          ? []
+          : row.attachments.map((att) => ({
+              id: att.id,
+              kind: att.kind,
+              url: att.url,
+              mimeType: att.mimeType,
+              sizeBytes: att.sizeBytes,
+              durationMs: att.durationMs,
+              fileName: att.fileName,
+            })),
         createdAt: row.createdAt.toISOString(),
         editedAt:
-          "editedAt" in row && row.editedAt instanceof Date
+          !isDeleted && "editedAt" in row && row.editedAt instanceof Date
             ? row.editedAt.toISOString()
             : null,
+        deletedAt: isDeleted ? row.deletedAt!.toISOString() : null,
         archivedForMe: row.archives.length > 0,
       };
     });

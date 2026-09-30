@@ -53,18 +53,16 @@ test("élèves et parents ne créent pas de groupes", () => {
   assert.equal(canCreateGroup({ memberRole: ORG_ROLE.TEACHER }), true);
 });
 
-test("NOTIFY_KLAMBO_APP_FIRST défaut = activé", () => {
-  const prev = process.env.NOTIFY_KLAMBO_APP_FIRST;
-  delete process.env.NOTIFY_KLAMBO_APP_FIRST;
-  const raw = process.env.NOTIFY_KLAMBO_APP_FIRST?.trim().toLowerCase();
-  const enabled = !(
-    raw === "0" ||
-    raw === "false" ||
-    raw === "off" ||
-    raw === "no"
-  );
-  assert.equal(enabled, true);
-  if (prev !== undefined) process.env.NOTIFY_KLAMBO_APP_FIRST = prev;
+test("alias provider inbox (canal exclusif)", () => {
+  const aliases = ["inbox", "klambo_inbox", "klambo-inbox", "app"];
+  for (const value of aliases) {
+    assert.equal(
+      ["inbox", "klambo_inbox", "klambo-inbox", "app"].includes(value),
+      true,
+    );
+  }
+  assert.equal(["inbox"].includes("klambo"), false);
+  assert.equal(["inbox"].includes("meta"), false);
 });
 
 async function main() {

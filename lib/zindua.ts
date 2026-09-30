@@ -644,6 +644,17 @@ export async function getZinduaWhatsAppStatus(
     provider: config.provider,
   };
 
+  if (config.provider === "inbox") {
+    return {
+      ...base,
+      sendingEnabled: false,
+      connected: true,
+      status: "inbox",
+      projectName: "Klambo Inbox (messagerie app)",
+      envEnabled: false,
+    };
+  }
+
   if (!config.apiKey) {
     return {
       ...base,
@@ -730,6 +741,13 @@ export async function sendWhatsAppTest(options: {
   }
 
   const config = await getWhatsAppRuntimeConfig(options.organizationId);
+  if (config.provider === "inbox") {
+    return {
+      sent: false,
+      error:
+        "Canal actif = Klambo Inbox. Basculez sur Zindua / KlamboWhatsapp / Meta pour un test WhatsApp.",
+    };
+  }
   const label = providerLabel(config.provider);
   const locale = await resolveSenderMessagingLocale({
     locale: options.locale,

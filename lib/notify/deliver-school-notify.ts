@@ -1,9 +1,6 @@
 /**
- * Notification école : inbox Klambo (messagerie Eteyelo) en priorité,
- * WhatsApp / gateway Desktop/Api en secours.
- *
- * Les livraisons passent par `enqueueSchoolNotifyTask` (file process-wide,
- * lanes par nature) pour éviter une rafale de createConversation / WS.
+ * Notification école — canal exclusif selon Paramètres org :
+ * inbox Klambo | Zindua | KlamboWhatsapp | Meta.
  */
 
 import { prisma } from "@/lib/prisma";
@@ -24,6 +21,10 @@ import {
 } from "@/lib/notify/school-notify-queue";
 import type { WhatsAppQueueKind } from "@/lib/whatsapp-pace";
 import type { MessagingLocale } from "@/lib/messaging-locale";
+import {
+  getWhatsAppRuntimeConfig,
+  isInboxProvider,
+} from "@/lib/whatsapp-settings";
 
 export type SchoolNotifyChannel = "klambo" | "whatsapp" | "none";
 
@@ -64,14 +65,6 @@ const orgMessagingCache = new Map<
   string,
   { enabled: boolean; expiresAt: number }
 >();
-
-function isKlamboAppFirstEnabled() {
-  const raw = process.env.NOTIFY_KLAMBO_APP_FIRST?.trim().toLowerCase();
-  if (raw === "0" || raw === "false" || raw === "off" || raw === "no") {
-    return false;
-  }
-  return true;
-}
 
 function resolveNotifyPhone(phone?: string | null): string | null {
   if (!phone?.trim()) return null;
@@ -235,21 +228,37 @@ async function fallbackWhatsApp(
 
 /**
  * Corps synchrone (une tentative) — appelé uniquement depuis la file.
+ * Canal exclusif selon Paramètres → Message WhatsApp :
+ * - inbox → messagerie Klambo seulement (pas de WhatsApp)
+ * - zindua | klambo | meta → gateway WhatsApp seulement
  */
 async function deliverSchoolNotifyNow(
   options: SchoolNotifyOptions,
 ): Promise<SchoolNotifyOutcome> {
-  if (!isKlamboAppFirstEnabled()) {
-    return fallbackWhatsApp(options, "NOTIFY_KLAMBO_APP_FIRST=off");
+  const organizationId = options.organizationId?.trim() || null;
+  const config = await getWhatsAppRuntimeConfig(organizationId);
+  const inboxOnly = isInboxProvider(config.provider);
+
+  if (!inboxOnly) {
+    return fallbackWhatsApp(options, `provider=${config.provider}`);
   }
 
   if (options.attachments?.length) {
-    return fallbackWhatsApp(options, "attachments");
+    // Inbox seul : pièces jointes gateway non disponibles
+    return {
+      sent: false,
+      channel: "none",
+      error:
+        "Pièces jointes indisponibles en mode Klambo Inbox (passez sur un gateway WhatsApp).",
+    };
   }
 
-  const organizationId = options.organizationId?.trim() || null;
   if (!organizationId) {
-    return fallbackWhatsApp(options, "no-organizationId");
+    return {
+      sent: false,
+      channel: "none",
+      error: "Organisation manquante pour l’inbox Klambo.",
+    };
   }
 
   const to = resolveNotifyPhone(options.to);
@@ -269,14 +278,21 @@ async function deliverSchoolNotifyNow(
     ]);
 
     if (!user || user.banned || user.statusUser === false) {
-      return fallbackWhatsApp(
-        options,
-        !user ? "user-not-found" : "user-banned-or-inactive",
-      );
+      return {
+        sent: false,
+        channel: "none",
+        error: !user
+          ? "Destinataire absent de Klambo (inbox)."
+          : "Compte destinataire inactif.",
+      };
     }
 
     if (!messagingEnabled) {
-      return fallbackWhatsApp(options, "messaging-disabled");
+      return {
+        sent: false,
+        channel: "none",
+        error: "Messagerie organisation désactivée.",
+      };
     }
 
     const member = await prisma.member.findFirst({
@@ -299,10 +315,13 @@ async function deliverSchoolNotifyNow(
         statusUser: member.user.statusUser,
       })
     ) {
-      return fallbackWhatsApp(
-        options,
-        !member ? "not-member-of-org" : "recipient-not-eligible",
-      );
+      return {
+        sent: false,
+        channel: "none",
+        error: !member
+          ? "Destinataire hors organisation."
+          : "Destinataire non éligible à l’inbox.",
+      };
     }
 
     const sender = await ensureSchoolNotifySender(
@@ -310,7 +329,11 @@ async function deliverSchoolNotifyNow(
       messagingEnabled,
     );
     if (sender.userId === user.id) {
-      return fallbackWhatsApp(options, "sender-is-recipient");
+      return {
+        sent: false,
+        channel: "none",
+        error: "Expéditeur et destinataire identiques.",
+      };
     }
 
     await createConversation({
@@ -333,15 +356,14 @@ async function deliverSchoolNotifyNow(
           ? error.message
           : "Échec envoi Klambo";
     // eslint-disable-next-line no-console
-    console.warn(`[deliverSchoolNotify] klambo fail → whatsapp: ${message}`);
-    return fallbackWhatsApp(options, `klambo-error:${message.slice(0, 80)}`);
+    console.warn(`[deliverSchoolNotify] klambo fail (inbox-only): ${message}`);
+    return { sent: false, channel: "none", error: message };
   }
 }
 
 /**
- * Tente l'inbox Klambo ; sinon WhatsApp via le provider configuré.
+ * Canal exclusif (inbox Klambo | gateway WhatsApp) selon les paramètres org.
  * Toujours enfilé (round-robin par `queueKind`) pour lisser la charge.
- * Pièces jointes → WhatsApp uniquement (media in-app non branché ici).
  */
 export async function deliverSchoolNotify(
   options: SchoolNotifyOptions,

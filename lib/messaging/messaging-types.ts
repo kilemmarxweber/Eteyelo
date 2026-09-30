@@ -69,6 +69,7 @@ export type MessageView = {
     id: string;
     senderName: string;
     body: string;
+    deletedAt?: string | null;
   } | null;
   attachments: Array<{
     id: string;
@@ -81,8 +82,13 @@ export type MessageView = {
   }>;
   createdAt: string;
   editedAt: string | null;
+  /** Présent si le message a été retiré pour tout le monde. */
+  deletedAt: string | null;
   archivedForMe: boolean;
 };
+
+/** Libellé affiché à la place d'un message retiré. */
+export const MESSAGE_DELETED_LABEL = "Ce message a été retiré";
 
 export function formatMessagingPersonName(user: {
   prenom?: string | null;
@@ -109,6 +115,15 @@ export function previewMessageBody(body: string, max = 80) {
   const text = formatCallTracePreview(body).trim();
   if (text.length <= max) return text;
   return `${text.slice(0, max - 1)}…`;
+}
+
+export function previewDeletedOrBody(
+  body: string,
+  deletedAt: Date | string | null | undefined,
+  max = 80,
+) {
+  if (deletedAt) return MESSAGE_DELETED_LABEL;
+  return previewMessageBody(body, max);
 }
 
 /** Aperçu lisible des traces d'appel stockées en `__CALL__:{json}`. */

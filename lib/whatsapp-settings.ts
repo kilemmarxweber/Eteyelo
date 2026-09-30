@@ -3,7 +3,8 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { envRaw } from "@/lib/whatsapp-env-file";
 
-export type WhatsAppProviderId = "zindua" | "klambo" | "meta";
+/** Un seul canal actif : inbox app | Zindua | KlamboWhatsapp | Meta. */
+export type WhatsAppProviderId = "inbox" | "zindua" | "klambo" | "meta";
 
 /** API KlamboWhatsapp prod (TVS : KLAMBO_BASE_URL). */
 export const KLAMBO_WHATSAPP_API_URL = "https://whatsapp-api.klambocore.com";
@@ -20,13 +21,13 @@ function isLoopbackUrl(url?: string | null): boolean {
 }
 
 export type WhatsAppRuntimeConfig = {
-  /** Envoi autorisé (toggle UI + .env + clé API). */
+  /** Envoi WhatsApp autorisé (faux si canal = inbox). */
   enabled: boolean;
   provider: WhatsAppProviderId;
   apiKey: string;
   template: string;
   siteUrl: string | undefined;
-  /** Base URL KlamboWhatsapp (ignoré pour Zindua). */
+  /** Base URL KlamboWhatsapp (ignoré pour Zindua / inbox). */
   baseUrl: string | undefined;
   providerConfigured: boolean;
 };
@@ -37,8 +38,28 @@ function envFlagEnabled(raw: string | undefined): boolean {
   return value !== "false" && value !== "0" && value !== "off" && value !== "no";
 }
 
+export function isInboxProvider(
+  provider: WhatsAppProviderId | string | null | undefined,
+): boolean {
+  const value = provider?.trim().toLowerCase();
+  return (
+    value === "inbox" ||
+    value === "klambo_inbox" ||
+    value === "klambo-inbox" ||
+    value === "app"
+  );
+}
+
 function parseProvider(raw: string | null | undefined): WhatsAppProviderId {
   const value = raw?.trim().toLowerCase();
+  if (
+    value === "inbox" ||
+    value === "klambo_inbox" ||
+    value === "klambo-inbox" ||
+    value === "app"
+  ) {
+    return "inbox";
+  }
   if (value === "meta" || value === "whatsapp-meta" || value === "cloud") {
     return "meta";
   }
@@ -61,6 +82,7 @@ function envProvider(): WhatsAppProviderId {
 }
 
 function envApiKeyFor(provider: WhatsAppProviderId): string {
+  if (provider === "inbox") return "";
   if (provider === "meta") {
     return (
       envRaw("MESSAGING_META_API_KEY")?.trim() ||
@@ -84,6 +106,7 @@ function envApiKeyFor(provider: WhatsAppProviderId): string {
 }
 
 function envTemplateFor(provider: WhatsAppProviderId): string {
+  if (provider === "inbox") return "notification";
   if (provider === "klambo" || provider === "meta") {
     return (
       envRaw("MESSAGING_WHATSAPP_TEMPLATE")?.trim() ||
@@ -142,6 +165,16 @@ export function getWhatsAppEnvDefaults(): {
   baseUrl: string;
 } {
   const provider = envProvider();
+  if (provider === "inbox") {
+    return {
+      enabled: false,
+      provider: "inbox",
+      apiKey: "",
+      template: "notification",
+      siteUrl: "",
+      baseUrl: "",
+    };
+  }
   return {
     enabled: isEnvWhatsAppEnabled(),
     provider,
@@ -154,6 +187,7 @@ export function envDefaultsByProvider(): Record<
   ReturnType<typeof getWhatsAppEnvDefaultsFor>
 > {
   return {
+    inbox: getWhatsAppEnvDefaultsFor("inbox"),
     zindua: getWhatsAppEnvDefaultsFor("zindua"),
     klambo: getWhatsAppEnvDefaultsFor("klambo"),
     meta: getWhatsAppEnvDefaultsFor("meta"),
@@ -173,8 +207,8 @@ function resolveEnabled(input: {
 }
 
 /**
- * Config d'envoi WhatsApp (Zindua | KlamboWhatsapp | Meta).
- * UI d'abord, .env si champ vide. Si désactivé, aucun envoi.
+ * Config d'envoi (inbox Klambo | Zindua | KlamboWhatsapp | Meta).
+ * Un seul canal actif. Inbox = pas d'envoi WhatsApp.
  */
 export async function getWhatsAppRuntimeConfig(
   organizationId?: string | null,
@@ -182,10 +216,22 @@ export async function getWhatsAppRuntimeConfig(
   const defaults = getWhatsAppEnvDefaults();
 
   if (!organizationId?.trim()) {
+    const provider = defaults.provider;
+    if (provider === "inbox") {
+      return {
+        enabled: false,
+        provider: "inbox",
+        apiKey: "",
+        template: defaults.template,
+        siteUrl: undefined,
+        baseUrl: undefined,
+        providerConfigured: true,
+      };
+    }
     const apiKey = defaults.apiKey;
     return {
       enabled: resolveEnabled({ uiEnabled: defaults.enabled, apiKey }),
-      provider: defaults.provider,
+      provider,
       apiKey,
       template: defaults.template,
       siteUrl: defaults.siteUrl || undefined,
@@ -208,15 +254,31 @@ export async function getWhatsAppRuntimeConfig(
 
   const orgBaseUrl = org?.whatsappBaseUrl?.replace(/\/$/, "").trim() || "";
   const orgIsLocal = isLoopbackUrl(orgBaseUrl);
-  const resolvedProvider =
+  // WhatsApp coupé (ou provider inbox) → canal exclusif inbox
+  const rawProvider =
     !orgIsLocal && org?.whatsappProvider?.trim()
       ? parseProvider(org.whatsappProvider)
       : defaults.provider;
+  const resolvedProvider =
+    org?.whatsappEnabled === false || isInboxProvider(rawProvider)
+      ? ("inbox" as const)
+      : rawProvider;
+
+  if (resolvedProvider === "inbox") {
+    return {
+      enabled: false,
+      provider: "inbox",
+      apiKey: "",
+      template: org?.whatsappTemplate?.trim() || "notification",
+      siteUrl: undefined,
+      baseUrl: undefined,
+      providerConfigured: true,
+    };
+  }
 
   const envForProvider = getWhatsAppEnvDefaultsFor(resolvedProvider);
 
   // Meta : uniquement .env (MESSAGING_META_API_KEY + MESSAGING_API_BASE_URL)
-  // — la clé doit cibler un projet Klambo avec whatsappProvider=meta
   const apiKey =
     resolvedProvider === "meta"
       ? envForProvider.apiKey
@@ -254,6 +316,7 @@ export async function isWhatsAppSendingEnabled(
 }
 
 export function providerLabel(provider: WhatsAppProviderId): string {
+  if (provider === "inbox") return "Klambo Inbox";
   if (provider === "meta") return "Meta WhatsApp";
   if (provider === "klambo") return "KlamboWhatsapp";
   return "Zindua";
@@ -261,4 +324,11 @@ export function providerLabel(provider: WhatsAppProviderId): string {
 
 export function usesMessagingApi(provider: WhatsAppProviderId): boolean {
   return provider === "klambo" || provider === "meta";
+}
+
+/** Canal WhatsApp (gateway) — faux pour inbox app. */
+export function isWhatsAppGatewayProvider(
+  provider: WhatsAppProviderId,
+): boolean {
+  return provider === "zindua" || provider === "klambo" || provider === "meta";
 }

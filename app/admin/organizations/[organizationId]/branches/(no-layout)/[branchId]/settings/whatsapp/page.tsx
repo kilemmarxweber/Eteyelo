@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
-import { IconBrandWhatsapp, IconDeviceFloppy, IconSend } from "@tabler/icons-react";
-import { Eye, EyeOff } from "lucide-react";
+import {
+  IconBrandWhatsapp,
+  IconDeviceFloppy,
+  IconSend,
+} from "@tabler/icons-react";
+import { Eye, EyeOff, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import {
   Card,
   CardContent,
@@ -23,7 +26,7 @@ import {
   updateWhatsAppSettingsAction,
 } from "../whatsapp.action";
 
-type ProviderId = "zindua" | "klambo" | "meta";
+type ProviderId = "inbox" | "zindua" | "klambo" | "meta";
 
 type EnvDefaults = {
   apiKey: string;
@@ -33,6 +36,7 @@ type EnvDefaults = {
 };
 
 function providerDisplayName(provider: ProviderId): string {
+  if (provider === "inbox") return "Klambo Inbox";
   if (provider === "meta") return "Meta WhatsApp";
   if (provider === "klambo") return "KlamboWhatsapp";
   return "Zindua";
@@ -40,7 +44,7 @@ function providerDisplayName(provider: ProviderId): string {
 
 export default function WhatsAppSettingsPage() {
   const [enabled, setEnabled] = useState(true);
-  const [provider, setProvider] = useState<ProviderId>("zindua");
+  const [provider, setProvider] = useState<ProviderId>("inbox");
   const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(true);
   const [template, setTemplate] = useState("notification");
@@ -62,10 +66,19 @@ export default function WhatsAppSettingsPage() {
   const [pending, startTransition] = useTransition();
 
   const providerName = providerDisplayName(provider);
+  const isInbox = provider === "inbox";
   const usesKlamboApi = provider === "klambo" || provider === "meta";
 
   function applyProvider(next: ProviderId) {
     setProvider(next);
+    setEnabled(next !== "inbox");
+    if (next === "inbox") {
+      setApiKey("");
+      setSiteUrl("");
+      setFromEnv({ apiKey: false, baseUrl: false });
+      setProviderConfigured(true);
+      return;
+    }
     const env = envByProvider[next];
     if (!env) return;
     if (next === "meta") {
@@ -119,13 +132,12 @@ export default function WhatsAppSettingsPage() {
   function submit() {
     startTransition(async () => {
       const [saved, err] = await updateWhatsAppSettingsAction({
-        enabled,
+        enabled: provider !== "inbox",
         provider,
-        // Meta : pas de saisie — le serveur ignore et lit le .env
-        apiKey: provider === "meta" ? "" : apiKey,
+        apiKey: provider === "meta" || provider === "inbox" ? "" : apiKey,
         template,
-        siteUrl: provider === "meta" ? "" : siteUrl,
-        baseUrl: provider === "meta" ? "" : baseUrl,
+        siteUrl: provider === "meta" || provider === "inbox" ? "" : siteUrl,
+        baseUrl: provider === "meta" || provider === "inbox" ? "" : baseUrl,
       });
       if (err) {
         toast.error(err.message);
@@ -150,9 +162,7 @@ export default function WhatsAppSettingsPage() {
         setEnvEnabled(ch.envEnabled);
       }
       toast.success(
-        enabled
-          ? `Paramètres WhatsApp enregistrés (${providerDisplayName(provider)}).`
-          : "Envoi WhatsApp désactivé (config et .env).",
+        `Canal actif : ${providerDisplayName(provider)} (les autres sont coupés).`,
       );
     });
   }
@@ -170,14 +180,12 @@ export default function WhatsAppSettingsPage() {
     });
   }
 
-  const sendingWouldRun = enabled && Boolean(apiKey.trim());
-
   return (
     <RequireBranchOrgSettingsAccess>
       <div className="space-y-6">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-semibold">Message WhatsApp</h2>
+            <h2 className="text-xl font-semibold">Notifications & messagerie</h2>
             <Badge
               variant="outline-primary"
               icon={<IconBrandWhatsapp size={14} />}
@@ -186,10 +194,9 @@ export default function WhatsAppSettingsPage() {
             </Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            <strong>Zindua</strong> / <strong>KlamboWhatsapp</strong> (GOWA) :
-            clé saisie ou .env. <strong>Meta</strong> : uniquement le .env (
-            <code>MESSAGING_META_API_KEY</code> → projet{" "}
-            <code>whatsappProvider=meta</code>).
+            Un seul canal à la fois pour ménager les ressources :{" "}
+            <strong>Klambo Inbox</strong>, <strong>Zindua</strong>,{" "}
+            <strong>KlamboWhatsapp</strong> ou <strong>Meta</strong>.
           </p>
         </div>
 
@@ -197,45 +204,25 @@ export default function WhatsAppSettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <IconBrandWhatsapp className="size-5" />
-              Notifications &amp; WhatsApp
+              Canal de notification
             </CardTitle>
             <CardDescription>
-              L’app Klambo reçoit d’abord les alertes école dans l’inbox. Ce
-              panneau configure le secours WhatsApp (gateway) si le
-              destinataire n’a pas encore Klambo.
+              Activer un canal désactive automatiquement les trois autres.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-4 py-3 text-sm">
-              <p className="font-medium text-emerald-800 dark:text-emerald-300">
-                Priorité : inbox Klambo
-              </p>
-              <p className="mt-1 text-muted-foreground">
-                <code>NOTIFY_KLAMBO_APP_FIRST</code> (défaut activé). Parents,
-                élèves et staff ouvrent l’inbox après OTP dans l’app.{" "}
-                <code>WHATSAPP_PROVIDER=klambo</code> = gateway API (secours),
-                pas l’app Flutter.
-              </p>
-            </div>
-
-            <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
-              <div className="space-y-1">
-                <p className="font-medium">Activer le secours WhatsApp</p>
-                <p className="text-sm text-muted-foreground">
-                  Désactivé = pas de fallback WhatsApp (Klambo seul si
-                  disponible).
-                </p>
-              </div>
-              <Switch
-                checked={enabled}
-                disabled={!loaded || pending}
-                onCheckedChange={setEnabled}
-              />
-            </div>
-
             <div className="space-y-2">
-              <p className="text-sm font-medium">Gateway WhatsApp (secours)</p>
+              <p className="text-sm font-medium">Canal actif</p>
               <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant={provider === "inbox" ? "default" : "outline"}
+                  disabled={!loaded || pending}
+                  onClick={() => applyProvider("inbox")}
+                >
+                  <Inbox className="mr-1.5 size-4" />
+                  Klambo Inbox
+                </Button>
                 <Button
                   type="button"
                   variant={provider === "zindua" ? "default" : "outline"}
@@ -262,17 +249,21 @@ export default function WhatsAppSettingsPage() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                {provider === "meta" ? (
+                {isInbox ? (
+                  <>
+                    Alertes école uniquement dans l’inbox de l’app Klambo (OTP).
+                    Aucun envoi WhatsApp / gateway.
+                  </>
+                ) : provider === "meta" ? (
                   <>
                     Meta lit uniquement le <code>.env</code> :{" "}
-                    <code>MESSAGING_META_API_KEY</code> (projet{" "}
-                    <code>whatsappProvider=meta</code>) et{" "}
-                    <code>MESSAGING_API_BASE_URL</code>.
+                    <code>MESSAGING_META_API_KEY</code> et{" "}
+                    <code>MESSAGING_API_BASE_URL</code>. Inbox app désactivée.
                   </>
                 ) : (
                   <>
-                    Actuel : <code>{providerName}</code> — gateway de secours.
-                    Clé / URL optionnelles : si vides, lecture du{" "}
+                    Gateway <code>{providerName}</code> uniquement — inbox app
+                    coupée. Clé / URL optionnelles : sinon lecture du{" "}
                     <code>.env</code>
                     {provider === "klambo"
                       ? " (MESSAGING_API_KEY + MESSAGING_API_BASE_URL)."
@@ -283,24 +274,23 @@ export default function WhatsAppSettingsPage() {
             </div>
 
             <div className="rounded-lg border bg-muted/30 px-4 py-3 text-sm">
-              {!enabled ? (
-                <p>
-                  <span className="font-medium text-amber-700 dark:text-amber-400">
-                    Secours WhatsApp coupé.
-                  </span>{" "}
-                  Les alertes iront seulement dans Klambo si le destinataire y
-                  est joignable.
-                </p>
-              ) : sendingWouldRun || providerConfigured ? (
+              {isInbox ? (
                 <p>
                   <span className="font-medium text-emerald-700 dark:text-emerald-400">
-                    Clé API enregistrée ({providerName}).
+                    Klambo Inbox actif.
+                  </span>{" "}
+                  Zindua, KlamboWhatsapp et Meta sont désactivés.
+                </p>
+              ) : sendingWouldRunHint(enabled, apiKey, providerConfigured) ? (
+                <p>
+                  <span className="font-medium text-emerald-700 dark:text-emerald-400">
+                    Gateway {providerName} actif.
                   </span>{" "}
                   {provider === "meta"
-                    ? "Les envois passent par des templates Meta approuvés."
+                    ? "Templates Meta approuvés. Inbox Klambo coupée."
                     : channelConnected
-                      ? "Les messages WhatsApp partiront avec cette configuration."
-                      : "La session WhatsApp doit encore être connectée (QR)."}
+                      ? "WhatsApp prêt. Inbox Klambo coupée."
+                      : "Session WhatsApp à connecter (QR). Inbox Klambo coupée."}
                 </p>
               ) : (
                 <p>
@@ -312,7 +302,7 @@ export default function WhatsAppSettingsPage() {
               )}
             </div>
 
-            {loaded && (
+            {loaded && !isInbox && (
               <div className="rounded-lg border px-4 py-3 text-sm">
                 {channelConnected ? (
                   <p>
@@ -349,8 +339,7 @@ export default function WhatsAppSettingsPage() {
                     ) : null}
                     {!envEnabled ? (
                       <p className="text-amber-700 dark:text-amber-400">
-                        L’envoi est aussi coupé dans le .env. Activez le
-                        commutateur et enregistrez.
+                        L’envoi est aussi coupé dans le .env.
                       </p>
                     ) : null}
                   </div>
@@ -358,21 +347,33 @@ export default function WhatsAppSettingsPage() {
               </div>
             )}
 
-            {provider === "meta" ? (
+            {isInbox ? (
+              <div className="space-y-3 rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-4 py-3 text-sm">
+                <p className="font-medium text-emerald-800 dark:text-emerald-300">
+                  Configuration Klambo Inbox
+                </p>
+                <ul className="list-inside list-disc space-y-1 text-muted-foreground">
+                  <li>
+                    Destinataire joignable : compte app + membre de
+                    l’organisation
+                  </li>
+                  <li>Messagerie organisation activée</li>
+                  <li>Pas de clé API gateway requise</li>
+                </ul>
+              </div>
+            ) : provider === "meta" ? (
               <div className="space-y-3 rounded-lg border bg-muted/30 px-4 py-3 text-sm">
                 <p className="font-medium">Configuration Meta (.env uniquement)</p>
                 <ul className="list-inside list-disc space-y-1 text-muted-foreground">
                   <li>
-                    <code>MESSAGING_META_API_KEY</code> — clé du projet Klambo
-                    avec <code>whatsappProvider=meta</code>
+                    <code>MESSAGING_META_API_KEY</code> — projet{" "}
+                    <code>whatsappProvider=meta</code>
                   </li>
                   <li>
-                    <code>MESSAGING_API_BASE_URL</code> — ex.{" "}
-                    <code>https://whatsapp-api.klambocore.com</code>
+                    <code>MESSAGING_API_BASE_URL</code>
                   </li>
                   <li>
-                    <code>MESSAGING_WHATSAPP_TEMPLATE</code> — slug interne
-                    (défaut <code>notification</code>)
+                    <code>MESSAGING_WHATSAPP_TEMPLATE</code>
                   </li>
                 </ul>
                 <p className="text-muted-foreground">
@@ -437,90 +438,89 @@ export default function WhatsAppSettingsPage() {
               </div>
             )}
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label
-                  htmlFor="whatsapp-template"
-                  className="text-sm font-medium"
-                >
-                  Template WhatsApp
-                </label>
-                <Input
-                  id="whatsapp-template"
-                  value={template}
-                  onChange={(event) => setTemplate(event.target.value)}
-                  placeholder="notification"
-                  disabled={!loaded || pending}
-                />
-                <p className="text-xs text-muted-foreground">
-                  {provider === "meta"
-                    ? "Slug interne mappé vers un template Meta approuvé (META_TEMPLATE_MAP)."
-                    : <>Corps recommandé : uniquement <code>{"{{code}}"}</code>.</>}
-                </p>
-              </div>
+            {!isInbox && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="whatsapp-template"
+                    className="text-sm font-medium"
+                  >
+                    Template WhatsApp
+                  </label>
+                  <Input
+                    id="whatsapp-template"
+                    value={template}
+                    onChange={(event) => setTemplate(event.target.value)}
+                    placeholder="notification"
+                    disabled={!loaded || pending}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {provider === "meta"
+                      ? "Slug interne mappé vers un template Meta approuvé."
+                      : (
+                          <>
+                            Corps recommandé : uniquement{" "}
+                            <code>{"{{code}}"}</code>.
+                          </>
+                        )}
+                  </p>
+                </div>
 
-              {provider === "meta" ? (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">URL API</p>
-                  <p className="rounded-md border bg-muted/20 px-3 py-2 font-mono text-sm">
-                    {baseUrl || "MESSAGING_API_BASE_URL"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Lecture seule — définie dans le .env.
-                  </p>
-                </div>
-              ) : provider === "zindua" ? (
-                <div className="space-y-2">
-                  <label
-                    htmlFor="whatsapp-site-url"
-                    className="text-sm font-medium"
-                  >
-                    URL du site (Zindua)
-                  </label>
-                  <Input
-                    id="whatsapp-site-url"
-                    type="url"
-                    value={siteUrl}
-                    onChange={(event) => setSiteUrl(event.target.value)}
-                    placeholder="https://klambocore.com"
-                    disabled={!loaded || pending}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Si la clé API est liée à un site.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <label
-                    htmlFor="whatsapp-base-url"
-                    className="text-sm font-medium"
-                  >
-                    URL API KlamboWhatsapp
-                    {fromEnv.baseUrl ? (
-                      <span className="ml-2 font-normal text-muted-foreground">
-                        · depuis .env
-                      </span>
-                    ) : null}
-                  </label>
-                  <Input
-                    id="whatsapp-base-url"
-                    type="url"
-                    value={baseUrl}
-                    onChange={(event) => {
-                      setBaseUrl(event.target.value);
-                      setFromEnv((prev) => ({ ...prev, baseUrl: false }));
-                    }}
-                    placeholder="Vide = MESSAGING_API_BASE_URL"
-                    disabled={!loaded || pending}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Optionnel. Sinon{" "}
-                    <code>MESSAGING_API_BASE_URL</code> (ex.{" "}
-                    <code>https://whatsapp-api.klambocore.com</code>).
-                  </p>
-                </div>
-              )}
-            </div>
+                {provider === "meta" ? (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">URL API</p>
+                    <p className="rounded-md border bg-muted/20 px-3 py-2 font-mono text-sm">
+                      {baseUrl || "MESSAGING_API_BASE_URL"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Lecture seule — définie dans le .env.
+                    </p>
+                  </div>
+                ) : provider === "zindua" ? (
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="whatsapp-site-url"
+                      className="text-sm font-medium"
+                    >
+                      URL du site (Zindua)
+                    </label>
+                    <Input
+                      id="whatsapp-site-url"
+                      type="url"
+                      value={siteUrl}
+                      onChange={(event) => setSiteUrl(event.target.value)}
+                      placeholder="https://klambocore.com"
+                      disabled={!loaded || pending}
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="whatsapp-base-url"
+                      className="text-sm font-medium"
+                    >
+                      URL API KlamboWhatsapp
+                      {fromEnv.baseUrl ? (
+                        <span className="ml-2 font-normal text-muted-foreground">
+                          · depuis .env
+                        </span>
+                      ) : null}
+                    </label>
+                    <Input
+                      id="whatsapp-base-url"
+                      type="url"
+                      value={baseUrl}
+                      onChange={(event) => {
+                        setBaseUrl(event.target.value);
+                        setFromEnv((prev) => ({ ...prev, baseUrl: false }));
+                      }}
+                      placeholder="Vide = MESSAGING_API_BASE_URL"
+                      disabled={!loaded || pending}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             <Button
               type="button"
@@ -528,43 +528,56 @@ export default function WhatsAppSettingsPage() {
               disabled={!loaded || pending}
             >
               <IconDeviceFloppy className="mr-2 size-4" />
-              {pending ? "Enregistrement..." : "Enregistrer les paramètres"}
+              {pending ? "Enregistrement..." : "Enregistrer le canal"}
             </Button>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Test d’envoi</CardTitle>
-            <CardDescription>
-              Envoie un message de vérification via {providerName}.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="whatsapp-test-to" className="text-sm font-medium">
-                Numéro (E.164)
-              </label>
-              <Input
-                id="whatsapp-test-to"
-                value={testTo}
-                onChange={(event) => setTestTo(event.target.value)}
-                placeholder="+243844952966"
-                disabled={!loaded || pending}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={sendTest}
-              disabled={!loaded || pending || !testTo.trim()}
-            >
-              <IconSend className="mr-2 size-4" />
-              {pending ? "Envoi..." : "Envoyer un test"}
-            </Button>
-          </CardContent>
-        </Card>
+        {!isInbox && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Test d’envoi</CardTitle>
+              <CardDescription>
+                Envoie un message de vérification via {providerName}.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label
+                  htmlFor="whatsapp-test-to"
+                  className="text-sm font-medium"
+                >
+                  Numéro (E.164)
+                </label>
+                <Input
+                  id="whatsapp-test-to"
+                  value={testTo}
+                  onChange={(event) => setTestTo(event.target.value)}
+                  placeholder="+243844952966"
+                  disabled={!loaded || pending}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={sendTest}
+                disabled={!loaded || pending || !testTo.trim()}
+              >
+                <IconSend className="mr-2 size-4" />
+                {pending ? "Envoi..." : "Envoyer un test"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </RequireBranchOrgSettingsAccess>
   );
+}
+
+function sendingWouldRunHint(
+  enabled: boolean,
+  apiKey: string,
+  providerConfigured: boolean,
+) {
+  return (enabled && Boolean(apiKey.trim())) || providerConfigured;
 }

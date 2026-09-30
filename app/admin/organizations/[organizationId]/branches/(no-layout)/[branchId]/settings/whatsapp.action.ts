@@ -14,6 +14,7 @@ import {
   envDefaultsByProvider,
   getWhatsAppEnvDefaults,
   getWhatsAppEnvDefaultsFor,
+  isInboxProvider,
   usesMessagingApi,
   type WhatsAppProviderId,
 } from "@/lib/whatsapp-settings";
@@ -33,7 +34,7 @@ function assertCanManage(
 
 const whatsappSettingsSchema = z.object({
   enabled: z.boolean(),
-  provider: z.enum(["zindua", "klambo", "meta"]),
+  provider: z.enum(["inbox", "zindua", "klambo", "meta"]),
   apiKey: z.string().trim().max(200),
   template: z.string().trim().max(80),
   siteUrl: z.string().trim().max(300),
@@ -42,6 +43,7 @@ const whatsappSettingsSchema = z.object({
 
 function normalizeProvider(raw: string | null | undefined): WhatsAppProviderId {
   const value = raw?.trim().toLowerCase();
+  if (isInboxProvider(value)) return "inbox";
   if (value === "meta") return "meta";
   if (value === "klambo" || value === "klambowhatsapp") return "klambo";
   return "zindua";
@@ -56,10 +58,32 @@ function presentSettings(org: {
   whatsappBaseUrl: string | null;
 }) {
   const defaults = getWhatsAppEnvDefaults();
-  const provider = normalizeProvider(
+  const rawProvider = normalizeProvider(
     org.whatsappProvider?.trim() || defaults.provider,
   );
-  const envForProvider = getWhatsAppEnvDefaultsFor(provider);
+  // Exclusif : WhatsApp coupé → canal inbox
+  const provider =
+    org.whatsappEnabled === false || isInboxProvider(rawProvider)
+      ? ("inbox" as const)
+      : rawProvider;
+  const envForProvider = getWhatsAppEnvDefaultsFor(
+    provider === "inbox" ? "zindua" : provider,
+  );
+
+  if (provider === "inbox") {
+    return {
+      enabled: false,
+      provider: "inbox" as const,
+      apiKey: "",
+      template: org.whatsappTemplate?.trim() || "notification",
+      siteUrl: "",
+      baseUrl: "",
+      providerConfigured: true,
+      fromEnv: { apiKey: false, baseUrl: false },
+      envOnly: false as const,
+      envByProvider: envDefaultsByProvider(),
+    };
+  }
 
   // Meta = env only (pas de clé / URL UI)
   if (provider === "meta") {
@@ -146,16 +170,19 @@ export const getWhatsAppSettingsAction = action.handler(async () => {
   const defaults = getWhatsAppEnvDefaults();
   if (!org) {
     const channel = await getZinduaWhatsAppStatus(organizationId);
-    const envForProvider = getWhatsAppEnvDefaultsFor(defaults.provider);
+    const isInbox = defaults.provider === "inbox";
+    const envForProvider = getWhatsAppEnvDefaultsFor(
+      isInbox ? "zindua" : defaults.provider,
+    );
     const isMeta = defaults.provider === "meta";
     return {
-      enabled: defaults.enabled,
+      enabled: isInbox ? false : defaults.enabled,
       provider: defaults.provider,
-      apiKey: isMeta ? "" : defaults.apiKey,
+      apiKey: isInbox || isMeta ? "" : defaults.apiKey,
       template: defaults.template,
-      siteUrl: isMeta ? "" : defaults.siteUrl,
-      baseUrl: defaults.baseUrl,
-      providerConfigured: Boolean(envForProvider.apiKey),
+      siteUrl: isInbox || isMeta ? "" : defaults.siteUrl,
+      baseUrl: isInbox ? "" : defaults.baseUrl,
+      providerConfigured: isInbox ? true : Boolean(envForProvider.apiKey),
       fromEnv: {
         apiKey: Boolean(envForProvider.apiKey),
         baseUrl: Boolean(envForProvider.baseUrl),
@@ -180,43 +207,54 @@ export const updateWhatsAppSettingsAction = action
     const siteUrl = input.siteUrl.trim().replace(/\/$/, "");
     const baseUrl = input.baseUrl.trim().replace(/\/$/, "");
     const provider = input.provider;
-    const apiKey = provider === "meta" ? "" : input.apiKey.trim();
+    const isInbox = provider === "inbox";
+    // Exclusif : inbox = WhatsApp off ; gateway = WhatsApp on
+    const enabled = isInbox ? false : true;
+    const apiKey =
+      isInbox || provider === "meta" ? "" : input.apiKey.trim();
 
-    if (provider !== "meta" && siteUrl && !/^https?:\/\//i.test(siteUrl)) {
+    if (!isInbox && provider !== "meta" && siteUrl && !/^https?:\/\//i.test(siteUrl)) {
       throw new Error("L’URL du site doit commencer par http:// ou https://.");
     }
-    if (provider !== "meta" && baseUrl && !/^https?:\/\//i.test(baseUrl)) {
+    if (
+      !isInbox &&
+      provider !== "meta" &&
+      baseUrl &&
+      !/^https?:\/\//i.test(baseUrl)
+    ) {
       throw new Error(
         "L’URL de l’API Klambo doit commencer par http:// ou https://.",
       );
     }
 
-    // Meta : pas de saisie UI — clé/URL viennent du .env uniquement
-    // (MESSAGING_META_API_KEY → projet whatsappProvider=meta ;
-    //  MESSAGING_API_KEY → projet whatsappProvider=gowa pour Klambo)
     const org = await prisma.organization.update({
       where: { id: organizationId },
       data: {
-        whatsappEnabled: input.enabled,
+        whatsappEnabled: enabled,
         whatsappProvider: provider,
-        whatsappApiKey: provider === "meta" ? null : apiKey || null,
-        whatsappTemplate: template || null,
-        whatsappSiteUrl: provider === "meta" ? null : siteUrl || null,
-        whatsappBaseUrl: provider === "meta" ? null : baseUrl || null,
+        whatsappApiKey: isInbox || provider === "meta" ? null : apiKey || null,
+        whatsappTemplate: isInbox ? null : template || null,
+        whatsappSiteUrl:
+          isInbox || provider === "meta" ? null : siteUrl || null,
+        whatsappBaseUrl:
+          isInbox || provider === "meta" ? null : baseUrl || null,
       },
       select: orgSelect,
     });
 
-    const enabledFlag = input.enabled ? "true" : "false";
+    const enabledFlag = enabled ? "true" : "false";
     const envUpdates: Parameters<typeof syncWhatsAppEnvFile>[0] = {
       WHATSAPP_PROVIDER: provider,
       ZINDUA_WHATSAPP_ENABLED: enabledFlag,
       MESSAGING_WHATSAPP_ENABLED: enabledFlag,
+      // Inbox seul ↔ NOTIFY on ; gateway seul ↔ NOTIFY off
+      NOTIFY_KLAMBO_APP_FIRST: isInbox ? "true" : "false",
     };
 
-    if (provider === "meta") {
+    if (isInbox) {
+      // Pas de clé / template gateway
+    } else if (provider === "meta") {
       if (template) envUpdates.MESSAGING_WHATSAPP_TEMPLATE = template;
-      // Ne jamais écrire clé / URL Meta depuis l’UI
     } else if (usesMessagingApi(provider)) {
       if (apiKey) envUpdates.MESSAGING_API_KEY = apiKey;
       if (template) envUpdates.MESSAGING_WHATSAPP_TEMPLATE = template;

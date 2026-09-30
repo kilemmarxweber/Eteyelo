@@ -57,6 +57,7 @@ import {
   toggleConversationMuteAction,
 } from "@/lib/actions/messaging.actions";
 import {
+  MESSAGE_DELETED_LABEL,
   MESSAGING_MAX_BODY_LENGTH,
   MESSAGING_MAX_SUBJECT_LENGTH,
   MESSAGING_PURGE_CONFIRMATION,
@@ -663,16 +664,27 @@ export function MessagingWorkspace({
                               ) : null}
                               {row.replyTo ? (
                                 <p className="mb-1 line-clamp-2 rounded bg-black/10 px-2 py-1 text-[11px] opacity-80">
-                                  {row.replyTo.senderName} : {row.replyTo.body}
+                                  {row.replyTo.senderName} :{" "}
+                                  {row.replyTo.deletedAt
+                                    ? MESSAGE_DELETED_LABEL
+                                    : row.replyTo.body}
                                 </p>
                               ) : null}
-                              <p className="whitespace-pre-wrap break-words">
-                                {row.body}
+                              <p
+                                className={cn(
+                                  "whitespace-pre-wrap break-words",
+                                  row.deletedAt && "italic opacity-70",
+                                )}
+                              >
+                                {row.deletedAt
+                                  ? MESSAGE_DELETED_LABEL
+                                  : row.body}
                               </p>
                               <div className="mt-1 flex items-center justify-end gap-2 text-[10px] opacity-70">
                                 <span>{formatTime(row.createdAt)}</span>
                                 {mine ? <Check className="size-3" /> : null}
                               </div>
+                              {!row.deletedAt ? (
                               <div className="mt-1 flex gap-1">
                                 <button
                                   type="button"
@@ -694,6 +706,7 @@ export function MessagingWorkspace({
                                   {row.archivedForMe ? "Désarchiver" : "Archiver"}
                                 </button>
                               </div>
+                              ) : null}
                             </div>
                             {mine ? senderAvatar : null}
                           </div>

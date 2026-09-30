@@ -5,6 +5,7 @@ import path from "node:path";
 
 export type WhatsAppEnvKey =
   | "WHATSAPP_PROVIDER"
+  | "NOTIFY_KLAMBO_APP_FIRST"
   | "ZINDUA_WHATSAPP_ENABLED"
   | "ZINDUA_API_KEY"
   | "ZINDUA_WHATSAPP_MAIL_TEMPLATE"
@@ -17,6 +18,7 @@ export type WhatsAppEnvKey =
 
 const WHATSAPP_ENV_KEYS: readonly WhatsAppEnvKey[] = [
   "WHATSAPP_PROVIDER",
+  "NOTIFY_KLAMBO_APP_FIRST",
   "ZINDUA_WHATSAPP_ENABLED",
   "ZINDUA_API_KEY",
   "ZINDUA_WHATSAPP_MAIL_TEMPLATE",
