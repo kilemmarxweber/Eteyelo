@@ -580,17 +580,20 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     devoirs: ["create", "read"],
     library: ["read"],
     schedule: ["read"],
+    messaging: ["read", "send"],
   },
   /**
    * Parent : lecture scoped (enfants) — résultats.
    * Pas d’annuaire RH / enseignement / horaire admin / inscription
    * (`withActions` ouvrait Utilisateurs + Enseignement via DAC).
+   * Messagerie Klambo : read + send (inbox).
    */
   [ORG_ROLE.PARENT]: {
     ...organizationPluginMemberAc.statements,
     ac: [],
     student: ["read"],
     results: ["read"],
+    messaging: ["read", "send"],
   },
   [ORG_ROLE.SUPPORT]: {
     ...organizationPluginMemberAc.statements,

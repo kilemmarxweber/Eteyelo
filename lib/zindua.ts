@@ -408,7 +408,7 @@ function buildWhatsAppBody(parts: Array<string | null | undefined>): string {
 }
 
 /** Message transactionnel (paiement, absence, résultats) dans {{code}}. */
-export async function sendTransactionalWhatsApp(options: {
+export async function sendTransactionalWhatsAppViaProvider(options: {
   to: string;
   organizationId?: string | null;
   parts: Array<string | null | undefined>;
@@ -442,9 +442,28 @@ export async function sendTransactionalWhatsApp(options: {
   } catch (error) {
     const message = formatZinduaError(error);
     // eslint-disable-next-line no-console
-    console.warn("[sendTransactionalWhatsApp] échec:", message);
+    console.warn("[sendTransactionalWhatsAppViaProvider] échec:", message);
     return { sent: false, error: message };
   }
+}
+
+/**
+ * Klambo inbox d'abord (si possible), sinon WhatsApp via le provider actif.
+ */
+export async function sendTransactionalWhatsApp(options: {
+  to: string;
+  organizationId?: string | null;
+  parts: Array<string | null | undefined>;
+  attachments?: Array<{ url: string; filename?: string }>;
+  queueKind?: WhatsAppQueueKind;
+  locale?: MessagingLocale | null;
+  branchId?: string | null;
+}): Promise<WhatsAppSendOutcome> {
+  const { deliverSchoolNotify } = await import(
+    "@/lib/notify/deliver-school-notify"
+  );
+  const result = await deliverSchoolNotify(options);
+  return { sent: result.sent, error: result.error };
 }
 
 /**

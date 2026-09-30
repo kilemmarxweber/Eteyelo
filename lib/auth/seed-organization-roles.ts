@@ -365,6 +365,46 @@ export async function ensureAttendanceKiosk(
   return updated;
 }
 
+/**
+ * Assure `messaging:read` + `messaging:send` sur tous les presets système
+ * (inbox Klambo pour parent / élève / staff).
+ */
+export async function ensureMessagingForAllRoles(
+  organizationId: string,
+): Promise<number> {
+  const rows = await prisma.organizationRole.findMany({
+    where: {
+      organizationId,
+      isSystem: true,
+    },
+    select: { id: true, role: true, permission: true },
+  });
+
+  let updated = 0;
+  for (const row of rows) {
+    const permission = parsePermissionJson(row.permission);
+    const messaging = new Set(permission.messaging ?? []);
+    if (messaging.has("read") && messaging.has("send")) continue;
+    messaging.add("read");
+    messaging.add("send");
+
+    await prisma.organizationRole.update({
+      where: { id: row.id },
+      data: {
+        permission: JSON.stringify(
+          completePermissionMatrix({
+            ...permission,
+            messaging: [...messaging],
+          }),
+        ),
+      },
+    });
+    updated += 1;
+  }
+
+  return updated;
+}
+
 export type SeedOrganizationRolesOptions = {
   organizationId?: string;
   /** Si true : réécrit `permission` des presets système depuis le code. */

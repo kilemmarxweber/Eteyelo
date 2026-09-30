@@ -191,6 +191,11 @@ export const PERMISSION_MATRIX_GROUPS: PermissionMatrixGroup[] = [
     resources: ["personnel", "parent"],
   },
   {
+    id: "communication",
+    label: "Communication",
+    resources: ["messaging"],
+  },
+  {
     id: "admin",
     label: "Admin / support",
     resources: ["platformSupport", "platformEscalation"],

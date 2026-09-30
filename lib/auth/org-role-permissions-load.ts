@@ -6,6 +6,7 @@ import {
   syncPayrollPrivilegeDefaults,
   ensureAttendanceSchoolReports,
   ensureAttendanceKiosk,
+  ensureMessagingForAllRoles,
 } from "@/lib/auth/seed-organization-roles";
 import {
   parseOrganizationRolePermission,
@@ -37,6 +38,7 @@ export async function fetchOrganizationRoleStatements(
     await syncPayrollPrivilegeDefaults(organizationId);
     await ensureAttendanceSchoolReports(organizationId);
     await ensureAttendanceKiosk(organizationId);
+    await ensureMessagingForAllRoles(organizationId);
   }
 
   const rows = await prisma.organizationRole.findMany({

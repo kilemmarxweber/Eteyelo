@@ -197,19 +197,33 @@ export default function WhatsAppSettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <IconBrandWhatsapp className="size-5" />
-              Fournisseur WhatsApp
+              Notifications &amp; WhatsApp
             </CardTitle>
             <CardDescription>
-              Provider actif, clé API et template. Enregistrez pour appliquer
-              (y compris dans le fichier .env).
+              L’app Klambo reçoit d’abord les alertes école dans l’inbox. Ce
+              panneau configure le secours WhatsApp (gateway) si le
+              destinataire n’a pas encore Klambo.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
+            <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-4 py-3 text-sm">
+              <p className="font-medium text-emerald-800 dark:text-emerald-300">
+                Priorité : inbox Klambo
+              </p>
+              <p className="mt-1 text-muted-foreground">
+                <code>NOTIFY_KLAMBO_APP_FIRST</code> (défaut activé). Parents,
+                élèves et staff ouvrent l’inbox après OTP dans l’app.{" "}
+                <code>WHATSAPP_PROVIDER=klambo</code> = gateway API (secours),
+                pas l’app Flutter.
+              </p>
+            </div>
+
             <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
               <div className="space-y-1">
-                <p className="font-medium">Activer l’envoi WhatsApp</p>
+                <p className="font-medium">Activer le secours WhatsApp</p>
                 <p className="text-sm text-muted-foreground">
-                  Désactivé = aucun message, même si une clé est renseignée.
+                  Désactivé = pas de fallback WhatsApp (Klambo seul si
+                  disponible).
                 </p>
               </div>
               <Switch
@@ -220,7 +234,7 @@ export default function WhatsAppSettingsPage() {
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium">Fournisseur</p>
+              <p className="text-sm font-medium">Gateway WhatsApp (secours)</p>
               <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
@@ -236,7 +250,7 @@ export default function WhatsAppSettingsPage() {
                   disabled={!loaded || pending}
                   onClick={() => applyProvider("klambo")}
                 >
-                  KlamboWhatsapp
+                  KlamboWhatsapp (API)
                 </Button>
                 <Button
                   type="button"
@@ -253,14 +267,13 @@ export default function WhatsAppSettingsPage() {
                     Meta lit uniquement le <code>.env</code> :{" "}
                     <code>MESSAGING_META_API_KEY</code> (projet{" "}
                     <code>whatsappProvider=meta</code>) et{" "}
-                    <code>MESSAGING_API_BASE_URL</code>. Klambo (GOWA) utilise{" "}
-                    <code>MESSAGING_API_KEY</code> (projet{" "}
-                    <code>whatsappProvider=gowa</code>).
+                    <code>MESSAGING_API_BASE_URL</code>.
                   </>
                 ) : (
                   <>
-                    Actuel : <code>{providerName}</code>. Clé et URL
-                    optionnelles : si vides, on lit le <code>.env</code>
+                    Actuel : <code>{providerName}</code> — gateway de secours.
+                    Clé / URL optionnelles : si vides, lecture du{" "}
+                    <code>.env</code>
                     {provider === "klambo"
                       ? " (MESSAGING_API_KEY + MESSAGING_API_BASE_URL)."
                       : " (ZINDUA_API_KEY)."}
@@ -273,10 +286,10 @@ export default function WhatsAppSettingsPage() {
               {!enabled ? (
                 <p>
                   <span className="font-medium text-amber-700 dark:text-amber-400">
-                    Envoi coupé.
+                    Secours WhatsApp coupé.
                   </span>{" "}
-                  Aucun WhatsApp ne partira tant que le commutateur n’est pas
-                  activé et enregistré.
+                  Les alertes iront seulement dans Klambo si le destinataire y
+                  est joignable.
                 </p>
               ) : sendingWouldRun || providerConfigured ? (
                 <p>

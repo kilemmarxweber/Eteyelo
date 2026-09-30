@@ -572,7 +572,7 @@ export async function createConversation(params: {
       select: { id: true },
     });
 
-    await insertMessageAndNotify(tx, {
+    const message = await insertMessageAndNotify(tx, {
       organizationId: params.organizationId,
       conversationId: conversation.id,
       senderId: params.actor.userId,
@@ -581,10 +581,21 @@ export async function createConversation(params: {
       sourceBranchId: params.actor.sourceBranchId ?? null,
     });
 
-    return conversation.id;
+    return { conversationId: conversation.id, messageId: message.id };
   });
 
-  return { conversationId: created, reused: false };
+  void import("@/lib/mobile/realtime").then(({ publishMobileEvent }) =>
+    publishMobileEvent({
+      type: "message.created",
+      organizationId: params.organizationId,
+      conversationId: created.conversationId,
+      messageId: created.messageId,
+      senderId: params.actor.userId,
+      recipientUserIds: participantIds,
+    }),
+  );
+
+  return { conversationId: created.conversationId, reused: false };
 }
 
 export async function createGroup(params: {
