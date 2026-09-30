@@ -48,6 +48,8 @@ type Actor = {
   userBanned: boolean;
   sourceBranchId?: string | null;
   messagingEnabled?: boolean;
+  /** Bot alertes école : ignore le plafond 20 msg/min. */
+  skipRateLimit?: boolean;
 };
 
 export class MessagingError extends Error {
@@ -579,6 +581,7 @@ export async function createConversation(params: {
       body,
       clientMessageId: params.clientMessageId,
       sourceBranchId: params.actor.sourceBranchId ?? null,
+      skipRateLimit: params.actor.skipRateLimit,
     });
 
     return { conversationId: conversation.id, messageId: message.id };
@@ -715,18 +718,22 @@ async function insertMessageAndNotify(
     clientMessageId?: string | null;
     replyToId?: string | null;
     sourceBranchId?: string | null;
+    /** Alertes école (bot) : pas de plafond humain 20/min. */
+    skipRateLimit?: boolean;
   },
 ) {
-  const recent = await tx.message.count({
-    where: {
-      senderId: params.senderId,
-      createdAt: { gte: new Date(Date.now() - 60_000) },
-    },
-  });
-  if (recent >= MESSAGING_RATE_LIMIT_PER_MINUTE) {
-    throw new MessagingError(
-      "Trop de messages envoyés. Réessayez dans une minute.",
-    );
+  if (!params.skipRateLimit) {
+    const recent = await tx.message.count({
+      where: {
+        senderId: params.senderId,
+        createdAt: { gte: new Date(Date.now() - 60_000) },
+      },
+    });
+    if (recent >= MESSAGING_RATE_LIMIT_PER_MINUTE) {
+      throw new MessagingError(
+        "Trop de messages envoyés. Réessayez dans une minute.",
+      );
+    }
   }
 
   const sender = await tx.user.findUnique({
@@ -862,6 +869,7 @@ export async function sendMessage(params: {
       clientMessageId: params.clientMessageId,
       replyToId: params.replyToId,
       sourceBranchId: params.actor.sourceBranchId ?? null,
+      skipRateLimit: params.actor.skipRateLimit,
     }),
   );
 

@@ -40,6 +40,7 @@ type SchoolNotifyActor = {
   memberArchived: boolean;
   userBanned: boolean;
   messagingEnabled: boolean;
+  skipRateLimit?: boolean;
 };
 
 type SchoolNotifyOptions = {
@@ -205,6 +206,7 @@ async function ensureSchoolNotifySender(
     memberArchived: false,
     userBanned: false,
     messagingEnabled,
+    skipRateLimit: true,
   };
 
   botSenderCache.set(organizationId, {

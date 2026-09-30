@@ -56,23 +56,49 @@ export type MobileRealtimeEvent =
     };
 
 export async function publishMobileEvent(event: MobileRealtimeEvent) {
-  try {
-    await ensureRedisReady(1500);
+  const attempt = async () => {
+    await ensureRedisReady(2000);
     const redis = getRedisConnection();
     if (redis.status !== "ready") {
-      throw new Error("Redis not ready");
+      throw new Error(`Redis not ready (${redis.status})`);
     }
+    // ping : détecte un socket « ready » mais déjà mort
+    await Promise.race([
+      redis.ping(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Redis ping timeout")), 1500),
+      ),
+    ]);
     await redis.publish(MOBILE_WS_CHANNEL, JSON.stringify(event));
+  };
+
+  try {
+    await attempt();
   } catch (error) {
     const message =
       error instanceof Error ? error.message : String(error ?? "unknown");
-    // Redis down / client abort : présence/API OK, seul le push WS est perdu.
-    if (
-      !/ECONNRESET|ECONNREFUSED|aborted|timeout|not ready|connection ended/i.test(
+    const recoverable =
+      /ECONNRESET|ECONNREFUSED|aborted|timeout|not ready|connection (is )?closed|connection ended|Redis connect|Redis ping/i.test(
         message,
-      )
-    ) {
-      console.warn(`[mobile-realtime] publish failed: ${message}`);
+      );
+    if (recoverable) {
+      try {
+        const { resetRedisConnection } = await import("@/src/redis/redis");
+        resetRedisConnection();
+        await attempt();
+        return;
+      } catch (retryError) {
+        const retryMsg =
+          retryError instanceof Error
+            ? retryError.message
+            : String(retryError ?? "unknown");
+        // Redis absent : message déjà en DB, inbox au prochain fetch HTTP.
+        console.warn(
+          `[mobile-realtime] push WS indisponible (Redis): ${retryMsg}`,
+        );
+        return;
+      }
     }
+    console.warn(`[mobile-realtime] publish failed: ${message}`);
   }
 }
