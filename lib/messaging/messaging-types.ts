@@ -24,6 +24,7 @@ export type MessagingRecipient = {
   name: string;
   image: string | null;
   telephone?: string | null;
+  prenom?: string | null;
   role: string;
   roleLabel: string;
   branches: Array<{ id: string; name: string }>;
@@ -52,6 +53,7 @@ export type ConversationListItem = {
     name: string;
     image: string | null;
     telephone?: string | null;
+    prenom?: string | null;
     roleLabel: string;
     branches: Array<{ id: string; name: string }>;
   }>;

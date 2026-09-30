@@ -1,4 +1,5 @@
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { phoneSearchNeedle, digitsOnly } from "@/lib/mobile/phone";
 import { prisma } from "@/lib/prisma";
 import {
   canCreateGroup,
@@ -36,6 +37,7 @@ const userNameSelect = {
   prenom: true,
   postnom: true,
   image: true,
+  telephone: true,
   email: true,
   banned: true,
   statusUser: true,
@@ -166,6 +168,8 @@ async function loadRecipientMap(
       memberId: member.id,
       name: formatMessagingPersonName(member.user),
       image: member.user.image,
+      telephone: member.user.telephone ?? null,
+      prenom: member.user.prenom ?? null,
       role: member.role,
       roleLabel: orgRoleLabel(member.role.split(",")[0] ?? member.role),
       branches: participantBranches(
@@ -263,6 +267,7 @@ export async function searchMessagingRecipients(params: {
 }) {
   assertCanUse(params.actor);
   const q = params.query.trim();
+  const phoneNeedle = phoneSearchNeedle(q);
   const members = await prisma.member.findMany({
     where: {
       organizationId: params.organizationId,
@@ -284,7 +289,7 @@ export async function searchMessagingRecipients(params: {
       },
     },
     orderBy: { createdAt: "asc" },
-    take: 200,
+    take: 500,
   });
 
   const needle = q.toLowerCase();
@@ -304,17 +309,24 @@ export async function searchMessagingRecipients(params: {
     if (!needle) return true;
     const name = formatMessagingPersonName(member.user).toLowerCase();
     const email = (member.user.email ?? "").toLowerCase();
+    const phoneDigits = digitsOnly(member.user.telephone ?? "");
     const role = orgRoleLabel(
       member.role.split(",")[0] ?? member.role,
     ).toLowerCase();
     const branches = member.branchMember
       .map((row) => row.branch.name.toLowerCase())
       .join(" ");
+    const phoneHit =
+      phoneNeedle != null &&
+      phoneDigits.length > 0 &&
+      (phoneDigits.includes(phoneNeedle) || phoneNeedle.includes(phoneDigits));
     return (
       name.includes(needle) ||
       email.includes(needle) ||
       role.includes(needle) ||
-      branches.includes(needle)
+      branches.includes(needle) ||
+      phoneHit ||
+      (member.user.telephone ?? "").toLowerCase().includes(needle)
     );
   });
 
@@ -327,6 +339,8 @@ export async function searchMessagingRecipients(params: {
     memberId: member.id,
     name: formatMessagingPersonName(member.user),
     image: member.user.image,
+    telephone: member.user.telephone ?? null,
+    prenom: member.user.prenom ?? null,
     role: member.role,
     roleLabel: orgRoleLabel(member.role.split(",")[0] ?? member.role),
     branches: participantBranches(
@@ -1183,6 +1197,8 @@ export async function listMyConversations(params: {
         userId: p.userId,
         name: mapped?.name ?? formatMessagingPersonName(p.user),
         image: mapped?.image ?? p.user.image,
+        telephone: mapped?.telephone ?? p.user.telephone ?? null,
+        prenom: mapped?.prenom ?? p.user.prenom ?? null,
         roleLabel: mapped?.roleLabel ?? "",
         branches: mapped?.branches ?? [],
       };
