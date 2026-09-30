@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import {
-  Apple,
   ArrowRight,
-  Download,
   Handshake,
   Layers3,
   MessageCircle,
@@ -18,6 +16,10 @@ import { publicPageMetadata } from "@/lib/seo/page-metadata";
 import { absoluteUrl } from "@/lib/seo/site";
 import { publicUploadPath } from "@/lib/upload-paths";
 import { uploadedFileExists } from "@/lib/upload-file.server";
+import {
+  KlamboAppDownloadCards,
+  type KlamboAppDownload,
+} from "./klambo-app-download-cards";
 
 export const dynamic = "force-dynamic";
 
@@ -49,30 +51,19 @@ const items = [
   },
 ];
 
-type AppDownload = {
-  id: "android" | "ios";
-  title: string;
-  fileName: string;
-  description: string;
-  available: boolean;
-  downloadUrl: string;
-  absoluteDownloadUrl: string;
-  qrDataUrl: string | null;
-};
-
 async function buildAppDownload(
-  id: AppDownload["id"],
+  id: KlamboAppDownload["id"],
   title: string,
   fileName: string,
   description: string,
-): Promise<AppDownload> {
+): Promise<KlamboAppDownload> {
   const downloadUrl = publicUploadPath(fileName);
   const absoluteDownloadUrl = absoluteUrl(downloadUrl);
   const available = await uploadedFileExists(fileName);
   const qrDataUrl = available
     ? await QRCode.toDataURL(absoluteDownloadUrl, {
         margin: 1,
-        width: 220,
+        width: 360,
         errorCorrectionLevel: "M",
       })
     : null;
@@ -150,86 +141,13 @@ export default async function OtherServicesPage() {
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-slate-600 md:text-base">
                 Telechargez l&apos;application ou scannez le QR code avec votre
-                telephone. Les fichiers sont servis depuis le dossier d&apos;uploads
-                du serveur.
+                telephone. Cliquez sur un QR pour l&apos;agrandir ou exportez-le
+                en PDF pour affichage.
               </p>
             </div>
           </div>
 
-          <div className="mt-8 grid gap-5 md:grid-cols-2">
-            {downloads.map((app) => {
-              const Icon = app.id === "ios" ? Apple : Smartphone;
-
-              return (
-                <article
-                  key={app.id}
-                  className="flex flex-col rounded-2xl border border-slate-200 bg-slate-50/80 p-5"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-blue-950 text-white">
-                      <Icon className="size-5" />
-                    </span>
-                    <div>
-                      <h3 className="font-semibold text-slate-950">{app.title}</h3>
-                      <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                        {app.description}
-                      </p>
-                      <p className="mt-2 font-mono text-xs text-slate-500">
-                        {app.fileName}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-4">
-                    {app.available && app.qrDataUrl ? (
-                      <>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={app.qrDataUrl}
-                          alt={`QR code telechargement Klambo ${app.title}`}
-                          width={180}
-                          height={180}
-                          className="size-[180px]"
-                        />
-                        <p className="mt-3 text-center text-xs text-slate-500">
-                          Scannez pour telecharger
-                        </p>
-                      </>
-                    ) : (
-                      <p className="px-4 py-10 text-center text-sm text-slate-500">
-                        Fichier non disponible pour le moment. Placez{" "}
-                        <span className="font-mono text-slate-700">
-                          {app.fileName}
-                        </span>{" "}
-                        dans le dossier UPLOAD_DIR.
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="mt-5">
-                    {app.available ? (
-                      <Button
-                        asChild
-                        className="w-full rounded-full bg-blue-950 text-white hover:bg-blue-900"
-                      >
-                        <a href={app.downloadUrl} download={app.fileName}>
-                          <Download className="mr-2 size-4" />
-                          Telecharger {app.title}
-                        </a>
-                      </Button>
-                    ) : (
-                      <Button
-                        disabled
-                        className="w-full rounded-full bg-slate-300 text-slate-600"
-                      >
-                        Bientot disponible
-                      </Button>
-                    )}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+          <KlamboAppDownloadCards downloads={downloads} />
         </section>
 
         <Button asChild className="mt-10 rounded-full bg-blue-950 px-6 text-white hover:bg-blue-900">
