@@ -41,7 +41,7 @@ type PhoneUser = {
   postnom: string | null;
   image: string | null;
   telephone: string | null;
-  email: string;
+  email: string | null;
   role: string | null;
   banned: boolean | null;
   statusUser: boolean | null;
@@ -49,7 +49,7 @@ type PhoneUser = {
 
 function scorePhoneCandidate(user: PhoneUser) {
   let score = 0;
-  if (!user.email.endsWith("@mobile.klambo.local")) score += 100;
+  if (user.email && !user.email.endsWith("@mobile.klambo.local")) score += 100;
   if (user.telephone && !user.telephone.startsWith("+")) score += 5;
   if (user.prenom?.trim()) score += 10;
   if (user.name?.trim() && !user.name.startsWith("+")) score += 10;
