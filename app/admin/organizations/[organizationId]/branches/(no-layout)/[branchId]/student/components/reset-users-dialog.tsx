@@ -77,9 +77,13 @@ export function ResetUsersDialog({
                 toast.error(res.message);
                 return;
               }
-              if (res.whatsappSent) {
+              if (res.notifyQueued) {
                 toast.success(
-                  "Mot de passe réinitialisé — email et WhatsApp envoyés.",
+                  "Mot de passe réinitialisé — envoi email / Klambo en cours.",
+                );
+              } else if (res.whatsappSent) {
+                toast.success(
+                  "Mot de passe réinitialisé — email et WhatsApp/Klambo envoyés.",
                 );
               } else if (res.hasPhone) {
                 toast.success(

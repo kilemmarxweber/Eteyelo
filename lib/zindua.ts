@@ -61,6 +61,9 @@ export type ZinduaWhatsAppChannelStatus = {
 };
 
 export function formatZinduaError(error: unknown): string {
+  if (typeof error === "string") {
+    return summarizeProviderError(error);
+  }
   if (error && typeof error === "object" && "code" in error) {
     const code = String((error as { code: unknown }).code ?? "");
     if (code === "WHATSAPP_NOT_CONNECTED") {
@@ -611,6 +614,11 @@ export async function sendResetPasswordWhatsApp(
       // eslint-disable-next-line no-console
       console.info(
         `[sendResetPasswordWhatsApp] ok to=${to} channel=${result.channel}`,
+      );
+    } else if (result.error) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[sendResetPasswordWhatsApp] échec: ${formatZinduaError(result.error)}`,
       );
     }
     return { sent: result.sent, error: result.error };

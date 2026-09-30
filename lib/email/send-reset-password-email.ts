@@ -87,31 +87,38 @@ export async function sendResetPasswordEmail(input: {
     cta: { href: loginUrl, label: t("common.signInKlambo") },
   });
 
-  if (allow.email) {
-    await sendMail({
-      to,
-      organizationId: input.organizationId,
-      notificationEvent: "passwordReset",
-      subject,
-      text,
-      html,
-    });
-  }
+  const phone = input.phone?.trim();
+
+  const emailTask = allow.email
+    ? sendMail({
+        to,
+        organizationId: input.organizationId,
+        notificationEvent: "passwordReset",
+        subject,
+        text,
+        html,
+      }).then(() => true as const)
+    : Promise.resolve(false as const);
+
+  const waTask =
+    allow.whatsapp && phone
+      ? sendResetPasswordWhatsApp({
+          to: phone,
+          name,
+          temporaryPassword,
+          email: to,
+          loginUrl,
+          branchName: input.branchName,
+          organizationId: input.organizationId,
+          locale,
+        })
+      : Promise.resolve(null);
+
+  const [emailOk, wa] = await Promise.all([emailTask, waTask]);
 
   let whatsappSent = false;
   let whatsappError: string | undefined;
-  const phone = input.phone?.trim();
-  if (allow.whatsapp && phone) {
-    const wa = await sendResetPasswordWhatsApp({
-      to: phone,
-      name,
-      temporaryPassword,
-      email: to,
-      loginUrl,
-      branchName: input.branchName,
-      organizationId: input.organizationId,
-      locale,
-    });
+  if (wa) {
     whatsappSent = wa.sent;
     whatsappError = wa.error;
   } else if (phone && !allow.whatsapp) {
@@ -122,7 +129,7 @@ export async function sendResetPasswordEmail(input: {
   }
 
   return {
-    emailSent: allow.email,
+    emailSent: allow.email && emailOk,
     whatsappSent,
     whatsappError,
   };

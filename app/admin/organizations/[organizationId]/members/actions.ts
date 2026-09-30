@@ -1339,7 +1339,14 @@ import { hashPassword } from "better-auth/crypto";
 export async function resetUserPasswordAction(
   input: ResetOrgMemberPasswordInput,
 ): Promise<
-  | { ok: true; whatsappSent: boolean; hasPhone: boolean; whatsappError?: string }
+  | {
+      ok: true;
+      whatsappSent: boolean;
+      hasPhone: boolean;
+      whatsappError?: string;
+      /** true si email/WA encore en cours après le budget UI */
+      notifyQueued?: boolean;
+    }
   | { ok: false; message: string }
 > {
   const parsed = resetOrgMemberPasswordSchema.safeParse(input);
@@ -1420,7 +1427,8 @@ export async function resetUserPasswordAction(
       data: { mustChangePassword: true },
     });
 
-    const result = await sendResetPasswordEmail({
+    const hasPhone = Boolean(user.telephone?.trim());
+    const notifyPayload = {
       to: email,
       phone: user.telephone,
       name: user.name,
@@ -1428,14 +1436,53 @@ export async function resetUserPasswordAction(
       branchName,
       organizationId,
       branchId: memberBranchId,
-    });
+    };
+
+    // Budget UI : ne jamais attendre le 504 nginx (~60s). Suite en arrière-plan.
+    const NOTIFY_BUDGET_MS = 10_000;
+    const notifyPromise = sendResetPasswordEmail(notifyPayload);
+    const raced = await Promise.race([
+      notifyPromise.then((result) => ({ kind: "done" as const, result })),
+      new Promise<{ kind: "timeout" }>((resolve) => {
+        setTimeout(() => resolve({ kind: "timeout" }), NOTIFY_BUDGET_MS);
+      }),
+    ]);
+
+    if (raced.kind === "timeout") {
+      void notifyPromise
+        .then((result) => {
+          // eslint-disable-next-line no-console
+          console.info(
+            `[resetUserPassword] notify late email=${result.emailSent} wa=${result.whatsappSent}${result.whatsappError ? ` err=${result.whatsappError}` : ""}`,
+          );
+        })
+        .catch((error) => {
+          // eslint-disable-next-line no-console
+          console.warn(
+            "[resetUserPassword] notify late fail:",
+            error instanceof Error ? error.message : error,
+          );
+        })
+        .finally(() => {
+          consumeAdminCreatedUserPlainPassword(email);
+        });
+
+      return {
+        ok: true as const,
+        whatsappSent: false,
+        hasPhone,
+        notifyQueued: true,
+        whatsappError:
+          "Notification en cours (gateway lent). Vérifiez email / inbox Klambo.",
+      };
+    }
 
     consumeAdminCreatedUserPlainPassword(email);
     return {
       ok: true as const,
-      whatsappSent: result.whatsappSent,
-      hasPhone: Boolean(user.telephone?.trim()),
-      whatsappError: result.whatsappError,
+      whatsappSent: raced.result.whatsappSent,
+      hasPhone,
+      whatsappError: raced.result.whatsappError,
     };
   } catch (e) {
     consumeAdminCreatedUserPlainPassword(email);
