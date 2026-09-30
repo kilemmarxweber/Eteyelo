@@ -217,7 +217,12 @@ async function ensureSchoolNotifySender(
 
 async function fallbackWhatsApp(
   options: SchoolNotifyOptions,
+  reason: string,
 ): Promise<SchoolNotifyOutcome> {
+  // eslint-disable-next-line no-console
+  console.info(
+    `[deliverSchoolNotify] fallback→whatsapp reason=${reason} to=${options.to}`,
+  );
   const { sendTransactionalWhatsAppViaProvider } = await import("@/lib/zindua");
   const wa = await sendTransactionalWhatsAppViaProvider(options);
   return {
@@ -233,16 +238,16 @@ async function deliverSchoolNotifyNow(
   options: SchoolNotifyOptions,
 ): Promise<SchoolNotifyOutcome> {
   if (!isKlamboAppFirstEnabled()) {
-    return fallbackWhatsApp(options);
+    return fallbackWhatsApp(options, "NOTIFY_KLAMBO_APP_FIRST=off");
   }
 
   if (options.attachments?.length) {
-    return fallbackWhatsApp(options);
+    return fallbackWhatsApp(options, "attachments");
   }
 
   const organizationId = options.organizationId?.trim() || null;
   if (!organizationId) {
-    return fallbackWhatsApp(options);
+    return fallbackWhatsApp(options, "no-organizationId");
   }
 
   const to = resolveNotifyPhone(options.to);
@@ -262,11 +267,14 @@ async function deliverSchoolNotifyNow(
     ]);
 
     if (!user || user.banned || user.statusUser === false) {
-      return fallbackWhatsApp(options);
+      return fallbackWhatsApp(
+        options,
+        !user ? "user-not-found" : "user-banned-or-inactive",
+      );
     }
 
     if (!messagingEnabled) {
-      return fallbackWhatsApp(options);
+      return fallbackWhatsApp(options, "messaging-disabled");
     }
 
     const member = await prisma.member.findFirst({
@@ -289,7 +297,10 @@ async function deliverSchoolNotifyNow(
         statusUser: member.user.statusUser,
       })
     ) {
-      return fallbackWhatsApp(options);
+      return fallbackWhatsApp(
+        options,
+        !member ? "not-member-of-org" : "recipient-not-eligible",
+      );
     }
 
     const sender = await ensureSchoolNotifySender(
@@ -297,7 +308,7 @@ async function deliverSchoolNotifyNow(
       messagingEnabled,
     );
     if (sender.userId === user.id) {
-      return fallbackWhatsApp(options);
+      return fallbackWhatsApp(options, "sender-is-recipient");
     }
 
     await createConversation({
@@ -321,7 +332,7 @@ async function deliverSchoolNotifyNow(
           : "Échec envoi Klambo";
     // eslint-disable-next-line no-console
     console.warn(`[deliverSchoolNotify] klambo fail → whatsapp: ${message}`);
-    return fallbackWhatsApp(options);
+    return fallbackWhatsApp(options, `klambo-error:${message.slice(0, 80)}`);
   }
 }
 

@@ -71,11 +71,31 @@ export function formatZinduaError(error: unknown): string {
       typeof (error as { message: unknown }).message === "string" &&
       (error as { message: string }).message.trim()
     ) {
-      return (error as { message: string }).message;
+      return summarizeProviderError((error as { message: string }).message);
     }
   }
-  if (error instanceof Error && error.message.trim()) return error.message;
+  if (error instanceof Error && error.message.trim()) {
+    return summarizeProviderError(error.message);
+  }
   return "Échec d'envoi WhatsApp.";
+}
+
+/** Évite de polluer les logs PM2 avec du HTML nginx (504/502…). */
+function summarizeProviderError(raw: string): string {
+  const text = raw.trim();
+  if (/504\s*Gateway\s*Time-?out/i.test(text) || /<title>504/i.test(text)) {
+    return "Gateway WhatsApp 504 (timeout nginx) — API messaging indisponible ou trop lente.";
+  }
+  if (/502\s*Bad\s*Gateway/i.test(text) || /<title>502/i.test(text)) {
+    return "Gateway WhatsApp 502 — upstream messaging down.";
+  }
+  if (/503\s*Service/i.test(text) || /<title>503/i.test(text)) {
+    return "Gateway WhatsApp 503 — service messaging indisponible.";
+  }
+  if (text.startsWith("<!DOCTYPE") || text.startsWith("<html")) {
+    return "Réponse HTML inattendue du gateway messaging (pas JSON API).";
+  }
+  return text.slice(0, 500);
 }
 
 /** Destinataire WhatsApp de test (dev). Ne pas utiliser pour les notifs parents/élèves. */
@@ -513,27 +533,30 @@ export async function sendNewUserCredentialsWhatsApp(options: {
   ]);
 
   try {
-    const result = await sendWhatsApp({
+    // Inbox Klambo d'abord ; gateway WhatsApp en secours (file + pacing).
+    const { deliverSchoolNotify } = await import(
+      "@/lib/notify/deliver-school-notify"
+    );
+    const result = await deliverSchoolNotify({
       to,
       organizationId: options.organizationId,
-      lang: messagingLocaleToWhatsAppLang(locale),
+      locale,
+      branchId: options.branchId,
       queueKind: "credentials",
-      variables: {
-        code: message,
-      },
+      parts: [message],
     });
-    if (result?.success) {
+    if (result.sent) {
       // eslint-disable-next-line no-console
       console.info(
-        `[sendNewUserCredentialsWhatsApp] ok to=${to} logId=${result.logId} status=${result.status}`,
+        `[sendNewUserCredentialsWhatsApp] ok to=${to} channel=${result.channel}`,
       );
     }
-    return outcomeFromSendResult(result);
+    return { sent: result.sent, error: result.error };
   } catch (error) {
-    const message = formatZinduaError(error);
+    const errMsg = formatZinduaError(error);
     // eslint-disable-next-line no-console
-    console.warn("[sendNewUserCredentialsWhatsApp] échec:", message);
-    return { sent: false, error: message };
+    console.warn("[sendNewUserCredentialsWhatsApp] échec:", errMsg);
+    return { sent: false, error: errMsg };
   }
 }
 
@@ -573,27 +596,29 @@ export async function sendResetPasswordWhatsApp(
   ]);
 
   try {
-    const result = await sendWhatsApp({
+    const { deliverSchoolNotify } = await import(
+      "@/lib/notify/deliver-school-notify"
+    );
+    const result = await deliverSchoolNotify({
       to,
       organizationId: options.organizationId,
-      lang: messagingLocaleToWhatsAppLang(locale),
+      locale,
+      branchId: options.branchId,
       queueKind: "credentials",
-      variables: {
-        code: message,
-      },
+      parts: [message],
     });
-    if (result?.success) {
+    if (result.sent) {
       // eslint-disable-next-line no-console
       console.info(
-        `[sendResetPasswordWhatsApp] ok to=${to} logId=${result.logId} status=${result.status}`,
+        `[sendResetPasswordWhatsApp] ok to=${to} channel=${result.channel}`,
       );
     }
-    return outcomeFromSendResult(result);
+    return { sent: result.sent, error: result.error };
   } catch (error) {
-    const message = formatZinduaError(error);
+    const errMsg = formatZinduaError(error);
     // eslint-disable-next-line no-console
-    console.warn("[sendResetPasswordWhatsApp] échec:", message);
-    return { sent: false, error: message };
+    console.warn("[sendResetPasswordWhatsApp] échec:", errMsg);
+    return { sent: false, error: errMsg };
   }
 }
 
