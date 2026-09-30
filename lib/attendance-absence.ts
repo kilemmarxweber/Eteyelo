@@ -10,7 +10,9 @@ import {
   findTeacherDayArrivalSession,
   getBranchCourseDurationMinutes,
   getTeacherDayCreneauEnd,
+  groupConsecutiveScheduleBlocks,
   teacherUsesDayLevelPunch,
+  type ConsecutiveScheduleBlock,
 } from "@/lib/attendance-teacher-session";
 import { formatExpectedSessionLabel } from "@/lib/attendance-schedule-label";
 import { isBranchClosedOn } from "@/lib/branch-closed-days";
@@ -639,6 +641,32 @@ async function signalEndedSessionAbsences(
     }
   }
 
+  const blockByScheduleId = new Map<string, ConsecutiveScheduleBlock>();
+  {
+    const slots = schedules
+      .filter(
+        (
+          row,
+        ): row is typeof row & {
+          teachingId: string;
+          hour: Date;
+        } => Boolean(row.teachingId && row.hour),
+      )
+      .map((row) => ({
+        teachingId: row.teachingId,
+        scheduleId: row.id,
+        startMinutes: scheduleHourToMinutes(row.hour),
+      }));
+    for (const block of groupConsecutiveScheduleBlocks(
+      slots,
+      courseDurationMinutes,
+    )) {
+      for (const scheduleId of block.scheduleIds) {
+        blockByScheduleId.set(scheduleId, block);
+      }
+    }
+  }
+
   const studentsPresentToday = await prisma.studentAttendance.findMany({
     where: {
       branchId,
@@ -653,70 +681,90 @@ async function signalEndedSessionAbsences(
 
   for (const schedule of schedules) {
     if (!schedule.teachingId || !schedule.hour || !schedule.teaching) continue;
-    const startMinutes = scheduleHourToMinutes(schedule.hour);
-    const endMinutes = startMinutes + courseDurationMinutes;
-    if (currentMinutes <= endMinutes + ABSENCE_GRACE_MINUTES) continue;
-
-    const session = await ensureAttendanceSessionForSchedule(
-      schedule.teachingId,
-      schedule.id,
-      branchId,
-      courseDurationMinutes,
-      { requireCheckInWindow: false },
-    );
-    if (!session) continue;
+    const block = blockByScheduleId.get(schedule.id) ?? {
+      teachingId: schedule.teachingId,
+      scheduleIds: [schedule.id],
+      startMinutes: scheduleHourToMinutes(schedule.hour),
+      endMinutes:
+        scheduleHourToMinutes(schedule.hour) + courseDurationMinutes,
+      durationMinutes: courseDurationMinutes,
+      firstScheduleId: schedule.id,
+    };
+    const isBlockHead = block.firstScheduleId === schedule.id;
+    const blockEnded =
+      currentMinutes > block.endMinutes + ABSENCE_GRACE_MINUTES;
 
     const contextLabel = formatExpectedSessionLabel(
       schedule.hour,
       schedule.teaching,
+      block.durationMinutes > courseDurationMinutes
+        ? new Date(
+            new Date(schedule.hour).getTime() +
+              block.durationMinutes * 60 * 1000,
+          )
+        : null,
     );
 
     const teacherId = schedule.teaching.teacherId;
-    if (teacherId && !skipTeachers) {
-      if (await teacherUsesDayLevelPunch(teacherId, branchId, now)) {
-        dayLevelTeacherIds.add(teacherId);
-      } else {
-      const existingTeacher = await prisma.teacherAttendance.findUnique({
-        where: {
-          teacherId_sessionId_branchId: {
-            teacherId,
-            sessionId: session.id,
-            branchId,
-          },
-        },
-      });
-
-      if (
-        !existingTeacher ||
-        (existingTeacher.status === "ABSENT" && !existingTeacher.checkIn)
-      ) {
-        const attendance =
-          existingTeacher ??
-          (await prisma.teacherAttendance.create({
-            data: {
-              teacherId,
-              sessionId: session.id,
-              status: "ABSENT",
-              date: today,
-              branchId,
+    if (
+      teacherId &&
+      !skipTeachers &&
+      isBlockHead &&
+      blockEnded
+    ) {
+      const session = await ensureAttendanceSessionForSchedule(
+        schedule.teachingId,
+        schedule.id,
+        branchId,
+        courseDurationMinutes,
+        { requireCheckInWindow: false },
+      );
+      if (session) {
+        if (await teacherUsesDayLevelPunch(teacherId, branchId, now)) {
+          dayLevelTeacherIds.add(teacherId);
+        } else {
+          const existingTeacher = await prisma.teacherAttendance.findUnique({
+            where: {
+              teacherId_sessionId_branchId: {
+                teacherId,
+                sessionId: session.id,
+                branchId,
+              },
             },
-          }));
-        const user = await loadTeacherUser(teacherId, branchId);
-        if (user) {
-          await syncTeacherAttendanceAbsence({
-            branchId,
-            organizationId: branch.organizationId,
-            teacherId,
-            sessionId: session.id,
-            attendanceId: attendance.id,
-            status: "ABSENT",
-            contextLabel,
-            occurredOn: today,
-            user,
           });
-          created += 1;
+
+          if (
+            !existingTeacher ||
+            (existingTeacher.status === "ABSENT" && !existingTeacher.checkIn)
+          ) {
+            const attendance =
+              existingTeacher ??
+              (await prisma.teacherAttendance.create({
+                data: {
+                  teacherId,
+                  sessionId: session.id,
+                  status: "ABSENT",
+                  date: today,
+                  branchId,
+                },
+              }));
+            const user = await loadTeacherUser(teacherId, branchId);
+            if (user) {
+              await syncTeacherAttendanceAbsence({
+                branchId,
+                organizationId: branch.organizationId,
+                teacherId,
+                sessionId: session.id,
+                attendanceId: attendance.id,
+                status: "ABSENT",
+                contextLabel,
+                occurredOn: today,
+                user,
+              });
+              created += 1;
+            }
+          }
         }
-      }
       }
     }
 
@@ -730,7 +778,18 @@ async function signalEndedSessionAbsences(
     if (creneauEnd) {
       const vacationEnd = scheduleHourToMinutes(creneauEnd);
       if (currentMinutes <= vacationEnd + ABSENCE_GRACE_MINUTES) continue;
+    } else if (!blockEnded) {
+      continue;
     }
+
+    const studentSession = await ensureAttendanceSessionForSchedule(
+      schedule.teachingId,
+      schedule.id,
+      branchId,
+      courseDurationMinutes,
+      { requireCheckInWindow: false },
+    );
+    if (!studentSession) continue;
 
     const enrollments = await prisma.classEnrollment.findMany({
       where: {
@@ -754,7 +813,7 @@ async function signalEndedSessionAbsences(
     });
 
     const existingStudentRows = await prisma.studentAttendance.findMany({
-      where: { sessionId: session.id, branchId },
+      where: { sessionId: studentSession.id, branchId },
       select: { studentId: true, status: true, checkIn: true, id: true },
     });
     const byStudentId = new Map(
@@ -772,7 +831,7 @@ async function signalEndedSessionAbsences(
         (await prisma.studentAttendance.create({
           data: {
             studentId: enrollment.studentId,
-            sessionId: session.id,
+            sessionId: studentSession.id,
             status: "ABSENT",
             branchId,
           },
@@ -785,7 +844,7 @@ async function signalEndedSessionAbsences(
         branchId,
         organizationId: branch.organizationId,
         studentId: enrollment.studentId,
-        sessionId: session.id,
+        sessionId: studentSession.id,
         attendanceId: attendance.id,
         status: "ABSENT",
         contextLabel,

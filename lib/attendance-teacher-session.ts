@@ -66,10 +66,89 @@ type TeacherScheduleCandidate = {
   startMinutes: number;
 };
 
-function rankTeacherScheduleCandidates(
-  candidates: TeacherScheduleCandidate[],
-  currentMinutes: number,
+/** Créneau du jour (entrée du regroupement d'affilée). */
+export type ScheduleBlockSlot = {
+  teachingId: string;
+  scheduleId: string;
+  startMinutes: number;
+};
+
+/**
+ * Bloc de cours d'affilée : même teaching, créneaux adjacents
+ * (start(n+1) === start(n) + durationCourse).
+ */
+export type ConsecutiveScheduleBlock = {
+  teachingId: string;
+  scheduleIds: string[];
+  startMinutes: number;
+  endMinutes: number;
+  durationMinutes: number;
+  firstScheduleId: string;
+};
+
+/**
+ * Regroupe les créneaux d'un même teaching en blocs d'affilée.
+ * Un trou ou un autre teaching coupe le bloc.
+ */
+export function groupConsecutiveScheduleBlocks(
+  slots: ScheduleBlockSlot[],
   courseDurationMinutes: number,
+): ConsecutiveScheduleBlock[] {
+  const duration = Math.max(1, courseDurationMinutes);
+  const byTeaching = new Map<string, ScheduleBlockSlot[]>();
+
+  for (const slot of slots) {
+    const list = byTeaching.get(slot.teachingId) ?? [];
+    list.push(slot);
+    byTeaching.set(slot.teachingId, list);
+  }
+
+  const blocks: ConsecutiveScheduleBlock[] = [];
+
+  for (const [teachingId, teachingSlots] of byTeaching) {
+    const sorted = [...teachingSlots].sort(
+      (left, right) => left.startMinutes - right.startMinutes,
+    );
+    let current: ScheduleBlockSlot[] = [];
+
+    const flush = () => {
+      if (!current.length) return;
+      const first = current[0]!;
+      const last = current[current.length - 1]!;
+      const durationMinutes = current.length * duration;
+      blocks.push({
+        teachingId,
+        scheduleIds: current.map((slot) => slot.scheduleId),
+        startMinutes: first.startMinutes,
+        endMinutes: last.startMinutes + duration,
+        durationMinutes,
+        firstScheduleId: first.scheduleId,
+      });
+      current = [];
+    };
+
+    for (const slot of sorted) {
+      if (!current.length) {
+        current = [slot];
+        continue;
+      }
+      const prev = current[current.length - 1]!;
+      if (slot.startMinutes === prev.startMinutes + duration) {
+        current.push(slot);
+      } else {
+        flush();
+        current = [slot];
+      }
+    }
+    flush();
+  }
+
+  return blocks.sort((left, right) => left.startMinutes - right.startMinutes);
+}
+
+function rankTeacherScheduleCandidates(
+  candidates: Array<TeacherScheduleCandidate & { durationMinutes?: number }>,
+  currentMinutes: number,
 ) {
   return [...candidates].sort((left, right) => {
     const leftDistance = Math.abs(left.startMinutes - currentMinutes);
@@ -86,9 +165,10 @@ function rankTeacherScheduleCandidates(
     }
 
     const leftEndsAt =
-      left.startMinutes + courseDurationMinutes;
+      left.startMinutes + (left.durationMinutes ?? TEACHER_COURSE_DURATION_MINUTES);
     const rightEndsAt =
-      right.startMinutes + courseDurationMinutes;
+      right.startMinutes +
+      (right.durationMinutes ?? TEACHER_COURSE_DURATION_MINUTES);
 
     if (leftEndsAt !== rightEndsAt) {
       return leftEndsAt - rightEndsAt;
@@ -96,6 +176,35 @@ function rankTeacherScheduleCandidates(
 
     return left.startMinutes - right.startMinutes;
   });
+}
+
+async function resolveTeachingDayBlockForSchedule(
+  teachingId: string,
+  scheduleId: string,
+  courseDurationMinutes: number,
+  now = nowLocal(),
+): Promise<ConsecutiveScheduleBlock | null> {
+  const daySchedules = await prisma.schedule.findMany({
+    where: {
+      teachingId,
+      day: getTodayDay(now),
+      isArchived: false,
+    },
+    select: { id: true, hour: true },
+  });
+
+  const slots: ScheduleBlockSlot[] = [];
+  for (const row of daySchedules) {
+    if (!row.hour) continue;
+    slots.push({
+      teachingId,
+      scheduleId: row.id,
+      startMinutes: scheduleHourToMinutes(row.hour),
+    });
+  }
+
+  const blocks = groupConsecutiveScheduleBlocks(slots, courseDurationMinutes);
+  return blocks.find((block) => block.scheduleIds.includes(scheduleId)) ?? null;
 }
 
 export async function listTeacherDaySchedules(
@@ -152,20 +261,27 @@ export async function listTeacherScheduleCandidates(
   const currentMinutes = toMinutes(now);
   const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
   const daySchedules = await listTeacherDaySchedules(teacherId, branchId, now);
-
-  const candidates = daySchedules.filter((candidate) =>
-    isTeacherCheckInWindow(
-      currentMinutes,
-      candidate.startMinutes,
-      courseDurationMinutes,
-    ),
-  );
-
-  return rankTeacherScheduleCandidates(
-    candidates,
-    currentMinutes,
+  const blocks = groupConsecutiveScheduleBlocks(
+    daySchedules,
     courseDurationMinutes,
   );
+
+  const candidates = blocks
+    .filter((block) =>
+      isTeacherCheckInWindow(
+        currentMinutes,
+        block.startMinutes,
+        block.durationMinutes,
+      ),
+    )
+    .map((block) => ({
+      teachingId: block.teachingId,
+      scheduleId: block.firstScheduleId,
+      startMinutes: block.startMinutes,
+      durationMinutes: block.durationMinutes,
+    }));
+
+  return rankTeacherScheduleCandidates(candidates, currentMinutes);
 }
 
 export async function getOrCreateTeacherAttendanceSession(
@@ -186,6 +302,8 @@ export async function getOrCreateTeacherAttendanceSession(
 /**
  * Crée la session du jour même après la fenêtre de pointage
  * (pour signaler les absences auto une fois le cours terminé).
+ * Si le créneau fait partie d'un bloc d'affilée, une seule session
+ * couvre le bloc (start = 1ʳᵉ heure, end = fin de la dernière).
  */
 export async function ensureAttendanceSessionForSchedule(
   teachingId: string,
@@ -217,38 +335,71 @@ export async function ensureAttendanceSessionForSchedule(
     return null;
   }
 
+  const block =
+    (await resolveTeachingDayBlockForSchedule(
+      teachingId,
+      scheduleId,
+      courseDurationMinutes,
+      now,
+    )) ?? {
+      teachingId,
+      scheduleIds: [scheduleId],
+      startMinutes: scheduleHourToMinutes(schedule.hour),
+      endMinutes:
+        scheduleHourToMinutes(schedule.hour) + courseDurationMinutes,
+      durationMinutes: courseDurationMinutes,
+      firstScheduleId: scheduleId,
+    };
+
+  const firstSchedule =
+    block.firstScheduleId === scheduleId
+      ? schedule
+      : await prisma.schedule.findFirst({
+          where: {
+            id: block.firstScheduleId,
+            teachingId,
+            isArchived: false,
+          },
+        });
+
+  if (!firstSchedule?.hour) return null;
+
   const today = startOfTodayParis(now);
-  const end = new Date(
-    new Date(schedule.hour).getTime() + courseDurationMinutes * 60 * 1000,
+  const sessionStart = firstSchedule.hour;
+  const sessionEnd = new Date(
+    new Date(sessionStart).getTime() + block.durationMinutes * 60 * 1000,
   );
 
   const existing = await prisma.attendanceSession.findFirst({
     where: {
       teachingId,
       date: today,
-      startTime: schedule.hour,
+      startTime: sessionStart,
     },
   });
 
   if (existing) {
-    if (existing.branchId !== branchId) {
+    const patch: { branchId?: string; endTime?: Date } = {};
+    if (existing.branchId !== branchId) patch.branchId = branchId;
+    if (existing.endTime.getTime() < sessionEnd.getTime()) {
+      patch.endTime = sessionEnd;
+    }
+    if (Object.keys(patch).length) {
       return prisma.attendanceSession.update({
         where: { id: existing.id },
-        data: { branchId },
+        data: patch,
       });
     }
-
     return existing;
   }
 
   if (options?.requireCheckInWindow !== false) {
     const currentMinutes = toMinutes(now);
-    const startMinutes = scheduleHourToMinutes(schedule.hour);
     if (
       !isTeacherCheckInWindow(
         currentMinutes,
-        startMinutes,
-        courseDurationMinutes,
+        block.startMinutes,
+        block.durationMinutes,
       )
     ) {
       return null;
@@ -260,8 +411,8 @@ export async function ensureAttendanceSessionForSchedule(
       teachingId,
       branchId,
       date: today,
-      startTime: schedule.hour,
-      endTime: end,
+      startTime: sessionStart,
+      endTime: sessionEnd,
       schoolYearId: schedule.teaching.schoolYearId,
     },
   });
@@ -298,7 +449,22 @@ export async function getExpectedTeacherSessionLabel(
 
   if (!schedule?.hour || !schedule.teaching) return null;
 
-  return formatExpectedSessionLabel(schedule.hour, schedule.teaching);
+  const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
+  const block = await resolveTeachingDayBlockForSchedule(
+    candidates[0].teachingId,
+    candidates[0].scheduleId,
+    courseDurationMinutes,
+    now,
+  );
+  const endHour =
+    block && block.durationMinutes > courseDurationMinutes
+      ? new Date(
+          new Date(schedule.hour).getTime() +
+            block.durationMinutes * 60 * 1000,
+        )
+      : null;
+
+  return formatExpectedSessionLabel(schedule.hour, schedule.teaching, endHour);
 }
 
 export async function findTeacherCheckInSession(
