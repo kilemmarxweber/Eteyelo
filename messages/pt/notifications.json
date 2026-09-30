@@ -51,16 +51,16 @@
     "absence": {
       "subject": "{app} — Falta registada",
       "title": "Falta registada",
-      "intro": "Foi registada automaticamente uma falta (sem scan nem marcação manual) para « {person} ». Inicie sessão para justificar.",
-      "introParent": "Foi registada automaticamente uma falta (sem scan nem marcação manual) do aluno « {person} ». Inicie sessão para justificar.",
+      "intro": "foi registada automaticamente uma falta (sem scan nem marcação manual) para « {person} ». Inicie sessão para justificar.",
+      "introParent": "foi registada automaticamente uma falta (sem scan nem marcação manual) do aluno « {person} ». Inicie sessão para justificar.",
       "note": "Clique no sino na barra de navegação para ver os detalhes e enviar a justificação.",
       "cta": "Abrir o meu espaço"
     },
     "justification_submitted": {
       "subject": "{app} — Justificação de falta recebida",
       "title": "Justificação recebida",
-      "intro": "A sua justificação de falta foi enviada ao estabelecimento « {school} ». Será notificado da decisão.",
-      "introParent": "A justificação de falta do aluno « {person} » foi enviada ao estabelecimento « {school} ». Será notificado da decisão.",
+      "intro": "a sua justificação de falta foi enviada ao estabelecimento « {school} ». Será notificado da decisão.",
+      "introParent": "a justificação de falta do aluno « {person} » foi enviada ao estabelecimento « {school} ». Será notificado da decisão.",
       "note": "A resposta aparecerá também no sino da barra de navegação.",
       "cta": "Ver o meu espaço"
     },
@@ -74,24 +74,24 @@
     "accepted": {
       "subject": "{app} — Justificação de falta aceite",
       "title": "Justificação aceite",
-      "intro": "A sua justificação de falta foi aceite pelo estabelecimento « {school} ».",
-      "introParent": "A justificação de falta do aluno « {person} » foi aceite pelo estabelecimento « {school} ».",
+      "intro": "a sua justificação de falta foi aceite pelo estabelecimento « {school} ».",
+      "introParent": "a justificação de falta do aluno « {person} » foi aceite pelo estabelecimento « {school} ».",
       "note": "Foi também registado um regresso na sua conta.",
       "cta": "Ver detalhes"
     },
     "rejected": {
       "subject": "{app} — Justificação de falta recusada",
       "title": "Justificação recusada",
-      "intro": "A sua justificação de falta não foi aceite pelo estabelecimento « {school} ».",
-      "introParent": "A justificação de falta do aluno « {person} » não foi aceite pelo estabelecimento « {school} ».",
+      "intro": "a sua justificação de falta não foi aceite pelo estabelecimento « {school} ».",
+      "introParent": "a justificação de falta do aluno « {person} » não foi aceite pelo estabelecimento « {school} ».",
       "note": "Consulte o sino para o motivo da decisão.",
       "cta": "Ver detalhes"
     },
     "return": {
       "subject": "{app} — Regresso após falta",
       "title": "Regresso registado",
-      "intro": "Foi registado um regresso na sua conta após a aceitação da justificação.",
-      "introParent": "Foi registado um regresso do aluno « {person} » após a aceitação da justificação.",
+      "intro": "foi registado um regresso na sua conta após a aceitação da justificação.",
+      "introParent": "foi registado um regresso do aluno « {person} » após a aceitação da justificação.",
       "note": "A falta está agora marcada como justificada.",
       "cta": "Ver o meu espaço"
     }
@@ -99,17 +99,17 @@
   "payment": {
     "created": {
       "title": "Pagamento registado",
-      "intro": "Foi registado um pagamento para a sua família.",
+      "intro": "foi registado um pagamento para a sua família.",
       "subject": "Pagamento registado"
     },
     "updated": {
       "title": "Pagamento alterado",
-      "intro": "Um pagamento da sua família foi alterado pelo estabelecimento.",
+      "intro": "um pagamento da sua família foi alterado pelo estabelecimento.",
       "subject": "Pagamento alterado"
     },
     "deleted": {
       "title": "Pagamento anulado",
-      "intro": "Um pagamento da sua família foi eliminado (erro de introdução).",
+      "intro": "um pagamento da sua família foi eliminado (erro de introdução).",
       "subject": "Pagamento anulado"
     },
     "subjectLine": "{app} — {subject}",
@@ -118,7 +118,7 @@
   "results": {
     "subject": "{app} — Resultados de {student}",
     "title": "Resultados escolares",
-    "intro": "Seguem os resultados de {student}{classSuffix} para {period} — {year}.",
+    "intro": "seguem os resultados de {student}{classSuffix} para {period} — {year}.",
     "classSuffix": " ({className})",
     "extraSubjects": "+ {count} outra(s) disciplina(s)",
     "averageLine": "Média: {average}.",
@@ -127,7 +127,7 @@
   "accountCreate": {
     "subject": "{app} — A sua conta foi criada",
     "title": "A sua conta foi criada",
-    "intro": "Um administrador criou a sua conta {app} com {context}. As credenciais temporárias estão prontas: inicie sessão em klambocore.com e altere a palavra-passe.",
+    "intro": "um administrador criou a sua conta {app} com {context}. As credenciais temporárias estão prontas: inicie sessão em klambocore.com e altere a palavra-passe.",
     "bodyLead": "Um administrador criou a sua conta {app} com {context}.",
     "contextRole": "função « {role} »",
     "contextOrg": "organização « {org} »",
@@ -142,7 +142,7 @@
   "passwordReset": {
     "subject": "{app} — Reposição da palavra-passe",
     "title": "Palavra-passe reposta",
-    "intro": "A sua palavra-passe {app} foi reposta por um administrador. Utilize a palavra-passe temporária abaixo para iniciar sessão em klambocore.com.",
+    "intro": "a sua palavra-passe {app} foi reposta por um administrador. Utilize a palavra-passe temporária abaixo para iniciar sessão em klambocore.com.",
     "bodyLead": "A sua palavra-passe foi reposta por um administrador.",
     "securityNote": "Recomendamos que altere esta palavra-passe após iniciar sessão.",
     "securityNoteHtml": "Por segurança, altere esta palavra-passe após iniciar sessão.",
@@ -157,7 +157,7 @@
   "inscription": {
     "subject": "{app} — Pedido de inscrição recebido",
     "title": "Inscrição recebida",
-    "intro": "Recebemos o seu pedido de inscrição.",
+    "intro": "recebemos o seu pedido de inscrição.",
     "note": "O seu processo foi enviado ao estabelecimento. Será contactado assim que houver uma decisão."
   }
 }

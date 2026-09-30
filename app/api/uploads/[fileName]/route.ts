@@ -25,7 +25,11 @@ const CONTENT_TYPES: Record<string, string> = {
   ".doc": "application/msword",
   ".docx":
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ".apk": "application/vnd.android.package-archive",
+  ".ipa": "application/octet-stream",
 };
+
+const FORCE_DOWNLOAD_EXTENSIONS = new Set([".apk", ".ipa"]);
 
 export async function GET(_request: Request, { params }: RouteContext) {
   try {
@@ -35,10 +39,9 @@ export async function GET(_request: Request, { params }: RouteContext) {
     const extension = path.extname(decodedFileName).toLowerCase();
     const downloadName = path.basename(decodedFileName).replace(/"/g, "");
     const contentType = CONTENT_TYPES[extension] ?? "application/octet-stream";
-    const disposition =
-      extension === ".pdf"
-        ? `inline; filename="${downloadName}"`
-        : `inline; filename="${downloadName}"`;
+    const disposition = FORCE_DOWNLOAD_EXTENSIONS.has(extension)
+      ? `attachment; filename="${downloadName}"`
+      : `inline; filename="${downloadName}"`;
 
     return new Response(Uint8Array.from(fileBuffer), {
       status: 200,

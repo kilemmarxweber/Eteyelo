@@ -51,16 +51,16 @@
     "absence": {
       "subject": "{app} — Absence signalée",
       "title": "Absence signalée",
-      "intro": "Une absence a été enregistrée automatiquement (aucun scan ni pointage manuel) pour « {person} ». Merci de vous connecter pour justifier.",
-      "introParent": "Une absence a été enregistrée automatiquement (aucun scan ni pointage manuel) pour l'élève « {person} ». Merci de vous connecter pour justifier.",
+      "intro": "une absence a été enregistrée automatiquement (aucun scan ni pointage manuel) pour « {person} ». Merci de vous connecter pour justifier.",
+      "introParent": "une absence a été enregistrée automatiquement (aucun scan ni pointage manuel) pour l'élève « {person} ». Merci de vous connecter pour justifier.",
       "note": "Cliquez sur la cloche dans la barre de navigation pour voir le détail et envoyer votre justification.",
       "cta": "Ouvrir mon espace"
     },
     "justification_submitted": {
       "subject": "{app} — Justification d'absence reçue",
       "title": "Justification reçue",
-      "intro": "Votre justification d'absence a bien été transmise à l'établissement « {school} ». Vous serez notifié de la décision.",
-      "introParent": "La justification d'absence de l'élève « {person} » a bien été transmise à l'établissement « {school} ». Vous serez notifié de la décision.",
+      "intro": "votre justification d'absence a bien été transmise à l'établissement « {school} ». Vous serez notifié de la décision.",
+      "introParent": "la justification d'absence de l'élève « {person} » a bien été transmise à l'établissement « {school} ». Vous serez notifié de la décision.",
       "note": "La réponse apparaîtra aussi à la cloche de votre barre de navigation.",
       "cta": "Voir mon espace"
     },
@@ -74,24 +74,24 @@
     "accepted": {
       "subject": "{app} — Justification d'absence acceptée",
       "title": "Justification acceptée",
-      "intro": "Votre justification d'absence a été acceptée par l'établissement « {school} ».",
-      "introParent": "La justification d'absence de l'élève « {person} » a été acceptée par l'établissement « {school} ».",
+      "intro": "votre justification d'absence a été acceptée par l'établissement « {school} ».",
+      "introParent": "la justification d'absence de l'élève « {person} » a été acceptée par l'établissement « {school} ».",
       "note": "Un retour a également été signalé dans votre compte.",
       "cta": "Voir le détail"
     },
     "rejected": {
       "subject": "{app} — Justification d'absence refusée",
       "title": "Justification refusée",
-      "intro": "Votre justification d'absence n'a pas été retenue par l'établissement « {school} ».",
-      "introParent": "La justification d'absence de l'élève « {person} » n'a pas été retenue par l'établissement « {school} ».",
+      "intro": "votre justification d'absence n'a pas été retenue par l'établissement « {school} ».",
+      "introParent": "la justification d'absence de l'élève « {person} » n'a pas été retenue par l'établissement « {school} ».",
       "note": "Consultez la cloche pour le motif de la décision.",
       "cta": "Voir le détail"
     },
     "return": {
       "subject": "{app} — Retour après absence",
       "title": "Retour signalé",
-      "intro": "Un retour a été enregistré dans votre compte suite à l'acceptation de votre justification.",
-      "introParent": "Un retour a été enregistré pour l'élève « {person} » suite à l'acceptation de la justification.",
+      "intro": "un retour a été enregistré dans votre compte suite à l'acceptation de votre justification.",
+      "introParent": "un retour a été enregistré pour l'élève « {person} » suite à l'acceptation de la justification.",
       "note": "L'absence est désormais marquée comme excusée.",
       "cta": "Voir mon espace"
     }
@@ -99,17 +99,17 @@
   "payment": {
     "created": {
       "title": "Paiement enregistré",
-      "intro": "Un paiement vient d’être enregistré pour votre famille.",
+      "intro": "un paiement vient d’être enregistré pour votre famille.",
       "subject": "Paiement enregistré"
     },
     "updated": {
       "title": "Paiement modifié",
-      "intro": "Un paiement de votre famille vient d’être modifié par l’établissement.",
+      "intro": "un paiement de votre famille vient d’être modifié par l’établissement.",
       "subject": "Paiement modifié"
     },
     "deleted": {
       "title": "Paiement annulé",
-      "intro": "Un paiement de votre famille a été supprimé (erreur de saisie).",
+      "intro": "un paiement de votre famille a été supprimé (erreur de saisie).",
       "subject": "Paiement annulé"
     },
     "subjectLine": "{app} — {subject}",
@@ -118,7 +118,7 @@
   "results": {
     "subject": "{app} — Résultats de {student}",
     "title": "Résultats scolaires",
-    "intro": "Voici les résultats de {student}{classSuffix} pour {period} — {year}.",
+    "intro": "voici les résultats de {student}{classSuffix} pour {period} — {year}.",
     "classSuffix": " ({className})",
     "extraSubjects": "+ {count} autre(s) matière(s)",
     "averageLine": "Moyenne : {average}.",
@@ -127,7 +127,7 @@
   "accountCreate": {
     "subject": "{app} — Votre compte a été créé",
     "title": "Votre compte a été créé",
-    "intro": "Un administrateur vient de créer votre compte {app} avec le {context}. Vos identifiants temporaires sont prêts : connectez-vous sur klambocore.com puis changez votre mot de passe.",
+    "intro": "un administrateur vient de créer votre compte {app} avec le {context}. Vos identifiants temporaires sont prêts : connectez-vous sur klambocore.com puis changez votre mot de passe.",
     "bodyLead": "Un administrateur a créé votre compte {app} avec le {context}.",
     "contextRole": "rôle « {role} »",
     "contextOrg": "organisation « {org} »",
@@ -142,7 +142,7 @@
   "passwordReset": {
     "subject": "{app} — Réinitialisation de votre mot de passe",
     "title": "Mot de passe réinitialisé",
-    "intro": "Votre mot de passe {app} a été réinitialisé par un administrateur. Utilisez le mot de passe temporaire ci-dessous pour vous reconnecter sur klambocore.com.",
+    "intro": "votre mot de passe {app} a été réinitialisé par un administrateur. Utilisez le mot de passe temporaire ci-dessous pour vous reconnecter sur klambocore.com.",
     "bodyLead": "Votre mot de passe a été réinitialisé par un administrateur.",
     "securityNote": "Nous vous recommandons de modifier ce mot de passe après connexion.",
     "securityNoteHtml": "Pour des raisons de sécurité, changez ce mot de passe après connexion.",
@@ -157,7 +157,7 @@
   "inscription": {
     "subject": "{app} — Demande d'inscription reçue",
     "title": "Inscription reçue",
-    "intro": "Nous avons bien reçu votre demande d'inscription.",
+    "intro": "nous avons bien reçu votre demande d'inscription.",
     "note": "Votre dossier a été transmis à l'établissement. Vous serez contacté dès qu'une suite sera donnée."
   }
 }

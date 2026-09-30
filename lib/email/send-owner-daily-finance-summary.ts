@@ -49,7 +49,7 @@ export async function sendOwnerDailyFinanceSummary(input: {
   const hello = formatMessagingHello(t, input.recipient.name);
   const textBody = formatOwnerDailyFinanceText(input.summary);
   const subject = `${APP_NAME} — Situation financière du jour (${input.summary.dateLabel})`;
-  const introBody = `Voici la situation de caisse et des inscriptions de vos établissements.`;
+  const introBody = `voici la situation de caisse et des inscriptions de vos établissements.`;
   const intro = `${hello} ${introBody}`;
   const loginUrl = getSignInUrl();
 
@@ -107,7 +107,7 @@ export async function sendOwnerDailyFinanceSummary(input: {
         tone: "emerald" as const,
         brand: input.summary.organizationName || APP_NAME,
         title: `Situation financière — ${input.summary.dateLabel}`,
-        intro: hello,
+        intro,
         rows: [
           ...input.summary.branches.slice(0, 8).map((branch) => ({
             label: branch.branchName,
