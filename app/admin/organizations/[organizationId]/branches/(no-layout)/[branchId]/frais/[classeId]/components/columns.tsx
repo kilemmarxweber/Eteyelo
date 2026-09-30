@@ -18,7 +18,6 @@ import React from "react";
 import { IFrais } from "@/src/interfaces/Frais";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
-import { useSession } from "@/lib/auth-client";
 import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
 
 export const columns: ColumnDef<IFrais>[] = [

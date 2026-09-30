@@ -151,6 +151,14 @@ test("élève résultats + devoirs + library ; pas notes menu", () => {
 test("libellés FR finance encaisser et paie bulletin", () => {
   assert.equal(permissionLabelFr("finance", "encaisser"), "Paiement · Encaisser");
   assert.equal(
+    permissionLabelFr("fees", "delete"),
+    "Frais · Supprimer définitivement",
+  );
+  assert.equal(
+    permissionLabelFr("finance", "delete"),
+    "Paiement · Supprimer (erreur de saisie)",
+  );
+  assert.equal(
     permissionLabelFr("payroll", "read"),
     "Paie du personnel · Bulletin & détail",
   );

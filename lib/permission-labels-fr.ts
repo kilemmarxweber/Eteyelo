@@ -80,12 +80,19 @@ const ACTION_LABELS_FR: Record<string, string> = {
   "list-users": "Lister utilisateurs",
 };
 
-export function resourceLabelFr(resource: string): string {
-  return RESOURCE_LABELS_FR[resource] ?? resource;
+/** Libellé court dans la grille (cases à cocher). */
+export function actionLabelFr(action: string, resource?: string): string {
+  if (resource === "fees" && action === "delete") {
+    return "Supprimer définitivement";
+  }
+  if (resource === "finance" && action === "delete") {
+    return "Supprimer paiement";
+  }
+  return ACTION_LABELS_FR[action] ?? action;
 }
 
-export function actionLabelFr(action: string): string {
-  return ACTION_LABELS_FR[action] ?? action;
+export function resourceLabelFr(resource: string): string {
+  return RESOURCE_LABELS_FR[resource] ?? resource;
 }
 
 /** Ex. `Finance · Encaisser` */
@@ -93,7 +100,13 @@ export function permissionLabelFr(resource: string, action: string): string {
   if (resource === "payroll" && action === "read") {
     return "Paie du personnel · Bulletin & détail";
   }
-  return `${resourceLabelFr(resource)} · ${actionLabelFr(action)}`;
+  if (resource === "fees" && action === "delete") {
+    return "Frais · Supprimer définitivement";
+  }
+  if (resource === "finance" && action === "delete") {
+    return "Paiement · Supprimer (erreur de saisie)";
+  }
+  return `${resourceLabelFr(resource)} · ${actionLabelFr(action, resource)}`;
 }
 
 export type PermissionMatrixGroup = {

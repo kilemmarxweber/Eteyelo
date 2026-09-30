@@ -44,8 +44,7 @@ import type { SchoolReportContext } from "@/lib/reports/types";
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { useSession } from "@/lib/auth-client";
-import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
+import { useTemporaryGrantActions } from "@/hooks/use-temporary-grant-actions";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { resolveOverallReceiptSettlementStatus } from "@/lib/reports/receipt-settlement";
 import { formatReceiptStudentLabel } from "@/components/reports/receipt-format";
@@ -188,10 +187,9 @@ const PaiementsTable = ({
   const t = useTranslations("finance");
   const tCommon = useTranslations("common");
   const peopleLabels = useBranchPeopleLabels();
-  const { data: session, isPending: sessionPending } = useSession();
-  const [hasMounted, setHasMounted] = useState(false);
-  const canDeletePayment =
-    hasMounted && !sessionPending && isOrganizationOwnerSession(session);
+  const { canDelete, loaded: grantsLoaded } =
+    useTemporaryGrantActions("finance");
+  const canDeletePayment = grantsLoaded && canDelete;
   const [paiements, setPaiements] = useState<IPaiement[]>([]);
   const [loading, setLoading] = useState(true);
   const [pendingDelete, setPendingDelete] = useState<GroupedPaiement | null>(
@@ -212,10 +210,6 @@ const PaiementsTable = ({
   const [receiptIssuedAt, setReceiptIssuedAt] = useState<Date | undefined>();
   const [branding, setBranding] = useState<SchoolReportContext | null>(null);
   const [exportingPdf, setExportingPdf] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
 
   useEffect(() => {
     const fetchData = async () => {

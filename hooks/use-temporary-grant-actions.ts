@@ -5,8 +5,14 @@ import { useSession } from "@/lib/auth-client";
 import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
 import type { BranchArea } from "@/lib/auth/branch-area-permissions";
 import {
+  getStatementsForRole,
+  statementsMapFromSession,
+} from "@/lib/auth/org-role-permission-shared";
+import { roleAllowsAny } from "@/lib/auth/resolve-branch-area-permission";
+import {
   canManageOrganization,
   canPermanentlyDeleteInformation,
+  getSessionRoles,
 } from "@/lib/auth/session-roles";
 import {
   grantMatchesPermission,
@@ -91,6 +97,20 @@ function useActiveGrants() {
   return { session, isPending, grants, loaded: loaded && !isPending };
 }
 
+/** Matrice DAC (session.organization.rolePermissions) pour une ressource. */
+function sessionHasDacAction(
+  session: unknown,
+  resource: string,
+  action: string,
+): boolean {
+  const map = statementsMapFromSession(session);
+  for (const slug of getSessionRoles(session)) {
+    const statements = getStatementsForRole(slug, map);
+    if (roleAllowsAny(statements, resource, [action])) return true;
+  }
+  return false;
+}
+
 /**
  * Entrée dans une zone : DAC (rôle) ou octroi temporaire, comme le menu.
  */
@@ -110,8 +130,8 @@ export function useCanAccessBranchArea(area: BranchArea) {
 }
 
 /**
- * Droits d'écriture côté UI : rôle gestionnaire, ou octroi temporaire
- * create / update / delete sur la ressource du catalogue.
+ * Droits d'écriture côté UI : rôle gestionnaire, matrice DAC,
+ * ou octroi temporaire create / update / delete.
  */
 export function useTemporaryGrantActions(resource: string) {
   const { session, isPending, grants, loaded } = useActiveGrants();
@@ -119,16 +139,29 @@ export function useTemporaryGrantActions(resource: string) {
   const roleCanDelete = canPermanentlyDeleteInformation(session);
 
   return useMemo(() => {
+    const dacCreate = sessionHasDacAction(session, resource, "create");
+    const dacUpdate = sessionHasDacAction(session, resource, "update");
+    const dacDelete = sessionHasDacAction(session, resource, "delete");
+
     const canCreate =
       roleCanWrite ||
+      dacCreate ||
       grants.some((grant) => grantMatchesPermission(grant, resource, "create"));
     const canUpdate =
       roleCanWrite ||
+      dacUpdate ||
       grants.some((grant) => grantMatchesPermission(grant, resource, "update"));
     const canDelete =
       roleCanDelete ||
+      dacDelete ||
       grants.some((grant) => grantMatchesPermission(grant, resource, "delete"));
-    const canWrite = roleCanWrite || grantsAllowWrite(grants, resource) || canDelete;
+    const canWrite =
+      roleCanWrite ||
+      dacCreate ||
+      dacUpdate ||
+      dacDelete ||
+      grantsAllowWrite(grants, resource) ||
+      canDelete;
 
     return {
       loaded: loaded && !isPending,
@@ -138,5 +171,5 @@ export function useTemporaryGrantActions(resource: string) {
       canWrite,
       canManage: canWrite,
     };
-  }, [grants, loaded, isPending, resource, roleCanDelete, roleCanWrite]);
+  }, [grants, loaded, isPending, resource, roleCanDelete, roleCanWrite, session]);
 }

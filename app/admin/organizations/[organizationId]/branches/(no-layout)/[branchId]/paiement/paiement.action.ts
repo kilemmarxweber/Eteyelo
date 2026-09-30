@@ -5,12 +5,13 @@ import { action } from "@/lib/zsa";
 import z from "zod";
 import { paiementSchema, StatusPaiement } from "@/src/interfaces/Paiement";
 import {
+  requireBranchAreaActionContext,
   requireFinanceBranchContext,
   requireFinanceCollectBranchContext,
   requireFinanceOversightBranchContext,
   requireFinanceReadBranchContext,
 } from "@/lib/auth/require-branch-context";
-import { resolveCashierSelfScope, isOrganizationOwnerSession } from "@/lib/auth/session-roles";
+import { resolveCashierSelfScope } from "@/lib/auth/session-roles";
 import { randomUUID } from "node:crypto";
 import { Prisma, CurrencyCode } from "@/prisma/generated/prisma/client";
 import {
@@ -1683,12 +1684,7 @@ export const deletePaiementAction = action
   .input(z.object({ ids: z.array(z.string().min(1)).min(1).max(100) }))
   .handler(async ({ input }) => {
     const { branchId, organizationId, userId, session } =
-      await requireFinanceBranchContext();
-    if (!isOrganizationOwnerSession(session)) {
-      throw new Error(
-        "Seul le propriétaire peut supprimer un paiement.",
-      );
-    }
+      await requireBranchAreaActionContext("finance", "delete");
     const cashierScope = resolveCashierSelfScope(session, userId);
     const uniqueIds = Array.from(new Set(input.ids));
 

@@ -102,7 +102,7 @@ function RoleMatrixEditor({
                               }}
                             />
                             <span title={permissionLabelFr(resource, a)}>
-                              {actionLabelFr(a)}
+                              {actionLabelFr(a, resource)}
                             </span>
                           </label>
                         );
