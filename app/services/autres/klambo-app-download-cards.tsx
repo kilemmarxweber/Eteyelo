@@ -77,15 +77,29 @@ export function KlamboAppDownloadCards({
   downloads: KlamboAppDownload[];
 }) {
   const [zoomed, setZoomed] = useState<KlamboAppDownload | null>(null);
-  const [exportingId, setExportingId] = useState<string | null>(null);
+  const [exportingIds, setExportingIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
 
   async function handleExportPdf(app: KlamboAppDownload) {
-    setExportingId(app.id);
+    setExportingIds((prev) => {
+      const next = new Set(prev);
+      next.add(app.id);
+      return next;
+    });
     try {
       await exportQrPdf(app);
     } finally {
-      setExportingId(null);
+      setExportingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(app.id);
+        return next;
+      });
     }
+  }
+
+  function isExporting(id: string) {
+    return exportingIds.has(id);
   }
 
   return (
@@ -167,11 +181,11 @@ export function KlamboAppDownloadCards({
                       type="button"
                       variant="outline"
                       className="flex-1 rounded-full border-blue-950/20"
-                      disabled={exportingId === app.id}
+                      disabled={isExporting(app.id)}
                       onClick={() => void handleExportPdf(app)}
                     >
                       <FileDown className="mr-2 size-4" />
-                      {exportingId === app.id ? "PDF…" : "Exporter PDF"}
+                      {isExporting(app.id) ? "PDF…" : "Exporter PDF"}
                     </Button>
                   </>
                 ) : (
@@ -219,11 +233,11 @@ export function KlamboAppDownloadCards({
                 <Button
                   type="button"
                   className="rounded-full bg-blue-950 text-white hover:bg-blue-900"
-                  disabled={exportingId === zoomed.id}
+                  disabled={isExporting(zoomed.id)}
                   onClick={() => void handleExportPdf(zoomed)}
                 >
                   <FileDown className="mr-2 size-4" />
-                  {exportingId === zoomed.id
+                  {isExporting(zoomed.id)
                     ? "Generation…"
                     : "Generer le PDF"}
                 </Button>

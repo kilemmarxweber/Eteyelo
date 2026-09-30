@@ -163,6 +163,7 @@ export function MessagingWorkspace({
   const lastThreadMessageIdRef = useRef<string | null>(null);
 
   const selected = conversations.find((row) => row.id === selectedId) ?? null;
+  const noReply = Boolean(selected?.noReply);
   const compact = variant === "drawer";
   const mobileThread = Boolean(selectedId);
 
@@ -198,6 +199,16 @@ export function MessagingWorkspace({
         return;
       }
       setMessages(data.items);
+      if (typeof data.noReply === "boolean") {
+        setConversations((prev) =>
+          prev.map((row) =>
+            row.id === conversationId
+              ? { ...row, noReply: data.noReply }
+              : row,
+          ),
+        );
+        if (data.noReply) setReplyTo(null);
+      }
       const lastId = data.items.at(-1)?.id ?? null;
       const hasNew = lastId !== lastThreadMessageIdRef.current;
       lastThreadMessageIdRef.current = lastId;
@@ -695,13 +706,15 @@ export function MessagingWorkspace({
                               </div>
                               {!row.deletedAt ? (
                               <div className="mt-1 flex gap-1 px-1">
-                                <button
-                                  type="button"
-                                  className="text-[10px] underline-offset-2 hover:underline"
-                                  onClick={() => setReplyTo(row)}
-                                >
-                                  Répondre
-                                </button>
+                                {!noReply ? (
+                                  <button
+                                    type="button"
+                                    className="text-[10px] underline-offset-2 hover:underline"
+                                    onClick={() => setReplyTo(row)}
+                                  >
+                                    Répondre
+                                  </button>
+                                ) : null}
                                 <button
                                   type="button"
                                   className="text-[10px] underline-offset-2 hover:underline"
@@ -727,6 +740,12 @@ export function MessagingWorkspace({
               </ScrollArea>
 
               <div className="border-t p-3">
+                {noReply ? (
+                  <p className="rounded-md bg-muted/60 px-3 py-2 text-center text-xs text-muted-foreground">
+                    Notifications automatiques — réponses désactivées
+                  </p>
+                ) : (
+                  <>
                 {replyTo ? (
                   <div className="mb-2 flex items-center justify-between rounded-md bg-muted px-2 py-1 text-xs">
                     <span className="flex items-center gap-1 truncate">
@@ -766,6 +785,8 @@ export function MessagingWorkspace({
                 <p className="mt-1 text-right text-[10px] text-muted-foreground">
                   {draft.length}/{MESSAGING_MAX_BODY_LENGTH}
                 </p>
+                  </>
+                )}
               </div>
             </>
           )}

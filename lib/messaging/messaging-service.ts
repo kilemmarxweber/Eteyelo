@@ -29,6 +29,7 @@ import {
   type MessagingFilter,
   type MessagingRecipient,
 } from "@/lib/messaging/messaging-types";
+import { isSchoolNotifyBotEmail } from "@/lib/notify/school-notify-bot";
 import { Prisma } from "@/prisma/generated/prisma/client";
 
 const userNameSelect = {
@@ -138,6 +139,26 @@ function contextHref(params: {
     return `/admin/organizations/${params.organizationId}/branches/${params.sourceBranchId}/attendance?absenceCaseId=${params.contextId}`;
   }
   return null;
+}
+
+/** Bloque les réponses humaines aux fils du bot notifications école. */
+async function assertConversationAllowsHumanReply(
+  conversationId: string,
+  actorUserId: string,
+) {
+  const peers = await prisma.conversationParticipant.findMany({
+    where: { conversationId, leftAt: null },
+    select: {
+      userId: true,
+      user: { select: { email: true } },
+    },
+  });
+  const notifyBot = peers.find((p) => isSchoolNotifyBotEmail(p.user.email));
+  if (notifyBot && notifyBot.userId !== actorUserId) {
+    throw new MessagingError(
+      "Les notifications automatiques ne permettent pas de réponse.",
+    );
+  }
 }
 
 async function loadRecipientMap(
@@ -295,6 +316,9 @@ export async function searchMessagingRecipients(params: {
   const needle = q.toLowerCase();
   const filtered = members.filter((member) => {
     const extraRoles = member.branchMember.map((row) => String(row.role));
+    if (isSchoolNotifyBotEmail(member.user.email)) {
+      return false;
+    }
     if (
       !isEligibleMessagingRecipient({
         memberRole: member.role,
@@ -849,6 +873,10 @@ export async function sendMessage(params: {
     params.actor.userId,
     params.organizationId,
   );
+  await assertConversationAllowsHumanReply(
+    params.conversationId,
+    params.actor.userId,
+  );
 
   if (params.clientMessageId) {
     const existing = await prisma.message.findFirst({
@@ -1204,6 +1232,12 @@ export async function listMyConversations(params: {
       };
     });
 
+    const noReply = row.participants.some(
+      (p) =>
+        p.userId !== params.actor.userId &&
+        isSchoolNotifyBotEmail(p.user.email),
+    );
+
     const item: ConversationListItem = {
       id: row.id,
       type: row.type,
@@ -1229,6 +1263,7 @@ export async function listMyConversations(params: {
       unreadCount,
       archived: Boolean(me.archivedAt),
       muted: Boolean(me.mutedAt),
+      noReply,
       participants,
       title: conversationTitle({
         type: row.type,
@@ -1376,8 +1411,19 @@ export async function getConversationMessages(params: {
       };
     });
 
+  const conversationPeers = await prisma.conversationParticipant.findMany({
+    where: { conversationId: params.conversationId, leftAt: null },
+    select: { userId: true, user: { select: { email: true } } },
+  });
+  const noReply = conversationPeers.some(
+    (p) =>
+      p.userId !== params.actor.userId &&
+      isSchoolNotifyBotEmail(p.user.email),
+  );
+
   return {
     items,
+    noReply,
     nextCursor:
       rows.length === MESSAGING_MESSAGES_PAGE_SIZE
         ? rows[rows.length - 1]?.createdAt.toISOString() ?? null

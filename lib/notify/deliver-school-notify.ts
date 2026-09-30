@@ -25,6 +25,9 @@ import {
   getWhatsAppRuntimeConfig,
   isInboxProvider,
 } from "@/lib/whatsapp-settings";
+import { branchDocumentName } from "@/lib/branch-document-name";
+import { resolveReportLogoUrl } from "@/lib/reports/resolve-school-branding";
+import { schoolNotifyBotEmail } from "@/lib/notify/school-notify-bot";
 
 export type SchoolNotifyChannel = "klambo" | "whatsapp" | "none";
 
@@ -87,12 +90,10 @@ function buildNotifyBody(parts: Array<string | null | undefined>): string {
     .slice(0, 4000);
 }
 
-const SCHOOL_NOTIFY_BOT_EMAIL_PREFIX = "school-notify+";
-const SCHOOL_NOTIFY_BOT_EMAIL_DOMAIN = "system.klambo.local";
+export { isSchoolNotifyBotEmail } from "@/lib/notify/school-notify-bot";
 
-function schoolNotifyBotEmail(organizationId: string) {
-  const local = organizationId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 48);
-  return `${SCHOOL_NOTIFY_BOT_EMAIL_PREFIX}${local}@${SCHOOL_NOTIFY_BOT_EMAIL_DOMAIN}`;
+function botCacheKey(organizationId: string, branchId?: string | null) {
+  return `${organizationId}:${branchId?.trim() || ""}`;
 }
 
 async function getMessagingEnabledCached(organizationId: string) {
@@ -107,24 +108,35 @@ async function getMessagingEnabledCached(organizationId: string) {
 }
 
 /**
- * Expéditeur technique (bot org) — pas un humain.
+ * Expéditeur technique (bot org ou branche) — pas un humain, no-reply.
  * Cache court pour éviter N× find/create sur un lot d'absences.
+ * Profil : logo rapport branche → logo org (même règle que les PDF).
  */
 async function ensureSchoolNotifySender(
   organizationId: string,
   messagingEnabled: boolean,
+  branchId?: string | null,
 ): Promise<SchoolNotifyActor> {
-  const cached = botSenderCache.get(organizationId);
+  const cacheKey = botCacheKey(organizationId, branchId);
+  const cached = botSenderCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
     return { ...cached.actor, messagingEnabled };
   }
 
-  const email = schoolNotifyBotEmail(organizationId);
-  const [org, existingUser] = await Promise.all([
+  const email = schoolNotifyBotEmail(organizationId, branchId);
+  const trimmedBranchId = branchId?.trim() || null;
+
+  const [org, branch, existingUser] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: organizationId },
-      select: { name: true },
+      select: { name: true, logo: true },
     }),
+    trimmedBranchId
+      ? prisma.branch.findFirst({
+          where: { id: trimmedBranchId, organizationId },
+          select: { id: true, name: true, description: true, image: true },
+        })
+      : Promise.resolve(null),
     prisma.user.findFirst({
       where: { email },
       select: {
@@ -132,13 +144,20 @@ async function ensureSchoolNotifySender(
         banned: true,
         role: true,
         statusUser: true,
+        name: true,
+        image: true,
       },
     }),
   ]);
 
-  const botName = org?.name?.trim()
-    ? `${org.name.trim()} · Notifications`
+  const schoolLabel = branch
+    ? branchDocumentName(branch) || branch.name.trim()
+    : org?.name?.trim() || "";
+  const botName = schoolLabel
+    ? `${schoolLabel} · Notifications`
     : "École · Notifications";
+  const logoUrl =
+    resolveReportLogoUrl(branch?.image, org?.logo)?.trim() || null;
 
   let user = existingUser;
   if (!user) {
@@ -148,6 +167,7 @@ async function ensureSchoolNotifySender(
         name: botName,
         prenom: "Notifications",
         email,
+        image: logoUrl,
         emailVerified: true,
         statusUser: true,
         role: "user",
@@ -157,28 +177,46 @@ async function ensureSchoolNotifySender(
         banned: true,
         role: true,
         statusUser: true,
+        name: true,
+        image: true,
       },
     });
-  } else if (user.banned || user.statusUser === false) {
-    user = await prisma.user.update({
-      where: { id: user.id },
-      data: { banned: false, statusUser: true, name: botName },
-      select: {
-        id: true,
-        banned: true,
-        role: true,
-        statusUser: true,
-      },
-    });
+  } else {
+    const needsUpdate =
+      user.banned ||
+      user.statusUser === false ||
+      user.name !== botName ||
+      (logoUrl && user.image !== logoUrl);
+    if (needsUpdate) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          banned: false,
+          statusUser: true,
+          name: botName,
+          prenom: "Notifications",
+          ...(logoUrl ? { image: logoUrl } : {}),
+        },
+        select: {
+          id: true,
+          banned: true,
+          role: true,
+          statusUser: true,
+          name: true,
+          image: true,
+        },
+      });
+    }
   }
 
+  let memberId: string | null = null;
   const existingMember = await prisma.member.findFirst({
     where: { organizationId, userId: user.id },
     select: { id: true, isArchived: true },
   });
 
   if (!existingMember) {
-    await prisma.member.create({
+    const created = await prisma.member.create({
       data: {
         id: crypto.randomUUID(),
         organizationId,
@@ -186,12 +224,39 @@ async function ensureSchoolNotifySender(
         role: ORG_ROLE.GESTIONNAIRE,
         createdAt: new Date(),
       },
+      select: { id: true },
     });
-  } else if (existingMember.isArchived) {
-    await prisma.member.update({
-      where: { id: existingMember.id },
-      data: { isArchived: false },
+    memberId = created.id;
+  } else {
+    memberId = existingMember.id;
+    if (existingMember.isArchived) {
+      await prisma.member.update({
+        where: { id: existingMember.id },
+        data: { isArchived: false },
+      });
+    }
+  }
+
+  if (trimmedBranchId && memberId) {
+    const existingBranchMember = await prisma.branchMember.findFirst({
+      where: { branchId: trimmedBranchId, memberId },
+      select: { id: true, isActive: true },
     });
+    if (!existingBranchMember) {
+      await prisma.branchMember.create({
+        data: {
+          branchId: trimmedBranchId,
+          memberId,
+          role: "ADMIN",
+          isActive: true,
+        },
+      });
+    } else if (!existingBranchMember.isActive) {
+      await prisma.branchMember.update({
+        where: { id: existingBranchMember.id },
+        data: { isActive: true, deactivatedAt: null },
+      });
+    }
   }
 
   const actor: SchoolNotifyActor = {
@@ -204,7 +269,7 @@ async function ensureSchoolNotifySender(
     skipRateLimit: true,
   };
 
-  botSenderCache.set(organizationId, {
+  botSenderCache.set(cacheKey, {
     actor,
     expiresAt: Date.now() + BOT_CACHE_TTL_MS,
   });
@@ -330,6 +395,7 @@ async function deliverSchoolNotifyNow(
     const sender = await ensureSchoolNotifySender(
       organizationId,
       messagingEnabled,
+      options.branchId,
     );
     if (sender.userId === user.id) {
       return {

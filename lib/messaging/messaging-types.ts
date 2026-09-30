@@ -48,6 +48,8 @@ export type ConversationListItem = {
   unreadCount: number;
   archived: boolean;
   muted: boolean;
+  /** Conversation avec le bot notifications école — pas de réponse possible. */
+  noReply: boolean;
   participants: Array<{
     userId: string;
     name: string;
