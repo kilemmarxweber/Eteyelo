@@ -85,9 +85,34 @@ export async function POST(request: Request, context: Ctx) {
         leftAt: null,
         conversation: { organizationId, deletedAt: null },
       },
-      select: { id: true },
+      select: {
+        id: true,
+        role: true,
+        conversation: {
+          select: {
+            type: true,
+            repliesLocked: true,
+            createdById: true,
+          },
+        },
+      },
     });
     if (!participant) return jsonError("Conversation inaccessible.", 404);
+
+    if (
+      participant.conversation.type === "GROUP" &&
+      participant.conversation.repliesLocked
+    ) {
+      const isAdmin =
+        participant.role === "ADMIN" ||
+        participant.conversation.createdById === actor.userId;
+      if (!isAdmin) {
+        return jsonError(
+          "Les réponses sont verrouillées : seuls les admins du groupe peuvent écrire.",
+          403,
+        );
+      }
+    }
 
     const form = await request.formData();
     const file = form.get("file");

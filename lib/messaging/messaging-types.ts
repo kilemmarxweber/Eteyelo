@@ -3,6 +3,8 @@ import { formatNotifyCardPreview } from "@/lib/notify/notify-message-card";
 export const MESSAGING_MAX_BODY_LENGTH = 4000;
 export const MESSAGING_MAX_SUBJECT_LENGTH = 120;
 export const MESSAGING_MAX_RECIPIENTS = 50;
+/** Nombre max d'admins par groupe (créateur inclus). */
+export const MESSAGING_MAX_GROUP_ADMINS = 5;
 export const MESSAGING_RATE_LIMIT_PER_MINUTE = 20;
 export const MESSAGING_SEARCH_PAGE_SIZE = 20;
 export const MESSAGING_CONVERSATIONS_PAGE_SIZE = 30;
@@ -11,6 +13,7 @@ export const MESSAGING_PURGE_CONFIRMATION = "NETTOYER";
 const SATISFACTION_PREFIX = "__SATISFACTION__:";
 
 export type ConversationTypeValue = "DIRECT" | "GROUP" | "CONTEXTUAL";
+export type ConversationParticipantRoleValue = "ADMIN" | "MEMBER";
 export type ConversationContextTypeValue =
   | "ABSENCE_CASE"
   | "GRADE_MODIFICATION"
@@ -51,6 +54,12 @@ export type ConversationListItem = {
   muted: boolean;
   /** Conversation avec le bot notifications école — pas de réponse possible. */
   noReply: boolean;
+  /** Groupe : seuls les admins peuvent écrire. */
+  repliesLocked: boolean;
+  /** Rôle de l'utilisateur courant dans le groupe (null hors groupe). */
+  myRole: ConversationParticipantRoleValue | null;
+  /** Nombre d'admins actifs (GROUP). */
+  adminCount: number;
   participants: Array<{
     userId: string;
     name: string;
@@ -58,6 +67,8 @@ export type ConversationListItem = {
     telephone?: string | null;
     prenom?: string | null;
     roleLabel: string;
+    /** Rôle dans le groupe (ADMIN/MEMBER), pas le rôle org. */
+    groupRole?: ConversationParticipantRoleValue;
     branches: Array<{ id: string; name: string }>;
   }>;
   title: string;

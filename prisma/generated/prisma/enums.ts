@@ -492,6 +492,14 @@ export const ConversationType = {
 export type ConversationType = (typeof ConversationType)[keyof typeof ConversationType]
 
 
+export const ConversationParticipantRole = {
+  ADMIN: 'ADMIN',
+  MEMBER: 'MEMBER'
+} as const
+
+export type ConversationParticipantRole = (typeof ConversationParticipantRole)[keyof typeof ConversationParticipantRole]
+
+
 export const ConversationContextType = {
   ABSENCE_CASE: 'ABSENCE_CASE',
   GRADE_MODIFICATION: 'GRADE_MODIFICATION',

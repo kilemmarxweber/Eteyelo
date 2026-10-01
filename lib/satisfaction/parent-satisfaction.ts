@@ -61,9 +61,29 @@ function parsePayload(body: string): SatisfactionPayload | null {
   }
 }
 
-function pickChildName(row: { prenom?: string | null; name?: string | null; postnom?: string | null }) {
-  const value = [row.prenom, row.name, row.postnom].filter(Boolean).join(" ").trim();
-  return value || "Élève";
+function pickChildName(row: {
+  prenom?: string | null;
+  name?: string | null;
+  postnom?: string | null;
+}) {
+  return [row.prenom, row.name, row.postnom].filter(Boolean).join(" ").trim();
+}
+
+/** Nom affichable ; `null` si la chaîne Student → User est cassée (pas de fallback silencieux). */
+function resolveStudentDisplayName(student: {
+  branchMember?: {
+    member?: {
+      user?: {
+        prenom?: string | null;
+        name?: string | null;
+        postnom?: string | null;
+      } | null;
+    } | null;
+  } | null;
+}): string | null {
+  const user = student.branchMember?.member?.user;
+  if (!user) return null;
+  return pickChildName(user) || "Élève";
 }
 
 export async function listPendingBranchesForUser(params: {
@@ -136,8 +156,9 @@ export async function listPendingBranchesForUser(params: {
   > = [];
 
   for (const parent of parents) {
-    const branchId = parent.branchMember?.branchId;
-    if (!branchId) continue;
+    const branchMember = parent.branchMember;
+    const branchId = branchMember?.branchId;
+    if (!branchMember || !branchId) continue;
     const year = await prisma.schoolYear.findFirst({
       where: {
         branchId,
@@ -164,11 +185,12 @@ export async function listPendingBranchesForUser(params: {
     results.push({
       parentId: parent.id,
       branchId,
-      branchName: branchDocumentName(parent.branchMember.branch) || parent.branchMember.branch.name,
+      branchName:
+        branchDocumentName(branchMember.branch) || branchMember.branch.name,
       schoolYearId: year.id,
-      children: parent.students.map((student) =>
-        pickChildName(student.branchMember?.member?.user ?? {}),
-      ),
+      children: parent.students
+        .map((student) => resolveStudentDisplayName(student))
+        .filter((name): name is string => Boolean(name)),
       status: existing ? "done" : "pending",
       ...(existing ? { rating: existing.rating } : {}),
       hasFeedback: Boolean(existing),
@@ -395,7 +417,8 @@ export async function ensureMonthlySatisfactionDispatchForUser(params: {
     },
   });
   const phone = member?.user?.telephone?.trim();
-  if (!phone || member.user.banned || member.user.statusUser === false) {
+  const user = member?.user;
+  if (!phone || !user || user.banned || user.statusUser === false) {
     return { dispatched: false, reason: "no_phone_or_inactive" as const };
   }
   const target = await findUserByTelephone(phone);

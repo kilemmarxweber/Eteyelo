@@ -35,6 +35,10 @@ export type MobileRealtimeEvent =
       organizationId: string;
       conversationId: string;
       recipientUserIds: string[];
+      /** Qui a mis à jour la conversation (ex. lecture). */
+      userId?: string;
+      lastReadAt?: string;
+      reason?: "read";
     }
   | {
       type: "typing";

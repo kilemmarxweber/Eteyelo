@@ -28,6 +28,7 @@ export type ConversationParticipantMinAggregateOutputType = {
   id: string | null
   conversationId: string | null
   userId: string | null
+  role: $Enums.ConversationParticipantRole | null
   joinedAt: Date | null
   lastReadAt: Date | null
   archivedAt: Date | null
@@ -39,6 +40,7 @@ export type ConversationParticipantMaxAggregateOutputType = {
   id: string | null
   conversationId: string | null
   userId: string | null
+  role: $Enums.ConversationParticipantRole | null
   joinedAt: Date | null
   lastReadAt: Date | null
   archivedAt: Date | null
@@ -50,6 +52,7 @@ export type ConversationParticipantCountAggregateOutputType = {
   id: number
   conversationId: number
   userId: number
+  role: number
   joinedAt: number
   lastReadAt: number
   archivedAt: number
@@ -63,6 +66,7 @@ export type ConversationParticipantMinAggregateInputType = {
   id?: true
   conversationId?: true
   userId?: true
+  role?: true
   joinedAt?: true
   lastReadAt?: true
   archivedAt?: true
@@ -74,6 +78,7 @@ export type ConversationParticipantMaxAggregateInputType = {
   id?: true
   conversationId?: true
   userId?: true
+  role?: true
   joinedAt?: true
   lastReadAt?: true
   archivedAt?: true
@@ -85,6 +90,7 @@ export type ConversationParticipantCountAggregateInputType = {
   id?: true
   conversationId?: true
   userId?: true
+  role?: true
   joinedAt?: true
   lastReadAt?: true
   archivedAt?: true
@@ -169,6 +175,7 @@ export type ConversationParticipantGroupByOutputType = {
   id: string
   conversationId: string
   userId: string
+  role: $Enums.ConversationParticipantRole
   joinedAt: Date
   lastReadAt: Date | null
   archivedAt: Date | null
@@ -201,6 +208,7 @@ export type ConversationParticipantWhereInput = {
   id?: Prisma.StringFilter<"ConversationParticipant"> | string
   conversationId?: Prisma.StringFilter<"ConversationParticipant"> | string
   userId?: Prisma.StringFilter<"ConversationParticipant"> | string
+  role?: Prisma.EnumConversationParticipantRoleFilter<"ConversationParticipant"> | $Enums.ConversationParticipantRole
   joinedAt?: Prisma.DateTimeFilter<"ConversationParticipant"> | Date | string
   lastReadAt?: Prisma.DateTimeNullableFilter<"ConversationParticipant"> | Date | string | null
   archivedAt?: Prisma.DateTimeNullableFilter<"ConversationParticipant"> | Date | string | null
@@ -214,6 +222,7 @@ export type ConversationParticipantOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   conversationId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
   lastReadAt?: Prisma.SortOrderInput | Prisma.SortOrder
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -231,6 +240,7 @@ export type ConversationParticipantWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.ConversationParticipantWhereInput | Prisma.ConversationParticipantWhereInput[]
   conversationId?: Prisma.StringFilter<"ConversationParticipant"> | string
   userId?: Prisma.StringFilter<"ConversationParticipant"> | string
+  role?: Prisma.EnumConversationParticipantRoleFilter<"ConversationParticipant"> | $Enums.ConversationParticipantRole
   joinedAt?: Prisma.DateTimeFilter<"ConversationParticipant"> | Date | string
   lastReadAt?: Prisma.DateTimeNullableFilter<"ConversationParticipant"> | Date | string | null
   archivedAt?: Prisma.DateTimeNullableFilter<"ConversationParticipant"> | Date | string | null
@@ -244,6 +254,7 @@ export type ConversationParticipantOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   conversationId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
   lastReadAt?: Prisma.SortOrderInput | Prisma.SortOrder
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -261,6 +272,7 @@ export type ConversationParticipantScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"ConversationParticipant"> | string
   conversationId?: Prisma.StringWithAggregatesFilter<"ConversationParticipant"> | string
   userId?: Prisma.StringWithAggregatesFilter<"ConversationParticipant"> | string
+  role?: Prisma.EnumConversationParticipantRoleWithAggregatesFilter<"ConversationParticipant"> | $Enums.ConversationParticipantRole
   joinedAt?: Prisma.DateTimeWithAggregatesFilter<"ConversationParticipant"> | Date | string
   lastReadAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ConversationParticipant"> | Date | string | null
   archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ConversationParticipant"> | Date | string | null
@@ -270,6 +282,7 @@ export type ConversationParticipantScalarWhereWithAggregatesInput = {
 
 export type ConversationParticipantCreateInput = {
   id?: string
+  role?: $Enums.ConversationParticipantRole
   joinedAt?: Date | string
   lastReadAt?: Date | string | null
   archivedAt?: Date | string | null
@@ -283,6 +296,7 @@ export type ConversationParticipantUncheckedCreateInput = {
   id?: string
   conversationId: string
   userId: string
+  role?: $Enums.ConversationParticipantRole
   joinedAt?: Date | string
   lastReadAt?: Date | string | null
   archivedAt?: Date | string | null
@@ -292,6 +306,7 @@ export type ConversationParticipantUncheckedCreateInput = {
 
 export type ConversationParticipantUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumConversationParticipantRoleFieldUpdateOperationsInput | $Enums.ConversationParticipantRole
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -305,6 +320,7 @@ export type ConversationParticipantUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   conversationId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumConversationParticipantRoleFieldUpdateOperationsInput | $Enums.ConversationParticipantRole
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -316,6 +332,7 @@ export type ConversationParticipantCreateManyInput = {
   id?: string
   conversationId: string
   userId: string
+  role?: $Enums.ConversationParticipantRole
   joinedAt?: Date | string
   lastReadAt?: Date | string | null
   archivedAt?: Date | string | null
@@ -325,6 +342,7 @@ export type ConversationParticipantCreateManyInput = {
 
 export type ConversationParticipantUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumConversationParticipantRoleFieldUpdateOperationsInput | $Enums.ConversationParticipantRole
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -336,6 +354,7 @@ export type ConversationParticipantUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   conversationId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumConversationParticipantRoleFieldUpdateOperationsInput | $Enums.ConversationParticipantRole
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -362,6 +381,7 @@ export type ConversationParticipantCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   conversationId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
   lastReadAt?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
@@ -373,6 +393,7 @@ export type ConversationParticipantMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   conversationId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
   lastReadAt?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
@@ -384,6 +405,7 @@ export type ConversationParticipantMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   conversationId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
   lastReadAt?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
@@ -475,8 +497,13 @@ export type ConversationParticipantUncheckedUpdateManyWithoutConversationNestedI
   deleteMany?: Prisma.ConversationParticipantScalarWhereInput | Prisma.ConversationParticipantScalarWhereInput[]
 }
 
+export type EnumConversationParticipantRoleFieldUpdateOperationsInput = {
+  set?: $Enums.ConversationParticipantRole
+}
+
 export type ConversationParticipantCreateWithoutUserInput = {
   id?: string
+  role?: $Enums.ConversationParticipantRole
   joinedAt?: Date | string
   lastReadAt?: Date | string | null
   archivedAt?: Date | string | null
@@ -488,6 +515,7 @@ export type ConversationParticipantCreateWithoutUserInput = {
 export type ConversationParticipantUncheckedCreateWithoutUserInput = {
   id?: string
   conversationId: string
+  role?: $Enums.ConversationParticipantRole
   joinedAt?: Date | string
   lastReadAt?: Date | string | null
   archivedAt?: Date | string | null
@@ -528,6 +556,7 @@ export type ConversationParticipantScalarWhereInput = {
   id?: Prisma.StringFilter<"ConversationParticipant"> | string
   conversationId?: Prisma.StringFilter<"ConversationParticipant"> | string
   userId?: Prisma.StringFilter<"ConversationParticipant"> | string
+  role?: Prisma.EnumConversationParticipantRoleFilter<"ConversationParticipant"> | $Enums.ConversationParticipantRole
   joinedAt?: Prisma.DateTimeFilter<"ConversationParticipant"> | Date | string
   lastReadAt?: Prisma.DateTimeNullableFilter<"ConversationParticipant"> | Date | string | null
   archivedAt?: Prisma.DateTimeNullableFilter<"ConversationParticipant"> | Date | string | null
@@ -537,6 +566,7 @@ export type ConversationParticipantScalarWhereInput = {
 
 export type ConversationParticipantCreateWithoutConversationInput = {
   id?: string
+  role?: $Enums.ConversationParticipantRole
   joinedAt?: Date | string
   lastReadAt?: Date | string | null
   archivedAt?: Date | string | null
@@ -548,6 +578,7 @@ export type ConversationParticipantCreateWithoutConversationInput = {
 export type ConversationParticipantUncheckedCreateWithoutConversationInput = {
   id?: string
   userId: string
+  role?: $Enums.ConversationParticipantRole
   joinedAt?: Date | string
   lastReadAt?: Date | string | null
   archivedAt?: Date | string | null
@@ -584,6 +615,7 @@ export type ConversationParticipantUpdateManyWithWhereWithoutConversationInput =
 export type ConversationParticipantCreateManyUserInput = {
   id?: string
   conversationId: string
+  role?: $Enums.ConversationParticipantRole
   joinedAt?: Date | string
   lastReadAt?: Date | string | null
   archivedAt?: Date | string | null
@@ -593,6 +625,7 @@ export type ConversationParticipantCreateManyUserInput = {
 
 export type ConversationParticipantUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumConversationParticipantRoleFieldUpdateOperationsInput | $Enums.ConversationParticipantRole
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -604,6 +637,7 @@ export type ConversationParticipantUpdateWithoutUserInput = {
 export type ConversationParticipantUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   conversationId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumConversationParticipantRoleFieldUpdateOperationsInput | $Enums.ConversationParticipantRole
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -614,6 +648,7 @@ export type ConversationParticipantUncheckedUpdateWithoutUserInput = {
 export type ConversationParticipantUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   conversationId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumConversationParticipantRoleFieldUpdateOperationsInput | $Enums.ConversationParticipantRole
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -624,6 +659,7 @@ export type ConversationParticipantUncheckedUpdateManyWithoutUserInput = {
 export type ConversationParticipantCreateManyConversationInput = {
   id?: string
   userId: string
+  role?: $Enums.ConversationParticipantRole
   joinedAt?: Date | string
   lastReadAt?: Date | string | null
   archivedAt?: Date | string | null
@@ -633,6 +669,7 @@ export type ConversationParticipantCreateManyConversationInput = {
 
 export type ConversationParticipantUpdateWithoutConversationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumConversationParticipantRoleFieldUpdateOperationsInput | $Enums.ConversationParticipantRole
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -644,6 +681,7 @@ export type ConversationParticipantUpdateWithoutConversationInput = {
 export type ConversationParticipantUncheckedUpdateWithoutConversationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumConversationParticipantRoleFieldUpdateOperationsInput | $Enums.ConversationParticipantRole
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -654,6 +692,7 @@ export type ConversationParticipantUncheckedUpdateWithoutConversationInput = {
 export type ConversationParticipantUncheckedUpdateManyWithoutConversationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumConversationParticipantRoleFieldUpdateOperationsInput | $Enums.ConversationParticipantRole
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -667,6 +706,7 @@ export type ConversationParticipantSelect<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   conversationId?: boolean
   userId?: boolean
+  role?: boolean
   joinedAt?: boolean
   lastReadAt?: boolean
   archivedAt?: boolean
@@ -680,6 +720,7 @@ export type ConversationParticipantSelectCreateManyAndReturn<ExtArgs extends run
   id?: boolean
   conversationId?: boolean
   userId?: boolean
+  role?: boolean
   joinedAt?: boolean
   lastReadAt?: boolean
   archivedAt?: boolean
@@ -693,6 +734,7 @@ export type ConversationParticipantSelectUpdateManyAndReturn<ExtArgs extends run
   id?: boolean
   conversationId?: boolean
   userId?: boolean
+  role?: boolean
   joinedAt?: boolean
   lastReadAt?: boolean
   archivedAt?: boolean
@@ -706,6 +748,7 @@ export type ConversationParticipantSelectScalar = {
   id?: boolean
   conversationId?: boolean
   userId?: boolean
+  role?: boolean
   joinedAt?: boolean
   lastReadAt?: boolean
   archivedAt?: boolean
@@ -713,7 +756,7 @@ export type ConversationParticipantSelectScalar = {
   leftAt?: boolean
 }
 
-export type ConversationParticipantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "conversationId" | "userId" | "joinedAt" | "lastReadAt" | "archivedAt" | "mutedAt" | "leftAt", ExtArgs["result"]["conversationParticipant"]>
+export type ConversationParticipantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "conversationId" | "userId" | "role" | "joinedAt" | "lastReadAt" | "archivedAt" | "mutedAt" | "leftAt", ExtArgs["result"]["conversationParticipant"]>
 export type ConversationParticipantInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   conversation?: boolean | Prisma.ConversationDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -737,6 +780,7 @@ export type $ConversationParticipantPayload<ExtArgs extends runtime.Types.Extens
     id: string
     conversationId: string
     userId: string
+    role: $Enums.ConversationParticipantRole
     joinedAt: Date
     lastReadAt: Date | null
     archivedAt: Date | null
@@ -1170,6 +1214,7 @@ export interface ConversationParticipantFieldRefs {
   readonly id: Prisma.FieldRef<"ConversationParticipant", 'String'>
   readonly conversationId: Prisma.FieldRef<"ConversationParticipant", 'String'>
   readonly userId: Prisma.FieldRef<"ConversationParticipant", 'String'>
+  readonly role: Prisma.FieldRef<"ConversationParticipant", 'ConversationParticipantRole'>
   readonly joinedAt: Prisma.FieldRef<"ConversationParticipant", 'DateTime'>
   readonly lastReadAt: Prisma.FieldRef<"ConversationParticipant", 'DateTime'>
   readonly archivedAt: Prisma.FieldRef<"ConversationParticipant", 'DateTime'>

@@ -33,6 +33,7 @@ export type ConversationMinAggregateOutputType = {
   sourceBranchId: string | null
   contextType: $Enums.ConversationContextType | null
   contextId: string | null
+  repliesLocked: boolean | null
   deletedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -47,6 +48,7 @@ export type ConversationMaxAggregateOutputType = {
   sourceBranchId: string | null
   contextType: $Enums.ConversationContextType | null
   contextId: string | null
+  repliesLocked: boolean | null
   deletedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -61,6 +63,7 @@ export type ConversationCountAggregateOutputType = {
   sourceBranchId: number
   contextType: number
   contextId: number
+  repliesLocked: number
   deletedAt: number
   createdAt: number
   updatedAt: number
@@ -77,6 +80,7 @@ export type ConversationMinAggregateInputType = {
   sourceBranchId?: true
   contextType?: true
   contextId?: true
+  repliesLocked?: true
   deletedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -91,6 +95,7 @@ export type ConversationMaxAggregateInputType = {
   sourceBranchId?: true
   contextType?: true
   contextId?: true
+  repliesLocked?: true
   deletedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -105,6 +110,7 @@ export type ConversationCountAggregateInputType = {
   sourceBranchId?: true
   contextType?: true
   contextId?: true
+  repliesLocked?: true
   deletedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -192,6 +198,7 @@ export type ConversationGroupByOutputType = {
   sourceBranchId: string | null
   contextType: $Enums.ConversationContextType | null
   contextId: string | null
+  repliesLocked: boolean
   deletedAt: Date | null
   createdAt: Date
   updatedAt: Date
@@ -227,6 +234,7 @@ export type ConversationWhereInput = {
   sourceBranchId?: Prisma.StringNullableFilter<"Conversation"> | string | null
   contextType?: Prisma.EnumConversationContextTypeNullableFilter<"Conversation"> | $Enums.ConversationContextType | null
   contextId?: Prisma.StringNullableFilter<"Conversation"> | string | null
+  repliesLocked?: Prisma.BoolFilter<"Conversation"> | boolean
   deletedAt?: Prisma.DateTimeNullableFilter<"Conversation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Conversation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Conversation"> | Date | string
@@ -248,6 +256,7 @@ export type ConversationOrderByWithRelationInput = {
   sourceBranchId?: Prisma.SortOrderInput | Prisma.SortOrder
   contextType?: Prisma.SortOrderInput | Prisma.SortOrder
   contextId?: Prisma.SortOrderInput | Prisma.SortOrder
+  repliesLocked?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -272,6 +281,7 @@ export type ConversationWhereUniqueInput = Prisma.AtLeast<{
   sourceBranchId?: Prisma.StringNullableFilter<"Conversation"> | string | null
   contextType?: Prisma.EnumConversationContextTypeNullableFilter<"Conversation"> | $Enums.ConversationContextType | null
   contextId?: Prisma.StringNullableFilter<"Conversation"> | string | null
+  repliesLocked?: Prisma.BoolFilter<"Conversation"> | boolean
   deletedAt?: Prisma.DateTimeNullableFilter<"Conversation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Conversation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Conversation"> | Date | string
@@ -293,6 +303,7 @@ export type ConversationOrderByWithAggregationInput = {
   sourceBranchId?: Prisma.SortOrderInput | Prisma.SortOrder
   contextType?: Prisma.SortOrderInput | Prisma.SortOrder
   contextId?: Prisma.SortOrderInput | Prisma.SortOrder
+  repliesLocked?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -313,6 +324,7 @@ export type ConversationScalarWhereWithAggregatesInput = {
   sourceBranchId?: Prisma.StringNullableWithAggregatesFilter<"Conversation"> | string | null
   contextType?: Prisma.EnumConversationContextTypeNullableWithAggregatesFilter<"Conversation"> | $Enums.ConversationContextType | null
   contextId?: Prisma.StringNullableWithAggregatesFilter<"Conversation"> | string | null
+  repliesLocked?: Prisma.BoolWithAggregatesFilter<"Conversation"> | boolean
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Conversation"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Conversation"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Conversation"> | Date | string
@@ -324,6 +336,7 @@ export type ConversationCreateInput = {
   subject?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -345,6 +358,7 @@ export type ConversationUncheckedCreateInput = {
   sourceBranchId?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -360,6 +374,7 @@ export type ConversationUpdateInput = {
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -381,6 +396,7 @@ export type ConversationUncheckedUpdateInput = {
   sourceBranchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -399,6 +415,7 @@ export type ConversationCreateManyInput = {
   sourceBranchId?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -410,6 +427,7 @@ export type ConversationUpdateManyMutationInput = {
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -424,6 +442,7 @@ export type ConversationUncheckedUpdateManyInput = {
   sourceBranchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -453,6 +472,7 @@ export type ConversationCountOrderByAggregateInput = {
   sourceBranchId?: Prisma.SortOrder
   contextType?: Prisma.SortOrder
   contextId?: Prisma.SortOrder
+  repliesLocked?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -467,6 +487,7 @@ export type ConversationMaxOrderByAggregateInput = {
   sourceBranchId?: Prisma.SortOrder
   contextType?: Prisma.SortOrder
   contextId?: Prisma.SortOrder
+  repliesLocked?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -481,6 +502,7 @@ export type ConversationMinOrderByAggregateInput = {
   sourceBranchId?: Prisma.SortOrder
   contextType?: Prisma.SortOrder
   contextId?: Prisma.SortOrder
+  repliesLocked?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -691,6 +713,7 @@ export type ConversationCreateWithoutCreatedByInput = {
   subject?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -710,6 +733,7 @@ export type ConversationUncheckedCreateWithoutCreatedByInput = {
   sourceBranchId?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -757,6 +781,7 @@ export type ConversationScalarWhereInput = {
   sourceBranchId?: Prisma.StringNullableFilter<"Conversation"> | string | null
   contextType?: Prisma.EnumConversationContextTypeNullableFilter<"Conversation"> | $Enums.ConversationContextType | null
   contextId?: Prisma.StringNullableFilter<"Conversation"> | string | null
+  repliesLocked?: Prisma.BoolFilter<"Conversation"> | boolean
   deletedAt?: Prisma.DateTimeNullableFilter<"Conversation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Conversation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Conversation"> | Date | string
@@ -768,6 +793,7 @@ export type ConversationCreateWithoutNotificationsInput = {
   subject?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -788,6 +814,7 @@ export type ConversationUncheckedCreateWithoutNotificationsInput = {
   sourceBranchId?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -818,6 +845,7 @@ export type ConversationUpdateWithoutNotificationsInput = {
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -838,6 +866,7 @@ export type ConversationUncheckedUpdateWithoutNotificationsInput = {
   sourceBranchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -852,6 +881,7 @@ export type ConversationCreateWithoutOrganizationInput = {
   subject?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -871,6 +901,7 @@ export type ConversationUncheckedCreateWithoutOrganizationInput = {
   sourceBranchId?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -912,6 +943,7 @@ export type ConversationCreateWithoutSourceBranchInput = {
   subject?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -931,6 +963,7 @@ export type ConversationUncheckedCreateWithoutSourceBranchInput = {
   createdById: string
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -972,6 +1005,7 @@ export type ConversationCreateWithoutParticipantsInput = {
   subject?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -992,6 +1026,7 @@ export type ConversationUncheckedCreateWithoutParticipantsInput = {
   sourceBranchId?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1022,6 +1057,7 @@ export type ConversationUpdateWithoutParticipantsInput = {
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1042,6 +1078,7 @@ export type ConversationUncheckedUpdateWithoutParticipantsInput = {
   sourceBranchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1056,6 +1093,7 @@ export type ConversationCreateWithoutMessagesInput = {
   subject?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1076,6 +1114,7 @@ export type ConversationUncheckedCreateWithoutMessagesInput = {
   sourceBranchId?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1106,6 +1145,7 @@ export type ConversationUpdateWithoutMessagesInput = {
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1126,6 +1166,7 @@ export type ConversationUncheckedUpdateWithoutMessagesInput = {
   sourceBranchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1140,6 +1181,7 @@ export type ConversationCreateWithoutCallSessionsInput = {
   subject?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1160,6 +1202,7 @@ export type ConversationUncheckedCreateWithoutCallSessionsInput = {
   sourceBranchId?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1190,6 +1233,7 @@ export type ConversationUpdateWithoutCallSessionsInput = {
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1210,6 +1254,7 @@ export type ConversationUncheckedUpdateWithoutCallSessionsInput = {
   sourceBranchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1226,6 +1271,7 @@ export type ConversationCreateManyCreatedByInput = {
   sourceBranchId?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1237,6 +1283,7 @@ export type ConversationUpdateWithoutCreatedByInput = {
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1256,6 +1303,7 @@ export type ConversationUncheckedUpdateWithoutCreatedByInput = {
   sourceBranchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1273,6 +1321,7 @@ export type ConversationUncheckedUpdateManyWithoutCreatedByInput = {
   sourceBranchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1286,6 +1335,7 @@ export type ConversationCreateManyOrganizationInput = {
   sourceBranchId?: string | null
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1297,6 +1347,7 @@ export type ConversationUpdateWithoutOrganizationInput = {
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1316,6 +1367,7 @@ export type ConversationUncheckedUpdateWithoutOrganizationInput = {
   sourceBranchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1333,6 +1385,7 @@ export type ConversationUncheckedUpdateManyWithoutOrganizationInput = {
   sourceBranchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1346,6 +1399,7 @@ export type ConversationCreateManySourceBranchInput = {
   createdById: string
   contextType?: $Enums.ConversationContextType | null
   contextId?: string | null
+  repliesLocked?: boolean
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1357,6 +1411,7 @@ export type ConversationUpdateWithoutSourceBranchInput = {
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1376,6 +1431,7 @@ export type ConversationUncheckedUpdateWithoutSourceBranchInput = {
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1393,6 +1449,7 @@ export type ConversationUncheckedUpdateManyWithoutSourceBranchInput = {
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   contextType?: Prisma.NullableEnumConversationContextTypeFieldUpdateOperationsInput | $Enums.ConversationContextType | null
   contextId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repliesLocked?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1465,6 +1522,7 @@ export type ConversationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   sourceBranchId?: boolean
   contextType?: boolean
   contextId?: boolean
+  repliesLocked?: boolean
   deletedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1487,6 +1545,7 @@ export type ConversationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   sourceBranchId?: boolean
   contextType?: boolean
   contextId?: boolean
+  repliesLocked?: boolean
   deletedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1504,6 +1563,7 @@ export type ConversationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   sourceBranchId?: boolean
   contextType?: boolean
   contextId?: boolean
+  repliesLocked?: boolean
   deletedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1521,12 +1581,13 @@ export type ConversationSelectScalar = {
   sourceBranchId?: boolean
   contextType?: boolean
   contextId?: boolean
+  repliesLocked?: boolean
   deletedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ConversationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "type" | "subject" | "createdById" | "sourceBranchId" | "contextType" | "contextId" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["conversation"]>
+export type ConversationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "type" | "subject" | "createdById" | "sourceBranchId" | "contextType" | "contextId" | "repliesLocked" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["conversation"]>
 export type ConversationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1568,6 +1629,10 @@ export type $ConversationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     sourceBranchId: string | null
     contextType: $Enums.ConversationContextType | null
     contextId: string | null
+    /**
+     * Si true, seuls les admins du groupe peuvent envoyer des messages.
+     */
+    repliesLocked: boolean
     deletedAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -2009,6 +2074,7 @@ export interface ConversationFieldRefs {
   readonly sourceBranchId: Prisma.FieldRef<"Conversation", 'String'>
   readonly contextType: Prisma.FieldRef<"Conversation", 'ConversationContextType'>
   readonly contextId: Prisma.FieldRef<"Conversation", 'String'>
+  readonly repliesLocked: Prisma.FieldRef<"Conversation", 'Boolean'>
   readonly deletedAt: Prisma.FieldRef<"Conversation", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Conversation", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Conversation", 'DateTime'>

@@ -1775,6 +1775,7 @@ export const ConversationScalarFieldEnum = {
   sourceBranchId: 'sourceBranchId',
   contextType: 'contextType',
   contextId: 'contextId',
+  repliesLocked: 'repliesLocked',
   deletedAt: 'deletedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1787,6 +1788,7 @@ export const ConversationParticipantScalarFieldEnum = {
   id: 'id',
   conversationId: 'conversationId',
   userId: 'userId',
+  role: 'role',
   joinedAt: 'joinedAt',
   lastReadAt: 'lastReadAt',
   archivedAt: 'archivedAt',

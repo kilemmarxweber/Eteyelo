@@ -2772,6 +2772,12 @@ enum ConversationType {
   CONTEXTUAL
 }
 
+/// Rôle dans une conversation de type GROUP (distinct du rôle org).
+enum ConversationParticipantRole {
+  ADMIN
+  MEMBER
+}
+
 enum ConversationContextType {
   ABSENCE_CASE
   GRADE_MODIFICATION
@@ -2791,6 +2797,8 @@ model Conversation {
   sourceBranch   Branch?                  @relation("ConversationSourceBranch", fields: [sourceBranchId], references: [id], onDelete: SetNull)
   contextType    ConversationContextType?
   contextId      String?
+  /// Si true, seuls les admins du groupe peuvent envoyer des messages.
+  repliesLocked  Boolean                  @default(false)
   deletedAt      DateTime?
   createdAt      DateTime                 @default(now())
   updatedAt      DateTime                 @updatedAt
@@ -2807,12 +2815,13 @@ model Conversation {
 }
 
 model ConversationParticipant {
-  id             String       @id @default(cuid())
+  id             String                       @id @default(cuid())
   conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversation   Conversation                 @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   userId         String
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  joinedAt       DateTime     @default(now())
+  user           User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           ConversationParticipantRole  @default(MEMBER)
+  joinedAt       DateTime                     @default(now())
   lastReadAt     DateTime?
   archivedAt     DateTime?
   mutedAt        DateTime?
@@ -2821,6 +2830,7 @@ model ConversationParticipant {
   @@unique([conversationId, userId])
   @@index([userId, lastReadAt, archivedAt])
   @@index([userId, archivedAt])
+  @@index([conversationId, role])
 }
 
 model Message {

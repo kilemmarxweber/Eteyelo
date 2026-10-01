@@ -13,6 +13,7 @@ import {
   formatMessagingPersonName,
   MESSAGING_CONVERSATIONS_PAGE_SIZE,
   MESSAGING_MAX_BODY_LENGTH,
+  MESSAGING_MAX_GROUP_ADMINS,
   MESSAGING_MAX_RECIPIENTS,
   MESSAGING_MAX_SUBJECT_LENGTH,
   MESSAGING_MESSAGES_PAGE_SIZE,
@@ -24,6 +25,7 @@ import {
   sanitizeMessageBody,
   type ConversationContextTypeValue,
   type ConversationListItem,
+  type ConversationParticipantRoleValue,
   type ConversationTypeValue,
   type MessageView,
   type MessagingFilter,
@@ -146,10 +148,23 @@ async function assertConversationAllowsHumanReply(
   conversationId: string,
   actorUserId: string,
 ) {
+  const conversation = await prisma.conversation.findFirst({
+    where: { id: conversationId, deletedAt: null },
+    select: {
+      type: true,
+      repliesLocked: true,
+      createdById: true,
+    },
+  });
+  if (!conversation) {
+    throw new MessagingError("Conversation introuvable.");
+  }
+
   const peers = await prisma.conversationParticipant.findMany({
     where: { conversationId, leftAt: null },
     select: {
       userId: true,
+      role: true,
       user: { select: { email: true } },
     },
   });
@@ -159,6 +174,85 @@ async function assertConversationAllowsHumanReply(
       "Les notifications automatiques ne permettent pas de réponse.",
     );
   }
+
+  if (conversation.type === "GROUP" && conversation.repliesLocked) {
+    const me = peers.find((p) => p.userId === actorUserId);
+    const isAdmin =
+      me?.role === "ADMIN" || conversation.createdById === actorUserId;
+    if (!isAdmin) {
+      throw new MessagingError(
+        "Les réponses sont verrouillées : seuls les admins du groupe peuvent écrire.",
+      );
+    }
+  }
+}
+
+async function getGroupAdminContext(params: {
+  organizationId: string;
+  conversationId: string;
+  actorUserId: string;
+}) {
+  const conversation = await prisma.conversation.findFirst({
+    where: {
+      id: params.conversationId,
+      organizationId: params.organizationId,
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      type: true,
+      createdById: true,
+      repliesLocked: true,
+      subject: true,
+    },
+  });
+  if (!conversation) throw new MessagingError("Conversation introuvable.");
+  if (conversation.type !== "GROUP") {
+    throw new MessagingError("Cette action est réservée aux groupes.");
+  }
+
+  const participants = await prisma.conversationParticipant.findMany({
+    where: { conversationId: params.conversationId, leftAt: null },
+    select: { userId: true, role: true },
+  });
+
+  // Rétrocompat : si aucun ADMIN en base, le créateur compte comme admin.
+  const hasExplicitAdmin = participants.some((p) => p.role === "ADMIN");
+  const adminUserIds = new Set(
+    participants
+      .filter((p) =>
+        p.role === "ADMIN" ||
+        (!hasExplicitAdmin && p.userId === conversation.createdById),
+      )
+      .map((p) => p.userId),
+  );
+  if (!hasExplicitAdmin && conversation.createdById) {
+    adminUserIds.add(conversation.createdById);
+  }
+
+  const isAdmin = adminUserIds.has(params.actorUserId);
+  return {
+    conversation,
+    participants,
+    adminUserIds,
+    adminCount: adminUserIds.size,
+    isAdmin,
+  };
+}
+
+function resolveParticipantGroupRole(params: {
+  userId: string;
+  role: ConversationParticipantRoleValue | string;
+  createdById: string;
+  type: ConversationTypeValue | string;
+  hasExplicitAdmin: boolean;
+}): ConversationParticipantRoleValue {
+  if (params.type !== "GROUP") return "MEMBER";
+  if (params.role === "ADMIN") return "ADMIN";
+  if (!params.hasExplicitAdmin && params.userId === params.createdById) {
+    return "ADMIN";
+  }
+  return "MEMBER";
 }
 
 async function loadRecipientMap(
@@ -606,6 +700,10 @@ export async function createConversation(params: {
         participants: {
           create: participantIds.map((userId) => ({
             userId,
+            role:
+              type === "GROUP" && userId === params.actor.userId
+                ? "ADMIN"
+                : "MEMBER",
             lastReadAt: userId === params.actor.userId ? new Date() : null,
           })),
         },
@@ -707,6 +805,7 @@ export async function createGroup(params: {
         participants: {
           create: participantIds.map((userId) => ({
             userId,
+            role: userId === params.actor.userId ? "ADMIN" : "MEMBER",
             lastReadAt: userId === params.actor.userId ? new Date() : null,
           })),
         },
@@ -1071,7 +1170,13 @@ export async function deleteMessage(params: {
       id: true,
       conversationId: true,
       senderId: true,
-      conversation: { select: { organizationId: true } },
+      conversation: {
+        select: {
+          organizationId: true,
+          type: true,
+          createdById: true,
+        },
+      },
     },
   });
   if (!message || message.conversation.organizationId !== params.organizationId) {
@@ -1083,8 +1188,21 @@ export async function deleteMessage(params: {
   ) {
     throw new MessagingError("Message hors conversation.");
   }
-  if (message.senderId !== params.actor.userId) {
-    throw new MessagingError("Vous ne pouvez supprimer que vos propres messages.");
+
+  const isOwn = message.senderId === params.actor.userId;
+  let isGroupAdmin = false;
+  if (!isOwn && message.conversation.type === "GROUP") {
+    const ctx = await getGroupAdminContext({
+      organizationId: params.organizationId,
+      conversationId: message.conversationId,
+      actorUserId: params.actor.userId,
+    });
+    isGroupAdmin = ctx.isAdmin;
+  }
+  if (!isOwn && !isGroupAdmin) {
+    throw new MessagingError(
+      "Vous ne pouvez supprimer que vos propres messages (ou ceux du groupe si vous êtes admin).",
+    );
   }
   await getParticipantOrThrow(
     message.conversationId,
@@ -1252,6 +1370,16 @@ export async function listMyConversations(params: {
 
     const participants = row.participants.map((p) => {
       const mapped = recipientMap.get(p.userId);
+      const hasExplicitAdmin = row.participants.some(
+        (x) => x.role === "ADMIN",
+      );
+      const groupRole = resolveParticipantGroupRole({
+        userId: p.userId,
+        role: p.role,
+        createdById: row.createdById,
+        type: row.type,
+        hasExplicitAdmin,
+      });
       return {
         userId: p.userId,
         name: mapped?.name ?? formatMessagingPersonName(p.user),
@@ -1259,6 +1387,7 @@ export async function listMyConversations(params: {
         telephone: mapped?.telephone ?? p.user.telephone ?? null,
         prenom: mapped?.prenom ?? p.user.prenom ?? null,
         roleLabel: mapped?.roleLabel ?? "",
+        groupRole: row.type === "GROUP" ? groupRole : undefined,
         branches: mapped?.branches ?? [],
       };
     });
@@ -1268,6 +1397,22 @@ export async function listMyConversations(params: {
         p.userId !== params.actor.userId &&
         isSchoolNotifyBotEmail(p.user.email),
     );
+
+    const hasExplicitAdmin = row.participants.some((p) => p.role === "ADMIN");
+    const myGroupRole =
+      row.type === "GROUP"
+        ? resolveParticipantGroupRole({
+            userId: params.actor.userId,
+            role: me.role,
+            createdById: row.createdById,
+            type: row.type,
+            hasExplicitAdmin,
+          })
+        : null;
+    const adminCount =
+      row.type === "GROUP"
+        ? participants.filter((p) => p.groupRole === "ADMIN").length
+        : 0;
 
     const item: ConversationListItem = {
       id: row.id,
@@ -1295,6 +1440,9 @@ export async function listMyConversations(params: {
       archived: Boolean(me.archivedAt),
       muted: Boolean(me.mutedAt),
       noReply,
+      repliesLocked: Boolean(row.repliesLocked),
+      myRole: myGroupRole,
+      adminCount,
       participants,
       title: conversationTitle({
         type: row.type,
@@ -1442,9 +1590,24 @@ export async function getConversationMessages(params: {
       };
     });
 
+  const conversationMeta = await prisma.conversation.findFirst({
+    where: { id: params.conversationId, deletedAt: null },
+    select: {
+      type: true,
+      createdById: true,
+      repliesLocked: true,
+      subject: true,
+    },
+  });
+
   const conversationPeers = await prisma.conversationParticipant.findMany({
     where: { conversationId: params.conversationId, leftAt: null },
-    select: { userId: true, user: { select: { email: true } } },
+    select: {
+      userId: true,
+      role: true,
+      lastReadAt: true,
+      user: { select: { email: true } },
+    },
   });
   const noReply = conversationPeers.some(
     (p) =>
@@ -1452,9 +1615,57 @@ export async function getConversationMessages(params: {
       isSchoolNotifyBotEmail(p.user.email),
   );
 
+  /** Watermark lecture des autres participants (✓✓ si createdAt ≤ peerLastReadAt). */
+  const otherPeers = conversationPeers.filter(
+    (p) => p.userId !== params.actor.userId,
+  );
+  let peerLastReadAt: string | null = null;
+  if (
+    otherPeers.length > 0 &&
+    otherPeers.every((p) => p.lastReadAt != null)
+  ) {
+    const earliest = otherPeers.reduce((min, p) => {
+      const t = p.lastReadAt!.getTime();
+      return t < min.getTime() ? p.lastReadAt! : min;
+    }, otherPeers[0]!.lastReadAt!);
+    peerLastReadAt = earliest.toISOString();
+  }
+
+  const hasExplicitAdmin = conversationPeers.some((p) => p.role === "ADMIN");
+  const myRole =
+    conversationMeta?.type === "GROUP"
+      ? resolveParticipantGroupRole({
+          userId: params.actor.userId,
+          role:
+            conversationPeers.find((p) => p.userId === params.actor.userId)
+              ?.role ?? "MEMBER",
+          createdById: conversationMeta.createdById,
+          type: conversationMeta.type,
+          hasExplicitAdmin,
+        })
+      : null;
+  const adminCount =
+    conversationMeta?.type === "GROUP"
+      ? conversationPeers.filter((p) =>
+          resolveParticipantGroupRole({
+            userId: p.userId,
+            role: p.role,
+            createdById: conversationMeta.createdById,
+            type: conversationMeta.type,
+            hasExplicitAdmin,
+          }) === "ADMIN",
+        ).length
+      : 0;
+
   return {
     items,
     noReply,
+    peerLastReadAt,
+    repliesLocked: Boolean(conversationMeta?.repliesLocked),
+    myRole,
+    adminCount,
+    conversationType: conversationMeta?.type ?? null,
+    subject: conversationMeta?.subject ?? null,
     nextCursor:
       rows.length === MESSAGING_MESSAGES_PAGE_SIZE
         ? rows[rows.length - 1]?.createdAt.toISOString() ?? null
@@ -1473,6 +1684,7 @@ export async function markConversationRead(params: {
     params.actor.userId,
     params.organizationId,
   );
+  const lastReadAt = new Date();
   await prisma.conversationParticipant.update({
     where: {
       conversationId_userId: {
@@ -1480,7 +1692,7 @@ export async function markConversationRead(params: {
         userId: params.actor.userId,
       },
     },
-    data: { lastReadAt: new Date() },
+    data: { lastReadAt },
   });
   await prisma.appNotification.updateMany({
     where: {
@@ -1488,8 +1700,215 @@ export async function markConversationRead(params: {
       userId: params.actor.userId,
       readAt: null,
     },
-    data: { readAt: new Date() },
+    data: { readAt: lastReadAt },
   });
+
+  const others = await prisma.conversationParticipant.findMany({
+    where: {
+      conversationId: params.conversationId,
+      leftAt: null,
+      userId: { not: params.actor.userId },
+    },
+    select: { userId: true },
+  });
+  const recipientUserIds = others.map((p) => p.userId);
+  if (recipientUserIds.length > 0) {
+    void import("@/lib/mobile/realtime").then(({ publishMobileEvent }) =>
+      publishMobileEvent({
+        type: "conversation.updated",
+        organizationId: params.organizationId,
+        conversationId: params.conversationId,
+        recipientUserIds,
+        userId: params.actor.userId,
+        lastReadAt: lastReadAt.toISOString(),
+        reason: "read",
+      }),
+    );
+  }
+}
+
+/** Marque la conversation comme non lue (réinitialise lastReadAt). */
+export async function markConversationUnread(params: {
+  organizationId: string;
+  actor: Actor;
+  conversationId: string;
+}) {
+  assertCanUse(params.actor);
+  await getParticipantOrThrow(
+    params.conversationId,
+    params.actor.userId,
+    params.organizationId,
+  );
+  await prisma.conversationParticipant.update({
+    where: {
+      conversationId_userId: {
+        conversationId: params.conversationId,
+        userId: params.actor.userId,
+      },
+    },
+    data: { lastReadAt: null },
+  });
+}
+
+/** Verrouille / déverrouille les réponses dans un groupe (admins only). */
+export async function setGroupRepliesLocked(params: {
+  organizationId: string;
+  actor: Actor;
+  conversationId: string;
+  locked: boolean;
+}) {
+  assertCanSend(params.actor);
+  const ctx = await getGroupAdminContext({
+    organizationId: params.organizationId,
+    conversationId: params.conversationId,
+    actorUserId: params.actor.userId,
+  });
+  if (!ctx.isAdmin) {
+    throw new MessagingError("Seuls les admins du groupe peuvent modifier ce réglage.");
+  }
+  await prisma.conversation.update({
+    where: { id: params.conversationId },
+    data: { repliesLocked: params.locked, updatedAt: new Date() },
+  });
+  return {
+    conversationId: params.conversationId,
+    repliesLocked: params.locked,
+  };
+}
+
+/**
+ * Promouvoir / rétrograder un membre (max 5 admins).
+ * Le créateur peut toujours rester admin ; on ne peut pas rétrograder le dernier admin.
+ */
+export async function setGroupParticipantRole(params: {
+  organizationId: string;
+  actor: Actor;
+  conversationId: string;
+  targetUserId: string;
+  role: ConversationParticipantRoleValue;
+}) {
+  assertCanSend(params.actor);
+  const ctx = await getGroupAdminContext({
+    organizationId: params.organizationId,
+    conversationId: params.conversationId,
+    actorUserId: params.actor.userId,
+  });
+  if (!ctx.isAdmin) {
+    throw new MessagingError("Seuls les admins du groupe peuvent gérer les rôles.");
+  }
+
+  const target = ctx.participants.find((p) => p.userId === params.targetUserId);
+  if (!target) {
+    throw new MessagingError("Membre introuvable dans ce groupe.");
+  }
+
+  const nextRole = params.role === "ADMIN" ? "ADMIN" : "MEMBER";
+  const currentlyAdmin = ctx.adminUserIds.has(params.targetUserId);
+
+  if (nextRole === "ADMIN" && !currentlyAdmin) {
+    if (ctx.adminCount >= MESSAGING_MAX_GROUP_ADMINS) {
+      throw new MessagingError(
+        `Maximum ${MESSAGING_MAX_GROUP_ADMINS} admins par groupe.`,
+      );
+    }
+  }
+
+  if (nextRole === "MEMBER" && currentlyAdmin) {
+    if (ctx.adminCount <= 1) {
+      throw new MessagingError(
+        "Impossible de retirer le dernier admin du groupe.",
+      );
+    }
+  }
+
+  // Matérialise le créateur en ADMIN si besoin avant de promouvoir d'autres.
+  if (!ctx.participants.some((p) => p.role === "ADMIN")) {
+    await prisma.conversationParticipant.updateMany({
+      where: {
+        conversationId: params.conversationId,
+        userId: ctx.conversation.createdById,
+        leftAt: null,
+      },
+      data: { role: "ADMIN" },
+    });
+  }
+
+  await prisma.conversationParticipant.update({
+    where: {
+      conversationId_userId: {
+        conversationId: params.conversationId,
+        userId: params.targetUserId,
+      },
+    },
+    data: { role: nextRole },
+  });
+
+  return {
+    conversationId: params.conversationId,
+    userId: params.targetUserId,
+    role: nextRole,
+  };
+}
+
+export async function getGroupSettings(params: {
+  organizationId: string;
+  actor: Actor;
+  conversationId: string;
+}) {
+  assertCanUse(params.actor);
+  await getParticipantOrThrow(
+    params.conversationId,
+    params.actor.userId,
+    params.organizationId,
+  );
+  const ctx = await getGroupAdminContext({
+    organizationId: params.organizationId,
+    conversationId: params.conversationId,
+    actorUserId: params.actor.userId,
+  });
+
+  const recipientMap = await loadRecipientMap(
+    params.organizationId,
+    ctx.participants.map((p) => p.userId),
+  );
+
+  const hasExplicitAdmin = ctx.participants.some((p) => p.role === "ADMIN");
+  const members = ctx.participants.map((p) => {
+    const mapped = recipientMap.get(p.userId);
+    const groupRole = resolveParticipantGroupRole({
+      userId: p.userId,
+      role: p.role,
+      createdById: ctx.conversation.createdById,
+      type: "GROUP",
+      hasExplicitAdmin,
+    });
+    return {
+      userId: p.userId,
+      name: mapped?.name ?? "Membre",
+      image: mapped?.image ?? null,
+      telephone: mapped?.telephone ?? null,
+      roleLabel: mapped?.roleLabel ?? "",
+      groupRole,
+      isCreator: p.userId === ctx.conversation.createdById,
+    };
+  });
+
+  members.sort((a, b) => {
+    if (a.groupRole !== b.groupRole) {
+      return a.groupRole === "ADMIN" ? -1 : 1;
+    }
+    return a.name.localeCompare(b.name, "fr");
+  });
+
+  return {
+    conversationId: params.conversationId,
+    subject: ctx.conversation.subject,
+    repliesLocked: Boolean(ctx.conversation.repliesLocked),
+    myRole: ctx.isAdmin ? ("ADMIN" as const) : ("MEMBER" as const),
+    adminCount: ctx.adminCount,
+    maxAdmins: MESSAGING_MAX_GROUP_ADMINS,
+    members,
+  };
 }
 
 export async function setConversationArchived(params: {

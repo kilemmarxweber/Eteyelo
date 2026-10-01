@@ -9339,6 +9339,7 @@ export const ConversationScalarFieldEnum = {
   sourceBranchId: 'sourceBranchId',
   contextType: 'contextType',
   contextId: 'contextId',
+  repliesLocked: 'repliesLocked',
   deletedAt: 'deletedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -9351,6 +9352,7 @@ export const ConversationParticipantScalarFieldEnum = {
   id: 'id',
   conversationId: 'conversationId',
   userId: 'userId',
+  role: 'role',
   joinedAt: 'joinedAt',
   lastReadAt: 'lastReadAt',
   archivedAt: 'archivedAt',
@@ -10267,6 +10269,20 @@ export type EnumConversationContextTypeFieldRefInput<$PrismaModel> = FieldRefInp
  * Reference to a field of type 'ConversationContextType[]'
  */
 export type ListEnumConversationContextTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConversationContextType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ConversationParticipantRole'
+ */
+export type EnumConversationParticipantRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConversationParticipantRole'>
+    
+
+
+/**
+ * Reference to a field of type 'ConversationParticipantRole[]'
+ */
+export type ListEnumConversationParticipantRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConversationParticipantRole[]'>
     
 
 
