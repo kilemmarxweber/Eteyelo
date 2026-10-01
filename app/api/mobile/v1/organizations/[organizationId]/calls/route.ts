@@ -110,7 +110,7 @@ export async function POST(request: Request, context: Ctx) {
       calleeId: body.calleeId,
     });
   } catch (error) {
-    const status = error instanceof MessagingError ? 400 : 500;
+    const status = error instanceof MessagingError ? error.statusCode : 500;
     return jsonError(
       error instanceof Error ? error.message : "Appel impossible.",
       status,
@@ -154,8 +154,10 @@ export async function GET(request: Request, context: Ctx) {
     return jsonOk({ items: calls });
   } catch (error) {
     return jsonError(
-      error instanceof Error ? error.message : "Erreur historique appels.",
-      500,
+      error instanceof MessagingError
+        ? error.message
+        : "Erreur historique appels.",
+      error instanceof MessagingError ? error.statusCode : 500,
     );
   }
 }

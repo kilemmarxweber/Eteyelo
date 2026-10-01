@@ -7,6 +7,7 @@ import {
   canUseMessaging,
   canSendMessages,
   canCreateGroup,
+  messagingDeniedMessage,
 } from "@/lib/messaging/messaging-policy";
 import {
   isOrganizationMessagingEnabled,
@@ -37,6 +38,11 @@ export function jsonError(message: string, status = 400) {
   return NextResponse.json({ ok: false, error: message }, { status });
 }
 
+export function mobileErrorStatus(error: unknown, fallback = 500) {
+  if (error instanceof MessagingError) return error.statusCode;
+  return fallback;
+}
+
 export function requireSession(session: MobileSession | null) {
   if (!session?.user?.id) {
     return null;
@@ -55,7 +61,6 @@ export async function buildMePayload(session: MobileSession) {
       postnom: true,
       image: true,
       telephone: true,
-      email: true,
       role: true,
       banned: true,
       statusUser: true,
@@ -109,24 +114,35 @@ export async function buildMePayload(session: MobileSession) {
     }),
   );
 
-  const activeOrganizationId =
+  const messagingOrganizations = organizations.filter((org) => org.canRead);
+  const requestedActive =
     session.session.activeOrganizationId ?? organizations[0]?.id ?? null;
+  const activeOrganizationId = messagingOrganizations.some(
+    (org) => org.id === requestedActive,
+  )
+    ? requestedActive
+    : (messagingOrganizations[0]?.id ?? null);
 
   return {
     user: {
       id: user.id,
       name: formatMessagingPersonName(user),
       prenom: user.prenom,
-      postnom: user.postnom,
       image: user.image,
       telephone: user.telephone,
-      email: user.email,
-      role: user.role,
     },
     profileComplete: isProfileComplete(user),
     needsOnboarding: !isProfileComplete(user),
     activeOrganizationId,
-    organizations,
+    organizations: messagingOrganizations.map((org) => ({
+      id: org.id,
+      name: org.name,
+      memberRole: org.memberRole,
+      messagingEnabled: org.messagingEnabled,
+      canRead: org.canRead,
+      canSend: org.canSend,
+      canCreateGroup: org.canCreateGroup,
+    })),
     messagingEnabledForActiveOrg: activeOrganizationId
       ? await isOrganizationMessagingEnabled(activeOrganizationId)
       : false,
@@ -147,8 +163,8 @@ export async function getMessagingActorFromSession(
     },
   });
 
-  if (!member || member.isArchived) {
-    throw new MessagingError("Vous n'appartenez pas à cette organisation.");
+  if (!member || member.isArchived || member.user.banned) {
+    throw new MessagingError("Vous n'appartenez pas à cette organisation.", 403);
   }
 
   const org = await prisma.organization.findUnique({
@@ -156,7 +172,7 @@ export async function getMessagingActorFromSession(
     select: { messagingEnabled: true },
   });
 
-  return {
+  const actor = {
     userId,
     appRole: member.user.role ?? APP_ROLE.USER,
     memberRole: member.role,
@@ -165,4 +181,23 @@ export async function getMessagingActorFromSession(
     sourceBranchId: session.session.activeBranchId ?? null,
     messagingEnabled: org?.messagingEnabled !== false,
   };
+
+  if (
+    !canUseMessaging({
+      appRole: actor.appRole,
+      memberRole: actor.memberRole,
+      memberArchived: actor.memberArchived,
+      userBanned: actor.userBanned,
+      organizationMessagingEnabled: actor.messagingEnabled,
+    })
+  ) {
+    throw new MessagingError(
+      actor.messagingEnabled
+        ? messagingDeniedMessage("read")
+        : messagingDeniedMessage("disabled"),
+      403,
+    );
+  }
+
+  return actor;
 }

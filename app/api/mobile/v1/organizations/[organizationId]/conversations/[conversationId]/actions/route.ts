@@ -15,6 +15,10 @@ import {
   setGroupParticipantRole,
   setGroupRepliesLocked,
 } from "@/lib/messaging/messaging-service";
+import {
+  mobileConversationActionSchema,
+  zodErrorMessage,
+} from "@/lib/mobile/messaging-schemas";
 
 export const runtime = "nodejs";
 
@@ -28,22 +32,20 @@ export async function POST(request: Request, context: Ctx) {
     if (!session) return jsonError("Non authentifié.", 401);
 
     const { organizationId, conversationId } = await context.params;
-    const body = (await request.json()) as {
-      action?:
-        | "read"
-        | "unread"
-        | "archive"
-        | "unarchive"
-        | "mute"
-        | "unmute"
-        | "lock_replies"
-        | "unlock_replies"
-        | "set_role";
-      userId?: string;
-      role?: "ADMIN" | "MEMBER";
-    };
+    let raw: unknown;
+    try {
+      raw = await request.json();
+    } catch {
+      return jsonError("Corps JSON invalide.", 400);
+    }
+
+    const parsed = mobileConversationActionSchema.safeParse(raw);
+    if (!parsed.success) {
+      return jsonError(zodErrorMessage(parsed.error), 400);
+    }
 
     const actor = await getMessagingActorFromSession(session, organizationId);
+    const body = parsed.data;
 
     switch (body.action) {
       case "read":
@@ -109,9 +111,6 @@ export async function POST(request: Request, context: Ctx) {
         });
         break;
       case "set_role": {
-        if (!body.userId || (body.role !== "ADMIN" && body.role !== "MEMBER")) {
-          return jsonError("userId et role (ADMIN|MEMBER) requis.", 400);
-        }
         const data = await setGroupParticipantRole({
           organizationId,
           actor,
@@ -127,7 +126,7 @@ export async function POST(request: Request, context: Ctx) {
 
     return jsonOk({ conversationId, action: body.action });
   } catch (error) {
-    const status = error instanceof MessagingError ? 400 : 500;
+    const status = error instanceof MessagingError ? error.statusCode : 500;
     return jsonError(
       error instanceof Error ? error.message : "Action échouée.",
       status,
@@ -150,7 +149,7 @@ export async function GET(_request: Request, context: Ctx) {
     });
     return jsonOk(data);
   } catch (error) {
-    const status = error instanceof MessagingError ? 400 : 500;
+    const status = error instanceof MessagingError ? error.statusCode : 500;
     return jsonError(
       error instanceof Error ? error.message : "Chargement impossible.",
       status,

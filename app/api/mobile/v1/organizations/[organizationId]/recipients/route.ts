@@ -33,7 +33,7 @@ export async function GET(request: Request, context: Ctx) {
     });
     return jsonOk(data);
   } catch (error) {
-    const status = error instanceof MessagingError ? 400 : 500;
+    const status = error instanceof MessagingError ? error.statusCode : 500;
     return jsonError(
       error instanceof Error ? error.message : "Recherche échouée.",
       status,

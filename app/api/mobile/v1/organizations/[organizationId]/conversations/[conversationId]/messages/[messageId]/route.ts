@@ -10,7 +10,10 @@ import {
   editMessage,
   MessagingError,
 } from "@/lib/messaging/messaging-service";
-import { MESSAGING_MAX_BODY_LENGTH } from "@/lib/messaging/messaging-types";
+import {
+  mobileEditMessageSchema,
+  zodErrorMessage,
+} from "@/lib/mobile/messaging-schemas";
 
 export const runtime = "nodejs";
 
@@ -28,19 +31,16 @@ export async function PATCH(request: Request, context: Ctx) {
     if (!session) return jsonError("Non authentifié.", 401);
 
     const { organizationId, conversationId, messageId } = await context.params;
-    let payload: { body?: string };
+    let raw: unknown;
     try {
-      payload = (await request.json()) as { body?: string };
+      raw = await request.json();
     } catch {
       return jsonError("Corps JSON invalide.", 400);
     }
 
-    const text = typeof payload.body === "string" ? payload.body : "";
-    if (!text.trim()) {
-      return jsonError("Message vide.", 400);
-    }
-    if (text.length > MESSAGING_MAX_BODY_LENGTH + 50) {
-      return jsonError("Message trop long.", 400);
+    const parsed = mobileEditMessageSchema.safeParse(raw);
+    if (!parsed.success) {
+      return jsonError(zodErrorMessage(parsed.error), 400);
     }
 
     const actor = await getMessagingActorFromSession(session, organizationId);
@@ -49,12 +49,12 @@ export async function PATCH(request: Request, context: Ctx) {
       actor,
       messageId,
       conversationId,
-      body: text,
+      body: parsed.data.body,
     });
 
     return jsonOk(data);
   } catch (error) {
-    const status = error instanceof MessagingError ? 400 : 500;
+    const status = error instanceof MessagingError ? error.statusCode : 500;
     return jsonError(
       error instanceof Error ? error.message : "Modification échouée.",
       status,
@@ -78,7 +78,7 @@ export async function DELETE(_request: Request, context: Ctx) {
 
     return jsonOk(data);
   } catch (error) {
-    const status = error instanceof MessagingError ? 400 : 500;
+    const status = error instanceof MessagingError ? error.statusCode : 500;
     return jsonError(
       error instanceof Error ? error.message : "Suppression échouée.",
       status,

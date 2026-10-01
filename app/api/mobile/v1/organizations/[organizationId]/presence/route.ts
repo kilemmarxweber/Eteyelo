@@ -38,11 +38,26 @@ export async function GET(request: Request, context: Ctx) {
 
     const url = new URL(request.url);
     const raw = url.searchParams.get("userIds") ?? "";
-    const userIds = raw
+    const requestedIds = raw
       .split(",")
       .map((s) => s.trim())
-      .filter(Boolean)
+      .filter((id) => /^[a-zA-Z0-9_-]{1,64}$/.test(id))
       .slice(0, 50);
+
+    if (requestedIds.length === 0) {
+      return jsonOk({ items: [] });
+    }
+
+    // Uniquement les membres actifs de l'org (pas d'énumération cross-org).
+    const orgMembers = await prisma.member.findMany({
+      where: {
+        organizationId,
+        userId: { in: requestedIds },
+        isArchived: false,
+      },
+      select: { userId: true },
+    });
+    const userIds = orgMembers.map((m) => m.userId);
 
     if (userIds.length === 0) {
       return jsonOk({ items: [] });
@@ -80,7 +95,16 @@ export async function GET(request: Request, context: Ctx) {
       }
     }
 
-    const items = userIds.map((userId) => {
+    const allowed = new Set(userIds);
+    const items = requestedIds.map((userId) => {
+      if (!allowed.has(userId)) {
+        return {
+          userId,
+          status: "OFFLINE" as const,
+          lastSeenAt: null as string | null,
+          online: false,
+        };
+      }
       const row = bestByUser.get(userId);
       if (!row) {
         return {
@@ -100,7 +124,7 @@ export async function GET(request: Request, context: Ctx) {
 
     return jsonOk({ items });
   } catch (error) {
-    const status = error instanceof MessagingError ? 400 : 500;
+    const status = error instanceof MessagingError ? error.statusCode : 500;
     return jsonError(
       error instanceof Error ? error.message : "Présence indisponible.",
       status,
@@ -151,7 +175,7 @@ export async function POST(request: Request, context: Ctx) {
 
     return jsonOk({ ok: true, organizations: targets.length });
   } catch (error) {
-    const status = error instanceof MessagingError ? 400 : 500;
+    const status = error instanceof MessagingError ? error.statusCode : 500;
     return jsonError(
       error instanceof Error ? error.message : "Heartbeat présence échoué.",
       status,

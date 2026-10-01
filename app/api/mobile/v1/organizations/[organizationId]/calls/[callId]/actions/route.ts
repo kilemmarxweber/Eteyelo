@@ -7,7 +7,10 @@ import {
 } from "@/lib/mobile/http";
 import { prisma } from "@/lib/prisma";
 import { publishMobileEvent } from "@/lib/mobile/realtime";
-import { appendCallTraceMessage } from "@/lib/messaging/messaging-service";
+import {
+  appendCallTraceMessage,
+  MessagingError,
+} from "@/lib/messaging/messaging-service";
 
 export const runtime = "nodejs";
 
@@ -193,9 +196,9 @@ export async function POST(request: Request, context: Ctx) {
 
     return jsonError("Action invalide.", 400);
   } catch (error) {
-    return jsonError(
-      error instanceof Error ? error.message : "Action appel échouée.",
-      500,
-    );
+    if (error instanceof MessagingError) {
+      return jsonError(error.message, error.statusCode);
+    }
+    return jsonError("Action appel échouée.", 500);
   }
 }

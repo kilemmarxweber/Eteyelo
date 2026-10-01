@@ -121,21 +121,40 @@ export function formatMessagingPersonName(user: {
   );
 }
 
-export function sanitizeMessageBody(raw: string) {
+const STRUCTURED_BODY_PREFIX =
+  /^(?:__CALL__:|__NOTIFY__:|__SATISFACTION__:)/i;
+
+/** Préfixes réservés au bot / système — jamais acceptés depuis un client. */
+export function isStructuredMessageBody(raw: string) {
+  return STRUCTURED_BODY_PREFIX.test(raw.trimStart());
+}
+
+/**
+ * Nettoie un corps de message.
+ * - Clients : strip HTML, contrôles, et refuse les préfixes `__NOTIFY__` / `__CALL__` / etc.
+ * - Bot / trusted (`allowStructured`) : conserve les cartes système.
+ */
+export function sanitizeMessageBody(
+  raw: string,
+  options?: { allowStructured?: boolean },
+) {
   const trimmed = raw.trim();
-  // Payloads structurés (appels / cartes notif) : ne pas aplatir ni stripper le JSON.
-  if (
-    trimmed.startsWith("__CALL__:") ||
-    trimmed.startsWith("__NOTIFY__:") ||
-    trimmed.startsWith(SATISFACTION_PREFIX)
-  ) {
+  if (options?.allowStructured && isStructuredMessageBody(trimmed)) {
     return trimmed.slice(0, MESSAGING_MAX_BODY_LENGTH);
   }
-  return raw
+
+  // Injection client : neutraliser le préfixe réservé puis traiter comme texte.
+  const withoutReserved = isStructuredMessageBody(trimmed)
+    ? trimmed.replace(STRUCTURED_BODY_PREFIX, "").trim()
+    : trimmed;
+
+  return withoutReserved
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
     .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
     .replace(/<[^>]*>/g, "")
     .replace(/\s+/g, " ")
-    .trim();
+    .trim()
+    .slice(0, MESSAGING_MAX_BODY_LENGTH);
 }
 
 export function previewMessageBody(body: string, max = 80) {

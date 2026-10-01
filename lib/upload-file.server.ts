@@ -478,12 +478,9 @@ export async function saveMessagingUpload(file: File): Promise<SavedUpload> {
   if (ALLOWED_DOCUMENT_TYPES.has(mime) || extensionLooksLikeDocument(file.name)) {
     return saveUploadedDocument(file);
   }
-  // MIME vide + extension image (Flutter / Windows)
+  // MIME vide + extension image (Flutter / Windows) — pas de GIF (hors whitelist).
   const ext = path.extname(file.name).toLowerCase();
-  if (
-    !mime &&
-    [".png", ".jpg", ".jpeg", ".webp", ".gif"].includes(ext)
-  ) {
+  if (!mime && [".png", ".jpg", ".jpeg", ".webp"].includes(ext)) {
     return saveUploadedFile(file);
   }
   throw new Error(

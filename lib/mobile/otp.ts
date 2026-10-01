@@ -106,12 +106,12 @@ async function sendOtpMessage(phoneE164: string, code: string) {
 }
 
 function shouldExposeOtpCode() {
+  // Jamais en production — même si MESSAGING_OTP_EXPOSE_CODE=true.
+  if (process.env.NODE_ENV === "production") return false;
   const flag = process.env.MESSAGING_OTP_EXPOSE_CODE?.trim().toLowerCase();
-  // Flag explicite true → expose même en prod (préremplissage Flutter si SMS KO).
-  if (flag === "true" || flag === "1" || flag === "yes") return true;
   if (flag === "false" || flag === "0" || flag === "no") return false;
-  // Sans flag : exposé hors production uniquement.
-  return process.env.NODE_ENV !== "production";
+  if (flag === "true" || flag === "1" || flag === "yes") return true;
+  return true; // hors prod par défaut
 }
 
 export async function requestMobileOtp(phoneE164: string) {

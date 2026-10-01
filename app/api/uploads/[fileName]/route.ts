@@ -3,7 +3,10 @@ import { NextResponse } from "next/server";
 import {
   listUploadDirectories,
   readUploadedFileBuffer,
+  safeUploadRelativePath,
 } from "@/lib/upload-file.server";
+import { getMobileSession, requireSession } from "@/lib/mobile/http";
+import { getCachedSession } from "@/lib/auth/get-session-cached";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,24 +23,66 @@ const CONTENT_TYPES: Record<string, string> = {
   ".jpeg": "image/jpeg",
   ".png": "image/png",
   ".webp": "image/webp",
-  ".gif": "image/gif",
   ".pdf": "application/pdf",
   ".doc": "application/msword",
   ".docx":
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ".apk": "application/vnd.android.package-archive",
   ".ipa": "application/octet-stream",
+  ".mp3": "audio/mpeg",
+  ".m4a": "audio/mp4",
+  ".aac": "audio/aac",
+  ".wav": "audio/wav",
+  ".ogg": "audio/ogg",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
 };
 
 const FORCE_DOWNLOAD_EXTENSIONS = new Set([".apk", ".ipa"]);
 
+/** Téléchargements apps publics. */
+const PUBLIC_UPLOAD_BASENAMES = new Set(["klambo.apk", "klambo.ipa"]);
+
+/** Images branding / photos : publiques (nosniff). Médias messagerie (audio/vidéo/docs) : auth. */
+const PUBLIC_IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
+
+async function hasAuthenticatedViewer() {
+  const mobile = requireSession(await getMobileSession());
+  if (mobile) return true;
+  const web = await getCachedSession();
+  return Boolean(web?.user?.id);
+}
+
 export async function GET(_request: Request, { params }: RouteContext) {
   try {
     const { fileName } = await params;
-    const decodedFileName = decodeURIComponent(fileName);
-    const fileBuffer = await readUploadedFileBuffer(decodedFileName);
-    const extension = path.extname(decodedFileName).toLowerCase();
-    const downloadName = path.basename(decodedFileName).replace(/"/g, "");
+    let relativePath: string;
+    try {
+      relativePath = safeUploadRelativePath(fileName);
+    } catch {
+      return NextResponse.json(
+        { ok: false, message: "Nom de fichier invalide." },
+        { status: 400 },
+      );
+    }
+
+    const base = path.basename(relativePath).toLowerCase();
+    const extension = path.extname(relativePath).toLowerCase();
+    const isPublicApp = PUBLIC_UPLOAD_BASENAMES.has(base);
+    const isPublicImage = PUBLIC_IMAGE_EXTENSIONS.has(extension);
+
+    if (!isPublicApp && !isPublicImage) {
+      const ok = await hasAuthenticatedViewer();
+      if (!ok) {
+        return NextResponse.json(
+          { ok: false, message: "Authentification requise." },
+          { status: 401 },
+        );
+      }
+    }
+
+    const fileBuffer = await readUploadedFileBuffer(relativePath);
+    const downloadName = path.basename(relativePath).replace(/"/g, "");
     const contentType = CONTENT_TYPES[extension] ?? "application/octet-stream";
     const disposition = FORCE_DOWNLOAD_EXTENSIONS.has(extension)
       ? `attachment; filename="${downloadName}"`
@@ -51,6 +96,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
         "Content-Disposition": disposition,
         "Cache-Control": "no-store, max-age=0",
         "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": "default-src 'none'; sandbox;",
       },
     });
   } catch (error) {

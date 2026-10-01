@@ -27,7 +27,7 @@ export async function GET(_request: Request, context: Ctx) {
     });
     return jsonOk({ count });
   } catch (error) {
-    const status = error instanceof MessagingError ? 400 : 500;
+    const status = error instanceof MessagingError ? error.statusCode : 500;
     return jsonError(
       error instanceof Error ? error.message : "Erreur badge.",
       status,

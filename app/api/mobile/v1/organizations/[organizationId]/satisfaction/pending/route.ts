@@ -1,7 +1,9 @@
 import {
+  getMessagingActorFromSession,
   getMobileSession,
   jsonError,
   jsonOk,
+  mobileErrorStatus,
   requireSession,
 } from "@/lib/mobile/http";
 import {
@@ -19,6 +21,7 @@ export async function GET(_request: Request, context: Ctx) {
     if (!session) return jsonError("Non authentifié.", 401);
 
     const { organizationId } = await context.params;
+    await getMessagingActorFromSession(session, organizationId);
     const userId = session.user.id;
 
     // Rattrapage lazy: on prépare le message bot du mois à la 1re ouverture.
@@ -57,8 +60,10 @@ export async function GET(_request: Request, context: Ctx) {
     });
   } catch (error) {
     return jsonError(
-      error instanceof Error ? error.message : "Erreur satisfaction.",
-      500,
+      error instanceof Error && error.name === "MessagingError"
+        ? error.message
+        : "Erreur satisfaction.",
+      mobileErrorStatus(error),
     );
   }
 }

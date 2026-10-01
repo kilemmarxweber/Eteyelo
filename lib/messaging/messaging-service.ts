@@ -59,9 +59,12 @@ type Actor = {
 };
 
 export class MessagingError extends Error {
-  constructor(message: string) {
+  statusCode: number;
+
+  constructor(message: string, statusCode = 400) {
     super(message);
     this.name = "MessagingError";
+    this.statusCode = statusCode;
   }
 }
 
@@ -89,6 +92,7 @@ function assertCanUse(actor: Actor) {
       actor.messagingEnabled === false
         ? messagingDeniedMessage("disabled")
         : messagingDeniedMessage("read"),
+      403,
     );
   }
 }
@@ -99,6 +103,7 @@ function assertCanSend(actor: Actor) {
       actor.messagingEnabled === false
         ? messagingDeniedMessage("disabled")
         : messagingDeniedMessage("send"),
+      403,
     );
   }
 }
@@ -144,7 +149,7 @@ function contextHref(params: {
 }
 
 /** Bloque les réponses humaines aux fils du bot notifications école. */
-async function assertConversationAllowsHumanReply(
+export async function assertConversationAllowsHumanReply(
   conversationId: string,
   actorUserId: string,
 ) {
@@ -321,7 +326,8 @@ async function loadRecipientMap(
       memberId: member.id,
       name: formatMessagingPersonName(member.user),
       image: member.user.image,
-      telephone: member.user.telephone ?? null,
+      // Pas de téléphone en cache destinataires (évite fuite vers clients).
+      telephone: null,
       prenom: member.user.prenom ?? null,
       role: member.role,
       roleLabel: orgRoleLabel(member.role.split(",")[0] ?? member.role),
@@ -495,7 +501,8 @@ export async function searchMessagingRecipients(params: {
     memberId: member.id,
     name: formatMessagingPersonName(member.user),
     image: member.user.image,
-    telephone: member.user.telephone ?? null,
+    // Recherche serveur OK ; ne pas exposer le E.164 complet au client.
+    telephone: null,
     prenom: member.user.prenom ?? null,
     role: member.role,
     roleLabel: orgRoleLabel(member.role.split(",")[0] ?? member.role),
@@ -616,7 +623,9 @@ export async function createConversation(params: {
   contextId?: string | null;
 }) {
   assertCanSend(params.actor);
-  const body = sanitizeMessageBody(params.body);
+  const body = sanitizeMessageBody(params.body, {
+    allowStructured: Boolean(params.actor.skipRateLimit),
+  });
   if (!body) throw new MessagingError("Le message ne peut pas être vide.");
   if (body.length > MESSAGING_MAX_BODY_LENGTH) {
     throw new MessagingError(
@@ -808,7 +817,11 @@ export async function createGroup(params: {
     params.actor.userId,
   );
 
-  const body = params.body ? sanitizeMessageBody(params.body) : "";
+  const body = params.body
+    ? sanitizeMessageBody(params.body, {
+        allowStructured: Boolean(params.actor.skipRateLimit),
+      })
+    : "";
   if (body.length > MESSAGING_MAX_BODY_LENGTH) {
     throw new MessagingError(
       `Le message ne peut pas dépasser ${MESSAGING_MAX_BODY_LENGTH} caractères.`,
@@ -1005,7 +1018,9 @@ export async function sendMessage(params: {
   clientMessageId?: string | null;
 }) {
   assertCanSend(params.actor);
-  const body = sanitizeMessageBody(params.body);
+  const body = sanitizeMessageBody(params.body, {
+    allowStructured: Boolean(params.actor.skipRateLimit),
+  });
   if (!body) throw new MessagingError("Le message ne peut pas être vide.");
   if (body.length > MESSAGING_MAX_BODY_LENGTH) {
     throw new MessagingError(
@@ -1132,7 +1147,8 @@ export async function editMessage(params: {
   conversationId?: string | null;
 }) {
   assertCanSend(params.actor);
-  const body = sanitizeMessageBody(params.body);
+  // Édition client uniquement — jamais de payload structuré injecté.
+  const body = sanitizeMessageBody(params.body, { allowStructured: false });
   if (!body) throw new MessagingError("Le message ne peut pas être vide.");
   if (body.length > MESSAGING_MAX_BODY_LENGTH) {
     throw new MessagingError(
@@ -1163,6 +1179,12 @@ export async function editMessage(params: {
     throw new MessagingError("Vous ne pouvez modifier que vos propres messages.");
   }
   if (message.body.startsWith("__CALL__:")) {
+    throw new MessagingError("Ce message système ne peut pas être modifié.");
+  }
+  if (
+    message.body.startsWith("__NOTIFY__:") ||
+    message.body.startsWith("__SATISFACTION__:")
+  ) {
     throw new MessagingError("Ce message système ne peut pas être modifié.");
   }
   await getParticipantOrThrow(
@@ -1422,7 +1444,7 @@ export async function listMyConversations(params: {
         userId: p.userId,
         name: mapped?.name ?? formatMessagingPersonName(p.user),
         image: mapped?.image ?? p.user.image,
-        telephone: mapped?.telephone ?? p.user.telephone ?? null,
+        telephone: null,
         prenom: mapped?.prenom ?? p.user.prenom ?? null,
         roleLabel: mapped?.roleLabel ?? "",
         groupRole: row.type === "GROUP" ? groupRole : undefined,
@@ -1452,18 +1474,28 @@ export async function listMyConversations(params: {
         ? participants.filter((p) => p.groupRole === "ADMIN").length
         : 0;
 
+    const canSeeAdminContext = canCreateGroup({
+      appRole: params.actor.appRole,
+      memberRole: params.actor.memberRole,
+      memberArchived: params.actor.memberArchived,
+      userBanned: params.actor.userBanned,
+      organizationMessagingEnabled: params.actor.messagingEnabled,
+    });
+
     const item: ConversationListItem = {
       id: row.id,
       type: row.type,
       subject: row.subject,
-      contextType: row.contextType,
-      contextId: row.contextId,
-      contextHref: contextHref({
-        organizationId: params.organizationId,
-        contextType: row.contextType,
-        contextId: row.contextId,
-        sourceBranchId: row.sourceBranchId,
-      }),
+      contextType: canSeeAdminContext ? row.contextType : null,
+      contextId: canSeeAdminContext ? row.contextId : null,
+      contextHref: canSeeAdminContext
+        ? contextHref({
+            organizationId: params.organizationId,
+            contextType: row.contextType,
+            contextId: row.contextId,
+            sourceBranchId: row.sourceBranchId,
+          })
+        : null,
       updatedAt: row.updatedAt.toISOString(),
       lastMessage: last
         ? {
@@ -1924,7 +1956,7 @@ export async function getGroupSettings(params: {
       userId: p.userId,
       name: mapped?.name ?? "Membre",
       image: mapped?.image ?? null,
-      telephone: mapped?.telephone ?? null,
+      telephone: null,
       roleLabel: mapped?.roleLabel ?? "",
       groupRole,
       isCreator: p.userId === ctx.conversation.createdById,

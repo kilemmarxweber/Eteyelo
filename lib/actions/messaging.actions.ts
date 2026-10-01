@@ -97,7 +97,15 @@ export const createConversationAction = action
     z.object({
       organizationId: organizationIdSchema,
       recipientIds: z.array(z.string().min(1)).max(MESSAGING_MAX_RECIPIENTS).default([]),
-      body: z.string().min(1).max(MESSAGING_MAX_BODY_LENGTH + 50),
+      body: z
+        .string()
+        .min(1)
+        .max(MESSAGING_MAX_BODY_LENGTH + 50)
+        .refine(
+          (value) =>
+            !/^(?:__CALL__:|__NOTIFY__:|__SATISFACTION__:)/i.test(value.trim()),
+          "Préfixe système non autorisé.",
+        ),
       subject: z.string().max(MESSAGING_MAX_SUBJECT_LENGTH).optional().nullable(),
       clientMessageId: z.string().max(80).optional().nullable(),
       contextType: z
@@ -141,7 +149,14 @@ export const createGroupAction = action
         .string()
         .max(MESSAGING_MAX_BODY_LENGTH + 50)
         .optional()
-        .nullable(),
+        .nullable()
+        .refine(
+          (value) =>
+            value == null ||
+            value === "" ||
+            !/^(?:__CALL__:|__NOTIFY__:|__SATISFACTION__:)/i.test(value.trim()),
+          "Préfixe système non autorisé.",
+        ),
       clientMessageId: z.string().max(80).optional().nullable(),
     }),
   )
@@ -208,7 +223,15 @@ export const sendMessageAction = action
     z.object({
       organizationId: organizationIdSchema,
       conversationId: conversationIdSchema,
-      body: z.string().min(1).max(MESSAGING_MAX_BODY_LENGTH + 50),
+      body: z
+        .string()
+        .min(1)
+        .max(MESSAGING_MAX_BODY_LENGTH + 50)
+        .refine(
+          (value) =>
+            !/^(?:__CALL__:|__NOTIFY__:|__SATISFACTION__:)/i.test(value.trim()),
+          "Préfixe système non autorisé.",
+        ),
       replyToId: z.string().min(1).optional().nullable(),
       clientMessageId: z.string().max(80).optional().nullable(),
     }),

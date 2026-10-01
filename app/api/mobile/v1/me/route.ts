@@ -7,6 +7,12 @@ import {
 } from "@/lib/mobile/http";
 import { prisma } from "@/lib/prisma";
 import { saveUploadedFile } from "@/lib/upload-file.server";
+import {
+  mobileLocalUploadUrlSchema,
+  mobileMePatchJsonSchema,
+  mobileProfileNameSchema,
+  zodErrorMessage,
+} from "@/lib/mobile/messaging-schemas";
 
 export const runtime = "nodejs";
 
@@ -18,6 +24,12 @@ async function slideSession(token: string) {
     where: { token },
     data: { expiresAt: new Date(Date.now() + SESSION_SLIDE_MS) },
   });
+}
+
+function sanitizeOptionalName(value: unknown) {
+  if (value == null || value === "") return undefined;
+  const parsed = mobileProfileNameSchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
 }
 
 export async function GET() {
@@ -43,31 +55,59 @@ export async function PATCH(request: Request) {
     const contentType = request.headers.get("content-type") ?? "";
     const data: {
       name?: string;
-      prenom?: string;
-      postnom?: string;
+      prenom?: string | null;
+      postnom?: string | null;
       image?: string;
       activeOrganizationId?: string;
     } = {};
 
     if (contentType.includes("multipart/form-data")) {
       const form = await request.formData();
-      const name = String(form.get("name") ?? "").trim();
-      const prenom = String(form.get("prenom") ?? "").trim();
-      const postnom = String(form.get("postnom") ?? "").trim();
+      const name = sanitizeOptionalName(String(form.get("name") ?? "").trim());
+      const prenom = sanitizeOptionalName(
+        String(form.get("prenom") ?? "").trim(),
+      );
+      const postnom = sanitizeOptionalName(
+        String(form.get("postnom") ?? "").trim(),
+      );
+      if (name === null || prenom === null || postnom === null) {
+        return jsonError("Caractères non autorisés dans le nom.", 400);
+      }
       const activeOrganizationId = String(
         form.get("activeOrganizationId") ?? "",
       ).trim();
       if (name) data.name = name;
-      if (prenom) data.prenom = prenom;
-      if (postnom) data.postnom = postnom;
-      if (activeOrganizationId) data.activeOrganizationId = activeOrganizationId;
+      if (prenom !== undefined) data.prenom = prenom;
+      if (postnom !== undefined) data.postnom = postnom;
+      if (activeOrganizationId) {
+        if (!/^[a-zA-Z0-9_-]{1,64}$/.test(activeOrganizationId)) {
+          return jsonError("Organisation invalide.", 400);
+        }
+        data.activeOrganizationId = activeOrganizationId;
+      }
       const file = form.get("image");
       if (file instanceof File && file.size > 0) {
         const saved = await saveUploadedFile(file);
         data.image = saved.url;
       }
     } else {
-      Object.assign(data, await request.json());
+      let raw: unknown;
+      try {
+        raw = await request.json();
+      } catch {
+        return jsonError("Corps JSON invalide.", 400);
+      }
+      const parsed = mobileMePatchJsonSchema.safeParse(raw);
+      if (!parsed.success) {
+        return jsonError(zodErrorMessage(parsed.error), 400);
+      }
+      Object.assign(data, parsed.data);
+      if (data.image) {
+        const img = mobileLocalUploadUrlSchema.safeParse(data.image);
+        if (!img.success) {
+          return jsonError("URL image non autorisée.", 400);
+        }
+      }
     }
 
     if (data.activeOrganizationId) {
@@ -91,14 +131,24 @@ export async function PATCH(request: Request) {
 
     const userUpdate: {
       name?: string;
-      prenom?: string;
-      postnom?: string;
+      prenom?: string | null;
+      postnom?: string | null;
       image?: string;
     } = {};
     if (data.name) userUpdate.name = data.name;
-    if (data.prenom !== undefined) userUpdate.prenom = data.prenom;
-    if (data.postnom !== undefined) userUpdate.postnom = data.postnom;
-    if (data.image) userUpdate.image = data.image;
+    if (data.prenom !== undefined) {
+      userUpdate.prenom = data.prenom;
+    }
+    if (data.postnom !== undefined) {
+      userUpdate.postnom = data.postnom;
+    }
+    if (data.image) {
+      const img = mobileLocalUploadUrlSchema.safeParse(data.image);
+      if (!img.success) {
+        return jsonError("URL image non autorisée.", 400);
+      }
+      userUpdate.image = img.data;
+    }
 
     if (Object.keys(userUpdate).length > 0) {
       await prisma.user.update({
