@@ -26,17 +26,22 @@ async function testAsync(name: string, assertion: () => Promise<void>) {
   console.log(`✓ ${name}`);
 }
 
-test("parent et élève éligibles inbox (prérequis deliverSchoolNotify)", () => {
+test("parent éligible inbox ; élève exclu (prérequis deliverSchoolNotify)", () => {
   assert.equal(isMessagingEligibleRole(ORG_ROLE.PARENT), true);
-  assert.equal(isMessagingEligibleRole(ORG_ROLE.STUDENT), true);
+  assert.equal(isMessagingEligibleRole(ORG_ROLE.STUDENT), false);
   assert.equal(
     isEligibleMessagingRecipient({ memberRole: ORG_ROLE.STUDENT }),
+    false,
+  );
+  assert.equal(
+    isEligibleMessagingRecipient({ memberRole: ORG_ROLE.PARENT }),
     true,
   );
   assert.equal(canUseMessaging({ memberRole: ORG_ROLE.PARENT }), true);
+  assert.equal(canUseMessaging({ memberRole: ORG_ROLE.STUDENT }), false);
 });
 
-test("DAC parent/élève expose messaging read+send", () => {
+test("DAC parent expose messaging read+send ; élève aussi en DAC (runtime exclut)", () => {
   assert.deepEqual(organizationRoleStatements[ORG_ROLE.PARENT].messaging, [
     "read",
     "send",
