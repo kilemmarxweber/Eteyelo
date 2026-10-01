@@ -19,18 +19,17 @@ function test(name: string, assertion: () => void) {
   console.log(`✓ ${name}`);
 }
 
-test("tous les membres (élèves inclus) peuvent utiliser l'inbox", () => {
-  assert.equal(isMessagingEligibleRole(ORG_ROLE.STUDENT), true);
+test("élèves exclus ; parents autorisés (mobile Klambo)", () => {
+  assert.equal(isMessagingEligibleRole(ORG_ROLE.STUDENT), false);
   assert.equal(isMessagingEligibleRole(ORG_ROLE.PARENT), true);
   assert.equal(
     canUseMessaging({ memberRole: ORG_ROLE.STUDENT, appRole: APP_ROLE.USER }),
-    true,
+    false,
   );
   assert.equal(
     canUseMessaging({ memberRole: ORG_ROLE.PARENT, appRole: APP_ROLE.USER }),
     true,
   );
-  assert.equal(canSendMessages({ memberRole: ORG_ROLE.STUDENT }), true);
 });
 
 test("enseignants, direction, personnel et parents peuvent lire et envoyer", () => {
@@ -41,18 +40,11 @@ test("enseignants, direction, personnel et parents peuvent lire et envoyer", () 
     ORG_ROLE.CAISSIER,
     ORG_ROLE.OWNER,
     ORG_ROLE.PARENT,
-    ORG_ROLE.STUDENT,
   ]) {
     assert.equal(canUseMessaging({ memberRole: role }), true, role);
     assert.equal(canSendMessages({ memberRole: role }), true, role);
+    assert.equal(canCreateGroup({ memberRole: role }), true, role);
   }
-});
-
-test("groupes : staff oui ; parent et élève non", () => {
-  assert.equal(canCreateGroup({ memberRole: ORG_ROLE.TEACHER }), true);
-  assert.equal(canCreateGroup({ memberRole: ORG_ROLE.OWNER }), true);
-  assert.equal(canCreateGroup({ memberRole: ORG_ROLE.PARENT }), false);
-  assert.equal(canCreateGroup({ memberRole: ORG_ROLE.STUDENT }), false);
 });
 
 test("isolation : un membre archivé ou banni ne peut pas envoyer", () => {
