@@ -63,7 +63,7 @@ async function buildAppDownload(
   const qrDataUrl = available
     ? await QRCode.toDataURL(absoluteDownloadUrl, {
         margin: 1,
-        width: 360,
+        width: 512,
         errorCorrectionLevel: "M",
       })
     : null;

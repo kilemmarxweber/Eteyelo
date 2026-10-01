@@ -128,13 +128,13 @@ export function KlamboAppDownloadCards({
                 </div>
               </div>
 
-              <div className="mt-6 flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-4">
+              <div className="mt-6 flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-3 sm:p-4">
                 {app.available && app.qrDataUrl ? (
                   <>
                     <button
                       type="button"
                       onClick={() => setZoomed(app)}
-                      className="group relative rounded-xl p-2 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-950"
+                      className="group relative w-full max-w-[180px] rounded-xl p-1.5 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-950 sm:p-2"
                       aria-label={`Agrandir le QR code ${app.title}`}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -143,9 +143,9 @@ export function KlamboAppDownloadCards({
                         alt={`QR code telechargement Klambo ${app.title}`}
                         width={180}
                         height={180}
-                        className="size-[180px]"
+                        className="aspect-square h-auto w-full object-contain"
                       />
-                      <span className="absolute inset-x-0 bottom-2 mx-auto flex w-fit items-center gap-1 rounded-full bg-blue-950/90 px-2.5 py-1 text-[10px] font-medium text-white opacity-0 transition group-hover:opacity-100">
+                      <span className="absolute inset-x-0 bottom-2 mx-auto flex w-fit items-center gap-1 rounded-full bg-blue-950/90 px-2.5 py-1 text-[10px] font-medium text-white opacity-90 transition sm:opacity-0 sm:group-hover:opacity-100">
                         <ZoomIn className="size-3" />
                         Agrandir
                       </span>
@@ -208,35 +208,43 @@ export function KlamboAppDownloadCards({
           if (!open) setZoomed(null);
         }}
       >
-        <DialogContent size="md" className="sm:max-w-lg">
+        <DialogContent
+          size="sm"
+          className="gap-3 overflow-y-auto p-4 sm:max-w-md sm:gap-4 sm:p-6"
+        >
           {zoomed ? (
             <>
-              <DialogHeader>
-                <DialogTitle>{solutionTitle(zoomed)}</DialogTitle>
-                <DialogDescription>
+              <DialogHeader className="pr-8 text-left">
+                <DialogTitle className="text-base leading-snug sm:text-lg">
+                  {solutionTitle(zoomed)}
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm">
                   Scannez ce code QR pour telecharger l&apos;application{" "}
                   {zoomed.title}.
                 </DialogDescription>
               </DialogHeader>
-              <div className="flex flex-col items-center gap-4 py-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={zoomed.qrDataUrl ?? undefined}
-                  alt={`QR code agrandi Klambo ${zoomed.title}`}
-                  width={360}
-                  height={360}
-                  className="size-[min(72vw,360px)] rounded-xl bg-white p-3 shadow-sm"
-                />
-                <p className="font-mono text-xs text-slate-500">
+              <div className="flex min-w-0 flex-col items-center gap-3 py-1 sm:gap-4">
+                <div className="mx-auto flex size-[min(100%,20rem,calc(100dvh-14rem),calc(100vw-4rem))] shrink-0 items-center justify-center rounded-xl bg-white p-2 shadow-sm ring-1 ring-slate-200 sm:p-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={zoomed.qrDataUrl ?? undefined}
+                    alt={`QR code agrandi Klambo ${zoomed.title}`}
+                    width={512}
+                    height={512}
+                    className="h-full w-full object-contain"
+                    decoding="async"
+                  />
+                </div>
+                <p className="max-w-full break-all px-1 text-center font-mono text-[11px] text-slate-500 sm:text-xs">
                   {zoomed.fileName}
                 </p>
                 <Button
                   type="button"
-                  className="rounded-full bg-blue-950 text-white hover:bg-blue-900"
+                  className="w-full max-w-xs rounded-full bg-blue-950 text-white hover:bg-blue-900 sm:w-auto"
                   disabled={isExporting(zoomed.id)}
                   onClick={() => void handleExportPdf(zoomed)}
                 >
-                  <FileDown className="mr-2 size-4" />
+                  <FileDown className="mr-2 size-4 shrink-0" />
                   {isExporting(zoomed.id)
                     ? "Generation…"
                     : "Generer le PDF"}

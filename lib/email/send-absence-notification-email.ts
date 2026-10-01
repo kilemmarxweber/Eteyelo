@@ -234,6 +234,7 @@ export async function sendAbsenceLifecycleEmail(input: {
     note: selected.note,
     ctaLabel: selected.cta,
     organizationId: input.organizationId,
+    branchId: input.branchId,
     locale,
     schoolLabel,
     kind: input.kind,

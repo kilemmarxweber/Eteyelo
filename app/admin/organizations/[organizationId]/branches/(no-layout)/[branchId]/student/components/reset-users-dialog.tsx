@@ -82,7 +82,7 @@ export function ResetUsersDialog({
               }
               if (res.notifyQueued) {
                 toast.success(
-                  "Mot de passe réinitialisé — envoi email / Klambo Inbox en cours.",
+                  `Mot de passe réinitialisé — envoi email / ${mobileChannelLabel(res.mobileChannel)} en cours.`,
                 );
               } else if (res.whatsappSent) {
                 toast.success(

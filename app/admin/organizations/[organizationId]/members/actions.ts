@@ -1468,6 +1468,15 @@ export async function resetUserPasswordAction(
           consumeAdminCreatedUserPlainPassword(email);
         });
 
+      const {
+        getWhatsAppRuntimeConfig,
+        isInboxProvider,
+      } = await import("@/lib/whatsapp-settings");
+      const config = await getWhatsAppRuntimeConfig(organizationId);
+      const mobileChannel = isInboxProvider(config.provider)
+        ? ("klambo" as const)
+        : ("whatsapp" as const);
+
       return {
         ok: true as const,
         whatsappSent: false,
@@ -1475,6 +1484,7 @@ export async function resetUserPasswordAction(
         notifyQueued: true,
         whatsappError:
           "Notification en cours. Vérifiez email / Klambo Inbox.",
+        mobileChannel,
       };
     }
 
