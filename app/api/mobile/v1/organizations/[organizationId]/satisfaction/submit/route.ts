@@ -18,7 +18,6 @@ export async function POST(request: Request, context: Ctx) {
     if (!session) return jsonError("Non authentifié.", 401);
 
     const { organizationId } = await context.params;
-    await getMessagingActorFromSession(session, organizationId);
 
     const body = (await request.json()) as {
       branchId?: string;
@@ -28,6 +27,8 @@ export async function POST(request: Request, context: Ctx) {
     if (!body.branchId?.trim()) {
       return jsonError("Branche manquante.", 400);
     }
+
+    await getMessagingActorFromSession(session, organizationId);
 
     const result = await submitParentSatisfaction({
       userId: session.user.id,
@@ -48,7 +49,9 @@ export async function POST(request: Request, context: Ctx) {
     });
   } catch (error) {
     return jsonError(
-      error instanceof Error ? error.message : "Soumission impossible.",
+      error instanceof Error && error.name === "MessagingError"
+        ? error.message
+        : "Soumission impossible.",
       mobileErrorStatus(error),
     );
   }
