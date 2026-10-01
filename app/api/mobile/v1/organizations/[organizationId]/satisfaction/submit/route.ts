@@ -1,9 +1,7 @@
 import {
-  getMessagingActorFromSession,
   getMobileSession,
   jsonError,
   jsonOk,
-  mobileErrorStatus,
   requireSession,
 } from "@/lib/mobile/http";
 import { submitParentSatisfaction } from "@/lib/satisfaction/parent-satisfaction";
@@ -23,7 +21,6 @@ export async function POST(request: Request, context: Ctx) {
       comment?: string | null;
     };
     const { organizationId } = await context.params;
-    await getMessagingActorFromSession(session, organizationId);
     if (!body.branchId?.trim()) {
       return jsonError("Branche manquante.", 400);
     }
@@ -47,10 +44,8 @@ export async function POST(request: Request, context: Ctx) {
     });
   } catch (error) {
     return jsonError(
-      error instanceof Error && error.name === "MessagingError"
-        ? error.message
-        : "Soumission impossible.",
-      mobileErrorStatus(error),
+      error instanceof Error ? error.message : "Soumission impossible.",
+      500,
     );
   }
 }

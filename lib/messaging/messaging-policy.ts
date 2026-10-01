@@ -58,8 +58,7 @@ export function isMessagingEligibleRole(
     ...splitOrgRoles(memberRole),
     ...extraRoles.map((role) => role.trim().toLowerCase()).filter(Boolean),
   ];
-  // Rôle vide = pas d'accès (avant : true, donc membre sans rôle = inbox ouverte).
-  if (roles.length === 0) return false;
+  if (roles.length === 0) return true;
   if (roles.every((role) => MESSAGING_EXCLUDED_ROLES.has(role))) return false;
   return true;
 }
@@ -98,7 +97,7 @@ export function canCreateGroup(params: {
   if (!canSendMessages(params)) return false;
   if (isPlatformOwnerRole(params.appRole)) return true;
   const roles = splitOrgRoles(params.memberRole);
-  if (roles.length === 0) return false;
+  if (roles.length === 0) return true;
   return roles.some((role) => MESSAGING_GROUP_ROLES.has(role));
 }
 
