@@ -1,7 +1,8 @@
 /**
  * Politique messagerie (web + mobile Klambo)
  *
- * - Tous les membres actifs : read + send (y compris parents et élèves).
+ * - Membres actifs hors élèves : read + send (parents inclus — app mobile).
+ * - Élèves exclus de l'inbox.
  * - Groupes : staff / direction / owner (pas parent ni élève).
  * - Nettoyage global : propriétaire uniquement.
  * - Compte désactivé / archivé : pas d'accès.
@@ -10,8 +11,8 @@
 
 import { isPlatformOwnerRole, ORG_ROLE } from "@/lib/permissions";
 
-/** Aucun rôle membre n'est exclu de l'inbox (Klambo pour tous). */
-export const MESSAGING_EXCLUDED_ROLES = new Set<string>([]);
+/** Élèves exclus de l'inbox (parents autorisés pour Klambo mobile). */
+export const MESSAGING_EXCLUDED_ROLES = new Set<string>([ORG_ROLE.STUDENT]);
 
 export const MESSAGING_PARENT_ROLES = new Set<string>([ORG_ROLE.PARENT]);
 
@@ -34,11 +35,10 @@ export const MESSAGING_GROUP_ROLES = new Set<string>([
   "teacher_titulaire",
 ]);
 
-/** @deprecated Utiliser l'éligibilité universelle + MESSAGING_GROUP_ROLES. */
+/** @deprecated Utiliser l'éligibilité + MESSAGING_GROUP_ROLES. */
 export const MESSAGING_STAFF_ROLES = new Set<string>([
   ...MESSAGING_GROUP_ROLES,
   ORG_ROLE.PARENT,
-  ORG_ROLE.STUDENT,
 ]);
 
 export type MessagingAction = "read" | "send" | "group" | "manage" | "disabled";

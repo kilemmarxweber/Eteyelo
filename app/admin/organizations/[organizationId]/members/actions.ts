@@ -25,6 +25,7 @@ import {
   type UpdateOrgMemberInput,
 } from "./schema";
 import { sendResetPasswordEmail } from "@/lib/email/send-reset-password-email";
+import { mobileChannelLabel } from "@/lib/notify/mobile-channel-label";
 import { createUserForOrganizationMember } from "@/lib/auth/create-organization-user";
 import { guardOrganizationMemberPermission } from "@/lib/auth/has-organization-permission";
 import {
@@ -1482,8 +1483,7 @@ export async function resetUserPasswordAction(
         whatsappSent: false,
         hasPhone,
         notifyQueued: true,
-        whatsappError:
-          "Notification en cours. Vérifiez email / Klambo Inbox.",
+        whatsappError: `Notification en cours. Vérifiez email / ${mobileChannelLabel(mobileChannel)}.`,
         mobileChannel,
       };
     }

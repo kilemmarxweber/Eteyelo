@@ -43,8 +43,21 @@ test("enseignants, direction, personnel et parents peuvent lire et envoyer", () 
   ]) {
     assert.equal(canUseMessaging({ memberRole: role }), true, role);
     assert.equal(canSendMessages({ memberRole: role }), true, role);
+  }
+});
+
+test("création de groupe : staff oui, parent et élève non", () => {
+  for (const role of [
+    ORG_ROLE.TEACHER,
+    ORG_ROLE.DIRECTEUR,
+    ORG_ROLE.GESTIONNAIRE,
+    ORG_ROLE.CAISSIER,
+    ORG_ROLE.OWNER,
+  ]) {
     assert.equal(canCreateGroup({ memberRole: role }), true, role);
   }
+  assert.equal(canCreateGroup({ memberRole: ORG_ROLE.PARENT }), false);
+  assert.equal(canCreateGroup({ memberRole: ORG_ROLE.STUDENT }), false);
 });
 
 test("isolation : un membre archivé ou banni ne peut pas envoyer", () => {
