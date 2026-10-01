@@ -128,6 +128,7 @@ export async function buildMePayload(session: MobileSession) {
       id: user.id,
       name: formatMessagingPersonName(user),
       prenom: user.prenom,
+      postnom: user.postnom,
       image: user.image,
       telephone: user.telephone,
     },
