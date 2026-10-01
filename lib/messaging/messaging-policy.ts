@@ -2,7 +2,6 @@
  * Politique messagerie (web + mobile Klambo)
  *
  * - Membres actifs hors élèves : read + send (parents inclus — app mobile).
- * - Rôle membre vide ou absent : pas d'accès (un rôle explicite est requis).
  * - Élèves exclus de l'inbox.
  * - Groupes : staff / direction / owner (pas parent ni élève).
  * - Nettoyage global : propriétaire uniquement.
@@ -59,8 +58,8 @@ export function isMessagingEligibleRole(
     ...splitOrgRoles(memberRole),
     ...extraRoles.map((role) => role.trim().toLowerCase()).filter(Boolean),
   ];
-  // Rôle vide = pas d'accès. Un rôle explicite (member, admin, staff…) est requis.
-  if (roles.length === 0) return false;
+  // Rôle vide = éligible (membre Better Auth sans rôle explicite).
+  if (roles.length === 0) return true;
   if (roles.every((role) => MESSAGING_EXCLUDED_ROLES.has(role))) return false;
   return true;
 }
@@ -99,7 +98,7 @@ export function canCreateGroup(params: {
   if (!canSendMessages(params)) return false;
   if (isPlatformOwnerRole(params.appRole)) return true;
   const roles = splitOrgRoles(params.memberRole);
-  if (roles.length === 0) return false;
+  if (roles.length === 0) return true;
   return roles.some((role) => MESSAGING_GROUP_ROLES.has(role));
 }
 
