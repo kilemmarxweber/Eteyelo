@@ -32,7 +32,9 @@ async function countRecentOtpRequests(phoneE164: string) {
 
 async function sendOtpMessage(phoneE164: string, code: string) {
   const apiKey = process.env.MESSAGING_API_KEY?.trim();
-  const baseUrl = process.env.MESSAGING_API_BASE_URL?.trim();
+  const baseUrl =
+    process.env.MESSAGING_API_BASE_URL?.trim() ||
+    "https://whatsapp-api.klambocore.com";
   // sms (défaut) | whatsapp | auto (SMS puis WA)
   const preferred =
     process.env.MESSAGING_OTP_CHANNEL?.trim().toLowerCase() || "sms";
@@ -45,9 +47,15 @@ async function sendOtpMessage(phoneE164: string, code: string) {
     return { channel: "dev" as const };
   }
 
+  const keyKind = apiKey.startsWith("sk_live_")
+    ? "sk_live"
+    : apiKey.startsWith("sk_test_")
+      ? "sk_test"
+      : `other(${apiKey.slice(0, 8)}…)`;
+
   const client = new MessagingClient({
     apiKey,
-    baseUrl: baseUrl || undefined,
+    baseUrl,
   });
 
   const text = `Klambo Messagerie : votre code est ${code}. Valide 5 minutes.`;
@@ -93,7 +101,9 @@ async function sendOtpMessage(phoneE164: string, code: string) {
   } catch (smsError) {
     const detail =
       smsError instanceof Error ? smsError.message : String(smsError);
-    console.error("[mobile-otp] SMS send failed", detail);
+    console.error(
+      `[mobile-otp] SMS send failed ${detail} | baseUrl=${baseUrl} key=${keyKind}`,
+    );
     // En local (expose code), on continue pour préremplir l'OTP dans l'app
     if (shouldExposeOtpCode()) {
       console.warn("[mobile-otp] Fallback DEV après échec SMS");

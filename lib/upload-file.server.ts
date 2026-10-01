@@ -94,6 +94,9 @@ function publicUploadsDirectory(): string {
 function addUniqueDir(dirs: string[], value?: string | null) {
   const trimmed = value?.trim();
   if (!trimmed) return;
+  // Sur Linux, un chemin Windows (C:\…) n’est pas absolu → path.resolve le
+  // colle sous cwd (/var/www/Eteyelo/C:\…). On ignore ces chemins hors win32.
+  if (process.platform !== "win32" && isWindowsDrivePath(trimmed)) return;
   const resolved = path.resolve(trimmed);
   if (!dirs.includes(resolved)) dirs.push(resolved);
 }
@@ -125,9 +128,12 @@ export function getUploadDirectory(): string {
 export function listUploadDirectories(): string[] {
   const dirs: string[] = [];
   addUniqueDir(dirs, getUploadDirectory());
-  addUniqueDir(dirs, LINUX_UPLOAD_DIRECTORY);
-  addUniqueDir(dirs, WINDOWS_UPLOAD_DIRECTORY);
-  addUniqueDir(dirs, "C:/eteyelo-uploads");
+  if (process.platform === "win32") {
+    addUniqueDir(dirs, WINDOWS_UPLOAD_DIRECTORY);
+    addUniqueDir(dirs, "C:/eteyelo-uploads");
+  } else {
+    addUniqueDir(dirs, LINUX_UPLOAD_DIRECTORY);
+  }
   addUniqueDir(dirs, runtimeEnv("UPLOAD_DIR"));
   addUniqueDir(dirs, publicUploadsDirectory());
   addUniqueDir(dirs, path.join(process.cwd(), "..", "public", "uploads"));
