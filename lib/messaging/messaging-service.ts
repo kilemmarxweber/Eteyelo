@@ -1422,9 +1422,6 @@ export async function listMyConversations(params: {
   });
 
   const items: ConversationListItem[] = [];
-  // Identifiants de contexte (ex. dossier d'absence) : staff uniquement.
-  // Calculé une fois — ne dépend que de l'acteur, pas de chaque conversation.
-  const canSeeAdminContext = canCreateGroup(actorPolicy(params.actor));
   for (const row of rows) {
     const me = row.participants.find((p) => p.userId === params.actor.userId);
     if (!me) continue;
@@ -1476,6 +1473,14 @@ export async function listMyConversations(params: {
       row.type === "GROUP"
         ? participants.filter((p) => p.groupRole === "ADMIN").length
         : 0;
+
+    const canSeeAdminContext = canCreateGroup({
+      appRole: params.actor.appRole,
+      memberRole: params.actor.memberRole,
+      memberArchived: params.actor.memberArchived,
+      userBanned: params.actor.userBanned,
+      organizationMessagingEnabled: params.actor.messagingEnabled,
+    });
 
     const item: ConversationListItem = {
       id: row.id,

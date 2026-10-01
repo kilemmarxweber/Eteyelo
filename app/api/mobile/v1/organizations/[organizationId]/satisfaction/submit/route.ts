@@ -4,10 +4,10 @@ import {
   jsonError,
   jsonOk,
   mobileErrorStatus,
+  jsonOk,
+  mobileErrorStatus,
   requireSession,
 } from "@/lib/mobile/http";
-import { splitOrgRoles } from "@/lib/messaging/messaging-policy";
-import { ORG_ROLE } from "@/lib/permissions";
 import { submitParentSatisfaction } from "@/lib/satisfaction/parent-satisfaction";
 
 export const runtime = "nodejs";
@@ -19,20 +19,15 @@ export async function POST(request: Request, context: Ctx) {
     const session = requireSession(await getMobileSession());
     if (!session) return jsonError("Non authentifié.", 401);
 
-    const { organizationId } = await context.params;
-
     const body = (await request.json()) as {
       branchId?: string;
       rating?: number;
       comment?: string | null;
+    await getMessagingActorFromSession(session, organizationId);
     };
+    const { organizationId } = await context.params;
     if (!body.branchId?.trim()) {
       return jsonError("Branche manquante.", 400);
-    }
-
-    const actor = await getMessagingActorFromSession(session, organizationId);
-    if (!splitOrgRoles(actor.memberRole).includes(ORG_ROLE.PARENT)) {
-      return jsonError("La satisfaction est réservée aux parents.", 403);
     }
 
     const result = await submitParentSatisfaction({
@@ -52,12 +47,39 @@ export async function POST(request: Request, context: Ctx) {
     return jsonOk({
       feedback: result.data,
     });
-  } catch (error) {
-    return jsonError(
       error instanceof Error && error.name === "MessagingError"
         ? error.message
         : "Soumission impossible.",
       mobileErrorStatus(error),
+    return jsonOk({
+      feedback: result.data,
+    });
+      error instanceof Error && error.name === "MessagingError"
+        ? error.message
+        : "Soumission impossible.",
+      mobileErrorStatus(error),
+      error instanceof Error ? error.message : "Soumission impossible.",
+      500,
+      error instanceof Error && error.name === "MessagingError"
+        ? error.message
+        : "Soumission impossible.",
+      mobileErrorStatus(error),
+      error instanceof Error ? error.message : "Soumission impossible.",
+      500,
+      feedback: result.data,
+    });
+      error instanceof Error && error.name === "MessagingError"
+        ? error.message
+        : "Soumission impossible.",
+      mobileErrorStatus(error),
+      error instanceof Error ? error.message : "Soumission impossible.",
+      500,
+      error instanceof Error && error.name === "MessagingError"
+        ? error.message
+        : "Soumission impossible.",
+      mobileErrorStatus(error),
+      error instanceof Error ? error.message : "Soumission impossible.",
+      500,
     );
   }
 }
