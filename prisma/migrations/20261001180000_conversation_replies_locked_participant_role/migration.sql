@@ -1,4 +1,4 @@
-﻿-- Group messaging: lock replies + participant roles (schema had fields without migration).
+-- Group messaging: lock replies + participant roles (schema had fields without migration).
 
 ALTER TABLE "Conversation"
   ADD COLUMN IF NOT EXISTS "repliesLocked" BOOLEAN NOT NULL DEFAULT false;
