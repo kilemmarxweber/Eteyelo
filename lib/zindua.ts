@@ -535,14 +535,13 @@ export async function sendNewUserCredentialsWhatsApp(options: {
   const branchLabel = options.branchName?.trim() || null;
   const brand = branchLabel || APP_NAME;
 
-  const { serializeNotifyCard, notifyCardToWhatsAppParts } = await import(
+  const { prepareNotifyDelivery } = await import(
     "@/lib/notify/notify-message-card"
   );
 
   const hello = formatMessagingHello(t, displayName);
-  const card = {
-    v: 1 as const,
-    tone: "amber" as const,
+  const { parts: waParts, richBody } = prepareNotifyDelivery({
+    tone: "amber",
     brand,
     title: t("accountCreate.title"),
     intro: `${hello} ${t("accountCreate.intro", {
@@ -551,14 +550,18 @@ export async function sendNewUserCredentialsWhatsApp(options: {
     })}`.trim(),
     rows: [
       {
+        label: t("common.role"),
+        value: role,
+      },
+      {
         label: t("common.email"),
         value: options.email,
-        kind: "email" as const,
+        kind: "email",
       },
       {
         label: t("common.temporaryPassword"),
         value: options.temporaryPassword,
-        kind: "secret" as const,
+        kind: "secret",
       },
     ],
     note: t("accountCreate.waSecurity"),
@@ -566,10 +569,7 @@ export async function sendNewUserCredentialsWhatsApp(options: {
       label: t("common.signInKlambo"),
       href: loginUrl,
     },
-  };
-
-  const richBody = serializeNotifyCard(card);
-  const waParts = notifyCardToWhatsAppParts(card);
+  });
 
   try {
     // Inbox Klambo d'abord ; gateway WhatsApp en secours (file + pacing).
@@ -629,14 +629,13 @@ export async function sendResetPasswordWhatsApp(
   const branchLabel = options.branchName?.trim() || null;
   const brand = branchLabel || APP_NAME;
 
-  const { serializeNotifyCard, notifyCardToWhatsAppParts } = await import(
+  const { prepareNotifyDelivery } = await import(
     "@/lib/notify/notify-message-card"
   );
 
   const hello = formatMessagingHello(t, displayName);
-  const card = {
-    v: 1 as const,
-    tone: "amber" as const,
+  const { parts: waParts, richBody } = prepareNotifyDelivery({
+    tone: "amber",
     brand,
     title: t("passwordReset.title"),
     intro: `${hello} ${t("passwordReset.intro", { app: APP_NAME })}`.trim(),
@@ -644,12 +643,12 @@ export async function sendResetPasswordWhatsApp(
       {
         label: t("common.email"),
         value: options.email,
-        kind: "email" as const,
+        kind: "email",
       },
       {
         label: t("common.newPassword"),
         value: options.temporaryPassword,
-        kind: "secret" as const,
+        kind: "secret",
       },
     ],
     note: t("passwordReset.waSecurity"),
@@ -657,10 +656,7 @@ export async function sendResetPasswordWhatsApp(
       label: t("common.signInKlambo"),
       href: loginUrl,
     },
-  };
-
-  const richBody = serializeNotifyCard(card);
-  const waParts = notifyCardToWhatsAppParts(card);
+  });
 
   try {
     const { deliverSchoolNotify } = await import(

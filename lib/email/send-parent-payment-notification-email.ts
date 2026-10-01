@@ -14,10 +14,7 @@ import {
   getSignInUrl,
 } from "./email-layout";
 import { sendTransactionalWhatsApp } from "@/lib/zindua";
-import {
-  notifyCardToWhatsAppParts,
-  serializeNotifyCard,
-} from "@/lib/notify/notify-message-card";
+import { prepareNotifyDelivery } from "@/lib/notify/notify-message-card";
 
 const APP_NAME = DEFAULT_APP_NAME;
 
@@ -115,35 +112,32 @@ export async function sendParentPaymentNotificationEmail(input: {
   }
 
   if (allow.whatsapp && phone) {
-    const card = {
-      v: 1 as const,
-      tone: "emerald" as const,
+    const amountLabel = t("common.amount");
+    const { parts, richBody } = prepareNotifyDelivery({
+      tone: "emerald",
       brand: input.schoolName || APP_NAME,
       title: copy.title,
       intro,
       rows: rows.map((row) => ({
         label: row.label,
         value: row.value,
+        ...(row.label === amountLabel ? { kind: "highlight" as const } : {}),
       })),
       note: t("common.connectHint"),
       cta: {
         label: t("common.openAccount"),
         href: loginUrl,
       },
-    };
+      omitBrandRow: true,
+    });
     await sendTransactionalWhatsApp({
       to: phone,
       organizationId: input.organizationId,
       locale,
       branchId: input.branchId,
       queueKind: "payment",
-      parts: [
-        ...notifyCardToWhatsAppParts(card),
-        t("common.signatureApp", {
-          app: input.schoolName || APP_NAME,
-        }),
-      ],
-      richBody: serializeNotifyCard(card),
+      parts,
+      richBody,
     });
   }
 }

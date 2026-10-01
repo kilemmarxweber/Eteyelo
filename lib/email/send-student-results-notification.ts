@@ -14,10 +14,7 @@ import {
   getSignInUrl,
 } from "./email-layout";
 import { sendTransactionalWhatsApp } from "@/lib/zindua";
-import {
-  notifyCardToWhatsAppParts,
-  serializeNotifyCard,
-} from "@/lib/notify/notify-message-card";
+import { prepareNotifyDelivery } from "@/lib/notify/notify-message-card";
 
 const APP_NAME = DEFAULT_APP_NAME;
 const MAX_SUBJECT_LINES = 8;
@@ -151,9 +148,8 @@ export async function sendStudentResultsNotification(input: {
   let mobileChannel: "klambo" | "whatsapp" | "none" | undefined;
   if (allow.whatsapp && phone) {
     const loginUrl = getSignInUrl();
-    const card = {
-      v: 1 as const,
-      tone: "navy" as const,
+    const { parts, richBody } = prepareNotifyDelivery({
+      tone: "navy",
       brand: input.schoolName || APP_NAME,
       title: t("results.title"),
       intro,
@@ -181,26 +177,23 @@ export async function sendStudentResultsNotification(input: {
         {
           label: t("common.average"),
           value: averageLabel,
+          kind: "highlight" as const,
         },
       ],
       cta: {
         label: t("common.openAccount"),
         href: loginUrl,
       },
-    };
+      omitBrandRow: true,
+    });
     const wa = await sendTransactionalWhatsApp({
       to: phone,
       organizationId: input.organizationId,
       locale,
       branchId: input.branchId,
       queueKind: "results",
-      parts: [
-        ...notifyCardToWhatsAppParts(card),
-        t("common.signatureApp", {
-          app: input.schoolName || APP_NAME,
-        }),
-      ],
-      richBody: serializeNotifyCard(card),
+      parts,
+      richBody,
     });
     whatsappSent = wa.sent;
     whatsappError = wa.error;

@@ -24,8 +24,7 @@ import {
   getBranchMessagingLocale,
 } from "@/lib/messaging-locale";
 import {
-  notifyCardToWhatsAppParts,
-  serializeNotifyCard,
+  prepareNotifyDelivery,
 } from "@/lib/notify/notify-message-card";
 import { getGlobalScheduleByCycleAction } from "../../schedule/schedule.action";
 import {
@@ -137,32 +136,22 @@ async function sendTeacherScheduleWhatsApp(params: {
   const t = await getMessagingTranslator(locale);
   const hello = formatMessagingHello(t, teacher.name);
   const intro = `${hello} ${t("teacherSchedule.intro", { cycle: cycleLabel })}`.trim();
-  const card = {
-    v: 1 as const,
-    tone: "navy" as const,
+  const { parts, richBody } = prepareNotifyDelivery({
+    tone: "navy",
     brand: schoolName,
     title: labels.title(cycleLabel),
     intro,
     rows: [
       {
-        label: t("common.person"),
-        value: teacher.name,
-      },
-      {
         label: t("common.period"),
         value: cycleLabel,
-      },
-      {
-        label: t("common.download"),
-        value: pdfUrl,
-        kind: "link" as const,
       },
     ],
     cta: {
       label: t("common.downloadPdf"),
       href: pdfUrl,
     },
-  };
+  });
 
   return sendTransactionalWhatsApp({
     to: teacher.telephone,
@@ -171,11 +160,8 @@ async function sendTeacherScheduleWhatsApp(params: {
     locale,
     queueKind: "schedule",
     attachments: [{ url: pdfUrl, filename: saved.fileName }],
-    parts: [
-      ...notifyCardToWhatsAppParts(card),
-      t("common.signatureApp", { app: schoolName }),
-    ],
-    richBody: serializeNotifyCard(card),
+    parts,
+    richBody,
   });
 }
 

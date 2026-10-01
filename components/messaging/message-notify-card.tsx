@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, KeyRound, Mail, Phone } from "lucide-react";
+import { ExternalLink, KeyRound, Mail, Phone, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   parseNotifyCard,
@@ -27,6 +27,7 @@ const TONE_CTA: Record<NonNullable<NotifyMessageCard["tone"]>, string> = {
 
 function RowIcon({ kind }: { kind?: NotifyCardRow["kind"] }) {
   if (kind === "secret") return <KeyRound className="size-3.5 shrink-0" />;
+  if (kind === "highlight") return <Sparkles className="size-3.5 shrink-0" />;
   if (kind === "email") return <Mail className="size-3.5 shrink-0" />;
   if (kind === "phone") return <Phone className="size-3.5 shrink-0" />;
   if (kind === "link") return <ExternalLink className="size-3.5 shrink-0" />;
@@ -39,6 +40,13 @@ function RowValue({ row }: { row: NotifyCardRow }) {
       <code className="mt-1 block w-full max-w-full break-all rounded-lg bg-white px-3 py-2 font-mono text-[14px] font-semibold tracking-wide text-amber-950 ring-1 ring-amber-300 dark:bg-slate-950 dark:text-amber-100 dark:ring-amber-700/70">
         {row.value}
       </code>
+    );
+  }
+  if (row.kind === "highlight") {
+    return (
+      <span className="mt-1 block w-full break-words rounded-lg bg-white px-3 py-2 text-[15px] font-semibold tabular-nums text-emerald-950 ring-1 ring-emerald-300/80 dark:bg-slate-950 dark:text-emerald-100 dark:ring-emerald-700/60">
+        {row.value}
+      </span>
     );
   }
   if (row.kind === "link") {
@@ -128,7 +136,10 @@ export function MessageNotifyCard({
                 key={`${row.label}-${index}`}
                 className={cn(
                   "px-3 py-2.5",
-                  row.kind === "secret" && "bg-amber-50/90 dark:bg-amber-950/25",
+                  row.kind === "secret" &&
+                    "bg-amber-50/90 dark:bg-amber-950/25",
+                  row.kind === "highlight" &&
+                    "bg-emerald-50/90 dark:bg-emerald-950/25",
                 )}
               >
                 <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">

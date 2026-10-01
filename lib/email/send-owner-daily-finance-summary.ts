@@ -13,10 +13,7 @@ import {
   getMessagingTranslator,
   resolveSenderMessagingLocale,
 } from "@/lib/messaging-locale";
-import {
-  notifyCardToWhatsAppParts,
-  serializeNotifyCard,
-} from "@/lib/notify/notify-message-card";
+import { prepareNotifyDelivery } from "@/lib/notify/notify-message-card";
 import {
   formatOwnerDailyFinanceMoney,
   formatOwnerDailyFinanceText,
@@ -102,12 +99,11 @@ export async function sendOwnerDailyFinanceSummary(input: {
   let whatsappSent = false;
   if (allow.whatsapp && phone) {
     try {
-      const card = {
-        v: 1 as const,
-        tone: "emerald" as const,
+      const { parts, richBody } = prepareNotifyDelivery({
+        tone: "emerald",
         brand: input.summary.organizationName || APP_NAME,
         title: `Situation financière — ${input.summary.dateLabel}`,
-        intro,
+        intro: `${hello} Voici la situation de caisse et des inscriptions.`,
         rows: [
           ...input.summary.branches.slice(0, 8).map((branch) => ({
             label: branch.branchName,
@@ -116,17 +112,18 @@ export async function sendOwnerDailyFinanceSummary(input: {
           {
             label: "Total",
             value: `Caisse ${formatOwnerDailyFinanceMoney(input.summary.totalCashBalance, input.summary.currency)} · ${input.summary.totalNewEnrollments} élève(s)`,
+            kind: "highlight" as const,
           },
         ],
         cta: { label: "Ouvrir mon compte", href: loginUrl },
-      };
+      });
       const wa = await sendTransactionalWhatsApp({
         to: phone,
         organizationId: input.summary.organizationId,
         queueKind: "finance",
         locale,
-        parts: notifyCardToWhatsAppParts(card),
-        richBody: serializeNotifyCard(card),
+        parts,
+        richBody,
       });
       whatsappSent = Boolean(wa.sent);
     } catch (error) {

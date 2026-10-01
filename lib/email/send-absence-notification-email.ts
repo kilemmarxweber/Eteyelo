@@ -15,10 +15,7 @@ import {
   getSignInUrl,
 } from "./email-layout";
 import { sendTransactionalWhatsApp } from "@/lib/zindua";
-import {
-  notifyCardToWhatsAppParts,
-  serializeNotifyCard,
-} from "@/lib/notify/notify-message-card";
+import { prepareNotifyDelivery } from "@/lib/notify/notify-message-card";
 
 const APP_NAME = DEFAULT_APP_NAME;
 
@@ -126,26 +123,18 @@ async function sendAbsenceMail(input: {
       input.brand ||
       input.rows.find((row) => row.label === input.schoolLabel)?.value ||
       APP_NAME;
-    const card = {
-      v: 1 as const,
+    const { parts, richBody } = prepareNotifyDelivery({
       tone: absenceTone(input.kind),
       brand,
       title: input.title,
       intro,
-      rows: input.rows.map((row) => ({
-        label: row.label,
-        value: row.value,
-      })),
+      rows: input.rows,
       note: input.note,
       cta: input.ctaLabel
         ? { label: input.ctaLabel, href: loginUrl }
-        : undefined,
-    };
-    const richBody = serializeNotifyCard(card);
-    const waParts = [
-      ...notifyCardToWhatsAppParts(card),
-      t("common.signatureApp", { app: APP_NAME }),
-    ];
+        : null,
+      omitBrandRow: true,
+    });
 
     await sendTransactionalWhatsApp({
       to: input.phone,
@@ -153,7 +142,7 @@ async function sendAbsenceMail(input: {
       branchId: input.branchId,
       locale: input.locale,
       queueKind: "absence",
-      parts: waParts,
+      parts,
       richBody,
     });
   }
