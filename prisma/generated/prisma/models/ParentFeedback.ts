@@ -41,6 +41,7 @@ export type ParentFeedbackMinAggregateOutputType = {
   parentId: string | null
   rating: number | null
   comment: string | null
+  source: $Enums.ParentFeedbackSource | null
   month: number | null
   schoolYearId: string | null
   createdAt: Date | null
@@ -52,6 +53,7 @@ export type ParentFeedbackMaxAggregateOutputType = {
   parentId: string | null
   rating: number | null
   comment: string | null
+  source: $Enums.ParentFeedbackSource | null
   month: number | null
   schoolYearId: string | null
   createdAt: Date | null
@@ -63,6 +65,7 @@ export type ParentFeedbackCountAggregateOutputType = {
   parentId: number
   rating: number
   comment: number
+  source: number
   month: number
   schoolYearId: number
   createdAt: number
@@ -86,6 +89,7 @@ export type ParentFeedbackMinAggregateInputType = {
   parentId?: true
   rating?: true
   comment?: true
+  source?: true
   month?: true
   schoolYearId?: true
   createdAt?: true
@@ -97,6 +101,7 @@ export type ParentFeedbackMaxAggregateInputType = {
   parentId?: true
   rating?: true
   comment?: true
+  source?: true
   month?: true
   schoolYearId?: true
   createdAt?: true
@@ -108,6 +113,7 @@ export type ParentFeedbackCountAggregateInputType = {
   parentId?: true
   rating?: true
   comment?: true
+  source?: true
   month?: true
   schoolYearId?: true
   createdAt?: true
@@ -206,6 +212,7 @@ export type ParentFeedbackGroupByOutputType = {
   parentId: string
   rating: number
   comment: string | null
+  source: $Enums.ParentFeedbackSource
   month: number
   schoolYearId: string
   createdAt: Date
@@ -240,6 +247,7 @@ export type ParentFeedbackWhereInput = {
   parentId?: Prisma.StringFilter<"ParentFeedback"> | string
   rating?: Prisma.IntFilter<"ParentFeedback"> | number
   comment?: Prisma.StringNullableFilter<"ParentFeedback"> | string | null
+  source?: Prisma.EnumParentFeedbackSourceFilter<"ParentFeedback"> | $Enums.ParentFeedbackSource
   month?: Prisma.IntFilter<"ParentFeedback"> | number
   schoolYearId?: Prisma.StringFilter<"ParentFeedback"> | string
   createdAt?: Prisma.DateTimeFilter<"ParentFeedback"> | Date | string
@@ -254,6 +262,7 @@ export type ParentFeedbackOrderByWithRelationInput = {
   parentId?: Prisma.SortOrder
   rating?: Prisma.SortOrder
   comment?: Prisma.SortOrderInput | Prisma.SortOrder
+  source?: Prisma.SortOrder
   month?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -272,6 +281,7 @@ export type ParentFeedbackWhereUniqueInput = Prisma.AtLeast<{
   parentId?: Prisma.StringFilter<"ParentFeedback"> | string
   rating?: Prisma.IntFilter<"ParentFeedback"> | number
   comment?: Prisma.StringNullableFilter<"ParentFeedback"> | string | null
+  source?: Prisma.EnumParentFeedbackSourceFilter<"ParentFeedback"> | $Enums.ParentFeedbackSource
   month?: Prisma.IntFilter<"ParentFeedback"> | number
   schoolYearId?: Prisma.StringFilter<"ParentFeedback"> | string
   createdAt?: Prisma.DateTimeFilter<"ParentFeedback"> | Date | string
@@ -286,6 +296,7 @@ export type ParentFeedbackOrderByWithAggregationInput = {
   parentId?: Prisma.SortOrder
   rating?: Prisma.SortOrder
   comment?: Prisma.SortOrderInput | Prisma.SortOrder
+  source?: Prisma.SortOrder
   month?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -305,6 +316,7 @@ export type ParentFeedbackScalarWhereWithAggregatesInput = {
   parentId?: Prisma.StringWithAggregatesFilter<"ParentFeedback"> | string
   rating?: Prisma.IntWithAggregatesFilter<"ParentFeedback"> | number
   comment?: Prisma.StringNullableWithAggregatesFilter<"ParentFeedback"> | string | null
+  source?: Prisma.EnumParentFeedbackSourceWithAggregatesFilter<"ParentFeedback"> | $Enums.ParentFeedbackSource
   month?: Prisma.IntWithAggregatesFilter<"ParentFeedback"> | number
   schoolYearId?: Prisma.StringWithAggregatesFilter<"ParentFeedback"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ParentFeedback"> | Date | string
@@ -315,6 +327,7 @@ export type ParentFeedbackCreateInput = {
   id?: string
   rating: number
   comment?: string | null
+  source?: $Enums.ParentFeedbackSource
   month: number
   createdAt?: Date | string
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutParentFeedbackInput
@@ -327,6 +340,7 @@ export type ParentFeedbackUncheckedCreateInput = {
   parentId: string
   rating: number
   comment?: string | null
+  source?: $Enums.ParentFeedbackSource
   month: number
   schoolYearId: string
   createdAt?: Date | string
@@ -337,6 +351,7 @@ export type ParentFeedbackUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumParentFeedbackSourceFieldUpdateOperationsInput | $Enums.ParentFeedbackSource
   month?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutParentFeedbackNestedInput
@@ -349,6 +364,7 @@ export type ParentFeedbackUncheckedUpdateInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumParentFeedbackSourceFieldUpdateOperationsInput | $Enums.ParentFeedbackSource
   month?: Prisma.IntFieldUpdateOperationsInput | number
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -360,6 +376,7 @@ export type ParentFeedbackCreateManyInput = {
   parentId: string
   rating: number
   comment?: string | null
+  source?: $Enums.ParentFeedbackSource
   month: number
   schoolYearId: string
   createdAt?: Date | string
@@ -370,6 +387,7 @@ export type ParentFeedbackUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumParentFeedbackSourceFieldUpdateOperationsInput | $Enums.ParentFeedbackSource
   month?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -379,6 +397,7 @@ export type ParentFeedbackUncheckedUpdateManyInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumParentFeedbackSourceFieldUpdateOperationsInput | $Enums.ParentFeedbackSource
   month?: Prisma.IntFieldUpdateOperationsInput | number
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -406,6 +425,7 @@ export type ParentFeedbackCountOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   rating?: Prisma.SortOrder
   comment?: Prisma.SortOrder
+  source?: Prisma.SortOrder
   month?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -422,6 +442,7 @@ export type ParentFeedbackMaxOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   rating?: Prisma.SortOrder
   comment?: Prisma.SortOrder
+  source?: Prisma.SortOrder
   month?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -433,6 +454,7 @@ export type ParentFeedbackMinOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   rating?: Prisma.SortOrder
   comment?: Prisma.SortOrder
+  source?: Prisma.SortOrder
   month?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -492,6 +514,10 @@ export type IntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type EnumParentFeedbackSourceFieldUpdateOperationsInput = {
+  set?: $Enums.ParentFeedbackSource
 }
 
 export type ParentFeedbackCreateNestedManyWithoutSchoolYearInput = {
@@ -582,6 +608,7 @@ export type ParentFeedbackCreateWithoutParentInput = {
   id?: string
   rating: number
   comment?: string | null
+  source?: $Enums.ParentFeedbackSource
   month: number
   createdAt?: Date | string
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutParentFeedbackInput
@@ -592,6 +619,7 @@ export type ParentFeedbackUncheckedCreateWithoutParentInput = {
   id?: string
   rating: number
   comment?: string | null
+  source?: $Enums.ParentFeedbackSource
   month: number
   schoolYearId: string
   createdAt?: Date | string
@@ -632,6 +660,7 @@ export type ParentFeedbackScalarWhereInput = {
   parentId?: Prisma.StringFilter<"ParentFeedback"> | string
   rating?: Prisma.IntFilter<"ParentFeedback"> | number
   comment?: Prisma.StringNullableFilter<"ParentFeedback"> | string | null
+  source?: Prisma.EnumParentFeedbackSourceFilter<"ParentFeedback"> | $Enums.ParentFeedbackSource
   month?: Prisma.IntFilter<"ParentFeedback"> | number
   schoolYearId?: Prisma.StringFilter<"ParentFeedback"> | string
   createdAt?: Prisma.DateTimeFilter<"ParentFeedback"> | Date | string
@@ -642,6 +671,7 @@ export type ParentFeedbackCreateWithoutSchoolYearInput = {
   id?: string
   rating: number
   comment?: string | null
+  source?: $Enums.ParentFeedbackSource
   month: number
   createdAt?: Date | string
   parent: Prisma.ParentCreateNestedOneWithoutFeedbacksInput
@@ -653,6 +683,7 @@ export type ParentFeedbackUncheckedCreateWithoutSchoolYearInput = {
   parentId: string
   rating: number
   comment?: string | null
+  source?: $Enums.ParentFeedbackSource
   month: number
   createdAt?: Date | string
   branchId: string
@@ -688,6 +719,7 @@ export type ParentFeedbackCreateWithoutBranchInput = {
   id?: string
   rating: number
   comment?: string | null
+  source?: $Enums.ParentFeedbackSource
   month: number
   createdAt?: Date | string
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutParentFeedbackInput
@@ -699,6 +731,7 @@ export type ParentFeedbackUncheckedCreateWithoutBranchInput = {
   parentId: string
   rating: number
   comment?: string | null
+  source?: $Enums.ParentFeedbackSource
   month: number
   schoolYearId: string
   createdAt?: Date | string
@@ -734,6 +767,7 @@ export type ParentFeedbackCreateManyParentInput = {
   id?: string
   rating: number
   comment?: string | null
+  source?: $Enums.ParentFeedbackSource
   month: number
   schoolYearId: string
   createdAt?: Date | string
@@ -744,6 +778,7 @@ export type ParentFeedbackUpdateWithoutParentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumParentFeedbackSourceFieldUpdateOperationsInput | $Enums.ParentFeedbackSource
   month?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutParentFeedbackNestedInput
@@ -754,6 +789,7 @@ export type ParentFeedbackUncheckedUpdateWithoutParentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumParentFeedbackSourceFieldUpdateOperationsInput | $Enums.ParentFeedbackSource
   month?: Prisma.IntFieldUpdateOperationsInput | number
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -764,6 +800,7 @@ export type ParentFeedbackUncheckedUpdateManyWithoutParentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumParentFeedbackSourceFieldUpdateOperationsInput | $Enums.ParentFeedbackSource
   month?: Prisma.IntFieldUpdateOperationsInput | number
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -775,6 +812,7 @@ export type ParentFeedbackCreateManySchoolYearInput = {
   parentId: string
   rating: number
   comment?: string | null
+  source?: $Enums.ParentFeedbackSource
   month: number
   createdAt?: Date | string
   branchId: string
@@ -784,6 +822,7 @@ export type ParentFeedbackUpdateWithoutSchoolYearInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumParentFeedbackSourceFieldUpdateOperationsInput | $Enums.ParentFeedbackSource
   month?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.ParentUpdateOneRequiredWithoutFeedbacksNestedInput
@@ -795,6 +834,7 @@ export type ParentFeedbackUncheckedUpdateWithoutSchoolYearInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumParentFeedbackSourceFieldUpdateOperationsInput | $Enums.ParentFeedbackSource
   month?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -805,6 +845,7 @@ export type ParentFeedbackUncheckedUpdateManyWithoutSchoolYearInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumParentFeedbackSourceFieldUpdateOperationsInput | $Enums.ParentFeedbackSource
   month?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -815,6 +856,7 @@ export type ParentFeedbackCreateManyBranchInput = {
   parentId: string
   rating: number
   comment?: string | null
+  source?: $Enums.ParentFeedbackSource
   month: number
   schoolYearId: string
   createdAt?: Date | string
@@ -824,6 +866,7 @@ export type ParentFeedbackUpdateWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumParentFeedbackSourceFieldUpdateOperationsInput | $Enums.ParentFeedbackSource
   month?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutParentFeedbackNestedInput
@@ -835,6 +878,7 @@ export type ParentFeedbackUncheckedUpdateWithoutBranchInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumParentFeedbackSourceFieldUpdateOperationsInput | $Enums.ParentFeedbackSource
   month?: Prisma.IntFieldUpdateOperationsInput | number
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -845,6 +889,7 @@ export type ParentFeedbackUncheckedUpdateManyWithoutBranchInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumParentFeedbackSourceFieldUpdateOperationsInput | $Enums.ParentFeedbackSource
   month?: Prisma.IntFieldUpdateOperationsInput | number
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -857,6 +902,7 @@ export type ParentFeedbackSelect<ExtArgs extends runtime.Types.Extensions.Intern
   parentId?: boolean
   rating?: boolean
   comment?: boolean
+  source?: boolean
   month?: boolean
   schoolYearId?: boolean
   createdAt?: boolean
@@ -871,6 +917,7 @@ export type ParentFeedbackSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   parentId?: boolean
   rating?: boolean
   comment?: boolean
+  source?: boolean
   month?: boolean
   schoolYearId?: boolean
   createdAt?: boolean
@@ -885,6 +932,7 @@ export type ParentFeedbackSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   parentId?: boolean
   rating?: boolean
   comment?: boolean
+  source?: boolean
   month?: boolean
   schoolYearId?: boolean
   createdAt?: boolean
@@ -899,13 +947,14 @@ export type ParentFeedbackSelectScalar = {
   parentId?: boolean
   rating?: boolean
   comment?: boolean
+  source?: boolean
   month?: boolean
   schoolYearId?: boolean
   createdAt?: boolean
   branchId?: boolean
 }
 
-export type ParentFeedbackOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "parentId" | "rating" | "comment" | "month" | "schoolYearId" | "createdAt" | "branchId", ExtArgs["result"]["parentFeedback"]>
+export type ParentFeedbackOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "parentId" | "rating" | "comment" | "source" | "month" | "schoolYearId" | "createdAt" | "branchId", ExtArgs["result"]["parentFeedback"]>
 export type ParentFeedbackInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   schoolYear?: boolean | Prisma.ParentFeedback$schoolYearArgs<ExtArgs>
   parent?: boolean | Prisma.ParentDefaultArgs<ExtArgs>
@@ -934,6 +983,7 @@ export type $ParentFeedbackPayload<ExtArgs extends runtime.Types.Extensions.Inte
     parentId: string
     rating: number
     comment: string | null
+    source: $Enums.ParentFeedbackSource
     month: number
     schoolYearId: string
     createdAt: Date
@@ -1368,6 +1418,7 @@ export interface ParentFeedbackFieldRefs {
   readonly parentId: Prisma.FieldRef<"ParentFeedback", 'String'>
   readonly rating: Prisma.FieldRef<"ParentFeedback", 'Int'>
   readonly comment: Prisma.FieldRef<"ParentFeedback", 'String'>
+  readonly source: Prisma.FieldRef<"ParentFeedback", 'ParentFeedbackSource'>
   readonly month: Prisma.FieldRef<"ParentFeedback", 'Int'>
   readonly schoolYearId: Prisma.FieldRef<"ParentFeedback", 'String'>
   readonly createdAt: Prisma.FieldRef<"ParentFeedback", 'DateTime'>

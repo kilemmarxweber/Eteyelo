@@ -337,6 +337,7 @@ export type UserWhereInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestListRelationFilter
   reviewedGradeModifications?: Prisma.GradeModificationRequestListRelationFilter
   appNotifications?: Prisma.AppNotificationListRelationFilter
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchListRelationFilter
   familyPaymentsCreated?: Prisma.FamilyPaymentListRelationFilter
   cashierExpensesCreated?: Prisma.CashierExpenseListRelationFilter
   conversationsCreated?: Prisma.ConversationListRelationFilter
@@ -389,6 +390,7 @@ export type UserOrderByWithRelationInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestOrderByRelationAggregateInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestOrderByRelationAggregateInput
   appNotifications?: Prisma.AppNotificationOrderByRelationAggregateInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchOrderByRelationAggregateInput
   familyPaymentsCreated?: Prisma.FamilyPaymentOrderByRelationAggregateInput
   cashierExpensesCreated?: Prisma.CashierExpenseOrderByRelationAggregateInput
   conversationsCreated?: Prisma.ConversationOrderByRelationAggregateInput
@@ -444,6 +446,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   gradeModificationRequests?: Prisma.GradeModificationRequestListRelationFilter
   reviewedGradeModifications?: Prisma.GradeModificationRequestListRelationFilter
   appNotifications?: Prisma.AppNotificationListRelationFilter
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchListRelationFilter
   familyPaymentsCreated?: Prisma.FamilyPaymentListRelationFilter
   cashierExpensesCreated?: Prisma.CashierExpenseListRelationFilter
   conversationsCreated?: Prisma.ConversationListRelationFilter
@@ -554,6 +557,7 @@ export type UserCreateInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -606,6 +610,7 @@ export type UserUncheckedCreateInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -658,6 +663,7 @@ export type UserUpdateInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -710,6 +716,7 @@ export type UserUncheckedUpdateInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -883,14 +890,14 @@ export type UserMinOrderByAggregateInput = {
   banExpires?: Prisma.SortOrder
 }
 
-export type UserNullableScalarRelationFilter = {
-  is?: Prisma.UserWhereInput | null
-  isNot?: Prisma.UserWhereInput | null
-}
-
 export type UserScalarRelationFilter = {
   is?: Prisma.UserWhereInput
   isNot?: Prisma.UserWhereInput
+}
+
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null
+  isNot?: Prisma.UserWhereInput | null
 }
 
 export type StringFieldUpdateOperationsInput = {
@@ -915,6 +922,20 @@ export type NullableBoolFieldUpdateOperationsInput = {
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type UserCreateNestedOneWithoutParentSatisfactionDispatchesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutParentSatisfactionDispatchesInput, Prisma.UserUncheckedCreateWithoutParentSatisfactionDispatchesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutParentSatisfactionDispatchesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutParentSatisfactionDispatchesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutParentSatisfactionDispatchesInput, Prisma.UserUncheckedCreateWithoutParentSatisfactionDispatchesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutParentSatisfactionDispatchesInput
+  upsert?: Prisma.UserUpsertWithoutParentSatisfactionDispatchesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutParentSatisfactionDispatchesInput, Prisma.UserUpdateWithoutParentSatisfactionDispatchesInput>, Prisma.UserUncheckedUpdateWithoutParentSatisfactionDispatchesInput>
 }
 
 export type UserCreateNestedOneWithoutFamilyPaymentsCreatedInput = {
@@ -1293,6 +1314,230 @@ export type UserUpdateOneWithoutGrantsRevokedNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutGrantsRevokedInput, Prisma.UserUpdateWithoutGrantsRevokedInput>, Prisma.UserUncheckedUpdateWithoutGrantsRevokedInput>
 }
 
+export type UserCreateWithoutParentSatisfactionDispatchesInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  archivedEmail?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
+  callsStarted?: Prisma.CallSessionCreateNestedManyWithoutCallerInput
+  callsReceived?: Prisma.CallSessionCreateNestedManyWithoutCalleeInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
+}
+
+export type UserUncheckedCreateWithoutParentSatisfactionDispatchesInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  archivedEmail?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
+  callsStarted?: Prisma.CallSessionUncheckedCreateNestedManyWithoutCallerInput
+  callsReceived?: Prisma.CallSessionUncheckedCreateNestedManyWithoutCalleeInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
+}
+
+export type UserCreateOrConnectWithoutParentSatisfactionDispatchesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutParentSatisfactionDispatchesInput, Prisma.UserUncheckedCreateWithoutParentSatisfactionDispatchesInput>
+}
+
+export type UserUpsertWithoutParentSatisfactionDispatchesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutParentSatisfactionDispatchesInput, Prisma.UserUncheckedUpdateWithoutParentSatisfactionDispatchesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutParentSatisfactionDispatchesInput, Prisma.UserUncheckedCreateWithoutParentSatisfactionDispatchesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutParentSatisfactionDispatchesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutParentSatisfactionDispatchesInput, Prisma.UserUncheckedUpdateWithoutParentSatisfactionDispatchesInput>
+}
+
+export type UserUpdateWithoutParentSatisfactionDispatchesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
+  callsStarted?: Prisma.CallSessionUpdateManyWithoutCallerNestedInput
+  callsReceived?: Prisma.CallSessionUpdateManyWithoutCalleeNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutParentSatisfactionDispatchesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
+  callsStarted?: Prisma.CallSessionUncheckedUpdateManyWithoutCallerNestedInput
+  callsReceived?: Prisma.CallSessionUncheckedUpdateManyWithoutCalleeNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
+}
+
 export type UserCreateWithoutFamilyPaymentsCreatedInput = {
   id?: string
   username?: string | null
@@ -1328,6 +1573,7 @@ export type UserCreateWithoutFamilyPaymentsCreatedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
@@ -1379,6 +1625,7 @@ export type UserUncheckedCreateWithoutFamilyPaymentsCreatedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
@@ -1446,6 +1693,7 @@ export type UserUpdateWithoutFamilyPaymentsCreatedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
@@ -1497,6 +1745,7 @@ export type UserUncheckedUpdateWithoutFamilyPaymentsCreatedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
@@ -1548,6 +1797,7 @@ export type UserCreateWithoutCashierExpensesCreatedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
@@ -1599,6 +1849,7 @@ export type UserUncheckedCreateWithoutCashierExpensesCreatedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
@@ -1666,6 +1917,7 @@ export type UserUpdateWithoutCashierExpensesCreatedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
@@ -1717,6 +1969,7 @@ export type UserUncheckedUpdateWithoutCashierExpensesCreatedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
@@ -1767,6 +2020,7 @@ export type UserCreateWithoutGradeModificationRequestsInput = {
   reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -1818,6 +2072,7 @@ export type UserUncheckedCreateWithoutGradeModificationRequestsInput = {
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1874,6 +2129,7 @@ export type UserCreateWithoutReviewedGradeModificationsInput = {
   reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -1925,6 +2181,7 @@ export type UserUncheckedCreateWithoutReviewedGradeModificationsInput = {
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1992,6 +2249,7 @@ export type UserUpdateWithoutGradeModificationRequestsInput = {
   reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -2043,6 +2301,7 @@ export type UserUncheckedUpdateWithoutGradeModificationRequestsInput = {
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2105,6 +2364,7 @@ export type UserUpdateWithoutReviewedGradeModificationsInput = {
   reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -2156,6 +2416,7 @@ export type UserUncheckedUpdateWithoutReviewedGradeModificationsInput = {
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2207,6 +2468,7 @@ export type UserCreateWithoutAbsenceCasesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -2258,6 +2520,7 @@ export type UserUncheckedCreateWithoutAbsenceCasesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2314,6 +2577,7 @@ export type UserCreateWithoutReviewedAbsenceCasesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -2365,6 +2629,7 @@ export type UserUncheckedCreateWithoutReviewedAbsenceCasesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2432,6 +2697,7 @@ export type UserUpdateWithoutAbsenceCasesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -2483,6 +2749,7 @@ export type UserUncheckedUpdateWithoutAbsenceCasesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2545,6 +2812,7 @@ export type UserUpdateWithoutReviewedAbsenceCasesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -2596,6 +2864,7 @@ export type UserUncheckedUpdateWithoutReviewedAbsenceCasesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2647,6 +2916,7 @@ export type UserCreateWithoutAppNotificationsInput = {
   reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -2698,6 +2968,7 @@ export type UserUncheckedCreateWithoutAppNotificationsInput = {
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2765,6 +3036,7 @@ export type UserUpdateWithoutAppNotificationsInput = {
   reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -2816,6 +3088,7 @@ export type UserUncheckedUpdateWithoutAppNotificationsInput = {
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2868,6 +3141,7 @@ export type UserCreateWithoutSalaryAdvancesRequestedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -2919,6 +3193,7 @@ export type UserUncheckedCreateWithoutSalaryAdvancesRequestedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2975,6 +3250,7 @@ export type UserCreateWithoutSalaryAdvancesReviewedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -3026,6 +3302,7 @@ export type UserUncheckedCreateWithoutSalaryAdvancesReviewedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3093,6 +3370,7 @@ export type UserUpdateWithoutSalaryAdvancesRequestedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -3144,6 +3422,7 @@ export type UserUncheckedUpdateWithoutSalaryAdvancesRequestedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3206,6 +3485,7 @@ export type UserUpdateWithoutSalaryAdvancesReviewedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -3257,6 +3537,7 @@ export type UserUncheckedUpdateWithoutSalaryAdvancesReviewedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3307,6 +3588,7 @@ export type UserCreateWithoutSessionsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -3358,6 +3640,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3425,6 +3708,7 @@ export type UserUpdateWithoutSessionsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -3476,6 +3760,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3527,6 +3812,7 @@ export type UserCreateWithoutAccountsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -3578,6 +3864,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3645,6 +3932,7 @@ export type UserUpdateWithoutAccountsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -3696,6 +3984,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3747,6 +4036,7 @@ export type UserCreateWithoutMembersInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -3798,6 +4088,7 @@ export type UserUncheckedCreateWithoutMembersInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3865,6 +4156,7 @@ export type UserUpdateWithoutMembersInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -3916,6 +4208,7 @@ export type UserUncheckedUpdateWithoutMembersInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3967,6 +4260,7 @@ export type UserCreateWithoutInvitationsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -4018,6 +4312,7 @@ export type UserUncheckedCreateWithoutInvitationsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4085,6 +4380,7 @@ export type UserUpdateWithoutInvitationsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -4136,6 +4432,7 @@ export type UserUncheckedUpdateWithoutInvitationsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4187,6 +4484,7 @@ export type UserCreateWithoutPlatformSupportAgentInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -4238,6 +4536,7 @@ export type UserUncheckedCreateWithoutPlatformSupportAgentInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4305,6 +4604,7 @@ export type UserUpdateWithoutPlatformSupportAgentInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -4356,6 +4656,7 @@ export type UserUncheckedUpdateWithoutPlatformSupportAgentInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4407,6 +4708,7 @@ export type UserCreateWithoutPlatformEscalationsRequestedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -4458,6 +4760,7 @@ export type UserUncheckedCreateWithoutPlatformEscalationsRequestedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4525,6 +4828,7 @@ export type UserUpdateWithoutPlatformEscalationsRequestedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -4576,6 +4880,7 @@ export type UserUncheckedUpdateWithoutPlatformEscalationsRequestedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4628,6 +4933,7 @@ export type UserCreateWithoutConversationsCreatedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
@@ -4679,6 +4985,7 @@ export type UserUncheckedCreateWithoutConversationsCreatedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
@@ -4746,6 +5053,7 @@ export type UserUpdateWithoutConversationsCreatedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
@@ -4797,6 +5105,7 @@ export type UserUncheckedUpdateWithoutConversationsCreatedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
@@ -4848,6 +5157,7 @@ export type UserCreateWithoutConversationParticipantsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -4899,6 +5209,7 @@ export type UserUncheckedCreateWithoutConversationParticipantsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4966,6 +5277,7 @@ export type UserUpdateWithoutConversationParticipantsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -5017,6 +5329,7 @@ export type UserUncheckedUpdateWithoutConversationParticipantsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -5068,6 +5381,7 @@ export type UserCreateWithoutSentMessagesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -5119,6 +5433,7 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -5186,6 +5501,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -5237,6 +5553,7 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -5288,6 +5605,7 @@ export type UserCreateWithoutMessageArchivesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -5339,6 +5657,7 @@ export type UserUncheckedCreateWithoutMessageArchivesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -5406,6 +5725,7 @@ export type UserUpdateWithoutMessageArchivesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -5457,6 +5777,7 @@ export type UserUncheckedUpdateWithoutMessageArchivesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -5508,6 +5829,7 @@ export type UserCreateWithoutMessagingAuditLogsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -5559,6 +5881,7 @@ export type UserUncheckedCreateWithoutMessagingAuditLogsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -5626,6 +5949,7 @@ export type UserUpdateWithoutMessagingAuditLogsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -5677,6 +6001,7 @@ export type UserUncheckedUpdateWithoutMessagingAuditLogsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -5728,6 +6053,7 @@ export type UserCreateWithoutUserPresencesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -5779,6 +6105,7 @@ export type UserUncheckedCreateWithoutUserPresencesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -5846,6 +6173,7 @@ export type UserUpdateWithoutUserPresencesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -5897,6 +6225,7 @@ export type UserUncheckedUpdateWithoutUserPresencesInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -5948,6 +6277,7 @@ export type UserCreateWithoutCallsStartedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -5999,6 +6329,7 @@ export type UserUncheckedCreateWithoutCallsStartedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -6055,6 +6386,7 @@ export type UserCreateWithoutCallsReceivedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -6106,6 +6438,7 @@ export type UserUncheckedCreateWithoutCallsReceivedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -6173,6 +6506,7 @@ export type UserUpdateWithoutCallsStartedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -6224,6 +6558,7 @@ export type UserUncheckedUpdateWithoutCallsStartedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -6286,6 +6621,7 @@ export type UserUpdateWithoutCallsReceivedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -6337,6 +6673,7 @@ export type UserUncheckedUpdateWithoutCallsReceivedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -6388,6 +6725,7 @@ export type UserCreateWithoutTemporaryGrantsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -6439,6 +6777,7 @@ export type UserUncheckedCreateWithoutTemporaryGrantsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -6495,6 +6834,7 @@ export type UserCreateWithoutGrantsGivenInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -6546,6 +6886,7 @@ export type UserUncheckedCreateWithoutGrantsGivenInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -6602,6 +6943,7 @@ export type UserCreateWithoutGrantsRevokedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
@@ -6653,6 +6995,7 @@ export type UserUncheckedCreateWithoutGrantsRevokedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
@@ -6720,6 +7063,7 @@ export type UserUpdateWithoutTemporaryGrantsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -6771,6 +7115,7 @@ export type UserUncheckedUpdateWithoutTemporaryGrantsInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -6833,6 +7178,7 @@ export type UserUpdateWithoutGrantsGivenInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -6884,6 +7230,7 @@ export type UserUncheckedUpdateWithoutGrantsGivenInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -6946,6 +7293,7 @@ export type UserUpdateWithoutGrantsRevokedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
@@ -6997,6 +7345,7 @@ export type UserUncheckedUpdateWithoutGrantsRevokedInput = {
   gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
   familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -7029,6 +7378,7 @@ export type UserCountOutputType = {
   gradeModificationRequests: number
   reviewedGradeModifications: number
   appNotifications: number
+  parentSatisfactionDispatches: number
   familyPaymentsCreated: number
   cashierExpensesCreated: number
   conversationsCreated: number
@@ -7057,6 +7407,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   gradeModificationRequests?: boolean | UserCountOutputTypeCountGradeModificationRequestsArgs
   reviewedGradeModifications?: boolean | UserCountOutputTypeCountReviewedGradeModificationsArgs
   appNotifications?: boolean | UserCountOutputTypeCountAppNotificationsArgs
+  parentSatisfactionDispatches?: boolean | UserCountOutputTypeCountParentSatisfactionDispatchesArgs
   familyPaymentsCreated?: boolean | UserCountOutputTypeCountFamilyPaymentsCreatedArgs
   cashierExpensesCreated?: boolean | UserCountOutputTypeCountCashierExpensesCreatedArgs
   conversationsCreated?: boolean | UserCountOutputTypeCountConversationsCreatedArgs
@@ -7152,6 +7503,13 @@ export type UserCountOutputTypeCountReviewedGradeModificationsArgs<ExtArgs exten
  */
 export type UserCountOutputTypeCountAppNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.AppNotificationWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountParentSatisfactionDispatchesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ParentSatisfactionDispatchWhereInput
 }
 
 /**
@@ -7295,6 +7653,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   gradeModificationRequests?: boolean | Prisma.User$gradeModificationRequestsArgs<ExtArgs>
   reviewedGradeModifications?: boolean | Prisma.User$reviewedGradeModificationsArgs<ExtArgs>
   appNotifications?: boolean | Prisma.User$appNotificationsArgs<ExtArgs>
+  parentSatisfactionDispatches?: boolean | Prisma.User$parentSatisfactionDispatchesArgs<ExtArgs>
   familyPaymentsCreated?: boolean | Prisma.User$familyPaymentsCreatedArgs<ExtArgs>
   cashierExpensesCreated?: boolean | Prisma.User$cashierExpensesCreatedArgs<ExtArgs>
   conversationsCreated?: boolean | Prisma.User$conversationsCreatedArgs<ExtArgs>
@@ -7404,6 +7763,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   gradeModificationRequests?: boolean | Prisma.User$gradeModificationRequestsArgs<ExtArgs>
   reviewedGradeModifications?: boolean | Prisma.User$reviewedGradeModificationsArgs<ExtArgs>
   appNotifications?: boolean | Prisma.User$appNotificationsArgs<ExtArgs>
+  parentSatisfactionDispatches?: boolean | Prisma.User$parentSatisfactionDispatchesArgs<ExtArgs>
   familyPaymentsCreated?: boolean | Prisma.User$familyPaymentsCreatedArgs<ExtArgs>
   cashierExpensesCreated?: boolean | Prisma.User$cashierExpensesCreatedArgs<ExtArgs>
   conversationsCreated?: boolean | Prisma.User$conversationsCreatedArgs<ExtArgs>
@@ -7438,6 +7798,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     gradeModificationRequests: Prisma.$GradeModificationRequestPayload<ExtArgs>[]
     reviewedGradeModifications: Prisma.$GradeModificationRequestPayload<ExtArgs>[]
     appNotifications: Prisma.$AppNotificationPayload<ExtArgs>[]
+    parentSatisfactionDispatches: Prisma.$ParentSatisfactionDispatchPayload<ExtArgs>[]
     familyPaymentsCreated: Prisma.$FamilyPaymentPayload<ExtArgs>[]
     cashierExpensesCreated: Prisma.$CashierExpensePayload<ExtArgs>[]
     conversationsCreated: Prisma.$ConversationPayload<ExtArgs>[]
@@ -7889,6 +8250,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   gradeModificationRequests<T extends Prisma.User$gradeModificationRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$gradeModificationRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GradeModificationRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviewedGradeModifications<T extends Prisma.User$reviewedGradeModificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewedGradeModificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GradeModificationRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   appNotifications<T extends Prisma.User$appNotificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$appNotificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  parentSatisfactionDispatches<T extends Prisma.User$parentSatisfactionDispatchesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$parentSatisfactionDispatchesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ParentSatisfactionDispatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   familyPaymentsCreated<T extends Prisma.User$familyPaymentsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$familyPaymentsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FamilyPaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   cashierExpensesCreated<T extends Prisma.User$cashierExpensesCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$cashierExpensesCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CashierExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   conversationsCreated<T extends Prisma.User$conversationsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$conversationsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -8605,6 +8967,30 @@ export type User$appNotificationsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.AppNotificationScalarFieldEnum | Prisma.AppNotificationScalarFieldEnum[]
+}
+
+/**
+ * User.parentSatisfactionDispatches
+ */
+export type User$parentSatisfactionDispatchesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ParentSatisfactionDispatch
+   */
+  select?: Prisma.ParentSatisfactionDispatchSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ParentSatisfactionDispatch
+   */
+  omit?: Prisma.ParentSatisfactionDispatchOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ParentSatisfactionDispatchInclude<ExtArgs> | null
+  where?: Prisma.ParentSatisfactionDispatchWhereInput
+  orderBy?: Prisma.ParentSatisfactionDispatchOrderByWithRelationInput | Prisma.ParentSatisfactionDispatchOrderByWithRelationInput[]
+  cursor?: Prisma.ParentSatisfactionDispatchWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ParentSatisfactionDispatchScalarFieldEnum | Prisma.ParentSatisfactionDispatchScalarFieldEnum[]
 }
 
 /**

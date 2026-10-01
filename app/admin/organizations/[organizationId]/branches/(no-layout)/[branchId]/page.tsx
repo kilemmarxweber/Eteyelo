@@ -417,7 +417,7 @@ export default function AdminDashboard() {
               ))}
             </div>
 
-            {selectedRating === 1 ? (
+            {selectedRating != null && selectedRating <= 2 ? (
               <div className="mb-4 text-left">
                 <label className="text-sm font-medium text-red-600">
                   {t("feedback.explain")}
@@ -440,14 +440,14 @@ export default function AdminDashboard() {
               disabled={!selectedRating}
               onClick={async () => {
                 if (!selectedRating) return;
-                if (selectedRating === 1 && comment.trim().length < 5) {
+                if (selectedRating <= 2 && comment.trim().length < 5) {
                   setError(t("feedback.needExplain"));
                   return;
                 }
                 setError("");
                 const res = await createParentFeedback(
                   selectedRating,
-                  selectedRating === 1 ? comment : null,
+                  selectedRating <= 2 ? comment : null,
                 );
                 if (res?.error) {
                   setError(res.error);

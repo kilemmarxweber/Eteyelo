@@ -223,6 +223,13 @@ export type IntFilter<$PrismaModel = never> = {
   not?: Prisma.NestedIntFilter<$PrismaModel> | number
 }
 
+export type EnumParentFeedbackSourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.ParentFeedbackSource | Prisma.EnumParentFeedbackSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.ParentFeedbackSource[] | Prisma.ListEnumParentFeedbackSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ParentFeedbackSource[] | Prisma.ListEnumParentFeedbackSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumParentFeedbackSourceFilter<$PrismaModel> | $Enums.ParentFeedbackSource
+}
+
 export type IntWithAggregatesFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
@@ -237,6 +244,16 @@ export type IntWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedIntFilter<$PrismaModel>
   _max?: Prisma.NestedIntFilter<$PrismaModel>
+}
+
+export type EnumParentFeedbackSourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ParentFeedbackSource | Prisma.EnumParentFeedbackSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.ParentFeedbackSource[] | Prisma.ListEnumParentFeedbackSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ParentFeedbackSource[] | Prisma.ListEnumParentFeedbackSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumParentFeedbackSourceWithAggregatesFilter<$PrismaModel> | $Enums.ParentFeedbackSource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumParentFeedbackSourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumParentFeedbackSourceFilter<$PrismaModel>
 }
 
 export type FloatFilter<$PrismaModel = never> = {
@@ -1554,6 +1571,13 @@ export type NestedEnumAttendanceExitReasonNullableWithAggregatesFilter<$PrismaMo
   _max?: Prisma.NestedEnumAttendanceExitReasonNullableFilter<$PrismaModel>
 }
 
+export type NestedEnumParentFeedbackSourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.ParentFeedbackSource | Prisma.EnumParentFeedbackSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.ParentFeedbackSource[] | Prisma.ListEnumParentFeedbackSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ParentFeedbackSource[] | Prisma.ListEnumParentFeedbackSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumParentFeedbackSourceFilter<$PrismaModel> | $Enums.ParentFeedbackSource
+}
+
 export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
@@ -1579,6 +1603,16 @@ export type NestedFloatFilter<$PrismaModel = never> = {
   gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   not?: Prisma.NestedFloatFilter<$PrismaModel> | number
+}
+
+export type NestedEnumParentFeedbackSourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ParentFeedbackSource | Prisma.EnumParentFeedbackSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.ParentFeedbackSource[] | Prisma.ListEnumParentFeedbackSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ParentFeedbackSource[] | Prisma.ListEnumParentFeedbackSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumParentFeedbackSourceWithAggregatesFilter<$PrismaModel> | $Enums.ParentFeedbackSource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumParentFeedbackSourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumParentFeedbackSourceFilter<$PrismaModel>
 }
 
 export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {

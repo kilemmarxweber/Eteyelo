@@ -9,6 +9,14 @@
 * 🟢 You can import this file directly.
 */
 
+export const ParentFeedbackSource = {
+  WEB: 'WEB',
+  KLAMBO: 'KLAMBO'
+} as const
+
+export type ParentFeedbackSource = (typeof ParentFeedbackSource)[keyof typeof ParentFeedbackSource]
+
+
 export const CoursKind = {
   SUBJECT: 'SUBJECT',
   SCHEDULE_COMPONENT: 'SCHEDULE_COMPONENT'

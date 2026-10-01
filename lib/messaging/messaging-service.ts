@@ -626,16 +626,24 @@ export async function createConversation(params: {
     return { conversationId: conversation.id, messageId: message.id };
   });
 
-  void import("@/lib/mobile/realtime").then(({ publishMobileEvent }) =>
-    publishMobileEvent({
+  void import("@/lib/mobile/realtime").then(async ({ publishMobileEvent }) => {
+    const sender = await prisma.user.findUnique({
+      where: { id: params.actor.userId },
+      select: { name: true, prenom: true },
+    });
+    const senderName =
+      [sender?.prenom, sender?.name].filter(Boolean).join(" ") || "Klambo";
+    return publishMobileEvent({
       type: "message.created",
       organizationId: params.organizationId,
       conversationId: created.conversationId,
       messageId: created.messageId,
       senderId: params.actor.userId,
-      recipientUserIds: participantIds,
-    }),
-  );
+      recipientUserIds: participantIds.filter((id) => id !== params.actor.userId),
+      bodyPreview: body.slice(0, 160),
+      senderName,
+    });
+  });
 
   return { conversationId: created.conversationId, reused: false };
 }
@@ -920,16 +928,26 @@ export async function sendMessage(params: {
     where: { conversationId: params.conversationId, leftAt: null },
     select: { userId: true },
   });
-  void import("@/lib/mobile/realtime").then(({ publishMobileEvent }) =>
-    publishMobileEvent({
+  void import("@/lib/mobile/realtime").then(async ({ publishMobileEvent }) => {
+    const sender = await prisma.user.findUnique({
+      where: { id: params.actor.userId },
+      select: { name: true, prenom: true },
+    });
+    const senderName =
+      [sender?.prenom, sender?.name].filter(Boolean).join(" ") || "Klambo";
+    return publishMobileEvent({
       type: "message.created",
       organizationId: params.organizationId,
       conversationId: params.conversationId,
       messageId: message.id,
       senderId: params.actor.userId,
-      recipientUserIds: participants.map((p) => p.userId),
-    }),
-  );
+      recipientUserIds: participants
+        .map((p) => p.userId)
+        .filter((id) => id !== params.actor.userId),
+      bodyPreview: body.slice(0, 160),
+      senderName,
+    });
+  });
 
   return { messageId: message.id, conversationId: params.conversationId, reused: false };
 }
@@ -940,11 +958,16 @@ async function publishMessageLifecycle(params: {
   conversationId: string;
   messageId: string;
   senderId: string;
+  bodyPreview?: string | null;
+  senderName?: string | null;
 }) {
   const participants = await prisma.conversationParticipant.findMany({
     where: { conversationId: params.conversationId, leftAt: null },
     select: { userId: true },
   });
+  const recipientUserIds = participants
+    .map((p) => p.userId)
+    .filter((id) => id !== params.senderId);
   void import("@/lib/mobile/realtime").then(({ publishMobileEvent }) =>
     publishMobileEvent({
       type: params.type,
@@ -952,7 +975,13 @@ async function publishMessageLifecycle(params: {
       conversationId: params.conversationId,
       messageId: params.messageId,
       senderId: params.senderId,
-      recipientUserIds: participants.map((p) => p.userId),
+      recipientUserIds,
+      ...(params.type === "message.created"
+        ? {
+            bodyPreview: params.bodyPreview ?? null,
+            senderName: params.senderName ?? null,
+          }
+        : {}),
     }),
   );
 }
@@ -1155,6 +1184,8 @@ export async function appendCallTraceMessage(params: {
     conversationId: params.conversationId,
     messageId: message.id,
     senderId: params.actorUserId,
+    bodyPreview: body.startsWith("__CALL__:") ? "Appel" : body.slice(0, 160),
+    senderName: "Klambo",
   });
 
   return {

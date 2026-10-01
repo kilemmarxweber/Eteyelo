@@ -8,6 +8,7 @@ export const MESSAGING_SEARCH_PAGE_SIZE = 20;
 export const MESSAGING_CONVERSATIONS_PAGE_SIZE = 30;
 export const MESSAGING_MESSAGES_PAGE_SIZE = 40;
 export const MESSAGING_PURGE_CONFIRMATION = "NETTOYER";
+const SATISFACTION_PREFIX = "__SATISFACTION__:";
 
 export type ConversationTypeValue = "DIRECT" | "GROUP" | "CONTEXTUAL";
 export type ConversationContextTypeValue =
@@ -114,7 +115,8 @@ export function sanitizeMessageBody(raw: string) {
   // Payloads structurés (appels / cartes notif) : ne pas aplatir ni stripper le JSON.
   if (
     trimmed.startsWith("__CALL__:") ||
-    trimmed.startsWith("__NOTIFY__:")
+    trimmed.startsWith("__NOTIFY__:") ||
+    trimmed.startsWith(SATISFACTION_PREFIX)
   ) {
     return trimmed.slice(0, MESSAGING_MAX_BODY_LENGTH);
   }
@@ -128,6 +130,10 @@ export function sanitizeMessageBody(raw: string) {
 export function previewMessageBody(body: string, max = 80) {
   if (body.trimStart().startsWith("__NOTIFY__:")) {
     return formatNotifyCardPreview(body, max);
+  }
+  if (body.trimStart().startsWith(SATISFACTION_PREFIX)) {
+    const preview = formatSatisfactionPreview(body);
+    return preview.length <= max ? preview : `${preview.slice(0, max - 1)}…`;
   }
   const text = formatCallTracePreview(body).trim();
   if (text.length <= max) return text;
@@ -170,5 +176,31 @@ export function formatCallTracePreview(body: string) {
     return label;
   } catch {
     return "Appel";
+  }
+}
+
+function formatSatisfactionPreview(body: string) {
+  try {
+    const payload = JSON.parse(
+      body.trimStart().slice(SATISFACTION_PREFIX.length),
+    ) as {
+      label?: string;
+      items?: Array<{ status?: string }>;
+    };
+    const total = Array.isArray(payload.items) ? payload.items.length : 0;
+    const pending = Array.isArray(payload.items)
+      ? payload.items.filter((item) => item?.status !== "done").length
+      : 0;
+    if (pending > 0) {
+      return `Avis du mois à compléter · ${pending}/${total || pending}`;
+    }
+    if (total > 0) {
+      return `Avis du mois validé · ${total} établissement(s)`;
+    }
+    return payload.label
+      ? `Avis parent · ${payload.label}`
+      : "Avis parent mensuel";
+  } catch {
+    return "Avis parent mensuel";
   }
 }

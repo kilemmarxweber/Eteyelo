@@ -50,6 +50,7 @@ model User {
   gradeModificationRequests    GradeModificationRequest[]  @relation("GradeModificationRequester")
   reviewedGradeModifications   GradeModificationRequest[]  @relation("GradeModificationReviewer")
   appNotifications             AppNotification[]
+  parentSatisfactionDispatches ParentSatisfactionDispatch[]
   familyPaymentsCreated        FamilyPayment[]             @relation("FamilyPaymentCreatedBy")
   cashierExpensesCreated       CashierExpense[]            @relation("CashierExpenseCreatedBy")
   conversationsCreated         Conversation[]              @relation("ConversationCreator")
@@ -247,6 +248,7 @@ model ParentFeedback {
   parentId     String
   rating       Int
   comment      String?
+  source       ParentFeedbackSource @default(WEB)
   month        Int // 1-12
   schoolYearId String
   createdAt    DateTime    @default(now())
@@ -258,6 +260,28 @@ model ParentFeedback {
   @@unique([parentId, month, schoolYearId])
   @@index([branchId])
   @@index([branchId, schoolYearId])
+}
+
+model ParentSatisfactionDispatch {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  month          Int
+  calendarYear   Int
+  conversationId String?
+  messageId      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, organizationId, month, calendarYear])
+  @@index([organizationId, month, calendarYear])
+}
+
+enum ParentFeedbackSource {
+  WEB
+  KLAMBO
 }
 
 model StudentGrade {
@@ -1676,6 +1700,7 @@ model Organization {
   messagingAuditLogs         MessagingAuditLog[]
   userPresences              UserPresence[]
   callSessions               CallSession[]
+  parentSatisfactionDispatches ParentSatisfactionDispatch[]
   exchangeRates              ExchangeRate[]
   temporaryGrants            TemporaryGrant[]
   /// Afficher la 2e devise (conversion) sur les reçus. Désactiver pour AOA sans conversion.

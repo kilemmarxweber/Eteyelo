@@ -405,6 +405,7 @@ export const ModelName = {
   TeacherAttendance: 'TeacherAttendance',
   PersonnelAttendance: 'PersonnelAttendance',
   ParentFeedback: 'ParentFeedback',
+  ParentSatisfactionDispatch: 'ParentSatisfactionDispatch',
   StudentGrade: 'StudentGrade',
   Personnel: 'Personnel',
   Frais: 'Frais',
@@ -508,7 +509,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "atelierCourseLink" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "salaryAdvance" | "salaryAdvanceInstallment" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "practicalDomain" | "room" | "practicalDomainCours" | "rotationSlot" | "rotationSlotItem" | "attendanceFaceDescriptor" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog" | "messageAttachment" | "userPresence" | "callSession" | "temporaryGrant"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "parentSatisfactionDispatch" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "atelierCourseLink" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "salaryAdvance" | "salaryAdvanceInstallment" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "practicalDomain" | "room" | "practicalDomainCours" | "rotationSlot" | "rotationSlotItem" | "attendanceFaceDescriptor" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog" | "messageAttachment" | "userPresence" | "callSession" | "temporaryGrant"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1101,6 +1102,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ParentFeedbackCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ParentFeedbackCountAggregateOutputType> | number
+        }
+      }
+    }
+    ParentSatisfactionDispatch: {
+      payload: Prisma.$ParentSatisfactionDispatchPayload<ExtArgs>
+      fields: Prisma.ParentSatisfactionDispatchFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ParentSatisfactionDispatchFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ParentSatisfactionDispatchPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ParentSatisfactionDispatchFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ParentSatisfactionDispatchPayload>
+        }
+        findFirst: {
+          args: Prisma.ParentSatisfactionDispatchFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ParentSatisfactionDispatchPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ParentSatisfactionDispatchFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ParentSatisfactionDispatchPayload>
+        }
+        findMany: {
+          args: Prisma.ParentSatisfactionDispatchFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ParentSatisfactionDispatchPayload>[]
+        }
+        create: {
+          args: Prisma.ParentSatisfactionDispatchCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ParentSatisfactionDispatchPayload>
+        }
+        createMany: {
+          args: Prisma.ParentSatisfactionDispatchCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ParentSatisfactionDispatchCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ParentSatisfactionDispatchPayload>[]
+        }
+        delete: {
+          args: Prisma.ParentSatisfactionDispatchDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ParentSatisfactionDispatchPayload>
+        }
+        update: {
+          args: Prisma.ParentSatisfactionDispatchUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ParentSatisfactionDispatchPayload>
+        }
+        deleteMany: {
+          args: Prisma.ParentSatisfactionDispatchDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ParentSatisfactionDispatchUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ParentSatisfactionDispatchUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ParentSatisfactionDispatchPayload>[]
+        }
+        upsert: {
+          args: Prisma.ParentSatisfactionDispatchUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ParentSatisfactionDispatchPayload>
+        }
+        aggregate: {
+          args: Prisma.ParentSatisfactionDispatchAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateParentSatisfactionDispatch>
+        }
+        groupBy: {
+          args: Prisma.ParentSatisfactionDispatchGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ParentSatisfactionDispatchGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ParentSatisfactionDispatchCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ParentSatisfactionDispatchCountAggregateOutputType> | number
         }
       }
     }
@@ -7807,6 +7882,7 @@ export const ParentFeedbackScalarFieldEnum = {
   parentId: 'parentId',
   rating: 'rating',
   comment: 'comment',
+  source: 'source',
   month: 'month',
   schoolYearId: 'schoolYearId',
   createdAt: 'createdAt',
@@ -7814,6 +7890,21 @@ export const ParentFeedbackScalarFieldEnum = {
 } as const
 
 export type ParentFeedbackScalarFieldEnum = (typeof ParentFeedbackScalarFieldEnum)[keyof typeof ParentFeedbackScalarFieldEnum]
+
+
+export const ParentSatisfactionDispatchScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  month: 'month',
+  calendarYear: 'calendarYear',
+  conversationId: 'conversationId',
+  messageId: 'messageId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ParentSatisfactionDispatchScalarFieldEnum = (typeof ParentSatisfactionDispatchScalarFieldEnum)[keyof typeof ParentSatisfactionDispatchScalarFieldEnum]
 
 
 export const StudentGradeScalarFieldEnum = {
@@ -9522,6 +9613,20 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'ParentFeedbackSource'
+ */
+export type EnumParentFeedbackSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ParentFeedbackSource'>
+    
+
+
+/**
+ * Reference to a field of type 'ParentFeedbackSource[]'
+ */
+export type ListEnumParentFeedbackSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ParentFeedbackSource[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -10393,6 +10498,7 @@ export type GlobalOmitConfig = {
   teacherAttendance?: Prisma.TeacherAttendanceOmit
   personnelAttendance?: Prisma.PersonnelAttendanceOmit
   parentFeedback?: Prisma.ParentFeedbackOmit
+  parentSatisfactionDispatch?: Prisma.ParentSatisfactionDispatchOmit
   studentGrade?: Prisma.StudentGradeOmit
   personnel?: Prisma.PersonnelOmit
   frais?: Prisma.FraisOmit

@@ -10,6 +10,9 @@ export type MobileRealtimeEvent =
       messageId: string;
       senderId: string;
       recipientUserIds: string[];
+      /** Aperçu pour notifs locales (WS). */
+      bodyPreview?: string | null;
+      senderName?: string | null;
     }
   | {
       type: "message.updated";

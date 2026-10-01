@@ -59,6 +59,7 @@ export const ModelName = {
   TeacherAttendance: 'TeacherAttendance',
   PersonnelAttendance: 'PersonnelAttendance',
   ParentFeedback: 'ParentFeedback',
+  ParentSatisfactionDispatch: 'ParentSatisfactionDispatch',
   StudentGrade: 'StudentGrade',
   Personnel: 'Personnel',
   Frais: 'Frais',
@@ -317,6 +318,7 @@ export const ParentFeedbackScalarFieldEnum = {
   parentId: 'parentId',
   rating: 'rating',
   comment: 'comment',
+  source: 'source',
   month: 'month',
   schoolYearId: 'schoolYearId',
   createdAt: 'createdAt',
@@ -324,6 +326,21 @@ export const ParentFeedbackScalarFieldEnum = {
 } as const
 
 export type ParentFeedbackScalarFieldEnum = (typeof ParentFeedbackScalarFieldEnum)[keyof typeof ParentFeedbackScalarFieldEnum]
+
+
+export const ParentSatisfactionDispatchScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  month: 'month',
+  calendarYear: 'calendarYear',
+  conversationId: 'conversationId',
+  messageId: 'messageId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ParentSatisfactionDispatchScalarFieldEnum = (typeof ParentSatisfactionDispatchScalarFieldEnum)[keyof typeof ParentSatisfactionDispatchScalarFieldEnum]
 
 
 export const StudentGradeScalarFieldEnum = {

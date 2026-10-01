@@ -12,6 +12,7 @@ import {
 } from "@/lib/auth/dashboard-variant";
 import { getBaseCurrency } from "@/lib/exchange-rate";
 import { prisma } from "@/lib/prisma";
+import { submitParentSatisfaction } from "@/lib/satisfaction/parent-satisfaction";
 import { getCachedSession } from "@/lib/auth/get-session-cached";
 import { canAccessBranchAreaAsync } from "@/lib/auth/assert-branch-area-access";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
@@ -1959,10 +1960,6 @@ export async function createParentFeedback(
       return { error: "INVALID_RATING" };
     }
 
-    const now = new Date();
-    const month = now.getMonth() + 1;
-
-    // Préférer la branche active de session (évite un parent d'une autre école).
     let activeBranchId: string | null = null;
     try {
       const ctx = await requireBranchContext();
@@ -1970,77 +1967,42 @@ export async function createParentFeedback(
     } catch {
       activeBranchId = null;
     }
+    if (!activeBranchId) return { error: "PARENT_NOT_FOUND" };
 
-    const parent = await prisma.parent.findFirst({
+    const member = await prisma.member.findFirst({
       where: {
+        userId: currentUserId,
+        isArchived: false,
         branchMember: {
-          ...(activeBranchId ? { branchId: activeBranchId } : {}),
-          member: {
-            userId: currentUserId,
+          some: {
+            branchId: activeBranchId,
+            role: "PARENT",
+            isActive: true,
           },
         },
       },
       select: {
-        id: true,
-        branchMember: {
-          select: {
-            branchId: true,
-          },
-        },
+        organizationId: true,
       },
     });
+    if (!member) return { error: "PARENT_NOT_FOUND" };
 
-    if (!parent?.branchMember?.branchId) {
-      return { error: "PARENT_NOT_FOUND" };
-    }
-
-    const branchId = parent.branchMember.branchId;
-
-    const currentYear = await prisma.schoolYear.findFirst({
-      where: {
-        isCurrentYear: true,
-        branchId,
-      },
-      select: {
-        id: true,
-      },
+    const result = await submitParentSatisfaction({
+      userId: currentUserId,
+      organizationId: member.organizationId,
+      branchId: activeBranchId,
+      rating,
+      comment: comment ?? null,
+      source: "WEB",
     });
-
-    if (!currentYear) {
-      return { error: "NO_ACTIVE_SCHOOL_YEAR" };
-    }
-
-    const existing = await prisma.parentFeedback.findFirst({
-      where: {
-        parentId: parent.id,
-        month,
-        schoolYearId: currentYear.id,
-        branchId,
-      },
-      select: { id: true },
-    });
-
-    if (existing) {
-      return { error: "ALREADY_SUBMITTED" };
-    }
-
-    const feedback = await prisma.parentFeedback.create({
-      data: {
-        parentId: parent.id,
-        rating,
-        comment: comment ?? null,
-        month,
-        schoolYearId: currentYear.id,
-        branchId,
-      },
-    });
+    if ("error" in result) return { error: result.error };
 
     const satisfaction = await getParentAnnualSatisfaction(
-      branchId,
+      activeBranchId,
       currentUserId,
     );
 
-    return { data: feedback, satisfaction };
+    return { data: result.data, satisfaction };
   } catch (error) {
     console.error("createParentFeedback error:", error);
     return { error: "SERVER_ERROR" };

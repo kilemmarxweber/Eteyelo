@@ -58,6 +58,11 @@ export type PersonnelAttendance = Prisma.PersonnelAttendanceModel
  */
 export type ParentFeedback = Prisma.ParentFeedbackModel
 /**
+ * Model ParentSatisfactionDispatch
+ * 
+ */
+export type ParentSatisfactionDispatch = Prisma.ParentSatisfactionDispatchModel
+/**
  * Model StudentGrade
  * 
  */

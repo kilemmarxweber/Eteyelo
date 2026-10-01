@@ -23,6 +23,11 @@ export type SatisfactionReport = {
     positiveRate: number;
     count: number;
   }>;
+  bySource: Array<{
+    source: "WEB" | "KLAMBO";
+    count: number;
+    percent: number;
+  }>;
 };
 
 const MONTH_LABELS = [
@@ -54,7 +59,7 @@ export async function getSatisfactionReport(params: {
   const [feedbacks, parentsCount, branches] = await Promise.all([
     prisma.parentFeedback.findMany({
       where: { ...branchFilter, ...yearFilter },
-      select: { rating: true, month: true, branchId: true },
+      select: { rating: true, month: true, branchId: true, source: true },
     }),
     prisma.parent.count({
       where: { branchMember: branchFilter },
@@ -87,6 +92,8 @@ export async function getSatisfactionReport(params: {
     cur.count += 1;
     monthAgg.set(f.month, cur);
   }
+  const webCount = feedbacks.filter((f) => f.source === "WEB").length;
+  const klamboCount = feedbacks.filter((f) => f.source === "KLAMBO").length;
 
   const byBranch = branches.map((b) => {
     const rows = feedbacks.filter((f) => f.branchId === b.id);
@@ -128,5 +135,17 @@ export async function getSatisfactionReport(params: {
         count: agg.count,
       })),
     byBranch,
+    bySource: [
+      {
+        source: "WEB",
+        count: webCount,
+        percent: pct(webCount, totalFeedbacks),
+      },
+      {
+        source: "KLAMBO",
+        count: klamboCount,
+        percent: pct(klamboCount, totalFeedbacks),
+      },
+    ],
   };
 }
