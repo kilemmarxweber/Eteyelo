@@ -30,19 +30,30 @@ async function countRecentOtpRequests(phoneE164: string) {
   });
 }
 
+/**
+ * Temporaire : renvoie le code à l’app (devCode) même en prod,
+ * tant que le SMS n’est pas fiable.
+ * Couper : MESSAGING_OTP_EXPOSE_CODE=false
+ */
+function shouldExposeOtpCode() {
+  const flag = process.env.MESSAGING_OTP_EXPOSE_CODE?.trim().toLowerCase();
+  if (flag === "false" || flag === "0" || flag === "no") return false;
+  if (flag === "true" || flag === "1" || flag === "yes") return true;
+  return true;
+}
+
 async function sendOtpMessage(phoneE164: string, code: string) {
   const apiKey = process.env.MESSAGING_API_KEY?.trim();
   const baseUrl =
     process.env.MESSAGING_API_BASE_URL?.trim() ||
     "https://whatsapp-api.klambocore.com";
-  // sms (défaut) | whatsapp | auto (SMS puis WA)
   const preferred =
     process.env.MESSAGING_OTP_CHANNEL?.trim().toLowerCase() || "sms";
 
-  // Dev / CI : log le code si pas d'API messaging
+  // Pas de clé → mode app / console uniquement
   if (!apiKey) {
     console.info(
-      `[mobile-otp] DEV code for ${maskPhone(phoneE164)}: ${code}`,
+      `[mobile-otp] code for ${maskPhone(phoneE164)}: ${code} (channel=dev, no API key)`,
     );
     return { channel: "dev" as const };
   }
@@ -78,50 +89,44 @@ async function sendOtpMessage(phoneE164: string, code: string) {
       queue_kind: "otp",
     });
 
-  if (preferred === "whatsapp") {
-    await sendWhatsApp();
-    return { channel: "whatsapp" as const };
-  }
-
-  if (preferred === "auto") {
-    try {
-      await sendSms();
-      return { channel: "sms" as const };
-    } catch (smsError) {
-      console.warn("[mobile-otp] SMS failed, trying WhatsApp", smsError);
-      await sendWhatsApp();
-      return { channel: "whatsapp" as const };
-    }
-  }
-
-  // Canal SMS forcé (défaut) — OTP par numéro de téléphone
-  try {
-    await sendSms();
-    return { channel: "sms" as const };
-  } catch (smsError) {
-    const detail =
-      smsError instanceof Error ? smsError.message : String(smsError);
+  const fallbackAfterFailure = (detail: string) => {
     console.error(
-      `[mobile-otp] SMS send failed ${detail} | baseUrl=${baseUrl} key=${keyKind}`,
+      `[mobile-otp] send failed ${detail} | baseUrl=${baseUrl} key=${keyKind}`,
     );
-    // En local (expose code), on continue pour préremplir l'OTP dans l'app
     if (shouldExposeOtpCode()) {
-      console.warn("[mobile-otp] Fallback DEV après échec SMS");
+      console.warn(
+        `[mobile-otp] Fallback app prefill for ${maskPhone(phoneE164)}: ${code}`,
+      );
       return { channel: "dev" as const };
     }
     throw new Error(
       "Impossible d'envoyer le SMS OTP. Vérifiez MESSAGING_API_KEY / MESSAGING_API_BASE_URL.",
     );
-  }
-}
+  };
 
-function shouldExposeOtpCode() {
-  // Jamais en production — même si MESSAGING_OTP_EXPOSE_CODE=true.
-  if (process.env.NODE_ENV === "production") return false;
-  const flag = process.env.MESSAGING_OTP_EXPOSE_CODE?.trim().toLowerCase();
-  if (flag === "false" || flag === "0" || flag === "no") return false;
-  if (flag === "true" || flag === "1" || flag === "yes") return true;
-  return true; // hors prod par défaut
+  try {
+    if (preferred === "whatsapp") {
+      await sendWhatsApp();
+      return { channel: "whatsapp" as const };
+    }
+
+    if (preferred === "auto") {
+      try {
+        await sendSms();
+        return { channel: "sms" as const };
+      } catch (smsError) {
+        console.warn("[mobile-otp] SMS failed, trying WhatsApp", smsError);
+        await sendWhatsApp();
+        return { channel: "whatsapp" as const };
+      }
+    }
+
+    await sendSms();
+    return { channel: "sms" as const };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    return fallbackAfterFailure(detail);
+  }
 }
 
 export async function requestMobileOtp(phoneE164: string) {
@@ -160,14 +165,15 @@ export async function requestMobileOtp(phoneE164: string) {
   const exposeDevCode = shouldExposeOtpCode();
   if (exposeDevCode) {
     console.info(
-      `[mobile-otp] DEV code for ${maskPhone(phoneE164)}: ${code} (channel=${delivery.channel})`,
+      `[mobile-otp] code for ${maskPhone(phoneE164)}: ${code} (channel=${delivery.channel})`,
     );
   }
+
   return {
     expiresAt: expiresAt.toISOString(),
     channel: delivery.channel,
     maskedPhone: maskPhone(phoneE164),
-    // Préremplissage Flutter (MESSAGING_OTP_EXPOSE_CODE=true ou hors prod)
+    // Préremplissage Flutter — actif par défaut (même en prod) tant que SMS fragile
     ...(exposeDevCode ? { devCode: code } : {}),
   };
 }
