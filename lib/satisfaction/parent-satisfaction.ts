@@ -107,9 +107,21 @@ export async function listPendingBranchesForUser(params: {
       },
       students: {
         select: {
-          prenom: true,
-          name: true,
-          postnom: true,
+          branchMember: {
+            select: {
+              member: {
+                select: {
+                  user: {
+                    select: {
+                      prenom: true,
+                      name: true,
+                      postnom: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -154,7 +166,9 @@ export async function listPendingBranchesForUser(params: {
       branchId,
       branchName: branchDocumentName(parent.branchMember.branch) || parent.branchMember.branch.name,
       schoolYearId: year.id,
-      children: parent.students.map((student) => pickChildName(student)),
+      children: parent.students.map((student) =>
+        pickChildName(student.branchMember?.member?.user ?? {}),
+      ),
       status: existing ? "done" : "pending",
       ...(existing ? { rating: existing.rating } : {}),
       hasFeedback: Boolean(existing),

@@ -36,7 +36,7 @@ export async function POST(request: Request, context: Ctx) {
 
     if ("error" in result) {
       const status = result.error === "ALREADY_SUBMITTED" ? 409 : 400;
-      return jsonError(result.error, status);
+      return jsonError(result.error ?? "Soumission impossible.", status);
     }
 
     return jsonOk({
