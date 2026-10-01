@@ -11,6 +11,7 @@ import {
   MessagingError,
   sendMessage,
 } from "@/lib/messaging/messaging-service";
+import { toPlainClientMessageBody } from "@/lib/notify/notify-message-card";
 
 export const runtime = "nodejs";
 
@@ -34,7 +35,19 @@ export async function GET(request: Request, context: Ctx) {
       conversationId,
       cursor,
     });
-    return jsonOk(data);
+    return jsonOk({
+      ...data,
+      items: data.items.map((item) => ({
+        ...item,
+        body: toPlainClientMessageBody(item.body),
+        replyTo: item.replyTo
+          ? {
+              ...item.replyTo,
+              body: toPlainClientMessageBody(item.replyTo.body),
+            }
+          : null,
+      })),
+    });
   } catch (error) {
     const status = error instanceof MessagingError ? 400 : 500;
     return jsonError(

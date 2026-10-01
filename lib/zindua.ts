@@ -539,17 +539,17 @@ export async function sendNewUserCredentialsWhatsApp(options: {
     "@/lib/notify/notify-message-card"
   );
 
+  const hello = formatMessagingHello(t, displayName);
   const card = {
     v: 1 as const,
     tone: "amber" as const,
     brand,
     title: t("accountCreate.title"),
-    intro: formatMessagingHello(t, displayName),
+    intro: `${hello} ${t("accountCreate.intro", {
+      app: APP_NAME,
+      context: t("accountCreate.contextRole", { role }),
+    })}`.trim(),
     rows: [
-      {
-        label: t("common.role"),
-        value: role,
-      },
       {
         label: t("common.email"),
         value: options.email,
@@ -559,11 +559,6 @@ export async function sendNewUserCredentialsWhatsApp(options: {
         label: t("common.temporaryPassword"),
         value: options.temporaryPassword,
         kind: "secret" as const,
-      },
-      {
-        label: t("common.login"),
-        value: loginUrl,
-        kind: "link" as const,
       },
     ],
     note: t("accountCreate.waSecurity"),
@@ -638,12 +633,13 @@ export async function sendResetPasswordWhatsApp(
     "@/lib/notify/notify-message-card"
   );
 
+  const hello = formatMessagingHello(t, displayName);
   const card = {
     v: 1 as const,
     tone: "amber" as const,
     brand,
     title: t("passwordReset.title"),
-    intro: formatMessagingHello(t, displayName),
+    intro: `${hello} ${t("passwordReset.intro", { app: APP_NAME })}`.trim(),
     rows: [
       {
         label: t("common.email"),
@@ -654,11 +650,6 @@ export async function sendResetPasswordWhatsApp(
         label: t("common.newPassword"),
         value: options.temporaryPassword,
         kind: "secret" as const,
-      },
-      {
-        label: t("common.login"),
-        value: loginUrl,
-        kind: "link" as const,
       },
     ],
     note: t("passwordReset.waSecurity"),

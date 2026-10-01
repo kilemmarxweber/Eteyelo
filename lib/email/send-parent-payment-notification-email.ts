@@ -115,7 +115,6 @@ export async function sendParentPaymentNotificationEmail(input: {
   }
 
   if (allow.whatsapp && phone) {
-    const amountLabel = t("common.amount");
     const card = {
       v: 1 as const,
       tone: "emerald" as const,
@@ -125,7 +124,6 @@ export async function sendParentPaymentNotificationEmail(input: {
       rows: rows.map((row) => ({
         label: row.label,
         value: row.value,
-        ...(row.label === amountLabel ? { kind: "secret" as const } : {}),
       })),
       note: t("common.connectHint"),
       cta: {

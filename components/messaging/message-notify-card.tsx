@@ -13,9 +13,16 @@ const TONE_HEADER: Record<
   string
 > = {
   navy: "bg-[#172554] text-white",
-  amber: "bg-amber-700 text-white",
+  amber: "bg-amber-800 text-white",
   emerald: "bg-emerald-800 text-white",
   rose: "bg-rose-800 text-white",
+};
+
+const TONE_CTA: Record<NonNullable<NotifyMessageCard["tone"]>, string> = {
+  navy: "bg-[#172554] hover:bg-[#1e3a8a]",
+  amber: "bg-amber-800 hover:bg-amber-900",
+  emerald: "bg-emerald-800 hover:bg-emerald-900",
+  rose: "bg-rose-800 hover:bg-rose-900",
 };
 
 function RowIcon({ kind }: { kind?: NotifyCardRow["kind"] }) {
@@ -29,7 +36,7 @@ function RowIcon({ kind }: { kind?: NotifyCardRow["kind"] }) {
 function RowValue({ row }: { row: NotifyCardRow }) {
   if (row.kind === "secret") {
     return (
-      <code className="mt-1 block w-fit max-w-full break-all rounded-md bg-amber-100 px-2.5 py-1.5 font-mono text-[13px] font-semibold tracking-wide text-amber-950 ring-1 ring-amber-300/80 dark:bg-amber-950/50 dark:text-amber-100 dark:ring-amber-700/60">
+      <code className="mt-1 block w-full max-w-full break-all rounded-lg bg-white px-3 py-2 font-mono text-[14px] font-semibold tracking-wide text-amber-950 ring-1 ring-amber-300 dark:bg-slate-950 dark:text-amber-100 dark:ring-amber-700/70">
         {row.value}
       </code>
     );
@@ -92,20 +99,22 @@ export function MessageNotifyCard({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border border-slate-200/80 bg-white text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50",
+        "w-full max-w-[min(100%,22rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50",
         className,
       )}
     >
-      <div className={cn("px-3 py-2.5", TONE_HEADER[tone])}>
+      <div className={cn("px-3.5 py-3", TONE_HEADER[tone])}>
         {card.brand ? (
-          <p className="text-[10px] font-medium uppercase tracking-[0.08em] opacity-85">
+          <p className="text-[10px] font-medium uppercase tracking-[0.1em] opacity-80">
             {card.brand}
           </p>
         ) : null}
-        <p className="text-sm font-semibold leading-snug">{card.title}</p>
+        <p className="mt-0.5 text-[15px] font-semibold leading-snug">
+          {card.title}
+        </p>
       </div>
 
-      <div className="space-y-3 px-3 py-3">
+      <div className="space-y-3 px-3.5 py-3.5">
         {card.intro ? (
           <p className="text-[13px] leading-relaxed text-slate-600 dark:text-slate-300">
             {card.intro}
@@ -113,13 +122,13 @@ export function MessageNotifyCard({
         ) : null}
 
         {card.rows?.length ? (
-          <div className="space-y-2.5 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/80">
+          <div className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/80 dark:divide-slate-800 dark:border-slate-700 dark:bg-slate-900/60">
             {card.rows.map((row, index) => (
               <div
                 key={`${row.label}-${index}`}
                 className={cn(
-                  row.kind === "secret" &&
-                    "rounded-lg border border-amber-200/80 bg-amber-50/80 p-2.5 dark:border-amber-800/50 dark:bg-amber-950/30",
+                  "px-3 py-2.5",
+                  row.kind === "secret" && "bg-amber-50/90 dark:bg-amber-950/25",
                 )}
               >
                 <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
@@ -143,7 +152,10 @@ export function MessageNotifyCard({
             href={card.cta.href}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center justify-center rounded-xl bg-[#172554] px-3.5 py-2 text-[13px] font-semibold text-white transition hover:bg-[#1e3a8a]"
+            className={cn(
+              "inline-flex w-full items-center justify-center rounded-xl px-3.5 py-2.5 text-[13px] font-semibold text-white transition",
+              TONE_CTA[tone],
+            )}
           >
             {card.cta.label}
           </a>

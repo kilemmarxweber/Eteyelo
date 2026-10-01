@@ -181,7 +181,6 @@ export async function sendStudentResultsNotification(input: {
         {
           label: t("common.average"),
           value: averageLabel,
-          kind: "secret" as const,
         },
       ],
       cta: {

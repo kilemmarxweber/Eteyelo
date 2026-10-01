@@ -1,7 +1,8 @@
 /**
  * Carte notification messagerie (inbox Klambo) — même hiérarchie que l’email :
  * en-tête, intro, lignes d’infos, secret (mot de passe) mis en avant, note, CTA.
- * Stockée en `__NOTIFY__:{json}` dans le body du message.
+ * Stockée en `__NOTIFY__:{json}` dans le body du message (rendu web).
+ * Sur mobile / WhatsApp : utiliser formatNotifyCardPlainText.
  */
 
 export const NOTIFY_MESSAGE_PREFIX = "__NOTIFY__:";
@@ -121,32 +122,65 @@ function normalizeKind(kind: unknown): NotifyCardRowKind | undefined {
   return undefined;
 }
 
-/** Aperçu liste / inbox (texte plat). */
+/** Aperçu liste / inbox (texte plat court). */
 export function formatNotifyCardPreview(body: string, max = 80): string {
   const card = parseNotifyCard(body);
   if (!card) return body;
-  const secret = card.rows?.find((r) => r.kind === "secret");
-  const text = secret
-    ? `${card.title} · ${secret.label}`
-    : card.intro
-      ? `${card.title} — ${card.intro}`
-      : card.title;
+  const text = card.title;
   if (text.length <= max) return text;
   return `${text.slice(0, max - 1)}…`;
 }
 
-/** Texte plat pour gateway WhatsApp (pipes). */
+/**
+ * Corps lisible (mobile / WhatsApp / fallback) — jamais le JSON brut.
+ */
+export function formatNotifyCardPlainText(
+  bodyOrCard: string | NotifyMessageCard,
+): string {
+  const card =
+    typeof bodyOrCard === "string"
+      ? parseNotifyCard(bodyOrCard)
+      : bodyOrCard;
+  if (!card) {
+    return typeof bodyOrCard === "string" ? bodyOrCard : "";
+  }
+
+  const lines: string[] = [];
+  if (card.brand) lines.push(card.brand);
+  lines.push(card.title);
+  if (card.intro?.trim()) {
+    lines.push("");
+    lines.push(card.intro.trim());
+  }
+  if (card.rows?.length) {
+    lines.push("");
+    for (const row of card.rows) {
+      lines.push(`${row.label} : ${row.value}`);
+    }
+  }
+  if (card.note?.trim()) {
+    lines.push("");
+    lines.push(card.note.trim());
+  }
+  if (card.cta?.href?.trim()) {
+    lines.push("");
+    lines.push(`${card.cta.label} : ${card.cta.href.trim()}`);
+  }
+  return lines.join("\n").trim().slice(0, 4000);
+}
+
+/** Pour API mobile : JSON → texte ; sinon inchangé. */
+export function toPlainClientMessageBody(body: string): string {
+  if (!isNotifyMessageBody(body)) return body;
+  return formatNotifyCardPlainText(body);
+}
+
+/** Texte plat pour gateway WhatsApp (parties). */
 export function notifyCardToWhatsAppParts(
   card: NotifyMessageCard,
 ): string[] {
-  const parts: string[] = [];
-  if (card.brand) parts.push(card.brand);
-  if (card.title) parts.push(card.title);
-  if (card.intro) parts.push(card.intro);
-  for (const row of card.rows ?? []) {
-    parts.push(`${row.label} : ${row.value}`);
-  }
-  if (card.note) parts.push(card.note);
-  if (card.cta?.href) parts.push(`${card.cta.label} : ${card.cta.href}`);
-  return parts;
+  return formatNotifyCardPlainText(card)
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
 }
