@@ -1680,21 +1680,34 @@ export async function getConversationMessages(params: {
       isSchoolNotifyBotEmail(p.user.email),
   );
 
-  /** Watermark lecture des autres participants (✓✓ si createdAt ≤ peerLastReadAt). */
-  const otherPeers = conversationPeers.filter(
-    (p) => p.userId !== params.actor.userId,
+  /** Watermark lecture des autres humains (✓✓ si createdAt ≤ peerLastReadAt). */
+  const humanPeers = conversationPeers.filter(
+    (p) =>
+      p.userId !== params.actor.userId &&
+      !isSchoolNotifyBotEmail(p.user.email),
   );
   let peerLastReadAt: string | null = null;
-  if (
-    otherPeers.length > 0 &&
-    otherPeers.every((p) => p.lastReadAt != null)
+  if (humanPeers.length === 1) {
+    peerLastReadAt = humanPeers[0]?.lastReadAt?.toISOString() ?? null;
+  } else if (
+    humanPeers.length > 1 &&
+    humanPeers.every((p) => p.lastReadAt != null)
   ) {
-    const earliest = otherPeers.reduce((min, p) => {
+    const earliest = humanPeers.reduce((min, p) => {
       const t = p.lastReadAt!.getTime();
       return t < min.getTime() ? p.lastReadAt! : min;
-    }, otherPeers[0]!.lastReadAt!);
+    }, humanPeers[0]!.lastReadAt!);
     peerLastReadAt = earliest.toISOString();
   }
+
+  const itemsWithStatus: MessageView[] = items.map((item) => {
+    if (item.senderId !== params.actor.userId) return item;
+    const created = Date.parse(item.createdAt);
+    const readAt = peerLastReadAt ? Date.parse(peerLastReadAt) : NaN;
+    const deliveryStatus =
+      Number.isFinite(readAt) && created <= readAt ? "READ" : "SENT";
+    return { ...item, deliveryStatus };
+  });
 
   const hasExplicitAdmin = conversationPeers.some((p) => p.role === "ADMIN");
   const myRole =
@@ -1723,7 +1736,7 @@ export async function getConversationMessages(params: {
       : 0;
 
   return {
-    items,
+    items: itemsWithStatus,
     noReply,
     peerLastReadAt,
     repliesLocked: Boolean(conversationMeta?.repliesLocked),
