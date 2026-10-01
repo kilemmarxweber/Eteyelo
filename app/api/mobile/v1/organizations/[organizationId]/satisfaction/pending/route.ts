@@ -10,6 +10,7 @@ import {
   ensureMonthlySatisfactionDispatchForUser,
   listPendingBranchesForUser,
 } from "@/lib/satisfaction/parent-satisfaction";
+import { MessagingError } from "@/lib/messaging/messaging-service";
 
 export const runtime = "nodejs";
 
@@ -60,8 +61,9 @@ export async function GET(_request: Request, context: Ctx) {
     });
   } catch (error) {
     return jsonError(
-      error instanceof Error && error.name === "MessagingError"
-        ? error.message
+      error instanceof MessagingError ||
+        (error instanceof Error && error.name === "MessagingError")
+        ? (error as Error).message
         : "Erreur satisfaction.",
       mobileErrorStatus(error),
     );

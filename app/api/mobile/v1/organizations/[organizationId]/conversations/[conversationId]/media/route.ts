@@ -12,7 +12,10 @@ import {
   canSendMessages,
   messagingDeniedMessage,
 } from "@/lib/messaging/messaging-policy";
-import { MessagingError } from "@/lib/messaging/messaging-service";
+import {
+  MessagingError,
+  assertConversationAllowsHumanReply,
+} from "@/lib/messaging/messaging-service";
 import {
   MESSAGING_MAX_BODY_LENGTH,
   MESSAGING_RATE_LIMIT_PER_MINUTE,
@@ -30,9 +33,10 @@ type Ctx = {
 function kindFromFile(file: File): MessageAttachmentKind | null {
   const mime = (file.type || "").toLowerCase();
   const ext = path.extname(file.name).toLowerCase();
+  // Aligné sur ALLOWED_* (pas de GIF / SVG).
   if (
-    mime.startsWith("image/") ||
-    [".png", ".jpg", ".jpeg", ".webp", ".gif"].includes(ext)
+    ["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(mime) ||
+    [".png", ".jpg", ".jpeg", ".webp"].includes(ext)
   ) {
     return "IMAGE";
   }
@@ -42,11 +46,11 @@ function kindFromFile(file: File): MessageAttachmentKind | null {
   ) {
     return "AUDIO";
   }
-  if (mime.startsWith("video/") || ext === ".mp4") {
-    return "VIDEO";
-  }
-  if (ext === ".webm") {
-    return mime.startsWith("video/") ? "VIDEO" : "AUDIO";
+  if (
+    ["video/mp4", "video/webm"].includes(mime) ||
+    [".mp4", ".webm"].includes(ext)
+  ) {
+    return mime.startsWith("audio/") ? "AUDIO" : "VIDEO";
   }
   if (
     mime === "application/pdf" ||
@@ -85,47 +89,38 @@ export async function POST(request: Request, context: Ctx) {
         leftAt: null,
         conversation: { organizationId, deletedAt: null },
       },
-      select: {
-        id: true,
-        role: true,
-        conversation: {
-          select: {
-            type: true,
-            repliesLocked: true,
-            createdById: true,
-          },
-        },
-      },
+      select: { id: true },
     });
     if (!participant) return jsonError("Conversation inaccessible.", 404);
 
-    if (
-      participant.conversation.type === "GROUP" &&
-      participant.conversation.repliesLocked
-    ) {
-      const isAdmin =
-        participant.role === "ADMIN" ||
-        participant.conversation.createdById === actor.userId;
-      if (!isAdmin) {
-        return jsonError(
-          "Les réponses sont verrouillées : seuls les admins du groupe peuvent écrire.",
-          403,
-        );
-      }
-    }
+    // Même garde que sendMessage (bot notify + groupes verrouillés).
+    await assertConversationAllowsHumanReply(conversationId, actor.userId);
 
     const form = await request.formData();
     const file = form.get("file");
-    const captionRaw = String(form.get("body") ?? "");
-    const caption = sanitizeMessageBody(captionRaw);
+    const caption = sanitizeMessageBody(String(form.get("body") ?? ""), {
+      allowStructured: false,
+    });
+    const clientMessageIdRaw = String(form.get("clientMessageId") ?? "").trim();
     const clientMessageId =
-      String(form.get("clientMessageId") ?? "").trim().slice(0, 80) || null;
+      /^[a-zA-Z0-9:_.-]{1,80}$/.test(clientMessageIdRaw)
+        ? clientMessageIdRaw
+        : null;
 
     if (!(file instanceof File) || file.size === 0) {
       return jsonError("Fichier requis.", 400);
     }
     if (caption.length > MESSAGING_MAX_BODY_LENGTH) {
       return jsonError("Légende trop longue.", 400);
+    }
+
+    // Nom de fichier : pas de path traversal / caractères bizarres.
+    const safeBase = path
+      .basename(file.name)
+      .replace(/[^\w.\-()+ ]+/g, "_")
+      .slice(0, 180);
+    if (!safeBase || safeBase === "." || safeBase === "..") {
+      return jsonError("Nom de fichier invalide.", 400);
     }
 
     if (clientMessageId) {
@@ -164,11 +159,12 @@ export async function POST(request: Request, context: Ctx) {
     const durationRaw = String(form.get("durationMs") ?? "").trim();
     const durationParsed = durationRaw ? Number.parseInt(durationRaw, 10) : NaN;
     const durationMs =
-      Number.isFinite(durationParsed) && durationParsed > 0 && durationParsed < 86_400_000
+      Number.isFinite(durationParsed) &&
+      durationParsed > 0 &&
+      durationParsed < 86_400_000
         ? durationParsed
         : null;
     const bodyText = caption || `[${kind.toLowerCase()}]`;
-    const safeFileName = path.basename(file.name).slice(0, 180) || null;
 
     const message = await prisma.$transaction(async (tx) => {
       const msg = await tx.message.create({
@@ -187,7 +183,7 @@ export async function POST(request: Request, context: Ctx) {
           mimeType: file.type || null,
           sizeBytes: file.size,
           durationMs,
-          fileName: safeFileName,
+          fileName: safeBase,
         },
       });
       await tx.conversation.update({
@@ -228,7 +224,7 @@ export async function POST(request: Request, context: Ctx) {
   } catch (error) {
     console.error("MOBILE_MEDIA_ERROR", error);
     if (error instanceof MessagingError) {
-      return jsonError(error.message, 400);
+      return jsonError(error.message, error.statusCode);
     }
     const message =
       error instanceof Error ? error.message : "Upload média échoué.";

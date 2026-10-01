@@ -135,19 +135,13 @@ export async function PATCH(request: Request) {
       postnom?: string | null;
       image?: string;
     } = {};
-    if (data.name) userUpdate.name = data.name;
-    if (data.prenom !== undefined) {
-      userUpdate.prenom = data.prenom;
-    }
+    if (data.name) userUpdate.name = data.name.slice(0, 80);
+    if (data.prenom !== undefined) userUpdate.prenom = data.prenom.slice(0, 80);
     if (data.postnom !== undefined) {
-      userUpdate.postnom = data.postnom;
+      userUpdate.postnom = data.postnom.slice(0, 80);
     }
-    if (data.image) {
-      const img = mobileLocalUploadUrlSchema.safeParse(data.image);
-      if (!img.success) {
-        return jsonError("URL image non autorisée.", 400);
-      }
-      userUpdate.image = img.data;
+    if (data.image && data.image.startsWith("/uploads/")) {
+      userUpdate.image = data.image.slice(0, 300);
     }
 
     if (Object.keys(userUpdate).length > 0) {
