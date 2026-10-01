@@ -47,6 +47,11 @@ export type NotifyCardInput = {
   cta?: { label: string; href: string } | null;
   /** Si true, retire la ligne dont la valeur = brand (ex. école déjà en en-tête). */
   omitBrandRow?: boolean;
+  /**
+   * Signature WhatsApp (`— École`). Si omis et `brand` présent → `— {brand}`.
+   * Passer `null` pour désactiver.
+   */
+  signature?: string | null;
 };
 
 export function isNotifyMessageBody(body: string): boolean {
@@ -206,16 +211,28 @@ export function notifyCardToWhatsAppParts(
     .filter(Boolean);
 }
 
-/** Sérialise + parties WhatsApp en un coup. */
+/** Sérialise + parties WhatsApp (avec signature `— brand` si applicable). */
 export function prepareNotifyDelivery(input: NotifyCardInput): {
   card: NotifyMessageCard;
   richBody: string;
   parts: string[];
 } {
-  const card = buildNotifyCard({ ...input, omitBrandRow: input.omitBrandRow ?? true });
+  const card = buildNotifyCard({
+    ...input,
+    omitBrandRow: input.omitBrandRow ?? true,
+  });
+  const parts = notifyCardToWhatsAppParts(card);
+  const signature =
+    input.signature === null
+      ? null
+      : input.signature?.trim() ||
+        (card.brand ? `— ${card.brand}` : null);
+  if (signature && !parts.includes(signature)) {
+    parts.push(signature);
+  }
   return {
     card,
     richBody: serializeNotifyCard(card),
-    parts: notifyCardToWhatsAppParts(card),
+    parts,
   };
 }
