@@ -1,6 +1,10 @@
 import { randomInt } from "node:crypto";
 import { prisma } from "@/lib/prisma";
-import { MessagingClient } from "@/lib/messaging-client";
+import {
+  MessagingApiError,
+  MessagingClient,
+  MESSAGING_USER_MESSAGES,
+} from "@/lib/messaging-client";
 import { maskPhone } from "@/lib/mobile/phone";
 
 const OTP_TTL_MS = 5 * 60 * 1000;
@@ -30,24 +34,49 @@ async function countRecentOtpRequests(phoneE164: string) {
   });
 }
 
+/**
+ * Préremplissage app (devCode). Explicit true fonctionne aussi sous next start.
+ * Couper : MESSAGING_OTP_EXPOSE_CODE=false
+ */
+function shouldExposeOtpCode() {
+  const flag = process.env.MESSAGING_OTP_EXPOSE_CODE?.trim().toLowerCase();
+  if (flag === "false" || flag === "0" || flag === "no") return false;
+  if (flag === "true" || flag === "1" || flag === "yes") return true;
+  return process.env.NODE_ENV !== "production";
+}
+
+function isNumberWithoutWhatsApp(error: unknown): error is MessagingApiError {
+  return (
+    error instanceof MessagingApiError &&
+    (error.code === "WHATSAPP_NUMBER_INVALID" ||
+      error.code === "INVALID_JID" ||
+      error.status === 422)
+  );
+}
+
+function failDetail(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 async function sendOtpMessage(phoneE164: string, code: string) {
   const apiKey = process.env.MESSAGING_API_KEY?.trim();
-  const baseUrl = process.env.MESSAGING_API_BASE_URL?.trim();
+  const baseUrl =
+    process.env.MESSAGING_API_BASE_URL?.trim() ||
+    "https://whatsapp-api.klambocore.com";
   // sms (défaut) | whatsapp | auto (SMS puis WA)
   const preferred =
     process.env.MESSAGING_OTP_CHANNEL?.trim().toLowerCase() || "sms";
 
-  // Dev / CI : log le code si pas d'API messaging
   if (!apiKey) {
     console.info(
-      `[mobile-otp] DEV code for ${maskPhone(phoneE164)}: ${code}`,
+      `[mobile-otp] code for ${maskPhone(phoneE164)}: ${code} (channel=dev, no API key)`,
     );
     return { channel: "dev" as const };
   }
 
   const client = new MessagingClient({
     apiKey,
-    baseUrl: baseUrl || undefined,
+    baseUrl,
   });
 
   const text = `Klambo Messagerie : votre code est ${code}. Valide 5 minutes.`;
@@ -70,9 +99,46 @@ async function sendOtpMessage(phoneE164: string, code: string) {
       queue_kind: "otp",
     });
 
+  /** Même traitement pour SMS et WhatsApp : log + préremplissage, ou erreur claire. */
+  const softFail = (detail: string, preferInvalidWaMessage = false) => {
+    console.error(`[mobile-otp] send failed ${detail}`);
+    if (shouldExposeOtpCode()) {
+      console.warn(
+        `[mobile-otp] Fallback app prefill for ${maskPhone(phoneE164)}: ${code}`,
+      );
+      return { channel: "dev" as const };
+    }
+    if (preferInvalidWaMessage) {
+      throw new MessagingApiError(
+        MESSAGING_USER_MESSAGES.numberNoWhatsApp,
+        422,
+        "WHATSAPP_NUMBER_INVALID",
+      );
+    }
+    throw new Error(
+      "Impossible d'envoyer le code. Réessayez dans un instant.",
+    );
+  };
+
   if (preferred === "whatsapp") {
-    await sendWhatsApp();
-    return { channel: "whatsapp" as const };
+    try {
+      await sendWhatsApp();
+      return { channel: "whatsapp" as const };
+    } catch (waError) {
+      // Pas WhatsApp → tenter SMS avant de abandonner
+      if (isNumberWithoutWhatsApp(waError)) {
+        console.warn(
+          `[mobile-otp] ${MESSAGING_USER_MESSAGES.numberNoWhatsApp} → SMS`,
+        );
+        try {
+          await sendSms();
+          return { channel: "sms" as const };
+        } catch (smsError) {
+          return softFail(failDetail(smsError), true);
+        }
+      }
+      return softFail(failDetail(waError));
+    }
   }
 
   if (preferred === "auto") {
@@ -81,37 +147,25 @@ async function sendOtpMessage(phoneE164: string, code: string) {
       return { channel: "sms" as const };
     } catch (smsError) {
       console.warn("[mobile-otp] SMS failed, trying WhatsApp", smsError);
-      await sendWhatsApp();
-      return { channel: "whatsapp" as const };
+      try {
+        await sendWhatsApp();
+        return { channel: "whatsapp" as const };
+      } catch (waError) {
+        return softFail(
+          failDetail(waError),
+          isNumberWithoutWhatsApp(waError),
+        );
+      }
     }
   }
 
-  // Canal SMS forcé (défaut) — OTP par numéro de téléphone
+  // Canal SMS forcé (défaut)
   try {
     await sendSms();
     return { channel: "sms" as const };
   } catch (smsError) {
-    const detail =
-      smsError instanceof Error ? smsError.message : String(smsError);
-    console.error("[mobile-otp] SMS send failed", detail);
-    // En local (expose code), on continue pour préremplir l'OTP dans l'app
-    if (shouldExposeOtpCode()) {
-      console.warn("[mobile-otp] Fallback DEV après échec SMS");
-      return { channel: "dev" as const };
-    }
-    throw new Error(
-      "Impossible d'envoyer le SMS OTP. Vérifiez MESSAGING_API_KEY / MESSAGING_API_BASE_URL.",
-    );
+    return softFail(failDetail(smsError));
   }
-}
-
-function shouldExposeOtpCode() {
-  // Jamais en production — même si MESSAGING_OTP_EXPOSE_CODE=true.
-  if (process.env.NODE_ENV === "production") return false;
-  const flag = process.env.MESSAGING_OTP_EXPOSE_CODE?.trim().toLowerCase();
-  if (flag === "false" || flag === "0" || flag === "no") return false;
-  if (flag === "true" || flag === "1" || flag === "yes") return true;
-  return true; // hors prod par défaut
 }
 
 export async function requestMobileOtp(phoneE164: string) {
@@ -150,14 +204,13 @@ export async function requestMobileOtp(phoneE164: string) {
   const exposeDevCode = shouldExposeOtpCode();
   if (exposeDevCode) {
     console.info(
-      `[mobile-otp] DEV code for ${maskPhone(phoneE164)}: ${code} (channel=${delivery.channel})`,
+      `[mobile-otp] code for ${maskPhone(phoneE164)}: ${code} (channel=${delivery.channel})`,
     );
   }
   return {
     expiresAt: expiresAt.toISOString(),
     channel: delivery.channel,
     maskedPhone: maskPhone(phoneE164),
-    // Préremplissage Flutter (MESSAGING_OTP_EXPOSE_CODE=true ou hors prod)
     ...(exposeDevCode ? { devCode: code } : {}),
   };
 }
