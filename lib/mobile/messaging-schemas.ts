@@ -8,6 +8,23 @@ import {
 const noSystemPrefix = (value: string) =>
   !/^(?:__CALL__:|__NOTIFY__:|__SATISFACTION__:)/i.test(value.trim());
 
+/** Corps message (web + mobile) — refuse préfixes système. */
+export const messagingBodySchema = z
+  .string()
+  .min(1)
+  .max(MESSAGING_MAX_BODY_LENGTH + 50)
+  .refine(noSystemPrefix, "Préfixe système non autorisé.");
+
+export const messagingOptionalBodySchema = z
+  .string()
+  .max(MESSAGING_MAX_BODY_LENGTH + 50)
+  .optional()
+  .nullable()
+  .refine(
+    (value) => value == null || value === "" || noSystemPrefix(value),
+    "Préfixe système non autorisé.",
+  );
+
 /** IDs stables (cuid / uuid) — refuse caractères bizarres. */
 export const mobileIdSchema = z
   .string()
@@ -24,11 +41,7 @@ export const mobileClientMessageIdSchema = z
   .optional()
   .nullable();
 
-export const mobileMessageBodySchema = z
-  .string()
-  .min(1)
-  .max(MESSAGING_MAX_BODY_LENGTH + 50)
-  .refine(noSystemPrefix, "Préfixe système non autorisé.");
+export const mobileMessageBodySchema = messagingBodySchema;
 
 export const mobileSendMessageSchema = z.object({
   body: mobileMessageBodySchema,
@@ -41,22 +54,14 @@ export const mobileCreateConversationSchema = z.object({
     .array(mobileIdSchema)
     .max(MESSAGING_MAX_RECIPIENTS)
     .default([]),
-  body: z
-    .string()
-    .max(MESSAGING_MAX_BODY_LENGTH + 50)
-    .optional()
-    .nullable()
-    .refine(
-      (value) => value == null || value === "" || noSystemPrefix(value),
-      "Préfixe système non autorisé.",
-    ),
+  body: messagingOptionalBodySchema,
   subject: z.string().max(MESSAGING_MAX_SUBJECT_LENGTH).optional().nullable(),
   clientMessageId: mobileClientMessageIdSchema,
   asGroup: z.boolean().optional(),
 });
 
 export const mobileEditMessageSchema = z.object({
-  body: mobileMessageBodySchema,
+  body: messagingBodySchema,
 });
 
 export const mobileConversationActionSchema = z.discriminatedUnion("action", [

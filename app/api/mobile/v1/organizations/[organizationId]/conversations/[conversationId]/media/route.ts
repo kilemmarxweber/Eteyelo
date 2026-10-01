@@ -46,11 +46,12 @@ function kindFromFile(file: File): MessageAttachmentKind | null {
   ) {
     return "AUDIO";
   }
-  if (
-    ["video/mp4", "video/webm"].includes(mime) ||
-    [".mp4", ".webm"].includes(ext)
-  ) {
-    return mime.startsWith("audio/") ? "AUDIO" : "VIDEO";
+  if (mime === "video/mp4" || ext === ".mp4") {
+    return "VIDEO";
+  }
+  // .webm sans MIME vidéo explicite = audio (enregistrement vocal).
+  if (mime === "video/webm" || ext === ".webm") {
+    return mime.startsWith("video/") ? "VIDEO" : "AUDIO";
   }
   if (
     mime === "application/pdf" ||
