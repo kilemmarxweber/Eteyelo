@@ -1,6 +1,10 @@
 import { randomInt } from "node:crypto";
 import { prisma } from "@/lib/prisma";
-import { MessagingClient } from "@/lib/messaging-client";
+import {
+  MessagingApiError,
+  MessagingClient,
+  MESSAGING_USER_MESSAGES,
+} from "@/lib/messaging-client";
 import { maskPhone } from "@/lib/mobile/phone";
 
 const OTP_TTL_MS = 5 * 60 * 1000;
@@ -40,6 +44,13 @@ function shouldExposeOtpCode() {
   if (flag === "false" || flag === "0" || flag === "no") return false;
   if (flag === "true" || flag === "1" || flag === "yes") return true;
   return true;
+}
+
+function isNumberWithoutWhatsApp(error: unknown): error is MessagingApiError {
+  return (
+    error instanceof MessagingApiError &&
+    (error.code === "WHATSAPP_NUMBER_INVALID" || error.status === 422)
+  );
 }
 
 async function sendOtpMessage(phoneE164: string, code: string) {
@@ -89,7 +100,8 @@ async function sendOtpMessage(phoneE164: string, code: string) {
       queue_kind: "otp",
     });
 
-  const fallbackAfterFailure = (detail: string) => {
+  /** Ne bloque pas l’OTP : préremplissage app, ou message clair si vraiment bloqué. */
+  const softFail = (detail: string, preferInvalidWaMessage = false) => {
     console.error(
       `[mobile-otp] send failed ${detail} | baseUrl=${baseUrl} key=${keyKind}`,
     );
@@ -99,15 +111,40 @@ async function sendOtpMessage(phoneE164: string, code: string) {
       );
       return { channel: "dev" as const };
     }
+    if (preferInvalidWaMessage) {
+      throw new MessagingApiError(
+        MESSAGING_USER_MESSAGES.numberNoWhatsApp,
+        422,
+        "WHATSAPP_NUMBER_INVALID",
+      );
+    }
     throw new Error(
-      "Impossible d'envoyer le SMS OTP. Vérifiez MESSAGING_API_KEY / MESSAGING_API_BASE_URL.",
+      "Impossible d'envoyer le code. Réessayez dans un instant.",
     );
   };
 
   try {
     if (preferred === "whatsapp") {
-      await sendWhatsApp();
-      return { channel: "whatsapp" as const };
+      try {
+        await sendWhatsApp();
+        return { channel: "whatsapp" as const };
+      } catch (waError) {
+        // Numéro sans WA → tenter SMS, puis préremplissage ; ne bloque pas tout.
+        if (isNumberWithoutWhatsApp(waError)) {
+          console.warn(
+            `[mobile-otp] ${MESSAGING_USER_MESSAGES.numberNoWhatsApp} → SMS`,
+          );
+          try {
+            await sendSms();
+            return { channel: "sms" as const };
+          } catch (smsError) {
+            const detail =
+              smsError instanceof Error ? smsError.message : String(smsError);
+            return softFail(detail, true);
+          }
+        }
+        throw waError;
+      }
     }
 
     if (preferred === "auto") {
@@ -116,8 +153,15 @@ async function sendOtpMessage(phoneE164: string, code: string) {
         return { channel: "sms" as const };
       } catch (smsError) {
         console.warn("[mobile-otp] SMS failed, trying WhatsApp", smsError);
-        await sendWhatsApp();
-        return { channel: "whatsapp" as const };
+        try {
+          await sendWhatsApp();
+          return { channel: "whatsapp" as const };
+        } catch (waError) {
+          if (isNumberWithoutWhatsApp(waError)) {
+            return softFail(MESSAGING_USER_MESSAGES.numberNoWhatsApp, true);
+          }
+          throw waError;
+        }
       }
     }
 
@@ -125,7 +169,7 @@ async function sendOtpMessage(phoneE164: string, code: string) {
     return { channel: "sms" as const };
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    return fallbackAfterFailure(detail);
+    return softFail(detail, isNumberWithoutWhatsApp(error));
   }
 }
 
@@ -173,7 +217,6 @@ export async function requestMobileOtp(phoneE164: string) {
     expiresAt: expiresAt.toISOString(),
     channel: delivery.channel,
     maskedPhone: maskPhone(phoneE164),
-    // Préremplissage Flutter — actif par défaut (même en prod) tant que SMS fragile
     ...(exposeDevCode ? { devCode: code } : {}),
   };
 }

@@ -199,35 +199,44 @@ async function sendParentPaymentNotifyFromSnapshot(
 
   await Promise.all(
     snapshot.groups.map(async (group) => {
-      const amountLabel = formatAmount(group.total, snapshot.currency);
-      const studentNames = group.students.join(", ");
-      const feeNames = group.fees.join(", ");
+      try {
+        const amountLabel = formatAmount(group.total, snapshot.currency);
+        const studentNames = group.students.join(", ");
+        const feeNames = group.fees.join(", ");
 
-      await sendParentPaymentNotificationEmail({
-        to: group.email,
-        phone: group.phone,
-        parentName: group.parentName,
-        schoolName: snapshot.schoolName,
-        kind: snapshot.kind,
-        reference: group.reference,
-        amountLabel,
-        studentNames,
-        feeNames,
-        organizationId: snapshot.organizationId,
-        branchId: snapshot.branchId,
-      });
-
-      if (!group.parentUserId) return;
-
-      await prisma.appNotification.create({
-        data: {
+        await sendParentPaymentNotificationEmail({
+          to: group.email,
+          phone: group.phone,
+          parentName: group.parentName,
+          schoolName: snapshot.schoolName,
+          kind: snapshot.kind,
+          reference: group.reference,
+          amountLabel,
+          studentNames,
+          feeNames,
+          organizationId: snapshot.organizationId,
           branchId: snapshot.branchId,
-          userId: group.parentUserId,
-          type: AppNotificationType.PAYMENT,
-          title: titles[snapshot.kind],
-          body: `${amountLabel} — ${studentNames || group.reference}`,
-        },
-      });
+        });
+
+        if (!group.parentUserId) return;
+
+        await prisma.appNotification.create({
+          data: {
+            branchId: snapshot.branchId,
+            userId: group.parentUserId,
+            type: AppNotificationType.PAYMENT,
+            title: titles[snapshot.kind],
+            body: `${amountLabel} — ${studentNames || group.reference}`,
+          },
+        });
+      } catch (error) {
+        // Un numéro sans WhatsApp / échec unitaire ne bloque pas les autres parents.
+        console.warn(
+          "[notifyParentOfPayment] skip destinataire",
+          group.phone || group.email,
+          error instanceof Error ? error.message : error,
+        );
+      }
     }),
   );
 }

@@ -70,6 +70,18 @@ export function formatZinduaError(error: unknown): string {
   }
   if (error && typeof error === "object" && "code" in error) {
     const code = String((error as { code: unknown }).code ?? "");
+    if (code === "WHATSAPP_NUMBER_INVALID" || code === "INVALID_JID") {
+      return "Ce numéro n’a pas WhatsApp. Vérifiez le numéro et réessayez.";
+    }
+    if (code === "WHATSAPP_TIMEOUT") {
+      return "WhatsApp met trop de temps à répondre. Réessayez dans un instant.";
+    }
+    if (
+      code === "WHATSAPP_CONNECTION_ERROR" ||
+      code === "WHATSAPP_PROVIDER_ERROR"
+    ) {
+      return "L’envoi WhatsApp a échoué. Réessayez plus tard.";
+    }
     if (code === "WHATSAPP_NOT_CONNECTED") {
       return "WhatsApp n'est pas connecté — ouvrez le dashboard et scannez le QR.";
     }
@@ -81,6 +93,14 @@ export function formatZinduaError(error: unknown): string {
       return summarizeProviderError((error as { message: string }).message);
     }
   }
+  if (
+    error &&
+    typeof error === "object" &&
+    "status" in error &&
+    Number((error as { status: unknown }).status) === 422
+  ) {
+    return "Ce numéro n’a pas WhatsApp. Vérifiez le numéro et réessayez.";
+  }
   if (error instanceof Error && error.message.trim()) {
     return summarizeProviderError(error.message);
   }
@@ -90,11 +110,25 @@ export function formatZinduaError(error: unknown): string {
 /** Évite de polluer les logs PM2 avec du HTML nginx (504/502…). */
 function summarizeProviderError(raw: string): string {
   const text = raw.trim();
-  if (/504\s*Gateway\s*Time-?out/i.test(text) || /<title>504/i.test(text)) {
-    return "Gateway WhatsApp 504 (timeout nginx) — API messaging indisponible ou trop lente.";
+  if (
+    /WHATSAPP_NUMBER_INVALID/i.test(text) ||
+    /n[’']a pas WhatsApp/i.test(text) ||
+    /n[’']est pas enregistré sur WhatsApp/i.test(text) ||
+    /ne possède pas de compte WhatsApp/i.test(text) ||
+    /not (a )?whatsapp/i.test(text)
+  ) {
+    return "Ce numéro n’a pas WhatsApp. Vérifiez le numéro et réessayez.";
+  }
+  if (
+    /WHATSAPP_TIMEOUT/i.test(text) ||
+    /met trop de temps à répondre/i.test(text) ||
+    /504\s*Gateway\s*Time-?out/i.test(text) ||
+    /<title>504/i.test(text)
+  ) {
+    return "WhatsApp met trop de temps à répondre. Réessayez dans un instant.";
   }
   if (/502\s*Bad\s*Gateway/i.test(text) || /<title>502/i.test(text)) {
-    return "Gateway WhatsApp 502 — upstream messaging down.";
+    return "L’envoi WhatsApp a échoué. Réessayez plus tard.";
   }
   if (/503\s*Service/i.test(text) || /<title>503/i.test(text)) {
     return "Gateway WhatsApp 503 — service messaging indisponible.";
@@ -178,7 +212,7 @@ export function toE164Phone(phone: string): string {
 
   let digits = trimmed.replace(/\D/g, "");
   if (!digits) {
-    throw new Error("Numéro WhatsApp invalide.");
+    throw new Error("Numéro non reconnu. Vérifiez le numéro et réessayez.");
   }
 
   // 0XXXXXXXXX (10 chiffres locaux RDC)
@@ -446,7 +480,7 @@ export async function sendTransactionalWhatsAppViaProvider(options: {
 }): Promise<WhatsAppSendOutcome> {
   const to = resolveWhatsAppTo(options.to);
   if (!to) {
-    return { sent: false, error: "Numéro WhatsApp invalide.", channel: "none" };
+    return { sent: false, error: "Ce numéro n’a pas WhatsApp. Vérifiez le numéro et réessayez.", channel: "none" };
   }
 
   const locale = await resolveSenderMessagingLocale({
@@ -521,7 +555,7 @@ export async function sendNewUserCredentialsWhatsApp(options: {
     console.warn(
       `[sendNewUserCredentialsWhatsApp] numéro invalide (« ${options.to} »)`,
     );
-    return { sent: false, error: "Numéro WhatsApp invalide.", channel: "none" };
+    return { sent: false, error: "Numéro non reconnu. Vérifiez le numéro et réessayez.", channel: "none" };
   }
 
   const locale = await resolveSenderMessagingLocale({
@@ -616,7 +650,7 @@ export async function sendResetPasswordWhatsApp(
     console.warn(
       `[sendResetPasswordWhatsApp] numéro invalide (« ${options.to} »)`,
     );
-    return { sent: false, error: "Numéro WhatsApp invalide.", channel: "none" };
+    return { sent: false, error: "Numéro non reconnu. Vérifiez le numéro et réessayez.", channel: "none" };
   }
 
   const locale = await resolveSenderMessagingLocale({
@@ -802,7 +836,7 @@ export async function sendWhatsAppTest(options: {
 }): Promise<WhatsAppSendOutcome> {
   const to = resolveWhatsAppTo(options.to);
   if (!to) {
-    return { sent: false, error: "Numéro WhatsApp invalide." };
+    return { sent: false, error: "Numéro non reconnu. Vérifiez le numéro et réessayez." };
   }
 
   const config = await getWhatsAppRuntimeConfig(options.organizationId);
