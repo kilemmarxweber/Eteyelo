@@ -4,8 +4,6 @@ import {
   jsonError,
   jsonOk,
   mobileErrorStatus,
-  jsonOk,
-  mobileErrorStatus,
   requireSession,
 } from "@/lib/mobile/http";
 import { submitParentSatisfaction } from "@/lib/satisfaction/parent-satisfaction";
@@ -19,13 +17,14 @@ export async function POST(request: Request, context: Ctx) {
     const session = requireSession(await getMobileSession());
     if (!session) return jsonError("Non authentifié.", 401);
 
+    const { organizationId } = await context.params;
+    await getMessagingActorFromSession(session, organizationId);
+
     const body = (await request.json()) as {
       branchId?: string;
       rating?: number;
       comment?: string | null;
-    await getMessagingActorFromSession(session, organizationId);
     };
-    const { organizationId } = await context.params;
     if (!body.branchId?.trim()) {
       return jsonError("Branche manquante.", 400);
     }
@@ -47,19 +46,10 @@ export async function POST(request: Request, context: Ctx) {
     return jsonOk({
       feedback: result.data,
     });
-      error instanceof Error && error.name === "MessagingError"
-        ? error.message
-        : "Soumission impossible.",
-      mobileErrorStatus(error),
-    return jsonOk({
-      feedback: result.data,
-    });
-      error instanceof Error && error.name === "MessagingError"
-        ? error.message
-        : "Soumission impossible.",
-      mobileErrorStatus(error),
+  } catch (error) {
+    return jsonError(
       error instanceof Error ? error.message : "Soumission impossible.",
-      500,
+      mobileErrorStatus(error),
     );
   }
 }

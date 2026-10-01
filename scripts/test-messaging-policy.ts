@@ -112,10 +112,14 @@ test("le HTML est retiré du corps de message", () => {
   assert.equal(sanitizeMessageBody("<b>ok</b>"), "ok");
 });
 
-test("rôles Better Auth member/admin et rôle vide sont éligibles", () => {
+test("rôles Better Auth member/admin sont éligibles ; rôle vide non", () => {
   assert.equal(isMessagingEligibleRole("member"), true);
   assert.equal(isMessagingEligibleRole("admin"), true);
-  assert.equal(isMessagingEligibleRole(""), true);
+  assert.equal(isMessagingEligibleRole(""), false);
+  assert.equal(isMessagingEligibleRole(null), false);
+  assert.equal(canUseMessaging({ memberRole: "" }), false);
+  assert.equal(canCreateGroup({ memberRole: "" }), false);
+  assert.equal(canCreateGroup({ memberRole: null }), false);
   assert.equal(isMessagingEligibleRole("teacher", ["STUDENT"]), true);
 });
 

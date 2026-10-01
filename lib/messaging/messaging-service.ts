@@ -40,10 +40,15 @@ const userNameSelect = {
   prenom: true,
   postnom: true,
   image: true,
-  telephone: true,
   email: true,
   banned: true,
   statusUser: true,
+} as const;
+
+/** Téléphone uniquement pour le filtre serveur — jamais renvoyé au client. */
+const userSearchSelect = {
+  ...userNameSelect,
+  telephone: true,
 } as const;
 
 type Actor = {
@@ -437,7 +442,7 @@ export async function searchMessagingRecipients(params: {
       id: true,
       userId: true,
       role: true,
-      user: { select: userNameSelect },
+      user: { select: userSearchSelect },
       branchMember: {
         where: { branch: { organizationId: params.organizationId, isActive: true } },
         select: {
@@ -1421,6 +1426,14 @@ export async function listMyConversations(params: {
     conversationIds: rows.map((row) => row.id),
   });
 
+  const canSeeAdminContext = canCreateGroup({
+    appRole: params.actor.appRole,
+    memberRole: params.actor.memberRole,
+    memberArchived: params.actor.memberArchived,
+    userBanned: params.actor.userBanned,
+    organizationMessagingEnabled: params.actor.messagingEnabled,
+  });
+
   const items: ConversationListItem[] = [];
   for (const row of rows) {
     const me = row.participants.find((p) => p.userId === params.actor.userId);
@@ -1473,14 +1486,6 @@ export async function listMyConversations(params: {
       row.type === "GROUP"
         ? participants.filter((p) => p.groupRole === "ADMIN").length
         : 0;
-
-    const canSeeAdminContext = canCreateGroup({
-      appRole: params.actor.appRole,
-      memberRole: params.actor.memberRole,
-      memberArchived: params.actor.memberArchived,
-      userBanned: params.actor.userBanned,
-      organizationMessagingEnabled: params.actor.messagingEnabled,
-    });
 
     const item: ConversationListItem = {
       id: row.id,
