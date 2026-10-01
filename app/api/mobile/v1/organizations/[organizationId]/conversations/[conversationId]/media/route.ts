@@ -12,7 +12,7 @@ import {
   canSendMessages,
   messagingDeniedMessage,
 } from "@/lib/messaging/messaging-policy";
-import { MessagingError } from "@/lib/messaging/messaging-service";
+import { MessagingError, isEffectiveGroupAdmin } from "@/lib/messaging/messaging-service";
 import {
   MESSAGING_MAX_BODY_LENGTH,
   MESSAGING_RATE_LIMIT_PER_MINUTE,
@@ -103,10 +103,19 @@ export async function POST(request: Request, context: Ctx) {
       participant.conversation.type === "GROUP" &&
       participant.conversation.repliesLocked
     ) {
-      const isAdmin =
-        participant.role === "ADMIN" ||
-        participant.conversation.createdById === actor.userId;
-      if (!isAdmin) {
+      const peers = await prisma.conversationParticipant.findMany({
+        where: { conversationId, leftAt: null },
+        select: { userId: true, role: true },
+      });
+      if (
+        !isEffectiveGroupAdmin({
+          actorUserId: actor.userId,
+          actorRole: participant.role,
+          createdById: participant.conversation.createdById,
+          type: participant.conversation.type,
+          participants: peers,
+        })
+      ) {
         return jsonError(
           "Les réponses sont verrouillées : seuls les admins du groupe peuvent écrire.",
           403,

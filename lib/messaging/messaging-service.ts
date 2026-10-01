@@ -177,9 +177,15 @@ async function assertConversationAllowsHumanReply(
 
   if (conversation.type === "GROUP" && conversation.repliesLocked) {
     const me = peers.find((p) => p.userId === actorUserId);
-    const isAdmin =
-      me?.role === "ADMIN" || conversation.createdById === actorUserId;
-    if (!isAdmin) {
+    if (
+      !isEffectiveGroupAdmin({
+        actorUserId,
+        actorRole: me?.role,
+        createdById: conversation.createdById,
+        type: conversation.type,
+        participants: peers,
+      })
+    ) {
       throw new MessagingError(
         "Les réponses sont verrouillées : seuls les admins du groupe peuvent écrire.",
       );
@@ -221,8 +227,13 @@ async function getGroupAdminContext(params: {
   const adminUserIds = new Set(
     participants
       .filter((p) =>
-        p.role === "ADMIN" ||
-        (!hasExplicitAdmin && p.userId === conversation.createdById),
+        isEffectiveGroupAdmin({
+          actorUserId: p.userId,
+          actorRole: p.role,
+          createdById: conversation.createdById,
+          type: conversation.type,
+          participants,
+        }),
       )
       .map((p) => p.userId),
   );
@@ -230,7 +241,13 @@ async function getGroupAdminContext(params: {
     adminUserIds.add(conversation.createdById);
   }
 
-  const isAdmin = adminUserIds.has(params.actorUserId);
+  const isAdmin = isEffectiveGroupAdmin({
+    actorUserId: params.actorUserId,
+    actorRole: participants.find((p) => p.userId === params.actorUserId)?.role,
+    createdById: conversation.createdById,
+    type: conversation.type,
+    participants,
+  });
   return {
     conversation,
     participants,
@@ -253,6 +270,27 @@ function resolveParticipantGroupRole(params: {
     return "ADMIN";
   }
   return "MEMBER";
+}
+
+/** Admin effectif : rôle ADMIN, ou créateur seulement s'il n'y a aucun ADMIN explicite. */
+export function isEffectiveGroupAdmin(params: {
+  actorUserId: string;
+  actorRole: string | null | undefined;
+  createdById: string | null | undefined;
+  type: ConversationTypeValue | string;
+  participants: Array<{ userId: string; role: string }>;
+}): boolean {
+  if (params.type !== "GROUP") return false;
+  const hasExplicitAdmin = params.participants.some((p) => p.role === "ADMIN");
+  return (
+    resolveParticipantGroupRole({
+      userId: params.actorUserId,
+      role: params.actorRole ?? "MEMBER",
+      createdById: params.createdById ?? "",
+      type: params.type,
+      hasExplicitAdmin,
+    }) === "ADMIN"
+  );
 }
 
 async function loadRecipientMap(
