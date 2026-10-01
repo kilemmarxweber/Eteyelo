@@ -42,11 +42,16 @@ export async function sendStudentResultsNotification(input: {
   organizationId?: string | null;
   branchId?: string | null;
   locale?: MessagingLocale | null;
-}): Promise<{ emailSent: boolean; whatsappSent: boolean; whatsappError?: string }> {
+}): Promise<{
+  emailSent: boolean;
+  whatsappSent: boolean;
+  whatsappError?: string;
+  mobileChannel?: "klambo" | "whatsapp" | "none";
+}> {
   const email = input.to?.trim() ?? "";
   const phone = input.phone?.trim() ?? "";
   if (!email && !phone) {
-    return { emailSent: false, whatsappSent: false };
+    return { emailSent: false, whatsappSent: false, mobileChannel: "none" };
   }
 
   const allow = await resolveNotificationChannels(
@@ -54,7 +59,7 @@ export async function sendStudentResultsNotification(input: {
     "results",
   );
   if (!allow.email && !allow.whatsapp) {
-    return { emailSent: false, whatsappSent: false };
+    return { emailSent: false, whatsappSent: false, mobileChannel: "none" };
   }
 
   const locale = await resolveSenderMessagingLocale({
@@ -143,6 +148,7 @@ export async function sendStudentResultsNotification(input: {
 
   let whatsappSent = false;
   let whatsappError: string | undefined;
+  let mobileChannel: "klambo" | "whatsapp" | "none" | undefined;
   if (allow.whatsapp && phone) {
     const loginUrl = getSignInUrl();
     const card = {
@@ -187,6 +193,7 @@ export async function sendStudentResultsNotification(input: {
       to: phone,
       organizationId: input.organizationId,
       locale,
+      branchId: input.branchId,
       queueKind: "results",
       parts: [
         ...notifyCardToWhatsAppParts(card),
@@ -198,11 +205,13 @@ export async function sendStudentResultsNotification(input: {
     });
     whatsappSent = wa.sent;
     whatsappError = wa.error;
+    mobileChannel = wa.channel ?? (wa.sent ? "whatsapp" : "none");
   }
 
   return {
     emailSent: Boolean(allow.email && email),
     whatsappSent,
     whatsappError,
+    mobileChannel,
   };
 }

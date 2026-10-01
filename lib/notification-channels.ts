@@ -1,7 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/lib/prisma";
-import { isWhatsAppSendingEnabled } from "@/lib/whatsapp-settings";
+import { isMessagingNotifyEnabled } from "@/lib/whatsapp-settings";
 import {
   DEFAULT_NOTIFICATION_CHANNEL,
   emptyNotificationChannelsMap,
@@ -35,7 +35,7 @@ export async function getNotificationPolicy(
   if (!organizationId?.trim()) {
     return {
       emailMaster: true,
-      whatsappMaster: await isWhatsAppSendingEnabled(null),
+      whatsappMaster: await isMessagingNotifyEnabled(null),
       events: emptyNotificationChannelsMap(),
     };
   }
@@ -52,7 +52,7 @@ export async function getNotificationPolicy(
 
   return {
     emailMaster: org?.emailNotificationsEnabled ?? true,
-    whatsappMaster: org?.whatsappEnabled ?? true,
+    whatsappMaster: await isMessagingNotifyEnabled(organizationId),
     events: parseNotificationChannels(org?.notificationChannels, {
       notifyParentOnPayment: org?.notifyParentOnPayment ?? true,
     }),
@@ -67,7 +67,8 @@ export async function resolveNotificationChannels(
   const row = policy.events[event] ?? DEFAULT_NOTIFICATION_CHANNEL;
   const email =
     event === "emailVerification" ? true : policy.emailMaster && row.email;
+  // « whatsapp » = canal mobile (inbox Klambo ou gateway WhatsApp)
   const whatsapp =
-    row.whatsapp && (await isWhatsAppSendingEnabled(organizationId));
+    row.whatsapp && (await isMessagingNotifyEnabled(organizationId));
   return { email, whatsapp };
 }

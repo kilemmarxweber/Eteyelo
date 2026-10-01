@@ -4,7 +4,6 @@ import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 
 import * as React from "react";
 import { IconReload } from "@tabler/icons-react";
-import { type Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -18,8 +17,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { IUser } from "@/src/interfaces/User";
 import { resetUserPasswordAction } from "@/app/admin/organizations/[organizationId]/members/actions";
+import {
+  emailAndMobileToast,
+  mobileChannelLabel,
+} from "@/lib/notify/mobile-channel-label";
 
 interface ResetUsersDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -57,7 +59,8 @@ export function ResetUsersDialog({
             passe de l&apos;utilisateur{" "}
             <span className="font-medium">{email}</span> et enverra le nouveau
             mot de passe temporaire par <strong>email</strong> et{" "}
-            <strong>WhatsApp</strong> (si un numéro est enregistré).
+            <strong>Klambo Inbox / WhatsApp</strong> (si un numéro est
+            enregistré).
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
@@ -79,17 +82,17 @@ export function ResetUsersDialog({
               }
               if (res.notifyQueued) {
                 toast.success(
-                  "Mot de passe réinitialisé — envoi email / Klambo en cours.",
+                  "Mot de passe réinitialisé — envoi email / Klambo Inbox en cours.",
                 );
               } else if (res.whatsappSent) {
                 toast.success(
-                  "Mot de passe réinitialisé — email et WhatsApp/Klambo envoyés.",
+                  `Mot de passe réinitialisé — ${emailAndMobileToast(res.mobileChannel)} envoyés.`,
                 );
               } else if (res.hasPhone) {
                 toast.success(
                   res.whatsappError
                     ? `Mot de passe réinitialisé — email envoyé (${res.whatsappError})`
-                    : "Mot de passe réinitialisé — email envoyé (WhatsApp non délivré). Activez le commutateur Message WhatsApp et enregistrez.",
+                    : `Mot de passe réinitialisé — email envoyé (${mobileChannelLabel()} non délivré). Vérifiez Paramètres → Message WhatsApp / Notifications.`,
                 );
               } else {
                 toast.success(

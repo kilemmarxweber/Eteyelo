@@ -78,7 +78,7 @@ export default function SidebarWithFilters({
       if (res.notified === 0) {
         toast.warning(
           res.skippedNoContact
-            ? "Aucun parent n'a d'email ni de numéro WhatsApp."
+            ? "Aucun parent n'a d'email ni de numéro (Klambo Inbox / WhatsApp)."
             : "Aucune note à envoyer pour cette sélection.",
         );
         return;
@@ -87,7 +87,7 @@ export default function SidebarWithFilters({
       if (res.queued) {
         const waPart =
           res.whatsappQueued > 0
-            ? ` — ${res.whatsappQueued} WhatsApp`
+            ? ` — ${res.whatsappQueued} ${res.mobileLabel || "Klambo Inbox / WhatsApp"}`
             : "";
         toast.success(
           `Envoi lancé pour ${res.notified} parent${res.notified > 1 ? "s" : ""}${waPart}. Les messages partent en arrière-plan.`,

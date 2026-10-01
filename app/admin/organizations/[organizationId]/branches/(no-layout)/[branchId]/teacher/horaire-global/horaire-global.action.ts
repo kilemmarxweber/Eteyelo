@@ -196,9 +196,16 @@ export const sendGlobalScheduleWhatsAppAction = action
     );
     if (!allow.whatsapp) {
       throw new Error(
-        "WhatsApp est désactivé pour l'horaire enseignants (Paramètres → Notifications).",
+        "Canal mobile désactivé pour l'horaire enseignants (Paramètres → Notifications / Message WhatsApp).",
       );
     }
+
+    const {
+      getWhatsAppRuntimeConfig,
+      isInboxProvider,
+    } = await import("@/lib/whatsapp-settings");
+    const waConfig = await getWhatsAppRuntimeConfig(organizationId);
+    const inboxMode = isInboxProvider(waConfig.provider);
 
     const [schedule, err] = await getGlobalScheduleByCycleAction({
       cycle: input.cycle,
@@ -260,10 +267,10 @@ export const sendGlobalScheduleWhatsAppAction = action
       let skipWhatsApp = false;
 
       for (const teacher of ready) {
-        if (skipWhatsApp || isWhatsAppCircuitOpen()) {
+        const gatewayBlocked =
+          !inboxMode && (skipWhatsApp || isWhatsAppCircuitOpen());
+        if (gatewayBlocked) {
           failed += 1;
-          // Circuit open doit toujours couper WhatsApp, même si une erreur
-          // temporaire était déjà enregistrée.
           if (isWhatsAppCircuitOpen()) {
             skipWhatsApp = true;
             if (!error) {
@@ -288,7 +295,7 @@ export const sendGlobalScheduleWhatsAppAction = action
           });
           if (result.sent) {
             sent += 1;
-            if (isWhatsAppCircuitOpen()) {
+            if (!inboxMode && isWhatsAppCircuitOpen()) {
               skipWhatsApp = true;
               if (!error) {
                 error =
@@ -299,7 +306,9 @@ export const sendGlobalScheduleWhatsAppAction = action
           }
           failed += 1;
           if (!error && result.error) error = result.error;
-          if (isPermanentWhatsAppStop(result.error)) skipWhatsApp = true;
+          if (!inboxMode && isPermanentWhatsAppStop(result.error)) {
+            skipWhatsApp = true;
+          }
         } catch (cause) {
           failed += 1;
           const message =
@@ -307,7 +316,9 @@ export const sendGlobalScheduleWhatsAppAction = action
               ? cause.message
               : "Impossible de générer le PDF de l'horaire.";
           if (!error) error = message;
-          if (isPermanentWhatsAppStop(message)) skipWhatsApp = true;
+          if (!inboxMode && isPermanentWhatsAppStop(message)) {
+            skipWhatsApp = true;
+          }
         }
       }
 

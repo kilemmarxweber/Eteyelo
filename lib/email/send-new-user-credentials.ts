@@ -37,14 +37,19 @@ export async function sendNewUserCredentialsEmail(input: {
   organizationId?: string | null;
   branchId?: string | null;
   locale?: MessagingLocale | null;
-}): Promise<{ emailSent: boolean; whatsappSent: boolean; whatsappError?: string }> {
+}): Promise<{
+  emailSent: boolean;
+  whatsappSent: boolean;
+  whatsappError?: string;
+  mobileChannel?: "klambo" | "whatsapp" | "none";
+}> {
   const { to, name, temporaryPassword } = input;
   const allow = await resolveNotificationChannels(
     input.organizationId,
     "accountCreate",
   );
   if (!allow.email && !allow.whatsapp) {
-    return { emailSent: false, whatsappSent: false };
+    return { emailSent: false, whatsappSent: false, mobileChannel: "none" };
   }
 
   const locale = await resolveSenderMessagingLocale({
@@ -167,6 +172,7 @@ export async function sendNewUserCredentialsEmail(input: {
 
   let whatsappSent = false;
   let whatsappError: string | undefined;
+  let mobileChannel: "klambo" | "whatsapp" | "none" | undefined;
   if (allow.whatsapp && input.phone?.trim()) {
     const wa = await sendNewUserCredentialsWhatsApp({
       to: input.phone,
@@ -178,15 +184,18 @@ export async function sendNewUserCredentialsEmail(input: {
       branchName,
       loginUrl,
       organizationId: input.organizationId,
+      branchId: input.branchId,
       locale,
     });
     whatsappSent = wa.sent;
     whatsappError = wa.error;
+    mobileChannel = wa.channel ?? (wa.sent ? "whatsapp" : "none");
   }
 
   return {
     emailSent: allow.email && isDeliverableMailbox(to),
     whatsappSent,
     whatsappError,
+    mobileChannel,
   };
 }

@@ -9,7 +9,7 @@ import {
 } from "./email-layout";
 import { sendResetPasswordWhatsApp } from "@/lib/zindua";
 import { resolveNotificationChannels } from "@/lib/notification-channels";
-import { isWhatsAppSendingEnabled } from "@/lib/whatsapp-settings";
+import { isMessagingNotifyEnabled } from "@/lib/whatsapp-settings";
 import {
   formatMessagingHelloPlain,
   getMessagingTranslator,
@@ -29,14 +29,19 @@ export async function sendResetPasswordEmail(input: {
   organizationId?: string | null;
   branchId?: string | null;
   locale?: MessagingLocale | null;
-}): Promise<{ emailSent: boolean; whatsappSent: boolean; whatsappError?: string }> {
+}): Promise<{
+  emailSent: boolean;
+  whatsappSent: boolean;
+  whatsappError?: string;
+  mobileChannel?: "klambo" | "whatsapp" | "none";
+}> {
   const { to, name, temporaryPassword } = input;
   const allow = await resolveNotificationChannels(
     input.organizationId,
     "passwordReset",
   );
   if (!allow.email && !allow.whatsapp) {
-    return { emailSent: false, whatsappSent: false };
+    return { emailSent: false, whatsappSent: false, mobileChannel: "none" };
   }
 
   const locale = await resolveSenderMessagingLocale({
@@ -113,6 +118,7 @@ export async function sendResetPasswordEmail(input: {
           loginUrl,
           branchName: input.branchName,
           organizationId: input.organizationId,
+          branchId: input.branchId,
           locale,
         })
       : Promise.resolve(null);
@@ -121,19 +127,23 @@ export async function sendResetPasswordEmail(input: {
 
   let whatsappSent = false;
   let whatsappError: string | undefined;
+  let mobileChannel: "klambo" | "whatsapp" | "none" | undefined;
   if (wa) {
     whatsappSent = wa.sent;
     whatsappError = wa.error;
+    mobileChannel = wa.channel ?? (wa.sent ? "whatsapp" : "none");
   } else if (phone && !allow.whatsapp) {
-    const sending = await isWhatsAppSendingEnabled(input.organizationId);
+    const sending = await isMessagingNotifyEnabled(input.organizationId);
     whatsappError = sending
-      ? "WhatsApp est désactivé pour la réinitialisation (Notifications)."
-      : "Envoi WhatsApp désactivé. Activez le commutateur (Message WhatsApp) et enregistrez.";
+      ? "Canal mobile désactivé pour la réinitialisation (Notifications)."
+      : "Canal mobile désactivé (Klambo Inbox ou WhatsApp). Activez-le dans Paramètres → Message WhatsApp / Notifications.";
+    mobileChannel = "none";
   }
 
   return {
     emailSent: allow.email && emailOk,
     whatsappSent,
     whatsappError,
+    mobileChannel,
   };
 }

@@ -137,6 +137,7 @@ export async function sendParentPaymentNotificationEmail(input: {
       to: phone,
       organizationId: input.organizationId,
       locale,
+      branchId: input.branchId,
       queueKind: "payment",
       parts: [
         ...notifyCardToWhatsAppParts(card),

@@ -50,6 +50,7 @@ async function sendAbsenceMail(input: {
   note?: string;
   ctaLabel?: string;
   organizationId?: string | null;
+  branchId?: string | null;
   locale: MessagingLocale;
   schoolLabel: string;
   kind: AbsenceEmailKind;
@@ -149,6 +150,7 @@ async function sendAbsenceMail(input: {
     await sendTransactionalWhatsApp({
       to: input.phone,
       organizationId: input.organizationId,
+      branchId: input.branchId,
       locale: input.locale,
       queueKind: "absence",
       parts: waParts,

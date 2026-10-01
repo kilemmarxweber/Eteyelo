@@ -207,7 +207,7 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
       const hasPhone = Boolean(values.telephone?.trim());
       toast.success(
         hasPhone
-          ? "Membre créé. Identifiants envoyés par email et WhatsApp."
+          ? "Membre créé. Identifiants envoyés par email et Klambo Inbox / WhatsApp."
           : "Membre créé. Un mot de passe temporaire a été envoyé par email.",
       );
       router.push(listHref);

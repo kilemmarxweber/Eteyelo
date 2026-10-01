@@ -150,18 +150,35 @@ function queueWhatsAppMirror(payload: MailPayload): void {
   if (!phone) return;
 
   void (async () => {
-    const { isWhatsAppSendingEnabled } = await import(
-      "@/lib/whatsapp-settings"
-    );
-    if (!(await isWhatsAppSendingEnabled(payload.organizationId))) {
+    const { isMessagingNotifyEnabled, getWhatsAppRuntimeConfig, isInboxProvider } =
+      await import("@/lib/whatsapp-settings");
+    if (!(await isMessagingNotifyEnabled(payload.organizationId))) {
       if (process.env.NODE_ENV === "development") {
         // eslint-disable-next-line no-console
         console.info(
-          `[sendMail] WhatsApp désactivé — skip to=${phone} subject=${payload.subject}`,
+          `[sendMail] Canal mobile désactivé — skip to=${phone} subject=${payload.subject}`,
         );
       }
       return;
     }
+
+    const config = await getWhatsAppRuntimeConfig(payload.organizationId);
+    if (isInboxProvider(config.provider)) {
+      const { deliverSchoolNotify } = await import(
+        "@/lib/notify/deliver-school-notify"
+      );
+      const greeting = payload.whatsappName?.trim()
+        ? `Bonjour ${payload.whatsappName.trim()},`
+        : "Bonjour,";
+      await deliverSchoolNotify({
+        to: phone,
+        organizationId: payload.organizationId,
+        queueKind: "other",
+        parts: [greeting, payload.subject, payload.text],
+      });
+      return;
+    }
+
     const { mirrorEmailToWhatsApp } = await import("@/lib/zindua");
     await mirrorEmailToWhatsApp({
       to: phone,
@@ -173,7 +190,7 @@ function queueWhatsAppMirror(payload: MailPayload): void {
   })().catch((err) => {
     // eslint-disable-next-line no-console
     console.warn(
-      "[sendMail] WhatsApp mirror failed:",
+      "[sendMail] miroir mobile failed:",
       err instanceof Error ? err.message : err,
     );
   });

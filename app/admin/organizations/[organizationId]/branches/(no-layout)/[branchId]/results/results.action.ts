@@ -14,7 +14,12 @@ import {
   isWhatsAppCircuitOpen,
   parseWhatsAppRetryWaitMs,
 } from "@/lib/whatsapp-pace";
+import {
+  getWhatsAppRuntimeConfig,
+  isInboxProvider,
+} from "@/lib/whatsapp-settings";
 import { action } from "@/lib/zsa";
+import { mobileChannelLabel } from "@/lib/notify/mobile-channel-label";
 
 function isPermanentWhatsAppStop(message?: string | null) {
   if (!message) return false;
@@ -272,6 +277,10 @@ export const sendResultsToParentsAction = action
     const whatsappQueued = ready.filter((row) => Boolean(row.phone?.trim()))
       .length;
 
+    const waConfig = await getWhatsAppRuntimeConfig(organizationId);
+    const inboxMode = isInboxProvider(waConfig.provider);
+    const mobileLabel = mobileChannelLabel(inboxMode ? "klambo" : "whatsapp");
+
     after(async () => {
       let notified = 0;
       let whatsappSent = 0;
@@ -279,7 +288,10 @@ export const sendResultsToParentsAction = action
       let skipWhatsApp = false;
 
       for (const row of ready) {
-        if (skipWhatsApp || isWhatsAppCircuitOpen()) {
+        // Coupe-circuit WhatsApp : ne s'applique PAS en mode Klambo Inbox.
+        const gatewayBlocked =
+          !inboxMode && (skipWhatsApp || isWhatsAppCircuitOpen());
+        if (gatewayBlocked) {
           // Circuit open doit toujours couper WhatsApp, même si une erreur
           // temporaire était déjà enregistrée (sinon fallthrough vers un envoi WA).
           if (isWhatsAppCircuitOpen()) {
@@ -314,7 +326,7 @@ export const sendResultsToParentsAction = action
         try {
           const result = await sendStudentResultsNotification({
             to: row.email,
-            phone: skipWhatsApp ? null : row.phone,
+            phone: skipWhatsApp && !inboxMode ? null : row.phone,
             parentName: row.parentName,
             studentName: row.studentName,
             schoolName,
@@ -330,11 +342,14 @@ export const sendResultsToParentsAction = action
           if (result.whatsappSent) whatsappSent += 1;
           if (!whatsappError && result.whatsappError) {
             whatsappError = result.whatsappError;
-            if (isPermanentWhatsAppStop(result.whatsappError)) {
+            if (
+              !inboxMode &&
+              isPermanentWhatsAppStop(result.whatsappError)
+            ) {
               skipWhatsApp = true;
             }
           }
-          if (isWhatsAppCircuitOpen()) {
+          if (!inboxMode && isWhatsAppCircuitOpen()) {
             skipWhatsApp = true;
             if (!whatsappError) {
               whatsappError =
@@ -366,6 +381,7 @@ export const sendResultsToParentsAction = action
       queued: true,
       notified: ready.length,
       whatsappQueued,
+      mobileLabel,
       skippedNoContact,
       skippedNoGrades,
     };

@@ -315,6 +315,19 @@ export async function isWhatsAppSendingEnabled(
   return config.enabled;
 }
 
+/**
+ * Canal de notification mobile actif (inbox Klambo OU gateway WhatsApp).
+ * Contrairement à `isWhatsAppSendingEnabled`, reste vrai en mode inbox —
+ * sinon paiement / reset MDP / absences ne partent jamais vers l’app.
+ */
+export async function isMessagingNotifyEnabled(
+  organizationId?: string | null,
+): Promise<boolean> {
+  const config = await getWhatsAppRuntimeConfig(organizationId);
+  if (isInboxProvider(config.provider)) return true;
+  return config.enabled;
+}
+
 export function providerLabel(provider: WhatsAppProviderId): string {
   if (provider === "inbox") return "Klambo Inbox";
   if (provider === "meta") return "Meta WhatsApp";

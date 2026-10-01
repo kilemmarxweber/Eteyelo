@@ -24,6 +24,8 @@ import {
 export type WhatsAppSendOutcome = {
   sent: boolean;
   error?: string;
+  /** Canal réellement utilisé (inbox Klambo ou gateway WhatsApp). */
+  channel?: "klambo" | "whatsapp" | "none";
 };
 
 export type WhatsAppSendResult = {
@@ -37,17 +39,18 @@ function outcomeFromSendResult(
   disabledMessage = "Envoi WhatsApp désactivé (paramètres ou .env).",
 ): WhatsAppSendOutcome {
   if (!result) {
-    return { sent: false, error: disabledMessage };
+    return { sent: false, error: disabledMessage, channel: "none" };
   }
   if (!result.success) {
     return {
       sent: false,
+      channel: "none",
       error: result.status
         ? `WhatsApp non délivré (${result.status}).`
         : "WhatsApp non délivré.",
     };
   }
-  return { sent: true };
+  return { sent: true, channel: "whatsapp" };
 }
 
 export type ZinduaWhatsAppChannelStatus = {
@@ -443,7 +446,7 @@ export async function sendTransactionalWhatsAppViaProvider(options: {
 }): Promise<WhatsAppSendOutcome> {
   const to = resolveWhatsAppTo(options.to);
   if (!to) {
-    return { sent: false, error: "Numéro WhatsApp invalide." };
+    return { sent: false, error: "Numéro WhatsApp invalide.", channel: "none" };
   }
 
   const locale = await resolveSenderMessagingLocale({
@@ -467,12 +470,12 @@ export async function sendTransactionalWhatsAppViaProvider(options: {
     const message = formatZinduaError(error);
     // eslint-disable-next-line no-console
     console.warn("[sendTransactionalWhatsAppViaProvider] échec:", message);
-    return { sent: false, error: message };
+    return { sent: false, error: message, channel: "none" };
   }
 }
 
 /**
- * Klambo inbox d'abord (si possible), sinon WhatsApp via le provider actif.
+ * Canal exclusif : inbox Klambo ou gateway WhatsApp (selon Paramètres).
  */
 export async function sendTransactionalWhatsApp(options: {
   to: string;
@@ -489,7 +492,11 @@ export async function sendTransactionalWhatsApp(options: {
     "@/lib/notify/deliver-school-notify"
   );
   const result = await deliverSchoolNotify(options);
-  return { sent: result.sent, error: result.error };
+  return {
+    sent: result.sent,
+    error: result.error,
+    channel: result.channel,
+  };
 }
 
 /**
@@ -514,7 +521,7 @@ export async function sendNewUserCredentialsWhatsApp(options: {
     console.warn(
       `[sendNewUserCredentialsWhatsApp] numéro invalide (« ${options.to} »)`,
     );
-    return { sent: false, error: "Numéro WhatsApp invalide." };
+    return { sent: false, error: "Numéro WhatsApp invalide.", channel: "none" };
   }
 
   const locale = await resolveSenderMessagingLocale({
@@ -589,12 +596,16 @@ export async function sendNewUserCredentialsWhatsApp(options: {
         `[sendNewUserCredentialsWhatsApp] ok to=${to} channel=${result.channel}`,
       );
     }
-    return { sent: result.sent, error: result.error };
+    return {
+      sent: result.sent,
+      error: result.error,
+      channel: result.channel,
+    };
   } catch (error) {
     const errMsg = formatZinduaError(error);
     // eslint-disable-next-line no-console
     console.warn("[sendNewUserCredentialsWhatsApp] échec:", errMsg);
-    return { sent: false, error: errMsg };
+    return { sent: false, error: errMsg, channel: "none" };
   }
 }
 
@@ -610,7 +621,7 @@ export async function sendResetPasswordWhatsApp(
     console.warn(
       `[sendResetPasswordWhatsApp] numéro invalide (« ${options.to} »)`,
     );
-    return { sent: false, error: "Numéro WhatsApp invalide." };
+    return { sent: false, error: "Numéro WhatsApp invalide.", channel: "none" };
   }
 
   const locale = await resolveSenderMessagingLocale({
@@ -684,12 +695,16 @@ export async function sendResetPasswordWhatsApp(
         `[sendResetPasswordWhatsApp] échec: ${formatZinduaError(result.error)}`,
       );
     }
-    return { sent: result.sent, error: result.error };
+    return {
+      sent: result.sent,
+      error: result.error,
+      channel: result.channel,
+    };
   } catch (error) {
     const errMsg = formatZinduaError(error);
     // eslint-disable-next-line no-console
     console.warn("[sendResetPasswordWhatsApp] échec:", errMsg);
-    return { sent: false, error: errMsg };
+    return { sent: false, error: errMsg, channel: "none" };
   }
 }
 

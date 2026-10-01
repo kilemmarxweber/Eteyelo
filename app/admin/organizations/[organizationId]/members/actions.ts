@@ -1346,6 +1346,7 @@ export async function resetUserPasswordAction(
       whatsappError?: string;
       /** true si email/WA encore en cours après le budget UI */
       notifyQueued?: boolean;
+      mobileChannel?: "klambo" | "whatsapp" | "none";
     }
   | { ok: false; message: string }
 > {
@@ -1473,7 +1474,7 @@ export async function resetUserPasswordAction(
         hasPhone,
         notifyQueued: true,
         whatsappError:
-          "Notification en cours (gateway lent). Vérifiez email / inbox Klambo.",
+          "Notification en cours. Vérifiez email / Klambo Inbox.",
       };
     }
 
@@ -1483,6 +1484,7 @@ export async function resetUserPasswordAction(
       whatsappSent: raced.result.whatsappSent,
       hasPhone,
       whatsappError: raced.result.whatsappError,
+      mobileChannel: raced.result.mobileChannel,
     };
   } catch (e) {
     consumeAdminCreatedUserPlainPassword(email);

@@ -310,16 +310,6 @@ async function deliverSchoolNotifyNow(
     return fallbackWhatsApp(options, `provider=${config.provider}`);
   }
 
-  if (options.attachments?.length) {
-    // Inbox seul : pièces jointes gateway non disponibles
-    return {
-      sent: false,
-      channel: "none",
-      error:
-        "Pièces jointes indisponibles en mode Klambo Inbox (passez sur un gateway WhatsApp).",
-    };
-  }
-
   if (!organizationId) {
     return {
       sent: false,
@@ -337,6 +327,14 @@ async function deliverSchoolNotifyNow(
     options.richBody?.trim() || buildNotifyBody(options.parts);
   if (!body) {
     return { sent: false, channel: "none", error: "Message vide." };
+  }
+
+  if (options.attachments?.length) {
+    // Inbox : pas de PJ — le lien PDF reste dans le corps / la carte.
+    // eslint-disable-next-line no-console
+    console.info(
+      `[deliverSchoolNotify] inbox: PJ ignorées (${options.attachments.length}), lien dans le message to=${to}`,
+    );
   }
 
   try {
