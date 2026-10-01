@@ -136,11 +136,9 @@ export async function PATCH(request: Request) {
       image?: string;
     } = {};
     if (data.name) userUpdate.name = data.name.slice(0, 80);
-    if (data.prenom !== undefined) {
-      userUpdate.prenom = data.prenom?.slice(0, 80) ?? null;
-    }
+    if (data.prenom !== undefined) userUpdate.prenom = data.prenom.slice(0, 80);
     if (data.postnom !== undefined) {
-      userUpdate.postnom = data.postnom?.slice(0, 80) ?? null;
+      userUpdate.postnom = data.postnom.slice(0, 80);
     }
     if (data.image && data.image.startsWith("/uploads/")) {
       userUpdate.image = data.image.slice(0, 300);

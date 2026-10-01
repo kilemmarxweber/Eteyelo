@@ -1421,11 +1421,6 @@ export async function listMyConversations(params: {
     conversationIds: rows.map((row) => row.id),
   });
 
-  // Identifiants de contexte (ex. dossier d'absence) : staff uniquement,
-  // même droit que la création de groupe. Parents et autres membres
-  // voient la conversation, pas contextType / contextId / le lien admin.
-  const canSeeAdminContext = canCreateGroup(actorPolicy(params.actor));
-
   const items: ConversationListItem[] = [];
   for (const row of rows) {
     const me = row.participants.find((p) => p.userId === params.actor.userId);
@@ -1478,6 +1473,14 @@ export async function listMyConversations(params: {
       row.type === "GROUP"
         ? participants.filter((p) => p.groupRole === "ADMIN").length
         : 0;
+
+    const canSeeAdminContext = canCreateGroup({
+      appRole: params.actor.appRole,
+      memberRole: params.actor.memberRole,
+      memberArchived: params.actor.memberArchived,
+      userBanned: params.actor.userBanned,
+      organizationMessagingEnabled: params.actor.messagingEnabled,
+    });
 
     const item: ConversationListItem = {
       id: row.id,

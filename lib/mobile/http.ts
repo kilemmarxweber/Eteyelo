@@ -39,14 +39,7 @@ export function jsonError(message: string, status = 400) {
 }
 
 export function mobileErrorStatus(error: unknown, fallback = 500) {
-  if (
-    error instanceof MessagingError &&
-    Number.isInteger(error.statusCode) &&
-    error.statusCode >= 400 &&
-    error.statusCode <= 599
-  ) {
-    return error.statusCode;
-  }
+  if (error instanceof MessagingError) return error.statusCode;
   return fallback;
 }
 
