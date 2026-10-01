@@ -39,12 +39,7 @@ export function jsonError(message: string, status = 400) {
 }
 
 export function mobileErrorStatus(error: unknown, fallback = 500) {
-  if (error instanceof MessagingError) {
-    const code = error.statusCode;
-    return typeof code === "number" && code >= 400 && code < 600
-      ? code
-      : fallback;
-  }
+  if (error instanceof MessagingError) return error.statusCode;
   return fallback;
 }
 
