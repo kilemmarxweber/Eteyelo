@@ -49,7 +49,7 @@ function shouldExposeOtpCode() {
 function isNumberWithoutWhatsApp(error: unknown): error is MessagingApiError {
   return (
     error instanceof MessagingApiError &&
-    (error.code === "WHATSAPP_NUMBER_INVALID" || error.status === 422)
+    (error.code === "WHATSAPP_NUMBER_INVALID" || error.code === "INVALID_JID")
   );
 }
 
