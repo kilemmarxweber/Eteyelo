@@ -20,12 +20,12 @@ type Ctx = { params: Promise<{ organizationId: string }> };
 export async function GET(_request: Request, context: Ctx) {
   try {
     const session = requireSession(await getMobileSession());
-    if (!session) return jsonError("Non authentifié.", 401);
+    if (!session) return jsonError("Non authentifie.", 401);
 
     const { organizationId } = await context.params;
     const actor = await getMessagingActorFromSession(session, organizationId);
     if (!splitOrgRoles(actor.memberRole).includes(ORG_ROLE.PARENT)) {
-      return jsonError("La satisfaction est réservée aux parents.", 403);
+      return jsonError("La satisfaction est reservee aux parents.", 403);
     }
 
     const userId = session.user.id;
