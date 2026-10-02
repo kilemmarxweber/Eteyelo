@@ -7,6 +7,7 @@ import {
 } from "@/lib/mobile/http";
 import { prisma } from "@/lib/prisma";
 import { publishMobileEvent } from "@/lib/mobile/realtime";
+import { saveCallAnswer } from "@/lib/mobile/call-signal-store";
 import {
   appendCallTraceMessage,
   MessagingError,
@@ -66,6 +67,7 @@ export async function POST(request: Request, context: Ctx) {
     const body = (await request.json()) as {
       action?: "answer" | "reject" | "hangup";
       endReason?: string;
+      sdp?: { type?: string; sdp?: string };
     };
 
     const call = await prisma.callSession.findFirst({
@@ -94,13 +96,20 @@ export async function POST(request: Request, context: Ctx) {
         where: { id: callId },
         data: { status: "ACTIVE", answeredAt: new Date() },
       });
+      const answerPayload = {
+        conversationId: call.conversationId,
+        ...(body.sdp ? { sdp: body.sdp } : {}),
+      };
+      if (body.sdp) {
+        await saveCallAnswer(callId, answerPayload);
+      }
       await publishMobileEvent({
         type: "call.answer",
         organizationId,
         callId,
         fromUserId: session.user.id,
         toUserId: peerId,
-        payload: { conversationId: call.conversationId },
+        payload: answerPayload,
       });
       return jsonOk({ callId, status: "ACTIVE" });
     }

@@ -8,6 +8,7 @@ import {
 } from "@/lib/mobile/http";
 import { prisma } from "@/lib/prisma";
 import { publishMobileEvent } from "@/lib/mobile/realtime";
+import { saveCallOffer } from "@/lib/mobile/call-signal-store";
 import { MessagingError } from "@/lib/messaging/messaging-service";
 
 export const runtime = "nodejs";
@@ -85,22 +86,24 @@ export async function POST(request: Request, context: Ctx) {
       },
     });
 
+    const offerPayload = {
+      kind: call.kind,
+      conversationId: call.conversationId,
+      sdp: body.sdp ?? null,
+      callerName:
+        body.callerName ||
+        [caller?.prenom, caller?.name].filter(Boolean).join(" ") ||
+        "Appel entrant",
+      callerImage: caller?.image ?? null,
+    };
+    await saveCallOffer(call.id, offerPayload);
     await publishMobileEvent({
       type: "call.offer",
       organizationId,
       callId: call.id,
       fromUserId: session.user.id,
       toUserId: body.calleeId,
-      payload: {
-        kind: call.kind,
-        conversationId: call.conversationId,
-        sdp: body.sdp ?? null,
-        callerName:
-          body.callerName ||
-          [caller?.prenom, caller?.name].filter(Boolean).join(" ") ||
-          "Appel entrant",
-        callerImage: caller?.image ?? null,
-      },
+      payload: offerPayload,
     });
 
     return jsonCreated({
