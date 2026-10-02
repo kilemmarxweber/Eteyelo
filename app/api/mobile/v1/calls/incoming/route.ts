@@ -33,10 +33,12 @@ export async function GET() {
       calls.map(async (call) => {
         const signal = await readCallSignal(call.id);
         const offer = signal.offer;
-        const sdp =
-          offer && typeof offer === "object" && offer !== null && "sdp" in offer
-            ? (offer as { sdp?: unknown }).sdp
-            : offer;
+        let sdp: unknown = null;
+        if (typeof offer === "string") {
+          sdp = offer;
+        } else if (offer && typeof offer === "object" && "sdp" in offer) {
+          sdp = (offer as { sdp?: unknown }).sdp ?? null;
+        }
         const callerName =
           [call.caller?.prenom, call.caller?.name].filter(Boolean).join(" ") ||
           "Appel entrant";
@@ -48,7 +50,7 @@ export async function GET() {
           kind: call.kind,
           conversationId: call.conversationId,
           startedAt: call.startedAt.toISOString(),
-          sdp: sdp ?? null,
+          sdp,
         };
       }),
     );

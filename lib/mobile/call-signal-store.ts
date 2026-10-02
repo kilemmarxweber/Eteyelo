@@ -1,6 +1,8 @@
 import { ensureRedisReady, getRedisConnection } from "@/src/redis/redis";
 
 const TTL_SEC = 180;
+/** Cap de rétention à l'écriture (stockage). Les lectures client peuvent aussi tronquer. */
+const MAX_STORED_ICE = 50;
 
 export type CallSignalBlob = {
   offer?: unknown;
@@ -55,7 +57,8 @@ async function writeRedis(callId: string, blob: CallSignalBlob) {
   }
 }
 
-export async function readCallSignal(callId: string): Promise<CallSignalBlob> {
+/** Fusion Redis + mémoire, sans tronquer les ICE (pour lectures/écritures internes). */
+async function loadMergedCallSignal(callId: string): Promise<CallSignalBlob> {
   const fromRedis = await readRedis(callId);
   const fromMemory = readMemory(callId);
   if (!fromRedis && !fromMemory) return emptyBlob();
@@ -70,19 +73,28 @@ export async function readCallSignal(callId: string): Promise<CallSignalBlob> {
   return {
     offer: fromRedis?.offer ?? fromMemory?.offer,
     answer: fromRedis?.answer ?? fromMemory?.answer,
-    ice: mergedIce.slice(-50),
+    ice: mergedIce,
+  };
+}
+
+/** Vue client : ICE limités aux 50 derniers (ne pas réutiliser pour écrire). */
+export async function readCallSignal(callId: string): Promise<CallSignalBlob> {
+  const blob = await loadMergedCallSignal(callId);
+  return {
+    ...blob,
+    ice: blob.ice.slice(-MAX_STORED_ICE),
   };
 }
 
 export async function saveCallOffer(callId: string, offer: unknown) {
-  const blob = await readCallSignal(callId);
+  const blob = await loadMergedCallSignal(callId);
   blob.offer = offer;
   writeMemory(callId, blob);
   await writeRedis(callId, blob);
 }
 
 export async function saveCallAnswer(callId: string, answer: unknown) {
-  const blob = await readCallSignal(callId);
+  const blob = await loadMergedCallSignal(callId);
   blob.answer = answer;
   writeMemory(callId, blob);
   await writeRedis(callId, blob);
@@ -93,9 +105,9 @@ export async function appendCallIce(
   fromUserId: string,
   payload: unknown,
 ) {
-  const blob = await readCallSignal(callId);
+  const blob = await loadMergedCallSignal(callId);
   blob.ice.push({ fromUserId, payload });
-  blob.ice = blob.ice.slice(-50);
+  blob.ice = blob.ice.slice(-MAX_STORED_ICE);
   writeMemory(callId, blob);
   await writeRedis(callId, blob);
 }
