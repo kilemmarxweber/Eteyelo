@@ -86,9 +86,8 @@ export async function readCallSignal(callId: string): Promise<CallSignalBlob> {
   };
 }
 
-/** Persiste en mémoire + Redis en bornant toujours les ICE. */
+/** Persiste en mémoire + Redis sans modifier l’offre/réponse ni tronquer les ICE. */
 async function persistCallSignal(callId: string, blob: CallSignalBlob) {
-  blob.ice = blob.ice.slice(-MAX_STORED_ICE);
   writeMemory(callId, blob);
   await writeRedis(callId, blob);
 }
@@ -112,5 +111,7 @@ export async function appendCallIce(
 ) {
   const blob = await loadMergedCallSignal(callId);
   blob.ice.push({ fromUserId, payload });
+  // Seul l’ajout d’ICE borne le stockage — pas saveOffer/saveAnswer.
+  blob.ice = blob.ice.slice(-MAX_STORED_ICE);
   await persistCallSignal(callId, blob);
 }
