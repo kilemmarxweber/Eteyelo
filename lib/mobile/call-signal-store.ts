@@ -86,18 +86,23 @@ export async function readCallSignal(callId: string): Promise<CallSignalBlob> {
   };
 }
 
+/** Persiste en mémoire + Redis en bornant toujours les ICE. */
+async function persistCallSignal(callId: string, blob: CallSignalBlob) {
+  blob.ice = blob.ice.slice(-MAX_STORED_ICE);
+  writeMemory(callId, blob);
+  await writeRedis(callId, blob);
+}
+
 export async function saveCallOffer(callId: string, offer: unknown) {
   const blob = await loadMergedCallSignal(callId);
   blob.offer = offer;
-  writeMemory(callId, blob);
-  await writeRedis(callId, blob);
+  await persistCallSignal(callId, blob);
 }
 
 export async function saveCallAnswer(callId: string, answer: unknown) {
   const blob = await loadMergedCallSignal(callId);
   blob.answer = answer;
-  writeMemory(callId, blob);
-  await writeRedis(callId, blob);
+  await persistCallSignal(callId, blob);
 }
 
 export async function appendCallIce(
@@ -107,7 +112,5 @@ export async function appendCallIce(
 ) {
   const blob = await loadMergedCallSignal(callId);
   blob.ice.push({ fromUserId, payload });
-  blob.ice = blob.ice.slice(-MAX_STORED_ICE);
-  writeMemory(callId, blob);
-  await writeRedis(callId, blob);
+  await persistCallSignal(callId, blob);
 }
