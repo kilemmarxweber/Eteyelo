@@ -29,6 +29,7 @@ export type MessagingRecipient = {
   image: string | null;
   telephone?: string | null;
   prenom?: string | null;
+  nom?: string | null;
   role: string;
   roleLabel: string;
   branches: Array<{ id: string; name: string }>;
@@ -66,6 +67,7 @@ export type ConversationListItem = {
     image: string | null;
     telephone?: string | null;
     prenom?: string | null;
+    nom?: string | null;
     roleLabel: string;
     /** Rôle dans le groupe (ADMIN/MEMBER), pas le rôle org. */
     groupRole?: ConversationParticipantRoleValue;
@@ -110,17 +112,53 @@ export type MessageView = {
 /** Libellé affiché à la place d'un message retiré. */
 export const MESSAGE_DELETED_LABEL = "Ce message a été retiré";
 
+function stripToken(value: string, token: string, edge: "start" | "end") {
+  const piece = token.trim();
+  let rest = value.trim();
+  if (!piece || !rest) return rest;
+  const folded = (input: string) => input.toLocaleLowerCase("fr");
+  if (edge === "start") {
+    const prefix = `${folded(piece)} `;
+    while (folded(rest).startsWith(prefix)) {
+      rest = rest.slice(piece.length).trim();
+    }
+    if (folded(rest) === folded(piece)) return "";
+    return rest;
+  }
+  const suffix = ` ${folded(piece)}`;
+  if (folded(rest).endsWith(suffix)) {
+    const cut = rest.slice(0, rest.length - piece.length).trim();
+    if (cut) return cut;
+  }
+  return rest;
+}
+
+/** Prénom + nom, une seule fois, sans postnom. */
 export function formatMessagingPersonName(user: {
   prenom?: string | null;
   name?: string | null;
   postnom?: string | null;
 } | null | undefined) {
   if (!user) return "Utilisateur";
-  return (
-    [user.prenom, user.name, user.postnom].filter(Boolean).join(" ").trim() ||
-    user.name ||
-    "Utilisateur"
-  );
+  const prenom = user.prenom?.trim() ?? "";
+  let nom = stripToken(user.name?.trim() ?? "", prenom, "start");
+  nom = stripToken(nom, user.postnom?.trim() ?? "", "end");
+  nom = stripToken(nom, prenom, "start");
+  if (prenom && nom) return `${prenom} ${nom}`;
+  return prenom || nom || "Utilisateur";
+}
+
+/** Nom de famille seul, sans prénom ni postnom répétés. */
+export function messagingFamilyName(user: {
+  prenom?: string | null;
+  name?: string | null;
+  postnom?: string | null;
+} | null | undefined) {
+  if (!user) return "";
+  const prenom = user.prenom?.trim() ?? "";
+  let nom = stripToken(user.name?.trim() ?? "", prenom, "start");
+  nom = stripToken(nom, user.postnom?.trim() ?? "", "end");
+  return stripToken(nom, prenom, "start");
 }
 
 const STRUCTURED_BODY_PREFIX =
