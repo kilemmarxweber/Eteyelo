@@ -11,6 +11,7 @@ import {
 } from "@/lib/messaging/messaging-policy";
 import {
   formatMessagingPersonName,
+  messagingFamilyName,
   MESSAGING_CONVERSATIONS_PAGE_SIZE,
   MESSAGING_MAX_BODY_LENGTH,
   MESSAGING_MAX_GROUP_ADMINS,
@@ -326,9 +327,10 @@ async function loadRecipientMap(
       memberId: member.id,
       name: formatMessagingPersonName(member.user),
       image: member.user.image,
-      // Pas de téléphone en cache destinataires (évite fuite vers clients).
-      telephone: null,
+      telephone: member.user.telephone?.trim() || null,
       prenom: member.user.prenom ?? null,
+      nom: messagingFamilyName(member.user) || null,
+      postnom: member.user.postnom ?? null,
       role: member.role,
       roleLabel: orgRoleLabel(member.role.split(",")[0] ?? member.role),
       branches: participantBranches(
@@ -501,9 +503,10 @@ export async function searchMessagingRecipients(params: {
     memberId: member.id,
     name: formatMessagingPersonName(member.user),
     image: member.user.image,
-    // Recherche serveur OK ; ne pas exposer le E.164 complet au client.
-    telephone: null,
+    telephone: member.user.telephone?.trim() || null,
     prenom: member.user.prenom ?? null,
+    nom: messagingFamilyName(member.user) || null,
+    postnom: member.user.postnom ?? null,
     role: member.role,
     roleLabel: orgRoleLabel(member.role.split(",")[0] ?? member.role),
     branches: participantBranches(
@@ -517,6 +520,40 @@ export async function searchMessagingRecipients(params: {
       ? page[page.length - 1]?.userId ?? null
       : null;
   return { items, nextCursor };
+}
+
+/** Même champ `User.telephone` que le profil de la personne connectée. */
+export async function getMessagingContact(params: {
+  organizationId: string;
+  actor: Actor;
+  userId: string;
+}) {
+  assertCanUse(params.actor);
+  const member = await prisma.member.findFirst({
+    where: {
+      organizationId: params.organizationId,
+      userId: params.userId,
+      isArchived: false,
+    },
+    select: {
+      id: true,
+      role: true,
+      user: { select: userNameSelect },
+    },
+  });
+  if (!member || isSchoolNotifyBotEmail(member.user.email)) {
+    throw new MessagingError("Contact introuvable.", 404);
+  }
+  return {
+    userId: member.user.id,
+    memberId: member.id,
+    name: formatMessagingPersonName(member.user),
+    prenom: member.user.prenom ?? null,
+    nom: messagingFamilyName(member.user) || null,
+    image: member.user.image,
+    telephone: member.user.telephone?.trim() || null,
+    roleLabel: orgRoleLabel(member.role.split(",")[0] ?? member.role),
+  };
 }
 
 async function findDirectConversation(
@@ -1458,8 +1495,10 @@ export async function listMyConversations(params: {
         userId: p.userId,
         name: mapped?.name ?? formatMessagingPersonName(p.user),
         image: mapped?.image ?? p.user.image,
-        telephone: null,
+        telephone: mapped?.telephone ?? (p.user.telephone?.trim() || null),
         prenom: mapped?.prenom ?? p.user.prenom ?? null,
+        nom: mapped?.nom ?? messagingFamilyName(p.user) ?? null,
+        postnom: mapped?.postnom ?? p.user.postnom ?? null,
         roleLabel: mapped?.roleLabel ?? "",
         groupRole: row.type === "GROUP" ? groupRole : undefined,
         branches: mapped?.branches ?? [],
@@ -1631,6 +1670,12 @@ export async function getConversationMessages(params: {
         conversationId: row.conversationId,
         senderId: row.senderId,
         senderName: mapped?.name ?? formatMessagingPersonName(row.sender),
+        senderPrenom: mapped?.prenom ?? row.sender.prenom ?? null,
+        senderTelephone:
+          mapped?.telephone ?? (row.sender.telephone?.trim() || null),
+        senderNom:
+          mapped?.nom ?? (messagingFamilyName(row.sender) || null),
+        senderPostnom: mapped?.postnom ?? row.sender.postnom ?? null,
         senderImage: mapped?.image ?? row.sender.image,
         senderRoleLabel: mapped?.roleLabel ?? "",
         senderBranches: mapped?.branches ?? [],
@@ -1974,8 +2019,11 @@ export async function getGroupSettings(params: {
     return {
       userId: p.userId,
       name: mapped?.name ?? "Membre",
+      prenom: mapped?.prenom ?? null,
+      nom: mapped?.nom ?? null,
+      postnom: mapped?.postnom ?? null,
       image: mapped?.image ?? null,
-      telephone: null,
+      telephone: mapped?.telephone ?? null,
       roleLabel: mapped?.roleLabel ?? "",
       groupRole,
       isCreator: p.userId === ctx.conversation.createdById,

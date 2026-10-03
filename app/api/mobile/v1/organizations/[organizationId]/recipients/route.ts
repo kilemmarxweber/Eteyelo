@@ -6,6 +6,7 @@ import {
   requireSession,
 } from "@/lib/mobile/http";
 import {
+  getMessagingContact,
   MessagingError,
   searchMessagingRecipients,
 } from "@/lib/messaging/messaging-service";
@@ -21,10 +22,19 @@ export async function GET(request: Request, context: Ctx) {
 
     const { organizationId } = await context.params;
     const url = new URL(request.url);
+    const userId = url.searchParams.get("userId")?.trim() ?? "";
     const query = url.searchParams.get("q") ?? "";
     const cursor = url.searchParams.get("cursor");
 
     const actor = await getMessagingActorFromSession(session, organizationId);
+    if (userId) {
+      const item = await getMessagingContact({
+        organizationId,
+        actor,
+        userId,
+      });
+      return jsonOk({ item });
+    }
     const data = await searchMessagingRecipients({
       organizationId,
       actor,

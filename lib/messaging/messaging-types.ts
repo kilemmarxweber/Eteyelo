@@ -30,6 +30,7 @@ export type MessagingRecipient = {
   telephone?: string | null;
   prenom?: string | null;
   nom?: string | null;
+  postnom?: string | null;
   role: string;
   roleLabel: string;
   branches: Array<{ id: string; name: string }>;
@@ -68,6 +69,7 @@ export type ConversationListItem = {
     telephone?: string | null;
     prenom?: string | null;
     nom?: string | null;
+    postnom?: string | null;
     roleLabel: string;
     /** Rôle dans le groupe (ADMIN/MEMBER), pas le rôle org. */
     groupRole?: ConversationParticipantRoleValue;
@@ -81,6 +83,10 @@ export type MessageView = {
   conversationId: string;
   senderId: string;
   senderName: string;
+  senderPrenom?: string | null;
+  senderNom?: string | null;
+  senderPostnom?: string | null;
+  senderTelephone?: string | null;
   senderImage: string | null;
   senderRoleLabel: string;
   senderBranches: Array<{ id: string; name: string }>;
