@@ -327,7 +327,8 @@ async function loadRecipientMap(
       memberId: member.id,
       name: formatMessagingPersonName(member.user),
       image: member.user.image,
-      telephone: member.user.telephone?.trim() || null,
+      // Pas de téléphone en cache destinataires (évite fuite vers clients).
+      telephone: null,
       prenom: member.user.prenom ?? null,
       nom: messagingFamilyName(member.user) || null,
       postnom: member.user.postnom ?? null,
@@ -503,7 +504,8 @@ export async function searchMessagingRecipients(params: {
     memberId: member.id,
     name: formatMessagingPersonName(member.user),
     image: member.user.image,
-    telephone: member.user.telephone?.trim() || null,
+    // Recherche serveur OK ; ne pas exposer le E.164 complet au client.
+    telephone: null,
     prenom: member.user.prenom ?? null,
     nom: messagingFamilyName(member.user) || null,
     postnom: member.user.postnom ?? null,
@@ -522,7 +524,7 @@ export async function searchMessagingRecipients(params: {
   return { items, nextCursor };
 }
 
-/** Même champ `User.telephone` que le profil de la personne connectée. */
+/** Fiche contact messagerie — téléphone non exposé au client. */
 export async function getMessagingContact(params: {
   organizationId: string;
   actor: Actor;
@@ -551,7 +553,7 @@ export async function getMessagingContact(params: {
     prenom: member.user.prenom ?? null,
     nom: messagingFamilyName(member.user) || null,
     image: member.user.image,
-    telephone: member.user.telephone?.trim() || null,
+    telephone: null,
     roleLabel: orgRoleLabel(member.role.split(",")[0] ?? member.role),
   };
 }
@@ -1495,7 +1497,7 @@ export async function listMyConversations(params: {
         userId: p.userId,
         name: mapped?.name ?? formatMessagingPersonName(p.user),
         image: mapped?.image ?? p.user.image,
-        telephone: mapped?.telephone ?? (p.user.telephone?.trim() || null),
+        telephone: null,
         prenom: mapped?.prenom ?? p.user.prenom ?? null,
         nom: mapped?.nom ?? messagingFamilyName(p.user) ?? null,
         postnom: mapped?.postnom ?? p.user.postnom ?? null,
@@ -1671,8 +1673,7 @@ export async function getConversationMessages(params: {
         senderId: row.senderId,
         senderName: mapped?.name ?? formatMessagingPersonName(row.sender),
         senderPrenom: mapped?.prenom ?? row.sender.prenom ?? null,
-        senderTelephone:
-          mapped?.telephone ?? (row.sender.telephone?.trim() || null),
+        senderTelephone: null,
         senderNom:
           mapped?.nom ?? (messagingFamilyName(row.sender) || null),
         senderPostnom: mapped?.postnom ?? row.sender.postnom ?? null,
@@ -2023,7 +2024,7 @@ export async function getGroupSettings(params: {
       nom: mapped?.nom ?? null,
       postnom: mapped?.postnom ?? null,
       image: mapped?.image ?? null,
-      telephone: mapped?.telephone ?? null,
+      telephone: null,
       roleLabel: mapped?.roleLabel ?? "",
       groupRole,
       isCreator: p.userId === ctx.conversation.createdById,
