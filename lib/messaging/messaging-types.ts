@@ -86,6 +86,7 @@ export type MessageView = {
   senderPrenom?: string | null;
   senderNom?: string | null;
   senderPostnom?: string | null;
+  /** Toujours null côté API (pas d’E.164 exposé). */
   senderTelephone?: string | null;
   senderImage: string | null;
   senderRoleLabel: string;
