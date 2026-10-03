@@ -10,6 +10,7 @@ import {
   markConversationRead,
   markConversationUnread,
   MessagingError,
+  removeConversationForMe,
   setConversationArchived,
   setConversationMuted,
   setGroupParticipantRole,
@@ -76,6 +77,13 @@ export async function POST(request: Request, context: Ctx) {
           actor,
           conversationId,
           archived: false,
+        });
+        break;
+      case "delete":
+        await removeConversationForMe({
+          organizationId,
+          actor,
+          conversationId,
         });
         break;
       case "mute":

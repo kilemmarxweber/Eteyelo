@@ -69,6 +69,7 @@ export const mobileConversationActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("unread") }),
   z.object({ action: z.literal("archive") }),
   z.object({ action: z.literal("unarchive") }),
+  z.object({ action: z.literal("delete") }),
   z.object({ action: z.literal("mute") }),
   z.object({ action: z.literal("unmute") }),
   z.object({ action: z.literal("lock_replies") }),

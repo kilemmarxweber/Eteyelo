@@ -774,7 +774,7 @@ export async function createConversation(params: {
   void import("@/lib/mobile/realtime").then(async ({ publishMobileEvent }) => {
     const sender = await prisma.user.findUnique({
       where: { id: params.actor.userId },
-      select: { name: true, prenom: true },
+      select: { name: true, prenom: true, image: true },
     });
     const senderName =
       [sender?.prenom, sender?.name].filter(Boolean).join(" ") || "Klambo";
@@ -787,6 +787,7 @@ export async function createConversation(params: {
       recipientUserIds: participantIds.filter((id) => id !== params.actor.userId),
       bodyPreview: body.slice(0, 160),
       senderName,
+      senderImage: sender?.image ?? null,
     });
   });
 
@@ -1083,7 +1084,7 @@ export async function sendMessage(params: {
   void import("@/lib/mobile/realtime").then(async ({ publishMobileEvent }) => {
     const sender = await prisma.user.findUnique({
       where: { id: params.actor.userId },
-      select: { name: true, prenom: true },
+      select: { name: true, prenom: true, image: true },
     });
     const senderName =
       [sender?.prenom, sender?.name].filter(Boolean).join(" ") || "Klambo";
@@ -1098,6 +1099,7 @@ export async function sendMessage(params: {
         .filter((id) => id !== params.actor.userId),
       bodyPreview: body.slice(0, 160),
       senderName,
+      senderImage: sender?.image ?? null,
     });
   });
 
@@ -1120,8 +1122,16 @@ async function publishMessageLifecycle(params: {
   const recipientUserIds = participants
     .map((p) => p.userId)
     .filter((id) => id !== params.senderId);
-  void import("@/lib/mobile/realtime").then(({ publishMobileEvent }) =>
-    publishMobileEvent({
+  void import("@/lib/mobile/realtime").then(async ({ publishMobileEvent }) => {
+    let senderImage: string | null = null;
+    if (params.type === "message.created") {
+      const sender = await prisma.user.findUnique({
+        where: { id: params.senderId },
+        select: { image: true },
+      });
+      senderImage = sender?.image ?? null;
+    }
+    return publishMobileEvent({
       type: params.type,
       organizationId: params.organizationId,
       conversationId: params.conversationId,
@@ -1132,10 +1142,11 @@ async function publishMessageLifecycle(params: {
         ? {
             bodyPreview: params.bodyPreview ?? null,
             senderName: params.senderName ?? null,
+            senderImage,
           }
         : {}),
-    }),
-  );
+    });
+  });
 }
 
 export async function editMessage(params: {
@@ -2009,6 +2020,29 @@ export async function setConversationArchived(params: {
       },
     },
     data: { archivedAt: params.archived ? new Date() : null },
+  });
+}
+
+/** Retire la discussion de la liste de cet utilisateur. L'autre contact la garde. */
+export async function removeConversationForMe(params: {
+  organizationId: string;
+  actor: Actor;
+  conversationId: string;
+}) {
+  assertCanUse(params.actor);
+  await getParticipantOrThrow(
+    params.conversationId,
+    params.actor.userId,
+    params.organizationId,
+  );
+  await prisma.conversationParticipant.update({
+    where: {
+      conversationId_userId: {
+        conversationId: params.conversationId,
+        userId: params.actor.userId,
+      },
+    },
+    data: { leftAt: new Date() },
   });
 }
 

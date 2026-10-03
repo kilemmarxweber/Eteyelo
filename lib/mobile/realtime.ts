@@ -13,6 +13,7 @@ export type MobileRealtimeEvent =
       /** Aperçu pour notifs locales (WS). */
       bodyPreview?: string | null;
       senderName?: string | null;
+      senderImage?: string | null;
     }
   | {
       type: "message.updated";
