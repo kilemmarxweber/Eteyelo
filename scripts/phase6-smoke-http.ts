@@ -2,7 +2,13 @@
  * Phase 6 HTTP smoke: public priority pages + demo sign-in attempts.
  * Usage: npx tsx scripts/phase6-smoke-http.ts [baseUrl]
  */
-import { DEMO_ACCOUNTS } from "../prisma/seeds/demoAccounts";
+
+/** Ancien seed demoAccounts.ts retiré — liste vide (smoke public pages only). */
+const DEMO_ACCOUNTS: Array<{
+  email: string;
+  password: string;
+  label: string;
+}> = [];
 
 const baseUrl = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/, "");
 
@@ -123,6 +129,9 @@ async function main() {
   }
 
   console.log("\n=== DEMO SIGN-IN ATTEMPTS ===");
+  if (DEMO_ACCOUNTS.length === 0) {
+    console.log("(skipped — DEMO_ACCOUNTS vide)");
+  }
   for (const account of DEMO_ACCOUNTS) {
     await trySignIn(account.email, account.password, account.label);
   }

@@ -1,5 +1,13 @@
 import { prisma } from "../lib/prisma";
-import { DEMO_ACCOUNTS } from "../prisma/seeds/demoAccounts";
+
+/** Ancien seed demoAccounts.ts retiré — ne plus le réimporter au build. */
+const DEMO_ACCOUNTS: Array<{
+  email: string;
+  username?: string;
+  label: string;
+  memberRole?: string;
+  password?: string;
+}> = [];
 
 const oldSlugs = ["surveillant", "responsable", "moniteur"];
 
@@ -57,6 +65,9 @@ async function main() {
   }
 
   console.log("=== DEMO ACCOUNTS PRESENT IN DB ===");
+  if (DEMO_ACCOUNTS.length === 0) {
+    console.log("(skipped — DEMO_ACCOUNTS vide, seed demoAccounts retiré)");
+  }
   for (const account of DEMO_ACCOUNTS) {
     const user = await prisma.user.findFirst({
       where: {
