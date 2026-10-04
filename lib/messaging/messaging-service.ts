@@ -11,6 +11,7 @@ import {
 } from "@/lib/messaging/messaging-policy";
 import {
   formatMessagingPersonName,
+  messagingAccountPhone,
   messagingFamilyName,
   parseConversationSince,
   MESSAGING_CONVERSATIONS_PAGE_SIZE,
@@ -328,8 +329,7 @@ async function loadRecipientMap(
       memberId: member.id,
       name: formatMessagingPersonName(member.user),
       image: member.user.image,
-      // Évite fuite vers clients — ne pas exposer le E.164 complet.
-      telephone: null,
+      telephone: messagingAccountPhone(member.user.telephone),
       prenom: member.user.prenom ?? null,
       nom: messagingFamilyName(member.user) || null,
       postnom: member.user.postnom ?? null,
@@ -505,8 +505,7 @@ export async function searchMessagingRecipients(params: {
     memberId: member.id,
     name: formatMessagingPersonName(member.user),
     image: member.user.image,
-    // Évite fuite vers clients — ne pas exposer le E.164 complet.
-    telephone: null,
+    telephone: messagingAccountPhone(member.user.telephone),
     prenom: member.user.prenom ?? null,
     nom: messagingFamilyName(member.user) || null,
     postnom: member.user.postnom ?? null,
@@ -525,7 +524,7 @@ export async function searchMessagingRecipients(params: {
   return { items, nextCursor };
 }
 
-/** Fiche contact : prénom et nom (téléphone non exposé côté API). */
+/** Fiche contact : prénom, nom, rôle et téléphone du compte. */
 export async function getMessagingContact(params: {
   organizationId: string;
   actor: Actor;
@@ -554,8 +553,7 @@ export async function getMessagingContact(params: {
     prenom: member.user.prenom ?? null,
     nom: messagingFamilyName(member.user) || null,
     image: member.user.image,
-    // Évite fuite vers clients — ne pas exposer le E.164 complet.
-    telephone: null,
+    telephone: messagingAccountPhone(member.user.telephone),
     roleLabel: orgRoleLabel(member.role.split(",")[0] ?? member.role),
   };
 }
@@ -1503,8 +1501,8 @@ export async function listMyConversations(params: {
         userId: p.userId,
         name: mapped?.name ?? formatMessagingPersonName(p.user),
         image: mapped?.image ?? p.user.image,
-        // Évite fuite vers clients — ne pas exposer le E.164 complet.
-        telephone: null,
+        telephone:
+          mapped?.telephone ?? messagingAccountPhone(p.user.telephone),
         prenom: mapped?.prenom ?? p.user.prenom ?? null,
         nom: mapped?.nom ?? messagingFamilyName(p.user) ?? null,
         postnom: mapped?.postnom ?? p.user.postnom ?? null,
@@ -1680,8 +1678,8 @@ export async function getConversationMessages(params: {
         senderId: row.senderId,
         senderName: mapped?.name ?? formatMessagingPersonName(row.sender),
         senderPrenom: mapped?.prenom ?? row.sender.prenom ?? null,
-        // Évite fuite vers clients — ne pas exposer le E.164 complet.
-        senderTelephone: null,
+        senderTelephone:
+          mapped?.telephone ?? messagingAccountPhone(row.sender.telephone),
         senderNom:
           mapped?.nom ?? (messagingFamilyName(row.sender) || null),
         senderPostnom: mapped?.postnom ?? row.sender.postnom ?? null,
@@ -2032,8 +2030,7 @@ export async function getGroupSettings(params: {
       nom: mapped?.nom ?? null,
       postnom: mapped?.postnom ?? null,
       image: mapped?.image ?? null,
-      // Évite fuite vers clients — ne pas exposer le E.164 complet.
-      telephone: null,
+      telephone: mapped?.telephone ?? null,
       roleLabel: mapped?.roleLabel ?? "",
       groupRole,
       isCreator: p.userId === ctx.conversation.createdById,

@@ -27,7 +27,7 @@ export type MessagingRecipient = {
   memberId: string;
   name: string;
   image: string | null;
-  /** Toujours null côté API (pas d’E.164 exposé). */
+  /** Numéro du compte, comme le rôle sur la fiche contact. */
   telephone?: string | null;
   prenom?: string | null;
   nom?: string | null;
@@ -67,7 +67,7 @@ export type ConversationListItem = {
     userId: string;
     name: string;
     image: string | null;
-    /** Toujours null côté API (pas d’E.164 exposé). */
+    /** Numéro du compte, comme le rôle. */
     telephone?: string | null;
     prenom?: string | null;
     nom?: string | null;
@@ -88,7 +88,7 @@ export type MessageView = {
   senderPrenom?: string | null;
   senderNom?: string | null;
   senderPostnom?: string | null;
-  /** Toujours null côté API (pas d’E.164 exposé). */
+  /** Numéro du compte de l'expéditeur. */
   senderTelephone?: string | null;
   senderImage: string | null;
   senderRoleLabel: string;
@@ -157,10 +157,7 @@ export function formatMessagingPersonName(user: {
   return prenom || nom || "Utilisateur";
 }
 
-/**
- * Normalise un téléphone stocké (trim).
- * Ne pas utiliser dans les payloads clients messagerie — exposer `telephone: null`.
- */
+/** Numéro du compte, tel qu'enregistré, pour la fiche contact. */
 export function messagingAccountPhone(telephone?: string | null) {
   const value = telephone?.trim() ?? "";
   return value.length > 0 ? value : null;
