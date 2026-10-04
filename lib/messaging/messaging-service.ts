@@ -227,7 +227,11 @@ async function getGroupAdminContext(params: {
 
   const participants = await prisma.conversationParticipant.findMany({
     where: { conversationId: params.conversationId, leftAt: null },
-    select: { userId: true, role: true },
+    select: {
+      userId: true,
+      role: true,
+      user: { select: { telephone: true } },
+    },
   });
 
   // Rétrocompat : si aucun ADMIN en base, le créateur compte comme admin.
@@ -2030,7 +2034,8 @@ export async function getGroupSettings(params: {
       nom: mapped?.nom ?? null,
       postnom: mapped?.postnom ?? null,
       image: mapped?.image ?? null,
-      telephone: mapped?.telephone ?? null,
+      telephone:
+        mapped?.telephone ?? messagingAccountPhone(p.user.telephone),
       roleLabel: mapped?.roleLabel ?? "",
       groupRole,
       isCreator: p.userId === ctx.conversation.createdById,
