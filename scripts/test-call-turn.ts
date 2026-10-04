@@ -4,7 +4,11 @@
  */
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
-import { turnRestCredential } from "../lib/mobile/call-turn";
+import {
+  OPEN_RELAY_URLS,
+  buildIceServers,
+  turnRestCredential,
+} from "../lib/mobile/call-turn";
 
 function test(name: string, fn: () => void) {
   fn();
@@ -41,6 +45,34 @@ test("TTL borné entre 1 minute et 1 jour", () => {
     nowSec: 10,
   });
   assert.equal(long.ttlSec, 86_400);
+});
+
+test("sans TURN maison, un relais internet est ajouté", () => {
+  const servers = buildIceServers({ userId: "user-1", nowSec: 1_700_000_000 });
+  const turn = servers.find((s) => {
+    const urls = Array.isArray(s.urls) ? s.urls.join(" ") : s.urls;
+    return urls.includes("turn:");
+  });
+  assert.ok(turn);
+  assert.deepEqual(turn.urls, OPEN_RELAY_URLS);
+  assert.equal(turn.username, "1700003600:user-1");
+  assert.ok(turn.credential);
+  assert.ok(servers.some((s) => s.urls === "stun:stun.cloudflare.com:3478"));
+});
+
+test("TURN_URLS maison remplace le relais public", () => {
+  const servers = buildIceServers({
+    userId: "user-1",
+    turnUrls: "turn:turn.klambocore.com:3478",
+    turnSecret: "maison",
+    nowSec: 1_700_000_000,
+  });
+  const turn = servers.find((s) => {
+    const urls = Array.isArray(s.urls) ? s.urls.join(" ") : s.urls;
+    return urls.includes("turn:");
+  });
+  assert.deepEqual(turn?.urls, ["turn:turn.klambocore.com:3478"]);
+  assert.equal(turn?.username, "1700003600:user-1");
 });
 
 console.log("\nAll TURN credential tests passed.");
