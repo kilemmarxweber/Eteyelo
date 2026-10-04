@@ -5,13 +5,12 @@ import {
   jsonOk,
   requireSession,
 } from "@/lib/mobile/http";
-import { buildIceServers } from "@/lib/mobile/call-turn";
+import { turnRestCredential } from "@/lib/mobile/call-turn";
 
 export const runtime = "nodejs";
 
 /**
- * Config ICE pour WebRTC (STUN public + TURN).
- * Sans TURN maison, un relais internet (80/443) est ajouté.
+ * Config ICE pour WebRTC (STUN public + TURN optionnel coturn).
  * Env:
  *   TURN_URLS=turn:turn.example.com:3478
  *   TURN_SECRET=secret partagé avec coturn (use-auth-secret) — préféré
@@ -23,15 +22,43 @@ export async function GET() {
     const session = requireSession(await getMobileSession());
     if (!session) return jsonError("Non authentifié.", 401);
 
-    const ttl = Number(process.env.TURN_TTL_SEC ?? 3600);
-    const iceServers = buildIceServers({
-      userId: session.user.id,
-      turnUrls: process.env.TURN_URLS,
-      turnSecret: process.env.TURN_SECRET,
-      turnUser: process.env.TURN_USERNAME,
-      turnCredential: process.env.TURN_CREDENTIAL,
-      ttlSec: Number.isFinite(ttl) ? ttl : 3600,
-    });
+    const iceServers: Array<{
+      urls: string | string[];
+      username?: string;
+      credential?: string;
+    }> = [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+    ];
+
+    const turnUrls = process.env.TURN_URLS?.trim();
+    const turnSecret = process.env.TURN_SECRET?.trim();
+    const turnUser = process.env.TURN_USERNAME?.trim();
+    const turnCred = process.env.TURN_CREDENTIAL?.trim();
+    const urls = turnUrls
+      ?.split(",")
+      .map((u) => u.trim())
+      .filter(Boolean);
+
+    if (urls && urls.length > 0 && turnSecret) {
+      const ttl = Number(process.env.TURN_TTL_SEC ?? 3600);
+      const creds = turnRestCredential({
+        userId: session.user.id,
+        secret: turnSecret,
+        ttlSec: Number.isFinite(ttl) ? ttl : 3600,
+      });
+      iceServers.push({
+        urls,
+        username: creds.username,
+        credential: creds.credential,
+      });
+    } else if (urls && urls.length > 0 && turnUser && turnCred) {
+      iceServers.push({
+        urls,
+        username: turnUser,
+        credential: turnCred,
+      });
+    }
 
     return jsonOk({
       iceServers,
