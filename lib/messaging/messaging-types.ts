@@ -155,7 +155,10 @@ export function formatMessagingPersonName(user: {
   return prenom || nom || "Utilisateur";
 }
 
-/** Téléphone du compte, même canal que le prénom et le nom. */
+/**
+ * Normalise un téléphone stocké (trim).
+ * Ne pas utiliser dans les payloads clients messagerie — exposer `telephone: null`.
+ */
 export function messagingAccountPhone(telephone?: string | null) {
   const value = telephone?.trim() ?? "";
   return value.length > 0 ? value : null;
