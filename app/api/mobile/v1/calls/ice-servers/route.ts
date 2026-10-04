@@ -10,13 +10,12 @@ import { buildIceServers } from "@/lib/mobile/call-turn";
 export const runtime = "nodejs";
 
 /**
- * Config ICE pour WebRTC (STUN public + TURN maison ou relais public).
+ * Config ICE pour WebRTC (STUN public + TURN optionnel coturn).
  * Env:
  *   TURN_URLS=turn:turn.example.com:3478
  *   TURN_SECRET=secret partagé avec coturn (use-auth-secret) — préféré
  *   TURN_TTL_SEC=3600
  *   TURN_USERNAME / TURN_CREDENTIAL — repli statique si pas de TURN_SECRET
- * Sans TURN_URLS : STUN publics (Google + Cloudflare) + Open Relay.
  */
 export async function GET() {
   try {

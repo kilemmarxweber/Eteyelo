@@ -49,15 +49,20 @@ test("TTL borné entre 1 minute et 1 jour", () => {
 
 test("sans TURN maison, un relais internet est ajouté", () => {
   const servers = buildIceServers({ userId: "user-1", nowSec: 1_700_000_000 });
-  const turn = servers.find((s) => {
+  const turns = servers.filter((s) => {
     const urls = Array.isArray(s.urls) ? s.urls.join(" ") : s.urls;
-    return urls.includes("turn:");
+    return urls.includes("turn:") || urls.includes("turns:");
   });
-  assert.ok(turn);
-  assert.deepEqual(turn.urls, OPEN_RELAY_URLS);
-  assert.equal(turn.username, "1700003600:user-1");
-  assert.ok(turn.credential);
+  assert.deepEqual(
+    turns.map((s) => s.urls),
+    OPEN_RELAY_URLS,
+  );
+  assert.equal(turns[0]?.username, "1700003600:user-1");
+  assert.ok(turns[0]?.credential);
+  assert.ok(String(turns[0]?.urls).includes(":443"));
   assert.ok(servers.some((s) => s.urls === "stun:stun.cloudflare.com:3478"));
+  assert.ok(servers.some((s) => s.urls === "stun:stun.cloudflare.com:53"));
+  assert.ok(servers.some((s) => s.urls === "stun:stun.nextcloud.com:443"));
 });
 
 test("TURN_URLS maison remplace le relais public", () => {
@@ -69,7 +74,7 @@ test("TURN_URLS maison remplace le relais public", () => {
   });
   const turn = servers.find((s) => {
     const urls = Array.isArray(s.urls) ? s.urls.join(" ") : s.urls;
-    return urls.includes("turn:");
+    return urls.includes("turn:") || urls.includes("turns:");
   });
   assert.deepEqual(turn?.urls, ["turn:turn.klambocore.com:3478"]);
   assert.equal(turn?.username, "1700003600:user-1");
