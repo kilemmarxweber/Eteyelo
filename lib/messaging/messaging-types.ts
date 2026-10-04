@@ -155,6 +155,12 @@ export function formatMessagingPersonName(user: {
   return prenom || nom || "Utilisateur";
 }
 
+/** Téléphone du compte, même canal que le prénom et le nom. */
+export function messagingAccountPhone(telephone?: string | null) {
+  const value = telephone?.trim() ?? "";
+  return value.length > 0 ? value : null;
+}
+
 /** Nom de famille seul, sans prénom ni postnom répétés. */
 export function messagingFamilyName(user: {
   prenom?: string | null;
