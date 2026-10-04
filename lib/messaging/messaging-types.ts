@@ -155,13 +155,22 @@ export function formatMessagingPersonName(user: {
   return prenom || nom || "Utilisateur";
 }
 
-/**
- * Normalise un téléphone stocké (trim).
- * Ne pas utiliser dans les payloads clients messagerie — exposer `telephone: null`.
- */
+/** Téléphone du compte, même canal que le prénom et le nom. */
 export function messagingAccountPhone(telephone?: string | null) {
   const value = telephone?.trim() ?? "";
   return value.length > 0 ? value : null;
+}
+
+/**
+ * Borne `updatedAt` pour un rattrapage. Invalide ou vide : pas de filtre,
+ * la liste complète n'est lue qu'une fois à la connexion.
+ */
+export function parseConversationSince(since?: string | null): Date | null {
+  const raw = since?.trim() ?? "";
+  if (!raw) return null;
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
 }
 
 /** Nom de famille seul, sans prénom ni postnom répétés. */

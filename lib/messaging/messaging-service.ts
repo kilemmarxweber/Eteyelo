@@ -11,7 +11,9 @@ import {
 } from "@/lib/messaging/messaging-policy";
 import {
   formatMessagingPersonName,
+  messagingAccountPhone,
   messagingFamilyName,
+  parseConversationSince,
   MESSAGING_CONVERSATIONS_PAGE_SIZE,
   MESSAGING_MAX_BODY_LENGTH,
   MESSAGING_MAX_GROUP_ADMINS,
@@ -327,8 +329,7 @@ async function loadRecipientMap(
       memberId: member.id,
       name: formatMessagingPersonName(member.user),
       image: member.user.image,
-      // Pas de téléphone en cache destinataires (évite fuite vers clients).
-      telephone: null,
+      telephone: messagingAccountPhone(member.user.telephone),
       prenom: member.user.prenom ?? null,
       nom: messagingFamilyName(member.user) || null,
       postnom: member.user.postnom ?? null,
@@ -504,8 +505,7 @@ export async function searchMessagingRecipients(params: {
     memberId: member.id,
     name: formatMessagingPersonName(member.user),
     image: member.user.image,
-    // Recherche serveur OK ; ne pas exposer le E.164 complet au client.
-    telephone: null,
+    telephone: messagingAccountPhone(member.user.telephone),
     prenom: member.user.prenom ?? null,
     nom: messagingFamilyName(member.user) || null,
     postnom: member.user.postnom ?? null,
@@ -553,7 +553,7 @@ export async function getMessagingContact(params: {
     prenom: member.user.prenom ?? null,
     nom: messagingFamilyName(member.user) || null,
     image: member.user.image,
-    telephone: null,
+    telephone: messagingAccountPhone(member.user.telephone),
     roleLabel: orgRoleLabel(member.role.split(",")[0] ?? member.role),
   };
 }
@@ -1429,13 +1429,17 @@ export async function listMyConversations(params: {
   filter: MessagingFilter;
   query?: string;
   cursor?: string | null;
+  /** Rattrapage : seulement les conversations touchées depuis cette date. */
+  since?: string | null;
 }) {
   assertCanUse(params.actor);
   const archived = params.filter === "archived";
+  const sinceDate = parseConversationSince(params.since);
   const rows = await prisma.conversation.findMany({
     where: {
       organizationId: params.organizationId,
       deletedAt: null,
+      ...(sinceDate ? { updatedAt: { gte: sinceDate } } : {}),
       participants: {
         some: {
           userId: params.actor.userId,
@@ -1497,7 +1501,9 @@ export async function listMyConversations(params: {
         userId: p.userId,
         name: mapped?.name ?? formatMessagingPersonName(p.user),
         image: mapped?.image ?? p.user.image,
-        telephone: null,
+        telephone: messagingAccountPhone(
+          mapped?.telephone ?? p.user.telephone,
+        ),
         prenom: mapped?.prenom ?? p.user.prenom ?? null,
         nom: mapped?.nom ?? messagingFamilyName(p.user) ?? null,
         postnom: mapped?.postnom ?? p.user.postnom ?? null,
@@ -1673,7 +1679,9 @@ export async function getConversationMessages(params: {
         senderId: row.senderId,
         senderName: mapped?.name ?? formatMessagingPersonName(row.sender),
         senderPrenom: mapped?.prenom ?? row.sender.prenom ?? null,
-        senderTelephone: null,
+        senderTelephone: messagingAccountPhone(
+          mapped?.telephone ?? row.sender.telephone,
+        ),
         senderNom:
           mapped?.nom ?? (messagingFamilyName(row.sender) || null),
         senderPostnom: mapped?.postnom ?? row.sender.postnom ?? null,
@@ -2024,7 +2032,7 @@ export async function getGroupSettings(params: {
       nom: mapped?.nom ?? null,
       postnom: mapped?.postnom ?? null,
       image: mapped?.image ?? null,
-      telephone: null,
+      telephone: messagingAccountPhone(mapped?.telephone),
       roleLabel: mapped?.roleLabel ?? "",
       groupRole,
       isCreator: p.userId === ctx.conversation.createdById,

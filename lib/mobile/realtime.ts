@@ -72,6 +72,25 @@ export type MobileRealtimeEvent =
       payload?: unknown;
     };
 
+/** Destinataires WS. L'expéditeur reçoit aussi ses messages, pour sa liste. */
+export function realtimeAudience(event: MobileRealtimeEvent): string[] {
+  if (!("recipientUserIds" in event)) {
+    if ("toUserId" in event && event.toUserId) return [event.toUserId];
+    return [];
+  }
+  const ids = [...event.recipientUserIds];
+  if (
+    (event.type === "message.created" ||
+      event.type === "message.updated" ||
+      event.type === "message.deleted") &&
+    event.senderId &&
+    !ids.includes(event.senderId)
+  ) {
+    ids.push(event.senderId);
+  }
+  return ids;
+}
+
 export async function publishMobileEvent(event: MobileRealtimeEvent) {
   const attempt = async () => {
     await ensureRedisReady(2000);

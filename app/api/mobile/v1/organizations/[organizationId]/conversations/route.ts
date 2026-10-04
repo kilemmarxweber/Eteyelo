@@ -42,6 +42,7 @@ export async function GET(request: Request, context: Ctx) {
       ? filterRaw
       : "all") as MessagingFilter;
     const cursor = url.searchParams.get("cursor");
+    const since = url.searchParams.get("since");
     const query = (url.searchParams.get("query") ?? "").slice(0, 80);
 
     const actor = await getMessagingActorFromSession(session, organizationId);
@@ -50,6 +51,7 @@ export async function GET(request: Request, context: Ctx) {
       actor,
       filter,
       cursor,
+      since,
       query: query || undefined,
     });
     return jsonOk(data);

@@ -14,6 +14,7 @@ import {
 } from "../lib/mobile/call-signaling-policy";
 import {
   MOBILE_WS_CHANNEL,
+  realtimeAudience,
   type MobileRealtimeEvent,
 } from "../lib/mobile/realtime";
 import {
@@ -390,7 +391,7 @@ async function main() {
       try {
         const event = JSON.parse(message) as MobileRealtimeEvent;
         if ("recipientUserIds" in event && Array.isArray(event.recipientUserIds)) {
-          broadcastToUsers(event.recipientUserIds, event);
+          broadcastToUsers(realtimeAudience(event), event);
           return;
         }
         if ("toUserId" in event && typeof event.toUserId === "string") {
@@ -416,7 +417,7 @@ async function main() {
     except?: WebSocket,
   ) {
     if ("recipientUserIds" in event) {
-      broadcastToUsers(event.recipientUserIds, event, except);
+      broadcastToUsers(realtimeAudience(event), event, except);
     } else if ("toUserId" in event) {
       broadcastToUsers([event.toUserId], event, except);
     }
