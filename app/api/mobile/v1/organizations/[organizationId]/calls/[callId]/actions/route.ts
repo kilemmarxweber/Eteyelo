@@ -40,9 +40,13 @@ async function writeCallTrace(params: {
   if (!call?.conversationId) return;
 
   const end = call.endedAt ?? new Date();
-  const durationMs = call.answeredAt
-    ? Math.max(0, end.getTime() - call.answeredAt.getTime())
-    : 0;
+  // Décroché sans média (échec ICE ou identité) : ne pas afficher une durée fictive.
+  const noMedia =
+    params.endReason === "failed" || params.endReason === "identity";
+  const durationMs =
+    call.answeredAt && !noMedia
+      ? Math.max(0, end.getTime() - call.answeredAt.getTime())
+      : 0;
 
   await appendCallTraceMessage({
     organizationId: params.organizationId,
