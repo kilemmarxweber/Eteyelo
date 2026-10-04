@@ -330,8 +330,13 @@ async function main() {
                   status: call.status,
                 })
               ) {
-                await prisma.callSession.update({
-                  where: { id: call.id },
+                // WHERE status=RINGING : évite d’écraser ACTIVE si un pair a déjà répondu.
+                await prisma.callSession.updateMany({
+                  where: {
+                    id: call.id,
+                    status: "RINGING",
+                    calleeId: state.userId,
+                  },
                   data: {
                     status: "REJECTED",
                     endedAt: new Date(),

@@ -55,10 +55,29 @@ test("occupé seulement par le destinataire d'un appel qui sonne", () => {
 test("candidat ICE déjà stocké est ignoré", () => {
   const existing = [
     { fromUserId: "a", payload: { candidate: "cand-1" } },
+    { fromUserId: "a", payload: { sdpMid: "0", sdpMLineIndex: 0 } },
   ];
-  assert.equal(isDuplicateIce(existing, "a", "cand-1"), true);
-  assert.equal(isDuplicateIce(existing, "b", "cand-1"), false);
-  assert.equal(isDuplicateIce(existing, "a", "cand-2"), false);
+  assert.equal(
+    isDuplicateIce(existing, "a", { candidate: "cand-1" }),
+    true,
+  );
+  assert.equal(
+    isDuplicateIce(existing, "b", { candidate: "cand-1" }),
+    false,
+  );
+  assert.equal(
+    isDuplicateIce(existing, "a", { candidate: "cand-2" }),
+    false,
+  );
+  // Sans candidate : dédupliquer sur le payload entier
+  assert.equal(
+    isDuplicateIce(existing, "a", { sdpMid: "0", sdpMLineIndex: 0 }),
+    true,
+  );
+  assert.equal(
+    isDuplicateIce(existing, "a", { sdpMid: "1", sdpMLineIndex: 0 }),
+    false,
+  );
 });
 
 console.log("\nAll call signaling tests passed.");

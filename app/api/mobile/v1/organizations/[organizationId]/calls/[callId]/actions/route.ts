@@ -100,19 +100,20 @@ export async function POST(request: Request, context: Ctx) {
       const answerPayload = {
         conversationId: call.conversationId,
         ...(body.sdp ? { sdp: body.sdp } : {}),
-        ...(body.dtls ? { dtls: body.dtls } : {}),
+        ...(body.sdp && body.dtls ? { dtls: body.dtls } : {}),
       };
+      // Persister + publier uniquement avec SDP (pas de dtls orphelin sans réponse).
       if (body.sdp) {
         await saveCallAnswer(callId, answerPayload);
+        await publishMobileEvent({
+          type: "call.answer",
+          organizationId,
+          callId,
+          fromUserId: session.user.id,
+          toUserId: peerId,
+          payload: answerPayload,
+        });
       }
-      await publishMobileEvent({
-        type: "call.answer",
-        organizationId,
-        callId,
-        fromUserId: session.user.id,
-        toUserId: peerId,
-        payload: answerPayload,
-      });
       return jsonOk({ callId, status: "ACTIVE" });
     }
 

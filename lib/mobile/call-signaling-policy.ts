@@ -32,12 +32,25 @@ export function shouldMarkBusy(params: {
 export function isDuplicateIce(
   existing: Array<{ fromUserId: string; payload: unknown }>,
   fromUserId: string,
-  candidate: string,
+  payload: unknown,
 ) {
+  const candidate =
+    payload && typeof payload === "object"
+      ? String((payload as { candidate?: unknown }).candidate ?? "")
+      : "";
+  const payloadKey = JSON.stringify(payload ?? null);
+
   return existing.some((item) => {
-    if (item.fromUserId !== fromUserId || !candidate) return false;
-    const payload = item.payload;
-    if (!payload || typeof payload !== "object") return false;
-    return (payload as { candidate?: unknown }).candidate === candidate;
+    if (item.fromUserId !== fromUserId) return false;
+    if (candidate) {
+      const itemPayload = item.payload;
+      if (!itemPayload || typeof itemPayload !== "object") return false;
+      return (
+        String((itemPayload as { candidate?: unknown }).candidate ?? "") ===
+        candidate
+      );
+    }
+    // Sans champ candidate : dédupliquer sur le payload entier (évite accumuler des copies).
+    return JSON.stringify(item.payload ?? null) === payloadKey;
   });
 }

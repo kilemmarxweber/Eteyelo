@@ -111,11 +111,7 @@ export async function appendCallIce(
   payload: unknown,
 ) {
   const blob = await loadMergedCallSignal(callId);
-  const candidate =
-    payload && typeof payload === "object"
-      ? String((payload as { candidate?: unknown }).candidate ?? "")
-      : "";
-  if (isDuplicateIce(blob.ice, fromUserId, candidate)) return;
+  if (isDuplicateIce(blob.ice, fromUserId, payload)) return;
   blob.ice.push({ fromUserId, payload });
   // Seul l’ajout d’ICE borne le stockage — pas saveOffer/saveAnswer.
   blob.ice = blob.ice.slice(-MAX_STORED_ICE);
