@@ -44,6 +44,7 @@ export async function GET(_request: Request, context: Ctx) {
     const peerId = call.callerId === session.user.id ? call.calleeId : call.callerId;
     return jsonOk({
       status: call.status,
+      endReason: call.endReason,
       callerId: call.callerId,
       calleeId: call.calleeId,
       kind: call.kind,

@@ -9,6 +9,10 @@ import { createServer } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
 import { prisma } from "../lib/prisma";
 import {
+  isCallSignalType,
+  shouldMarkBusy,
+} from "../lib/mobile/call-signaling-policy";
+import {
   MOBILE_WS_CHANNEL,
   type MobileRealtimeEvent,
 } from "../lib/mobile/realtime";
@@ -306,11 +310,36 @@ async function main() {
           }
 
           if (
-            msg.type?.startsWith("call.") &&
+            msg.type &&
+            isCallSignalType(msg.type) &&
             msg.organizationId &&
             msg.callId &&
             msg.toUserId
           ) {
+            if (msg.type === "call.busy") {
+              const call = await prisma.callSession.findUnique({
+                where: { id: msg.callId },
+                select: { id: true, calleeId: true, status: true },
+              });
+              if (
+                call &&
+                shouldMarkBusy({
+                  type: msg.type,
+                  senderId: state.userId,
+                  calleeId: call.calleeId,
+                  status: call.status,
+                })
+              ) {
+                await prisma.callSession.update({
+                  where: { id: call.id },
+                  data: {
+                    status: "REJECTED",
+                    endedAt: new Date(),
+                    endReason: "busy",
+                  },
+                });
+              }
+            }
             const event = {
               type: msg.type,
               organizationId: msg.organizationId,
@@ -347,28 +376,35 @@ async function main() {
     }
   });
 
-  await ensureRedisReady();
-  const sub = getRedisConnection().duplicate();
-  await sub.connect().catch(() => undefined);
-  await sub.subscribe(MOBILE_WS_CHANNEL);
-  sub.on("message", (_channel, message) => {
-    try {
-      const event = JSON.parse(message) as MobileRealtimeEvent;
-      if ("recipientUserIds" in event && Array.isArray(event.recipientUserIds)) {
-        broadcastToUsers(event.recipientUserIds, event);
-        return;
+  try {
+    await ensureRedisReady();
+    const sub = getRedisConnection().duplicate();
+    await sub.connect();
+    await sub.subscribe(MOBILE_WS_CHANNEL);
+    sub.on("message", (_channel, message) => {
+      try {
+        const event = JSON.parse(message) as MobileRealtimeEvent;
+        if ("recipientUserIds" in event && Array.isArray(event.recipientUserIds)) {
+          broadcastToUsers(event.recipientUserIds, event);
+          return;
+        }
+        if ("toUserId" in event && typeof event.toUserId === "string") {
+          broadcastToUsers([event.toUserId], event);
+          return;
+        }
+        if (event.type === "presence") {
+          broadcastPresence(event);
+        }
+      } catch {
+        // ignore
       }
-      if ("toUserId" in event && typeof event.toUserId === "string") {
-        broadcastToUsers([event.toUserId], event);
-        return;
-      }
-      if (event.type === "presence") {
-        broadcastPresence(event);
-      }
-    } catch {
-      // ignore
-    }
-  });
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `[mobile-ws] Redis indisponible (${message}). Relais local uniquement.`,
+    );
+  }
 
   async function broadcastAndPublish(
     event: MobileRealtimeEvent,

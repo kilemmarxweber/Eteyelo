@@ -68,6 +68,7 @@ export async function POST(request: Request, context: Ctx) {
       action?: "answer" | "reject" | "hangup";
       endReason?: string;
       sdp?: { type?: string; sdp?: string };
+      dtls?: unknown;
     };
 
     const call = await prisma.callSession.findFirst({
@@ -99,6 +100,7 @@ export async function POST(request: Request, context: Ctx) {
       const answerPayload = {
         conversationId: call.conversationId,
         ...(body.sdp ? { sdp: body.sdp } : {}),
+        ...(body.dtls ? { dtls: body.dtls } : {}),
       };
       if (body.sdp) {
         await saveCallAnswer(callId, answerPayload);

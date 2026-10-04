@@ -9,6 +9,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { publishMobileEvent } from "@/lib/mobile/realtime";
 import { saveCallOffer } from "@/lib/mobile/call-signal-store";
+import { dispatchCallPush } from "@/lib/mobile/call-push";
 import { MessagingError } from "@/lib/messaging/messaging-service";
 
 export const runtime = "nodejs";
@@ -30,6 +31,7 @@ export async function POST(request: Request, context: Ctx) {
       conversationId?: string;
       /** SDP WebRTC offer (créé côté appelant avant/après POST). */
       sdp?: { type: string; sdp: string };
+      dtls?: unknown;
       callerName?: string;
     };
 
@@ -90,6 +92,7 @@ export async function POST(request: Request, context: Ctx) {
       kind: call.kind,
       conversationId: call.conversationId,
       sdp: body.sdp ?? null,
+      dtls: body.dtls ?? null,
       callerName:
         body.callerName ||
         [caller?.prenom, caller?.name].filter(Boolean).join(" ") ||
@@ -104,6 +107,15 @@ export async function POST(request: Request, context: Ctx) {
       fromUserId: session.user.id,
       toUserId: body.calleeId,
       payload: offerPayload,
+    });
+    void dispatchCallPush({
+      userId: body.calleeId,
+      callId: call.id,
+      callerName: String(offerPayload.callerName ?? "Appel entrant"),
+      kind: call.kind,
+    }).catch((error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`[call-push] ${message}`);
     });
 
     return jsonCreated({

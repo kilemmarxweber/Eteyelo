@@ -5,6 +5,7 @@ import {
   jsonOk,
   requireSession,
 } from "@/lib/mobile/http";
+import { turnRestCredential } from "@/lib/mobile/call-turn";
 
 export const runtime = "nodejs";
 
@@ -12,8 +13,9 @@ export const runtime = "nodejs";
  * Config ICE pour WebRTC (STUN public + TURN optionnel coturn).
  * Env:
  *   TURN_URLS=turn:turn.example.com:3478
- *   TURN_USERNAME=klambo
- *   TURN_CREDENTIAL=secret
+ *   TURN_SECRET=secret partagé avec coturn (use-auth-secret) — préféré
+ *   TURN_TTL_SEC=3600
+ *   TURN_USERNAME / TURN_CREDENTIAL — repli statique si pas de TURN_SECRET
  */
 export async function GET() {
   try {
@@ -30,12 +32,29 @@ export async function GET() {
     ];
 
     const turnUrls = process.env.TURN_URLS?.trim();
+    const turnSecret = process.env.TURN_SECRET?.trim();
     const turnUser = process.env.TURN_USERNAME?.trim();
     const turnCred = process.env.TURN_CREDENTIAL?.trim();
+    const urls = turnUrls
+      ?.split(",")
+      .map((u) => u.trim())
+      .filter(Boolean);
 
-    if (turnUrls && turnUser && turnCred) {
+    if (urls && urls.length > 0 && turnSecret) {
+      const ttl = Number(process.env.TURN_TTL_SEC ?? 3600);
+      const creds = turnRestCredential({
+        userId: session.user.id,
+        secret: turnSecret,
+        ttlSec: Number.isFinite(ttl) ? ttl : 3600,
+      });
       iceServers.push({
-        urls: turnUrls.split(",").map((u) => u.trim()).filter(Boolean),
+        urls,
+        username: creds.username,
+        credential: creds.credential,
+      });
+    } else if (urls && urls.length > 0 && turnUser && turnCred) {
+      iceServers.push({
+        urls,
         username: turnUser,
         credential: turnCred,
       });

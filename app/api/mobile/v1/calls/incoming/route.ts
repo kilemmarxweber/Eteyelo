@@ -34,10 +34,12 @@ export async function GET() {
         const signal = await readCallSignal(call.id);
         const offer = signal.offer;
         let sdp: unknown = null;
+        let dtls: unknown = null;
         if (typeof offer === "string") {
           sdp = offer;
         } else if (offer && typeof offer === "object" && "sdp" in offer) {
           sdp = (offer as { sdp?: unknown }).sdp ?? null;
+          dtls = (offer as { dtls?: unknown }).dtls ?? null;
         }
         const callerName =
           [call.caller?.prenom, call.caller?.name].filter(Boolean).join(" ") ||
@@ -51,6 +53,7 @@ export async function GET() {
           conversationId: call.conversationId,
           startedAt: call.startedAt.toISOString(),
           sdp,
+          dtls,
         };
       }),
     );

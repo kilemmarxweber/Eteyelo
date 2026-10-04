@@ -55,7 +55,16 @@ export type MobileRealtimeEvent =
       status: "ONLINE" | "OFFLINE";
     }
   | {
-      type: "call.offer" | "call.answer" | "call.ice" | "call.hangup" | "call.reject";
+      type:
+        | "call.offer"
+        | "call.answer"
+        | "call.ice"
+        | "call.hangup"
+        | "call.reject"
+        | "call.ack"
+        | "call.busy"
+        | "call.renegotiate"
+        | "call.restart-request";
       organizationId: string;
       callId: string;
       fromUserId: string;

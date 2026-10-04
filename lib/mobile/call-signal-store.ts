@@ -1,3 +1,4 @@
+import { isDuplicateIce } from "@/lib/mobile/call-signaling-policy";
 import { ensureRedisReady, getRedisConnection } from "@/src/redis/redis";
 
 const TTL_SEC = 180;
@@ -110,6 +111,11 @@ export async function appendCallIce(
   payload: unknown,
 ) {
   const blob = await loadMergedCallSignal(callId);
+  const candidate =
+    payload && typeof payload === "object"
+      ? String((payload as { candidate?: unknown }).candidate ?? "")
+      : "";
+  if (isDuplicateIce(blob.ice, fromUserId, candidate)) return;
   blob.ice.push({ fromUserId, payload });
   // Seul l’ajout d’ICE borne le stockage — pas saveOffer/saveAnswer.
   blob.ice = blob.ice.slice(-MAX_STORED_ICE);
