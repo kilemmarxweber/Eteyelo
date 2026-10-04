@@ -27,6 +27,7 @@ export type MessagingRecipient = {
   memberId: string;
   name: string;
   image: string | null;
+  /** Toujours null côté API (pas d’E.164 exposé). */
   telephone?: string | null;
   prenom?: string | null;
   nom?: string | null;
@@ -66,6 +67,7 @@ export type ConversationListItem = {
     userId: string;
     name: string;
     image: string | null;
+    /** Toujours null côté API (pas d’E.164 exposé). */
     telephone?: string | null;
     prenom?: string | null;
     nom?: string | null;
@@ -155,7 +157,10 @@ export function formatMessagingPersonName(user: {
   return prenom || nom || "Utilisateur";
 }
 
-/** Téléphone du compte, même canal que le prénom et le nom. */
+/**
+ * Normalise un téléphone stocké (trim).
+ * Ne pas utiliser dans les payloads clients messagerie — exposer `telephone: null`.
+ */
 export function messagingAccountPhone(telephone?: string | null) {
   const value = telephone?.trim() ?? "";
   return value.length > 0 ? value : null;
