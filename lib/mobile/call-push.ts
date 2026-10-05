@@ -112,3 +112,63 @@ export async function dispatchCallPush(params: {
   });
   return { sent: response.ok ? 1 : 0, skipped: null };
 }
+
+export async function buildFcmMessagePush(params: {
+  token: string;
+  conversationId: string;
+  title: string;
+  body: string;
+}) {
+  return {
+    to: params.token,
+    priority: "high" as const,
+    notification: {
+      title: params.title,
+      body: params.body,
+    },
+    data: {
+      type: "message.created",
+      conversationId: params.conversationId,
+    },
+  };
+}
+
+export async function dispatchMessagePush(params: {
+  userIds: string[];
+  conversationId: string;
+  title: string;
+  body: string;
+  fetchImpl?: typeof fetch;
+}) {
+  const serverKey = process.env.FCM_SERVER_KEY;
+  if (!shouldSendCallPush(serverKey)) {
+    return { sent: 0, skipped: "no-fcm-key" as const };
+  }
+  let sent = 0;
+  const send = params.fetchImpl ?? fetch;
+  for (const userId of params.userIds) {
+    const row = await readCallPushToken(userId);
+    if (!row?.token) continue;
+    const payload = await buildFcmMessagePush({
+      token: row.token,
+      conversationId: params.conversationId,
+      title: params.title,
+      body: params.body,
+    });
+    try {
+      const response = await send("https://fcm.googleapis.com/fcm/send", {
+        method: "POST",
+        headers: {
+          Authorization: `key=${serverKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      if (response.ok) sent += 1;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`[call-push] message fcm failed: ${message}`);
+    }
+  }
+  return { sent, skipped: null };
+}

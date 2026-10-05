@@ -122,7 +122,6 @@ export async function publishMobileEvent(event: MobileRealtimeEvent) {
         const { resetRedisConnection } = await import("@/src/redis/redis");
         resetRedisConnection();
         await attempt();
-        return;
       } catch (retryError) {
         const retryMsg =
           retryError instanceof Error
@@ -132,9 +131,21 @@ export async function publishMobileEvent(event: MobileRealtimeEvent) {
         console.warn(
           `[mobile-realtime] push WS indisponible (Redis): ${retryMsg}`,
         );
-        return;
       }
+    } else {
+      console.warn(`[mobile-realtime] publish failed: ${message}`);
     }
-    console.warn(`[mobile-realtime] publish failed: ${message}`);
+  }
+
+  // FCM (app tuée) — indépendant de Redis.
+  if (event.type === "message.created" && event.recipientUserIds.length > 0) {
+    void import("@/lib/mobile/call-push").then(({ dispatchMessagePush }) =>
+      dispatchMessagePush({
+        userIds: event.recipientUserIds,
+        conversationId: event.conversationId,
+        title: event.senderName?.trim() || "Klambo",
+        body: (event.bodyPreview ?? "Nouveau message").slice(0, 160),
+      }),
+    );
   }
 }

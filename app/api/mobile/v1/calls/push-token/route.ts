@@ -19,7 +19,12 @@ export async function POST(request: Request) {
       platform?: string;
     };
     const token = body.token?.trim() ?? "";
-    const platform = body.platform === "ios" ? "ios" : "android";
+    const platform =
+      body.platform === "ios"
+        ? "ios"
+        : body.platform === "web"
+          ? "web"
+          : "android";
     if (token.length < 8 || token.length > 4096) {
       return jsonError("Jeton push invalide.", 400);
     }

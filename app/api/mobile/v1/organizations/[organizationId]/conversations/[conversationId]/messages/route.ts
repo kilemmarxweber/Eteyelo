@@ -11,7 +11,6 @@ import {
   MessagingError,
   sendMessage,
 } from "@/lib/messaging/messaging-service";
-import { toPlainClientMessageBody } from "@/lib/notify/notify-message-card";
 import {
   mobileSendMessageSchema,
   zodErrorMessage,
@@ -33,25 +32,14 @@ export async function GET(request: Request, context: Ctx) {
     const cursor = url.searchParams.get("cursor");
 
     const actor = await getMessagingActorFromSession(session, organizationId);
+    // Garder `__NOTIFY__:{json}` intact : Klambo mobile rend les cartes scolaires.
     const data = await getConversationMessages({
       organizationId,
       actor,
       conversationId,
       cursor,
     });
-    return jsonOk({
-      ...data,
-      items: data.items.map((item) => ({
-        ...item,
-        body: toPlainClientMessageBody(item.body),
-        replyTo: item.replyTo
-          ? {
-              ...item.replyTo,
-              body: toPlainClientMessageBody(item.replyTo.body),
-            }
-          : null,
-      })),
-    });
+    return jsonOk(data);
   } catch (error) {
     const status = error instanceof MessagingError ? error.statusCode : 500;
     return jsonError(

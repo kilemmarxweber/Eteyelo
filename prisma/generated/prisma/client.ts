@@ -499,6 +499,11 @@ export type ConversationParticipant = Prisma.ConversationParticipantModel
  */
 export type Message = Prisma.MessageModel
 /**
+ * Model NoticeAck
+ * Accusé de lecture certifié (avis officiels école / __NOTIFY__).
+ */
+export type NoticeAck = Prisma.NoticeAckModel
+/**
  * Model UserMessageArchive
  * 
  */

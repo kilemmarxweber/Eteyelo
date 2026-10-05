@@ -431,6 +431,26 @@ async function loadFinanceStudentDetails(params: {
   };
 }
 
+/** Détail frais d’un élève (dû / payé / reste) — usage parent mobile. */
+export async function getStudentFeeStatus(params: {
+  organizationId: string;
+  branchId: string;
+  schoolYearId: string;
+  studentId: string;
+}): Promise<FinanceStudentDetail | null> {
+  const { studentDetails } = await loadFinanceStudentDetails({
+    scope: {
+      organizationId: params.organizationId,
+      scope: "branch",
+      branchId: params.branchId,
+    },
+    schoolYearIds: [params.schoolYearId],
+  });
+  return (
+    studentDetails.find((row) => row.studentId === params.studentId) ?? null
+  );
+}
+
 export async function getFinanceReport(params: {
   scope: BranchScopeInput;
   schoolYearIds: string[];

@@ -488,6 +488,7 @@ export const ModelName = {
   Conversation: 'Conversation',
   ConversationParticipant: 'ConversationParticipant',
   Message: 'Message',
+  NoticeAck: 'NoticeAck',
   UserMessageArchive: 'UserMessageArchive',
   MessagingAuditLog: 'MessagingAuditLog',
   MessageAttachment: 'MessageAttachment',
@@ -509,7 +510,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "parentSatisfactionDispatch" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "atelierCourseLink" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "salaryAdvance" | "salaryAdvanceInstallment" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "practicalDomain" | "room" | "practicalDomainCours" | "rotationSlot" | "rotationSlotItem" | "attendanceFaceDescriptor" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "userMessageArchive" | "messagingAuditLog" | "messageAttachment" | "userPresence" | "callSession" | "temporaryGrant"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "parentSatisfactionDispatch" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teacherProfileDocument" | "teaching" | "cours" | "atelierCourseLink" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "branchPayrollPolicy" | "teacherPayslip" | "teacherPayslipLine" | "salaryAdvance" | "salaryAdvanceInstallment" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "practicalDomain" | "room" | "practicalDomainCours" | "rotationSlot" | "rotationSlotItem" | "attendanceFaceDescriptor" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryCatalogSource" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile" | "conversation" | "conversationParticipant" | "message" | "noticeAck" | "userMessageArchive" | "messagingAuditLog" | "messageAttachment" | "userPresence" | "callSession" | "temporaryGrant"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -7247,6 +7248,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    NoticeAck: {
+      payload: Prisma.$NoticeAckPayload<ExtArgs>
+      fields: Prisma.NoticeAckFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NoticeAckFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeAckPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NoticeAckFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeAckPayload>
+        }
+        findFirst: {
+          args: Prisma.NoticeAckFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeAckPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NoticeAckFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeAckPayload>
+        }
+        findMany: {
+          args: Prisma.NoticeAckFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeAckPayload>[]
+        }
+        create: {
+          args: Prisma.NoticeAckCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeAckPayload>
+        }
+        createMany: {
+          args: Prisma.NoticeAckCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NoticeAckCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeAckPayload>[]
+        }
+        delete: {
+          args: Prisma.NoticeAckDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeAckPayload>
+        }
+        update: {
+          args: Prisma.NoticeAckUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeAckPayload>
+        }
+        deleteMany: {
+          args: Prisma.NoticeAckDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NoticeAckUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NoticeAckUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeAckPayload>[]
+        }
+        upsert: {
+          args: Prisma.NoticeAckUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeAckPayload>
+        }
+        aggregate: {
+          args: Prisma.NoticeAckAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNoticeAck>
+        }
+        groupBy: {
+          args: Prisma.NoticeAckGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NoticeAckGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NoticeAckCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NoticeAckCountAggregateOutputType> | number
+        }
+      }
+    }
     UserMessageArchive: {
       payload: Prisma.$UserMessageArchivePayload<ExtArgs>
       fields: Prisma.UserMessageArchiveFieldRefs
@@ -9378,6 +9453,17 @@ export const MessageScalarFieldEnum = {
 export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
 
 
+export const NoticeAckScalarFieldEnum = {
+  id: 'id',
+  messageId: 'messageId',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  createdAt: 'createdAt'
+} as const
+
+export type NoticeAckScalarFieldEnum = (typeof NoticeAckScalarFieldEnum)[keyof typeof NoticeAckScalarFieldEnum]
+
+
 export const UserMessageArchiveScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -10597,6 +10683,7 @@ export type GlobalOmitConfig = {
   conversation?: Prisma.ConversationOmit
   conversationParticipant?: Prisma.ConversationParticipantOmit
   message?: Prisma.MessageOmit
+  noticeAck?: Prisma.NoticeAckOmit
   userMessageArchive?: Prisma.UserMessageArchiveOmit
   messagingAuditLog?: Prisma.MessagingAuditLogOmit
   messageAttachment?: Prisma.MessageAttachmentOmit

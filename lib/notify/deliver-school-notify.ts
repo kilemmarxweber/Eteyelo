@@ -28,6 +28,8 @@ import {
 import { branchDocumentName } from "@/lib/branch-document-name";
 import { resolveReportLogoUrl } from "@/lib/reports/resolve-school-branding";
 import { schoolNotifyBotEmail } from "@/lib/notify/school-notify-bot";
+import { parseNotifyCard } from "@/lib/notify/notify-message-card";
+import { enqueueOrSendCriticalNoticeSms } from "@/lib/notify/critical-sms";
 
 export type SchoolNotifyChannel = "klambo" | "whatsapp" | "none";
 
@@ -57,6 +59,11 @@ type SchoolNotifyOptions = {
   queueKind?: WhatsAppQueueKind;
   locale?: MessagingLocale | null;
   branchId?: string | null;
+  /**
+   * Force un SMS critique (P3) en plus du canal principal.
+   * Sinon : SMS auto si `richBody` est une carte tone `rose` (absence / critique).
+   */
+  smsCritical?: boolean;
 };
 
 const BOT_CACHE_TTL_MS = 10 * 60_000;
@@ -88,6 +95,62 @@ function buildNotifyBody(parts: Array<string | null | undefined>): string {
     .join("\n")
     .trim()
     .slice(0, 4000);
+}
+
+/** SMS critique si demandé explicitement ou carte tone rose. */
+function shouldAttemptCriticalSms(options: SchoolNotifyOptions): boolean {
+  if (options.smsCritical === true) return true;
+  const rich = options.richBody?.trim();
+  if (!rich) return false;
+  const card = parseNotifyCard(rich);
+  return card?.tone === "rose";
+}
+
+/**
+ * Best-effort : n’altère pas le résultat du canal principal (inbox / WA).
+ */
+async function maybeSendCriticalSms(options: SchoolNotifyOptions): Promise<void> {
+  if (!shouldAttemptCriticalSms(options)) return;
+
+  const organizationId = options.organizationId?.trim() || null;
+  const to = resolveNotifyPhone(options.to);
+  if (!organizationId || !to) return;
+
+  try {
+    const user = await findUserByTelephone(to);
+    if (!user) {
+      // eslint-disable-next-line no-console
+      console.info(
+        `[deliverSchoolNotify] critical-sms skipped: no user for ${to}`,
+      );
+      return;
+    }
+
+    const card = options.richBody?.trim()
+      ? parseNotifyCard(options.richBody)
+      : null;
+    const title =
+      card?.title?.trim() ||
+      options.parts.map((p) => p?.trim()).find(Boolean) ||
+      "Avis école";
+    const intro = card?.intro ?? null;
+
+    await enqueueOrSendCriticalNoticeSms({
+      organizationId,
+      userId: user.id,
+      telephone: to,
+      title,
+      intro,
+      lang: options.locale ?? "fr",
+    });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[deliverSchoolNotify] critical-sms error: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
 }
 
 export { isSchoolNotifyBotEmail } from "@/lib/notify/school-notify-bot";
@@ -302,6 +365,9 @@ async function fallbackWhatsApp(
 async function deliverSchoolNotifyNow(
   options: SchoolNotifyOptions,
 ): Promise<SchoolNotifyOutcome> {
+  // P3 SMS bridge (tone rose / smsCritical) — best-effort, ne bloque pas.
+  await maybeSendCriticalSms(options);
+
   const organizationId = options.organizationId?.trim() || null;
   const config = await getWhatsAppRuntimeConfig(organizationId);
   const inboxOnly = isInboxProvider(config.provider);

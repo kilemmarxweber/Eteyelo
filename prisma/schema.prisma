@@ -66,6 +66,7 @@ model User {
   grantsRevoked                TemporaryGrant[]            @relation("TemporaryGrantRevoked")
   salaryAdvancesRequested      SalaryAdvance[]             @relation("SalaryAdvanceRequestedBy")
   salaryAdvancesReviewed       SalaryAdvance[]             @relation("SalaryAdvanceReviewedBy")
+  noticeAcks                   NoticeAck[]
 
   @@index([telephone])
   @@index([role])
@@ -1701,6 +1702,7 @@ model Organization {
   userPresences              UserPresence[]
   callSessions               CallSession[]
   parentSatisfactionDispatches ParentSatisfactionDispatch[]
+  noticeAcks                 NoticeAck[]
   exchangeRates              ExchangeRate[]
   temporaryGrants            TemporaryGrant[]
   /// Afficher la 2e devise (conversion) sur les reçus. Désactiver pour AOA sans conversion.
@@ -2850,9 +2852,26 @@ model Message {
   archives        UserMessageArchive[]
   notifications   AppNotification[]
   attachments     MessageAttachment[]
+  noticeAcks      NoticeAck[]
 
   @@index([conversationId, createdAt])
   @@index([senderId, createdAt])
+}
+
+/// Accusé de lecture certifié (avis officiels école / __NOTIFY__).
+model NoticeAck {
+  id             String       @id @default(cuid())
+  messageId      String
+  message        Message      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@unique([messageId, userId])
+  @@index([organizationId, createdAt])
+  @@index([messageId])
 }
 
 model UserMessageArchive {
