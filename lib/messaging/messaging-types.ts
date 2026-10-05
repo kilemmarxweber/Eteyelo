@@ -1,6 +1,9 @@
 import { formatNotifyCardPreview } from "@/lib/notify/notify-message-card";
 
 export const MESSAGING_MAX_BODY_LENGTH = 4000;
+/** Enveloppe `k1.` (base64url). Le clair reste plafonné à 4000. */
+export const MESSAGING_MAX_CIPHER_LENGTH = 22000;
+export const ENCRYPTED_MESSAGE_PREVIEW = "Message";
 export const MESSAGING_MAX_SUBJECT_LENGTH = 120;
 export const MESSAGING_MAX_RECIPIENTS = 50;
 /** Nombre max d'admins par groupe (créateur inclus). */
@@ -191,21 +194,33 @@ export function messagingFamilyName(user: {
 const STRUCTURED_BODY_PREFIX =
   /^(?:__CALL__:|__NOTIFY__:|__SATISFACTION__:)/i;
 
+const ENCRYPTED_BODY = /^k1\.[A-Za-z0-9_-]{120,}$/;
+
 /** Préfixes réservés au bot / système — jamais acceptés depuis un client. */
 export function isStructuredMessageBody(raw: string) {
   return STRUCTURED_BODY_PREFIX.test(raw.trimStart());
+}
+
+/** Ciphertext posé par le téléphone. Le serveur ne le déchiffre pas. */
+export function isEncryptedMessageBody(raw: string) {
+  const value = raw.trim();
+  return (
+    value.length <= MESSAGING_MAX_CIPHER_LENGTH && ENCRYPTED_BODY.test(value)
+  );
 }
 
 /**
  * Nettoie un corps de message.
  * - Clients : strip HTML, contrôles, et refuse les préfixes `__NOTIFY__` / `__CALL__` / etc.
  * - Bot / trusted (`allowStructured`) : conserve les cartes système.
+ * - Enveloppe chiffrée `k1.` : opaque, jamais altérée ni tronquée à 4000.
  */
 export function sanitizeMessageBody(
   raw: string,
   options?: { allowStructured?: boolean },
 ) {
   const trimmed = raw.trim();
+  if (isEncryptedMessageBody(trimmed)) return trimmed;
   if (options?.allowStructured && isStructuredMessageBody(trimmed)) {
     return trimmed.slice(0, MESSAGING_MAX_BODY_LENGTH);
   }
@@ -225,6 +240,7 @@ export function sanitizeMessageBody(
 }
 
 export function previewMessageBody(body: string, max = 80) {
+  if (isEncryptedMessageBody(body)) return ENCRYPTED_MESSAGE_PREVIEW;
   if (body.trimStart().startsWith("__NOTIFY__:")) {
     return formatNotifyCardPreview(body, max);
   }
@@ -243,6 +259,7 @@ export function previewDeletedOrBody(
   max = 80,
 ) {
   if (deletedAt) return MESSAGE_DELETED_LABEL;
+  if (isEncryptedMessageBody(body)) return ENCRYPTED_MESSAGE_PREVIEW;
   return previewMessageBody(body, max);
 }
 

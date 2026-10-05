@@ -11,11 +11,13 @@ import {
 } from "@/lib/messaging/messaging-policy";
 import {
   formatMessagingPersonName,
+  isEncryptedMessageBody,
   messagingAccountPhone,
   messagingFamilyName,
   parseConversationSince,
   MESSAGING_CONVERSATIONS_PAGE_SIZE,
   MESSAGING_MAX_BODY_LENGTH,
+  MESSAGING_MAX_CIPHER_LENGTH,
   MESSAGING_MAX_GROUP_ADMINS,
   MESSAGING_MAX_RECIPIENTS,
   MESSAGING_MAX_SUBJECT_LENGTH,
@@ -60,6 +62,21 @@ type Actor = {
   /** Bot alertes école : ignore le plafond 20 msg/min. */
   skipRateLimit?: boolean;
 };
+
+function messageBodyLimit(body: string) {
+  return isEncryptedMessageBody(body)
+    ? MESSAGING_MAX_CIPHER_LENGTH
+    : MESSAGING_MAX_BODY_LENGTH;
+}
+
+function assertBodyLength(body: string) {
+  const max = messageBodyLimit(body);
+  if (body.length > max) {
+    throw new MessagingError(
+      `Le message ne peut pas dépasser ${max} caractères.`,
+    );
+  }
+}
 
 export class MessagingError extends Error {
   statusCode: number;
@@ -670,11 +687,7 @@ export async function createConversation(params: {
     allowStructured: Boolean(params.actor.skipRateLimit),
   });
   if (!body) throw new MessagingError("Le message ne peut pas être vide.");
-  if (body.length > MESSAGING_MAX_BODY_LENGTH) {
-    throw new MessagingError(
-      `Le message ne peut pas dépasser ${MESSAGING_MAX_BODY_LENGTH} caractères.`,
-    );
-  }
+  assertBodyLength(body);
 
   let recipientIds = params.recipientIds.filter(Boolean);
 
@@ -866,11 +879,7 @@ export async function createGroup(params: {
         allowStructured: Boolean(params.actor.skipRateLimit),
       })
     : "";
-  if (body.length > MESSAGING_MAX_BODY_LENGTH) {
-    throw new MessagingError(
-      `Le message ne peut pas dépasser ${MESSAGING_MAX_BODY_LENGTH} caractères.`,
-    );
-  }
+  assertBodyLength(body);
 
   if (params.clientMessageId) {
     const existing = await prisma.message.findFirst({
@@ -1066,11 +1075,7 @@ export async function sendMessage(params: {
     allowStructured: Boolean(params.actor.skipRateLimit),
   });
   if (!body) throw new MessagingError("Le message ne peut pas être vide.");
-  if (body.length > MESSAGING_MAX_BODY_LENGTH) {
-    throw new MessagingError(
-      `Le message ne peut pas dépasser ${MESSAGING_MAX_BODY_LENGTH} caractères.`,
-    );
-  }
+  assertBodyLength(body);
 
   await getParticipantOrThrow(
     params.conversationId,
@@ -1204,11 +1209,7 @@ export async function editMessage(params: {
   // Édition client uniquement — jamais de payload structuré injecté.
   const body = sanitizeMessageBody(params.body, { allowStructured: false });
   if (!body) throw new MessagingError("Le message ne peut pas être vide.");
-  if (body.length > MESSAGING_MAX_BODY_LENGTH) {
-    throw new MessagingError(
-      `Le message ne peut pas dépasser ${MESSAGING_MAX_BODY_LENGTH} caractères.`,
-    );
-  }
+  assertBodyLength(body);
 
   const message = await prisma.message.findFirst({
     where: { id: params.messageId, deletedAt: null },
