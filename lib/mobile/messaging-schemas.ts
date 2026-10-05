@@ -1,6 +1,8 @@
 import { z } from "zod";
 import {
+  isEncryptedMessageBody,
   MESSAGING_MAX_BODY_LENGTH,
+  MESSAGING_MAX_CIPHER_LENGTH,
   MESSAGING_MAX_RECIPIENTS,
   MESSAGING_MAX_SUBJECT_LENGTH,
 } from "@/lib/messaging/messaging-types";
@@ -8,21 +10,33 @@ import {
 const noSystemPrefix = (value: string) =>
   !/^(?:__CALL__:|__NOTIFY__:|__SATISFACTION__:)/i.test(value.trim());
 
+function bodyFits(value: string) {
+  if (isEncryptedMessageBody(value)) {
+    return value.trim().length <= MESSAGING_MAX_CIPHER_LENGTH;
+  }
+  return value.length <= MESSAGING_MAX_BODY_LENGTH;
+}
+
 /** Corps message (web + mobile) — refuse préfixes système. */
 export const messagingBodySchema = z
   .string()
   .min(1)
-  .max(MESSAGING_MAX_BODY_LENGTH + 50)
-  .refine(noSystemPrefix, "Préfixe système non autorisé.");
+  .max(MESSAGING_MAX_CIPHER_LENGTH)
+  .refine(noSystemPrefix, "Préfixe système non autorisé.")
+  .refine(bodyFits, "Message trop long.");
 
 export const messagingOptionalBodySchema = z
   .string()
-  .max(MESSAGING_MAX_BODY_LENGTH + 50)
+  .max(MESSAGING_MAX_CIPHER_LENGTH)
   .optional()
   .nullable()
   .refine(
     (value) => value == null || value === "" || noSystemPrefix(value),
     "Préfixe système non autorisé.",
+  )
+  .refine(
+    (value) => value == null || value === "" || bodyFits(value),
+    "Message trop long.",
   );
 
 /** IDs stables (cuid / uuid) — refuse caractères bizarres. */
