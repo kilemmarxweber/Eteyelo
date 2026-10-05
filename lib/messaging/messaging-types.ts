@@ -258,7 +258,7 @@ export function previewDeletedOrBody(
   max = 80,
 ) {
   if (deletedAt) return MESSAGE_DELETED_LABEL;
-  if (isEncryptedMessageBody(body)) return body.trim();
+  if (isEncryptedMessageBody(body)) return ENCRYPTED_MESSAGE_PREVIEW;
   return previewMessageBody(body, max);
 }
 

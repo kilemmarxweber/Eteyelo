@@ -1312,10 +1312,12 @@ export async function editMessage(params: {
     params.actor.userId,
     params.organizationId,
   );
-  await assertDirectCiphertext({
-    conversationId: message.conversationId,
-    body,
-  });
+  if (!params.actor.skipRateLimit) {
+    await assertDirectCiphertext({
+      conversationId: message.conversationId,
+      body,
+    });
+  }
 
   await prisma.message.update({
     where: { id: message.id },
