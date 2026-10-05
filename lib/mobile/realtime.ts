@@ -10,10 +10,8 @@ export type MobileRealtimeEvent =
       messageId: string;
       senderId: string;
       recipientUserIds: string[];
-      /** Aperçu pour notifs locales (WS). Jamais le clair d'un message chiffré. */
+      /** Aperçu pour notifs locales (WS). */
       bodyPreview?: string | null;
-      /** Ciphertext complet, pour que le téléphone déchiffre l'aperçu. */
-      bodyCipher?: string | null;
       senderName?: string | null;
       senderImage?: string | null;
     }

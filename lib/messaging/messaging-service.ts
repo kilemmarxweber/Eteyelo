@@ -11,14 +11,11 @@ import {
 } from "@/lib/messaging/messaging-policy";
 import {
   formatMessagingPersonName,
-  isStructuredMessageBody,
   messagingAccountPhone,
   messagingFamilyName,
   parseConversationSince,
   MESSAGING_CONVERSATIONS_PAGE_SIZE,
-  isEncryptedMessageBody,
   MESSAGING_MAX_BODY_LENGTH,
-  MESSAGING_MAX_CIPHER_LENGTH,
   MESSAGING_MAX_GROUP_ADMINS,
   MESSAGING_MAX_RECIPIENTS,
   MESSAGING_MAX_SUBJECT_LENGTH,
@@ -37,7 +34,6 @@ import {
   type MessagingFilter,
   type MessagingRecipient,
 } from "@/lib/messaging/messaging-types";
-import { readMessagePublicKey } from "@/lib/mobile/message-identity";
 import { isSchoolNotifyBotEmail } from "@/lib/notify/school-notify-bot";
 import { Prisma } from "@/prisma/generated/prisma/client";
 
@@ -64,64 +60,6 @@ type Actor = {
   /** Bot alertes école : ignore le plafond 20 msg/min. */
   skipRateLimit?: boolean;
 };
-
-function messageBodyLimit(body: string) {
-  return isEncryptedMessageBody(body)
-    ? MESSAGING_MAX_CIPHER_LENGTH
-    : MESSAGING_MAX_BODY_LENGTH;
-}
-
-function assertBodyLength(body: string) {
-  const max = messageBodyLimit(body);
-  if (body.length > max) {
-    throw new MessagingError(
-      `Le message ne peut pas dépasser ${max} caractères.`,
-    );
-  }
-}
-
-const DIRECT_CIPHER_REQUIRED =
-  "Cette conversation directe exige un message chiffré sur l'appareil.";
-
-async function assertDirectPairCipher(
-  userId: string,
-  peerUserId: string,
-  body: string,
-) {
-  if (isEncryptedMessageBody(body) || isStructuredMessageBody(body)) return;
-  const keys = await Promise.all([
-    readMessagePublicKey(userId),
-    readMessagePublicKey(peerUserId),
-  ]);
-  if (keys.every((key) => Boolean(key))) {
-    throw new MessagingError(DIRECT_CIPHER_REQUIRED);
-  }
-}
-
-export async function assertDirectCiphertext(params: {
-  conversationId: string;
-  body: string;
-}) {
-  if (!params.body || isEncryptedMessageBody(params.body)) return;
-  if (isStructuredMessageBody(params.body)) return;
-  const conv = await prisma.conversation.findFirst({
-    where: { id: params.conversationId, deletedAt: null },
-    select: {
-      type: true,
-      participants: {
-        where: { leftAt: null },
-        select: { userId: true },
-      },
-    },
-  });
-  if (!conv || conv.type !== "DIRECT" || conv.participants.length !== 2) return;
-  const keys = await Promise.all(
-    conv.participants.map((row) => readMessagePublicKey(row.userId)),
-  );
-  if (keys.every((key) => Boolean(key))) {
-    throw new MessagingError(DIRECT_CIPHER_REQUIRED);
-  }
-}
 
 export class MessagingError extends Error {
   statusCode: number;
@@ -732,7 +670,11 @@ export async function createConversation(params: {
     allowStructured: Boolean(params.actor.skipRateLimit),
   });
   if (!body) throw new MessagingError("Le message ne peut pas être vide.");
-  assertBodyLength(body);
+  if (body.length > MESSAGING_MAX_BODY_LENGTH) {
+    throw new MessagingError(
+      `Le message ne peut pas dépasser ${MESSAGING_MAX_BODY_LENGTH} caractères.`,
+    );
+  }
 
   let recipientIds = params.recipientIds.filter(Boolean);
 
@@ -789,18 +731,6 @@ export async function createConversation(params: {
       }
       type = "GROUP";
     }
-  }
-
-  if (
-    type === "DIRECT" &&
-    recipientIds.length === 1 &&
-    !params.actor.skipRateLimit
-  ) {
-    await assertDirectPairCipher(
-      params.actor.userId,
-      recipientIds[0],
-      body,
-    );
   }
 
   if (params.clientMessageId) {
@@ -898,8 +828,7 @@ export async function createConversation(params: {
       messageId: created.messageId,
       senderId: params.actor.userId,
       recipientUserIds: participantIds.filter((id) => id !== params.actor.userId),
-      bodyPreview: previewMessageBody(body, 160),
-      ...(isEncryptedMessageBody(body) ? { bodyCipher: body } : {}),
+      bodyPreview: body.slice(0, 160),
       senderName,
       senderImage: sender?.image ?? null,
     });
@@ -937,7 +866,11 @@ export async function createGroup(params: {
         allowStructured: Boolean(params.actor.skipRateLimit),
       })
     : "";
-  assertBodyLength(body);
+  if (body.length > MESSAGING_MAX_BODY_LENGTH) {
+    throw new MessagingError(
+      `Le message ne peut pas dépasser ${MESSAGING_MAX_BODY_LENGTH} caractères.`,
+    );
+  }
 
   if (params.clientMessageId) {
     const existing = await prisma.message.findFirst({
@@ -1133,7 +1066,11 @@ export async function sendMessage(params: {
     allowStructured: Boolean(params.actor.skipRateLimit),
   });
   if (!body) throw new MessagingError("Le message ne peut pas être vide.");
-  assertBodyLength(body);
+  if (body.length > MESSAGING_MAX_BODY_LENGTH) {
+    throw new MessagingError(
+      `Le message ne peut pas dépasser ${MESSAGING_MAX_BODY_LENGTH} caractères.`,
+    );
+  }
 
   await getParticipantOrThrow(
     params.conversationId,
@@ -1144,12 +1081,6 @@ export async function sendMessage(params: {
     params.conversationId,
     params.actor.userId,
   );
-  if (!params.actor.skipRateLimit) {
-    await assertDirectCiphertext({
-      conversationId: params.conversationId,
-      body,
-    });
-  }
 
   if (params.clientMessageId) {
     const existing = await prisma.message.findFirst({
@@ -1209,8 +1140,7 @@ export async function sendMessage(params: {
       recipientUserIds: participants
         .map((p) => p.userId)
         .filter((id) => id !== params.actor.userId),
-      bodyPreview: previewMessageBody(body, 160),
-      ...(isEncryptedMessageBody(body) ? { bodyCipher: body } : {}),
+      bodyPreview: body.slice(0, 160),
       senderName,
       senderImage: sender?.image ?? null,
     });
@@ -1274,7 +1204,11 @@ export async function editMessage(params: {
   // Édition client uniquement — jamais de payload structuré injecté.
   const body = sanitizeMessageBody(params.body, { allowStructured: false });
   if (!body) throw new MessagingError("Le message ne peut pas être vide.");
-  assertBodyLength(body);
+  if (body.length > MESSAGING_MAX_BODY_LENGTH) {
+    throw new MessagingError(
+      `Le message ne peut pas dépasser ${MESSAGING_MAX_BODY_LENGTH} caractères.`,
+    );
+  }
 
   const message = await prisma.message.findFirst({
     where: { id: params.messageId, deletedAt: null },
@@ -1312,12 +1246,6 @@ export async function editMessage(params: {
     params.actor.userId,
     params.organizationId,
   );
-  if (!params.actor.skipRateLimit) {
-    await assertDirectCiphertext({
-      conversationId: message.conversationId,
-      body,
-    });
-  }
 
   await prisma.message.update({
     where: { id: message.id },
@@ -1488,7 +1416,7 @@ export async function appendCallTraceMessage(params: {
     conversationId: params.conversationId,
     messageId: message.id,
     senderId: params.actorUserId,
-    bodyPreview: previewMessageBody(body, 160),
+    bodyPreview: body.startsWith("__CALL__:") ? "Appel" : body.slice(0, 160),
     senderName: "Klambo",
   });
 
@@ -1653,10 +1581,9 @@ export async function listMyConversations(params: {
     if (params.filter === "unread" && item.unreadCount === 0) continue;
     const q = params.query?.trim().toLowerCase();
     if (q) {
-      const lastBody = item.lastMessage?.body ?? "";
       const hay = [
         item.title,
-        isEncryptedMessageBody(lastBody) ? "" : lastBody,
+        item.lastMessage?.body ?? "",
         ...item.participants.flatMap((p) => [
           p.name,
           p.roleLabel,

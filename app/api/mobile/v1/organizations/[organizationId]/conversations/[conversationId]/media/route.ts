@@ -15,12 +15,9 @@ import {
 import {
   MessagingError,
   assertConversationAllowsHumanReply,
-  assertDirectCiphertext,
 } from "@/lib/messaging/messaging-service";
 import {
-  isEncryptedMessageBody,
   MESSAGING_MAX_BODY_LENGTH,
-  MESSAGING_MAX_CIPHER_LENGTH,
   MESSAGING_RATE_LIMIT_PER_MINUTE,
   sanitizeMessageBody,
 } from "@/lib/messaging/messaging-types";
@@ -104,9 +101,6 @@ export async function POST(request: Request, context: Ctx) {
     const caption = sanitizeMessageBody(String(form.get("body") ?? ""), {
       allowStructured: false,
     });
-    if (caption) {
-      await assertDirectCiphertext({ conversationId, body: caption });
-    }
     const clientMessageIdRaw = String(form.get("clientMessageId") ?? "").trim();
     const clientMessageId =
       /^[a-zA-Z0-9:_.-]{1,80}$/.test(clientMessageIdRaw)
@@ -116,10 +110,7 @@ export async function POST(request: Request, context: Ctx) {
     if (!(file instanceof File) || file.size === 0) {
       return jsonError("Fichier requis.", 400);
     }
-    const captionMax = isEncryptedMessageBody(caption)
-      ? MESSAGING_MAX_CIPHER_LENGTH
-      : MESSAGING_MAX_BODY_LENGTH;
-    if (caption.length > captionMax) {
+    if (caption.length > MESSAGING_MAX_BODY_LENGTH) {
       return jsonError("Légende trop longue.", 400);
     }
 
@@ -173,9 +164,7 @@ export async function POST(request: Request, context: Ctx) {
       durationParsed < 86_400_000
         ? durationParsed
         : null;
-    const bodyText = isEncryptedMessageBody(caption)
-      ? caption
-      : caption || `[${kind.toLowerCase()}]`;
+    const bodyText = caption || `[${kind.toLowerCase()}]`;
 
     const message = await prisma.$transaction(async (tx) => {
       const msg = await tx.message.create({
