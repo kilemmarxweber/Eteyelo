@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { getStudentFeeStatus } from "@/lib/reports/org/finance";
-import { listBranchPeriodOptions } from "@/lib/academic-periods";
+import {
+  listBranchPeriodOptions,
+  uniquePeriodOptions,
+  type BranchPeriodOption,
+} from "@/lib/academic-periods";
+import { normalizeCycle, type Cycle } from "@/lib/cycle";
 
 function formatPersonName(user?: {
   name?: string | null;
@@ -12,6 +17,72 @@ function formatPersonName(user?: {
     [user.prenom, user.name, user.postnom].filter(Boolean).join(" ").trim() ||
     "—"
   );
+}
+
+/**
+ * Cycle de la classe (option/section) — même règle que getPeriods(classId).
+ * Évite de mélanger maternelle / primaire / secondaire sur une branche multi-cycles.
+ */
+async function resolveChildClassCycle(child: ParentChild): Promise<{
+  cycle: Cycle;
+  typebranch: unknown;
+  educationSystem: unknown;
+} | null> {
+  const branch = await prisma.branch.findUnique({
+    where: { id: child.branchId },
+    select: { typebranch: true, educationSystem: true },
+  });
+  if (!branch) return null;
+
+  let classCycle: unknown = null;
+  if (child.classId) {
+    const classe = await prisma.classe.findFirst({
+      where: { id: child.classId, branchId: child.branchId },
+      select: {
+        cycle: true,
+        option: {
+          select: {
+            cycle: true,
+            section: { select: { cycle: true } },
+          },
+        },
+      },
+    });
+    classCycle =
+      classe?.cycle ??
+      classe?.option?.cycle ??
+      classe?.option?.section?.cycle ??
+      null;
+  }
+
+  const cycle =
+    classCycle != null && classCycle !== ""
+      ? normalizeCycle(classCycle)
+      : normalizeCycle(branch.typebranch);
+
+  return {
+    cycle,
+    typebranch: branch.typebranch,
+    educationSystem: branch.educationSystem,
+  };
+}
+
+/** Périodes du cycle de la classe, ordonnées (1ère, 2ème, Exam S1, …). */
+async function listPeriodsForChildClass(
+  child: ParentChild,
+): Promise<BranchPeriodOption[]> {
+  const ctx = await resolveChildClassCycle(child);
+  if (!ctx) return [];
+
+  const periods = await listBranchPeriodOptions({
+    branchId: child.branchId,
+    typebranch: ctx.typebranch,
+    educationSystem: ctx.educationSystem,
+    cycle: ctx.cycle,
+    ensure: false,
+  });
+
+  return uniquePeriodOptions(periods);
 }
 
 export class ParentMobileError extends Error {
@@ -189,44 +260,44 @@ export async function getParentStudentGrades(params: {
     return { child, periods: [] as Array<Record<string, unknown>> };
   }
 
-  const branch = await prisma.branch.findUnique({
-    where: { id: child.branchId },
-    select: { typebranch: true, educationSystem: true },
-  });
-
-  const [grades, periodOptions] = await Promise.all([
-    prisma.studentGrade.findMany({
-      where: {
-        studentId: child.studentId,
-        branchId: child.branchId,
-        schoolYearId: child.schoolYearId,
-      },
-      select: {
-        periodId: true,
-        score: true,
-        period: { select: { id: true, label: true } },
-      },
-      orderBy: { periodId: "asc" },
-    }),
-    listBranchPeriodOptions({
-      branchId: child.branchId,
-      typebranch: branch?.typebranch,
-      educationSystem: branch?.educationSystem,
-      ensure: false,
-    }),
-  ]);
-
+  const periodOptions = await listPeriodsForChildClass(child);
+  const allowedIds = new Set(periodOptions.map((p) => p.id));
+  const orderById = new Map(periodOptions.map((p, index) => [p.id, index]));
   const labelById = new Map(periodOptions.map((p) => [p.id, p.label]));
-  const periods = grades.map((g) => {
-    const score = Number(g.score);
-    return {
-      periodId: g.periodId,
-      label: labelById.get(g.periodId) ?? g.period?.label ?? `Période ${g.periodId}`,
-      score,
-      // Pourcentage affiché tant que le maximum n’est pas exposé côté parent.
-      percent: Math.round(score * 10) / 10,
-    };
+
+  const grades = await prisma.studentGrade.findMany({
+    where: {
+      studentId: child.studentId,
+      branchId: child.branchId,
+      schoolYearId: child.schoolYearId,
+      ...(allowedIds.size > 0 ? { periodId: { in: [...allowedIds] } } : {}),
+    },
+    select: {
+      periodId: true,
+      score: true,
+      period: { select: { id: true, label: true } },
+    },
   });
+
+  const periods = grades
+    .filter((g) => allowedIds.size === 0 || allowedIds.has(g.periodId))
+    .map((g) => {
+      const score = Number(g.score);
+      return {
+        periodId: g.periodId,
+        label:
+          labelById.get(g.periodId) ??
+          g.period?.label ??
+          `Période ${g.periodId}`,
+        score,
+        percent: Math.round(score * 10) / 10,
+      };
+    })
+    .sort(
+      (a, b) =>
+        (orderById.get(a.periodId) ?? Number.MAX_SAFE_INTEGER) -
+        (orderById.get(b.periodId) ?? Number.MAX_SAFE_INTEGER),
+    );
 
   return { child, periods };
 }
@@ -238,16 +309,7 @@ export async function getParentBulletinMeta(params: {
   periodId?: number;
 }) {
   const child = await assertParentOwnsStudent(params);
-  const branch = await prisma.branch.findUnique({
-    where: { id: child.branchId },
-    select: { typebranch: true, educationSystem: true },
-  });
-  const periods = await listBranchPeriodOptions({
-    branchId: child.branchId,
-    typebranch: branch?.typebranch,
-    educationSystem: branch?.educationSystem,
-    ensure: false,
-  });
+  const periods = await listPeriodsForChildClass(child);
 
   const selected =
     params.periodId != null
@@ -259,9 +321,11 @@ export async function getParentBulletinMeta(params: {
     periods: periods.map((p) => ({
       periodId: p.id,
       label: p.label,
+      kind: p.kind,
+      cycle: p.cycle,
     })),
     selectedPeriod: selected
-      ? { periodId: selected.id, label: selected.label }
+      ? { periodId: selected.id, label: selected.label, kind: selected.kind }
       : null,
     // PDF serveur pas encore branché : le client affiche la liste + message.
     pdfAvailable: false,
