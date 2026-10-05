@@ -27,4 +27,9 @@ assert.equal(sanitizeMessageBody(envelope), envelope);
 assert.equal(previewMessageBody(envelope), "Message");
 assert.equal(isEncryptedMessageBody("k1.trop-court"), false);
 
+const padded = `k1.${"A".repeat(140)}==`;
+assert.equal(isEncryptedMessageBody(padded), true);
+assert.equal(sanitizeMessageBody(padded), padded);
+assert.equal(previewMessageBody(padded), "Message");
+
 console.log("sanitizeMessageBody ok");

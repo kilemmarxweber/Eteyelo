@@ -194,7 +194,8 @@ export function messagingFamilyName(user: {
 const STRUCTURED_BODY_PREFIX =
   /^(?:__CALL__:|__NOTIFY__:|__SATISFACTION__:)/i;
 
-const ENCRYPTED_BODY = /^k1\.[A-Za-z0-9_-]{120,}$/;
+/** Enveloppe `k1.` + base64url (padding `=` optionnel). */
+const ENCRYPTED_BODY = /^k1\.[A-Za-z0-9_-]{120,}={0,2}$/;
 
 /** Préfixes réservés au bot / système — jamais acceptés depuis un client. */
 export function isStructuredMessageBody(raw: string) {
