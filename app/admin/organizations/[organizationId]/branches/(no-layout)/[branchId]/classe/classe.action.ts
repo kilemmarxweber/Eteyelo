@@ -304,6 +304,7 @@ export const createClasseAction = action
       let sourceClasseCode: string | null = null;
       let sourceClasseLevel: string | null = null;
       let sourceOptionCode: string | null = null;
+      let sourceParallel: string | null = null;
 
       if (isAtelierBranchType(typebranch) || cycle === "ATELIER") {
         if (input.sourceClasseId) {
@@ -316,6 +317,7 @@ export const createClasseAction = action
           sourceClasseCode = source.codeClasse;
           sourceClasseLevel = source.level;
           sourceOptionCode = source.option?.codeOption ?? null;
+          sourceParallel = source.parallel ?? null;
           const taken = await prisma.classe.findFirst({
             where: { branchId, sourceClasseId: source.id },
             select: { id: true },
@@ -343,6 +345,7 @@ export const createClasseAction = action
             sourceClasseCode,
             sourceClasseLevel,
             sourceOptionCode,
+            sourceParallel,
             fallbackName: identity.nameClasse,
           });
         }
@@ -355,13 +358,22 @@ export const createClasseAction = action
         }
       }
 
-      const nameTaken = await prisma.classe.findFirst({
-        where: { branchId, nameClasse: displayName },
-        select: { id: true },
-      });
-      if (nameTaken && displayName !== identity.nameClasse) {
-        displayName = `${displayName} (${codeClasse.slice(-4)})`;
+      // Toujours désambiguïser si le libellé (ex. même domaine, classes A/B) est pris.
+      let uniqueName = displayName;
+      let suffix = 0;
+      while (
+        await prisma.classe.findFirst({
+          where: { branchId, nameClasse: uniqueName },
+          select: { id: true },
+        })
+      ) {
+        suffix += 1;
+        uniqueName =
+          suffix === 1
+            ? `${displayName} (${codeClasse.slice(-4)})`
+            : `${displayName} (${codeClasse.slice(-4)}-${suffix})`;
       }
+      displayName = uniqueName;
 
       const classe = await prisma.classe.create({
         data: {
@@ -596,6 +608,7 @@ export const updateClasseAction = action
       let sourceClasseCode: string | null = null;
       let sourceClasseLevel: string | null = null;
       let sourceOptionCode: string | null = null;
+      let sourceParallel: string | null = null;
       if (input.sourceClasseId !== undefined) {
         sourceClasseId = input.sourceClasseId || null;
         if (sourceClasseId) {
@@ -607,6 +620,7 @@ export const updateClasseAction = action
           sourceClasseCode = source.codeClasse;
           sourceClasseLevel = source.level;
           sourceOptionCode = source.option?.codeOption ?? null;
+          sourceParallel = source.parallel ?? null;
           const taken = await prisma.classe.findFirst({
             where: { branchId, sourceClasseId, id: { not: id } },
             select: { id: true },
@@ -623,12 +637,14 @@ export const updateClasseAction = action
           select: {
             codeClasse: true,
             level: true,
+            parallel: true,
             option: { select: { codeOption: true } },
           },
         });
         sourceClasseCode = source?.codeClasse ?? null;
         sourceClasseLevel = source?.level ?? null;
         sourceOptionCode = source?.option?.codeOption ?? null;
+        sourceParallel = source?.parallel ?? null;
       }
       if (input.practicalDomainId !== undefined) {
         practicalDomainId = input.practicalDomainId || null;
@@ -649,16 +665,27 @@ export const updateClasseAction = action
           sourceClasseCode,
           sourceClasseLevel,
           sourceOptionCode,
+          sourceParallel,
           fallbackName: identity.nameClasse,
         });
       }
     }
 
-    const duplicate = await prisma.classe.findFirst({
-      where: { branchId, nameClasse: displayName, id: { not: id } },
-      select: { id: true },
-    });
-    if (duplicate) throw new Error("La classe existe deja dans cette branche");
+    let uniqueName = displayName;
+    let suffix = 0;
+    while (
+      await prisma.classe.findFirst({
+        where: { branchId, nameClasse: uniqueName, id: { not: id } },
+        select: { id: true },
+      })
+    ) {
+      suffix += 1;
+      uniqueName =
+        suffix === 1
+          ? `${displayName} (${codeClasse.slice(-4)})`
+          : `${displayName} (${codeClasse.slice(-4)}-${suffix})`;
+    }
+    displayName = uniqueName;
 
     const updatedClasse = await prisma.classe.update({
       where: { id },
@@ -929,6 +956,7 @@ export const getAtelierSourceClassesAction = action
         nameClasse: true,
         codeClasse: true,
         level: true,
+        parallel: true,
         option: { select: { nameOption: true, codeOption: true } },
         branch: { select: { id: true, name: true } },
       },
@@ -937,16 +965,20 @@ export const getAtelierSourceClassesAction = action
 
     return classes.map((c) => {
       const optionName = c.option?.nameOption?.trim() || "Sans option";
+      const parallel = c.parallel?.trim();
       return {
         id: c.id,
         nameClasse: c.nameClasse,
         codeClasse: c.codeClasse,
         level: c.level,
+        parallel: parallel || null,
         optionCode: c.option?.codeOption ?? null,
         optionName,
         branchId: c.branch.id,
         branchName: c.branch.name,
-        label: `${c.nameClasse} · ${optionName}`,
+        label: parallel
+          ? `${c.nameClasse} · ${optionName} · ${parallel}`
+          : `${c.nameClasse} · ${optionName}`,
       };
     });
   });

@@ -130,6 +130,7 @@ export function ClasseUpForm({
       nameClasse: string;
       codeClasse: string | null;
       level: string | null;
+      parallel: string | null;
       optionCode: string | null;
       optionName: string;
       branchName: string;
@@ -578,6 +579,7 @@ export function ClasseUpForm({
         sourceClasseCode: selectedSourceClass?.codeClasse,
         sourceClasseLevel: selectedSourceClass?.level,
         sourceOptionCode: selectedSourceClass?.optionCode,
+        sourceParallel: selectedSourceClass?.parallel,
         fallbackName: selectedPracticalDomain.labName,
       });
     }
@@ -604,6 +606,7 @@ export function ClasseUpForm({
     selectedSourceClass?.codeClasse,
     selectedSourceClass?.level,
     selectedSourceClass?.optionCode,
+    selectedSourceClass?.parallel,
     showAtelierLabFields,
     watchedLevel,
     watchedOptionId,
@@ -1059,6 +1062,7 @@ export function ClasseUpForm({
                                     sourceClasseCode: source?.codeClasse,
                                     sourceClasseLevel: source?.level,
                                     sourceOptionCode: source?.optionCode,
+                                    sourceParallel: source?.parallel,
                                     fallbackName: selectedPracticalDomain.labName,
                                   }),
                                 );
@@ -1139,6 +1143,7 @@ export function ClasseUpForm({
                                     sourceClasseLevel: selectedSourceClass?.level,
                                     sourceOptionCode:
                                       selectedSourceClass?.optionCode,
+                                    sourceParallel: selectedSourceClass?.parallel,
                                     fallbackName: domain.labName,
                                   }),
                                 );

@@ -346,12 +346,11 @@ export async function updateBranchAction(
   const submittedSchoolCycles = (parsed.data.schoolCycles ?? []).filter(
     isSchoolCycle,
   );
-  const extraCycles = existingBranch.cycles
-    .map((row) => row.cycle)
-    .filter((cycle) => !isSchoolCycle(cycle));
   const classSchoolCycles = existingBranch.classes
     .map((row) => row.cycle)
     .filter(isSchoolCycle);
+  // Cycles cochés dans le formulaire (+ cycles encore présents via des classes).
+  // On n'impose plus les cycles scolaires décochés s'il n'y a aucune classe liée.
   const schoolCycles = isExtendedBranch(parsed.data.typebranch)
     ? []
     : sortSchoolCycles(
@@ -363,6 +362,17 @@ export async function updateBranchAction(
     schoolCycles.length > 0
       ? principalTypebranchFromSchoolCycles(schoolCycles)
       : parsed.data.typebranch;
+  // En mode école, ne pas recoller ATELIER / centre / univ. restés après un choix erroné.
+  // (persist-branch-cycles bloque encore la suppression s'il reste des classes sur ce cycle.)
+  const extraCycles = existingBranch.cycles
+    .map((row) => row.cycle)
+    .filter((cycle) => !isSchoolCycle(cycle))
+    .filter((cycle) => {
+      if (!isExtendedBranch(typebranch) && isExtendedBranch(cycle)) {
+        return false;
+      }
+      return true;
+    });
   const activatedTarget = resolveActivatedCycles({
     typebranch,
     schoolCycles,

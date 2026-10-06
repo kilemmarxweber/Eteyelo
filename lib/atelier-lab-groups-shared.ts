@@ -50,13 +50,14 @@ export function compactAtelierSourceClassCode(
 
 /**
  * Code court pour le libellé : chiffre du niveau + code option (ex. 1 + SC → 1sc),
- * sinon codeClasse compacté.
+ * sinon codeClasse compacté. Le parallèle (A/B) distingue les classes jumelles.
  */
 export function resolveAtelierSourceClassCode(params: {
   codeClasse?: string | null;
   level?: string | null;
   optionCode?: string | null;
   sourceClasseName?: string | null;
+  parallel?: string | null;
 }): string | null {
   const option = params.optionCode
     ?.normalize("NFD")
@@ -64,18 +65,27 @@ export function resolveAtelierSourceClassCode(params: {
     .replace(/[^a-zA-Z0-9]+/g, "")
     .toLowerCase();
   const levelDigit = params.level?.match(/\d+/)?.[0];
-  if (levelDigit && option) return `${levelDigit}${option}`;
+  let base =
+    levelDigit && option
+      ? `${levelDigit}${option}`
+      : compactAtelierSourceClassCode(params.codeClasse) ||
+        compactAtelierSourceClassCode(params.sourceClasseName);
 
-  return (
-    compactAtelierSourceClassCode(params.codeClasse) ||
-    compactAtelierSourceClassCode(params.sourceClasseName)
-  );
+  if (!base) return null;
+
+  const parallel = params.parallel
+    ?.normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "")
+    .toLowerCase();
+  if (parallel) return `${base}${parallel}`;
+  return base;
 }
 
 /**
  * Libellé groupe atelier =
- * laboratoire + code classe source + suffixe domaine.
- * Ex. « laboratoire 1sc sciences »
+ * laboratoire + code classe source (+ parallèle) + suffixe domaine.
+ * Ex. « laboratoire 10electa electricidade » vs « …10electb… »
  * (Sans dépendance Prisma — utilisable côté client.)
  */
 export function buildAtelierLabGroupLabel(params: {
@@ -87,6 +97,7 @@ export function buildAtelierLabGroupLabel(params: {
   sourceClasseCode?: string | null;
   sourceClasseLevel?: string | null;
   sourceOptionCode?: string | null;
+  sourceParallel?: string | null;
   fallbackName: string;
 }): string {
   const domainSuffix = extractPracticalDomainSuffix({
@@ -98,6 +109,7 @@ export function buildAtelierLabGroupLabel(params: {
     level: params.sourceClasseLevel,
     optionCode: params.sourceOptionCode,
     sourceClasseName: params.sourceClasseName,
+    parallel: params.sourceParallel,
   });
 
   const parts = ["laboratoire", classCode, domainSuffix].filter(Boolean);

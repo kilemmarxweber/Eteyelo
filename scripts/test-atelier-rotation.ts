@@ -201,6 +201,28 @@ test("libellé groupe labo = laboratoire + code classe + suffixe domaine", () =>
   );
   assert.equal(
     buildAtelierLabGroupLabel({
+      domainName: "Electricidade",
+      domainCode: "ELECT",
+      sourceClasseLevel: "10ª",
+      sourceOptionCode: "ELECT",
+      sourceParallel: "A",
+      fallbackName: "Groupe",
+    }),
+    "laboratoire 10electa electricidade",
+  );
+  assert.equal(
+    buildAtelierLabGroupLabel({
+      domainName: "Electricidade",
+      domainCode: "ELECT",
+      sourceClasseLevel: "10ª",
+      sourceOptionCode: "ELECT",
+      sourceParallel: "B",
+      fallbackName: "Groupe",
+    }),
+    "laboratoire 10electb electricidade",
+  );
+  assert.equal(
+    buildAtelierLabGroupLabel({
       domainCode: "COMPTABILITE",
       fallbackName: "Groupe",
     }),
