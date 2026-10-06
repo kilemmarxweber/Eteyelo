@@ -6,6 +6,16 @@ export type IceServer = {
   credential?: string;
 };
 
+export type IceBuildSource = "house" | "openrelay" | "static";
+
+export type IceBuildResult = {
+  iceServers: IceServer[];
+  source: IceBuildSource;
+  /** true si TURN_FORCE_RELAY=1 — le client peut forcer iceTransportPolicy:relay */
+  preferRelay: boolean;
+  ttlSec: number;
+};
+
 /**
  * Peu de STUN : assez pour le même Wi‑Fi, sans ralentir la collecte.
  * Trop d'entrées (53, nextcloud…) allongeait le délai avant le relais.
@@ -17,7 +27,7 @@ export const PUBLIC_STUN_URLS = [
 ];
 
 /**
- * Relais public si aucun TURN maison. Deux chemins seulement :
+ * Relais public si aucun TURN maison, ou en secours derrière le TURN maison.
  * TLS/TCP 443 (Wi‑Fi publics filtrés) puis UDP 443.
  * Le média reste chiffré (DTLS-SRTP).
  */
@@ -51,9 +61,60 @@ function splitUrls(raw: string | undefined): string[] {
     .filter(Boolean);
 }
 
+function parseHostPort(url: string): { host: string; port: string } | null {
+  // turn:host:3478 | turns:host:443?transport=tcp | turn:host:3478?transport=tcp
+  const m = url.match(/^(turns?):([^:?]+)(?::(\d+))?/i);
+  if (!m) return null;
+  return { host: m[2]!, port: m[3] ?? "3478" };
+}
+
 /**
- * STUN pour le chemin direct, plus un TURN court.
- * Le TURN maison (TURN_URLS) prime sur le relais public.
+ * À partir d'une URL UDP 3478, ajoute TCP 3478 + TLS/TCP 443 sur le même hôte.
+ * Les Wi‑Fi publics bloquent souvent l'UDP : le 443 part en parallèle.
+ */
+export function expandHouseTurnUrls(urls: string[]): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const push = (u: string) => {
+    if (seen.has(u)) return;
+    seen.add(u);
+    out.push(u);
+  };
+
+  for (const raw of urls) {
+    push(raw);
+    const parsed = parseHostPort(raw);
+    if (!parsed) continue;
+    const { host, port } = parsed;
+    const hasTransport = raw.includes("?transport=");
+    const isTurns = raw.startsWith("turns:");
+
+    // Variante TCP explicite sur le même port.
+    if (!hasTransport && !isTurns) {
+      push(`turn:${host}:${port}?transport=tcp`);
+    }
+
+    // Chemin 443 (Wi‑Fi filtrés) si on part d'un 3478 classique.
+    if (port === "3478" || port === "53") {
+      push(`turns:${host}:443?transport=tcp`);
+      push(`turn:${host}:443`);
+    }
+  }
+
+  return out;
+}
+
+function envFlag(raw: string | undefined, defaultValue: boolean): boolean {
+  if (raw == null || raw.trim() === "") return defaultValue;
+  const v = raw.trim().toLowerCase();
+  if (["0", "false", "no", "off"].includes(v)) return false;
+  if (["1", "true", "yes", "on"].includes(v)) return true;
+  return defaultValue;
+}
+
+/**
+ * TURN d'abord (réseau public / CGNAT), STUN ensuite.
+ * TURN maison + secours Metered (sauf si TURN_KEEP_PUBLIC_FALLBACK=0).
  */
 export function buildIceServers(params: {
   userId: string;
@@ -61,39 +122,127 @@ export function buildIceServers(params: {
   turnSecret?: string;
   turnUser?: string;
   turnCredential?: string;
+  /** Secours supplémentaire (CSV), sinon OPEN_RELAY si keepPublicFallback. */
+  turnFallbackUrls?: string;
+  turnFallbackSecret?: string;
+  keepPublicFallback?: boolean;
+  expandUrls?: boolean;
+  preferRelay?: boolean;
   ttlSec?: number;
   nowSec?: number;
 }): IceServer[] {
-  const iceServers: IceServer[] = PUBLIC_STUN_URLS.map((urls) => ({ urls }));
+  return buildIceConfig(params).iceServers;
+}
+
+export function buildIceConfig(params: {
+  userId: string;
+  turnUrls?: string;
+  turnSecret?: string;
+  turnUser?: string;
+  turnCredential?: string;
+  turnFallbackUrls?: string;
+  turnFallbackSecret?: string;
+  keepPublicFallback?: boolean;
+  expandUrls?: boolean;
+  preferRelay?: boolean;
+  ttlSec?: number;
+  nowSec?: number;
+}): IceBuildResult {
+  const ttlSec = Math.max(60, Math.min(params.ttlSec ?? 3600, 86_400));
+  const expand = params.expandUrls !== false;
+  const keepFallback = params.keepPublicFallback !== false;
+  const preferRelay = params.preferRelay === true;
+
   const configured = splitUrls(params.turnUrls);
   const secret = params.turnSecret?.trim();
   const user = params.turnUser?.trim();
   const credential = params.turnCredential?.trim();
 
+  const turns: IceServer[] = [];
+  let source: IceBuildSource = "openrelay";
+
   if (configured.length > 0 && secret) {
     const creds = turnRestCredential({
       userId: params.userId,
       secret,
-      ttlSec: params.ttlSec ?? 3600,
+      ttlSec,
       nowSec: params.nowSec,
     });
-    pushParallelTurn(iceServers, configured, creds.username, creds.credential);
-    return iceServers;
+    const urls = expand ? expandHouseTurnUrls(configured) : configured;
+    pushParallelTurn(turns, urls, creds.username, creds.credential);
+    source = "house";
+  } else if (configured.length > 0 && user && credential) {
+    const urls = expand ? expandHouseTurnUrls(configured) : configured;
+    pushParallelTurn(turns, urls, user, credential);
+    source = "static";
   }
 
-  if (configured.length > 0 && user && credential) {
-    pushParallelTurn(iceServers, configured, user, credential);
-    return iceServers;
+  // Secours : TURN_FALLBACK_URLS custom, sinon Metered Open Relay.
+  if (source === "house" || source === "static") {
+    if (keepFallback) {
+      const fallbackUrls = splitUrls(params.turnFallbackUrls);
+      if (fallbackUrls.length > 0) {
+        const fbSecret = params.turnFallbackSecret?.trim() || OPEN_RELAY_SECRET;
+        const creds = turnRestCredential({
+          userId: params.userId,
+          secret: fbSecret,
+          ttlSec,
+          nowSec: params.nowSec,
+        });
+        pushParallelTurn(turns, fallbackUrls, creds.username, creds.credential);
+      } else {
+        const creds = turnRestCredential({
+          userId: params.userId,
+          secret: OPEN_RELAY_SECRET,
+          ttlSec,
+          nowSec: params.nowSec,
+        });
+        pushParallelTurn(turns, OPEN_RELAY_URLS, creds.username, creds.credential);
+      }
+    }
+  } else {
+    const creds = turnRestCredential({
+      userId: params.userId,
+      secret: OPEN_RELAY_SECRET,
+      ttlSec,
+      nowSec: params.nowSec,
+    });
+    pushParallelTurn(turns, OPEN_RELAY_URLS, creds.username, creds.credential);
+    source = "openrelay";
   }
 
-  const creds = turnRestCredential({
+  const stuns: IceServer[] = PUBLIC_STUN_URLS.map((urls) => ({ urls }));
+  // TURN avant STUN : sur Wi‑Fi public le relais démarre sans attendre les STUN morts.
+  return {
+    iceServers: [...turns, ...stuns],
+    source,
+    preferRelay,
+    ttlSec,
+  };
+}
+
+/** Construit la config depuis les variables d'environnement process. */
+export function buildIceConfigFromEnv(params: {
+  userId: string;
+  env?: NodeJS.ProcessEnv;
+  nowSec?: number;
+}): IceBuildResult {
+  const env = params.env ?? process.env;
+  const ttl = Number(env.TURN_TTL_SEC ?? 3600);
+  return buildIceConfig({
     userId: params.userId,
-    secret: OPEN_RELAY_SECRET,
-    ttlSec: params.ttlSec ?? 3600,
+    turnUrls: env.TURN_URLS,
+    turnSecret: env.TURN_SECRET,
+    turnUser: env.TURN_USERNAME,
+    turnCredential: env.TURN_CREDENTIAL,
+    turnFallbackUrls: env.TURN_FALLBACK_URLS,
+    turnFallbackSecret: env.TURN_FALLBACK_SECRET,
+    keepPublicFallback: envFlag(env.TURN_KEEP_PUBLIC_FALLBACK, true),
+    expandUrls: envFlag(env.TURN_EXPAND_URLS, true),
+    preferRelay: envFlag(env.TURN_FORCE_RELAY, false),
+    ttlSec: Number.isFinite(ttl) ? ttl : 3600,
     nowSec: params.nowSec,
   });
-  pushParallelTurn(iceServers, OPEN_RELAY_URLS, creds.username, creds.credential);
-  return iceServers;
 }
 
 /**

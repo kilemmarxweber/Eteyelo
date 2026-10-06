@@ -5,36 +5,35 @@ import {
   jsonOk,
   requireSession,
 } from "@/lib/mobile/http";
-import { buildIceServers } from "@/lib/mobile/call-turn";
+import { buildIceConfigFromEnv } from "@/lib/mobile/call-turn";
 
 export const runtime = "nodejs";
 
 /**
- * Config ICE pour WebRTC (STUN public + TURN optionnel coturn).
+ * Config ICE pour WebRTC (TURN prioritaire + STUN + secours public).
  * Env:
- *   TURN_URLS=turn:turn.example.com:3478
+ *   TURN_URLS=turn:turn.klambocore.com:3478,turns:turn.klambocore.com:443?transport=tcp
  *   TURN_SECRET=secret partagé avec coturn (use-auth-secret) — préféré
  *   TURN_TTL_SEC=3600
  *   TURN_USERNAME / TURN_CREDENTIAL — repli statique si pas de TURN_SECRET
+ *   TURN_EXPAND_URLS=1 — ajoute TCP/443 à partir d'un seul 3478 (défaut)
+ *   TURN_KEEP_PUBLIC_FALLBACK=1 — garde Metered derrière le TURN maison (défaut)
+ *   TURN_FALLBACK_URLS / TURN_FALLBACK_SECRET — secours custom
+ *   TURN_FORCE_RELAY=1 — le client force iceTransportPolicy:relay
  */
 export async function GET() {
   try {
     const session = requireSession(await getMobileSession());
     if (!session) return jsonError("Non authentifié.", 401);
 
-    const ttl = Number(process.env.TURN_TTL_SEC ?? 3600);
-    const iceServers = buildIceServers({
-      userId: session.user.id,
-      turnUrls: process.env.TURN_URLS,
-      turnSecret: process.env.TURN_SECRET,
-      turnUser: process.env.TURN_USERNAME,
-      turnCredential: process.env.TURN_CREDENTIAL,
-      ttlSec: Number.isFinite(ttl) ? ttl : 3600,
-    });
+    const built = buildIceConfigFromEnv({ userId: session.user.id });
 
     return jsonOk({
-      iceServers,
+      iceServers: built.iceServers,
       callTimeoutMs: 45_000,
+      preferRelay: built.preferRelay,
+      source: built.source,
+      ttlSec: built.ttlSec,
     });
   } catch (error) {
     return jsonError(

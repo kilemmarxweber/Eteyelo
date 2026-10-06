@@ -1,0 +1,42 @@
+# Relais TURN maison (coturn) pour appels WebRTC sur réseau public.
+# Usage (sur le VPS) :
+#   export TURN_SECRET='un-secret-long'
+#   export TURN_EXTERNAL_IP='x.x.x.x'   # IP publique du serveur
+#   docker compose -f docker-compose.turn.yml up -d
+#
+# Puis dans Eteyelo (.env production) :
+#   TURN_URLS=turn:turn.klambocore.com:3478
+#   TURN_SECRET=<même valeur que TURN_SECRET ici>
+#   TURN_EXPAND_URLS=1
+#   TURN_KEEP_PUBLIC_FALLBACK=1
+
+services:
+  coturn:
+    image: coturn/coturn:4.6.2
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      DETECT_EXTERNAL_IP: "yes"
+    command:
+      - -n
+      - --log-file=stdout
+      - --listening-port=3478
+      - --tls-listening-port=443
+      - --fingerprint
+      - --lt-cred-mech
+      - --use-auth-secret
+      - --static-auth-secret=${TURN_SECRET:?set TURN_SECRET}
+      - --realm=${TURN_REALM:-klambocore.com}
+      - --external-ip=${TURN_EXTERNAL_IP:?set TURN_EXTERNAL_IP}
+      - --min-port=49152
+      - --max-port=65535
+      - --no-multicast-peers
+      - --no-cli
+      - --no-tlsv1
+      - --no-tlsv1_1
+    # Si host network indisponible, remplacer network_mode par :
+    # ports:
+    #   - "3478:3478"
+    #   - "3478:3478/udp"
+    #   - "443:443"
+    #   - "49152-49200:49152-49200/udp"
