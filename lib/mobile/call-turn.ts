@@ -69,8 +69,8 @@ function parseHostPort(url: string): { host: string; port: string } | null {
 }
 
 /**
- * À partir d'une URL UDP 3478, ajoute TCP 3478 + TLS/TCP 443 sur le même hôte.
- * Les Wi‑Fi publics bloquent souvent l'UDP : le 443 part en parallèle.
+ * À partir d'une URL UDP 3478, ajoute TCP 3478 + TLS/TCP **5349** (standard
+ * coturn, libre si Nginx tient déjà le 443) sur le même hôte.
  */
 export function expandHouseTurnUrls(urls: string[]): string[] {
   const out: string[] = [];
@@ -94,10 +94,11 @@ export function expandHouseTurnUrls(urls: string[]): string[] {
       push(`turn:${host}:${port}?transport=tcp`);
     }
 
-    // Chemin 443 (Wi‑Fi filtrés) si on part d'un 3478 classique.
+    // Chemin TLS 5349 (cohabite avec Nginx sur 443) si on part d'un 3478.
     if (port === "3478" || port === "53") {
-      push(`turns:${host}:443?transport=tcp`);
-      push(`turn:${host}:443`);
+      push(`turns:${host}:5349?transport=tcp`);
+      push(`turn:${host}:5349?transport=tcp`);
+      push(`turn:${host}:5349`);
     }
   }
 

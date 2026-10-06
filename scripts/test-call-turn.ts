@@ -75,12 +75,12 @@ test("sans TURN maison, un relais internet est ajouté avant les STUN", () => {
   );
 });
 
-test("expandHouseTurnUrls ajoute TCP et 443", () => {
+test("expandHouseTurnUrls ajoute TCP et TLS 5349", () => {
   const expanded = expandHouseTurnUrls(["turn:turn.klambocore.com:3478"]);
   assert.ok(expanded.includes("turn:turn.klambocore.com:3478"));
   assert.ok(expanded.includes("turn:turn.klambocore.com:3478?transport=tcp"));
-  assert.ok(expanded.includes("turns:turn.klambocore.com:443?transport=tcp"));
-  assert.ok(expanded.includes("turn:turn.klambocore.com:443"));
+  assert.ok(expanded.includes("turns:turn.klambocore.com:5349?transport=tcp"));
+  assert.ok(expanded.includes("turn:turn.klambocore.com:5349"));
 });
 
 test("TURN maison + secours public Metered", () => {
@@ -133,7 +133,7 @@ test("expansion auto sur TURN_URLS maison", () => {
     .map((s) => (Array.isArray(s.urls) ? s.urls[0] : s.urls))
     .filter((u): u is string => !!u && u.includes("klambocore"));
   assert.ok(urls.length >= 3);
-  assert.ok(urls.some((u) => u.includes(":443")));
+  assert.ok(urls.some((u) => u.includes(":5349")));
 });
 
 console.log("\nAll TURN credential tests passed.");

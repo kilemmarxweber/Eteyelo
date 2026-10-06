@@ -12,11 +12,11 @@ export const runtime = "nodejs";
 /**
  * Config ICE pour WebRTC (TURN prioritaire + STUN + secours public).
  * Env:
- *   TURN_URLS=turn:turn.klambocore.com:3478,turns:turn.klambocore.com:443?transport=tcp
+ *   TURN_URLS=turn:turn.klambocore.com:3478
  *   TURN_SECRET=secret partagé avec coturn (use-auth-secret) — préféré
  *   TURN_TTL_SEC=3600
  *   TURN_USERNAME / TURN_CREDENTIAL — repli statique si pas de TURN_SECRET
- *   TURN_EXPAND_URLS=1 — ajoute TCP/443 à partir d'un seul 3478 (défaut)
+ *   TURN_EXPAND_URLS=1 — ajoute TCP + turns:5349 à partir d'un seul 3478 (défaut)
  *   TURN_KEEP_PUBLIC_FALLBACK=1 — garde Metered derrière le TURN maison (défaut)
  *   TURN_FALLBACK_URLS / TURN_FALLBACK_SECRET — secours custom
  *   TURN_FORCE_RELAY=1 — le client force iceTransportPolicy:relay
