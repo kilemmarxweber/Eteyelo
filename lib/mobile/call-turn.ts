@@ -7,30 +7,23 @@ export type IceServer = {
 };
 
 /**
- * STUN publics, un port par entrée (collecte en parallèle).
- * 19302 et 3478 sont souvent filtrés ; 53 (DNS) et 443 passent
- * sur beaucoup de réseaux où le chemin direct serait sinon impossible.
+ * Peu de STUN : assez pour le même Wi‑Fi, sans ralentir la collecte.
+ * Trop d'entrées (53, nextcloud…) allongeait le délai avant le relais.
  */
 export const PUBLIC_STUN_URLS = [
   "stun:stun.l.google.com:19302",
   "stun:stun1.l.google.com:19302",
   "stun:stun.cloudflare.com:3478",
-  "stun:stun.cloudflare.com:53",
-  "stun:stun.nextcloud.com:443",
 ];
 
 /**
- * Relais public (UDP 80 + TCP 443) utilisé seulement si aucun TURN maison
- * n'est configuré. Le secret est celui publié pour l'auth statique coturn.
- * Le média reste chiffré (DTLS-SRTP) : le relais ne voit pas la voix.
+ * Relais public si aucun TURN maison. Deux chemins seulement :
+ * TLS/TCP 443 (Wi‑Fi publics filtrés) puis UDP 443.
+ * Le média reste chiffré (DTLS-SRTP).
  */
-/** 443 d'abord : c'est le port qui passe quand 3478 et parfois 80 sont filtrés. */
 export const OPEN_RELAY_URLS = [
   "turns:staticauth.openrelay.metered.ca:443?transport=tcp",
   "turn:staticauth.openrelay.metered.ca:443",
-  "turn:staticauth.openrelay.metered.ca:443?transport=tcp",
-  "turn:staticauth.openrelay.metered.ca:80",
-  "turn:staticauth.openrelay.metered.ca:80?transport=tcp",
 ];
 
 export const OPEN_RELAY_SECRET = "openrelayprojectsecret";
@@ -59,9 +52,8 @@ function splitUrls(raw: string | undefined): string[] {
 }
 
 /**
- * STUN pour le chemin direct entre réseaux, plus un TURN.
- * Le TURN maison (TURN_URLS + secret ou identifiants) prime.
- * Sinon le relais public permet l'appel derrière un autre routeur ou à l'étranger.
+ * STUN pour le chemin direct, plus un TURN court.
+ * Le TURN maison (TURN_URLS) prime sur le relais public.
  */
 export function buildIceServers(params: {
   userId: string;

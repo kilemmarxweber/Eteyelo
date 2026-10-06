@@ -61,8 +61,14 @@ test("sans TURN maison, un relais internet est ajouté", () => {
   assert.ok(turns[0]?.credential);
   assert.ok(String(turns[0]?.urls).includes(":443"));
   assert.ok(servers.some((s) => s.urls === "stun:stun.cloudflare.com:3478"));
-  assert.ok(servers.some((s) => s.urls === "stun:stun.cloudflare.com:53"));
-  assert.ok(servers.some((s) => s.urls === "stun:stun.nextcloud.com:443"));
+  assert.equal(
+    servers.some((s) => s.urls === "stun:stun.cloudflare.com:53"),
+    false,
+  );
+  assert.equal(
+    servers.some((s) => String(s.urls).includes(":80")),
+    false,
+  );
 });
 
 test("TURN_URLS maison remplace le relais public", () => {
