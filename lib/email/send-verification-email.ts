@@ -1,3 +1,10 @@
+import {
+  dayGreetingMessageKey,
+  getMessagingTranslator,
+  resolveMessagingLocaleForUser,
+  resolveDayGreetingPeriod,
+  type MessagingLocale,
+} from "@/lib/messaging-locale";
 import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
@@ -14,34 +21,44 @@ export async function sendVerificationEmail(input: {
   name?: string;
   subject?: string;
   organizationId?: string | null;
+  userLocale?: MessagingLocale | null;
 }): Promise<void> {
-  const greeting = input.name?.trim() ? `Bonjour ${input.name.trim()}` : "Bonjour";
-  const subject = input.subject ?? `${APP_NAME} — Confirmez votre adresse email`;
-  const introText = `${greeting}, une dernière étape pour activer votre compte ${APP_NAME} : confirmez votre adresse email en cliquant sur le bouton ci-dessous.`;
+  const locale = resolveMessagingLocaleForUser({
+    branch: null,
+    userLocale: input.userLocale,
+  });
+  const t = await getMessagingTranslator(locale);
+  const greeting = t(dayGreetingMessageKey(resolveDayGreetingPeriod()));
+  const hello = input.name?.trim()
+    ? t("common.hello", { greeting, name: input.name.trim() })
+    : t("common.helloBare", { greeting });
+  const subject =
+    input.subject ?? t("emailVerification.subject", { app: APP_NAME });
+  const introText = `${hello} ${t("emailVerification.intro", { app: APP_NAME })}`.trim();
 
   const text = [
-    `${greeting},`,
+    hello,
     "",
-    "Cliquez sur le lien ci-dessous pour confirmer votre adresse email :",
+    t("emailVerification.linkHint"),
     input.url,
     "",
-    "Si vous n’êtes pas à l’origine de cette demande, ignorez ce message.",
+    t("common.ignoreIfUnexpected"),
     "",
-    `— L’équipe ${APP_NAME}`,
+    t("common.signatureTeam", { app: APP_NAME }),
   ].join("\n");
 
   const bodyHtml = `
     <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">
-      Si vous n’êtes pas à l’origine de cette demande, ignorez simplement ce message.
+      ${escapeHtml(t("common.ignoreIfUnexpected"))}
     </p>
   `;
 
   const html = emailLayoutHtml({
     appName: APP_NAME,
-    title: "Confirmez votre adresse email",
+    title: t("emailVerification.title"),
     intro: escapeHtml(introText),
     bodyHtml,
-    cta: { href: input.url, label: "Confirmer mon adresse email" },
+    cta: { href: input.url, label: t("emailVerification.cta") },
   });
 
   try {
@@ -51,6 +68,7 @@ export async function sendVerificationEmail(input: {
       whatsappName: input.name,
       organizationId: input.organizationId,
       notificationEvent: "emailVerification",
+      locale,
       subject,
       text,
       html,

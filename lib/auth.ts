@@ -135,11 +135,15 @@ const authOptions = {
   },
   emailVerification: {
     sendVerificationEmail: async ({ user, url }) => {
+      const { normalizeUserLocale } = await import("@/lib/user-locale");
       void sendVerificationEmail({
         to: user.email,
         phone: (user as { telephone?: string | null }).telephone,
         url,
         name: user.name,
+        userLocale: normalizeUserLocale(
+          (user as { locale?: string | null }).locale,
+        ),
       });
     },
   },

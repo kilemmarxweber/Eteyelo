@@ -97,7 +97,9 @@ export async function sendNewUserCredentialsEmail(input: {
     ...(branchPhone
       ? [`${t("common.branchPhone")} : ${branchPhone}`]
       : []),
-    ...(branchAddress ? [`Adresse branche : ${branchAddress}`] : []),
+    ...(branchAddress
+      ? [`${t("common.branchAddress")} : ${branchAddress}`]
+      : []),
     `${t("common.temporaryPassword")} : ${temporaryPassword}`,
     "",
     t("common.connectHere", { url: loginUrl }),

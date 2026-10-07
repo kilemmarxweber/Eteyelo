@@ -9,6 +9,7 @@ import {
 } from "./smtp-circuit";
 
 import type { NotificationEvent } from "@/lib/notification-channels-shared";
+import type { MessagingLocale } from "@/lib/messaging-locale";
 
 export type MailPayload = {
   from?: string;
@@ -28,6 +29,8 @@ export type MailPayload = {
   organizationId?: string | null;
   /** Si fourni, Mail / WhatsApp suivent la matrice Paramètres → Notifications. */
   notificationEvent?: NotificationEvent;
+  /** Locale salutation miroir Klambo / WhatsApp. */
+  locale?: MessagingLocale | null;
 };
 
 let transporter: Mail | null = null;
@@ -167,12 +170,25 @@ function queueWhatsAppMirror(payload: MailPayload): void {
       const { deliverSchoolNotify } = await import(
         "@/lib/notify/deliver-school-notify"
       );
+      const {
+        dayGreetingMessageKey,
+        formatMessagingHello,
+        getMessagingTranslator,
+        resolveDayGreetingPeriod,
+      } = await import("@/lib/messaging-locale");
+      const { normalizeUserLocale } = await import("@/lib/user-locale");
+      const locale = normalizeUserLocale(payload.locale);
+      const t = await getMessagingTranslator(locale);
+      const greetingWord = t(
+        dayGreetingMessageKey(resolveDayGreetingPeriod()),
+      );
       const greeting = payload.whatsappName?.trim()
-        ? `Bonjour ${payload.whatsappName.trim()},`
-        : "Bonjour,";
+        ? formatMessagingHello(t, payload.whatsappName)
+        : t("common.helloBare", { greeting: greetingWord });
       await deliverSchoolNotify({
         to: phone,
         organizationId: payload.organizationId,
+        locale,
         queueKind: "other",
         parts: [greeting, payload.subject, payload.text],
       });

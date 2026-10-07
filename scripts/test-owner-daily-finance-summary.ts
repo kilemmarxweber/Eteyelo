@@ -3,6 +3,8 @@
  * Run: pnpm exec tsx scripts/test-owner-daily-finance-summary.ts
  */
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import {
   formatOwnerDailyFinanceText,
@@ -10,6 +12,7 @@ import {
   hasOwnerDailyFinanceActivity,
   isOwnerDailyFinanceSunday,
   type OwnerDailyFinanceSummary,
+  type OwnerDailyFinanceTranslate,
 } from "../lib/reports/owner-daily-finance-summary";
 import { dayRangeInAppTimezone, getAppWeekday } from "../lib/timezone";
 
@@ -17,6 +20,31 @@ function test(name: string, assertion: () => void) {
   assertion();
   console.log(`✓ ${name}`);
 }
+
+function loadNotifyT(locale: "fr" | "en" | "pt"): OwnerDailyFinanceTranslate {
+  const messages = JSON.parse(
+    readFileSync(
+      join(process.cwd(), "messages", locale, "notifications.json"),
+      "utf8",
+    ),
+  ) as Record<string, unknown>;
+  return (key, values) => {
+    const parts = key.split(".");
+    let cur: unknown = messages;
+    for (const part of parts) {
+      if (!cur || typeof cur !== "object") return key;
+      cur = (cur as Record<string, unknown>)[part];
+    }
+    if (typeof cur !== "string") return key;
+    return cur.replace(/\{(\w+)\}/g, (_, name: string) =>
+      String(values?.[name] ?? `{${name}}`),
+    );
+  };
+}
+
+const tFr = loadNotifyT("fr");
+const tPt = loadNotifyT("pt");
+const tEn = loadNotifyT("en");
 
 const sample: OwnerDailyFinanceSummary = {
   organizationId: "org1",
@@ -101,7 +129,7 @@ test("hasOwnerDailyFinanceActivity : mouvement ou inscription → true", () => {
 });
 
 test("format texte contient établissements et totaux", () => {
-  const text = formatOwnerDailyFinanceText(sample);
+  const text = formatOwnerDailyFinanceText(sample, tFr);
   assert.match(text, /Établissement ECPEL/);
   assert.match(text, /Établissement CEPP/);
   assert.match(text, /Entrées/);
@@ -113,8 +141,28 @@ test("format texte contient établissements et totaux", () => {
   assert.match(text, /30 élèves/);
 });
 
+test("format texte PT / EN (contenu, pas seulement salutation)", () => {
+  const pt = formatOwnerDailyFinanceText(sample, tPt);
+  assert.match(pt, /Estabelecimento ECPEL/);
+  assert.match(pt, /Entradas/);
+  assert.match(pt, /Saídas/);
+  assert.match(pt, /Caixa real/);
+  assert.match(pt, /Novos inscritos/);
+  assert.match(pt, /30 alunos/);
+  assert.doesNotMatch(pt, /Caisse|Entrées|élèves/);
+
+  const en = formatOwnerDailyFinanceText(sample, tEn);
+  assert.match(en, /School ECPEL/);
+  assert.match(en, /Income/);
+  assert.match(en, /Expenses/);
+  assert.match(en, /Cash on hand/);
+  assert.match(en, /New enrollments/);
+  assert.match(en, /30 students/);
+  assert.doesNotMatch(en, /Caisse|Entrées|élèves/);
+});
+
 test("format WhatsApp compact type exemple métier", () => {
-  const lines = formatOwnerDailyFinanceWhatsAppLines(sample);
+  const lines = formatOwnerDailyFinanceWhatsAppLines(sample, tFr);
   assert.equal(
     lines[0],
     "Établissement ECPEL : 15.000 Kz, Nouveau inscrit 10 élèves",

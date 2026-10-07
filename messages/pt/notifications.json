@@ -45,7 +45,47 @@
     "signatureApp": "— {app}",
     "signatureTeam": "— A equipa {app}",
     "defaultRole": "Utilizador",
-    "defaultParent": "Encarregado"
+    "defaultParent": "Encarregado",
+    "branchAddress": "Morada da filial",
+    "teacher": "Professor",
+    "staff": "Pessoal",
+    "status": "Estado",
+    "rule": "Regra",
+    "type": "Tipo",
+    "course": "Disciplina",
+    "helloBare": "{greeting},",
+    "ignoreIfUnexpected": "Se não pediu isto, ignore esta mensagem.",
+    "openAdmin": "Abrir a administração",
+    "visitKlambo": "Visitar o Klambocore"
+  },
+  "ownerDailyFinance": {
+    "subject": "{app} — Situação financeira do dia ({date})",
+    "title": "Situação financeira do dia",
+    "titleWithDate": "Situação financeira — {date}",
+    "intro": "segue a situação de caixa e das inscrições dos seus estabelecimentos.",
+    "waIntro": "Segue a situação de caixa e das inscrições.",
+    "heading": "Situação financeira do dia — {date}",
+    "establishment": "Estabelecimento {name}:",
+    "income": "Entradas",
+    "expenses": "Saídas",
+    "cash": "Caixa",
+    "cashReal": "Caixa real",
+    "newEnrollments": "Novos inscritos",
+    "newEnrollee": "Novo inscrito",
+    "enrolledOne": "{count} inscrito",
+    "enrolledMany": "{count} inscritos",
+    "enrolledParen": "{count} inscrito(s)",
+    "studentOne": "{count} aluno",
+    "studentMany": "{count} alunos",
+    "studentParen": "{count} aluno(s)",
+    "total": "Total",
+    "branchValue": "{incomeLabel} {income} · {expensesLabel} {expenses} · {cashLabel} {cash} · {enrolled}",
+    "totalValue": "{cashLabel} {cash} · {students}",
+    "totalLine": "Total: {cashLabel} {cash} · {students}",
+    "totalsIncomeExpenses": "{incomeLabel} {income} · {expensesLabel} {expenses}",
+    "waBranchLine": "Estabelecimento {name}: {cash}, {newEnrollee} {students}",
+    "waTotalLine": "Total {cash} e {students}",
+    "waBranchCash": "{cashLabel} {cash} · {enrolled}"
   },
   "attendance": {
     "absence": {
@@ -159,5 +199,79 @@
     "title": "Inscrição recebida",
     "intro": "recebemos o seu pedido de inscrição.",
     "note": "O seu processo foi enviado ao estabelecimento. Será contactado assim que houver uma decisão."
+  },
+  "payroll": {
+    "subject": "Impacto na remuneração — {status}",
+    "title": "Impacto na remuneração",
+    "intro": "um evento de presença pode afetar a sua remuneração.",
+    "impactLine": "Um evento de presença pode afetar a sua remuneração: {status}.",
+    "estimatedDeduction": "Retenção estimada",
+    "footer": "O montante definitivo consta no recibo de vencimento do mês.",
+    "statusAbsent": "Falta",
+    "statusLate": "Atraso",
+    "statusEarlyExit": "Saída antecipada",
+    "ruleAbsentSecondary": "falta não justificada: retenção da sessão",
+    "ruleAbsentPrimary": "falta não justificada: retenção do valor real da sessão (bruto ÷ sessões do mês)",
+    "ruleEarlyExit": "minutos não cumpridos até ao fim da sessão",
+    "ruleLate": "minutos além da franquia de {grace} min (atraso ≤ {grace} min: autorizado, registado)"
+  },
+  "profileUpdate": {
+    "subject": "{app} — O seu perfil foi alterado",
+    "title": "Perfil atualizado",
+    "intro": "as informações do seu perfil {app} foram atualizadas. Se esta alteração não foi feita por si, contacte rapidamente a administração.",
+    "body": "As informações do seu perfil foram alteradas.",
+    "security": "Se não foi você a fazer esta alteração, contacte rapidamente a administração.",
+    "hint": "Pode verificar as suas informações iniciando sessão em klambocore.com.",
+    "cta": "Ver o meu perfil"
+  },
+  "invitation": {
+    "subject": "{app} — Convite para juntar-se a {org}",
+    "title": "Convite para juntar-se a uma organização",
+    "intro": "{inviter} convida-o a juntar-se a {org} no {app} como {role}.",
+    "defaultInviter": "Um administrador",
+    "accept": "Aceitar o convite",
+    "acceptUrl": "Aceitar o convite: {url}",
+    "scopeNote": "Vai juntar-se apenas a esta organização. Nenhum dado de outra organização será partilhado ou copiado.",
+    "ignore": "Se não esperava este convite, ignore esta mensagem."
+  },
+  "emailVerification": {
+    "subject": "{app} — Confirme o seu endereço de email",
+    "title": "Confirme o seu endereço de email",
+    "intro": "um último passo para ativar a sua conta {app}: confirme o seu endereço de email clicando no botão abaixo.",
+    "linkHint": "Clique no link abaixo para confirmar o seu endereço de email:",
+    "cta": "Confirmar o meu email"
+  },
+  "branchSubmission": {
+    "inscriptionTitle": "Novo pedido de inscrição",
+    "candidatureTitle": "Nova candidatura recebida",
+    "subject": "{app} — {title} ({reference})",
+    "inscriptionIntro": "foi enviado um novo pedido de inscrição a « {school} » via Klambocore. Referência {reference}.",
+    "candidatureIntro": "foi enviada uma nova candidatura a « {school} » via Klambocore. Referência {reference}.",
+    "inscriptionBody": "Foi registada uma nova inscrição para « {school} ».",
+    "candidatureBody": "Foi registada uma nova candidatura para « {school} ».",
+    "submitterInscription": "Encarregado / depositante",
+    "submitterCandidature": "Candidato",
+    "subjectInscription": "Aluno / formando",
+    "subjectCandidature": "Cargo",
+    "candidateEmail": "Email do candidato",
+    "desiredLevel": "Turma / nível pretendido",
+    "desiredLevels": "Turmas / níveis pretendidos",
+    "adminHint": "Inicie sessão no espaço de administração para analisar o processo.",
+    "adminHintHtml": "Inicie sessão no espaço de administração para analisar e tratar este processo."
+  },
+  "jobApplication": {
+    "subject": "{app} — Candidatura recebida ({reference})",
+    "title": "Candidatura recebida",
+    "intro": "a sua candidatura de {role} foi enviada ao estabelecimento « {school} ». O processo está registado com a referência {reference} e será analisado pelo estabelecimento.",
+    "bodyLead": "Recebemos a sua candidatura no Klambocore.",
+    "jobType": "Tipo de cargo",
+    "note": "O seu processo foi enviado ao estabelecimento. Será contactado por email em caso de seguimento favorável."
+  },
+  "schoolRegistration": {
+    "subject": "{app} — Pedido de criação recebido ({reference})",
+    "title": "Pedido de criação de estabelecimento recebido",
+    "intro": "recebemos o seu pedido de criação de estabelecimento para « {school} ». O processo está registado com a referência {reference} e será analisado pela equipa Klambocore antes de ficar online.",
+    "bodyLead": "Recebemos o seu pedido de criação de estabelecimento no {app}.",
+    "note": "O seu pedido será analisado pela Klambocore. Será contactado por email ou telefone assim que houver uma decisão e o estabelecimento for criado na plataforma."
   }
 }

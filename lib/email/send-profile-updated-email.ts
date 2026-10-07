@@ -1,3 +1,10 @@
+import {
+  formatMessagingHello,
+  getMessagingTranslator,
+  resolveMessagingLocaleForUser,
+  resolveSenderMessagingLocale,
+  type MessagingLocale,
+} from "@/lib/messaging-locale";
 import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
@@ -13,34 +20,47 @@ export async function sendProfileUpdatedEmail(input: {
   phone?: string | null;
   name: string;
   organizationId?: string | null;
+  branchId?: string | null;
+  userLocale?: MessagingLocale | null;
 }) {
-  const subject = `${APP_NAME} — Votre profil a été modifié`;
-  const introText = `Bonjour ${input.name}, les informations de votre profil ${APP_NAME} viennent d’être mises à jour. Si cette modification ne vient pas de vous, contactez rapidement l’administration.`;
+  const locale = input.branchId
+    ? await resolveSenderMessagingLocale({
+        locale: input.userLocale,
+        branchId: input.branchId,
+      })
+    : resolveMessagingLocaleForUser({
+        branch: null,
+        userLocale: input.userLocale,
+      });
+
+  const t = await getMessagingTranslator(locale);
+  const hello = formatMessagingHello(t, input.name);
+  const subject = t("profileUpdate.subject", { app: APP_NAME });
+  const introText = `${hello} ${t("profileUpdate.intro", { app: APP_NAME })}`.trim();
   const loginUrl = getSignInUrl();
 
   const text = [
-    `Bonjour ${input.name},`,
+    hello,
     "",
-    "Les informations de votre profil viennent d’être modifiées.",
+    t("profileUpdate.body"),
     "",
-    "Si vous n’êtes pas à l’origine de cette modification, contactez rapidement l’administration.",
+    t("profileUpdate.security"),
     "",
-    `— L’équipe ${APP_NAME}`,
+    t("common.signatureTeam", { app: APP_NAME }),
   ].join("\n");
 
   const bodyHtml = `
     <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">
-      Vous pouvez vérifier vos informations en vous connectant à votre espace sur
-      <a href="${escapeHtml(loginUrl)}" style="color:#1d4ed8;text-decoration:none;">klambocore.com</a>.
+      ${escapeHtml(t("profileUpdate.hint"))}
     </p>
   `;
 
   const html = emailLayoutHtml({
     appName: APP_NAME,
-    title: "Profil mis à jour",
+    title: t("profileUpdate.title"),
     intro: escapeHtml(introText),
     bodyHtml,
-    cta: { href: loginUrl, label: "Voir mon profil" },
+    cta: { href: loginUrl, label: t("profileUpdate.cta") },
   });
 
   await sendMail({
@@ -49,6 +69,7 @@ export async function sendProfileUpdatedEmail(input: {
     whatsappName: input.name,
     organizationId: input.organizationId,
     notificationEvent: "profileUpdate",
+    locale,
     subject,
     text,
     html,

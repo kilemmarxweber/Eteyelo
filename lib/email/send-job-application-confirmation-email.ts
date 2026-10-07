@@ -1,3 +1,9 @@
+import {
+  formatMessagingHello,
+  getMessagingTranslator,
+  resolveSenderMessagingLocale,
+  type MessagingLocale,
+} from "@/lib/messaging-locale";
 import { sendMail, isSmtpConfigured } from "./mailer";
 import {
   DEFAULT_APP_NAME,
@@ -14,47 +20,81 @@ export async function sendJobApplicationConfirmationEmail(input: {
   reference: string;
   applicationType: "TEACHER" | "PERSONNEL";
   branchName: string;
+  organizationId?: string | null;
+  branchId?: string | null;
+  locale?: MessagingLocale | null;
 }): Promise<void> {
+  const locale = await resolveSenderMessagingLocale({
+    locale: input.locale,
+    branchId: input.branchId,
+  });
+  const t = await getMessagingTranslator(locale);
   const roleLabel =
-    input.applicationType === "TEACHER" ? "Enseignant" : "Personnel";
-  const subject = `${APP_NAME} — Candidature reçue (${input.reference})`;
-  const introText = `Bonjour ${input.candidateName}, votre candidature ${roleLabel.toLowerCase()} a bien été envoyée à l'établissement « ${input.branchName} ». Votre dossier est enregistré sous la référence ${input.reference} et sera examiné par l'établissement.`;
+    input.applicationType === "TEACHER"
+      ? t("common.teacher")
+      : t("common.staff");
+  const hello = formatMessagingHello(t, input.candidateName);
+  const subject = t("jobApplication.subject", {
+    app: APP_NAME,
+    reference: input.reference,
+  });
+  const introText = `${hello} ${t("jobApplication.intro", {
+    role: roleLabel.toLowerCase(),
+    school: input.branchName,
+    reference: input.reference,
+  })}`.trim();
 
   const text = [
-    `Bonjour ${input.candidateName},`,
+    hello,
     "",
-    "Nous avons bien reçu votre candidature sur Klambocore.",
+    t("jobApplication.bodyLead"),
     "",
-    `Référence : ${input.reference}`,
-    `Type de poste : ${roleLabel}`,
-    `Établissement : ${input.branchName}`,
+    `${t("common.reference")} : ${input.reference}`,
+    `${t("jobApplication.jobType")} : ${roleLabel}`,
+    `${t("common.school")} : ${input.branchName}`,
     "",
-    "Votre dossier a été transmis à l'établissement. Vous serez contacté par email en cas de suite favorable.",
+    t("jobApplication.note"),
     "",
     `klambocore.com`,
   ].join("\n");
 
   const bodyHtml = `
     ${emailInfoCard([
-      { label: "Référence", valueHtml: escapeHtml(input.reference) },
-      { label: "Type de poste", valueHtml: escapeHtml(roleLabel) },
-      { label: "Établissement", valueHtml: escapeHtml(input.branchName) },
+      {
+        label: t("common.reference"),
+        valueHtml: escapeHtml(input.reference),
+      },
+      {
+        label: t("jobApplication.jobType"),
+        valueHtml: escapeHtml(roleLabel),
+      },
+      {
+        label: t("common.school"),
+        valueHtml: escapeHtml(input.branchName),
+      },
     ])}
     <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">
-      Votre dossier a été transmis à l'établissement. Vous serez contacté par email en cas de suite favorable.
+      ${escapeHtml(t("jobApplication.note"))}
     </p>
   `;
 
   const html = emailLayoutHtml({
     appName: APP_NAME,
-    title: "Candidature bien reçue",
+    title: t("jobApplication.title"),
     intro: escapeHtml(introText),
     bodyHtml,
   });
 
   if (isSmtpConfigured()) {
     try {
-      await sendMail({ to: input.to, subject, text, html });
+      await sendMail({
+        to: input.to,
+        subject,
+        text,
+        html,
+        organizationId: input.organizationId,
+        locale,
+      });
       return;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

@@ -381,11 +381,11 @@ export async function registerStudentsOnline(
         branchName: branch.name,
         submitterName: recipientName || "Responsable",
         subjectName: studentsSummary,
-        detailLabel:
-          data.students.length > 1
-            ? "Classes / niveaux souhaités"
-            : "Classe / niveau souhaité",
+        detailKind:
+          data.students.length > 1 ? "desiredLevels" : "desiredLevel",
         detailValue: levelsSummary,
+        organizationId: branch.organizationId,
+        branchId: branch.id,
       });
     }
   } catch (error) {

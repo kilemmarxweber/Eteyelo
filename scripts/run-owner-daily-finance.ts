@@ -20,6 +20,10 @@ import {
   shouldSkipOwnerDailyFinanceReport,
 } from "../lib/reports/owner-daily-finance-summary";
 import { sendOwnerDailyFinanceSummary } from "../lib/email/send-owner-daily-finance-summary";
+import {
+  getMessagingTranslator,
+  resolveSenderMessagingLocale,
+} from "../lib/messaging-locale";
 import { APP_TIMEZONE } from "../lib/timezone";
 
 const force = process.argv.includes("--force");
@@ -91,8 +95,12 @@ async function diagnoseOrg(org: OrgRef) {
     `Activité du jour: ${hasActivity ? "oui" : "non"} (branches actives dans le résumé: ${summary?.branches.length ?? 0})`,
   );
   if (summary) {
-    console.log("--- Aperçu ---");
-    console.log(formatOwnerDailyFinanceText(summary));
+    const locale = await resolveSenderMessagingLocale({
+      branchId: summary.branches[0]?.branchId ?? null,
+    });
+    const t = await getMessagingTranslator(locale);
+    console.log(`--- Aperçu (${locale}) ---`);
+    console.log(formatOwnerDailyFinanceText(summary, t));
   }
 
   return { owners, channels, quiet, summary, hasActivity };

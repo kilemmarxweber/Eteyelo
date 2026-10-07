@@ -154,6 +154,7 @@ export async function updateCurrentProfileAction(
         address: true,
         image: true,
         dateOfBirth: true,
+        locale: true,
       },
     });
 
@@ -174,11 +175,13 @@ export async function updateCurrentProfileAction(
           orderBy: { createdAt: "desc" },
           select: { organizationId: true },
         });
+        const { normalizeUserLocale } = await import("@/lib/user-locale");
         await sendProfileUpdatedEmail({
           to: updatedUser.email,
           phone: updatedUser.telephone,
           name: updatedUser.name,
           organizationId: membership?.organizationId,
+          userLocale: normalizeUserLocale(updatedUser.locale),
         });
       } catch (error) {
         console.error("[updateCurrentProfileAction] email profil:", error);

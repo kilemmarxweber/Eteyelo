@@ -45,7 +45,47 @@
     "signatureApp": "— {app}",
     "signatureTeam": "— The {app} team",
     "defaultRole": "User",
-    "defaultParent": "Parent"
+    "defaultParent": "Parent",
+    "branchAddress": "Branch address",
+    "teacher": "Teacher",
+    "staff": "Staff",
+    "status": "Status",
+    "rule": "Rule",
+    "type": "Type",
+    "course": "Course",
+    "helloBare": "{greeting},",
+    "ignoreIfUnexpected": "If you did not request this, please ignore this message.",
+    "openAdmin": "Open administration",
+    "visitKlambo": "Visit Klambocore"
+  },
+  "ownerDailyFinance": {
+    "subject": "{app} — Daily finance summary ({date})",
+    "title": "Daily finance summary",
+    "titleWithDate": "Finance summary — {date}",
+    "intro": "here is the cash position and enrollment update for your schools.",
+    "waIntro": "Here is the cash position and enrollment update.",
+    "heading": "Daily finance summary — {date}",
+    "establishment": "School {name}:",
+    "income": "Income",
+    "expenses": "Expenses",
+    "cash": "Cash",
+    "cashReal": "Cash on hand",
+    "newEnrollments": "New enrollments",
+    "newEnrollee": "New enrollment",
+    "enrolledOne": "{count} enrolled",
+    "enrolledMany": "{count} enrolled",
+    "enrolledParen": "{count} enrolled",
+    "studentOne": "{count} student",
+    "studentMany": "{count} students",
+    "studentParen": "{count} student(s)",
+    "total": "Total",
+    "branchValue": "{incomeLabel} {income} · {expensesLabel} {expenses} · {cashLabel} {cash} · {enrolled}",
+    "totalValue": "{cashLabel} {cash} · {students}",
+    "totalLine": "Total: {cashLabel} {cash} · {students}",
+    "totalsIncomeExpenses": "{incomeLabel} {income} · {expensesLabel} {expenses}",
+    "waBranchLine": "School {name}: {cash}, {newEnrollee} {students}",
+    "waTotalLine": "Total {cash} and {students}",
+    "waBranchCash": "{cashLabel} {cash} · {enrolled}"
   },
   "attendance": {
     "absence": {
@@ -159,5 +199,79 @@
     "title": "Registration received",
     "intro": "we have received your registration request.",
     "note": "Your file has been forwarded to the school. You will be contacted once a decision is made."
+  },
+  "payroll": {
+    "subject": "Payroll impact — {status}",
+    "title": "Payroll impact",
+    "intro": "an attendance event may affect your pay.",
+    "impactLine": "An attendance event may affect your pay: {status}.",
+    "estimatedDeduction": "Estimated deduction",
+    "footer": "The final amount appears on the monthly payslip.",
+    "statusAbsent": "Absence",
+    "statusLate": "Late",
+    "statusEarlyExit": "Early exit",
+    "ruleAbsentSecondary": "unjustified absence: deduction for the session",
+    "ruleAbsentPrimary": "unjustified absence: deduction of the real session value (gross ÷ sessions in the month)",
+    "ruleEarlyExit": "minutes not worked until the end of the session",
+    "ruleLate": "minutes beyond the {grace} min grace period (late ≤ {grace} min: allowed, recorded)"
+  },
+  "profileUpdate": {
+    "subject": "{app} — Your profile was updated",
+    "title": "Profile updated",
+    "intro": "your {app} profile details were updated. If you did not make this change, contact the administration right away.",
+    "body": "Your profile details were updated.",
+    "security": "If you did not make this change, contact the administration right away.",
+    "hint": "You can review your details by signing in at klambocore.com.",
+    "cta": "View my profile"
+  },
+  "invitation": {
+    "subject": "{app} — Invitation to join {org}",
+    "title": "Invitation to join an organization",
+    "intro": "{inviter} invites you to join {org} on {app} as {role}.",
+    "defaultInviter": "An administrator",
+    "accept": "Accept invitation",
+    "acceptUrl": "Accept invitation: {url}",
+    "scopeNote": "You will join only this organization. No data from another organization will be shared or copied.",
+    "ignore": "If you were not expecting this invitation, ignore this message."
+  },
+  "emailVerification": {
+    "subject": "{app} — Confirm your email address",
+    "title": "Confirm your email address",
+    "intro": "one last step to activate your {app} account: confirm your email address by clicking the button below.",
+    "linkHint": "Click the link below to confirm your email address:",
+    "cta": "Confirm my email address"
+  },
+  "branchSubmission": {
+    "inscriptionTitle": "New registration request",
+    "candidatureTitle": "New job application received",
+    "subject": "{app} — {title} ({reference})",
+    "inscriptionIntro": "a new registration request was sent to “{school}” via Klambocore. Reference {reference}.",
+    "candidatureIntro": "a new job application was sent to “{school}” via Klambocore. Reference {reference}.",
+    "inscriptionBody": "A new registration was submitted for “{school}”.",
+    "candidatureBody": "A new job application was submitted for “{school}”.",
+    "submitterInscription": "Guardian / submitter",
+    "submitterCandidature": "Applicant",
+    "subjectInscription": "Student / learner",
+    "subjectCandidature": "Position",
+    "candidateEmail": "Applicant email",
+    "desiredLevel": "Requested class / level",
+    "desiredLevels": "Requested classes / levels",
+    "adminHint": "Sign in to your admin workspace to review the file.",
+    "adminHintHtml": "Sign in to your admin workspace to review and process this file."
+  },
+  "jobApplication": {
+    "subject": "{app} — Application received ({reference})",
+    "title": "Application received",
+    "intro": "your {role} application was sent to “{school}”. Your file is recorded under reference {reference} and will be reviewed by the school.",
+    "bodyLead": "We have received your application on Klambocore.",
+    "jobType": "Position type",
+    "note": "Your file was forwarded to the school. You will be contacted by email if there is a positive follow-up."
+  },
+  "schoolRegistration": {
+    "subject": "{app} — School creation request received ({reference})",
+    "title": "School creation request received",
+    "intro": "we have received your school creation request for “{school}”. Your file is recorded under reference {reference} and will be reviewed by the Klambocore team before going live.",
+    "bodyLead": "We have received your school creation request on {app}.",
+    "note": "Your request will be reviewed by Klambocore. You will be contacted by email or phone once a decision is made and the school is created on the platform."
   }
 }

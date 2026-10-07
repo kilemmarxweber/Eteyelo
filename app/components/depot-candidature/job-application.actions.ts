@@ -340,6 +340,8 @@ export async function submitJobApplication(raw: unknown) {
       reference,
       applicationType: data.applicationType,
       branchName: branch.name,
+      organizationId: branch.organizationId,
+      branchId: branch.id,
     });
   } catch (error) {
     console.error("JOB_APPLICATION_CONFIRMATION_EMAIL_ERROR:", error);
@@ -352,8 +354,16 @@ export async function submitJobApplication(raw: unknown) {
       kind: "candidature",
     });
     if (managerEmails.length > 0) {
+      const {
+        getBranchMessagingLocale,
+        getMessagingTranslator,
+      } = await import("@/lib/messaging-locale");
+      const locale = await getBranchMessagingLocale(branch.id);
+      const t = await getMessagingTranslator(locale);
       const roleLabel =
-        data.applicationType === "TEACHER" ? "Enseignant" : "Personnel";
+        data.applicationType === "TEACHER"
+          ? t("common.teacher")
+          : t("common.staff");
       await sendBranchSubmissionNotificationEmail({
         to: managerEmails,
         kind: "candidature",
@@ -361,8 +371,11 @@ export async function submitJobApplication(raw: unknown) {
         branchName: branch.name,
         submitterName: `${data.prenom} ${data.nom}`.trim(),
         subjectName: roleLabel,
-        detailLabel: "Email candidat",
+        detailKind: "candidateEmail",
         detailValue: data.email.toLowerCase(),
+        organizationId: branch.organizationId,
+        branchId: branch.id,
+        locale,
       });
     }
   } catch (error) {

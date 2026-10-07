@@ -149,6 +149,18 @@ async function sendAbsenceMail(input: {
 }
 
 export type AbsenceEmailAudience = "subject" | "parent" | "reviewer";
+export type AbsenceSubjectType = "TEACHER" | "PERSONNEL" | "STUDENT";
+
+function qualityLabel(
+  t: Awaited<ReturnType<typeof getMessagingTranslator>>,
+  subjectType: AbsenceSubjectType | null | undefined,
+  fallback: string,
+) {
+  if (subjectType === "TEACHER") return t("common.teacher");
+  if (subjectType === "PERSONNEL") return t("common.staff");
+  if (subjectType === "STUDENT") return t("common.student");
+  return fallback;
+}
 
 export async function sendAbsenceLifecycleEmail(input: {
   kind: AbsenceEmailKind;
@@ -160,6 +172,7 @@ export async function sendAbsenceLifecycleEmail(input: {
   contextLabel: string;
   occurredOn: Date;
   subjectLabel: string;
+  subjectType?: AbsenceSubjectType | null;
   justification?: string | null;
   reviewComment?: string | null;
   organizationId?: string | null;
@@ -177,7 +190,10 @@ export async function sendAbsenceLifecycleEmail(input: {
   const rows = [
     { label: schoolLabel, value: input.branchName },
     { label: t("common.person"), value: input.personName },
-    { label: t("common.quality"), value: input.subjectLabel },
+    {
+      label: t("common.quality"),
+      value: qualityLabel(t, input.subjectType, input.subjectLabel),
+    },
     { label: t("common.date"), value: dateLabel },
     { label: t("common.session"), value: input.contextLabel },
   ];

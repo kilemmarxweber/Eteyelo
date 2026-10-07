@@ -145,7 +145,16 @@ export async function notifyTeacherPayrollImpact(input: {
         select: {
           member: {
             select: {
-              user: { select: { id: true, name: true, prenom: true, postnom: true, email: true } },
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  prenom: true,
+                  postnom: true,
+                  email: true,
+                  telephone: true,
+                },
+              },
             },
           },
         },
@@ -299,30 +308,28 @@ export async function notifyTeacherPayrollImpact(input: {
 
   if (policy?.notifyByEmail !== false && estimate > 0) {
     await sendPayrollDeductionEmail({
-        to: user.email,
-        recipientName: [user.prenom, user.name, user.postnom].filter(Boolean).join(" "),
-        branchName: branch.name,
-        contextLabel,
-        occurredOn: session.date,
-        statusLabel:
-          input.status === "ABSENT"
-            ? "Absence"
-            : input.status === "EARLY_EXIT"
-              ? "Sortie anticipée"
-              : "Retard",
-        deduction: estimate,
-        currency: currency as CurrencyCode,
-        rule:
-          input.status === "ABSENT"
-            ? cycle === "SECONDAIRE"
-              ? "absence non justifiée : retenue de la séance"
-              : "absence non justifiée : retenue de la valeur réelle de la séance (brut ÷ séances du mois)"
-            : input.status === "EARLY_EXIT"
-              ? "minutes non effectuées jusqu'à la fin de la séance"
-              : `minutes au-delà de la franchise de ${grace} min (retard ≤ ${grace} min : autorisé, signalé)`,
-        organizationId: input.organizationId,
-      }).catch((error) => {
-        console.error("PAYROLL_EMAIL_ERROR", error);
-      });
+      to: user.email,
+      phone: user.telephone,
+      recipientName: [user.prenom, user.name, user.postnom]
+        .filter(Boolean)
+        .join(" "),
+      branchName: branch.name,
+      contextLabel,
+      occurredOn: session.date,
+      status:
+        input.status === "ABSENT"
+          ? "ABSENT"
+          : input.status === "EARLY_EXIT"
+            ? "EARLY_EXIT"
+            : "LATE",
+      deduction: estimate,
+      currency: currency as CurrencyCode,
+      graceMinutes: grace,
+      cycle,
+      organizationId: input.organizationId,
+      branchId: input.branchId,
+    }).catch((error) => {
+      console.error("PAYROLL_EMAIL_ERROR", error);
+    });
   }
 }

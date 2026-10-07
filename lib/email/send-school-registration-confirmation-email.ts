@@ -1,5 +1,12 @@
 import type { ManagedBranchType } from "@/lib/academic-structure";
 import { getBranchTypeLabel } from "@/lib/branch-capabilities";
+import {
+  dayGreetingMessageKey,
+  getMessagingTranslator,
+  resolveDayGreetingPeriod,
+  type MessagingLocale,
+} from "@/lib/messaging-locale";
+import { normalizeUserLocale } from "@/lib/user-locale";
 import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
@@ -15,76 +22,87 @@ type SchoolRegistrationConfirmationInput = {
   schoolName: string;
   reference: string;
   typebranch: ManagedBranchType;
+  locale?: MessagingLocale | null;
 };
 
-function formatBranchType(type: ManagedBranchType) {
-  return getBranchTypeLabel(type);
-}
-
-export function schoolRegistrationConfirmationTemplate(
+export async function schoolRegistrationConfirmationTemplate(
   input: SchoolRegistrationConfirmationInput,
 ) {
   const appName = input.appName ?? DEFAULT_APP_NAME;
-  const branchType = formatBranchType(input.typebranch);
-  const introText = `Bonjour, nous avons bien reçu votre demande de création d'établissement pour « ${input.schoolName} ». Votre dossier est enregistré sous la référence ${input.reference} et sera examiné par l'équipe Klambocore avant la mise en ligne sur la plateforme.`;
+  const locale = normalizeUserLocale(input.locale);
+  const t = await getMessagingTranslator(locale);
+  const branchType = getBranchTypeLabel(input.typebranch);
+  const greeting = t(dayGreetingMessageKey(resolveDayGreetingPeriod()));
+  const hello = t("common.helloBare", { greeting });
+  const introText = `${hello} ${t("schoolRegistration.intro", {
+    school: input.schoolName,
+    reference: input.reference,
+  })}`.trim();
 
   const text = [
-    "Bonjour,",
+    hello,
     "",
-    `Nous avons bien reçu votre demande de création d'établissement sur ${appName}.`,
+    t("schoolRegistration.bodyLead", { app: appName }),
     "",
-    `Référence : ${input.reference}`,
-    `Établissement : ${input.schoolName}`,
-    `Type : ${branchType}`,
+    `${t("common.reference")} : ${input.reference}`,
+    `${t("common.school")} : ${input.schoolName}`,
+    `${t("common.type")} : ${branchType}`,
     "",
-    "Votre demande sera examinée par Klambocore. Vous serez contacté par email ou téléphone une fois la décision prise et l'établissement créé sur la plateforme.",
+    t("schoolRegistration.note"),
     "",
     `klambocore.com`,
   ].join("\n");
 
   const bodyHtml = `
     ${emailInfoCard([
-      { label: "Référence", valueHtml: escapeHtml(input.reference) },
       {
-        label: "Établissement",
+        label: t("common.reference"),
+        valueHtml: escapeHtml(input.reference),
+      },
+      {
+        label: t("common.school"),
         valueHtml: escapeHtml(input.schoolName),
       },
-      { label: "Type", valueHtml: escapeHtml(branchType) },
+      { label: t("common.type"), valueHtml: escapeHtml(branchType) },
     ])}
     <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">
-      Votre demande de création d'établissement sera examinée par Klambocore.
-      Vous serez contacté par email ou téléphone dès que l'établissement sera
-      validé et créé sur la plateforme.
+      ${escapeHtml(t("schoolRegistration.note"))}
     </p>
   `;
 
   const html = emailLayoutHtml({
     appName,
-    title: "Demande de création d'établissement reçue",
+    title: t("schoolRegistration.title"),
     intro: escapeHtml(introText),
     bodyHtml,
     cta: {
       href: KLAMBOCORE_LOGIN_URL,
-      label: "Visiter Klambocore",
+      label: t("common.visitKlambo"),
     },
   });
 
   return {
-    subject: `${appName} — Demande de création reçue (${input.reference})`,
+    subject: t("schoolRegistration.subject", {
+      app: appName,
+      reference: input.reference,
+    }),
     text,
     html,
+    locale,
   };
 }
 
 export async function sendSchoolRegistrationConfirmationEmail(
   input: SchoolRegistrationConfirmationInput,
 ): Promise<void> {
-  const { subject, text, html } = schoolRegistrationConfirmationTemplate(input);
+  const { subject, text, html, locale } =
+    await schoolRegistrationConfirmationTemplate(input);
 
   await sendMail({
     to: input.to,
     subject,
     text,
     html,
+    locale,
   });
 }

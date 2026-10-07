@@ -15,6 +15,7 @@ import {
 } from "@/lib/messaging-locale";
 import { prepareNotifyDelivery } from "@/lib/notify/notify-message-card";
 import {
+  formatOwnerDailyFinanceDateLabel,
   formatOwnerDailyFinanceMoney,
   formatOwnerDailyFinanceText,
   type OwnerDailyFinanceRecipient,
@@ -43,45 +44,85 @@ export async function sendOwnerDailyFinanceSummary(input: {
     branchId: input.summary.branches[0]?.branchId ?? null,
   });
   const t = await getMessagingTranslator(locale);
+  const dateLabel = formatOwnerDailyFinanceDateLabel(
+    input.summary.dateKey,
+    locale,
+  );
+  const summary = { ...input.summary, dateLabel };
   const hello = formatMessagingHello(t, input.recipient.name);
-  const textBody = formatOwnerDailyFinanceText(input.summary);
-  const subject = `${APP_NAME} — Situation financière du jour (${input.summary.dateLabel})`;
-  const introBody = `voici la situation de caisse et des inscriptions de vos établissements.`;
-  const intro = `${hello} ${introBody}`;
+  const textBody = formatOwnerDailyFinanceText(summary, t);
+  const subject = t("ownerDailyFinance.subject", {
+    app: APP_NAME,
+    date: dateLabel,
+  });
+  const intro = `${hello} ${t("ownerDailyFinance.intro")}`.trim();
   const loginUrl = getSignInUrl();
 
-  const rows = input.summary.branches.map((branch) => ({
+  const rows = summary.branches.map((branch) => ({
     label: branch.branchName,
     valueHtml: escapeHtml(
-      `Entrées ${formatOwnerDailyFinanceMoney(branch.income, branch.currency)} · Sorties ${formatOwnerDailyFinanceMoney(branch.expenses, branch.currency)} · Caisse ${formatOwnerDailyFinanceMoney(branch.cashBalance, branch.currency)} · ${branch.newEnrollments} inscrit${branch.newEnrollments === 1 ? "" : "s"}`,
+      t("ownerDailyFinance.branchValue", {
+        incomeLabel: t("ownerDailyFinance.income"),
+        income: formatOwnerDailyFinanceMoney(branch.income, branch.currency),
+        expensesLabel: t("ownerDailyFinance.expenses"),
+        expenses: formatOwnerDailyFinanceMoney(
+          branch.expenses,
+          branch.currency,
+        ),
+        cashLabel: t("ownerDailyFinance.cash"),
+        cash: formatOwnerDailyFinanceMoney(
+          branch.cashBalance,
+          branch.currency,
+        ),
+        enrolled: t(
+          branch.newEnrollments === 1
+            ? "ownerDailyFinance.enrolledOne"
+            : "ownerDailyFinance.enrolledMany",
+          { count: branch.newEnrollments },
+        ),
+      }),
     ),
   }));
   rows.push({
-    label: "Total",
+    label: t("ownerDailyFinance.total"),
     valueHtml: escapeHtml(
-      `Caisse ${formatOwnerDailyFinanceMoney(input.summary.totalCashBalance, input.summary.currency)} · ${input.summary.totalNewEnrollments} élève${input.summary.totalNewEnrollments === 1 ? "" : "s"}`,
+      t("ownerDailyFinance.totalValue", {
+        cashLabel: t("ownerDailyFinance.cash"),
+        cash: formatOwnerDailyFinanceMoney(
+          summary.totalCashBalance,
+          summary.currency,
+        ),
+        students: t(
+          summary.totalNewEnrollments === 1
+            ? "ownerDailyFinance.studentOne"
+            : "ownerDailyFinance.studentMany",
+          { count: summary.totalNewEnrollments },
+        ),
+      }),
     ),
   });
 
   const html = emailLayoutHtml({
     appName: APP_NAME,
-    title: "Situation financière du jour",
+    title: t("ownerDailyFinance.title"),
     intro: escapeHtml(intro),
     bodyHtml: emailInfoCard(rows),
     cta: {
       href: loginUrl,
-      label: "Ouvrir mon compte",
+      label: t("common.openAccount"),
     },
   });
 
-  const text = [intro, "", textBody, "", `— ${APP_NAME}`].join("\n");
+  const text = [intro, "", textBody, "", t("common.signatureApp", { app: APP_NAME })].join(
+    "\n",
+  );
 
   let emailSent = false;
   if (allow.email && email) {
     try {
       await sendMail({
         to: email,
-        organizationId: input.summary.organizationId,
+        organizationId: summary.organizationId,
         notificationEvent: "ownerDailyFinance",
         subject,
         text,
@@ -101,25 +142,43 @@ export async function sendOwnerDailyFinanceSummary(input: {
     try {
       const { parts, richBody } = prepareNotifyDelivery({
         tone: "emerald",
-        brand: input.summary.organizationName || APP_NAME,
-        title: `Situation financière — ${input.summary.dateLabel}`,
-        intro: `${hello} Voici la situation de caisse et des inscriptions.`,
+        brand: summary.organizationName || APP_NAME,
+        title: t("ownerDailyFinance.titleWithDate", { date: dateLabel }),
+        intro: `${hello} ${t("ownerDailyFinance.waIntro")}`.trim(),
         rows: [
-          ...input.summary.branches.slice(0, 8).map((branch) => ({
+          ...summary.branches.slice(0, 8).map((branch) => ({
             label: branch.branchName,
-            value: `Caisse ${formatOwnerDailyFinanceMoney(branch.cashBalance, branch.currency)} · ${branch.newEnrollments} inscrit(s)`,
+            value: t("ownerDailyFinance.waBranchCash", {
+              cashLabel: t("ownerDailyFinance.cash"),
+              cash: formatOwnerDailyFinanceMoney(
+                branch.cashBalance,
+                branch.currency,
+              ),
+              enrolled: t("ownerDailyFinance.enrolledParen", {
+                count: branch.newEnrollments,
+              }),
+            }),
           })),
           {
-            label: "Total",
-            value: `Caisse ${formatOwnerDailyFinanceMoney(input.summary.totalCashBalance, input.summary.currency)} · ${input.summary.totalNewEnrollments} élève(s)`,
+            label: t("ownerDailyFinance.total"),
+            value: t("ownerDailyFinance.totalValue", {
+              cashLabel: t("ownerDailyFinance.cash"),
+              cash: formatOwnerDailyFinanceMoney(
+                summary.totalCashBalance,
+                summary.currency,
+              ),
+              students: t("ownerDailyFinance.studentParen", {
+                count: summary.totalNewEnrollments,
+              }),
+            }),
             kind: "highlight" as const,
           },
         ],
-        cta: { label: "Ouvrir mon compte", href: loginUrl },
+        cta: { label: t("common.openAccount"), href: loginUrl },
       });
       const wa = await sendTransactionalWhatsApp({
         to: phone,
-        organizationId: input.summary.organizationId,
+        organizationId: summary.organizationId,
         queueKind: "finance",
         locale,
         parts,

@@ -1,3 +1,11 @@
+import { orgRoleLabel } from "@/lib/org-role-labels";
+import {
+  dayGreetingMessageKey,
+  getMessagingTranslator,
+  resolveDayGreetingPeriod,
+  resolveSenderMessagingLocale,
+  type MessagingLocale,
+} from "@/lib/messaging-locale";
 import { sendMail, isSmtpConfigured } from "./mailer";
 import {
   DEFAULT_APP_NAME,
@@ -5,7 +13,6 @@ import {
   emailLayoutHtml,
   escapeHtml,
 } from "./email-layout";
-import { orgRoleLabel } from "@/lib/org-role-labels";
 
 const APP_NAME = DEFAULT_APP_NAME;
 
@@ -27,49 +34,69 @@ export async function sendOrganizationInvitationEmail(input: {
   role: string;
   inviterName?: string | null;
   organizationId?: string | null;
+  branchId?: string | null;
+  locale?: MessagingLocale | null;
 }): Promise<void> {
   const acceptUrl = getAcceptInvitationUrl(input.invitationId);
+  const locale = await resolveSenderMessagingLocale({
+    locale: input.locale,
+    branchId: input.branchId,
+  });
+  const t = await getMessagingTranslator(locale);
   const roleLabel = orgRoleLabel(input.role);
-  const inviter = input.inviterName?.trim() || "Un administrateur";
-  const subject = `${APP_NAME} — Invitation à rejoindre ${input.organizationName}`;
-  const introText = `${inviter} vous invite à rejoindre ${input.organizationName} sur ${APP_NAME} en tant que ${roleLabel}.`;
+  const inviter =
+    input.inviterName?.trim() || t("invitation.defaultInviter");
+  const greeting = t(dayGreetingMessageKey(resolveDayGreetingPeriod()));
+  const hello = t("common.helloBare", { greeting });
+  const subject = t("invitation.subject", {
+    app: APP_NAME,
+    org: input.organizationName,
+  });
+  const introText = t("invitation.intro", {
+    inviter,
+    org: input.organizationName,
+    app: APP_NAME,
+    role: roleLabel,
+  });
 
   const text = [
-    `Bonjour,`,
+    hello,
     "",
     introText,
     "",
-    `Organisation : ${input.organizationName}`,
-    `Rôle : ${roleLabel}`,
+    `${t("common.organization")} : ${input.organizationName}`,
+    `${t("common.role")} : ${roleLabel}`,
     "",
-    `Accepter l’invitation : ${acceptUrl}`,
+    t("invitation.acceptUrl", { url: acceptUrl }),
     "",
-    "Si vous n’attendiez pas cette invitation, ignorez ce message.",
+    t("invitation.ignore"),
     "",
-    `— L’équipe ${APP_NAME}`,
+    t("common.signatureTeam", { app: APP_NAME }),
   ].join("\n");
 
   const bodyHtml = `
     ${emailInfoCard([
-      { label: "Organisation", valueHtml: escapeHtml(input.organizationName) },
-      { label: "Rôle", valueHtml: escapeHtml(roleLabel) },
-      { label: "Email", valueHtml: escapeHtml(input.to) },
+      {
+        label: t("common.organization"),
+        valueHtml: escapeHtml(input.organizationName),
+      },
+      { label: t("common.role"), valueHtml: escapeHtml(roleLabel) },
+      { label: t("common.email"), valueHtml: escapeHtml(input.to) },
     ])}
     <p style="margin:16px 0 0;font-size:14px;line-height:1.7;color:#64748b;">
-      Vous rejoindrez uniquement cette organisation. Aucune donnée d’une autre
-      organisation ne sera partagée ni copiée.
+      ${escapeHtml(t("invitation.scopeNote"))}
     </p>
     <p style="margin:12px 0 0;font-size:14px;line-height:1.7;color:#64748b;">
-      Si vous n’êtes pas à l’origine de cette demande, ignorez ce message.
+      ${escapeHtml(t("common.ignoreIfUnexpected"))}
     </p>
   `;
 
   const html = emailLayoutHtml({
     appName: APP_NAME,
-    title: "Invitation à rejoindre une organisation",
-    intro: escapeHtml(introText),
+    title: t("invitation.title"),
+    intro: escapeHtml(`${hello} ${introText}`.trim()),
     bodyHtml,
-    cta: { href: acceptUrl, label: "Accepter l’invitation" },
+    cta: { href: acceptUrl, label: t("invitation.accept") },
   });
 
   if (isSmtpConfigured()) {
@@ -81,6 +108,7 @@ export async function sendOrganizationInvitationEmail(input: {
         html,
         organizationId: input.organizationId,
         notificationEvent: "invitation",
+        locale,
       });
       return;
     } catch (err: unknown) {

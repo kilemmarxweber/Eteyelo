@@ -16,7 +16,7 @@ export function formatExpectedSessionLabel(
       ? formatScheduleHour(endHour)
       : null;
   const timeLabel = end ? `${time}–${end}` : time;
-  const cours = teaching?.cours?.nameCours ?? "Cours";
+  const cours = teaching?.cours?.nameCours?.trim() || "—";
   const classe =
     teaching?.classe?.codeClasse ?? teaching?.classe?.nameClasse ?? null;
 

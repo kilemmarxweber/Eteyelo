@@ -130,6 +130,17 @@ test("catalogues notifications V1 : mêmes clés fr/en/pt", () => {
     "accountCreate.",
     "passwordReset.",
     "teacherSchedule.",
+    "ownerDailyFinance.",
+    "payroll.",
+    "profileUpdate.",
+    "invitation.",
+    "emailVerification.",
+    "branchSubmission.",
+    "jobApplication.",
+    "schoolRegistration.",
+    "common.branchAddress",
+    "common.teacher",
+    "common.staff",
   ];
   const root = join(process.cwd(), "messages");
   const maps = (["fr", "en", "pt"] as const).map((locale) => {

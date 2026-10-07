@@ -7,6 +7,13 @@ import {
   getAppWeekday,
 } from "@/lib/timezone";
 import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
+import { intlLocaleFromUserLocale, type UserLocale } from "@/lib/user-locale";
+
+/** Traducteur notifications (évite d’importer messaging-locale / server-only). */
+export type OwnerDailyFinanceTranslate = (
+  key: string,
+  values?: Record<string, string | number>,
+) => string;
 
 export type OwnerDailyBranchFinance = {
   branchId: string;
@@ -141,37 +148,94 @@ export function formatOwnerDailyFinanceMoney(
   return formatPayrollAmount(value, currency);
 }
 
+export function formatOwnerDailyFinanceDateLabel(
+  dateKey: string,
+  locale: UserLocale = "fr",
+): string {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  if (!y || !m || !d) return dateKey;
+  const date = new Date(Date.UTC(y, m - 1, d, 12));
+  return new Intl.DateTimeFormat(intlLocaleFromUserLocale(locale), {
+    timeZone: process.env.APP_TIMEZONE ?? "Africa/Kinshasa",
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
+function countLabel(
+  t: OwnerDailyFinanceTranslate,
+  count: number,
+  oneKey: string,
+  manyKey: string,
+) {
+  return t(count === 1 ? oneKey : manyKey, { count });
+}
+
 export function formatOwnerDailyFinanceText(
   summary: OwnerDailyFinanceSummary,
+  t: OwnerDailyFinanceTranslate,
 ): string {
+  const dateLabel = summary.dateLabel;
   const lines: string[] = [
-    `Situation financière du jour — ${summary.dateLabel}`,
+    t("ownerDailyFinance.heading", { date: dateLabel }),
     summary.organizationName,
     "",
   ];
 
   for (const branch of summary.branches) {
-    lines.push(`Établissement ${branch.branchName} :`);
     lines.push(
-      `• Entrées : ${formatOwnerDailyFinanceMoney(branch.income, branch.currency)}`,
+      t("ownerDailyFinance.establishment", { name: branch.branchName }),
     );
     lines.push(
-      `• Sorties : ${formatOwnerDailyFinanceMoney(branch.expenses, branch.currency)}`,
+      `• ${t("ownerDailyFinance.income")} : ${formatOwnerDailyFinanceMoney(branch.income, branch.currency)}`,
     );
     lines.push(
-      `• Caisse réelle : ${formatOwnerDailyFinanceMoney(branch.cashBalance, branch.currency)}`,
+      `• ${t("ownerDailyFinance.expenses")} : ${formatOwnerDailyFinanceMoney(branch.expenses, branch.currency)}`,
     );
     lines.push(
-      `• Nouveaux inscrits : ${branch.newEnrollments} élève${branch.newEnrollments === 1 ? "" : "s"}`,
+      `• ${t("ownerDailyFinance.cashReal")} : ${formatOwnerDailyFinanceMoney(branch.cashBalance, branch.currency)}`,
+    );
+    lines.push(
+      `• ${t("ownerDailyFinance.newEnrollments")} : ${countLabel(
+        t,
+        branch.newEnrollments,
+        "ownerDailyFinance.studentOne",
+        "ownerDailyFinance.studentMany",
+      )}`,
     );
     lines.push("");
   }
 
   lines.push(
-    `Total : Caisse ${formatOwnerDailyFinanceMoney(summary.totalCashBalance, summary.currency)} · ${summary.totalNewEnrollments} élève${summary.totalNewEnrollments === 1 ? "" : "s"}`,
+    t("ownerDailyFinance.totalLine", {
+      cashLabel: t("ownerDailyFinance.cash"),
+      cash: formatOwnerDailyFinanceMoney(
+        summary.totalCashBalance,
+        summary.currency,
+      ),
+      students: countLabel(
+        t,
+        summary.totalNewEnrollments,
+        "ownerDailyFinance.studentOne",
+        "ownerDailyFinance.studentMany",
+      ),
+    }),
   );
   lines.push(
-    `Entrées ${formatOwnerDailyFinanceMoney(summary.totalIncome, summary.currency)} · Sorties ${formatOwnerDailyFinanceMoney(summary.totalExpenses, summary.currency)}`,
+    t("ownerDailyFinance.totalsIncomeExpenses", {
+      incomeLabel: t("ownerDailyFinance.income"),
+      income: formatOwnerDailyFinanceMoney(
+        summary.totalIncome,
+        summary.currency,
+      ),
+      expensesLabel: t("ownerDailyFinance.expenses"),
+      expenses: formatOwnerDailyFinanceMoney(
+        summary.totalExpenses,
+        summary.currency,
+      ),
+    }),
   );
 
   return lines.join("\n").trim();
@@ -180,16 +244,38 @@ export function formatOwnerDailyFinanceText(
 /** Ligne compacte WhatsApp (une ligne par établissement). */
 export function formatOwnerDailyFinanceWhatsAppLines(
   summary: OwnerDailyFinanceSummary,
+  t: OwnerDailyFinanceTranslate,
 ): string[] {
   const lines = summary.branches.map((branch) => {
     const cash = formatOwnerDailyFinanceMoney(
       branch.cashBalance,
       branch.currency,
     );
-    return `Établissement ${branch.branchName} : ${cash}, Nouveau inscrit ${branch.newEnrollments} élève${branch.newEnrollments === 1 ? "" : "s"}`;
+    return t("ownerDailyFinance.waBranchLine", {
+      name: branch.branchName,
+      cash,
+      newEnrollee: t("ownerDailyFinance.newEnrollee"),
+      students: countLabel(
+        t,
+        branch.newEnrollments,
+        "ownerDailyFinance.studentOne",
+        "ownerDailyFinance.studentMany",
+      ),
+    });
   });
   lines.push(
-    `Total ${formatOwnerDailyFinanceMoney(summary.totalCashBalance, summary.currency)} et ${summary.totalNewEnrollments} élève${summary.totalNewEnrollments === 1 ? "" : "s"}`,
+    t("ownerDailyFinance.waTotalLine", {
+      cash: formatOwnerDailyFinanceMoney(
+        summary.totalCashBalance,
+        summary.currency,
+      ),
+      students: countLabel(
+        t,
+        summary.totalNewEnrollments,
+        "ownerDailyFinance.studentOne",
+        "ownerDailyFinance.studentMany",
+      ),
+    }),
   );
   return lines;
 }
