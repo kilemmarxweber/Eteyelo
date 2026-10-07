@@ -222,6 +222,7 @@ export type MessageWhereInput = {
   notifications?: Prisma.AppNotificationListRelationFilter
   attachments?: Prisma.MessageAttachmentListRelationFilter
   noticeAcks?: Prisma.NoticeAckListRelationFilter
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptListRelationFilter
 }
 
 export type MessageOrderByWithRelationInput = {
@@ -242,6 +243,7 @@ export type MessageOrderByWithRelationInput = {
   notifications?: Prisma.AppNotificationOrderByRelationAggregateInput
   attachments?: Prisma.MessageAttachmentOrderByRelationAggregateInput
   noticeAcks?: Prisma.NoticeAckOrderByRelationAggregateInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptOrderByRelationAggregateInput
 }
 
 export type MessageWhereUniqueInput = Prisma.AtLeast<{
@@ -265,6 +267,7 @@ export type MessageWhereUniqueInput = Prisma.AtLeast<{
   notifications?: Prisma.AppNotificationListRelationFilter
   attachments?: Prisma.MessageAttachmentListRelationFilter
   noticeAcks?: Prisma.NoticeAckListRelationFilter
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptListRelationFilter
 }, "id">
 
 export type MessageOrderByWithAggregationInput = {
@@ -312,6 +315,7 @@ export type MessageCreateInput = {
   notifications?: Prisma.AppNotificationCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUncheckedCreateInput = {
@@ -329,6 +333,7 @@ export type MessageUncheckedCreateInput = {
   notifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentUncheckedCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckUncheckedCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUpdateInput = {
@@ -346,6 +351,7 @@ export type MessageUpdateInput = {
   notifications?: Prisma.AppNotificationUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateInput = {
@@ -363,6 +369,7 @@ export type MessageUncheckedUpdateInput = {
   notifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUncheckedUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUncheckedUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageCreateManyInput = {
@@ -626,6 +633,20 @@ export type MessageUpdateOneRequiredWithoutNoticeAcksNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.MessageUpdateToOneWithWhereWithoutNoticeAcksInput, Prisma.MessageUpdateWithoutNoticeAcksInput>, Prisma.MessageUncheckedUpdateWithoutNoticeAcksInput>
 }
 
+export type MessageCreateNestedOneWithoutDeliveryReceiptsInput = {
+  create?: Prisma.XOR<Prisma.MessageCreateWithoutDeliveryReceiptsInput, Prisma.MessageUncheckedCreateWithoutDeliveryReceiptsInput>
+  connectOrCreate?: Prisma.MessageCreateOrConnectWithoutDeliveryReceiptsInput
+  connect?: Prisma.MessageWhereUniqueInput
+}
+
+export type MessageUpdateOneRequiredWithoutDeliveryReceiptsNestedInput = {
+  create?: Prisma.XOR<Prisma.MessageCreateWithoutDeliveryReceiptsInput, Prisma.MessageUncheckedCreateWithoutDeliveryReceiptsInput>
+  connectOrCreate?: Prisma.MessageCreateOrConnectWithoutDeliveryReceiptsInput
+  upsert?: Prisma.MessageUpsertWithoutDeliveryReceiptsInput
+  connect?: Prisma.MessageWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MessageUpdateToOneWithWhereWithoutDeliveryReceiptsInput, Prisma.MessageUpdateWithoutDeliveryReceiptsInput>, Prisma.MessageUncheckedUpdateWithoutDeliveryReceiptsInput>
+}
+
 export type MessageCreateNestedOneWithoutArchivesInput = {
   create?: Prisma.XOR<Prisma.MessageCreateWithoutArchivesInput, Prisma.MessageUncheckedCreateWithoutArchivesInput>
   connectOrCreate?: Prisma.MessageCreateOrConnectWithoutArchivesInput
@@ -668,6 +689,7 @@ export type MessageCreateWithoutSenderInput = {
   notifications?: Prisma.AppNotificationCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUncheckedCreateWithoutSenderInput = {
@@ -684,6 +706,7 @@ export type MessageUncheckedCreateWithoutSenderInput = {
   notifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentUncheckedCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckUncheckedCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutMessageInput
 }
 
 export type MessageCreateOrConnectWithoutSenderInput = {
@@ -741,6 +764,7 @@ export type MessageCreateWithoutNotificationsInput = {
   archives?: Prisma.UserMessageArchiveCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUncheckedCreateWithoutNotificationsInput = {
@@ -757,6 +781,7 @@ export type MessageUncheckedCreateWithoutNotificationsInput = {
   archives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentUncheckedCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckUncheckedCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutMessageInput
 }
 
 export type MessageCreateOrConnectWithoutNotificationsInput = {
@@ -789,6 +814,7 @@ export type MessageUpdateWithoutNotificationsInput = {
   archives?: Prisma.UserMessageArchiveUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateWithoutNotificationsInput = {
@@ -805,6 +831,7 @@ export type MessageUncheckedUpdateWithoutNotificationsInput = {
   archives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUncheckedUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUncheckedUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageCreateWithoutConversationInput = {
@@ -821,6 +848,7 @@ export type MessageCreateWithoutConversationInput = {
   notifications?: Prisma.AppNotificationCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUncheckedCreateWithoutConversationInput = {
@@ -837,6 +865,7 @@ export type MessageUncheckedCreateWithoutConversationInput = {
   notifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentUncheckedCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckUncheckedCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutMessageInput
 }
 
 export type MessageCreateOrConnectWithoutConversationInput = {
@@ -879,6 +908,7 @@ export type MessageCreateWithoutRepliesInput = {
   notifications?: Prisma.AppNotificationCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUncheckedCreateWithoutRepliesInput = {
@@ -895,6 +925,7 @@ export type MessageUncheckedCreateWithoutRepliesInput = {
   notifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentUncheckedCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckUncheckedCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutMessageInput
 }
 
 export type MessageCreateOrConnectWithoutRepliesInput = {
@@ -916,6 +947,7 @@ export type MessageCreateWithoutReplyToInput = {
   notifications?: Prisma.AppNotificationCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUncheckedCreateWithoutReplyToInput = {
@@ -932,6 +964,7 @@ export type MessageUncheckedCreateWithoutReplyToInput = {
   notifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentUncheckedCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckUncheckedCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutMessageInput
 }
 
 export type MessageCreateOrConnectWithoutReplyToInput = {
@@ -969,6 +1002,7 @@ export type MessageUpdateWithoutRepliesInput = {
   notifications?: Prisma.AppNotificationUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateWithoutRepliesInput = {
@@ -985,6 +1019,7 @@ export type MessageUncheckedUpdateWithoutRepliesInput = {
   notifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUncheckedUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUncheckedUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUpsertWithWhereUniqueWithoutReplyToInput = {
@@ -1017,6 +1052,7 @@ export type MessageCreateWithoutNoticeAcksInput = {
   archives?: Prisma.UserMessageArchiveCreateNestedManyWithoutMessageInput
   notifications?: Prisma.AppNotificationCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUncheckedCreateWithoutNoticeAcksInput = {
@@ -1033,6 +1069,7 @@ export type MessageUncheckedCreateWithoutNoticeAcksInput = {
   archives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutMessageInput
   notifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentUncheckedCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutMessageInput
 }
 
 export type MessageCreateOrConnectWithoutNoticeAcksInput = {
@@ -1065,6 +1102,7 @@ export type MessageUpdateWithoutNoticeAcksInput = {
   archives?: Prisma.UserMessageArchiveUpdateManyWithoutMessageNestedInput
   notifications?: Prisma.AppNotificationUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateWithoutNoticeAcksInput = {
@@ -1081,6 +1119,91 @@ export type MessageUncheckedUpdateWithoutNoticeAcksInput = {
   archives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutMessageNestedInput
   notifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUncheckedUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutMessageNestedInput
+}
+
+export type MessageCreateWithoutDeliveryReceiptsInput = {
+  id?: string
+  body: string
+  clientMessageId?: string | null
+  createdAt?: Date | string
+  editedAt?: Date | string | null
+  deletedAt?: Date | string | null
+  conversation: Prisma.ConversationCreateNestedOneWithoutMessagesInput
+  sender: Prisma.UserCreateNestedOneWithoutSentMessagesInput
+  replyTo?: Prisma.MessageCreateNestedOneWithoutRepliesInput
+  replies?: Prisma.MessageCreateNestedManyWithoutReplyToInput
+  archives?: Prisma.UserMessageArchiveCreateNestedManyWithoutMessageInput
+  notifications?: Prisma.AppNotificationCreateNestedManyWithoutMessageInput
+  attachments?: Prisma.MessageAttachmentCreateNestedManyWithoutMessageInput
+  noticeAcks?: Prisma.NoticeAckCreateNestedManyWithoutMessageInput
+}
+
+export type MessageUncheckedCreateWithoutDeliveryReceiptsInput = {
+  id?: string
+  conversationId: string
+  senderId: string
+  body: string
+  replyToId?: string | null
+  clientMessageId?: string | null
+  createdAt?: Date | string
+  editedAt?: Date | string | null
+  deletedAt?: Date | string | null
+  replies?: Prisma.MessageUncheckedCreateNestedManyWithoutReplyToInput
+  archives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutMessageInput
+  notifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutMessageInput
+  attachments?: Prisma.MessageAttachmentUncheckedCreateNestedManyWithoutMessageInput
+  noticeAcks?: Prisma.NoticeAckUncheckedCreateNestedManyWithoutMessageInput
+}
+
+export type MessageCreateOrConnectWithoutDeliveryReceiptsInput = {
+  where: Prisma.MessageWhereUniqueInput
+  create: Prisma.XOR<Prisma.MessageCreateWithoutDeliveryReceiptsInput, Prisma.MessageUncheckedCreateWithoutDeliveryReceiptsInput>
+}
+
+export type MessageUpsertWithoutDeliveryReceiptsInput = {
+  update: Prisma.XOR<Prisma.MessageUpdateWithoutDeliveryReceiptsInput, Prisma.MessageUncheckedUpdateWithoutDeliveryReceiptsInput>
+  create: Prisma.XOR<Prisma.MessageCreateWithoutDeliveryReceiptsInput, Prisma.MessageUncheckedCreateWithoutDeliveryReceiptsInput>
+  where?: Prisma.MessageWhereInput
+}
+
+export type MessageUpdateToOneWithWhereWithoutDeliveryReceiptsInput = {
+  where?: Prisma.MessageWhereInput
+  data: Prisma.XOR<Prisma.MessageUpdateWithoutDeliveryReceiptsInput, Prisma.MessageUncheckedUpdateWithoutDeliveryReceiptsInput>
+}
+
+export type MessageUpdateWithoutDeliveryReceiptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  clientMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  editedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  conversation?: Prisma.ConversationUpdateOneRequiredWithoutMessagesNestedInput
+  sender?: Prisma.UserUpdateOneRequiredWithoutSentMessagesNestedInput
+  replyTo?: Prisma.MessageUpdateOneWithoutRepliesNestedInput
+  replies?: Prisma.MessageUpdateManyWithoutReplyToNestedInput
+  archives?: Prisma.UserMessageArchiveUpdateManyWithoutMessageNestedInput
+  notifications?: Prisma.AppNotificationUpdateManyWithoutMessageNestedInput
+  attachments?: Prisma.MessageAttachmentUpdateManyWithoutMessageNestedInput
+  noticeAcks?: Prisma.NoticeAckUpdateManyWithoutMessageNestedInput
+}
+
+export type MessageUncheckedUpdateWithoutDeliveryReceiptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  conversationId?: Prisma.StringFieldUpdateOperationsInput | string
+  senderId?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  replyToId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clientMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  editedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  replies?: Prisma.MessageUncheckedUpdateManyWithoutReplyToNestedInput
+  archives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutMessageNestedInput
+  notifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutMessageNestedInput
+  attachments?: Prisma.MessageAttachmentUncheckedUpdateManyWithoutMessageNestedInput
+  noticeAcks?: Prisma.NoticeAckUncheckedUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageCreateWithoutArchivesInput = {
@@ -1097,6 +1220,7 @@ export type MessageCreateWithoutArchivesInput = {
   notifications?: Prisma.AppNotificationCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUncheckedCreateWithoutArchivesInput = {
@@ -1113,6 +1237,7 @@ export type MessageUncheckedCreateWithoutArchivesInput = {
   notifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutMessageInput
   attachments?: Prisma.MessageAttachmentUncheckedCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckUncheckedCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutMessageInput
 }
 
 export type MessageCreateOrConnectWithoutArchivesInput = {
@@ -1145,6 +1270,7 @@ export type MessageUpdateWithoutArchivesInput = {
   notifications?: Prisma.AppNotificationUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateWithoutArchivesInput = {
@@ -1161,6 +1287,7 @@ export type MessageUncheckedUpdateWithoutArchivesInput = {
   notifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUncheckedUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUncheckedUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageCreateWithoutAttachmentsInput = {
@@ -1177,6 +1304,7 @@ export type MessageCreateWithoutAttachmentsInput = {
   archives?: Prisma.UserMessageArchiveCreateNestedManyWithoutMessageInput
   notifications?: Prisma.AppNotificationCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUncheckedCreateWithoutAttachmentsInput = {
@@ -1193,6 +1321,7 @@ export type MessageUncheckedCreateWithoutAttachmentsInput = {
   archives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutMessageInput
   notifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutMessageInput
   noticeAcks?: Prisma.NoticeAckUncheckedCreateNestedManyWithoutMessageInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutMessageInput
 }
 
 export type MessageCreateOrConnectWithoutAttachmentsInput = {
@@ -1225,6 +1354,7 @@ export type MessageUpdateWithoutAttachmentsInput = {
   archives?: Prisma.UserMessageArchiveUpdateManyWithoutMessageNestedInput
   notifications?: Prisma.AppNotificationUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateWithoutAttachmentsInput = {
@@ -1241,6 +1371,7 @@ export type MessageUncheckedUpdateWithoutAttachmentsInput = {
   archives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutMessageNestedInput
   notifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUncheckedUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageCreateManySenderInput = {
@@ -1268,6 +1399,7 @@ export type MessageUpdateWithoutSenderInput = {
   notifications?: Prisma.AppNotificationUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateWithoutSenderInput = {
@@ -1284,6 +1416,7 @@ export type MessageUncheckedUpdateWithoutSenderInput = {
   notifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUncheckedUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUncheckedUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateManyWithoutSenderInput = {
@@ -1322,6 +1455,7 @@ export type MessageUpdateWithoutConversationInput = {
   notifications?: Prisma.AppNotificationUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateWithoutConversationInput = {
@@ -1338,6 +1472,7 @@ export type MessageUncheckedUpdateWithoutConversationInput = {
   notifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUncheckedUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUncheckedUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateManyWithoutConversationInput = {
@@ -1376,6 +1511,7 @@ export type MessageUpdateWithoutReplyToInput = {
   notifications?: Prisma.AppNotificationUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateWithoutReplyToInput = {
@@ -1392,6 +1528,7 @@ export type MessageUncheckedUpdateWithoutReplyToInput = {
   notifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutMessageNestedInput
   attachments?: Prisma.MessageAttachmentUncheckedUpdateManyWithoutMessageNestedInput
   noticeAcks?: Prisma.NoticeAckUncheckedUpdateManyWithoutMessageNestedInput
+  deliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateManyWithoutReplyToInput = {
@@ -1416,6 +1553,7 @@ export type MessageCountOutputType = {
   notifications: number
   attachments: number
   noticeAcks: number
+  deliveryReceipts: number
 }
 
 export type MessageCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1424,6 +1562,7 @@ export type MessageCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   notifications?: boolean | MessageCountOutputTypeCountNotificationsArgs
   attachments?: boolean | MessageCountOutputTypeCountAttachmentsArgs
   noticeAcks?: boolean | MessageCountOutputTypeCountNoticeAcksArgs
+  deliveryReceipts?: boolean | MessageCountOutputTypeCountDeliveryReceiptsArgs
 }
 
 /**
@@ -1471,6 +1610,13 @@ export type MessageCountOutputTypeCountNoticeAcksArgs<ExtArgs extends runtime.Ty
   where?: Prisma.NoticeAckWhereInput
 }
 
+/**
+ * MessageCountOutputType without action
+ */
+export type MessageCountOutputTypeCountDeliveryReceiptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MessageDeliveryReceiptWhereInput
+}
+
 
 export type MessageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1490,6 +1636,7 @@ export type MessageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   notifications?: boolean | Prisma.Message$notificationsArgs<ExtArgs>
   attachments?: boolean | Prisma.Message$attachmentsArgs<ExtArgs>
   noticeAcks?: boolean | Prisma.Message$noticeAcksArgs<ExtArgs>
+  deliveryReceipts?: boolean | Prisma.Message$deliveryReceiptsArgs<ExtArgs>
   _count?: boolean | Prisma.MessageCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["message"]>
 
@@ -1545,6 +1692,7 @@ export type MessageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   notifications?: boolean | Prisma.Message$notificationsArgs<ExtArgs>
   attachments?: boolean | Prisma.Message$attachmentsArgs<ExtArgs>
   noticeAcks?: boolean | Prisma.Message$noticeAcksArgs<ExtArgs>
+  deliveryReceipts?: boolean | Prisma.Message$deliveryReceiptsArgs<ExtArgs>
   _count?: boolean | Prisma.MessageCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type MessageIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1569,6 +1717,7 @@ export type $MessagePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     notifications: Prisma.$AppNotificationPayload<ExtArgs>[]
     attachments: Prisma.$MessageAttachmentPayload<ExtArgs>[]
     noticeAcks: Prisma.$NoticeAckPayload<ExtArgs>[]
+    deliveryReceipts: Prisma.$MessageDeliveryReceiptPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1982,6 +2131,7 @@ export interface Prisma__MessageClient<T, Null = never, ExtArgs extends runtime.
   notifications<T extends Prisma.Message$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Message$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   attachments<T extends Prisma.Message$attachmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Message$attachmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessageAttachmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   noticeAcks<T extends Prisma.Message$noticeAcksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Message$noticeAcksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NoticeAckPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  deliveryReceipts<T extends Prisma.Message$deliveryReceiptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Message$deliveryReceiptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessageDeliveryReceiptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2557,6 +2707,30 @@ export type Message$noticeAcksArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.NoticeAckScalarFieldEnum | Prisma.NoticeAckScalarFieldEnum[]
+}
+
+/**
+ * Message.deliveryReceipts
+ */
+export type Message$deliveryReceiptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MessageDeliveryReceipt
+   */
+  select?: Prisma.MessageDeliveryReceiptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MessageDeliveryReceipt
+   */
+  omit?: Prisma.MessageDeliveryReceiptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MessageDeliveryReceiptInclude<ExtArgs> | null
+  where?: Prisma.MessageDeliveryReceiptWhereInput
+  orderBy?: Prisma.MessageDeliveryReceiptOrderByWithRelationInput | Prisma.MessageDeliveryReceiptOrderByWithRelationInput[]
+  cursor?: Prisma.MessageDeliveryReceiptWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MessageDeliveryReceiptScalarFieldEnum | Prisma.MessageDeliveryReceiptScalarFieldEnum[]
 }
 
 /**

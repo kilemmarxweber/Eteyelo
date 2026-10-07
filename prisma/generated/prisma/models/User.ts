@@ -343,6 +343,7 @@ export type UserWhereInput = {
   conversationsCreated?: Prisma.ConversationListRelationFilter
   conversationParticipants?: Prisma.ConversationParticipantListRelationFilter
   sentMessages?: Prisma.MessageListRelationFilter
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptListRelationFilter
   messageArchives?: Prisma.UserMessageArchiveListRelationFilter
   messagingAuditLogs?: Prisma.MessagingAuditLogListRelationFilter
   userPresences?: Prisma.UserPresenceListRelationFilter
@@ -397,6 +398,7 @@ export type UserOrderByWithRelationInput = {
   conversationsCreated?: Prisma.ConversationOrderByRelationAggregateInput
   conversationParticipants?: Prisma.ConversationParticipantOrderByRelationAggregateInput
   sentMessages?: Prisma.MessageOrderByRelationAggregateInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptOrderByRelationAggregateInput
   messageArchives?: Prisma.UserMessageArchiveOrderByRelationAggregateInput
   messagingAuditLogs?: Prisma.MessagingAuditLogOrderByRelationAggregateInput
   userPresences?: Prisma.UserPresenceOrderByRelationAggregateInput
@@ -454,6 +456,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   conversationsCreated?: Prisma.ConversationListRelationFilter
   conversationParticipants?: Prisma.ConversationParticipantListRelationFilter
   sentMessages?: Prisma.MessageListRelationFilter
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptListRelationFilter
   messageArchives?: Prisma.UserMessageArchiveListRelationFilter
   messagingAuditLogs?: Prisma.MessagingAuditLogListRelationFilter
   userPresences?: Prisma.UserPresenceListRelationFilter
@@ -566,6 +569,7 @@ export type UserCreateInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -620,6 +624,7 @@ export type UserUncheckedCreateInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -674,6 +679,7 @@ export type UserUpdateInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -728,6 +734,7 @@ export type UserUncheckedUpdateInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -1221,6 +1228,20 @@ export type UserUpdateOneRequiredWithoutNoticeAcksNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNoticeAcksInput, Prisma.UserUpdateWithoutNoticeAcksInput>, Prisma.UserUncheckedUpdateWithoutNoticeAcksInput>
 }
 
+export type UserCreateNestedOneWithoutMessageDeliveryReceiptsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutMessageDeliveryReceiptsInput, Prisma.UserUncheckedCreateWithoutMessageDeliveryReceiptsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutMessageDeliveryReceiptsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutMessageDeliveryReceiptsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutMessageDeliveryReceiptsInput, Prisma.UserUncheckedCreateWithoutMessageDeliveryReceiptsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutMessageDeliveryReceiptsInput
+  upsert?: Prisma.UserUpsertWithoutMessageDeliveryReceiptsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutMessageDeliveryReceiptsInput, Prisma.UserUpdateWithoutMessageDeliveryReceiptsInput>, Prisma.UserUncheckedUpdateWithoutMessageDeliveryReceiptsInput>
+}
+
 export type UserCreateNestedOneWithoutMessageArchivesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutMessageArchivesInput, Prisma.UserUncheckedCreateWithoutMessageArchivesInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutMessageArchivesInput
@@ -1375,6 +1396,7 @@ export type UserCreateWithoutParentSatisfactionDispatchesInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -1428,6 +1450,7 @@ export type UserUncheckedCreateWithoutParentSatisfactionDispatchesInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -1497,6 +1520,7 @@ export type UserUpdateWithoutParentSatisfactionDispatchesInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -1550,6 +1574,7 @@ export type UserUncheckedUpdateWithoutParentSatisfactionDispatchesInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -1603,6 +1628,7 @@ export type UserCreateWithoutFamilyPaymentsCreatedInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -1656,6 +1682,7 @@ export type UserUncheckedCreateWithoutFamilyPaymentsCreatedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -1725,6 +1752,7 @@ export type UserUpdateWithoutFamilyPaymentsCreatedInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -1778,6 +1806,7 @@ export type UserUncheckedUpdateWithoutFamilyPaymentsCreatedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -1831,6 +1860,7 @@ export type UserCreateWithoutCashierExpensesCreatedInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -1884,6 +1914,7 @@ export type UserUncheckedCreateWithoutCashierExpensesCreatedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -1953,6 +1984,7 @@ export type UserUpdateWithoutCashierExpensesCreatedInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -2006,6 +2038,7 @@ export type UserUncheckedUpdateWithoutCashierExpensesCreatedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -2059,6 +2092,7 @@ export type UserCreateWithoutGradeModificationRequestsInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -2112,6 +2146,7 @@ export type UserUncheckedCreateWithoutGradeModificationRequestsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -2170,6 +2205,7 @@ export type UserCreateWithoutReviewedGradeModificationsInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -2223,6 +2259,7 @@ export type UserUncheckedCreateWithoutReviewedGradeModificationsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -2292,6 +2329,7 @@ export type UserUpdateWithoutGradeModificationRequestsInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -2345,6 +2383,7 @@ export type UserUncheckedUpdateWithoutGradeModificationRequestsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -2409,6 +2448,7 @@ export type UserUpdateWithoutReviewedGradeModificationsInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -2462,6 +2502,7 @@ export type UserUncheckedUpdateWithoutReviewedGradeModificationsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -2515,6 +2556,7 @@ export type UserCreateWithoutAbsenceCasesInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -2568,6 +2610,7 @@ export type UserUncheckedCreateWithoutAbsenceCasesInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -2626,6 +2669,7 @@ export type UserCreateWithoutReviewedAbsenceCasesInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -2679,6 +2723,7 @@ export type UserUncheckedCreateWithoutReviewedAbsenceCasesInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -2748,6 +2793,7 @@ export type UserUpdateWithoutAbsenceCasesInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -2801,6 +2847,7 @@ export type UserUncheckedUpdateWithoutAbsenceCasesInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -2865,6 +2912,7 @@ export type UserUpdateWithoutReviewedAbsenceCasesInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -2918,6 +2966,7 @@ export type UserUncheckedUpdateWithoutReviewedAbsenceCasesInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -2971,6 +3020,7 @@ export type UserCreateWithoutAppNotificationsInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -3024,6 +3074,7 @@ export type UserUncheckedCreateWithoutAppNotificationsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -3093,6 +3144,7 @@ export type UserUpdateWithoutAppNotificationsInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -3146,6 +3198,7 @@ export type UserUncheckedUpdateWithoutAppNotificationsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -3200,6 +3253,7 @@ export type UserCreateWithoutSalaryAdvancesRequestedInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -3253,6 +3307,7 @@ export type UserUncheckedCreateWithoutSalaryAdvancesRequestedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -3311,6 +3366,7 @@ export type UserCreateWithoutSalaryAdvancesReviewedInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -3364,6 +3420,7 @@ export type UserUncheckedCreateWithoutSalaryAdvancesReviewedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -3433,6 +3490,7 @@ export type UserUpdateWithoutSalaryAdvancesRequestedInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -3486,6 +3544,7 @@ export type UserUncheckedUpdateWithoutSalaryAdvancesRequestedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -3550,6 +3609,7 @@ export type UserUpdateWithoutSalaryAdvancesReviewedInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -3603,6 +3663,7 @@ export type UserUncheckedUpdateWithoutSalaryAdvancesReviewedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -3655,6 +3716,7 @@ export type UserCreateWithoutSessionsInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -3708,6 +3770,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -3777,6 +3840,7 @@ export type UserUpdateWithoutSessionsInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -3830,6 +3894,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -3883,6 +3948,7 @@ export type UserCreateWithoutAccountsInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -3936,6 +4002,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -4005,6 +4072,7 @@ export type UserUpdateWithoutAccountsInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -4058,6 +4126,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -4111,6 +4180,7 @@ export type UserCreateWithoutMembersInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -4164,6 +4234,7 @@ export type UserUncheckedCreateWithoutMembersInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -4233,6 +4304,7 @@ export type UserUpdateWithoutMembersInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -4286,6 +4358,7 @@ export type UserUncheckedUpdateWithoutMembersInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -4339,6 +4412,7 @@ export type UserCreateWithoutInvitationsInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -4392,6 +4466,7 @@ export type UserUncheckedCreateWithoutInvitationsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -4461,6 +4536,7 @@ export type UserUpdateWithoutInvitationsInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -4514,6 +4590,7 @@ export type UserUncheckedUpdateWithoutInvitationsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -4567,6 +4644,7 @@ export type UserCreateWithoutPlatformSupportAgentInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -4620,6 +4698,7 @@ export type UserUncheckedCreateWithoutPlatformSupportAgentInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -4689,6 +4768,7 @@ export type UserUpdateWithoutPlatformSupportAgentInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -4742,6 +4822,7 @@ export type UserUncheckedUpdateWithoutPlatformSupportAgentInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -4795,6 +4876,7 @@ export type UserCreateWithoutPlatformEscalationsRequestedInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -4848,6 +4930,7 @@ export type UserUncheckedCreateWithoutPlatformEscalationsRequestedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -4917,6 +5000,7 @@ export type UserUpdateWithoutPlatformEscalationsRequestedInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -4970,6 +5054,7 @@ export type UserUncheckedUpdateWithoutPlatformEscalationsRequestedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -5023,6 +5108,7 @@ export type UserCreateWithoutConversationsCreatedInput = {
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -5076,6 +5162,7 @@ export type UserUncheckedCreateWithoutConversationsCreatedInput = {
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -5145,6 +5232,7 @@ export type UserUpdateWithoutConversationsCreatedInput = {
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -5198,6 +5286,7 @@ export type UserUncheckedUpdateWithoutConversationsCreatedInput = {
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -5251,6 +5340,7 @@ export type UserCreateWithoutConversationParticipantsInput = {
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -5304,6 +5394,7 @@ export type UserUncheckedCreateWithoutConversationParticipantsInput = {
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -5373,6 +5464,7 @@ export type UserUpdateWithoutConversationParticipantsInput = {
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -5426,6 +5518,7 @@ export type UserUncheckedUpdateWithoutConversationParticipantsInput = {
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -5479,6 +5572,7 @@ export type UserCreateWithoutSentMessagesInput = {
   cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -5532,6 +5626,7 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -5601,6 +5696,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -5654,6 +5750,7 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -5708,6 +5805,7 @@ export type UserCreateWithoutNoticeAcksInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -5761,6 +5859,7 @@ export type UserUncheckedCreateWithoutNoticeAcksInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -5830,6 +5929,7 @@ export type UserUpdateWithoutNoticeAcksInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -5883,6 +5983,7 @@ export type UserUncheckedUpdateWithoutNoticeAcksInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -5893,6 +5994,238 @@ export type UserUncheckedUpdateWithoutNoticeAcksInput = {
   grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
   salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
   salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
+}
+
+export type UserCreateWithoutMessageDeliveryReceiptsInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  archivedEmail?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
+  userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
+  callsStarted?: Prisma.CallSessionCreateNestedManyWithoutCallerInput
+  callsReceived?: Prisma.CallSessionCreateNestedManyWithoutCalleeInput
+  temporaryGrants?: Prisma.TemporaryGrantCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceCreateNestedManyWithoutReviewedByInput
+  noticeAcks?: Prisma.NoticeAckCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutMessageDeliveryReceiptsInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  archivedEmail?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  locale?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+  conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
+  userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
+  callsStarted?: Prisma.CallSessionUncheckedCreateNestedManyWithoutCallerInput
+  callsReceived?: Prisma.CallSessionUncheckedCreateNestedManyWithoutCalleeInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutUserInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutGrantedByInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedCreateNestedManyWithoutRevokedByInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutRequestedByInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedCreateNestedManyWithoutReviewedByInput
+  noticeAcks?: Prisma.NoticeAckUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutMessageDeliveryReceiptsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutMessageDeliveryReceiptsInput, Prisma.UserUncheckedCreateWithoutMessageDeliveryReceiptsInput>
+}
+
+export type UserUpsertWithoutMessageDeliveryReceiptsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutMessageDeliveryReceiptsInput, Prisma.UserUncheckedUpdateWithoutMessageDeliveryReceiptsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutMessageDeliveryReceiptsInput, Prisma.UserUncheckedCreateWithoutMessageDeliveryReceiptsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutMessageDeliveryReceiptsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutMessageDeliveryReceiptsInput, Prisma.UserUncheckedUpdateWithoutMessageDeliveryReceiptsInput>
+}
+
+export type UserUpdateWithoutMessageDeliveryReceiptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
+  userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
+  callsStarted?: Prisma.CallSessionUpdateManyWithoutCallerNestedInput
+  callsReceived?: Prisma.CallSessionUpdateManyWithoutCalleeNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUpdateManyWithoutReviewedByNestedInput
+  noticeAcks?: Prisma.NoticeAckUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutMessageDeliveryReceiptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  gradeModificationRequests?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
+  reviewedGradeModifications?: Prisma.GradeModificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  parentSatisfactionDispatches?: Prisma.ParentSatisfactionDispatchUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
+  conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
+  messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
+  callsStarted?: Prisma.CallSessionUncheckedUpdateManyWithoutCallerNestedInput
+  callsReceived?: Prisma.CallSessionUncheckedUpdateManyWithoutCalleeNestedInput
+  temporaryGrants?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutUserNestedInput
+  grantsGiven?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutGrantedByNestedInput
+  grantsRevoked?: Prisma.TemporaryGrantUncheckedUpdateManyWithoutRevokedByNestedInput
+  salaryAdvancesRequested?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutRequestedByNestedInput
+  salaryAdvancesReviewed?: Prisma.SalaryAdvanceUncheckedUpdateManyWithoutReviewedByNestedInput
+  noticeAcks?: Prisma.NoticeAckUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMessageArchivesInput = {
@@ -5936,6 +6269,7 @@ export type UserCreateWithoutMessageArchivesInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
   callsStarted?: Prisma.CallSessionCreateNestedManyWithoutCallerInput
@@ -5989,6 +6323,7 @@ export type UserUncheckedCreateWithoutMessageArchivesInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
   callsStarted?: Prisma.CallSessionUncheckedCreateNestedManyWithoutCallerInput
@@ -6058,6 +6393,7 @@ export type UserUpdateWithoutMessageArchivesInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
   callsStarted?: Prisma.CallSessionUpdateManyWithoutCallerNestedInput
@@ -6111,6 +6447,7 @@ export type UserUncheckedUpdateWithoutMessageArchivesInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
   callsStarted?: Prisma.CallSessionUncheckedUpdateManyWithoutCallerNestedInput
@@ -6164,6 +6501,7 @@ export type UserCreateWithoutMessagingAuditLogsInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
   callsStarted?: Prisma.CallSessionCreateNestedManyWithoutCallerInput
@@ -6217,6 +6555,7 @@ export type UserUncheckedCreateWithoutMessagingAuditLogsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
   callsStarted?: Prisma.CallSessionUncheckedCreateNestedManyWithoutCallerInput
@@ -6286,6 +6625,7 @@ export type UserUpdateWithoutMessagingAuditLogsInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
   callsStarted?: Prisma.CallSessionUpdateManyWithoutCallerNestedInput
@@ -6339,6 +6679,7 @@ export type UserUncheckedUpdateWithoutMessagingAuditLogsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
   callsStarted?: Prisma.CallSessionUncheckedUpdateManyWithoutCallerNestedInput
@@ -6392,6 +6733,7 @@ export type UserCreateWithoutUserPresencesInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   callsStarted?: Prisma.CallSessionCreateNestedManyWithoutCallerInput
@@ -6445,6 +6787,7 @@ export type UserUncheckedCreateWithoutUserPresencesInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   callsStarted?: Prisma.CallSessionUncheckedCreateNestedManyWithoutCallerInput
@@ -6514,6 +6857,7 @@ export type UserUpdateWithoutUserPresencesInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   callsStarted?: Prisma.CallSessionUpdateManyWithoutCallerNestedInput
@@ -6567,6 +6911,7 @@ export type UserUncheckedUpdateWithoutUserPresencesInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   callsStarted?: Prisma.CallSessionUncheckedUpdateManyWithoutCallerNestedInput
@@ -6620,6 +6965,7 @@ export type UserCreateWithoutCallsStartedInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -6673,6 +7019,7 @@ export type UserUncheckedCreateWithoutCallsStartedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -6731,6 +7078,7 @@ export type UserCreateWithoutCallsReceivedInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -6784,6 +7132,7 @@ export type UserUncheckedCreateWithoutCallsReceivedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -6853,6 +7202,7 @@ export type UserUpdateWithoutCallsStartedInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -6906,6 +7256,7 @@ export type UserUncheckedUpdateWithoutCallsStartedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -6970,6 +7321,7 @@ export type UserUpdateWithoutCallsReceivedInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -7023,6 +7375,7 @@ export type UserUncheckedUpdateWithoutCallsReceivedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -7076,6 +7429,7 @@ export type UserCreateWithoutTemporaryGrantsInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -7129,6 +7483,7 @@ export type UserUncheckedCreateWithoutTemporaryGrantsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -7187,6 +7542,7 @@ export type UserCreateWithoutGrantsGivenInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -7240,6 +7596,7 @@ export type UserUncheckedCreateWithoutGrantsGivenInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -7298,6 +7655,7 @@ export type UserCreateWithoutGrantsRevokedInput = {
   conversationsCreated?: Prisma.ConversationCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceCreateNestedManyWithoutUserInput
@@ -7351,6 +7709,7 @@ export type UserUncheckedCreateWithoutGrantsRevokedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedCreateNestedManyWithoutCreatedByInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedCreateNestedManyWithoutUserInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedCreateNestedManyWithoutUserInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedCreateNestedManyWithoutActorInput
   userPresences?: Prisma.UserPresenceUncheckedCreateNestedManyWithoutUserInput
@@ -7420,6 +7779,7 @@ export type UserUpdateWithoutTemporaryGrantsInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -7473,6 +7833,7 @@ export type UserUncheckedUpdateWithoutTemporaryGrantsInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -7537,6 +7898,7 @@ export type UserUpdateWithoutGrantsGivenInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -7590,6 +7952,7 @@ export type UserUncheckedUpdateWithoutGrantsGivenInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -7654,6 +8017,7 @@ export type UserUpdateWithoutGrantsRevokedInput = {
   conversationsCreated?: Prisma.ConversationUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUpdateManyWithoutUserNestedInput
@@ -7707,6 +8071,7 @@ export type UserUncheckedUpdateWithoutGrantsRevokedInput = {
   conversationsCreated?: Prisma.ConversationUncheckedUpdateManyWithoutCreatedByNestedInput
   conversationParticipants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  messageDeliveryReceipts?: Prisma.MessageDeliveryReceiptUncheckedUpdateManyWithoutUserNestedInput
   messageArchives?: Prisma.UserMessageArchiveUncheckedUpdateManyWithoutUserNestedInput
   messagingAuditLogs?: Prisma.MessagingAuditLogUncheckedUpdateManyWithoutActorNestedInput
   userPresences?: Prisma.UserPresenceUncheckedUpdateManyWithoutUserNestedInput
@@ -7741,6 +8106,7 @@ export type UserCountOutputType = {
   conversationsCreated: number
   conversationParticipants: number
   sentMessages: number
+  messageDeliveryReceipts: number
   messageArchives: number
   messagingAuditLogs: number
   userPresences: number
@@ -7771,6 +8137,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   conversationsCreated?: boolean | UserCountOutputTypeCountConversationsCreatedArgs
   conversationParticipants?: boolean | UserCountOutputTypeCountConversationParticipantsArgs
   sentMessages?: boolean | UserCountOutputTypeCountSentMessagesArgs
+  messageDeliveryReceipts?: boolean | UserCountOutputTypeCountMessageDeliveryReceiptsArgs
   messageArchives?: boolean | UserCountOutputTypeCountMessageArchivesArgs
   messagingAuditLogs?: boolean | UserCountOutputTypeCountMessagingAuditLogsArgs
   userPresences?: boolean | UserCountOutputTypeCountUserPresencesArgs
@@ -7909,6 +8276,13 @@ export type UserCountOutputTypeCountSentMessagesArgs<ExtArgs extends runtime.Typ
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountMessageDeliveryReceiptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MessageDeliveryReceiptWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountMessageArchivesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.UserMessageArchiveWhereInput
 }
@@ -8025,6 +8399,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   conversationsCreated?: boolean | Prisma.User$conversationsCreatedArgs<ExtArgs>
   conversationParticipants?: boolean | Prisma.User$conversationParticipantsArgs<ExtArgs>
   sentMessages?: boolean | Prisma.User$sentMessagesArgs<ExtArgs>
+  messageDeliveryReceipts?: boolean | Prisma.User$messageDeliveryReceiptsArgs<ExtArgs>
   messageArchives?: boolean | Prisma.User$messageArchivesArgs<ExtArgs>
   messagingAuditLogs?: boolean | Prisma.User$messagingAuditLogsArgs<ExtArgs>
   userPresences?: boolean | Prisma.User$userPresencesArgs<ExtArgs>
@@ -8136,6 +8511,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   conversationsCreated?: boolean | Prisma.User$conversationsCreatedArgs<ExtArgs>
   conversationParticipants?: boolean | Prisma.User$conversationParticipantsArgs<ExtArgs>
   sentMessages?: boolean | Prisma.User$sentMessagesArgs<ExtArgs>
+  messageDeliveryReceipts?: boolean | Prisma.User$messageDeliveryReceiptsArgs<ExtArgs>
   messageArchives?: boolean | Prisma.User$messageArchivesArgs<ExtArgs>
   messagingAuditLogs?: boolean | Prisma.User$messagingAuditLogsArgs<ExtArgs>
   userPresences?: boolean | Prisma.User$userPresencesArgs<ExtArgs>
@@ -8172,6 +8548,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     conversationsCreated: Prisma.$ConversationPayload<ExtArgs>[]
     conversationParticipants: Prisma.$ConversationParticipantPayload<ExtArgs>[]
     sentMessages: Prisma.$MessagePayload<ExtArgs>[]
+    messageDeliveryReceipts: Prisma.$MessageDeliveryReceiptPayload<ExtArgs>[]
     messageArchives: Prisma.$UserMessageArchivePayload<ExtArgs>[]
     messagingAuditLogs: Prisma.$MessagingAuditLogPayload<ExtArgs>[]
     userPresences: Prisma.$UserPresencePayload<ExtArgs>[]
@@ -8625,6 +9002,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   conversationsCreated<T extends Prisma.User$conversationsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$conversationsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   conversationParticipants<T extends Prisma.User$conversationParticipantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$conversationParticipantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationParticipantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sentMessages<T extends Prisma.User$sentMessagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sentMessagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  messageDeliveryReceipts<T extends Prisma.User$messageDeliveryReceiptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$messageDeliveryReceiptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessageDeliveryReceiptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   messageArchives<T extends Prisma.User$messageArchivesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$messageArchivesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserMessageArchivePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   messagingAuditLogs<T extends Prisma.User$messagingAuditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$messagingAuditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagingAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   userPresences<T extends Prisma.User$userPresencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$userPresencesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPresencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -9481,6 +9859,30 @@ export type User$sentMessagesArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.MessageScalarFieldEnum | Prisma.MessageScalarFieldEnum[]
+}
+
+/**
+ * User.messageDeliveryReceipts
+ */
+export type User$messageDeliveryReceiptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MessageDeliveryReceipt
+   */
+  select?: Prisma.MessageDeliveryReceiptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MessageDeliveryReceipt
+   */
+  omit?: Prisma.MessageDeliveryReceiptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MessageDeliveryReceiptInclude<ExtArgs> | null
+  where?: Prisma.MessageDeliveryReceiptWhereInput
+  orderBy?: Prisma.MessageDeliveryReceiptOrderByWithRelationInput | Prisma.MessageDeliveryReceiptOrderByWithRelationInput[]
+  cursor?: Prisma.MessageDeliveryReceiptWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MessageDeliveryReceiptScalarFieldEnum | Prisma.MessageDeliveryReceiptScalarFieldEnum[]
 }
 
 /**

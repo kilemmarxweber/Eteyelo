@@ -117,8 +117,8 @@ export type MessageView = {
   /** Présent si le message a été retiré pour tout le monde. */
   deletedAt: string | null;
   archivedForMe: boolean;
-  /** Statut d'envoi pour les messages de l'acteur (SENT | READ). */
-  deliveryStatus?: "SENT" | "READ";
+  /** Statut pour les messages de l'acteur. */
+  deliveryStatus?: "SENT" | "DELIVERED" | "READ";
 };
 
 /** Libellé affiché à la place d'un message retiré. */

@@ -480,6 +480,11 @@ export type Message = Prisma.MessageModel
  */
 export type NoticeAck = Prisma.NoticeAckModel
 /**
+ * Model MessageDeliveryReceipt
+ * Accusé de réception d'un message par un participant.
+ */
+export type MessageDeliveryReceipt = Prisma.MessageDeliveryReceiptModel
+/**
  * Model UserMessageArchive
  * 
  */

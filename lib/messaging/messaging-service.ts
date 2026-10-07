@@ -1768,12 +1768,37 @@ export async function getConversationMessages(params: {
     peerLastReadAt = earliest.toISOString();
   }
 
+  const outgoingMessageIds = items
+    .filter((item) => item.senderId === params.actor.userId)
+    .map((item) => item.id);
+  const humanPeerIds = humanPeers.map((peer) => peer.userId);
+  const receiptRows =
+    outgoingMessageIds.length > 0 && humanPeerIds.length > 0
+      ? await prisma.messageDeliveryReceipt.findMany({
+          where: {
+            messageId: { in: outgoingMessageIds },
+            userId: { in: humanPeerIds },
+          },
+          select: { messageId: true, userId: true },
+        })
+      : [];
+  const deliveredByMessage = new Map<string, Set<string>>();
+  for (const receipt of receiptRows) {
+    const users = deliveredByMessage.get(receipt.messageId) ?? new Set<string>();
+    users.add(receipt.userId);
+    deliveredByMessage.set(receipt.messageId, users);
+  }
+
   const itemsWithStatus: MessageView[] = items.map((item) => {
     if (item.senderId !== params.actor.userId) return item;
     const created = Date.parse(item.createdAt);
     const readAt = peerLastReadAt ? Date.parse(peerLastReadAt) : NaN;
-    const deliveryStatus =
-      Number.isFinite(readAt) && created <= readAt ? "READ" : "SENT";
+    const read = Number.isFinite(readAt) && created <= readAt;
+    const deliveredUsers = deliveredByMessage.get(item.id);
+    const delivered =
+      humanPeerIds.length > 0 &&
+      humanPeerIds.every((userId) => deliveredUsers?.has(userId) === true);
+    const deliveryStatus = read ? "READ" : delivered ? "DELIVERED" : "SENT";
     return { ...item, deliveryStatus };
   });
 
@@ -1817,6 +1842,73 @@ export async function getConversationMessages(params: {
         ? rows[rows.length - 1]?.createdAt.toISOString() ?? null
         : null,
   };
+}
+
+/** Enregistre idempotemment la réception d'un lot de messages par l'acteur. */
+export async function markMessagesDelivered(params: {
+  organizationId: string;
+  actor: Actor;
+  conversationId: string;
+  messageIds: string[];
+}) {
+  assertCanUse(params.actor);
+  await getParticipantOrThrow(
+    params.conversationId,
+    params.actor.userId,
+    params.organizationId,
+  );
+
+  const requestedIds = [...new Set(params.messageIds)].slice(0, 100);
+  if (requestedIds.length === 0) return { deliveredCount: 0 };
+  const messages = await prisma.message.findMany({
+    where: {
+      id: { in: requestedIds },
+      conversationId: params.conversationId,
+      senderId: { not: params.actor.userId },
+    },
+    select: { id: true, senderId: true },
+  });
+  if (messages.length === 0) return { deliveredCount: 0 };
+
+  const alreadyRecorded = await prisma.messageDeliveryReceipt.findMany({
+    where: {
+      userId: params.actor.userId,
+      messageId: { in: messages.map((message) => message.id) },
+    },
+    select: { messageId: true },
+  });
+  const recordedIds = new Set(alreadyRecorded.map((receipt) => receipt.messageId));
+  const newMessages = messages.filter((message) => !recordedIds.has(message.id));
+  if (newMessages.length === 0) return { deliveredCount: 0 };
+
+  await prisma.messageDeliveryReceipt.createMany({
+    data: newMessages.map((message) => ({
+      messageId: message.id,
+      userId: params.actor.userId,
+    })),
+    skipDuplicates: true,
+  });
+
+  const bySender = new Map<string, string[]>();
+  for (const message of newMessages) {
+    const ids = bySender.get(message.senderId) ?? [];
+    ids.push(message.id);
+    bySender.set(message.senderId, ids);
+  }
+  const { publishMobileEvent } = await import("@/lib/mobile/realtime");
+  await Promise.all(
+    [...bySender.entries()].map(([senderId, messageIds]) =>
+      publishMobileEvent({
+        type: "message.delivered",
+        organizationId: params.organizationId,
+        conversationId: params.conversationId,
+        messageIds,
+        senderId,
+        recipientUserIds: [senderId],
+      }),
+    ),
+  );
+  return { deliveredCount: newMessages.length };
 }
 
 export async function markConversationRead(params: {

@@ -80,6 +80,10 @@ export const mobileEditMessageSchema = z.object({
 
 export const mobileConversationActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("read") }),
+  z.object({
+    action: z.literal("delivered"),
+    messageIds: z.array(mobileIdSchema).min(1).max(100),
+  }),
   z.object({ action: z.literal("unread") }),
   z.object({ action: z.literal("archive") }),
   z.object({ action: z.literal("unarchive") }),

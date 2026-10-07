@@ -143,6 +143,7 @@ export const ModelName = {
   ConversationParticipant: 'ConversationParticipant',
   Message: 'Message',
   NoticeAck: 'NoticeAck',
+  MessageDeliveryReceipt: 'MessageDeliveryReceipt',
   UserMessageArchive: 'UserMessageArchive',
   MessagingAuditLog: 'MessagingAuditLog',
   MessageAttachment: 'MessageAttachment',
@@ -1824,6 +1825,16 @@ export const NoticeAckScalarFieldEnum = {
 } as const
 
 export type NoticeAckScalarFieldEnum = (typeof NoticeAckScalarFieldEnum)[keyof typeof NoticeAckScalarFieldEnum]
+
+
+export const MessageDeliveryReceiptScalarFieldEnum = {
+  id: 'id',
+  messageId: 'messageId',
+  userId: 'userId',
+  deliveredAt: 'deliveredAt'
+} as const
+
+export type MessageDeliveryReceiptScalarFieldEnum = (typeof MessageDeliveryReceiptScalarFieldEnum)[keyof typeof MessageDeliveryReceiptScalarFieldEnum]
 
 
 export const UserMessageArchiveScalarFieldEnum = {

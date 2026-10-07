@@ -7,6 +7,7 @@ import {
 } from "@/lib/mobile/http";
 import {
   getGroupSettings,
+  markMessagesDelivered,
   markConversationRead,
   markConversationUnread,
   MessagingError,
@@ -49,6 +50,15 @@ export async function POST(request: Request, context: Ctx) {
     const body = parsed.data;
 
     switch (body.action) {
+      case "delivered": {
+        const data = await markMessagesDelivered({
+          organizationId,
+          actor,
+          conversationId,
+          messageIds: body.messageIds,
+        });
+        return jsonOk({ conversationId, action: body.action, ...data });
+      }
       case "read":
         await markConversationRead({
           organizationId,

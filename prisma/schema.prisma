@@ -56,6 +56,7 @@ model User {
   conversationsCreated         Conversation[]              @relation("ConversationCreator")
   conversationParticipants     ConversationParticipant[]
   sentMessages                 Message[]                   @relation("SentMessages")
+  messageDeliveryReceipts      MessageDeliveryReceipt[]
   messageArchives              UserMessageArchive[]
   messagingAuditLogs           MessagingAuditLog[]
   userPresences                UserPresence[]
@@ -2853,6 +2854,7 @@ model Message {
   notifications   AppNotification[]
   attachments     MessageAttachment[]
   noticeAcks      NoticeAck[]
+  deliveryReceipts MessageDeliveryReceipt[]
 
   @@index([conversationId, createdAt])
   @@index([senderId, createdAt])
@@ -2871,6 +2873,20 @@ model NoticeAck {
 
   @@unique([messageId, userId])
   @@index([organizationId, createdAt])
+  @@index([messageId])
+}
+
+/// Accusé de réception d'un message par un participant.
+model MessageDeliveryReceipt {
+  id          String   @id @default(cuid())
+  messageId   String
+  message     Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveredAt DateTime @default(now())
+
+  @@unique([messageId, userId])
+  @@index([userId, deliveredAt])
   @@index([messageId])
 }
 

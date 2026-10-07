@@ -24,6 +24,14 @@ export type MobileRealtimeEvent =
       recipientUserIds: string[];
     }
   | {
+      type: "message.delivered";
+      organizationId: string;
+      conversationId: string;
+      messageIds: string[];
+      senderId: string;
+      recipientUserIds: string[];
+    }
+  | {
       type: "message.deleted";
       organizationId: string;
       conversationId: string;
