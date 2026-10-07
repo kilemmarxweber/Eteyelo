@@ -22,12 +22,17 @@ export function canonicalDtlsFingerprints(sdp: string) {
 export function isValidCallPublicKey(value: string) {
   if (!value || typeof value !== "string") return false;
   try {
-    const buf = Buffer.from(value, "base64");
-    if (buf.length !== 32) return false;
-    return buf.toString("base64") === value;
+    const buf = Buffer.from(value.trim(), "base64");
+    // 32 octets Ed25519 — accepter padding base64 Dart/Node différent.
+    return buf.length === 32;
   } catch {
     return false;
   }
+}
+
+/** Normalise une clé publique en base64 standard (padding). */
+export function normalizeCallPublicKey(value: string) {
+  return Buffer.from(value.trim(), "base64").toString("base64");
 }
 
 export function publicKeyFromSeed(seed: Buffer) {
@@ -79,14 +84,15 @@ async function ensureTable() {
 }
 
 export async function saveCallPublicKey(userId: string, publicKey: string) {
-  memory.set(userId, publicKey);
+  const normalized = normalizeCallPublicKey(publicKey);
+  memory.set(userId, normalized);
   try {
     await ensureTable();
     await prisma.$executeRaw`
       INSERT INTO call_identity (user_id, public_key, updated_at)
-      VALUES (${userId}, ${publicKey}, NOW())
+      VALUES (${userId}, ${normalized}, NOW())
       ON CONFLICT (user_id) DO UPDATE
-      SET public_key = ${publicKey}, updated_at = NOW()
+      SET public_key = ${normalized}, updated_at = NOW()
     `;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -94,7 +100,7 @@ export async function saveCallPublicKey(userId: string, publicKey: string) {
   }
   try {
     await ensureRedisReady(800);
-    await getRedisConnection().set(redisKey(userId), publicKey);
+    await getRedisConnection().set(redisKey(userId), normalized);
   } catch {
     // mémoire + postgres suffisent sur une instance
   }
