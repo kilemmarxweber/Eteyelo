@@ -1555,7 +1555,7 @@ export async function searchPeopleForCheckInAction(
     ),
     ...visiblePersonnels
       .filter((personnel) => !memberIsAttendanceOwner(personnel.branchMember?.member))
-      .map((personnel) => {
+      .map((personnel) =>
         withPeriodPunchState(mapPersonnelLookup(personnel), {
           periodEnd: personnelPeriodEnd,
           periodEnded: personnelPeriodEnded,
@@ -2591,7 +2591,7 @@ export async function listPersonnelForCheckInAction(): Promise<
       if (!isDualStaffProfiles(profiles) || !profiles.teacherId) return true;
       return !teacherCourseIds.has(profiles.teacherId);
     })
-    .map((personnel) => {
+    .map((personnel) =>
       withPeriodPunchState(
         {
           ...mapPersonnelLookup(personnel),
