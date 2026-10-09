@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import { orgRoleToBranchRole } from "../lib/auth/org-role-to-branch-role";
+import { isDualStaffMemberRole } from "../lib/dual-staff-profile-shared";
 import { ORG_ROLE } from "../lib/permissions";
 import { BranchRole } from "../prisma/generated/prisma/enums";
 
@@ -18,6 +19,15 @@ test("dual enseignant + bureau conserve le profil enseignant", () => {
     orgRoleToBranchRole(`${ORG_ROLE.AGENT_BUREAU},${ORG_ROLE.TEACHER}`),
     BranchRole.TEACHER,
   );
+});
+
+test("agent de bureau + enseignant est un double profil", () => {
+  assert.equal(
+    isDualStaffMemberRole(`${ORG_ROLE.AGENT_BUREAU},${ORG_ROLE.TEACHER}`),
+    true,
+  );
+  assert.equal(isDualStaffMemberRole(ORG_ROLE.AGENT_BUREAU), false);
+  assert.equal(isDualStaffMemberRole(ORG_ROLE.TEACHER), false);
 });
 
 test("enseignant / caissier / directeur inchangés", () => {

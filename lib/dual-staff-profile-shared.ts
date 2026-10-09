@@ -13,6 +13,19 @@ export const PERSONNEL_ORG_ROLE_OPTIONS = [
   ORG_ROLE.SUPPORT,
 ] as const;
 
+export function memberHasPersonnelStaffRole(role: unknown): boolean {
+  const roles = new Set(splitSessionRoles(role));
+  return (PERSONNEL_ORG_ROLE_OPTIONS as readonly string[]).some((slug) =>
+    roles.has(slug),
+  );
+}
+
+/** Agent de bureau (ou autre personnel) qui a aussi le rôle enseignant. */
+export function isDualStaffMemberRole(role: unknown): boolean {
+  const roles = new Set(splitSessionRoles(role));
+  return roles.has(ORG_ROLE.TEACHER) && memberHasPersonnelStaffRole(role);
+}
+
 export function appendMemberOrgRoles(
   current: string | null | undefined,
   ...toAdd: string[]

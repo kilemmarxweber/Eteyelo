@@ -44,7 +44,6 @@ export function AttendanceQuickPersonRow({
   absentLabel,
   arrivalLabel,
   sessionLabel,
-  blockedReason,
   busy,
   onPointer,
   onCheckout,
@@ -58,7 +57,6 @@ export function AttendanceQuickPersonRow({
   absentLabel: string;
   arrivalLabel: string;
   sessionLabel?: string | null;
-  blockedReason?: string | null;
   busy: boolean;
   onPointer: () => void;
   onCheckout: () => void;
@@ -77,7 +75,8 @@ export function AttendanceQuickPersonRow({
     person.requiresEarlyExit !== false && canLeave && !ended;
   const canPointer =
     person.canCheckIn !== false && !person.alreadyCheckedIn && !ended;
-  const markedAbsent = !person.alreadyCheckedIn && ended;
+  const markedAbsent =
+    !person.alreadyCheckedIn && (ended || person.canCheckIn === false);
   const arrival = formatArrival(person.checkInAt);
   const actionLabel = canLeave
     ? requiresEarlyExit
@@ -116,17 +115,17 @@ export function AttendanceQuickPersonRow({
           {person.roleLabel ? ` · ${person.roleLabel}` : ""}
           {arrival ? ` · ${arrivalLabel} ${arrival}` : ""}
         </p>
-        {sessionLabel && !markedAbsent ? (
-          <p className="mt-0.5 truncate text-xs font-medium text-primary">
-            {sessionLabel}
-          </p>
-        ) : markedAbsent ? (
+        {markedAbsent ? (
           <p className="mt-0.5 text-xs font-medium text-rose-700 dark:text-rose-400">
             {absentLabel}
           </p>
-        ) : blockedReason ? (
-          <p className="mt-0.5 text-xs font-medium text-muted-foreground">
-            {blockedReason}
+        ) : done ? (
+          <p className="mt-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+            {doneLabel}
+          </p>
+        ) : sessionLabel ? (
+          <p className="mt-0.5 truncate text-xs font-medium text-primary">
+            {sessionLabel}
           </p>
         ) : null}
       </div>

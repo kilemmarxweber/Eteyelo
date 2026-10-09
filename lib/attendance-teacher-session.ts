@@ -253,6 +253,32 @@ export async function listTeacherDaySchedules(
   return candidates.sort((left, right) => left.startMinutes - right.startMinutes);
 }
 
+export async function teacherIdsWithScheduledCourseToday(
+  teacherIds: string[],
+  branchId: string,
+  now = nowLocal(),
+): Promise<Set<string>> {
+  if (teacherIds.length === 0) return new Set();
+  if (await isBranchClosedOn(branchId, now, "teachers")) return new Set();
+
+  const today = getTodayDay(now);
+  const rows = await prisma.teaching.findMany({
+    where: {
+      teacherId: { in: teacherIds },
+      ...teachingBranchWhere(branchId),
+      Schedule: {
+        some: {
+          day: today,
+          isArchived: false,
+        },
+      },
+    },
+    select: { teacherId: true },
+  });
+
+  return new Set(rows.map((row) => row.teacherId));
+}
+
 export async function listTeacherScheduleCandidates(
   teacherId: string,
   branchId: string,

@@ -7,6 +7,12 @@ import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { resolvePublicBranchMedia } from "@/lib/branch-public-images";
 import { prisma } from "@/lib/prisma";
+import { requiresStudentImport } from "@/lib/branch-capabilities";
+import {
+  countLinkedStudentsByBranch,
+  countNativeBranchStudents,
+  resolveBranchStudentsCount,
+} from "@/lib/branch-student-counts";
 import { SITE_NAME, SITE_OG_IMAGE } from "@/lib/seo/site";
 import { branchImageBackgroundStyle } from "@/lib/utils";
 
@@ -41,6 +47,7 @@ export default async function EtablissementsPage() {
       ville: true,
       pays: true,
       image: true,
+      typebranch: true,
       branchemembers: {
         select: {
           _count: {
@@ -53,13 +60,20 @@ export default async function EtablissementsPage() {
     },
   });
 
+  const linkedCounts = await countLinkedStudentsByBranch(
+    branches
+      .filter((branch) => requiresStudentImport(branch.typebranch))
+      .map((branch) => branch.id),
+  );
+
   const cards = await Promise.all(
     branches.map(async (branch) => {
       const media = await resolvePublicBranchMedia(branch.image);
-      const studentsCount = branch.branchemembers.reduce(
-        (total, member) => total + member._count.student,
-        0,
-      );
+      const studentsCount = resolveBranchStudentsCount({
+        typebranch: branch.typebranch,
+        nativeCount: countNativeBranchStudents(branch.branchemembers),
+        linkedCount: linkedCounts.get(branch.id) ?? 0,
+      });
 
       return {
         id: branch.id,

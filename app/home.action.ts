@@ -2,6 +2,12 @@
 
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { prisma } from "@/lib/prisma";
+import { requiresStudentImport } from "@/lib/branch-capabilities";
+import {
+  countLinkedStudentsByBranch,
+  countNativeBranchStudents,
+  resolveBranchStudentsCount,
+} from "@/lib/branch-student-counts";
 import { normalizeImageSrc } from "@/lib/utils";
 
 const fallbackSchools = [
@@ -182,6 +188,7 @@ export async function getHomeData() {
         image: true,
         ville: true,
         pays: true,
+        typebranch: true,
         createdAt: true,
         branchemembers: {
           select: {
@@ -265,13 +272,22 @@ export async function getHomeData() {
     }),
   ]);
 
+  const linkedCounts = await countLinkedStudentsByBranch(
+    branches
+      .filter((branch) => requiresStudentImport(branch.typebranch))
+      .map((branch) => branch.id),
+  );
+  const studentsCountFor = (branch: (typeof branches)[number]) =>
+    resolveBranchStudentsCount({
+      typebranch: branch.typebranch,
+      nativeCount: countNativeBranchStudents(branch.branchemembers),
+      linkedCount: linkedCounts.get(branch.id) ?? 0,
+    });
+
   const dynamicSchools: HomeSchool[] = branches
     .slice(0, 6)
     .map((branch, index) => {
-      const studentsCount = branch.branchemembers.reduce(
-        (total, member) => total + member._count.student,
-        0,
-      );
+      const studentsCount = studentsCountFor(branch);
       const city = branch.ville || branch.pays || "RDC";
 
       return {
@@ -345,12 +361,7 @@ export async function getHomeData() {
       schools: branches.length || 300,
       students:
         branches.reduce(
-          (total, branch) =>
-            total +
-            branch.branchemembers.reduce(
-              (branchTotal, member) => branchTotal + member._count.student,
-              0,
-            ),
+          (total, branch) => total + studentsCountFor(branch),
           0,
         ) || 50000,
       verified: branches.length ? 100 : 98,

@@ -153,6 +153,7 @@
     "noStudents": "Aucun élève dans cette classe.",
     "noPersonnel": "Aucun personnel à afficher.",
     "checkedIn": "Pointé",
+    "alreadyCheckedIn": "Déjà pointé",
     "studentsCount": "{count} élèves",
     "searching": "Recherche…",
     "pendingCount": "{count} à pointer",

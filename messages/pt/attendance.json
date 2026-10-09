@@ -153,6 +153,7 @@
     "noStudents": "Nenhum aluno nesta turma.",
     "noPersonnel": "Nenhum pessoal a mostrar.",
     "checkedIn": "Marcado",
+    "alreadyCheckedIn": "Já marcado",
     "studentsCount": "{count} alunos",
     "searching": "A pesquisar…",
     "pendingCount": "{count} por marcar",

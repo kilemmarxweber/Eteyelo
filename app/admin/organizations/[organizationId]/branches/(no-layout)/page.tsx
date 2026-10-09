@@ -15,6 +15,12 @@ import {
 } from "@/lib/auth/user-branch-access";
 import { isRestrictedGestionnaire } from "@/lib/auth/role-labels";
 import { prisma } from "@/lib/prisma";
+import { requiresStudentImport } from "@/lib/branch-capabilities";
+import {
+  countLinkedStudentsByBranch,
+  countNativeBranchStudents,
+  resolveBranchStudentsCount,
+} from "@/lib/branch-student-counts";
 import { BranchCard } from "./branchCard";
 import { BranchTypeBadge, EducationSystemBadge } from "@/components/branch/branch-type-badge";
 import { formatBranchCyclesLabel, isMultiCycleBranch } from "@/lib/cycle";
@@ -75,6 +81,12 @@ async function getOrganizationBranches(organizationId: string) {
     BRANCH_TYPES.map((type, index) => [type, index]),
   ) as Record<string, number>;
 
+  const linkedCounts = await countLinkedStudentsByBranch(
+    branches
+      .filter((branch) => requiresStudentImport(branch.typebranch))
+      .map((branch) => branch.id),
+  );
+
   return branches
     .map((branch) => ({
       id: branch.id,
@@ -84,10 +96,11 @@ async function getOrganizationBranches(organizationId: string) {
       educationSystem: branch.educationSystem,
       cycles: branch.cycles,
       isActive: branch.isActive,
-      studentsCount: branch.branchemembers.reduce(
-        (total, member) => total + member._count.student,
-        0,
-      ),
+      studentsCount: resolveBranchStudentsCount({
+        typebranch: branch.typebranch,
+        nativeCount: countNativeBranchStudents(branch.branchemembers),
+        linkedCount: linkedCounts.get(branch.id) ?? 0,
+      }),
       counts: {
         sections: branch._count.section,
         options: branch._count.option,

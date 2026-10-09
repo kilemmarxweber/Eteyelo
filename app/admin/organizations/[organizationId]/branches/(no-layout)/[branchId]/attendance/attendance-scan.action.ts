@@ -46,6 +46,12 @@ import {
   listTeacherScheduleCandidates,
   teacherUsesDayLevelPunch,
 } from "@/lib/attendance-teacher-session";
+import {
+  dualStaffTeacherIdsWithCourseToday,
+  isDualStaffProfiles,
+  resolveDualStaffAttendanceMode,
+  type DualStaffProfiles,
+} from "@/lib/attendance-dual-staff";
 import { compareClassesByLevel } from "@/lib/class-structure";
 import {
   CYCLE_SORT_ORDER,
@@ -205,8 +211,38 @@ function userInclude() {
         member: {
           include: { user: true },
         },
+        teacher: { where: { isActive: true }, select: { id: true } },
+        personel: { where: { isActive: true }, select: { id: true } },
       },
     },
+  };
+}
+
+function dualProfilesFromTeacher(teacher: {
+  id: string;
+  branchMember?: {
+    member?: { role?: unknown } | null;
+    personel?: { id: string }[];
+  } | null;
+}): DualStaffProfiles {
+  return {
+    teacherId: teacher.id,
+    personnelId: teacher.branchMember?.personel?.[0]?.id ?? null,
+    memberRole: teacher.branchMember?.member?.role,
+  };
+}
+
+function dualProfilesFromPersonnel(personnel: {
+  id: string;
+  branchMember?: {
+    member?: { role?: unknown } | null;
+    teacher?: { id: string }[];
+  } | null;
+}): DualStaffProfiles {
+  return {
+    teacherId: personnel.branchMember?.teacher?.[0]?.id ?? null,
+    personnelId: personnel.id,
+    memberRole: personnel.branchMember?.member?.role,
   };
 }
 
@@ -396,16 +432,95 @@ async function resolvePersonFromScan(
 
     if (target === "teacher") {
       const teacher = await findTeacherByScan(branchId, organizationId, parsed);
-      if (teacher) return { type: "teacher", record: teacher };
+      if (teacher) {
+        return rerouteDualStaffPerson(branchId, organizationId, {
+          type: "teacher",
+          record: teacher,
+        });
+      }
     }
 
     if (target === "personnel") {
       const personnel = await findPersonnelByScan(branchId, organizationId, parsed);
-      if (personnel) return { type: "personnel", record: personnel };
+      if (personnel) {
+        return rerouteDualStaffPerson(branchId, organizationId, {
+          type: "personnel",
+          record: personnel,
+        });
+      }
     }
   }
 
   return null;
+}
+
+async function loadTeacherRecord(
+  branchId: string,
+  organizationId: string,
+  teacherId: string | null,
+) {
+  if (!teacherId) return null;
+  return prisma.teacher.findFirst({
+    where: {
+      id: teacherId,
+      branchMember: { branchId, branch: { organizationId } },
+    },
+    include: userInclude(),
+  });
+}
+
+async function loadPersonnelRecord(
+  branchId: string,
+  organizationId: string,
+  personnelId: string | null,
+) {
+  if (!personnelId) return null;
+  return prisma.personnel.findFirst({
+    where: {
+      id: personnelId,
+      branchMember: { branchId, branch: { organizationId } },
+    },
+    include: userInclude(),
+  });
+}
+
+async function rerouteDualStaffPerson<
+  TTeacher extends NonNullable<Awaited<ReturnType<typeof findTeacherByScan>>>,
+  TPersonnel extends NonNullable<Awaited<ReturnType<typeof findPersonnelByScan>>>,
+>(
+  branchId: string,
+  organizationId: string,
+  person:
+    | { type: "teacher"; record: TTeacher }
+    | { type: "personnel"; record: TPersonnel },
+): Promise<
+  | { type: "teacher"; record: TTeacher }
+  | { type: "personnel"; record: TPersonnel }
+> {
+  const profiles =
+    person.type === "teacher"
+      ? dualProfilesFromTeacher(person.record)
+      : dualProfilesFromPersonnel(person.record);
+  const mode = await resolveDualStaffAttendanceMode(branchId, profiles);
+  if (!mode || mode === person.type) return person;
+
+  if (mode === "teacher") {
+    const teacher = await loadTeacherRecord(
+      branchId,
+      organizationId,
+      profiles.teacherId,
+    );
+    if (teacher) return { type: "teacher", record: teacher as TTeacher };
+    return person;
+  }
+
+  const personnel = await loadPersonnelRecord(
+    branchId,
+    organizationId,
+    profiles.personnelId,
+  );
+  if (personnel) return { type: "personnel", record: personnel as TPersonnel };
+  return person;
 }
 
 function mapStudentLookup(
@@ -526,7 +641,7 @@ function buildAlreadyCheckedInResult(
   const isKnownCheckInStatus = status === "PRESENT" || status === "LATE";
   return {
     ok: false,
-    message: `${lookup.name} a deja pointe pour ce cours a cette heure.`,
+    message: `${lookup.name} : Déjà pointé`,
     personType: lookup.personType,
     person: lookup,
     status: isKnownCheckInStatus ? status : undefined,
@@ -739,7 +854,7 @@ async function performStudentCheckIn(
       "Vacation";
     return {
       ok: false,
-      message: `${lookup.name} a déjà pointé l'arrivée et la sortie aujourd'hui.`,
+      message: `${lookup.name} : Déjà pointé`,
       personType: "student",
       person: lookup,
       status:
@@ -760,7 +875,7 @@ async function performStudentCheckIn(
   if (await isStudentNormalCheckoutAllowed(student.id, branchId)) {
     return {
       ok: false,
-      message: `${lookup.name} n'a pas pointé : la vacation est terminée. Statut absent.`,
+      message: `${lookup.name} : Absent`,
       personType: "student",
       person: { ...lookup, canCheckIn: false },
     };
@@ -771,7 +886,7 @@ async function performStudentCheckIn(
   if (!attendanceSession) {
     return {
       ok: false,
-      message: "Aucune session de cours disponible pour cet eleve aujourd'hui.",
+      message: `${lookup.name} : Absent`,
       personType: "student",
       person: lookup,
     };
@@ -936,7 +1051,7 @@ async function performTeacherCheckIn(
         "Vacation";
       return {
         ok: false,
-        message: `${lookup.name} a déjà pointé l'arrivée et la sortie aujourd'hui.`,
+        message: `${lookup.name} : Déjà pointé`,
         personType: "teacher",
         person: lookup,
         status:
@@ -958,7 +1073,7 @@ async function performTeacherCheckIn(
   if (await isTeacherNormalCheckoutAllowed(teacher.id, branchId)) {
     return {
       ok: false,
-      message: `${lookup.name} n'a pas pointé : le cours est terminé. Statut absent.`,
+      message: `${lookup.name} : Absent`,
       personType: "teacher",
       person: { ...lookup, canCheckIn: false },
     };
@@ -969,9 +1084,7 @@ async function performTeacherCheckIn(
   if (!attendanceSession) {
     return {
       ok: false,
-      message: dayLevel
-        ? "Aucune vacation disponible pour cet enseignant aujourd'hui."
-        : "Aucune session de cours disponible pour cet enseignant maintenant. Le pointage est ouvert a partir de 15 minutes avant le debut du cours.",
+      message: `${lookup.name} : Absent`,
       personType: "teacher",
       person: lookup,
     };
@@ -1184,7 +1297,7 @@ async function performPersonnelCheckIn(
   if (await isPersonnelNormalCheckoutAllowed(branchId)) {
     return {
       ok: false,
-      message: `${lookup.name} n'a pas pointé : la journée est terminée. Statut absent.`,
+      message: `${lookup.name} : Absent`,
       personType: "personnel",
       person: { ...lookup, canCheckIn: false },
     };
@@ -1318,6 +1431,25 @@ export async function searchPeopleForCheckInAction(
         }),
   ]);
 
+  const teacherCourseIds = await dualStaffTeacherIdsWithCourseToday(branchId, [
+    ...teachers.map((teacher) => teacher.id),
+    ...personnels.flatMap((personnel) =>
+      personnel.branchMember?.teacher?.map((row) => row.id) ?? [],
+    ),
+  ]);
+
+  const visibleTeachers = teachers.filter((teacher) => {
+    const profiles = dualProfilesFromTeacher(teacher);
+    if (!isDualStaffProfiles(profiles)) return true;
+    return teacherCourseIds.has(teacher.id);
+  });
+
+  const visiblePersonnels = personnels.filter((personnel) => {
+    const profiles = dualProfilesFromPersonnel(personnel);
+    if (!isDualStaffProfiles(profiles)) return true;
+    return !teacherCourseIds.has(profiles.teacherId!);
+  });
+
   const studentLookups = await Promise.all(
     students.map(async (student) => {
       const todayRows = await findStudentAttendanceToday(student.id, branchId);
@@ -1362,7 +1494,7 @@ export async function searchPeopleForCheckInAction(
   );
 
   const teacherLookups = await Promise.all(
-    teachers.map(async (teacher) => {
+    visibleTeachers.map(async (teacher) => {
       const dayLevel = await teacherUsesDayLevelPunch(teacher.id, branchId);
       const periodEnd = await getTeacherDayPeriodEnd(teacher.id, branchId);
       const periodEnded = await isTeacherNormalCheckoutAllowed(
@@ -1419,11 +1551,11 @@ export async function searchPeopleForCheckInAction(
     ...studentLookups,
     ...teacherLookups.filter(
       (person, index) =>
-        !memberIsAttendanceOwner(teachers[index]?.branchMember?.member),
+        !memberIsAttendanceOwner(visibleTeachers[index]?.branchMember?.member),
     ),
-    ...personnels
+    ...visiblePersonnels
       .filter((personnel) => !memberIsAttendanceOwner(personnel.branchMember?.member))
-      .map((personnel) =>
+      .map((personnel) => {
         withPeriodPunchState(mapPersonnelLookup(personnel), {
           periodEnd: personnelPeriodEnd,
           periodEnded: personnelPeriodEnded,
@@ -1563,7 +1695,14 @@ export async function checkInPersonByIdAction(
       return { ok: false, message: "Enseignant introuvable dans cette branche." };
     }
 
-    return performTeacherCheckIn(teacher, parsedCoords);
+    const routed = await rerouteDualStaffPerson(branchId, organizationId, {
+      type: "teacher",
+      record: teacher,
+    });
+    if (routed.type === "personnel") {
+      return performPersonnelCheckIn(routed.record, parsedCoords);
+    }
+    return performTeacherCheckIn(routed.record, parsedCoords);
   }
 
   const personnel = await prisma.personnel.findFirst({
@@ -1578,7 +1717,14 @@ export async function checkInPersonByIdAction(
     return { ok: false, message: "Personnel introuvable dans cette branche." };
   }
 
-  return performPersonnelCheckIn(personnel, parsedCoords);
+  const routed = await rerouteDualStaffPerson(branchId, organizationId, {
+    type: "personnel",
+    record: personnel,
+  });
+  if (routed.type === "teacher") {
+    return performTeacherCheckIn(routed.record, parsedCoords);
+  }
+  return performPersonnelCheckIn(routed.record, parsedCoords);
 }
 
 /** @deprecated Use checkInPersonByIdAction */
@@ -1654,6 +1800,13 @@ export async function findOpenCheckoutForPersonAction(
       include: userInclude(),
     });
     if (!teacher) return null;
+    const routed = await rerouteDualStaffPerson(branchId, organizationId, {
+      type: "teacher",
+      record: teacher,
+    });
+    if (routed.type === "personnel") {
+      return findOpenCheckoutForPersonAction("personnel", routed.record.id);
+    }
     const lookup = mapTeacherLookup(teacher);
     const open = await prisma.teacherAttendance.findFirst({
       where: {
@@ -1697,6 +1850,13 @@ export async function findOpenCheckoutForPersonAction(
     include: userInclude(),
   });
   if (!personnel) return null;
+  const routed = await rerouteDualStaffPerson(branchId, organizationId, {
+    type: "personnel",
+    record: personnel,
+  });
+  if (routed.type === "teacher") {
+    return findOpenCheckoutForPersonAction("teacher", routed.record.id);
+  }
   const lookup = mapPersonnelLookup(personnel);
   const open = await prisma.personnelAttendance.findFirst({
     where: {
@@ -2417,9 +2577,21 @@ export async function listPersonnelForCheckInAction(): Promise<
   const periodEnd = await getBranchDayEndDate(branchId);
   const periodEnded = await isPersonnelNormalCheckoutAllowed(branchId);
 
+  const teacherCourseIds = await dualStaffTeacherIdsWithCourseToday(
+    branchId,
+    personnels.flatMap(
+      (personnel) => personnel.branchMember?.teacher?.map((row) => row.id) ?? [],
+    ),
+  );
+
   return personnels
-    .filter((personnel) => !memberIsAttendanceOwner(personnel.branchMember?.member))
-    .map((personnel) =>
+    .filter((personnel) => {
+      if (memberIsAttendanceOwner(personnel.branchMember?.member)) return false;
+      const profiles = dualProfilesFromPersonnel(personnel);
+      if (!isDualStaffProfiles(profiles) || !profiles.teacherId) return true;
+      return !teacherCourseIds.has(profiles.teacherId);
+    })
+    .map((personnel) => {
       withPeriodPunchState(
         {
           ...mapPersonnelLookup(personnel),

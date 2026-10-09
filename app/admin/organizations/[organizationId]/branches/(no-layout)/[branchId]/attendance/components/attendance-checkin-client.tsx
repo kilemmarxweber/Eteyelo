@@ -715,7 +715,7 @@ export function AttendanceCheckInClient({
                   ? t("checkout.normalEnd")
                   : t("checkInUi.endOfClass")
               }
-              doneLabel={t("checkInUi.checkedIn")}
+              doneLabel={t("checkInUi.alreadyCheckedIn")}
               absentLabel={t("status.ABSENT")}
               arrivalLabel={t("reports.columns.arrival")}
               sessionLabel={
@@ -723,11 +723,6 @@ export function AttendanceCheckInClient({
                   ? t("checkInUi.expectedSession", {
                       session: person.expectedSessionLabel,
                     })
-                  : null
-              }
-              blockedReason={
-                person.canCheckIn === false && !person.canCheckOut
-                  ? t("checkInUi.noStudentSessionToday")
                   : null
               }
               busy={pending && busyKey === personKey(person)}

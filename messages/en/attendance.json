@@ -153,6 +153,7 @@
     "noStudents": "No students in this class.",
     "noPersonnel": "No staff to display.",
     "checkedIn": "Checked in",
+    "alreadyCheckedIn": "Already checked in",
     "studentsCount": "{count} students",
     "searching": "Searching…",
     "pendingCount": "{count} remaining",

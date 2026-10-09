@@ -11,6 +11,7 @@ import {
 
 export {
   appendMemberOrgRoles,
+  isDualStaffMemberRole,
   PERSONNEL_ORG_ROLE_OPTIONS,
   removeMemberOrgRoles,
 } from "@/lib/dual-staff-profile-shared";
