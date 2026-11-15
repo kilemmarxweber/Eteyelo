@@ -19,6 +19,7 @@ import {
 import type { IStudent } from "@/src/interfaces/Student";
 import { calculateAge } from "@/lib/person-age";
 import type { SchoolReportContext } from "@/lib/reports/types";
+import { normalizeUserLocale } from "@/lib/user-locale";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { exportStudentsReportExcel } from "./export-students-excel";
 import {
@@ -180,7 +181,7 @@ export function StudentsListPreviewDialog({
               address: context.address,
               logoUrl: context.logoUrl,
               academicYearLabel: context.academicYearLabel,
-              locale,
+              locale: normalizeUserLocale(locale),
             }
           : undefined
       }
