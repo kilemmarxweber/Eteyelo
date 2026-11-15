@@ -2,9 +2,11 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { IStudent } from "@/src/interfaces/Student";
 import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
+import { withDocumentLocale } from "@/lib/reports/document-locale";
 import {
   drawReportFooterOnAllPages,
   drawReportHeader,
+  REPORT_CONTINUATION_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import { pdfFontsFromContext } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
@@ -168,7 +170,7 @@ export function buildStudentsReportFilterLabels(
   return result;
 }
 
-function buildReportFileName(options: StudentReportOptions): string {
+export function buildStudentsReportFileName(options: StudentReportOptions): string {
   const parts = ["liste-eleves"];
   const selectedClass = options.selectedClass ?? null;
   const sexe = options.sexe ?? null;
@@ -258,12 +260,23 @@ export function sortStudentsForReport(
   return sortPeopleByName(students, locale);
 }
 
-export async function buildStudentsReportPdf(
+export type StudentsReportTableModel = {
+  title: string;
+  filterLabels: string[];
+  head: string[];
+  body: (string | number)[][];
+  sortedStudents: IStudent[];
+  isClassReport: boolean;
+  showExamCodes: boolean;
+  showBirthColumns: boolean;
+  fileBaseName: string;
+};
+
+/** Colonnes / lignes partagées PDF + Excel (même logique et libellés). */
+export function buildStudentsReportTableModel(
   students: IStudent[],
-  context: SchoolReportContext,
   options: StudentReportOptions,
-) {
-  const fonts = pdfFontsFromContext(context);
+): StudentsReportTableModel {
   const { labels } = options;
   const selectedClass = options.selectedClass ?? null;
   const isClassReport = Boolean(selectedClass);
@@ -286,27 +299,6 @@ export async function buildStudentsReportPdf(
   const title = buildStudentsReportTitle(options);
   const filterLabels = buildStudentsReportFilterLabels(options);
   const sortedStudents = sortStudentsForReport(students, labels.locale);
-  const doc = new jsPDF({
-    orientation: "landscape",
-    unit: "mm",
-    format: "a4",
-  });
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const marginX = 10;
-  const usableWidth = pageWidth - marginX * 2;
-  const logo = await imageUrlToDataUrl(context.logoUrl);
-
-  const headerOptions = {
-    title,
-    subtitle: context.branchName,
-    details: [
-      ...filterLabels,
-      labels.studentCount.replace("{count}", String(sortedStudents.length)),
-    ],
-    logoDataUrl: logo,
-  };
-
-  const contentTop = drawReportHeader(doc, context, headerOptions);
 
   const head = [
     labels.colIndex,
@@ -351,6 +343,52 @@ export async function buildStudentsReportPdf(
     return row;
   });
 
+  return {
+    title,
+    filterLabels,
+    head,
+    body,
+    sortedStudents,
+    isClassReport,
+    showExamCodes,
+    showBirthColumns,
+    fileBaseName: buildStudentsReportFileName(options),
+  };
+}
+
+export async function buildStudentsReportPdf(
+  students: IStudent[],
+  context: SchoolReportContext,
+  options: StudentReportOptions,
+) {
+  const { labels } = options;
+  /** Langue d’export (UI) prime sur le contexte serveur pour chrome FR/EN/PT. */
+  const localizedContext = withDocumentLocale(context, labels.locale);
+  const fonts = pdfFontsFromContext(localizedContext);
+  const model = buildStudentsReportTableModel(students, options);
+  const doc = new jsPDF({
+    orientation: "landscape",
+    unit: "mm",
+    format: "a4",
+  });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const marginX = 10;
+  const usableWidth = pageWidth - marginX * 2;
+  const logo = await imageUrlToDataUrl(localizedContext.logoUrl);
+
+  const contentTop = drawReportHeader(doc, localizedContext, {
+    title: model.title,
+    subtitle: localizedContext.branchName,
+    details: [
+      ...model.filterLabels,
+      labels.studentCount.replace(
+        "{count}",
+        String(model.sortedStudents.length),
+      ),
+    ],
+    logoDataUrl: logo,
+  });
+
   type PdfColumnStyle = { cellWidth: number; halign: "center" | "left" };
   const columnStyles: Record<number, PdfColumnStyle> = (() => {
     const styles: Record<number, PdfColumnStyle> = {};
@@ -363,12 +401,12 @@ export async function buildStudentsReportPdf(
       { width: 0.05, align: "center" },
       { width: 0.05, align: "center" },
     ];
-    if (!isClassReport) fractions.push({ width: 0.12, align: "left" });
-    if (showExamCodes) {
+    if (!model.isClassReport) fractions.push({ width: 0.12, align: "left" });
+    if (model.showExamCodes) {
       fractions.push({ width: 0.1, align: "center" });
       fractions.push({ width: 0.1, align: "center" });
     }
-    if (showBirthColumns) {
+    if (model.showBirthColumns) {
       fractions.push({ width: 0.08, align: "center" });
       fractions.push({ width: 0.12, align: "left" });
     }
@@ -385,16 +423,17 @@ export async function buildStudentsReportPdf(
   autoTable(doc, {
     startY: contentTop,
     margin: {
-      top: contentTop,
+      // En-tête établissement uniquement page 1 ; pages suivantes = marge courte.
+      top: REPORT_CONTINUATION_CONTENT_TOP_MM,
       right: marginX,
       bottom: 16,
       left: marginX,
     },
     tableWidth: usableWidth,
-    head: [head],
-    body,
+    head: [model.head],
+    body: model.body,
     theme: "striped",
-    showHead: "everyPage",
+    showHead: "firstPage",
     styles: {
       font: "helvetica",
       fontSize: fonts.body,
@@ -415,15 +454,10 @@ export async function buildStudentsReportPdf(
     },
     alternateRowStyles: { fillColor: [248, 250, 252] },
     columnStyles,
-    didDrawPage: (data) => {
-      if (data.pageNumber > 1) {
-        drawReportHeader(doc, context, headerOptions);
-      }
-    },
   });
 
-  drawReportFooterOnAllPages(doc, context, {
-    leftText: context.branchName || context.schoolName,
+  drawReportFooterOnAllPages(doc, localizedContext, {
+    leftText: localizedContext.branchName || localizedContext.schoolName,
   });
 
   return doc;
@@ -435,7 +469,7 @@ export async function exportStudentsReportPdf(
   options: StudentReportOptions,
 ) {
   const date = new Date().toISOString().slice(0, 10);
-  const reportName = buildReportFileName(options);
+  const model = buildStudentsReportTableModel(students, options);
   const doc = await buildStudentsReportPdf(students, context, options);
-  doc.save(`${reportName}-${date}.pdf`);
+  doc.save(`${model.fileBaseName}-${date}.pdf`);
 }

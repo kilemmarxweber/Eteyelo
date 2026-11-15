@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import { updateBranchLocaleAction } from "@/lib/branch-locale.action";
 import { updateUserLocaleAction } from "@/lib/user-locale.action";
 import {
   LOCALE_OPTIONS,
@@ -28,11 +29,20 @@ type LocalePreferenceButtonsProps = {
   className?: string;
   /** Affiche le libellé + description au-dessus des boutons. */
   showLabels?: boolean;
+  /**
+   * Si fourni : langue de cette branche uniquement (Apparence).
+   * Sinon : préférence utilisateur globale (Compte).
+   */
+  branchId?: string;
+  /** Valeur initiale (ex. locale résolue côté serveur pour la branche). */
+  initialLocale?: UserLocale;
 };
 
 export function LocalePreferenceButtons({
   className,
   showLabels = true,
+  branchId,
+  initialLocale,
 }: LocalePreferenceButtonsProps) {
   const t = useTranslations("account");
   const tCommon = useTranslations("common");
@@ -41,30 +51,39 @@ export function LocalePreferenceButtons({
   const { data: session } = authClient.useSession();
   const userId = session?.user?.id;
   const [locale, setLocale] = useState<UserLocale>(
-    normalizeUserLocale(activeLocale),
+    normalizeUserLocale(initialLocale ?? activeLocale),
   );
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
-    setLocale(normalizeUserLocale(activeLocale));
-  }, [activeLocale]);
+    setLocale(normalizeUserLocale(initialLocale ?? activeLocale));
+  }, [activeLocale, initialLocale]);
 
   function handleSelect(next: string) {
     if (!isUserLocale(next) || next === locale || pending) return;
     const previous = locale;
     setLocale(next);
-    writeUserLocalePreference(next, userId);
     document.documentElement.lang = intlLocaleFromUserLocale(next);
+
     startTransition(() => {
-      void updateUserLocaleAction(next)
+      const save = branchId
+        ? updateBranchLocaleAction(branchId, next)
+        : updateUserLocaleAction(next).then((result) => {
+            writeUserLocalePreference(next, userId);
+            return result;
+          });
+
+      void save
         .then(() => {
           toast.success(LOCALE_UPDATED_TOAST[next]);
           router.refresh();
         })
         .catch(() => {
           setLocale(previous);
-          writeUserLocalePreference(previous, userId);
           document.documentElement.lang = intlLocaleFromUserLocale(previous);
+          if (!branchId) {
+            writeUserLocalePreference(previous, userId);
+          }
           toast.error(tCommon("errorGeneric"));
         });
     });

@@ -1,13 +1,14 @@
 "use server";
 
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
-import { prisma } from "@/lib/prisma";
 import { requiresStudentImport } from "@/lib/branch-capabilities";
 import {
   countLinkedStudentsByBranch,
   countNativeBranchStudents,
   resolveBranchStudentsCount,
 } from "@/lib/branch-student-counts";
+import { filterPublicCalendarEvents } from "@/lib/calendar-event-visibility";
+import { prisma } from "@/lib/prisma";
 import { normalizeImageSrc } from "@/lib/utils";
 
 const fallbackSchools = [
@@ -217,11 +218,14 @@ export async function getHomeData() {
         },
       },
       orderBy: { dateStart: "desc" },
-      take: 6,
+      take: 40,
       select: {
         id: true,
         title: true,
         dateStart: true,
+        dateEnd: true,
+        allDay: true,
+        recurrence: true,
         branch: {
           select: {
             name: true,
@@ -302,14 +306,16 @@ export async function getHomeData() {
       };
     });
 
-  const dynamicEvents: HomeEvent[] = calendarEvents.map((event, index) => ({
-    title: event.title || "Evenement scolaire",
-    school: event.branch.name,
-    date: formatShortDate(event.dateStart),
-    image:
-      normalizeImageSrc(event.branch.image) ||
-      fallbackEvents[index % fallbackEvents.length].image,
-  }));
+  const dynamicEvents: HomeEvent[] = filterPublicCalendarEvents(calendarEvents)
+    .slice(0, 6)
+    .map((event, index) => ({
+      title: event.title || "Evenement scolaire",
+      school: event.branch.name,
+      date: formatShortDate(event.dateStart),
+      image:
+        normalizeImageSrc(event.branch.image) ||
+        fallbackEvents[index % fallbackEvents.length].image,
+    }));
 
   const dynamicNewSchools: NewSchool[] = branches.slice(0, 4).map((branch) => ({
     id: branch.id,

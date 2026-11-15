@@ -2,8 +2,9 @@ import ClientLayout from "./client-layout";
 import AttendanceGuard from "./attendance/component/AttendanceGuard";
 import { enforceOrganizationBranchPage } from "@/lib/auth/require-organization-permission";
 import { switchActiveBranch } from "@/lib/auth/switch-branch";
+import { resolveBranchUiLocale } from "@/lib/branch-locale";
 import { loadMessages } from "@/lib/i18n";
-import { resolvePreferredLocale } from "@/lib/resolve-preferred-locale";
+import { prisma } from "@/lib/prisma";
 
 export default async function Layout({
   children,
@@ -24,9 +25,14 @@ export default async function Layout({
     console.error("[BranchLayout] switchActiveBranch:", switched.message);
   }
 
-  const locale = await resolvePreferredLocale(
-    (context.session.user as { locale?: string | null }).locale,
-  );
+  // Toujours lire en DB : la session peut être stale juste après Apparence.
+  const branchLocaleRow = await prisma.branch.findFirst({
+    where: { id: branchId, organizationId },
+    select: { locale: true, educationSystem: true },
+  });
+
+  // Langue de CETTE branche uniquement (défaut CONGOLAIS→fr / ANGOLAIS→pt).
+  const locale = resolveBranchUiLocale(branchLocaleRow ?? {});
   const messages = await loadMessages(locale);
 
   return (

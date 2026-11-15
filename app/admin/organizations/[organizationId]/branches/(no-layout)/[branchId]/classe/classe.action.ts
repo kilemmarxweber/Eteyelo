@@ -339,7 +339,7 @@ export const createClasseAction = action
           });
           if (!domain) throw new Error("Domaine pratique introuvable");
           practicalDomainId = domain.id;
-          displayName = buildAtelierLabGroupLabel({
+          const autoLabel = buildAtelierLabGroupLabel({
             domainName: domain.name,
             domainCode: domain.code,
             sourceClasseCode,
@@ -348,6 +348,8 @@ export const createClasseAction = action
             sourceParallel,
             fallbackName: identity.nameClasse,
           });
+          // Respecte le nom saisi / édité ; sinon libellé automatique.
+          displayName = identity.nameClasse?.trim() || autoLabel;
         }
         if (!creneauId) {
           const workshop = await ensureWorkshopAcademicStructure(
@@ -659,7 +661,7 @@ export const updateClasseAction = action
           },
         });
         if (!domain) throw new Error("Domaine pratique introuvable");
-        displayName = buildAtelierLabGroupLabel({
+        const autoLabel = buildAtelierLabGroupLabel({
           domainName: domain.name,
           domainCode: domain.code,
           sourceClasseCode,
@@ -668,6 +670,8 @@ export const updateClasseAction = action
           sourceParallel,
           fallbackName: identity.nameClasse,
         });
+        // Respecte le nom saisi / édité ; sinon libellé automatique.
+        displayName = identity.nameClasse?.trim() || autoLabel;
       }
     }
 

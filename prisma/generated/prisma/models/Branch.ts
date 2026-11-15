@@ -57,6 +57,7 @@ export type BranchMinAggregateOutputType = {
   organizationId: string | null
   typebranch: $Enums.TypeBrache | null
   educationSystem: $Enums.EducationSystem | null
+  locale: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -81,6 +82,7 @@ export type BranchMaxAggregateOutputType = {
   organizationId: string | null
   typebranch: $Enums.TypeBrache | null
   educationSystem: $Enums.EducationSystem | null
+  locale: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -106,6 +108,7 @@ export type BranchCountAggregateOutputType = {
   organizationId: number
   typebranch: number
   educationSystem: number
+  locale: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -145,6 +148,7 @@ export type BranchMinAggregateInputType = {
   organizationId?: true
   typebranch?: true
   educationSystem?: true
+  locale?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -169,6 +173,7 @@ export type BranchMaxAggregateInputType = {
   organizationId?: true
   typebranch?: true
   educationSystem?: true
+  locale?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -194,6 +199,7 @@ export type BranchCountAggregateInputType = {
   organizationId?: true
   typebranch?: true
   educationSystem?: true
+  locale?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -307,6 +313,7 @@ export type BranchGroupByOutputType = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem: $Enums.EducationSystem
+  locale: string | null
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -356,6 +363,7 @@ export type BranchWhereInput = {
   organizationId?: Prisma.StringFilter<"Branch"> | string
   typebranch?: Prisma.EnumTypeBracheFilter<"Branch"> | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFilter<"Branch"> | $Enums.EducationSystem
+  locale?: Prisma.StringNullableFilter<"Branch"> | string | null
   isActive?: Prisma.BoolFilter<"Branch"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
@@ -446,6 +454,7 @@ export type BranchOrderByWithRelationInput = {
   organizationId?: Prisma.SortOrder
   typebranch?: Prisma.SortOrder
   educationSystem?: Prisma.SortOrder
+  locale?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -540,6 +549,7 @@ export type BranchWhereUniqueInput = Prisma.AtLeast<{
   organizationId?: Prisma.StringFilter<"Branch"> | string
   typebranch?: Prisma.EnumTypeBracheFilter<"Branch"> | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFilter<"Branch"> | $Enums.EducationSystem
+  locale?: Prisma.StringNullableFilter<"Branch"> | string | null
   isActive?: Prisma.BoolFilter<"Branch"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
@@ -630,6 +640,7 @@ export type BranchOrderByWithAggregationInput = {
   organizationId?: Prisma.SortOrder
   typebranch?: Prisma.SortOrder
   educationSystem?: Prisma.SortOrder
+  locale?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -664,6 +675,7 @@ export type BranchScalarWhereWithAggregatesInput = {
   organizationId?: Prisma.StringWithAggregatesFilter<"Branch"> | string
   typebranch?: Prisma.EnumTypeBracheWithAggregatesFilter<"Branch"> | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemWithAggregatesFilter<"Branch"> | $Enums.EducationSystem
+  locale?: Prisma.StringNullableWithAggregatesFilter<"Branch"> | string | null
   isActive?: Prisma.BoolWithAggregatesFilter<"Branch"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Branch"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Branch"> | Date | string
@@ -689,6 +701,7 @@ export type BranchCreateInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -779,6 +792,7 @@ export type BranchUncheckedCreateInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -867,6 +881,7 @@ export type BranchUpdateInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -957,6 +972,7 @@ export type BranchUncheckedUpdateInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1046,6 +1062,7 @@ export type BranchCreateManyInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1071,6 +1088,7 @@ export type BranchUpdateManyMutationInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1097,6 +1115,7 @@ export type BranchUncheckedUpdateManyInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1148,6 +1167,7 @@ export type BranchCountOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   typebranch?: Prisma.SortOrder
   educationSystem?: Prisma.SortOrder
+  locale?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -1179,6 +1199,7 @@ export type BranchMaxOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   typebranch?: Prisma.SortOrder
   educationSystem?: Prisma.SortOrder
+  locale?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -1203,6 +1224,7 @@ export type BranchMinOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   typebranch?: Prisma.SortOrder
   educationSystem?: Prisma.SortOrder
+  locale?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -2181,6 +2203,7 @@ export type BranchCreateWithoutAttendanceSessionsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2270,6 +2293,7 @@ export type BranchUncheckedCreateWithoutAttendanceSessionsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2373,6 +2397,7 @@ export type BranchUpdateWithoutAttendanceSessionsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2462,6 +2487,7 @@ export type BranchUncheckedUpdateWithoutAttendanceSessionsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2549,6 +2575,7 @@ export type BranchCreateWithoutStudentAttendanceInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2638,6 +2665,7 @@ export type BranchUncheckedCreateWithoutStudentAttendanceInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2741,6 +2769,7 @@ export type BranchUpdateWithoutStudentAttendanceInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2830,6 +2859,7 @@ export type BranchUncheckedUpdateWithoutStudentAttendanceInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2917,6 +2947,7 @@ export type BranchCreateWithoutTeacherAttendanceInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3006,6 +3037,7 @@ export type BranchUncheckedCreateWithoutTeacherAttendanceInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3109,6 +3141,7 @@ export type BranchUpdateWithoutTeacherAttendanceInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3198,6 +3231,7 @@ export type BranchUncheckedUpdateWithoutTeacherAttendanceInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3285,6 +3319,7 @@ export type BranchCreateWithoutPersonnelAttendanceInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3374,6 +3409,7 @@ export type BranchUncheckedCreateWithoutPersonnelAttendanceInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3477,6 +3513,7 @@ export type BranchUpdateWithoutPersonnelAttendanceInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3566,6 +3603,7 @@ export type BranchUncheckedUpdateWithoutPersonnelAttendanceInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3653,6 +3691,7 @@ export type BranchCreateWithoutParentFeedbackInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3742,6 +3781,7 @@ export type BranchUncheckedCreateWithoutParentFeedbackInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3845,6 +3885,7 @@ export type BranchUpdateWithoutParentFeedbackInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3934,6 +3975,7 @@ export type BranchUncheckedUpdateWithoutParentFeedbackInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4021,6 +4063,7 @@ export type BranchCreateWithoutStudentGradeInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4110,6 +4153,7 @@ export type BranchUncheckedCreateWithoutStudentGradeInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4213,6 +4257,7 @@ export type BranchUpdateWithoutStudentGradeInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4302,6 +4347,7 @@ export type BranchUncheckedUpdateWithoutStudentGradeInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4389,6 +4435,7 @@ export type BranchCreateWithoutFraisInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4478,6 +4525,7 @@ export type BranchUncheckedCreateWithoutFraisInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4581,6 +4629,7 @@ export type BranchUpdateWithoutFraisInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4670,6 +4719,7 @@ export type BranchUncheckedUpdateWithoutFraisInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4757,6 +4807,7 @@ export type BranchCreateWithoutTypeFraisInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4846,6 +4897,7 @@ export type BranchUncheckedCreateWithoutTypeFraisInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4949,6 +5001,7 @@ export type BranchUpdateWithoutTypeFraisInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5038,6 +5091,7 @@ export type BranchUncheckedUpdateWithoutTypeFraisInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5125,6 +5179,7 @@ export type BranchCreateWithoutClassesInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -5214,6 +5269,7 @@ export type BranchUncheckedCreateWithoutClassesInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -5317,6 +5373,7 @@ export type BranchUpdateWithoutClassesInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5406,6 +5463,7 @@ export type BranchUncheckedUpdateWithoutClassesInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5493,6 +5551,7 @@ export type BranchCreateWithoutCreneauInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -5582,6 +5641,7 @@ export type BranchUncheckedCreateWithoutCreneauInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -5685,6 +5745,7 @@ export type BranchUpdateWithoutCreneauInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5774,6 +5835,7 @@ export type BranchUncheckedUpdateWithoutCreneauInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5861,6 +5923,7 @@ export type BranchCreateWithoutOptionInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -5950,6 +6013,7 @@ export type BranchUncheckedCreateWithoutOptionInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6053,6 +6117,7 @@ export type BranchUpdateWithoutOptionInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -6142,6 +6207,7 @@ export type BranchUncheckedUpdateWithoutOptionInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -6229,6 +6295,7 @@ export type BranchCreateWithoutSectionInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6318,6 +6385,7 @@ export type BranchUncheckedCreateWithoutSectionInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6421,6 +6489,7 @@ export type BranchUpdateWithoutSectionInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -6510,6 +6579,7 @@ export type BranchUncheckedUpdateWithoutSectionInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -6597,6 +6667,7 @@ export type BranchCreateWithoutSchoolYearInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6686,6 +6757,7 @@ export type BranchUncheckedCreateWithoutSchoolYearInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6789,6 +6861,7 @@ export type BranchUpdateWithoutSchoolYearInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -6878,6 +6951,7 @@ export type BranchUncheckedUpdateWithoutSchoolYearInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -6965,6 +7039,7 @@ export type BranchCreateWithoutClassEnrollmentInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -7054,6 +7129,7 @@ export type BranchUncheckedCreateWithoutClassEnrollmentInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -7157,6 +7233,7 @@ export type BranchUpdateWithoutClassEnrollmentInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -7246,6 +7323,7 @@ export type BranchUncheckedUpdateWithoutClassEnrollmentInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -7333,6 +7411,7 @@ export type BranchCreateWithoutTeacherProfileDocumentsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -7422,6 +7501,7 @@ export type BranchUncheckedCreateWithoutTeacherProfileDocumentsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -7525,6 +7605,7 @@ export type BranchUpdateWithoutTeacherProfileDocumentsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -7614,6 +7695,7 @@ export type BranchUncheckedUpdateWithoutTeacherProfileDocumentsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -7701,6 +7783,7 @@ export type BranchCreateWithoutTeachingInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -7790,6 +7873,7 @@ export type BranchUncheckedCreateWithoutTeachingInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -7893,6 +7977,7 @@ export type BranchUpdateWithoutTeachingInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -7982,6 +8067,7 @@ export type BranchUncheckedUpdateWithoutTeachingInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -8069,6 +8155,7 @@ export type BranchCreateWithoutCoursInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8158,6 +8245,7 @@ export type BranchUncheckedCreateWithoutCoursInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8261,6 +8349,7 @@ export type BranchUpdateWithoutCoursInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -8350,6 +8439,7 @@ export type BranchUncheckedUpdateWithoutCoursInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -8437,6 +8527,7 @@ export type BranchCreateWithoutAtelierCourseLinksInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8526,6 +8617,7 @@ export type BranchUncheckedCreateWithoutAtelierCourseLinksInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8629,6 +8721,7 @@ export type BranchUpdateWithoutAtelierCourseLinksInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -8718,6 +8811,7 @@ export type BranchUncheckedUpdateWithoutAtelierCourseLinksInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -8805,6 +8899,7 @@ export type BranchCreateWithoutCoursPonderationsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8894,6 +8989,7 @@ export type BranchUncheckedCreateWithoutCoursPonderationsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8997,6 +9093,7 @@ export type BranchUpdateWithoutCoursPonderationsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9086,6 +9183,7 @@ export type BranchUncheckedUpdateWithoutCoursPonderationsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9173,6 +9271,7 @@ export type BranchCreateWithoutCalendarEventInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -9262,6 +9361,7 @@ export type BranchUncheckedCreateWithoutCalendarEventInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -9365,6 +9465,7 @@ export type BranchUpdateWithoutCalendarEventInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9454,6 +9555,7 @@ export type BranchUncheckedUpdateWithoutCalendarEventInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9541,6 +9643,7 @@ export type BranchCreateWithoutEventTypeInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -9630,6 +9733,7 @@ export type BranchUncheckedCreateWithoutEventTypeInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -9733,6 +9837,7 @@ export type BranchUpdateWithoutEventTypeInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9822,6 +9927,7 @@ export type BranchUncheckedUpdateWithoutEventTypeInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9909,6 +10015,7 @@ export type BranchCreateWithoutSemesterInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -9998,6 +10105,7 @@ export type BranchUncheckedCreateWithoutSemesterInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -10101,6 +10209,7 @@ export type BranchUpdateWithoutSemesterInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -10190,6 +10299,7 @@ export type BranchUncheckedUpdateWithoutSemesterInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -10277,6 +10387,7 @@ export type BranchCreateWithoutPeriodInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -10366,6 +10477,7 @@ export type BranchUncheckedCreateWithoutPeriodInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -10469,6 +10581,7 @@ export type BranchUpdateWithoutPeriodInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -10558,6 +10671,7 @@ export type BranchUncheckedUpdateWithoutPeriodInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -10645,6 +10759,7 @@ export type BranchCreateWithoutPeriodResultLockInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -10734,6 +10849,7 @@ export type BranchUncheckedCreateWithoutPeriodResultLockInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -10837,6 +10953,7 @@ export type BranchUpdateWithoutPeriodResultLockInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -10926,6 +11043,7 @@ export type BranchUncheckedUpdateWithoutPeriodResultLockInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -11013,6 +11131,7 @@ export type BranchCreateWithoutFicheInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -11102,6 +11221,7 @@ export type BranchUncheckedCreateWithoutFicheInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -11205,6 +11325,7 @@ export type BranchUpdateWithoutFicheInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -11294,6 +11415,7 @@ export type BranchUncheckedUpdateWithoutFicheInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -11381,6 +11503,7 @@ export type BranchCreateWithoutInvoiceInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -11470,6 +11593,7 @@ export type BranchUncheckedCreateWithoutInvoiceInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -11573,6 +11697,7 @@ export type BranchUpdateWithoutInvoiceInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -11662,6 +11787,7 @@ export type BranchUncheckedUpdateWithoutInvoiceInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -11749,6 +11875,7 @@ export type BranchCreateWithoutPaymentBatchInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -11838,6 +11965,7 @@ export type BranchUncheckedCreateWithoutPaymentBatchInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -11941,6 +12069,7 @@ export type BranchUpdateWithoutPaymentBatchInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -12030,6 +12159,7 @@ export type BranchUncheckedUpdateWithoutPaymentBatchInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -12117,6 +12247,7 @@ export type BranchCreateWithoutFamilyPaymentInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -12206,6 +12337,7 @@ export type BranchUncheckedCreateWithoutFamilyPaymentInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -12309,6 +12441,7 @@ export type BranchUpdateWithoutFamilyPaymentInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -12398,6 +12531,7 @@ export type BranchUncheckedUpdateWithoutFamilyPaymentInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -12485,6 +12619,7 @@ export type BranchCreateWithoutCashierExpenseInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -12574,6 +12709,7 @@ export type BranchUncheckedCreateWithoutCashierExpenseInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -12677,6 +12813,7 @@ export type BranchUpdateWithoutCashierExpenseInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -12766,6 +12903,7 @@ export type BranchUncheckedUpdateWithoutCashierExpenseInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -12853,6 +12991,7 @@ export type BranchCreateWithoutCashierOpeningBalanceInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -12942,6 +13081,7 @@ export type BranchUncheckedCreateWithoutCashierOpeningBalanceInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -13045,6 +13185,7 @@ export type BranchUpdateWithoutCashierOpeningBalanceInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -13134,6 +13275,7 @@ export type BranchUncheckedUpdateWithoutCashierOpeningBalanceInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -13221,6 +13363,7 @@ export type BranchCreateWithoutPaymentAllocationInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -13310,6 +13453,7 @@ export type BranchUncheckedCreateWithoutPaymentAllocationInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -13413,6 +13557,7 @@ export type BranchUpdateWithoutPaymentAllocationInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -13502,6 +13647,7 @@ export type BranchUncheckedUpdateWithoutPaymentAllocationInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -13589,6 +13735,7 @@ export type BranchCreateWithoutMobileMoneyTransactionInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -13678,6 +13825,7 @@ export type BranchUncheckedCreateWithoutMobileMoneyTransactionInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -13781,6 +13929,7 @@ export type BranchUpdateWithoutMobileMoneyTransactionInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -13870,6 +14019,7 @@ export type BranchUncheckedUpdateWithoutMobileMoneyTransactionInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -13957,6 +14107,7 @@ export type BranchCreateWithoutPaymentEventInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -14046,6 +14197,7 @@ export type BranchUncheckedCreateWithoutPaymentEventInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -14149,6 +14301,7 @@ export type BranchUpdateWithoutPaymentEventInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -14238,6 +14391,7 @@ export type BranchUncheckedUpdateWithoutPaymentEventInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -14325,6 +14479,7 @@ export type BranchCreateWithoutDiscountRuleInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -14414,6 +14569,7 @@ export type BranchUncheckedCreateWithoutDiscountRuleInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -14517,6 +14673,7 @@ export type BranchUpdateWithoutDiscountRuleInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -14606,6 +14763,7 @@ export type BranchUncheckedUpdateWithoutDiscountRuleInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -14693,6 +14851,7 @@ export type BranchCreateWithoutTransactionInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -14782,6 +14941,7 @@ export type BranchUncheckedCreateWithoutTransactionInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -14885,6 +15045,7 @@ export type BranchUpdateWithoutTransactionInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -14974,6 +15135,7 @@ export type BranchUncheckedUpdateWithoutTransactionInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -15061,6 +15223,7 @@ export type BranchCreateWithoutGradeModificationRequestsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -15150,6 +15313,7 @@ export type BranchUncheckedCreateWithoutGradeModificationRequestsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -15253,6 +15417,7 @@ export type BranchUpdateWithoutGradeModificationRequestsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -15342,6 +15507,7 @@ export type BranchUncheckedUpdateWithoutGradeModificationRequestsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -15429,6 +15595,7 @@ export type BranchCreateWithoutAbsenceCasesInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -15518,6 +15685,7 @@ export type BranchUncheckedCreateWithoutAbsenceCasesInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -15621,6 +15789,7 @@ export type BranchUpdateWithoutAbsenceCasesInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -15710,6 +15879,7 @@ export type BranchUncheckedUpdateWithoutAbsenceCasesInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -15797,6 +15967,7 @@ export type BranchCreateWithoutAppNotificationsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -15886,6 +16057,7 @@ export type BranchUncheckedCreateWithoutAppNotificationsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -15989,6 +16161,7 @@ export type BranchUpdateWithoutAppNotificationsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -16078,6 +16251,7 @@ export type BranchUncheckedUpdateWithoutAppNotificationsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -16165,6 +16339,7 @@ export type BranchCreateWithoutPayrollPolicyInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -16254,6 +16429,7 @@ export type BranchUncheckedCreateWithoutPayrollPolicyInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -16357,6 +16533,7 @@ export type BranchUpdateWithoutPayrollPolicyInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -16446,6 +16623,7 @@ export type BranchUncheckedUpdateWithoutPayrollPolicyInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -16533,6 +16711,7 @@ export type BranchCreateWithoutTeacherPayslipsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -16622,6 +16801,7 @@ export type BranchUncheckedCreateWithoutTeacherPayslipsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -16725,6 +16905,7 @@ export type BranchUpdateWithoutTeacherPayslipsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -16814,6 +16995,7 @@ export type BranchUncheckedUpdateWithoutTeacherPayslipsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -16901,6 +17083,7 @@ export type BranchCreateWithoutSalaryAdvancesInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -16990,6 +17173,7 @@ export type BranchUncheckedCreateWithoutSalaryAdvancesInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -17093,6 +17277,7 @@ export type BranchUpdateWithoutSalaryAdvancesInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -17182,6 +17367,7 @@ export type BranchUncheckedUpdateWithoutSalaryAdvancesInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -17269,6 +17455,7 @@ export type BranchCreateWithoutOrganizationInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -17357,6 +17544,7 @@ export type BranchUncheckedCreateWithoutOrganizationInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -17475,6 +17663,7 @@ export type BranchScalarWhereInput = {
   organizationId?: Prisma.StringFilter<"Branch"> | string
   typebranch?: Prisma.EnumTypeBracheFilter<"Branch"> | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFilter<"Branch"> | $Enums.EducationSystem
+  locale?: Prisma.StringNullableFilter<"Branch"> | string | null
   isActive?: Prisma.BoolFilter<"Branch"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
@@ -17500,6 +17689,7 @@ export type BranchCreateWithoutPracticalDomainsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -17589,6 +17779,7 @@ export type BranchUncheckedCreateWithoutPracticalDomainsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -17692,6 +17883,7 @@ export type BranchUpdateWithoutPracticalDomainsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -17781,6 +17973,7 @@ export type BranchUncheckedUpdateWithoutPracticalDomainsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -17868,6 +18061,7 @@ export type BranchCreateWithoutRoomsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -17957,6 +18151,7 @@ export type BranchUncheckedCreateWithoutRoomsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -18060,6 +18255,7 @@ export type BranchUpdateWithoutRoomsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -18149,6 +18345,7 @@ export type BranchUncheckedUpdateWithoutRoomsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -18236,6 +18433,7 @@ export type BranchCreateWithoutRotationSlotsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -18325,6 +18523,7 @@ export type BranchUncheckedCreateWithoutRotationSlotsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -18428,6 +18627,7 @@ export type BranchUpdateWithoutRotationSlotsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -18517,6 +18717,7 @@ export type BranchUncheckedUpdateWithoutRotationSlotsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -18604,6 +18805,7 @@ export type BranchCreateWithoutAttendanceFaceDescriptorsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -18693,6 +18895,7 @@ export type BranchUncheckedCreateWithoutAttendanceFaceDescriptorsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -18796,6 +18999,7 @@ export type BranchUpdateWithoutAttendanceFaceDescriptorsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -18885,6 +19089,7 @@ export type BranchUncheckedUpdateWithoutAttendanceFaceDescriptorsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -18972,6 +19177,7 @@ export type BranchCreateWithoutCyclesInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -19061,6 +19267,7 @@ export type BranchUncheckedCreateWithoutCyclesInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -19164,6 +19371,7 @@ export type BranchUpdateWithoutCyclesInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -19253,6 +19461,7 @@ export type BranchUncheckedUpdateWithoutCyclesInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -19340,6 +19549,7 @@ export type BranchCreateWithoutPrimaryDomainsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -19429,6 +19639,7 @@ export type BranchUncheckedCreateWithoutPrimaryDomainsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -19532,6 +19743,7 @@ export type BranchUpdateWithoutPrimaryDomainsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -19621,6 +19833,7 @@ export type BranchUncheckedUpdateWithoutPrimaryDomainsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -19708,6 +19921,7 @@ export type BranchCreateWithoutRegistrationInfosInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -19797,6 +20011,7 @@ export type BranchUncheckedCreateWithoutRegistrationInfosInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -19900,6 +20115,7 @@ export type BranchUpdateWithoutRegistrationInfosInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -19989,6 +20205,7 @@ export type BranchUncheckedUpdateWithoutRegistrationInfosInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -20076,6 +20293,7 @@ export type BranchCreateWithoutRegistrationRequestsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -20165,6 +20383,7 @@ export type BranchUncheckedCreateWithoutRegistrationRequestsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -20268,6 +20487,7 @@ export type BranchUpdateWithoutRegistrationRequestsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -20357,6 +20577,7 @@ export type BranchUncheckedUpdateWithoutRegistrationRequestsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -20444,6 +20665,7 @@ export type BranchCreateWithoutJobApplicationsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -20533,6 +20755,7 @@ export type BranchUncheckedCreateWithoutJobApplicationsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -20636,6 +20859,7 @@ export type BranchUpdateWithoutJobApplicationsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -20725,6 +20949,7 @@ export type BranchUncheckedUpdateWithoutJobApplicationsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -20812,6 +21037,7 @@ export type BranchCreateWithoutPartnairesInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -20901,6 +21127,7 @@ export type BranchUncheckedCreateWithoutPartnairesInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -21004,6 +21231,7 @@ export type BranchUpdateWithoutPartnairesInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -21093,6 +21321,7 @@ export type BranchUncheckedUpdateWithoutPartnairesInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -21180,6 +21409,7 @@ export type BranchCreateWithoutBranchemembersInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -21269,6 +21499,7 @@ export type BranchUncheckedCreateWithoutBranchemembersInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -21372,6 +21603,7 @@ export type BranchUpdateWithoutBranchemembersInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -21461,6 +21693,7 @@ export type BranchUncheckedUpdateWithoutBranchemembersInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -21548,6 +21781,7 @@ export type BranchCreateWithoutTargetStudentLinksInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -21637,6 +21871,7 @@ export type BranchUncheckedCreateWithoutTargetStudentLinksInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -21729,6 +21964,7 @@ export type BranchCreateWithoutSourceStudentLinksInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -21818,6 +22054,7 @@ export type BranchUncheckedCreateWithoutSourceStudentLinksInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -21921,6 +22158,7 @@ export type BranchUpdateWithoutTargetStudentLinksInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -22010,6 +22248,7 @@ export type BranchUncheckedUpdateWithoutTargetStudentLinksInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -22108,6 +22347,7 @@ export type BranchUpdateWithoutSourceStudentLinksInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -22197,6 +22437,7 @@ export type BranchUncheckedUpdateWithoutSourceStudentLinksInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -22284,6 +22525,7 @@ export type BranchCreateWithoutIssuedDocumentsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -22373,6 +22615,7 @@ export type BranchUncheckedCreateWithoutIssuedDocumentsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -22476,6 +22719,7 @@ export type BranchUpdateWithoutIssuedDocumentsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -22565,6 +22809,7 @@ export type BranchUncheckedUpdateWithoutIssuedDocumentsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -22652,6 +22897,7 @@ export type BranchCreateWithoutBranchInvitationInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -22741,6 +22987,7 @@ export type BranchUncheckedCreateWithoutBranchInvitationInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -22844,6 +23091,7 @@ export type BranchUpdateWithoutBranchInvitationInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -22933,6 +23181,7 @@ export type BranchUncheckedUpdateWithoutBranchInvitationInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -23020,6 +23269,7 @@ export type BranchCreateWithoutLibraryCatalogSourcesInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -23109,6 +23359,7 @@ export type BranchUncheckedCreateWithoutLibraryCatalogSourcesInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -23212,6 +23463,7 @@ export type BranchUpdateWithoutLibraryCatalogSourcesInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -23301,6 +23553,7 @@ export type BranchUncheckedUpdateWithoutLibraryCatalogSourcesInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -23388,6 +23641,7 @@ export type BranchCreateWithoutLibraryBooksInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -23477,6 +23731,7 @@ export type BranchUncheckedCreateWithoutLibraryBooksInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -23580,6 +23835,7 @@ export type BranchUpdateWithoutLibraryBooksInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -23669,6 +23925,7 @@ export type BranchUncheckedUpdateWithoutLibraryBooksInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -23756,6 +24013,7 @@ export type BranchCreateWithoutOrganizationSupportBranchScopesInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -23845,6 +24103,7 @@ export type BranchUncheckedCreateWithoutOrganizationSupportBranchScopesInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -23948,6 +24207,7 @@ export type BranchUpdateWithoutOrganizationSupportBranchScopesInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -24037,6 +24297,7 @@ export type BranchUncheckedUpdateWithoutOrganizationSupportBranchScopesInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -24124,6 +24385,7 @@ export type BranchCreateWithoutSupportTicketsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -24213,6 +24475,7 @@ export type BranchUncheckedCreateWithoutSupportTicketsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -24316,6 +24579,7 @@ export type BranchUpdateWithoutSupportTicketsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -24405,6 +24669,7 @@ export type BranchUncheckedUpdateWithoutSupportTicketsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -24492,6 +24757,7 @@ export type BranchCreateWithoutOnlineAssignmentsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -24581,6 +24847,7 @@ export type BranchUncheckedCreateWithoutOnlineAssignmentsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -24684,6 +24951,7 @@ export type BranchUpdateWithoutOnlineAssignmentsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -24773,6 +25041,7 @@ export type BranchUncheckedUpdateWithoutOnlineAssignmentsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -24860,6 +25129,7 @@ export type BranchCreateWithoutSourceConversationsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -24949,6 +25219,7 @@ export type BranchUncheckedCreateWithoutSourceConversationsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -25052,6 +25323,7 @@ export type BranchUpdateWithoutSourceConversationsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -25141,6 +25413,7 @@ export type BranchUncheckedUpdateWithoutSourceConversationsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -25228,6 +25501,7 @@ export type BranchCreateWithoutTemporaryGrantsInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -25317,6 +25591,7 @@ export type BranchUncheckedCreateWithoutTemporaryGrantsInput = {
   organizationId: string
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -25420,6 +25695,7 @@ export type BranchUpdateWithoutTemporaryGrantsInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -25509,6 +25785,7 @@ export type BranchUncheckedUpdateWithoutTemporaryGrantsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -25596,6 +25873,7 @@ export type BranchCreateManyOrganizationInput = {
   attendanceRadius?: number
   typebranch: $Enums.TypeBrache
   educationSystem?: $Enums.EducationSystem
+  locale?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -25621,6 +25899,7 @@ export type BranchUpdateWithoutOrganizationInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -25709,6 +25988,7 @@ export type BranchUncheckedUpdateWithoutOrganizationInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -25797,6 +26077,7 @@ export type BranchUncheckedUpdateManyWithoutOrganizationInput = {
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   educationSystem?: Prisma.EnumEducationSystemFieldUpdateOperationsInput | $Enums.EducationSystem
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -26403,6 +26684,7 @@ export type BranchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   organizationId?: boolean
   typebranch?: boolean
   educationSystem?: boolean
+  locale?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -26494,6 +26776,7 @@ export type BranchSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   organizationId?: boolean
   typebranch?: boolean
   educationSystem?: boolean
+  locale?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -26521,6 +26804,7 @@ export type BranchSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   organizationId?: boolean
   typebranch?: boolean
   educationSystem?: boolean
+  locale?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -26548,13 +26832,14 @@ export type BranchSelectScalar = {
   organizationId?: boolean
   typebranch?: boolean
   educationSystem?: boolean
+  locale?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   examExportMeta?: boolean
 }
 
-export type BranchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "code" | "image" | "description" | "note" | "adresse" | "province" | "ville" | "commune" | "pays" | "idnat" | "tel" | "latitude" | "longitude" | "attendanceRadius" | "organizationId" | "typebranch" | "educationSystem" | "isActive" | "createdAt" | "updatedAt" | "examExportMeta", ExtArgs["result"]["branch"]>
+export type BranchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "code" | "image" | "description" | "note" | "adresse" | "province" | "ville" | "commune" | "pays" | "idnat" | "tel" | "latitude" | "longitude" | "attendanceRadius" | "organizationId" | "typebranch" | "educationSystem" | "locale" | "isActive" | "createdAt" | "updatedAt" | "examExportMeta", ExtArgs["result"]["branch"]>
 export type BranchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   cycles?: boolean | Prisma.Branch$cyclesArgs<ExtArgs>
@@ -26723,6 +27008,10 @@ export type $BranchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     organizationId: string
     typebranch: $Enums.TypeBrache
     educationSystem: $Enums.EducationSystem
+    /**
+     * Langue UI de cette branche (fr/en/pt). Null = défaut selon educationSystem (CONGOLAIS→fr, ANGOLAIS→pt, ANGLAIS→en).
+     */
+    locale: string | null
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -27236,6 +27525,7 @@ export interface BranchFieldRefs {
   readonly organizationId: Prisma.FieldRef<"Branch", 'String'>
   readonly typebranch: Prisma.FieldRef<"Branch", 'TypeBrache'>
   readonly educationSystem: Prisma.FieldRef<"Branch", 'EducationSystem'>
+  readonly locale: Prisma.FieldRef<"Branch", 'String'>
   readonly isActive: Prisma.FieldRef<"Branch", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Branch", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Branch", 'DateTime'>

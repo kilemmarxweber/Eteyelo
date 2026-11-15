@@ -3,7 +3,12 @@
 import { useMemo, useState } from "react";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Table } from "@tanstack/react-table";
-import { IconFileTypePdf, IconSearch, IconUpload } from "@tabler/icons-react";
+import {
+  IconFileSpreadsheet,
+  IconFileTypePdf,
+  IconSearch,
+  IconUpload,
+} from "@tabler/icons-react";
 import { toast } from "sonner";
 import { useLocale, useTranslations } from "next-intl";
 
@@ -20,6 +25,7 @@ import {
 import type { PeopleLabels } from "@/lib/people-labels";
 import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
 import type { IStudent } from "@/src/interfaces/Student";
+import { exportStudentsReportExcel } from "./export-students-excel";
 import {
   exportStudentsReportPdf,
   type StudentPdfLabels,
@@ -157,7 +163,7 @@ export function DataTableToolbar<TData>({
   typebranch,
   educationSystem,
 }: DataTableToolbarProps<TData>) {
-  const [exportingPdf, setExportingPdf] = useState(false);
+  const [exporting, setExporting] = useState<"pdf" | "excel" | null>(null);
   const locale = useLocale();
   const t = useTranslations("users.students.table");
   const tPdf = useTranslations("users.students.pdf");
@@ -313,23 +319,36 @@ export function DataTableToolbar<TData>({
     return { filteredStudents, context, options };
   };
 
-  const exportFilteredPdf = async () => {
-    setExportingPdf(true);
+  const exportFiltered = async (kind: "pdf" | "excel") => {
+    setExporting(kind);
     try {
       const { filteredStudents, context, options } = await loadReportPayload();
-      await exportStudentsReportPdf(filteredStudents, context, options);
-      toast.success(
-        tPdf("generated", {
-          studentsLower: peopleLabels.studentPluralLower,
-        }),
-      );
+      if (kind === "excel") {
+        await exportStudentsReportExcel(filteredStudents, context, options);
+        toast.success(
+          tPdf("generatedExcel", {
+            studentsLower: peopleLabels.studentPluralLower,
+          }),
+        );
+      } else {
+        await exportStudentsReportPdf(filteredStudents, context, options);
+        toast.success(
+          tPdf("generated", {
+            studentsLower: peopleLabels.studentPluralLower,
+          }),
+        );
+      }
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error ? error.message : tPdf("generateFailed"),
+        error instanceof Error
+          ? error.message
+          : kind === "excel"
+            ? tPdf("generateExcelFailed")
+            : tPdf("generateFailed"),
       );
     } finally {
-      setExportingPdf(false);
+      setExporting(null);
     }
   };
 
@@ -414,33 +433,55 @@ export function DataTableToolbar<TData>({
         ) : null}
 
         <Button
+          type="button"
           variant="outline"
-          leftSection={<IconFileTypePdf size={16} />}
-          onClick={exportFilteredPdf}
-          loading={exportingPdf}
-          disabled={!hasRows || exportingPdf}
+          size="icon"
+          title={t("exportPdf")}
+          aria-label={t("exportPdf")}
+          onClick={() => void exportFiltered("pdf")}
+          loading={exporting === "pdf"}
+          disabled={!hasRows || exporting !== null}
         >
-          {exportingPdf ? tPdf("generating") : t("exportPdf")}
+          <IconFileTypePdf size={18} />
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          title={t("exportExcel")}
+          aria-label={t("exportExcel")}
+          onClick={() => void exportFiltered("excel")}
+          loading={exporting === "excel"}
+          disabled={!hasRows || exporting !== null}
+        >
+          <IconFileSpreadsheet size={18} />
         </Button>
 
         {isFiltered ? (
           <Button
+            type="button"
             variant="outline"
+            size="icon"
+            title={tCommon("reset")}
+            aria-label={tCommon("reset")}
             onClick={() => table.resetColumnFilters()}
-            className="h-10 border-border text-primary hover:bg-blue-50 hover:text-blue-800"
+            className="border-border text-primary hover:bg-blue-50 hover:text-blue-800"
           >
-            {tCommon("reset")}
-            <Cross2Icon className="ml-2 size-4" />
+            <Cross2Icon className="size-4" />
           </Button>
         ) : null}
 
         {canManageStudents && (requiresImport || supportsImport) ? (
           <Button
+            type="button"
             variant={requiresImport ? "default" : "outline"}
-            leftSection={<IconUpload size={16} />}
+            size="icon"
+            title={t("import")}
+            aria-label={t("import")}
             onClick={() => onOpenImport?.()}
           >
-            {t("import")}
+            <IconUpload size={18} />
           </Button>
         ) : null}
       </div>

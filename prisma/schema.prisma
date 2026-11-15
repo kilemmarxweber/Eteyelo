@@ -1826,6 +1826,8 @@ model Branch {
   organizationId   String
   typebranch       TypeBrache
   educationSystem  EducationSystem @default(CONGOLAIS)
+  /// Langue UI de cette branche (fr/en/pt). Null = défaut selon educationSystem (CONGOLAIS→fr, ANGOLAIS→pt, ANGLAIS→en).
+  locale           String?
   organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   cycles           BranchCycle[]
 

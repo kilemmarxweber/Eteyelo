@@ -3,13 +3,20 @@
 import type { ReactNode } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
+import { documentChrome } from "@/lib/reports/document-locale";
 import type { SchoolReportContext } from "@/lib/reports/types";
+import { cn } from "@/lib/utils";
 
 export type SchoolBrandHeaderProps = {
   context: Pick<
     SchoolReportContext,
-    "schoolName" | "address" | "phone" | "email" | "logoUrl" | "academicYearLabel"
+    | "schoolName"
+    | "address"
+    | "phone"
+    | "email"
+    | "logoUrl"
+    | "academicYearLabel"
+    | "locale"
   >;
   /** Titre du document sous le branding. */
   title?: string;
@@ -39,6 +46,7 @@ export function SchoolBrandHeader({
   meta,
   className,
 }: SchoolBrandHeaderProps) {
+  const chrome = documentChrome(context.locale);
   const contactLine = [context.address, context.phone, context.email]
     .map((part) => part?.trim())
     .filter(Boolean)
@@ -78,7 +86,7 @@ export function SchoolBrandHeader({
           ) : null}
           {context.academicYearLabel ? (
             <p className="text-xs font-medium text-muted-foreground">
-              Année scolaire : {context.academicYearLabel}
+              {chrome.academicYear} : {context.academicYearLabel}
             </p>
           ) : null}
         </div>

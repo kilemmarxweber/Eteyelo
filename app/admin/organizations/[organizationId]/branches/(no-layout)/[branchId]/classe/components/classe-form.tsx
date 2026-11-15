@@ -615,11 +615,11 @@ export function ClasseUpForm({
 
   useEffect(() => {
     if (isLegacyUpdate || !previewName) return;
-    if (showAtelierLabFields || !nameTouchedRef.current) {
+    // Ne pas écraser un nom déjà modifié manuellement (création ou édition).
+    if (!nameTouchedRef.current) {
       form.setValue("nameClasse", previewName);
-      if (showAtelierLabFields) nameTouchedRef.current = false;
     }
-  }, [form, isLegacyUpdate, previewName, showAtelierLabFields]);
+  }, [form, isLegacyUpdate, previewName]);
 
   async function onSubmit(data: FormValues) {
     setIsLoading(true);
@@ -633,9 +633,9 @@ export function ClasseUpForm({
           }
           data.level = data.level?.trim() || "Groupe";
           data.nameClasse =
+            data.nameClasse?.trim() ||
             previewName ||
             selectedPracticalDomain?.labName ||
-            data.nameClasse ||
             "Groupe";
         } else if (!data.level?.trim()) {
           throw new Error("Veuillez selectionner un niveau");
@@ -685,9 +685,9 @@ export function ClasseUpForm({
           }
           data.level = data.level?.trim() || "Groupe";
           data.nameClasse =
+            data.nameClasse?.trim() ||
             previewName ||
             selectedPracticalDomain?.labName ||
-            data.nameClasse ||
             "Groupe";
         }
         const payload = isLegacyUpdate
@@ -818,12 +818,11 @@ export function ClasseUpForm({
                     </p>
                     <p className="text-sm font-medium">Groupe atelier</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      Sélectionné automatiquement. Nom =
-                      laboratoire + code classe + domaine (ex. laboratoire 1sc
-                      sciences).
+                      Sélectionné automatiquement. Le nom du groupe est proposé
+                      automatiquement (laboratoire + code classe + domaine) et
+                      reste modifiable.
                     </p>
                     <input type="hidden" {...form.register("level")} />
-                    <input type="hidden" {...form.register("nameClasse")} />
                   </div>
                 ) : (
                   <FormField
@@ -1164,23 +1163,60 @@ export function ClasseUpForm({
                         </FormControl>
                         {selectedPracticalDomain ? (
                           <p className="rounded-md border bg-background/80 px-2.5 py-1.5 text-xs leading-relaxed text-muted-foreground">
-                            Nom du groupe :{" "}
-                            <span className="font-medium text-foreground">
-                              {previewName || selectedPracticalDomain.labName}
-                            </span>
-                            <span className="mt-0.5 block">
-                              Domaine : {selectedPracticalDomain.name}
-                              {selectedSourceClass?.codeClasse
-                                ? ` · Code : ${selectedSourceClass.codeClasse}`
-                                : ""}
-                            </span>
+                            Domaine : {selectedPracticalDomain.name}
+                            {selectedSourceClass?.codeClasse
+                              ? ` · Code : ${selectedSourceClass.codeClasse}`
+                              : ""}
                           </p>
                         ) : (
                           <FormDescription>
-                            Nom automatique : laboratoire + code classe + suffixe
-                            domaine (ex. laboratoire 1sc sciences).
+                            Le nom du groupe sera proposé automatiquement
+                            (laboratoire + code classe + domaine).
                           </FormDescription>
                         )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="nameClasse"
+                    render={({ field }) => (
+                      <FormItem className="sm:col-span-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <FormLabel>Nom du groupe</FormLabel>
+                          {previewName ? (
+                            <button
+                              type="button"
+                              className="text-xs font-medium text-primary hover:underline"
+                              onClick={() => {
+                                nameTouchedRef.current = false;
+                                form.setValue("nameClasse", previewName);
+                              }}
+                            >
+                              Réappliquer le nom auto
+                            </button>
+                          ) : null}
+                        </div>
+                        <FormControl>
+                          <Input
+                            className="h-9"
+                            placeholder={
+                              previewName ||
+                              "laboratoire 1sc sciences"
+                            }
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(event) => {
+                              nameTouchedRef.current = true;
+                              field.onChange(event.target.value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Proposé automatiquement. Vous pouvez l&apos;éditer si
+                          besoin.
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}

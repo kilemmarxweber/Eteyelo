@@ -2,6 +2,7 @@ import "server-only";
 
 import { getStudentCountsByBranchId } from "@/lib/branch-student-count";
 import { resolvePublicBranchMedia } from "@/lib/branch-public-images";
+import { filterPublicCalendarEvents } from "@/lib/calendar-event-visibility";
 import { getBranchCycles, isSchoolCycle } from "@/lib/cycle";
 import { getPeopleLabels, pluralizeStudentLabelLower } from "@/lib/people-labels";
 import { prisma } from "@/lib/prisma";
@@ -563,11 +564,14 @@ export async function getHomeData(): Promise<HomeData> {
             },
           },
           orderBy: { dateStart: "desc" },
-          take: 12,
+          take: 80,
           select: {
             title: true,
             image: true,
             dateStart: true,
+            dateEnd: true,
+            allDay: true,
+            recurrence: true,
             eventType: {
               select: { name: true },
             },
@@ -645,9 +649,14 @@ export async function getHomeData(): Promise<HomeData> {
       }
     }
 
+    const visibleCalendarEvents = filterPublicCalendarEvents(calendarEvents).slice(
+      0,
+      12,
+    );
+
     const dynamicEvents: HomeEvent[] = (
       await Promise.all(
-        calendarEvents.map(async (event) => {
+        visibleCalendarEvents.map(async (event) => {
           let image = "";
           if (event.image?.trim()) {
             await ensureUploadInSharedDirectory(event.image);

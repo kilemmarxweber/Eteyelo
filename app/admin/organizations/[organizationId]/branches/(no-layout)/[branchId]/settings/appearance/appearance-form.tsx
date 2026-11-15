@@ -32,10 +32,23 @@ import {
 import { useTheme } from "next-themes";
 import { LocalePreferenceButtons } from "@/components/locale-preference-buttons";
 import { cn } from "@/lib/utils";
+import type { UserLocale } from "@/lib/user-locale";
 import { updateUserThemeAction } from "@/lib/user-theme.action";
 import { isUserTheme } from "@/lib/user-theme";
 
-export function AppearanceForm() {
+type AppearanceFormProps = {
+  branchId: string;
+  initialLocale: UserLocale;
+  systemDefaultLocale: UserLocale;
+  educationSystemLabel: string;
+};
+
+export function AppearanceForm({
+  branchId,
+  initialLocale,
+  systemDefaultLocale,
+  educationSystemLabel,
+}: AppearanceFormProps) {
   const t = useTranslations("settings");
   const { setTheme, theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -104,10 +117,20 @@ export function AppearanceForm() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base sm:text-lg">{t("language")}</CardTitle>
-          <CardDescription>{t("languageDesc")}</CardDescription>
+          <CardDescription>
+            {t("languageDesc")}{" "}
+            {t("languageDefaultHint", {
+              system: educationSystemLabel,
+              locale: systemDefaultLocale.toUpperCase(),
+            })}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <LocalePreferenceButtons showLabels={false} />
+          <LocalePreferenceButtons
+            showLabels={false}
+            branchId={branchId}
+            initialLocale={initialLocale}
+          />
         </CardContent>
       </Card>
 

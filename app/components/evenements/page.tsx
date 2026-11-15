@@ -3,6 +3,7 @@ import { CalendarDays, MapPin, School } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { HomeNavbar } from "@/components/home-navbar";
 import { HomeFooter } from "@/components/home-footer";
+import { filterPublicCalendarEvents } from "@/lib/calendar-event-visibility";
 import { prisma } from "@/lib/prisma";
 import {
   ensureUploadInSharedDirectory,
@@ -42,6 +43,9 @@ export default async function EventsPage() {
       title: true,
       image: true,
       dateStart: true,
+      dateEnd: true,
+      allDay: true,
+      recurrence: true,
       location: true,
       description: true,
       branch: {
@@ -52,8 +56,10 @@ export default async function EventsPage() {
     },
   });
 
+  const visibleEvents = filterPublicCalendarEvents(events);
+
   const cards = await Promise.all(
-    events.map(async (event) => ({
+    visibleEvents.map(async (event) => ({
       ...event,
       imageSrc: await resolveEventImage(event.image),
     })),

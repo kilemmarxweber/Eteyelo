@@ -1,8 +1,8 @@
 import { extractBulletinBranchLogo } from "@/lib/bulletin-context";
 import { branchDocumentName } from "@/lib/branch-document-name";
+import { resolveBranchUiLocale } from "@/lib/branch-locale";
 import { parsePdfFontSize } from "@/lib/reports/pdf-font-scale";
 import type { SchoolReportContext } from "@/lib/reports/types";
-import { resolvePreferredLocale } from "@/lib/resolve-preferred-locale";
 import type { UserLocale } from "@/lib/user-locale";
 
 export type SchoolBrandingBranchRecord = {
@@ -17,6 +17,8 @@ export type SchoolBrandingBranchRecord = {
   pays?: string | null;
   tel?: string | null;
   image?: unknown;
+  educationSystem?: string | null;
+  locale?: string | null;
   organization: {
     id?: string;
     name: string;
@@ -129,12 +131,17 @@ export function buildSchoolReportContext(
   };
 }
 
-/** Ajoute la langue utilisateur (cookie / session) pour les libellés PDF / Excel. */
+/** Langue des libellés PDF / Excel : option explicite, sinon locale de la branche. */
 export async function buildLocalizedSchoolReportContext(
   branch: SchoolBrandingBranchRecord,
   options: BuildSchoolReportContextOptions = {},
 ): Promise<SchoolReportContext> {
-  const locale = options.locale ?? (await resolvePreferredLocale());
+  const locale =
+    options.locale ??
+    resolveBranchUiLocale({
+      locale: branch.locale,
+      educationSystem: branch.educationSystem,
+    });
   return buildSchoolReportContext(branch, { ...options, locale });
 }
 
@@ -151,6 +158,8 @@ export const schoolReportBranchSelect = {
   pays: true,
   tel: true,
   image: true,
+  educationSystem: true,
+  locale: true,
   organization: { select: { id: true, name: true, logo: true, pdfFontSize: true } },
   schoolYear: {
     where: { isCurrentYear: true, isArchived: false },

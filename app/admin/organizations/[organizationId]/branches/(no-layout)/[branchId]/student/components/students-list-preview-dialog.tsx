@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Download, Users } from "lucide-react";
+import { FileSpreadsheet, FileText, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +17,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { IStudent } from "@/src/interfaces/Student";
+import { calculateAge } from "@/lib/person-age";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
+import { exportStudentsReportExcel } from "./export-students-excel";
 import {
   buildStudentsReportFilterLabels,
   buildStudentsReportTitle,
@@ -43,10 +45,13 @@ export function StudentsListPreviewDialog({
   context,
   options = {},
 }: StudentsListPreviewDialogProps) {
-  const [downloading, setDownloading] = React.useState(false);
+  const [exporting, setExporting] = React.useState<"pdf" | "excel" | null>(
+    null,
+  );
   const locale = useLocale();
   const peopleLabels = useBranchPeopleLabels();
   const tPdf = useTranslations("users.students.pdf");
+  const tTable = useTranslations("users.students.table");
 
   const pdfLabels: StudentPdfLabels = React.useMemo(
     () => ({
@@ -111,23 +116,36 @@ export function StudentsListPreviewDialog({
       }).format(new Date(context.generatedAt))
     : null;
 
-  const handleDownloadPdf = async () => {
+  const handleExport = async (kind: "pdf" | "excel") => {
     if (!context) return;
-    setDownloading(true);
+    setExporting(kind);
     try {
-      await exportStudentsReportPdf(sortedStudents, context, reportOptions);
-      toast.success(
-        tPdf("generated", {
-          studentsLower: peopleLabels.studentPluralLower,
-        }),
-      );
+      if (kind === "excel") {
+        await exportStudentsReportExcel(sortedStudents, context, reportOptions);
+        toast.success(
+          tPdf("generatedExcel", {
+            studentsLower: peopleLabels.studentPluralLower,
+          }),
+        );
+      } else {
+        await exportStudentsReportPdf(sortedStudents, context, reportOptions);
+        toast.success(
+          tPdf("generated", {
+            studentsLower: peopleLabels.studentPluralLower,
+          }),
+        );
+      }
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error ? error.message : tPdf("generateFailed"),
+        error instanceof Error
+          ? error.message
+          : kind === "excel"
+            ? tPdf("generateExcelFailed")
+            : tPdf("generateFailed"),
       );
     } finally {
-      setDownloading(false);
+      setExporting(null);
     }
   };
 
@@ -162,6 +180,7 @@ export function StudentsListPreviewDialog({
               address: context.address,
               logoUrl: context.logoUrl,
               academicYearLabel: context.academicYearLabel,
+              locale,
             }
           : undefined
       }
@@ -171,14 +190,30 @@ export function StudentsListPreviewDialog({
       size="xl"
       paper="a4"
       actions={
-        <Button
-          type="button"
-          onClick={handleDownloadPdf}
-          disabled={!context || !sortedStudents.length || downloading}
-        >
-          <Download data-icon="inline-start" />
-          {downloading ? tPdf("generating") : tPdf("downloadPdf")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            title={tTable("exportPdf")}
+            aria-label={tTable("exportPdf")}
+            onClick={() => void handleExport("pdf")}
+            disabled={!context || !sortedStudents.length || exporting !== null}
+          >
+            <FileText className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            title={tTable("exportExcel")}
+            aria-label={tTable("exportExcel")}
+            onClick={() => void handleExport("excel")}
+            disabled={!context || !sortedStudents.length || exporting !== null}
+          >
+            <FileSpreadsheet className="size-4" />
+          </Button>
+        </div>
       }
     >
       {sortedStudents.length === 0 ? (
@@ -214,6 +249,9 @@ export function StudentsListPreviewDialog({
                 <TableHead className="w-16 text-center text-primary-foreground">
                   {tPdf("colGender")}
                 </TableHead>
+                <TableHead className="w-16 text-center text-primary-foreground">
+                  {tPdf("colAge")}
+                </TableHead>
                 {!isClassReport ? (
                   <TableHead className="text-primary-foreground">
                     {tPdf("colClass")}
@@ -222,30 +260,36 @@ export function StudentsListPreviewDialog({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedStudents.map((student, index) => (
-                <TableRow
-                  key={student.id ?? `${student.username}-${index}`}
-                  className="odd:bg-muted/40"
-                >
-                  <TableCell className="text-center text-muted-foreground">
-                    {index + 1}
-                  </TableCell>
-                  <TableCell className="font-medium tabular-nums">
-                    {student.username || "-"}
-                  </TableCell>
-                  <TableCell>{student.nom || "-"}</TableCell>
-                  <TableCell>{student.postnom || "-"}</TableCell>
-                  <TableCell>{student.prenom || "-"}</TableCell>
-                  <TableCell className="text-center">
-                    {student.sexe || "-"}
-                  </TableCell>
-                  {!isClassReport ? (
-                    <TableCell>
-                      {student.className || tPdf("unassigned")}
+              {sortedStudents.map((student, index) => {
+                const ageYears = calculateAge(student.dateOfBirth);
+                return (
+                  <TableRow
+                    key={student.id ?? `${student.username}-${index}`}
+                    className="odd:bg-muted/40"
+                  >
+                    <TableCell className="text-center text-muted-foreground">
+                      {index + 1}
                     </TableCell>
-                  ) : null}
-                </TableRow>
-              ))}
+                    <TableCell className="font-medium tabular-nums">
+                      {student.username || "-"}
+                    </TableCell>
+                    <TableCell>{student.nom || "-"}</TableCell>
+                    <TableCell>{student.postnom || "-"}</TableCell>
+                    <TableCell>{student.prenom || "-"}</TableCell>
+                    <TableCell className="text-center">
+                      {student.sexe || "-"}
+                    </TableCell>
+                    <TableCell className="text-center tabular-nums">
+                      {ageYears === null ? "-" : String(ageYears)}
+                    </TableCell>
+                    {!isClassReport ? (
+                      <TableCell>
+                        {student.className || tPdf("unassigned")}
+                      </TableCell>
+                    ) : null}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

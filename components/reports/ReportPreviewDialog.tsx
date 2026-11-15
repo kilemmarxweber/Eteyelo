@@ -23,7 +23,7 @@ export type ReportPreviewDialogProps = {
   /** Contexte branding affiché en tête de l'aperçu. */
   branding?: Pick<
     SchoolReportContext,
-    "schoolName" | "address" | "logoUrl" | "academicYearLabel"
+    "schoolName" | "address" | "logoUrl" | "academicYearLabel" | "locale"
   >;
   /** Titre du document dans l'aperçu (sous le branding). */
   documentTitle?: string;

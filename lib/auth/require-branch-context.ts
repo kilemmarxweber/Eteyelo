@@ -46,6 +46,9 @@ export async function requireBranchContext(
   const sessionEducationSystem = (
     session.branch as { educationSystem?: string } | null | undefined
   )?.educationSystem;
+  const sessionLocale = (
+    session.branch as { locale?: string | null } | null | undefined
+  )?.locale;
   const sessionCycles = (
     session.branch as { cycles?: Array<{ cycle: string; isActive?: boolean; sortOrder?: number }> } | null | undefined
   )?.cycles;
@@ -73,6 +76,7 @@ export async function requireBranchContext(
       branchId,
       typebranch: session.branch.typebranch,
       educationSystem: sessionEducationSystem,
+      locale: sessionLocale ?? null,
       cycles,
       session,
     };
@@ -87,6 +91,7 @@ export async function requireBranchContext(
       id: true,
       typebranch: true,
       educationSystem: true,
+      locale: true,
       cycles: {
         where: { isActive: true },
         orderBy: { sortOrder: "asc" },
@@ -105,6 +110,7 @@ export async function requireBranchContext(
     branchId,
     typebranch: branch.typebranch,
     educationSystem: branch.educationSystem,
+    locale: branch.locale ?? null,
     cycles: getBranchCycles(branch),
     session,
   };

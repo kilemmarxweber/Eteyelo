@@ -8941,6 +8941,7 @@ export const BranchScalarFieldEnum = {
   organizationId: 'organizationId',
   typebranch: 'typebranch',
   educationSystem: 'educationSystem',
+  locale: 'locale',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
