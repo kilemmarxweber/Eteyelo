@@ -16,6 +16,7 @@ import {
   nowLocal,
   scheduleHourToMinutes,
   startOfTodayParis,
+  TEACHER_CHECK_IN_MINUTES_BEFORE,
   TEACHER_COURSE_DURATION_MINUTES,
   toMinutes,
 } from "@/lib/timezone";
@@ -745,6 +746,89 @@ export async function isTeacherNormalCheckoutAllowed(
   if (!last) return true;
   const duration = await getBranchCourseDurationMinutes(branchId);
   return toMinutes(now) >= last.startMinutes + duration;
+}
+
+/**
+ * Pointage d'arrivée vacation (primaire / day-level) :
+ * ouvert 15 min avant le début du créneau, jusqu'à la fin de vacation.
+ * Avant la fenêtre → fermé (bouton grisé, pas absent).
+ */
+export async function isTeacherDayArrivalOpen(
+  teacherId: string,
+  branchId: string,
+  now = nowLocal(),
+) {
+  const context = await getTeacherDayPunchContext(teacherId, branchId, now);
+  if (!context.usesDayLevel) return false;
+  if (await isBranchClosedOn(branchId, now, "teachers")) return false;
+
+  const currentMinutes = toMinutes(now);
+
+  if (context.creneau) {
+    if (isAtOrAfterCreneauEnd(context.creneau, now)) return false;
+    const startMinutes = scheduleHourToMinutes(
+      creneauStartTimeDate(context.creneau, now),
+    );
+    return currentMinutes >= startMinutes - TEACHER_CHECK_IN_MINUTES_BEFORE;
+  }
+
+  if (!context.firstSchedule) return false;
+  const duration = await getBranchCourseDurationMinutes(branchId);
+  const startMinutes = context.firstSchedule.startMinutes;
+  if (currentMinutes >= startMinutes + duration) return false;
+  return currentMinutes >= startMinutes - TEACHER_CHECK_IN_MINUTES_BEFORE;
+}
+
+/** True si une vacation / séance du jour existe mais n'est pas encore ouverte au pointage. */
+export async function isTeacherArrivalPending(
+  teacherId: string,
+  branchId: string,
+  now = nowLocal(),
+) {
+  if (await isTeacherNormalCheckoutAllowed(teacherId, branchId, now)) {
+    return false;
+  }
+
+  const context = await getTeacherDayPunchContext(teacherId, branchId, now);
+  if (context.usesDayLevel) {
+    if (await isTeacherDayArrivalOpen(teacherId, branchId, now)) return false;
+    if (context.creneau) {
+      const startMinutes = scheduleHourToMinutes(
+        creneauStartTimeDate(context.creneau, now),
+      );
+      return toMinutes(now) < startMinutes - TEACHER_CHECK_IN_MINUTES_BEFORE;
+    }
+    if (context.firstSchedule) {
+      return (
+        toMinutes(now) <
+        context.firstSchedule.startMinutes - TEACHER_CHECK_IN_MINUTES_BEFORE
+      );
+    }
+    return false;
+  }
+
+  const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
+  const daySchedules = await listTeacherDaySchedules(teacherId, branchId, now);
+  const blocks = groupConsecutiveScheduleBlocks(
+    daySchedules,
+    courseDurationMinutes,
+  );
+  if (!blocks.length) return false;
+
+  const currentMinutes = toMinutes(now);
+  const openNow = blocks.some((block) =>
+    isTeacherCheckInWindow(
+      currentMinutes,
+      block.startMinutes,
+      block.durationMinutes,
+    ),
+  );
+  if (openNow) return false;
+
+  return blocks.some(
+    (block) =>
+      currentMinutes < block.startMinutes - TEACHER_CHECK_IN_MINUTES_BEFORE,
+  );
 }
 
 export async function getTeacherDayCreneauEnd(

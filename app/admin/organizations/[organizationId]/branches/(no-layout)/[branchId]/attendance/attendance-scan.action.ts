@@ -42,6 +42,8 @@ import {
   getTeacherDayPeriodEnd,
   getTeacherDayPointageLabel,
   getTeacherPointageStart,
+  isTeacherArrivalPending,
+  isTeacherDayArrivalOpen,
   isTeacherNormalCheckoutAllowed,
   listTeacherScheduleCandidates,
   teacherUsesDayLevelPunch,
@@ -1079,14 +1081,38 @@ async function performTeacherCheckIn(
     };
   }
 
+  if (dayLevel && !(await isTeacherDayArrivalOpen(teacher.id, branchId))) {
+    return {
+      ok: false,
+      message: `${lookup.name} : Pointage pas encore ouvert`,
+      personType: "teacher",
+      person: { ...lookup, canCheckIn: false },
+    };
+  }
+
+  if (
+    !dayLevel &&
+    (await isTeacherArrivalPending(teacher.id, branchId))
+  ) {
+    return {
+      ok: false,
+      message: `${lookup.name} : Pointage pas encore ouvert`,
+      personType: "teacher",
+      person: { ...lookup, canCheckIn: false },
+    };
+  }
+
   const attendanceSession = await findSessionForTeacher(teacher.id, branchId);
 
   if (!attendanceSession) {
+    const pending = await isTeacherArrivalPending(teacher.id, branchId);
     return {
       ok: false,
-      message: `${lookup.name} : Absent`,
+      message: pending
+        ? `${lookup.name} : Pointage pas encore ouvert`
+        : `${lookup.name} : Absent`,
       personType: "teacher",
-      person: lookup,
+      person: { ...lookup, canCheckIn: false },
     };
   }
 
@@ -1513,6 +1539,10 @@ export async function searchPeopleForCheckInAction(
           branchId,
           state.canCheckOut ? "departure" : "arrival",
         );
+        const arrivalOpen = await isTeacherDayArrivalOpen(
+          teacher.id,
+          branchId,
+        );
         return withPeriodPunchState(
           {
             ...mapTeacherLookup(teacher),
@@ -1522,7 +1552,7 @@ export async function searchPeopleForCheckInAction(
           {
             periodEnd,
             periodEnded,
-            arrivalOpen: !periodEnded,
+            arrivalOpen,
           },
         );
       }
@@ -2197,6 +2227,10 @@ export async function getQuickCheckInBootstrapAction(): Promise<AttendanceQuickC
               branchId,
               state.canCheckOut ? "departure" : "arrival",
             );
+            const arrivalOpen = await isTeacherDayArrivalOpen(
+              teacherId,
+              branchId,
+            );
             return withPeriodPunchState(
               {
                 ...mapTeacherLookup(row.teacher),
@@ -2206,7 +2240,7 @@ export async function getQuickCheckInBootstrapAction(): Promise<AttendanceQuickC
               {
                 periodEnd,
                 periodEnded,
-                arrivalOpen: inWindow || (!periodEnded && !state.alreadyCheckedIn),
+                arrivalOpen,
               },
             );
           }

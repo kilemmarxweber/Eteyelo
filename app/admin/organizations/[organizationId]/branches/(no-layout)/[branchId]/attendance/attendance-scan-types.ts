@@ -10,7 +10,7 @@ export type AttendancePersonLookup = {
   image?: string | null;
   alreadyCheckedIn?: boolean;
   canCheckOut?: boolean;
-  /** False = pas de session du jour, le bouton Pointer est désactivé. */
+  /** False = fenêtre de pointage fermée (trop tôt ou pas de séance) → bouton grisé. Absent seulement après periodEndAt. */
   canCheckIn?: boolean;
   /** True = avant la fin du créneau, seule une sortie anticipée est possible. */
   requiresEarlyExit?: boolean;

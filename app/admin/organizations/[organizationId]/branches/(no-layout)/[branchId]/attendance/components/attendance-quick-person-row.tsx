@@ -75,8 +75,9 @@ export function AttendanceQuickPersonRow({
     person.requiresEarlyExit !== false && canLeave && !ended;
   const canPointer =
     person.canCheckIn !== false && !person.alreadyCheckedIn && !ended;
-  const markedAbsent =
-    !person.alreadyCheckedIn && (ended || person.canCheckIn === false);
+  // Absent seulement après la fin de vacation / séance.
+  // Avant l'ouverture (ex. 15 min avant) : bouton grisé, pas « Absent ».
+  const markedAbsent = !person.alreadyCheckedIn && ended;
   const arrival = formatArrival(person.checkInAt);
   const actionLabel = canLeave
     ? requiresEarlyExit
